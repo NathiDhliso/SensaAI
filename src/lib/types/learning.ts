@@ -13,6 +13,23 @@ export interface ConceptLifecycle {
   phase3: LifecyclePhase;
 }
 
+/**
+ * Mnemonic context for Memory Palace integration.
+ * Enables spatial learning through tier-scaled visual anchors.
+ */
+export interface MnemonicContext {
+  /** Concrete object + emoji (e.g., "Volcano 🌋") */
+  anchor: string;
+  /** Bizarre story linking anchor to concept function */
+  story: string;
+  /** Determines visual scale: Foundation=largest, Utility=smallest */
+  tier: 'Foundation' | 'Keystone' | 'Utility';
+  /** Parent concept name (from LLM, pre-resolution) */
+  parentName?: string;
+  /** Resolved parent concept ID (set by parser) */
+  parentId?: string;
+}
+
 export interface LearningConcept {
   id: string;
   stageId: string;
@@ -30,6 +47,8 @@ export interface LearningConcept {
   actionButtonText: string;
   lifecycle?: ConceptLifecycle;
   logicalConnection?: string;
+  /** Memory Palace mnemonic context */
+  mnemonic?: MnemonicContext;
 }
 
 export interface LearningStage {

@@ -23,6 +23,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -129,4 +130,130 @@
 .detailsButton:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-glow-primary);
+}
+
+/* Mnemonic Story-First UI Styles */
+.anchorHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.anchorEmoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.anchorTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin: 0;
+  flex: 1;
+}
+
+.tierBadge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.tierBadge[data-tier="Foundation"] {
+  background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+  color: #eff6ff;
+}
+
+.tierBadge[data-tier="Keystone"] {
+  background: linear-gradient(135deg, var(--color-secondary-amber), var(--color-accent-alt));
+  color: white;
+}
+
+.tierBadge[data-tier="Utility"] {
+  background: linear-gradient(135deg, #4b5563, #6b7280);
+  color: #f9fafb;
+}
+
+.storyBlock {
+  background: var(--color-surface-subtle);
+  border-left: 3px solid var(--color-primary-amethyst);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 1rem;
+  margin: 0 0 1rem 0;
+  font-style: italic;
+  color: var(--color-text-medium);
+  line-height: 1.6;
+}
+
+.storyBlock p {
+  margin: 0;
+}
+
+.blurredSection {
+  text-align: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.blurredText {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  filter: blur(6px);
+  user-select: none;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: var(--color-surface-subtle);
+  border-radius: 0.5rem;
+}
+
+.revealButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, var(--color-primary-amethyst), var(--color-accent));
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.revealButton:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-glow-primary-hover);
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+  }
+}
+
+.revealedBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.revealedBanner .anchorEmoji {
+  font-size: 1.25rem;
 }

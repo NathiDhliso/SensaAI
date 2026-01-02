@@ -1,3 +1,14 @@
+/**
+ * Parsed mnemonic context for Memory Palace
+ */
+export interface ParsedMnemonic {
+  tier: 'Foundation' | 'Keystone' | 'Utility';
+  anchor: string;      // e.g., "Volcano 🌋"
+  story: string;       // Bizarre scene linking anchor to concept
+  parentName?: string; // Parent concept name (pre-resolution)
+  parentId?: string;   // Resolved parent ID
+}
+
 export interface ParsedConcept {
   id: string;
   name: string;
@@ -25,6 +36,8 @@ export interface ParsedConcept {
     patternRecognition: { question: string; answer: string };
     eliminationLogic: string;
   };
+  // Memory Palace mnemonic context
+  mnemonic?: ParsedMnemonic;
   criticalDistinctions: string[];
   designBoundaries: string[];
   examFocus: string[];

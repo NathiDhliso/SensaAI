@@ -3,6 +3,8 @@
  * For spatial learning using Street View locations
  */
 
+import type { MnemonicContext } from './learning';
+
 export interface MemoryPalace {
     id: string;
     subjectId: string;
@@ -60,6 +62,8 @@ export interface PlacedConcept {
         phase3: string[];
     };
     mastery: number;
+    /** Memory Palace mnemonic context */
+    mnemonic?: MnemonicContext;
 }
 
 export interface PalaceProgress {

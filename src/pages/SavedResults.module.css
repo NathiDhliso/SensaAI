@@ -451,6 +451,7 @@
 }
 
 .downloadButton,
+.backupButton,
 .deleteButton {
   display: inline-flex;
   align-items: center;
@@ -468,6 +469,11 @@
 .downloadButton:hover {
   background: var(--color-border);
   color: var(--color-accent-light);
+}
+
+.backupButton:hover {
+  background: var(--color-border);
+  color: var(--color-secondary-amber);
 }
 
 .deleteButton:hover:not(:disabled) {

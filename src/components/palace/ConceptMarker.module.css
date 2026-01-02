@@ -98,6 +98,7 @@
     opacity: 0;
     transform: translateX(-50%) translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -137,6 +138,49 @@
 }
 
 @keyframes editPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(139, 92, 246, 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+  }
+}
+
+/* Tier-based marker styles for Memory Palace */
+.markerFoundation .markerPin {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+  box-shadow: 0 4px 16px rgba(30, 58, 95, 0.4);
+}
+
+.markerKeystone .markerPin {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--color-secondary-amber), var(--color-accent-alt));
+}
+
+.markerUtility .markerPin {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #4b5563, #6b7280);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Emoji display style for mnemonic anchors */
+.markerEmoji {
+  font-size: 1.25rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.markerFoundation .markerEmoji {
+  font-size: 1.5rem;
+}
+
+.markerUtility .markerEmoji {
+  font-size: 0.875rem;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, Download, BookOpen, Cloud, HardDrive, Upload, Search, Eye, X, Sparkles, Target, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Trash2, Download, BookOpen, Cloud, HardDrive, Upload, Search, Eye, X, Sparkles, Target, GraduationCap, FileJson } from 'lucide-react';
 import { storageManager, importFromFile } from '@/lib/storage';
 import { localFileStorage } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
@@ -51,8 +51,12 @@ export default function SavedResults() {
     }
   };
 
-  const handleDownload = (result: SavedResult) => {
+  const handleDownloadText = (result: SavedResult) => {
     localFileStorage.downloadTextFile(result);
+  };
+
+  const handleDownloadBackup = (result: SavedResult) => {
+    localFileStorage.downloadAsJSON(result);
   };
 
   const handlePreviewLearning = (result: SavedResult) => {
@@ -321,11 +325,18 @@ export default function SavedResults() {
                     Learn
                   </button>
                   <button
-                    onClick={() => handleDownload(result)}
+                    onClick={() => handleDownloadText(result)}
                     className={styles.downloadButton}
-                    title="Download"
+                    title="Download as text file"
                   >
                     <Download size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDownloadBackup(result)}
+                    className={styles.backupButton}
+                    title="Download backup (JSON) - can be re-imported later"
+                  >
+                    <FileJson size={16} />
                   </button>
                   <button
                     onClick={() => handleDelete(result.id)}

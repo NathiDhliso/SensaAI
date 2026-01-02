@@ -1,5 +1,6 @@
 import { normalizeHeading } from './street-view-loader';
 import type { PlacedConcept, PlacementSlot } from '../types/palace';
+import type { MnemonicContext } from '../types/learning';
 
 export interface MarkerPosition {
   conceptId: string;
@@ -20,6 +21,8 @@ export interface MarkerPosition {
     phase2: string;
     phase3: string;
   };
+  /** Memory Palace mnemonic context for tier-scaled rendering */
+  mnemonic?: MnemonicContext;
 }
 
 export interface PositionConfig {
@@ -41,18 +44,18 @@ export function calculateMarkerPositions(
 
   return placements.map((concept, index) => {
     const slot = slots.find(s => s.id === concept.slotId);
-    
+
     const slotHeadingOffset = slot?.headingOffset ?? (index * 30 - 60);
     const slotPitch = slot?.pitch ?? 0;
-    
+
     const absoluteHeading = normalizeHeading(buildingHeading + slotHeadingOffset);
     const relativeHeading = normalizeHeading(absoluteHeading - currentHeading);
     const adjustedHeading = relativeHeading > 180 ? relativeHeading - 360 : relativeHeading;
-    
+
     const visible = Math.abs(adjustedHeading) <= halfFov + 20;
-    
+
     const x = ((adjustedHeading + halfFov) / fov) * containerWidth;
-    
+
     const pitchDiff = slotPitch - currentPitch;
     const y = (containerHeight / 2) - (pitchDiff / 45) * (containerHeight / 2);
 
@@ -66,6 +69,7 @@ export function calculateMarkerPositions(
       visible,
       lifecycle: concept.lifecycle,
       slotLocation: slot?.location,
+      mnemonic: concept.mnemonic,
     };
   });
 }

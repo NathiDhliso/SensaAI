@@ -7,6 +7,7 @@ import type {
   ParsedStage,
   ParsedAcronym,
   ParsedConfusionPair,
+  ParsedMnemonic,
 } from './types';
 
 export type ParseResult =
@@ -222,6 +223,9 @@ function parseConceptBlock(block: string, order: number, stageId: string, lifecy
   // Extract SHAPE sections
   const shapeSections = parseShapeSections(block);
 
+  // Extract mnemonic context for Memory Palace
+  const mnemonic = parseMnemonic(block);
+
   return {
     id,
     name,
@@ -242,10 +246,63 @@ function parseConceptBlock(block: string, order: number, stageId: string, lifecy
       thresholds: thresholdMatch?.[1]?.trim() || '',
     },
     shape: shapeSections,
+    mnemonic,
     criticalDistinctions,
     designBoundaries,
     examFocus,
   };
+}
+
+/**
+ * Parse mnemonic context from concept block for Memory Palace integration.
+ * Supports both JSON format and text-based format.
+ */
+function parseMnemonic(block: string): ParsedMnemonic | undefined {
+  // Try JSON format first (preferred)
+  const jsonMatch = block.match(/"mnemonic"\s*:\s*\{([^}]+)\}/i) ||
+    block.match(/```json\s*\n?\s*\{\s*"mnemonic"\s*:\s*\{([^}]+)\}/i);
+
+  if (jsonMatch) {
+    try {
+      // Reconstruct and parse the mnemonic object
+      const jsonStr = `{${jsonMatch[1]}}`;
+      const parsed = JSON.parse(jsonStr);
+
+      const tier = parsed.tier as 'Foundation' | 'Keystone' | 'Utility';
+      if (!['Foundation', 'Keystone', 'Utility'].includes(tier)) {
+        return undefined;
+      }
+
+      return {
+        tier,
+        anchor: parsed.anchor || '',
+        story: parsed.story || '',
+        parentName: parsed.parentConcept || parsed.parentName || undefined,
+      };
+    } catch {
+      // Fall through to text-based parsing
+    }
+  }
+
+  // Text-based fallback parsing
+  const tierMatch = block.match(/(?:\*\*)?Tier(?:\*\*)?:\s*(Foundation|Keystone|Utility)/i);
+  const anchorMatch = block.match(/(?:\*\*)?Anchor(?:\*\*)?:\s*(.+?)(?=\n|$)/i);
+  const storyMatch = block.match(/(?:\*\*)?Story(?:\*\*)?:\s*(.+?)(?=\n(?:\*\*)?(?:Parent|Tier)|$)/is);
+  const parentMatch = block.match(/(?:\*\*)?Parent(?:Concept)?(?:\*\*)?:\s*(.+?)(?=\n|$)/i);
+
+  if (tierMatch && anchorMatch) {
+    const tier = tierMatch[1] as 'Foundation' | 'Keystone' | 'Utility';
+    return {
+      tier,
+      anchor: anchorMatch[1].trim(),
+      story: storyMatch?.[1]?.trim() || '',
+      parentName: parentMatch?.[1]?.trim() === 'None' || parentMatch?.[1]?.trim() === 'null'
+        ? undefined
+        : parentMatch?.[1]?.trim(),
+    };
+  }
+
+  return undefined;
 }
 
 /**
@@ -255,19 +312,19 @@ function parseShapeSections(block: string): ParsedConcept['shape'] | undefined {
   // S - Simple Core
   const simpleCoreMatch = block.match(/###?\s*S\s*[-–—]\s*Simple Core\s*\n([\s\S]*?)(?=###?\s*H\s*[-–—]|$)/i) ||
     block.match(/\*\*S\s*[-–—]\s*Simple Core\*\*[:\s]*([\s\S]*?)(?=\*\*H|###|$)/i);
-  
+
   // H - High-Stakes Example
   const highStakesMatch = block.match(/###?\s*H\s*[-–—]\s*High-Stakes Example\s*\n([\s\S]*?)(?=###?\s*A\s*[-–—]|$)/i) ||
     block.match(/\*\*H\s*[-–—]\s*High-Stakes Example\*\*[:\s]*([\s\S]*?)(?=\*\*A|###|$)/i);
-  
+
   // A - Analogical Model
   const analogicalMatch = block.match(/###?\s*A\s*[-–—]\s*Analogical Model\s*\n([\s\S]*?)(?=###?\s*P\s*[-–—]|$)/i) ||
     block.match(/\*\*A\s*[-–—]\s*Analogical Model\*\*[:\s]*([\s\S]*?)(?=\*\*P|###|$)/i);
-  
+
   // P - Pattern Recognition
   const patternMatch = block.match(/###?\s*P\s*[-–—]\s*Pattern Recognition\s*\n([\s\S]*?)(?=###?\s*E\s*[-–—]|$)/i) ||
     block.match(/\*\*P\s*[-–—]\s*Pattern Recognition\*\*[:\s]*([\s\S]*?)(?=\*\*E|###|$)/i);
-  
+
   // E - Elimination Logic
   const eliminationMatch = block.match(/###?\s*E\s*[-–—]\s*Elimination Logic\s*\n([\s\S]*?)(?=###|---|$)/i) ||
     block.match(/\*\*E\s*[-–—]\s*Elimination Logic\*\*[:\s]*([\s\S]*?)(?=###|---|$)/i);
@@ -314,11 +371,24 @@ function parseConcepts(content: string, lifecycle: LifecyclePhases): ParsedConce
   const concepts: ParsedConcept[] = [];
   let order = 1;
 
+  // Pass 1: Parse all concepts
   for (const block of conceptBlocks) {
     const concept = parseConceptBlock(block, order, 'stage-1', lifecycle);
     if (concept) {
       concepts.push(concept);
       order++;
+    }
+  }
+
+  // Pass 2: Resolve mnemonic parentName -> parentId
+  const nameToIdMap = new Map(concepts.map(c => [c.name.toLowerCase(), c.id]));
+
+  for (const concept of concepts) {
+    if (concept.mnemonic?.parentName) {
+      const parentId = nameToIdMap.get(concept.mnemonic.parentName.toLowerCase());
+      if (parentId) {
+        concept.mnemonic.parentId = parentId;
+      }
     }
   }
 
@@ -351,7 +421,7 @@ function parseLearningPath(content: string): ParsedLearningPath {
 
     const conceptNames: string[] = [];
     const conceptsWithDifficulty: { name: string; difficulty: 'foundational' | 'intermediate' | 'advanced' }[] = [];
-    
+
     if (conceptsMatch) {
       // Parse concepts with difficulty markers (🟢🟡🔴)
       const conceptLines = conceptsMatch[1].split(/\n|,/).map(c => c.trim()).filter(Boolean);
@@ -359,7 +429,7 @@ function parseLearningPath(content: string): ParsedLearningPath {
         // Check for emoji difficulty markers
         let difficulty: 'foundational' | 'intermediate' | 'advanced' = 'intermediate';
         let name = line;
-        
+
         if (line.includes('🟢') || line.toLowerCase().includes('foundational')) {
           difficulty = 'foundational';
           name = line.replace(/🟢/g, '').replace(/[-–]\s*foundational.*/i, '').trim();
@@ -370,10 +440,10 @@ function parseLearningPath(content: string): ParsedLearningPath {
           difficulty = 'intermediate';
           name = line.replace(/🟡/g, '').replace(/[-–]\s*intermediate.*/i, '').trim();
         }
-        
+
         // Clean brackets and extra markers
         name = name.replace(/^\[|\]$/g, '').replace(/[()]/g, '').trim();
-        
+
         if (name) {
           conceptNames.push(name);
           conceptsWithDifficulty.push({ name, difficulty });
@@ -446,7 +516,7 @@ function parseMentalAnchors(content: string): ParsedMentalAnchor[] {
     // Extract Binary Decision Rule
     const binaryRuleMatch = anchorContent.match(/\*\*Binary Decision Rule[^*]*:\*\*\s*([\s\S]+?)(?=\*\*Why|\*\*Memory|###|$)/i) ||
       anchorContent.match(/If\s+\[?([^\]]+)\]?,\s*YES\s*[→→-]+\s*(.+?)(?=\.\s*Otherwise|$)/i);
-    const binaryDecisionRule = binaryRuleMatch?.[0]?.includes('If') 
+    const binaryDecisionRule = binaryRuleMatch?.[0]?.includes('If')
       ? binaryRuleMatch[0].trim()
       : binaryRuleMatch?.[1]?.trim();
 
@@ -468,11 +538,11 @@ function parseMentalAnchors(content: string): ParsedMentalAnchor[] {
  */
 function parseConfusionPairs(content: string): ParsedConfusionPair[] {
   const pairs: ParsedConfusionPair[] = [];
-  
+
   // Look for the confusion pairs JSON block
   const jsonMatch = content.match(/```json\s*\n?\s*\{\s*"confusionPairs"\s*:\s*(\[[\s\S]*?\])\s*\}\s*\n?```/i) ||
     content.match(/"confusionPairs"\s*:\s*(\[[\s\S]*?\])/i);
-  
+
   if (jsonMatch) {
     try {
       const pairsArray = JSON.parse(jsonMatch[1]);
@@ -503,7 +573,7 @@ function parseConfusionPairs(content: string): ParsedConfusionPair[] {
       }
     }
   }
-  
+
   return pairs;
 }
 

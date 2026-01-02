@@ -10,11 +10,11 @@ export class LocalFileStorage implements StorageProvider {
       
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updatedResults));
       
-      this.downloadAsFile(result);
+      // NOTE: Removed auto-download behavior - files are now downloaded only when user explicitly clicks download
       
       return { 
         success: true, 
-        path: `${result.subject.replace(/[^a-z0-9]/gi, '_')}_${result.id}.json` 
+        path: `localStorage://${this.STORAGE_KEY}/${result.id}` 
       };
     } catch (error) {
       return { 
@@ -54,7 +54,10 @@ export class LocalFileStorage implements StorageProvider {
     }
   }
 
-  private downloadAsFile(result: SavedResult): void {
+  /**
+   * Download result as JSON file - called explicitly by user
+   */
+  downloadAsJSON(result: SavedResult): void {
     const dataStr = JSON.stringify(result, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -67,6 +70,9 @@ export class LocalFileStorage implements StorageProvider {
     URL.revokeObjectURL(url);
   }
 
+  /**
+   * Download result as plain text file - called explicitly by user
+   */
   downloadTextFile(result: SavedResult): void {
     const blob = new Blob([result.fullDocument], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);

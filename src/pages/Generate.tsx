@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, Circle, Loader2, ArrowLeft, AlertTriangle, RefreshCw, Eye } from 'lucide-react';
+import { CheckCircle2, Circle, Loader2, ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
 import { generateChartIteratively } from '@/lib/generation/multi-pass-generator';
 import { useGenerationStore } from '@/store/generation-store';
 import { PASS_NAMES } from '@/constants/ui-constants';
@@ -167,9 +167,6 @@ export default function Generate() {
         }
       });
   }, [bedrockConfig, createProgressCallback, startGeneration, addRecentSubject, completeGeneration, clearCheckpoint, setError, navigate]);
-
-  // Check if we can preview early (after Pass 2 completes with concepts)
-  const canPreviewEarly = passes[1] === 'complete' && passes[2] === 'complete' && pass1Data?.concepts?.length;
 
   useEffect(() => {
     if (!subject || !bedrockConfig || hasStartedRef.current) return;
@@ -470,22 +467,6 @@ export default function Generate() {
           )}
 
           <div className={styles.actions}>
-            {/* Preview Now button - available after Pass 2 completes */}
-            {canPreviewEarly && isGenerating && (
-              <button
-                onClick={() => {
-                  // Save current partial progress and navigate to results
-                  const partialId = `${Date.now()}-partial`;
-                  resultIdRef.current = partialId;
-                  navigate(`/results/${partialId}`);
-                }}
-                className={styles.previewButton}
-                title="View current progress (generation continues in background)"
-              >
-                <Eye size={18} />
-                Preview Now
-              </button>
-            )}
             <button
               onClick={handleCancelClick}
               className={styles.cancelButton}

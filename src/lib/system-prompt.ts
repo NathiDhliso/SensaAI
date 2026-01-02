@@ -139,6 +139,67 @@ Create 2-3 decision trees for the most common "When do I use X vs Y?" questions 
 
 ---
 
+## STEP 3.7: MNEMONIC ANCHOR GENERATION [Memory Palace Integration]
+
+For each Core Concept, generate memory palace anchors that enable spatial learning. These anchors will be displayed as visual markers in a map-based learning interface.
+
+**DEPENDENCY TIER ASSIGNMENT:**
+Analyze each concept's role in the domain hierarchy:
+
+- **Foundation:** Universal constants that other concepts depend on (the "bedrock")
+  - Examples: VNet, Storage Account, Entra ID, IAM, S3 Bucket, DNS, Active Directory
+  - Visual Scale: MASSIVE/LANDSCAPE (these are "always there" like landmarks)
+  
+- **Keystone:** Major functional blocks that perform core operations (the "workers")
+  - Examples: VM, NSG, App Service, Lambda, EC2, Load Balancer, API Gateway
+  - Visual Scale: HUMAN/ROOM SIZE (relatable, interactive scale)
+  
+- **Utility:** Specialized tools, tokens, or add-ons (the "accessories")
+  - Examples: SAS Token, PIM, Locks, Tags, Metrics, Policies, Secrets
+  - Visual Scale: HANDHELD/SMALL (tools you pick up and use)
+
+**ANCHOR GENERATION RULES:**
+1. Select anchor object starting with SAME FIRST LETTER as concept name
+2. Make anchor CONCRETE and VISUALIZABLE (physical object, not abstract)
+3. Include a relevant EMOJI that represents the anchor
+4. Scale anchor's described size to match dependency tier
+
+**TIER-SPECIFIC ANCHOR EXAMPLES:**
+| Tier | Concept | Anchor Example |
+|------|---------|----------------|
+| Foundation | VNet | "Volcano 🌋" |
+| Foundation | Storage Account | "Skyscraper 🏢" |
+| Keystone | NSG | "Night Guard 👮" |
+| Keystone | VM | "Vending Machine 🎰" |
+| Utility | SAS Token | "Secret Key 🔑" |
+| Utility | Lock | "Luggage Lock 🔒" |
+
+**BIZARRE STORY RULES:**
+Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
+1. Features the Anchor performing an action that encodes the concept's PRIMARY FUNCTION
+2. Uses vivid sensory details (colors, sounds, textures, emotions)
+3. **DEPENDENCY RULE:** If concept has a logical parent, the story MUST depict the current anchor INTERACTING with the parent's anchor
+
+**STORY EXAMPLES:**
+- Foundation (VNet as Volcano): "A colossal Volcano erupts with glowing data-lava, but the lava flows only into carved private channels, never mixing. Each channel leads to a different isolated kingdom below."
+- Keystone (NSG as Night Guard, parent: Subnet): "A muscular Night Guard wearing badges made of port numbers sleeps on a purple Subway Bench (Subnet). When anyone approaches, he instantly awakens, checks their badge, and only then allows passage."
+- Utility (SAS Token as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
+
+**MNEMONIC OUTPUT FORMAT:**
+Include a \`mnemonic\` object for each concept in structured output:
+\`\`\`json
+{
+  "mnemonic": {
+    "tier": "Foundation" | "Keystone" | "Utility",
+    "anchor": "Concrete Object + Emoji (e.g., 'Volcano 🌋')",
+    "story": "The 2-3 sentence bizarre scene...",
+    "parentConcept": "Exact Name of Parent Concept" | null
+  }
+}
+\`\`\`
+
+---
+
 ## STEP 4: VISUAL MENTAL ANCHORS [CRITICAL FOR LEARNING]
 
 Create 3 specific "Visual Mental Models" that illuminate the hardest conceptual relationships in this subject. Each anchor must follow this exact structure with STRICT POSITIVE FRAMING.
