@@ -252,13 +252,27 @@ export default function PalaceView() {
                         pitch: 0,
                     });
                 } else {
+                    // Wait for container to have dimensions before initializing
+                    let retries = 0;
+                    const maxRetries = 10;
+                    while (retries < maxRetries) {
+                        const container = streetViewRef.current;
+                        if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
+                            break;
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        retries++;
+                    }
+                    
                     const container = streetViewRef.current;
                     if (!container || container.offsetWidth === 0 || container.offsetHeight === 0) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                        console.warn('Street View container still has no dimensions after retries');
+                        setIsLoading(false);
+                        return;
                     }
                     
                     const panorama = createStreetViewPanorama({
-                        container: streetViewRef.current!,
+                        container: container,
                         lat: routeBuilding.coordinates.lat,
                         lng: routeBuilding.coordinates.lng,
                         heading: routeBuilding.heading,

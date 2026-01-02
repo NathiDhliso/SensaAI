@@ -174,6 +174,14 @@ export default function Results() {
               concept.phase3.thresholds,
             ].filter(Boolean),
           },
+          // Include mnemonic data for Memory Palace scavenger hunt experience
+          mnemonic: concept.mnemonic ? {
+            anchor: concept.mnemonic.anchor,
+            story: concept.mnemonic.story,
+            tier: concept.mnemonic.tier,
+            parentName: concept.mnemonic.parentName,
+            parentId: concept.mnemonic.parentId,
+          } : undefined,
         })),
       };
     });
@@ -227,6 +235,14 @@ export default function Results() {
               concept.phase3.thresholds,
             ].filter(Boolean),
           },
+          // Include mnemonic data for Memory Palace scavenger hunt experience
+          mnemonic: concept.mnemonic ? {
+            anchor: concept.mnemonic.anchor,
+            story: concept.mnemonic.story,
+            tier: concept.mnemonic.tier,
+            parentName: concept.mnemonic.parentName,
+            parentId: concept.mnemonic.parentId,
+          } : undefined,
         })),
       };
     });

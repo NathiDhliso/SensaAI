@@ -187,4 +187,328 @@ VISUAL MENTAL ANCHORS
             expect(result.data.concepts[0].phase1.prerequisite).toContain('legal database');
         }
     });
+
+    it('should parse mnemonic data with tier, anchor, and story', () => {
+        const content = `
+DOMAIN ANALYSIS
+---------------
+Domain: Cloud Computing
+Professional Role: Azure Administrator
+Lifecycle: PROVISION → CONFIGURE → MONITOR
+
+Core Concepts Identified: 1
+  1. Virtual Network
+
+================================================================================
+MASTER HIERARCHICAL CHART
+================================================================================
+
+## 1. Virtual Network
+
+- PROVISION:
+  • Prerequisite: Azure subscription
+  • Selection: Choose address space
+  • Execution: Create VNet in portal
+
+• CONFIGURE:
+  • Set up subnets
+  • Configure NSG rules
+
+○ MONITOR:
+  • Tool: Network Watcher
+  • Metric: Check connectivity
+  • Validation: Verify routing
+
+**Mnemonic:**
+\`\`\`json
+{
+  "mnemonic": {
+    "tier": "Foundation",
+    "anchor": "Volcano 🌋",
+    "story": "A colossal Volcano erupts with glowing data-lava, but the lava flows only into carved private channels, never mixing.",
+    "parentConcept": null
+  }
+}
+\`\`\`
+
+================================================================================
+VISUAL MENTAL ANCHORS
+================================================================================
+`;
+
+        const result = parseGeneratedContent(content);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.concepts.length).toBe(1);
+            const concept = result.data.concepts[0];
+            expect(concept.mnemonic).toBeDefined();
+            expect(concept.mnemonic?.tier).toBe('Foundation');
+            expect(concept.mnemonic?.anchor).toBe('Volcano 🌋');
+            expect(concept.mnemonic?.story).toContain('colossal Volcano');
+            expect(concept.mnemonic?.parentName).toBeUndefined();
+        }
+    });
+
+    it('should resolve parentName to parentId in two-pass parsing', () => {
+        const content = `
+DOMAIN ANALYSIS
+---------------
+Domain: Cloud Networking
+Professional Role: Azure Network Engineer
+Lifecycle: PROVISION → CONFIGURE → MONITOR
+
+Core Concepts Identified: 3
+  1. Virtual Network
+  2. Subnet
+  3. Network Security Group
+
+================================================================================
+MASTER HIERARCHICAL CHART
+================================================================================
+
+## 1. Virtual Network
+
+- PROVISION:
+  • Prerequisite: Azure subscription
+  • Selection: Address space planning
+  • Execution: Create VNet
+
+• CONFIGURE:
+  • Configure DNS settings
+
+○ MONITOR:
+  • Tool: Network Watcher
+
+**Mnemonic:**
+\`\`\`json
+{
+  "mnemonic": {
+    "tier": "Foundation",
+    "anchor": "Volcano 🌋",
+    "story": "A massive Volcano with private lava channels.",
+    "parentConcept": null
+  }
+}
+\`\`\`
+
+## 2. Subnet
+
+- PROVISION:
+  • Prerequisite: Virtual Network exists
+  • Selection: CIDR range within VNet
+  • Execution: Add subnet to VNet
+
+• CONFIGURE:
+  • Assign address range
+
+○ MONITOR:
+  • Tool: Network topology view
+
+**Mnemonic:**
+\`\`\`json
+{
+  "mnemonic": {
+    "tier": "Keystone",
+    "anchor": "Subway Bench 🚇",
+    "story": "A purple Subway Bench sits inside the Volcano's crater, channeling the lava flow.",
+    "parentConcept": "Virtual Network"
+  }
+}
+\`\`\`
+
+## 3. Network Security Group
+
+- PROVISION:
+  • Prerequisite: Subnet to associate
+  • Selection: Inbound/outbound rules
+  • Execution: Create NSG
+
+• CONFIGURE:
+  • Define security rules
+
+○ MONITOR:
+  • Tool: NSG flow logs
+
+**Mnemonic:**
+\`\`\`json
+{
+  "mnemonic": {
+    "tier": "Keystone",
+    "anchor": "Night Guard 👮",
+    "story": "A muscular Night Guard sleeps on the Subway Bench, instantly waking to check badges.",
+    "parentConcept": "Subnet"
+  }
+}
+\`\`\`
+
+================================================================================
+VISUAL MENTAL ANCHORS
+================================================================================
+`;
+
+        const result = parseGeneratedContent(content);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.concepts.length).toBe(3);
+
+            // Concept 1: VNet (Foundation, no parent)
+            const vnet = result.data.concepts[0];
+            expect(vnet.name).toBe('Virtual Network');
+            expect(vnet.mnemonic?.tier).toBe('Foundation');
+            expect(vnet.mnemonic?.anchor).toBe('Volcano 🌋');
+            expect(vnet.mnemonic?.parentId).toBeUndefined();
+
+            // Concept 2: Subnet (Keystone, parent = VNet)
+            const subnet = result.data.concepts[1];
+            expect(subnet.name).toBe('Subnet');
+            expect(subnet.mnemonic?.tier).toBe('Keystone');
+            expect(subnet.mnemonic?.anchor).toBe('Subway Bench 🚇');
+            expect(subnet.mnemonic?.parentName).toBe('Virtual Network');
+            expect(subnet.mnemonic?.parentId).toBe(vnet.id); // TWO-PASS RESOLUTION
+
+            // Concept 3: NSG (Keystone, parent = Subnet)
+            const nsg = result.data.concepts[2];
+            expect(nsg.name).toBe('Network Security Group');
+            expect(nsg.mnemonic?.tier).toBe('Keystone');
+            expect(nsg.mnemonic?.anchor).toBe('Night Guard 👮');
+            expect(nsg.mnemonic?.parentName).toBe('Subnet');
+            expect(nsg.mnemonic?.parentId).toBe(subnet.id); // TWO-PASS RESOLUTION
+        }
+    });
+
+    it('should handle missing mnemonic gracefully (backward compatibility)', () => {
+        const content = `
+DOMAIN ANALYSIS
+---------------
+Domain: Testing
+Professional Role: QA Engineer
+Lifecycle: PLAN → EXECUTE → REPORT
+
+Core Concepts Identified: 1
+  1. Test Case
+
+================================================================================
+MASTER HIERARCHICAL CHART
+================================================================================
+
+## 1. Test Case
+
+- PLAN:
+  • Prerequisite: Requirements document
+  • Selection: Test type
+  • Execution: Write test steps
+
+• EXECUTE:
+  • Run tests
+
+○ REPORT:
+  • Tool: Test management tool
+  • Metric: Pass rate
+
+================================================================================
+VISUAL MENTAL ANCHORS
+================================================================================
+`;
+
+        const result = parseGeneratedContent(content);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.concepts.length).toBe(1);
+            // No mnemonic in old content - should not crash
+            expect(result.data.concepts[0].mnemonic).toBeUndefined();
+            expect(result.data.concepts[0].name).toBe('Test Case');
+        }
+    });
+
+    it('should extract emoji from anchor string correctly', () => {
+        const content = `
+DOMAIN ANALYSIS
+---------------
+Domain: Cloud Storage
+Professional Role: Storage Admin
+Lifecycle: PROVISION → CONFIGURE → MONITOR
+
+Core Concepts Identified: 2
+  1. Storage Account
+  2. SAS Token
+
+================================================================================
+MASTER HIERARCHICAL CHART
+================================================================================
+
+## 1. Storage Account
+
+- PROVISION:
+  • Prerequisite: Resource group
+  • Selection: Performance tier
+  • Execution: Create storage account
+
+• CONFIGURE:
+  • Set replication
+
+○ MONITOR:
+  • Tool: Storage metrics
+
+**Mnemonic:**
+\`\`\`json
+{
+  "mnemonic": {
+    "tier": "Foundation",
+    "anchor": "Skyscraper 🏢",
+    "story": "A gleaming Skyscraper with infinite floors, each floor a different storage container.",
+    "parentConcept": null
+  }
+}
+\`\`\`
+
+## 2. SAS Token
+
+- PROVISION:
+  • Prerequisite: Storage Account
+  • Selection: Permissions and expiry
+  • Execution: Generate token
+
+• CONFIGURE:
+  • Set allowed IPs
+
+○ MONITOR:
+  • Tool: Access logs
+
+**Mnemonic:**
+\`\`\`json
+{
+  "mnemonic": {
+    "tier": "Utility",
+    "anchor": "Secret Key 🔑",
+    "story": "A tiny glowing Secret Key with an hourglass embedded unlocks the Skyscraper doors but melts at midnight.",
+    "parentConcept": "Storage Account"
+  }
+}
+\`\`\`
+
+================================================================================
+VISUAL MENTAL ANCHORS
+================================================================================
+`;
+
+        const result = parseGeneratedContent(content);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+            // Foundation tier
+            const storage = result.data.concepts[0];
+            expect(storage.mnemonic?.tier).toBe('Foundation');
+            expect(storage.mnemonic?.anchor).toContain('🏢');
+
+            // Utility tier with parent reference
+            const sas = result.data.concepts[1];
+            expect(sas.mnemonic?.tier).toBe('Utility');
+            expect(sas.mnemonic?.anchor).toContain('🔑');
+            expect(sas.mnemonic?.parentName).toBe('Storage Account');
+            expect(sas.mnemonic?.parentId).toBe(storage.id);
+        }
+    });
 });

@@ -78,12 +78,29 @@ export function StreetViewPreview({
     setIsLoading(true);
     setError(null);
 
-    const timer = setTimeout(() => {
-      if (!containerRef.current) return;
+    const initPanorama = async () => {
+      // Wait for container to have dimensions
+      let retries = 0;
+      const maxRetries = 10;
+      while (retries < maxRetries) {
+        const container = containerRef.current;
+        if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+        retries++;
+      }
+
+      const container = containerRef.current;
+      if (!container || container.offsetWidth === 0 || container.offsetHeight === 0) {
+        setError('Preview container not ready');
+        setIsLoading(false);
+        return;
+      }
 
       try {
         const panorama = createStreetViewPanorama({
-          container: containerRef.current,
+          container: container,
           lat: coordinates.lat,
           lng: coordinates.lng,
           heading: 0,
@@ -118,10 +135,11 @@ export function StreetViewPreview({
         setError('Failed to initialize Street View');
         setIsLoading(false);
       }
-    }, 100);
+    };
+
+    initPanorama();
 
     return () => {
-      clearTimeout(timer);
       if (panoramaRef.current) {
         google.maps.event.clearInstanceListeners(panoramaRef.current);
         panoramaRef.current = null;

@@ -8,6 +8,24 @@ interface JourneyMapProps {
   onConceptClick?: (conceptId: string) => void;
 }
 
+/**
+ * Extract emoji from anchor string
+ */
+function getAnchorEmoji(anchor?: string): string | null {
+  if (!anchor) return null;
+  const match = anchor.match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u);
+  return match ? match[0] : null;
+}
+
+/**
+ * Extract anchor name without emoji
+ */
+function getAnchorName(anchor?: string): string | null {
+  if (!anchor) return null;
+  const name = anchor.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+  return name.startsWith('The ') ? name : `The ${name}`;
+}
+
 export default function JourneyMap({ onConceptClick }: JourneyMapProps) {
   const { progress, getStageStatus, getConceptStatus, getStages, getConcepts } = useLearningStore();
 
@@ -106,12 +124,24 @@ export default function JourneyMap({ onConceptClick }: JourneyMapProps) {
                       {stageConcepts.map((concept) => {
                         const conceptStatus = getConceptStatus(concept.id);
                         const isCurrent = concept.id === progress.currentConceptId;
+                        
+                        // Mnemonic-first display
+                        const emoji = getAnchorEmoji(concept.mnemonic?.anchor);
+                        const anchorName = getAnchorName(concept.mnemonic?.anchor);
+                        const hasMnemonic = !!concept.mnemonic;
+                        
+                        // Tier-based styling
+                        const tierClass = concept.mnemonic?.tier 
+                          ? styles[`block${concept.mnemonic.tier}`] 
+                          : '';
+                        
                         const blockClass = [
                           styles.block,
                           conceptStatus === 'completed' && styles.blockCompleted,
                           conceptStatus === 'current' && styles.blockCurrent,
                           conceptStatus === 'available' && styles.blockAvailable,
                           conceptStatus === 'locked' && styles.blockLocked,
+                          tierClass,
                         ].filter(Boolean).join(' ');
 
                         return (
@@ -120,10 +150,24 @@ export default function JourneyMap({ onConceptClick }: JourneyMapProps) {
                             ref={isCurrent ? currentConceptRef : null}
                             className={blockClass}
                             onClick={() => handleConceptClick(concept.id)}
-                            title={concept.name}
+                            title={hasMnemonic ? `${anchorName} → ${concept.name}` : concept.name}
                           >
-                            {renderShapeOrIcon(concept.icon, 'sm', styles.blockIcon)}
-                            <span className={styles.blockName}>{concept.name}</span>
+                            {/* Show emoji or icon */}
+                            {emoji ? (
+                              <span className={styles.blockEmoji}>{emoji}</span>
+                            ) : (
+                              renderShapeOrIcon(concept.icon, 'sm', styles.blockIcon)
+                            )}
+                            
+                            {/* Primary: Mnemonic name, Secondary: Technical name */}
+                            {hasMnemonic ? (
+                              <div className={styles.blockLabels}>
+                                <span className={styles.blockPrimary}>{anchorName}</span>
+                                <span className={styles.blockSecondary}>{concept.name}</span>
+                              </div>
+                            ) : (
+                              <span className={styles.blockName}>{concept.name}</span>
+                            )}
                           </div>
                         );
                       })}

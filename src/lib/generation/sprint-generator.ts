@@ -49,6 +49,9 @@ export async function generateSprintQuestions(
     // Extract concept names for context
     const conceptNames = concepts.map(c => c.name).join(', ');
 
+    console.log('Sprint Generator: Starting generation for', concepts.length, 'concepts');
+    console.log('Sprint Generator: Config region:', config.region);
+
     const prompt = `Generate exactly ${SPRINT_CONFIG.QUESTION_COUNT} binary YES/NO questions for testing automaticity in: "${subject}"
 
 The learner has studied these concepts: ${conceptNames}
@@ -69,16 +72,21 @@ Return ONLY the JSON array, no other text.`;
     const client = getBedrockClient(config);
     const messages = [{ role: 'user' as const, content: prompt }];
 
-    const response = await invokeClaudeModel(
-        client,
-        messages,
-        SPRINT_SYSTEM_PROMPT
-    );
-
+    console.log('Sprint Generator: Calling Bedrock API...');
+    
     try {
+        const response = await invokeClaudeModel(
+            client,
+            messages,
+            SPRINT_SYSTEM_PROMPT
+        );
+
+        console.log('Sprint Generator: Received response, length:', response.length);
+
         // Extract JSON from response
         const jsonMatch = response.match(/\[[\s\S]*\]/);
         if (!jsonMatch) {
+            console.error('Sprint Generator: No JSON array in response:', response.substring(0, 500));
             throw new Error('No JSON array found in response');
         }
 
@@ -88,6 +96,8 @@ Return ONLY the JSON array, no other text.`;
         if (!Array.isArray(questions) || questions.length === 0) {
             throw new Error('Invalid questions array');
         }
+
+        console.log('Sprint Generator: Successfully parsed', questions.length, 'questions');
 
         // Validate and normalize each question
         return questions.map((q, index) => ({
@@ -101,7 +111,24 @@ Return ONLY the JSON array, no other text.`;
                 : 'core',
         }));
     } catch (error) {
-        console.error('Failed to parse sprint questions:', error);
+        console.error('Sprint Generator: Error:', error);
+        
+        // Provide more specific error messages
+        if (error instanceof Error) {
+            if (error.message.includes('AccessDenied') || error.message.includes('credentials')) {
+                throw new Error('AWS credentials invalid or expired. Please update in Settings.');
+            }
+            if (error.message.includes('ResourceNotFoundException') || error.message.includes('model')) {
+                throw new Error('Claude model not available. Check AWS region settings.');
+            }
+            if (error.message.includes('ThrottlingException')) {
+                throw new Error('API rate limited. Please wait a moment and try again.');
+            }
+            if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+                throw new Error('Request timed out. Check your network connection.');
+            }
+            throw new Error(`Generation failed: ${error.message}`);
+        }
         throw new Error('Failed to generate sprint questions. Please try again.');
     }
 }

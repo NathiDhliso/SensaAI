@@ -26,15 +26,16 @@ function getMarkerIcon(anchor?: string, conceptName?: string): string {
 
 /**
  * Get scale and z-index based on dependency tier
+ * Foundation = Giants (1.4x), Keystone = Actors (1.0x), Utility = Items (0.7x)
  */
 function getTierStyles(tier?: 'Foundation' | 'Keystone' | 'Utility'): { tierScale: number; zIndex: number } {
   switch (tier) {
     case 'Foundation':
-      return { tierScale: 1.4, zIndex: 30 };
+      return { tierScale: 1.4, zIndex: 30 };  // Highest - always visible
     case 'Keystone':
-      return { tierScale: 1.0, zIndex: 20 };
+      return { tierScale: 1.0, zIndex: 20 };  // Middle layer
     case 'Utility':
-      return { tierScale: 0.7, zIndex: 10 };
+      return { tierScale: 0.7, zIndex: 10 };  // Background items
     default:
       return { tierScale: 1.0, zIndex: 20 };
   }
@@ -60,17 +61,26 @@ export default function ConceptMarker({
     [marker.mnemonic?.anchor, marker.conceptName]
   );
 
+  // Debug: Log when mnemonic is missing (only in dev mode)
+  if (!marker.mnemonic && import.meta.env.DEV) {
+    console.debug(`[ConceptMarker] No mnemonic for "${marker.conceptName}" - using fallback`);
+  }
+
   const { tierScale, zIndex } = useMemo(
     () => getTierStyles(marker.mnemonic?.tier),
     [marker.mnemonic?.tier]
   );
 
-  // Extract anchor name without emoji for hover label
+  // Extract anchor name without emoji for hover label - THE HOOK
+  // Show the mnemonic character name (e.g., "The Night Guard") NOT the technical term
   const hoverLabel = useMemo(() => {
     if (marker.mnemonic?.anchor) {
       // Remove emoji from anchor for display text
-      return marker.mnemonic.anchor.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+      const name = marker.mnemonic.anchor.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+      // Add "The" prefix if it looks like a character/object name
+      return name.startsWith('The ') ? name : `The ${name}`;
     }
+    // Fallback to concept name only if no mnemonic
     return marker.conceptName;
   }, [marker.mnemonic?.anchor, marker.conceptName]);
 

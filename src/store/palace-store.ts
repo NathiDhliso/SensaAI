@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { MemoryPalace, PalaceProgress, PlacedConcept, PalaceBuilding, PalaceRoute, RouteBuilding } from '@/lib/types/palace';
+import type { MnemonicContext } from '@/lib/types/learning';
 import { getRouteById } from '@/constants/palace-routes';
 import { capturePanorama } from '@/lib/panorama';
 
@@ -66,6 +67,8 @@ interface ConceptData {
         phase2: string[];
         phase3: string[];
     };
+    /** Memory Palace mnemonic context for tier-based rendering */
+    mnemonic?: MnemonicContext;
 }
 
 export const usePalaceStore = create<PalaceState>()(
@@ -150,6 +153,7 @@ export const usePalaceStore = create<PalaceState>()(
                         slotId: routeBuilding.placements[cIdx]?.id || `slot-${cIdx}`,
                         lifecycle: concept.lifecycle,
                         mastery: 0,
+                        mnemonic: concept.mnemonic, // Pass mnemonic for tier-based rendering
                     }));
 
                     return {

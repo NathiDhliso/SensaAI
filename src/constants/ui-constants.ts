@@ -5,6 +5,35 @@ export const PASS_NAMES = [
   'Quality Validation',
 ] as const;
 
+/**
+ * Whimsical loading messages for the Memory Palace generation experience
+ * Creates the feeling of an "Augmented Reality Scavenger Hunt" being built
+ */
+export const GENERATION_MESSAGES = {
+  pass1: [
+    'Exploring the knowledge landscape...',
+    'Mapping the terrain of your topic...',
+    'Discovering hidden concept caves...',
+  ],
+  pass2: [
+    'Building bizarre mental bridges...',
+    'Connecting the dots with invisible thread...',
+    'Weaving a web of dependencies...',
+  ],
+  pass3: [
+    'Dreaming up bizarre scenarios...',
+    'Placing anchors in strange places...',
+    'Constructing your memory palace...',
+    'Scattering surreal objects across the landscape...',
+    'Inviting peculiar characters to guard your knowledge...',
+  ],
+  pass4: [
+    'Polishing the surrealist experience...',
+    'Making sure the dream holds together...',
+    'Final reality check on unreality...',
+  ],
+} as const;
+
 export const EXAMPLE_SUBJECTS = [
   'Data Science Fundamentals',
   'Project Management',

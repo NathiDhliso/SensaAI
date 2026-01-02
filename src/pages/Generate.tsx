@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, Loader2, ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
 import { generateChartIteratively } from '@/lib/generation/multi-pass-generator';
 import { useGenerationStore } from '@/store/generation-store';
-import { PASS_NAMES } from '@/constants/ui-constants';
+import { useUIStore } from '@/store/ui-store';
+import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
 import type { PassStatus, Pass1Result, ValidationResult } from '@/lib/types';
 import styles from './Generate.module.css';
 
@@ -38,15 +39,73 @@ export default function Generate() {
   } = useGenerationStore();
 
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+  const [whimsicalMessage, setWhimsicalMessage] = useState('');
   const hasStartedRef = useRef(false);
   const resultIdRef = useRef<string | null>(null);
+  const messageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Track which pass is currently in progress for message cycling
+  const currentInProgressPass = passes[1] === 'in-progress' ? 1 
+    : passes[2] === 'in-progress' ? 2 
+    : passes[3] === 'in-progress' ? 3 
+    : passes[4] === 'in-progress' ? 4 
+    : 0;
+
+  // Cycle through whimsical messages based on current pass
+  useEffect(() => {
+    if (!isGenerating) {
+      if (messageIntervalRef.current) {
+        clearInterval(messageIntervalRef.current);
+        messageIntervalRef.current = null;
+      }
+      return;
+    }
+
+    const getCurrentPassMessages = () => {
+      if (currentInProgressPass === 1) return GENERATION_MESSAGES.pass1;
+      if (currentInProgressPass === 2) return GENERATION_MESSAGES.pass2;
+      if (currentInProgressPass === 3) return GENERATION_MESSAGES.pass3;
+      if (currentInProgressPass === 4) return GENERATION_MESSAGES.pass4;
+      return GENERATION_MESSAGES.pass3; // Default to pass3 messages
+    };
+
+    const messages = getCurrentPassMessages();
+    let messageIndex = 0;
+    setWhimsicalMessage(messages[0]);
+
+    messageIntervalRef.current = setInterval(() => {
+      messageIndex = (messageIndex + 1) % messages.length;
+      setWhimsicalMessage(messages[messageIndex]);
+    }, 3500);
+
+    return () => {
+      if (messageIntervalRef.current) {
+        clearInterval(messageIntervalRef.current);
+        messageIntervalRef.current = null;
+      }
+    };
+  }, [isGenerating, currentInProgressPass]);
+
+
+  // Throttle ref for progress updates
+  const lastProgressUpdateRef = useRef<number>(0);
+  const PROGRESS_THROTTLE_MS = 100;
 
   // Shared callback function to handle progress updates
   const createProgressCallback = useCallback(() => {
     return (pass: number, status: PassStatus, data?: ProgressData) => {
+      // Throttle frequent progress updates (but allow status changes through)
+      const now = Date.now();
+      if (status === 'in-progress' && data?.partial) {
+        if (now - lastProgressUpdateRef.current < PROGRESS_THROTTLE_MS) {
+          return; // Skip this update - too soon
+        }
+        lastProgressUpdateRef.current = now;
+      }
+
       const update: {
         pass: number;
         status: PassStatus;
@@ -101,6 +160,7 @@ export default function Generate() {
   const startGenerationProcess = useCallback((decodedSubject: string, resumeData?: ReturnType<typeof getCheckpointResumeData>) => {
     const controller = new AbortController();
     setAbortController(controller);
+    abortControllerRef.current = controller;
 
     if (resumeData) {
       // Resume from checkpoint
@@ -120,6 +180,7 @@ export default function Generate() {
 
     generateChartIteratively(decodedSubject, bedrockConfig!, progressCallback, controller.signal)
       .then(async (result) => {
+        console.log('Generation completed successfully');
         completeGeneration(result);
         clearCheckpoint();
 
@@ -159,6 +220,9 @@ export default function Generate() {
         }
       })
       .catch((err) => {
+        console.error('Generation error:', err);
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
         if (err.message === 'Generation cancelled by user') {
           navigate('/');
         } else {
@@ -169,22 +233,46 @@ export default function Generate() {
   }, [bedrockConfig, createProgressCallback, startGeneration, addRecentSubject, completeGeneration, clearCheckpoint, setError, navigate]);
 
   useEffect(() => {
-    if (!subject || !bedrockConfig || hasStartedRef.current) return;
+    console.log('Generate useEffect:', { subject, bedrockConfig: !!bedrockConfig, hasStarted: hasStartedRef.current });
+    
+    if (!subject) {
+      console.log('No subject, returning');
+      return;
+    }
+    
+    // If no bedrockConfig, redirect to home with settings panel open
+    if (!bedrockConfig) {
+      console.log('No bedrockConfig, redirecting to home');
+      navigate('/');
+      // Use setTimeout to ensure navigation completes before opening panel
+      setTimeout(() => {
+        const { openSettingsPanel } = useUIStore.getState();
+        openSettingsPanel();
+      }, 100);
+      return;
+    }
+    
+    if (hasStartedRef.current) {
+      console.log('Already started, returning');
+      return;
+    }
 
     const decodedSubject = decodeURIComponent(subject);
 
     if (canResumeFromCheckpoint(decodedSubject)) {
+      console.log('Can resume from checkpoint');
       setShowResumeDialog(true);
       return;
     }
 
+    console.log('Starting generation for:', decodedSubject);
     hasStartedRef.current = true;
     startGenerationProcess(decodedSubject);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subject, bedrockConfig]);
 
-    return () => {
-      abortController?.abort();
-    };
-  }, [subject, bedrockConfig, canResumeFromCheckpoint, startGenerationProcess, abortController]);
+  // Don't abort on unmount - only abort when user explicitly cancels
+  // React Strict Mode and HMR cause re-mounts that would incorrectly abort
 
   // Warn user before leaving during active generation
   useEffect(() => {
@@ -382,21 +470,23 @@ export default function Generate() {
                   <Loader2 className={styles.activityIcon} />
                 </div>
                 <div className={styles.activityInfo}>
-                  <span className={styles.activityLabel}>Currently Processing</span>
+                  <span className={styles.activityLabel}>Building Your Memory Palace</span>
                   <span className={styles.activityPhase}>
-                    {passes[3] === 'in-progress' ? 'Content Generation' :
-                      passes[4] === 'in-progress' ? 'Quality Validation' :
-                        passes[2] === 'in-progress' ? 'Dependency Mapping' :
-                          passes[1] === 'in-progress' ? 'Domain Analysis' : 'Processing'}
+                    {passes[3] === 'in-progress' ? '🏰 Constructing Scenes' :
+                      passes[4] === 'in-progress' ? '✨ Final Polish' :
+                        passes[2] === 'in-progress' ? '🔗 Weaving Connections' :
+                          passes[1] === 'in-progress' ? '🔍 Exploring Domain' : 'Processing'}
                   </span>
                 </div>
               </div>
 
               <div className={styles.activityDetails}>
+                {/* Whimsical message display */}
+                <p className={styles.whimsicalMessage}>{whimsicalMessage}</p>
                 <p className={styles.activityText}>{currentActivity}</p>
                 {pass1Data && passes[3] === 'in-progress' && (
                   <p className={styles.conceptCount}>
-                    Generating {pass1Data.concepts.length} concepts with full detail
+                    Placing {pass1Data.concepts.length} surreal anchors across the landscape
                   </p>
                 )}
               </div>
@@ -428,7 +518,7 @@ export default function Generate() {
                 <div className={styles.livePreview}>
                   <div className={styles.previewHeader}>
                     <div className={styles.previewTitle}>
-                      📚 Concepts Detected
+                      🏰 Your Memory Palace is Taking Shape
                     </div>
                     <div className={styles.previewBadge}>
                       <span></span> Live
@@ -451,13 +541,13 @@ export default function Generate() {
                         key={idx} 
                         className={`${styles.conceptChip} ${passes[3] === 'in-progress' && idx === pass1Data.concepts.length - 1 ? styles.generating : ''}`}
                       >
-                        <span className={styles.conceptIcon}>💡</span>
+                        <span className={styles.conceptIcon}>🎭</span>
                         <span className={styles.conceptName}>{concept}</span>
                       </div>
                     ))}
                     {pass1Data.concepts.length > 12 && (
                       <div className={styles.conceptChip}>
-                        <span className={styles.conceptName}>+{pass1Data.concepts.length - 12} more</span>
+                        <span className={styles.conceptName}>+{pass1Data.concepts.length - 12} more anchors</span>
                       </div>
                     )}
                   </div>

@@ -198,6 +198,8 @@ Include a \`mnemonic\` object for each concept in structured output:
 }
 \`\`\`
 
+**⚠️ QUALITY GATE: Every concept MUST include a mnemonic object. Concepts without mnemonics will cause the memory palace visualization to fail. This is NOT optional.**
+
 ---
 
 ## STEP 4: VISUAL MENTAL ANCHORS [CRITICAL FOR LEARNING]
@@ -346,11 +348,14 @@ Define a suggested study sequence that organizes ALL concepts into exactly **4-6
 1. **Source Verification** (With extracted Hard Data and any limitations noted)
 2. **Lifecycle Definition** (With justification if custom)
 3. **Master Hierarchical Chart** (Structured outline with SHAPE sections in a single code block)
-4. **Decision Framework Trees** (2-3 trees for common X vs Y decisions)
-5. **Visual Mental Anchors** (3 specific visualizations with binary decision rules)
-6. **Worked Example** (Following the required structure with positive framing)
-7. **Confusion Pairs** (JSON block with 3-5 commonly confused concept pairs)
-8. **Learning Path Sequence** (4-6 stages with difficulty markers and distribution)
+4. **Mnemonic Anchors** (JSON block with mnemonic object for EVERY concept - REQUIRED)
+5. **Decision Framework Trees** (2-3 trees for common X vs Y decisions)
+6. **Visual Mental Anchors** (3 specific visualizations with binary decision rules)
+7. **Worked Example** (Following the required structure with positive framing)
+8. **Confusion Pairs** (JSON block with 3-5 commonly confused concept pairs)
+9. **Learning Path Sequence** (4-6 stages with difficulty markers and distribution)
+
+**⚠️ CRITICAL: The Mnemonic Anchors (#4) are MANDATORY. Each concept MUST have a mnemonic object with tier, anchor (emoji + name), story, and parentConcept. Without this, the memory palace visualization cannot render properly.**
 
 ---
 

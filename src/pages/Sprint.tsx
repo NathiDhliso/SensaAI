@@ -38,6 +38,7 @@ export default function Sprint() {
     const [totalTimeRemaining, setTotalTimeRemaining] = useState<number>(SPRINT_CONFIG.TOTAL_TIME_MINUTES * 60);
     const [questionTimeRemaining, setQuestionTimeRemaining] = useState<number>(SPRINT_CONFIG.SECONDS_PER_QUESTION);
     const questionStartTime = useRef<number>(Date.now());
+    const isGenerating = useRef<boolean>(false);
 
     // Error state
     const [error, setError] = useState<string | null>(null);
@@ -49,28 +50,48 @@ export default function Sprint() {
     // Generate questions immediately on mount (loading phase)
     useEffect(() => {
         if (phase !== 'loading') return;
-
+        if (isGenerating.current) return; // Prevent duplicate calls
+        
         // Check prerequisites first
         if (!bedrockConfig) {
-            setError('AWS credentials not configured.');
+            console.error('Sprint: AWS credentials not configured');
+            setError('AWS credentials not configured. Please set up your credentials in Settings.');
             return;
         }
         if (concepts.length === 0) {
+            console.error('Sprint: No concepts loaded');
             setError('No concepts loaded. Complete the learning journey first.');
             return;
         }
 
-        // Start generating questions immediately
-        generateSprintQuestions(concepts, subject, bedrockConfig)
+        isGenerating.current = true;
+        console.log('Sprint: Starting question generation for', concepts.length, 'concepts');
+        
+        // Create a timeout promise
+        const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Generation timed out. Please try again.')), 60000);
+        });
+
+        // Race between generation and timeout
+        Promise.race([
+            generateSprintQuestions(concepts, subject, bedrockConfig),
+            timeoutPromise
+        ])
             .then(generatedQuestions => {
+                console.log('Sprint: Generated', generatedQuestions.length, 'questions');
                 setQuestions(generatedQuestions);
                 // When ready, transition to countdown
                 setPhase('countdown');
             })
             .catch(err => {
-                setError(err instanceof Error ? err.message : 'Failed to generate questions');
+                console.error('Sprint: Generation failed:', err);
+                const errorMessage = err instanceof Error ? err.message : 'Failed to generate questions';
+                setError(errorMessage);
+            })
+            .finally(() => {
+                isGenerating.current = false;
             });
-    }, [phase, bedrockConfig, concepts, subject]);
+    }, [phase, bedrockConfig, concepts.length, subject]);
 
     // Countdown runs only after questions are ready
     useEffect(() => {

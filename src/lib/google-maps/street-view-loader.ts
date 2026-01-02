@@ -50,7 +50,7 @@ export function createStreetViewPanorama(config: StreetViewConfig): google.maps.
   }
 
   if (!config.container || config.container.offsetWidth === 0 || config.container.offsetHeight === 0) {
-    console.error('Street View container has no dimensions');
+    console.warn('Street View container has no dimensions - ensure container is visible and rendered before initialization');
     return null;
   }
 

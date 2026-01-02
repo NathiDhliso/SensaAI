@@ -23,5 +23,13 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    proxy: {
+      '/bedrock-api': {
+        target: 'https://bedrock-runtime.us-east-1.amazonaws.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/bedrock-api/, ''),
+        secure: true,
+      },
+    },
   },
 })
