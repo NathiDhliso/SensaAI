@@ -3,21 +3,26 @@ import { persist } from 'zustand/middleware';
 import type { UserProgress, CelebrationData, LearningStage, LearningConcept } from '@/lib/types/learning';
 import type { SprintResult } from '@/lib/types/sprint';
 
-type ContentMetadata = {
+// ============================================================================
+// PHASE 0.3: UNIFIED SESSION STATE
+// Consolidates: customContent, sprintResult, cognitiveMetrics, showNeuralReset
+// ============================================================================
+
+/**
+ * Metadata about the generated content source.
+ */
+export type ContentMetadata = {
   domain: string;
   role: string;
   source: string;
   conceptCount: number;
 };
 
-type CustomContent = {
-  stages: LearningStage[];
-  concepts: LearningConcept[];
-  metadata: ContentMetadata | null;
-};
-
-// Cognitive load tracking
-type CognitiveMetrics = {
+/**
+ * Cognitive load tracking for adaptive learning.
+ * Used to detect when student needs a "neural reset" break.
+ */
+export type CognitiveMetrics = {
   currentLoad: number;           // 0-100 scale
   consecutiveCorrect: number;    // Fast/correct streaks
   consecutiveErrors: number;     // Wrong/slow streaks
@@ -27,47 +32,130 @@ type CognitiveMetrics = {
   needsReset: boolean;           // Triggers neural reset modal
 };
 
-type LearningState = {
+/**
+ * UNIFIED LEARNING SESSION
+ * 
+ * Single source of truth for all active learning state.
+ * Replaces scattered customContent, sprintResult, cognitiveMetrics.
+ * 
+ * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Phase 0.3
+ */
+export interface CurrentSession {
+  /** Unique session ID (UUID) */
+  id: string;
+  /** Generated subject identifier (matches Results page) */
+  subjectId: string;
+  /** Human-readable subject name */
+  subject: string;
+  /** Current learning mode */
+  mode: 'learn' | 'sprint' | 'explore';
+  /** When session was created */
+  createdAt: string;
+  
+  // ─── Content ─────────────────────────────────────────────────────────
+  stages: LearningStage[];
+  concepts: LearningConcept[];
+  metadata: ContentMetadata | null;
+  
+  // ─── Progress ────────────────────────────────────────────────────────
   progress: UserProgress;
+  
+  // ─── Sprint Results (if mode === 'sprint') ───────────────────────────
+  sprintResult?: SprintResult;
+  
+  // ─── Cognitive Metrics ───────────────────────────────────────────────
+  cognitiveMetrics: CognitiveMetrics;
+}
+
+// Legacy type alias for backward compatibility during migration
+type CustomContent = {
+  stages: LearningStage[];
+  concepts: LearningConcept[];
+  metadata: ContentMetadata | null;
+};
+
+type LearningState = {
+  // ─── UNIFIED SESSION (Phase 0.3) ─────────────────────────────────────
+  currentSession: CurrentSession | null;
+  
+  // ─── UI State ────────────────────────────────────────────────────────
   showCelebration: boolean;
   celebrationData: CelebrationData | null;
-  isExploreMode: boolean;
-  customContent: CustomContent | null;
-  sessionTimer: ReturnType<typeof setInterval> | null;
-  sprintResult: SprintResult | null;
-  isSprintReady: boolean;
-  cognitiveMetrics: CognitiveMetrics;
   showNeuralReset: boolean;
+  isExploreMode: boolean;
+  isSprintReady: boolean;
+  
+  // ─── Internal ────────────────────────────────────────────────────────
+  sessionTimer: ReturnType<typeof setInterval> | null;
+  
+  // ─── LEGACY (deprecated - use currentSession instead) ────────────────
+  /** @deprecated Use currentSession.progress */
+  progress: UserProgress;
+  /** @deprecated Use currentSession */
+  customContent: CustomContent | null;
+  /** @deprecated Use currentSession.sprintResult */
+  sprintResult: SprintResult | null;
+  /** @deprecated Use currentSession.cognitiveMetrics */
+  cognitiveMetrics: CognitiveMetrics;
 };
 
 type LearningActions = {
+  // ─── UNIFIED SESSION ACTIONS (Phase 0.3 - PRIMARY API) ───────────────
+  /** Load a new learning session with all content and state */
+  loadSession: (session: Omit<CurrentSession, 'id' | 'createdAt' | 'progress' | 'cognitiveMetrics'> & { 
+    progress?: UserProgress;
+    cognitiveMetrics?: CognitiveMetrics;
+  }) => void;
+  /** Update session progress */
+  updateSessionProgress: (progress: Partial<UserProgress>) => void;
+  /** Update session mode (learn/sprint/explore) */
+  setSessionMode: (mode: CurrentSession['mode']) => void;
+  /** Clear current session */
+  clearSession: () => void;
+  /** Get current session data */
+  getSession: () => CurrentSession | null;
+  
+  // ─── CONCEPT NAVIGATION ──────────────────────────────────────────────
   completeConcept: (conceptId: string) => void;
   setCurrentConcept: (conceptId: string) => void;
-  triggerCelebration: (data: CelebrationData) => void;
-  dismissCelebration: () => void;
-  toggleExploreMode: () => void;
-  resetProgress: () => void;
-  startSession: () => void;
-  endSession: () => void;
   getConceptStatus: (conceptId: string) => 'locked' | 'available' | 'current' | 'completed';
   getStageStatus: (stageId: string) => 'locked' | 'available' | 'current' | 'completed';
   getNextConcept: () => string | null;
   getPreviousConcept: () => string | null;
   canAccessConcept: (conceptId: string) => boolean;
-  loadCustomContent: (content: { stages: LearningStage[]; concepts: LearningConcept[]; metadata: ContentMetadata }) => void;
-  clearCustomContent: () => void;
+  
+  // ─── UI STATE ────────────────────────────────────────────────────────
+  triggerCelebration: (data: CelebrationData) => void;
+  dismissCelebration: () => void;
+  toggleExploreMode: () => void;
+  resetProgress: () => void;
+  
+  // ─── SESSION TIMER ───────────────────────────────────────────────────
+  startSession: () => void;
+  endSession: () => void;
+  
+  // ─── CONTENT ACCESSORS ───────────────────────────────────────────────
   getStages: () => LearningStage[];
   getConcepts: () => LearningConcept[];
   hasCustomContent: () => boolean;
+  
+  // ─── SPRINT ──────────────────────────────────────────────────────────
   setSprintResult: (result: SprintResult) => void;
   clearSprintResult: () => void;
   setSprintReady: (ready: boolean) => void;
-  // Cognitive load actions
+  
+  // ─── COGNITIVE LOAD ──────────────────────────────────────────────────
   recordInteraction: (correct: boolean, responseTimeMs: number) => void;
   triggerNeuralReset: () => void;
   dismissNeuralReset: () => void;
   resetCognitiveLoad: () => void;
   getCognitiveLoadLevel: () => 'low' | 'optimal' | 'high' | 'overload';
+  
+  // ─── LEGACY (deprecated - maintained for backward compatibility) ─────
+  /** @deprecated Use loadSession instead */
+  loadCustomContent: (content: { stages: LearningStage[]; concepts: LearningConcept[]; metadata: ContentMetadata }) => void;
+  /** @deprecated Use clearSession instead */
+  clearCustomContent: () => void;
 };
 
 const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]): UserProgress => {
@@ -86,66 +174,167 @@ const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]
   };
 };
 
+/** Generate unique session ID */
+const generateSessionId = (): string => {
+  return `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+};
+
+/** Default cognitive metrics for new sessions */
+const getDefaultCognitiveMetrics = (): CognitiveMetrics => ({
+  currentLoad: 30,  // Start at 30% (light load)
+  consecutiveCorrect: 0,
+  consecutiveErrors: 0,
+  avgResponseTimeMs: 0,
+  lastInteractionTime: Date.now(),
+  conceptsThisSession: 0,
+  needsReset: false,
+});
+
 export const useLearningStore = create<LearningState & LearningActions>()(
   persist(
     (set, get) => ({
-      progress: getInitialProgress([], []),
+      // ─── UNIFIED SESSION (Phase 0.3) ─────────────────────────────────
+      currentSession: null,
+      
+      // ─── UI State ────────────────────────────────────────────────────
       showCelebration: false,
       celebrationData: null,
-      isExploreMode: false,
-      customContent: null,
-      sessionTimer: null,
-      sprintResult: null,
-      isSprintReady: false,
       showNeuralReset: false,
-      cognitiveMetrics: {
-        currentLoad: 30,  // Start at 30% (light load)
-        consecutiveCorrect: 0,
-        consecutiveErrors: 0,
-        avgResponseTimeMs: 0,
-        lastInteractionTime: Date.now(),
-        conceptsThisSession: 0,
-        needsReset: false,
+      isExploreMode: false,
+      isSprintReady: false,
+      sessionTimer: null,
+      
+      // ─── LEGACY STATE (kept for backward compatibility) ──────────────
+      progress: getInitialProgress([], []),
+      customContent: null,
+      sprintResult: null,
+      cognitiveMetrics: getDefaultCognitiveMetrics(),
+
+      // ═══════════════════════════════════════════════════════════════════
+      // UNIFIED SESSION ACTIONS (Phase 0.3 - PRIMARY API)
+      // ═══════════════════════════════════════════════════════════════════
+
+      loadSession: (sessionData) => {
+        const stages = sessionData.stages;
+        const concepts = sessionData.concepts;
+        const initialProgress = sessionData.progress || getInitialProgress(stages, concepts);
+        const initialMetrics = sessionData.cognitiveMetrics || getDefaultCognitiveMetrics();
+        
+        const session: CurrentSession = {
+          id: generateSessionId(),
+          subjectId: sessionData.subjectId,
+          subject: sessionData.subject,
+          mode: sessionData.mode,
+          createdAt: new Date().toISOString(),
+          stages,
+          concepts,
+          metadata: sessionData.metadata,
+          progress: initialProgress,
+          sprintResult: sessionData.sprintResult,
+          cognitiveMetrics: initialMetrics,
+        };
+        
+        set({
+          currentSession: session,
+          // Also update legacy state for backward compatibility
+          customContent: { stages, concepts, metadata: sessionData.metadata },
+          progress: initialProgress,
+          cognitiveMetrics: initialMetrics,
+          showCelebration: false,
+          celebrationData: null,
+        });
       },
+      
+      updateSessionProgress: (progressUpdate) => {
+        const state = get();
+        if (!state.currentSession) return;
+        
+        const newProgress = { ...state.currentSession.progress, ...progressUpdate };
+        
+        set({
+          currentSession: {
+            ...state.currentSession,
+            progress: newProgress,
+          },
+          // Legacy sync
+          progress: newProgress,
+        });
+      },
+      
+      setSessionMode: (mode) => {
+        const state = get();
+        if (!state.currentSession) return;
+        
+        set({
+          currentSession: {
+            ...state.currentSession,
+            mode,
+          },
+        });
+      },
+      
+      clearSession: () => {
+        const newProgress = getInitialProgress([], []);
+        set({
+          currentSession: null,
+          // Legacy sync
+          customContent: null,
+          progress: newProgress,
+          sprintResult: null,
+          cognitiveMetrics: getDefaultCognitiveMetrics(),
+          showCelebration: false,
+          celebrationData: null,
+        });
+      },
+      
+      getSession: () => get().currentSession,
+
+      // ═══════════════════════════════════════════════════════════════════
+      // CONTENT ACCESSORS (now session-aware)
+      // ═══════════════════════════════════════════════════════════════════
 
       getStages: () => {
         const state = get();
-        return state.customContent?.stages || [];
+        // Prefer unified session, fallback to legacy
+        return state.currentSession?.stages || state.customContent?.stages || [];
       },
 
       getConcepts: () => {
         const state = get();
-        return state.customContent?.concepts || [];
+        return state.currentSession?.concepts || state.customContent?.concepts || [];
       },
 
       hasCustomContent: () => {
-        return get().customContent !== null;
+        const state = get();
+        return state.currentSession !== null || state.customContent !== null;
       },
 
+      // ═══════════════════════════════════════════════════════════════════
+      // LEGACY ACTIONS (deprecated - maintained for backward compatibility)
+      // ═══════════════════════════════════════════════════════════════════
+
       loadCustomContent: (content) => {
-        const newProgress = getInitialProgress(content.stages, content.concepts);
-        set({
-          customContent: content,
-          progress: newProgress,
-          showCelebration: false,
-          celebrationData: null,
+        // Bridge to new unified session API
+        get().loadSession({
+          subjectId: `legacy-${Date.now()}`,
+          subject: content.metadata?.domain || 'Imported Content',
+          mode: 'learn',
+          stages: content.stages,
+          concepts: content.concepts,
+          metadata: content.metadata,
         });
       },
 
       clearCustomContent: () => {
-        const newProgress = getInitialProgress([], []);
-        set({
-          customContent: null,
-          progress: newProgress,
-          showCelebration: false,
-          celebrationData: null,
-        });
+        get().clearSession();
       },
 
       completeConcept: (conceptId: string) => {
         const state = get();
         const concepts = state.getConcepts();
         const stages = state.getStages();
+        // Get current progress from session or legacy
+        const currentProgress = state.currentSession?.progress || state.progress;
 
         const concept = concepts.find(c => c.id === conceptId);
         if (!concept) return;
@@ -153,10 +342,10 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const stage = stages.find(s => s.id === concept.stageId);
         if (!stage) return;
 
-        const newCompletedConcepts = [...state.progress.completedConcepts, conceptId];
+        const newCompletedConcepts = [...currentProgress.completedConcepts, conceptId];
         const today = new Date().toISOString().split('T')[0];
-        const conceptsToday = state.progress.lastSessionDate === today
-          ? state.progress.conceptsLearnedToday + 1
+        const conceptsToday = currentProgress.lastSessionDate === today
+          ? currentProgress.conceptsLearnedToday + 1
           : 1;
 
         const stageConceptIds = concepts
@@ -166,25 +355,34 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           newCompletedConcepts.includes(id)
         );
 
-        const newCompletedStages = [...state.progress.completedStages];
+        const newCompletedStages = [...currentProgress.completedStages];
         if (allStageConceptsComplete && !newCompletedStages.includes(stage.id)) {
           newCompletedStages.push(stage.id);
         }
 
         const nextConcept = state.getNextConcept();
         const nextConceptData = nextConcept ? concepts.find(c => c.id === nextConcept) : null;
-        const nextStageId = nextConceptData?.stageId || state.progress.currentStageId;
+        const nextStageId = nextConceptData?.stageId || currentProgress.currentStageId;
 
+        const newProgress: UserProgress = {
+          ...currentProgress,
+          completedConcepts: newCompletedConcepts,
+          completedStages: newCompletedStages,
+          currentConceptId: nextConcept || conceptId,
+          currentStageId: nextStageId,
+          conceptsLearnedToday: conceptsToday,
+          lastSessionDate: today,
+        };
+
+        // Update both session and legacy state
         set({
-          progress: {
-            ...state.progress,
-            completedConcepts: newCompletedConcepts,
-            completedStages: newCompletedStages,
-            currentConceptId: nextConcept || conceptId,
-            currentStageId: nextStageId,
-            conceptsLearnedToday: conceptsToday,
-            lastSessionDate: today,
-          },
+          progress: newProgress,
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              progress: newProgress,
+            },
+          }),
         });
 
         if (allStageConceptsComplete) {
@@ -214,17 +412,26 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       },
 
       setCurrentConcept: (conceptId: string) => {
-        const concepts = get().getConcepts();
+        const state = get();
+        const concepts = state.getConcepts();
         const concept = concepts.find(c => c.id === conceptId);
         if (!concept) return;
 
-        set(state => ({
-          progress: {
-            ...state.progress,
-            currentConceptId: conceptId,
-            currentStageId: concept.stageId,
-          },
-        }));
+        const newProgress = {
+          ...(state.currentSession?.progress || state.progress),
+          currentConceptId: conceptId,
+          currentStageId: concept.stageId,
+        };
+
+        set({
+          progress: newProgress,
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              progress: newProgress,
+            },
+          }),
+        });
       },
 
       triggerCelebration: (data: CelebrationData) => {
@@ -243,11 +450,19 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const state = get();
         const stages = state.getStages();
         const concepts = state.getConcepts();
+        const newProgress = getInitialProgress(stages, concepts);
+        
         set({
-          progress: getInitialProgress(stages, concepts),
+          progress: newProgress,
           showCelebration: false,
           celebrationData: null,
           isExploreMode: false,
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              progress: newProgress,
+            },
+          }),
         });
       },
 
@@ -259,22 +474,39 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
         const timer = setInterval(() => {
           const current = get();
-          if (current.progress.sessionStartTime) {
-            set(prev => ({
-              progress: {
-                ...prev.progress,
-                totalTimeSpentMinutes: prev.progress.totalTimeSpentMinutes + 1,
-              },
-            }));
+          const currentProgress = current.currentSession?.progress || current.progress;
+          if (currentProgress.sessionStartTime) {
+            const newProgress = {
+              ...currentProgress,
+              totalTimeSpentMinutes: currentProgress.totalTimeSpentMinutes + 1,
+            };
+            set({
+              progress: newProgress,
+              ...(current.currentSession && {
+                currentSession: {
+                  ...current.currentSession,
+                  progress: newProgress,
+                },
+              }),
+            });
           }
         }, 60000);
 
+        const currentProgress = state.currentSession?.progress || state.progress;
+        const newProgress = {
+          ...currentProgress,
+          sessionStartTime: Date.now(),
+        };
+
         set({
-          progress: {
-            ...state.progress,
-            sessionStartTime: Date.now(),
-          },
+          progress: newProgress,
           sessionTimer: timer,
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              progress: newProgress,
+            },
+          }),
         });
       },
 
@@ -284,34 +516,45 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           clearInterval(state.sessionTimer);
         }
 
-        if (!state.progress.sessionStartTime) {
+        const currentProgress = state.currentSession?.progress || state.progress;
+
+        if (!currentProgress.sessionStartTime) {
           set({ sessionTimer: null });
           return;
         }
 
         const sessionMinutes = Math.round(
-          (Date.now() - state.progress.sessionStartTime) / 60000
+          (Date.now() - currentProgress.sessionStartTime) / 60000
         );
 
+        const newProgress = {
+          ...currentProgress,
+          totalTimeSpentMinutes: currentProgress.totalTimeSpentMinutes + sessionMinutes,
+          sessionStartTime: null,
+        };
+
         set({
-          progress: {
-            ...state.progress,
-            totalTimeSpentMinutes: state.progress.totalTimeSpentMinutes + sessionMinutes,
-            sessionStartTime: null,
-          },
+          progress: newProgress,
           sessionTimer: null,
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              progress: newProgress,
+            },
+          }),
         });
       },
 
       getConceptStatus: (conceptId: string) => {
         const state = get();
         const concepts = state.getConcepts();
+        const progress = state.currentSession?.progress || state.progress;
 
-        if (state.progress.completedConcepts.includes(conceptId)) {
+        if (progress.completedConcepts.includes(conceptId)) {
           return 'completed';
         }
 
-        if (state.progress.currentConceptId === conceptId) {
+        if (progress.currentConceptId === conceptId) {
           return 'current';
         }
 
@@ -319,7 +562,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         if (!concept) return 'locked';
 
         const prerequisitesMet = concept.prerequisites.every(prereq =>
-          state.progress.completedConcepts.includes(prereq)
+          progress.completedConcepts.includes(prereq)
         );
 
         return prerequisitesMet ? 'available' : 'locked';
@@ -328,12 +571,13 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       getStageStatus: (stageId: string) => {
         const state = get();
         const stages = state.getStages();
+        const progress = state.currentSession?.progress || state.progress;
 
-        if (state.progress.completedStages.includes(stageId)) {
+        if (progress.completedStages.includes(stageId)) {
           return 'completed';
         }
 
-        if (state.progress.currentStageId === stageId) {
+        if (progress.currentStageId === stageId) {
           return 'current';
         }
 
@@ -344,7 +588,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         if (stageIndex === 0) return 'available';
 
         const previousStage = stages[stageIndex - 1];
-        return state.progress.completedStages.includes(previousStage.id)
+        return progress.completedStages.includes(previousStage.id)
           ? 'available'
           : 'locked';
       },
@@ -353,9 +597,10 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const state = get();
         const concepts = state.getConcepts();
         const stages = state.getStages();
+        const progress = state.currentSession?.progress || state.progress;
 
         const currentConcept = concepts.find(
-          c => c.id === state.progress.currentConceptId
+          c => c.id === progress.currentConceptId
         );
         if (!currentConcept) return null;
 
@@ -365,7 +610,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
         const nextInStage = sameStageConcepts.find(
           c => c.order > currentConcept.order &&
-            !state.progress.completedConcepts.includes(c.id)
+            !progress.completedConcepts.includes(c.id)
         );
 
         if (nextInStage) return nextInStage.id;
@@ -380,7 +625,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
             .filter(c => c.stageId === nextStage.id)
             .sort((a, b) => a.order - b.order)[0];
 
-          if (firstConcept && !state.progress.completedConcepts.includes(firstConcept.id)) {
+          if (firstConcept && !progress.completedConcepts.includes(firstConcept.id)) {
             return firstConcept.id;
           }
         }
@@ -392,9 +637,10 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const state = get();
         const concepts = state.getConcepts();
         const stages = state.getStages();
+        const progress = state.currentSession?.progress || state.progress;
 
         const currentConcept = concepts.find(
-          c => c.id === state.progress.currentConceptId
+          c => c.id === progress.currentConceptId
         );
         if (!currentConcept) return null;
 
@@ -430,16 +676,41 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         return status !== 'locked';
       },
 
-      setSprintResult: (result) => set({ sprintResult: result }),
+      setSprintResult: (result) => {
+        const state = get();
+        set({ 
+          sprintResult: result,
+          // Update unified session if active
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              sprintResult: result,
+              mode: 'sprint' as const,
+            },
+          }),
+        });
+      },
 
-      clearSprintResult: () => set({ sprintResult: null }),
+      clearSprintResult: () => {
+        const state = get();
+        set({ 
+          sprintResult: null,
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              sprintResult: undefined,
+            },
+          }),
+        });
+      },
 
       setSprintReady: (ready) => set({ isSprintReady: ready }),
 
       // Cognitive load actions
       recordInteraction: (correct, responseTimeMs) => {
         const state = get();
-        const metrics = state.cognitiveMetrics;
+        // Use session metrics if available, otherwise legacy
+        const metrics = state.currentSession?.cognitiveMetrics || state.cognitiveMetrics;
 
         // Update streaks
         const newConsecutiveCorrect = correct ? metrics.consecutiveCorrect + 1 : 0;
@@ -480,17 +751,26 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const newLoad = Math.min(100, Math.max(0, metrics.currentLoad + loadDelta));
         const needsReset = newLoad >= 85 || newConsecutiveErrors >= 5;
 
+        const newMetrics: CognitiveMetrics = {
+          currentLoad: newLoad,
+          consecutiveCorrect: newConsecutiveCorrect,
+          consecutiveErrors: newConsecutiveErrors,
+          avgResponseTimeMs: newAvgTime,
+          lastInteractionTime: Date.now(),
+          conceptsThisSession: metrics.conceptsThisSession + 1,
+          needsReset,
+        };
+
         set({
-          cognitiveMetrics: {
-            currentLoad: newLoad,
-            consecutiveCorrect: newConsecutiveCorrect,
-            consecutiveErrors: newConsecutiveErrors,
-            avgResponseTimeMs: newAvgTime,
-            lastInteractionTime: Date.now(),
-            conceptsThisSession: metrics.conceptsThisSession + 1,
-            needsReset,
-          },
+          cognitiveMetrics: newMetrics,
           showNeuralReset: needsReset,
+          // Update unified session if active
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              cognitiveMetrics: newMetrics,
+            },
+          }),
         });
       },
 
@@ -498,32 +778,45 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
       dismissNeuralReset: () => {
         const state = get();
+        const currentMetrics = state.currentSession?.cognitiveMetrics || state.cognitiveMetrics;
+        const newMetrics: CognitiveMetrics = {
+          ...currentMetrics,
+          currentLoad: Math.max(30, currentMetrics.currentLoad - 30),
+          consecutiveErrors: 0,
+          needsReset: false,
+        };
+        
         set({
           showNeuralReset: false,
-          cognitiveMetrics: {
-            ...state.cognitiveMetrics,
-            currentLoad: Math.max(30, state.cognitiveMetrics.currentLoad - 30),
-            consecutiveErrors: 0,
-            needsReset: false,
-          },
+          cognitiveMetrics: newMetrics,
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              cognitiveMetrics: newMetrics,
+            },
+          }),
         });
       },
 
-      resetCognitiveLoad: () => set({
-        cognitiveMetrics: {
-          currentLoad: 30,
-          consecutiveCorrect: 0,
-          consecutiveErrors: 0,
-          avgResponseTimeMs: 0,
-          lastInteractionTime: Date.now(),
-          conceptsThisSession: 0,
-          needsReset: false,
-        },
-        showNeuralReset: false,
-      }),
+      resetCognitiveLoad: () => {
+        const state = get();
+        const defaultMetrics = getDefaultCognitiveMetrics();
+        
+        set({
+          cognitiveMetrics: defaultMetrics,
+          showNeuralReset: false,
+          ...(state.currentSession && {
+            currentSession: {
+              ...state.currentSession,
+              cognitiveMetrics: defaultMetrics,
+            },
+          }),
+        });
+      },
 
       getCognitiveLoadLevel: () => {
-        const { currentLoad } = get().cognitiveMetrics;
+        const state = get();
+        const { currentLoad } = state.currentSession?.cognitiveMetrics || state.cognitiveMetrics;
         if (currentLoad < 30) return 'low';
         if (currentLoad < 60) return 'optimal';
         if (currentLoad < 85) return 'high';
@@ -533,6 +826,9 @@ export const useLearningStore = create<LearningState & LearningActions>()(
     {
       name: 'sensa-learning-progress',
       partialize: (state) => ({
+        // Unified session (Phase 0.3)
+        currentSession: state.currentSession,
+        // Legacy state (backward compatibility)
         progress: state.progress,
         customContent: state.customContent,
       }),
