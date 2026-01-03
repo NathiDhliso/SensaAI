@@ -1,6 +1,7 @@
 # 🧹 Technical Debt Cleanup Plan
 
 **Created:** January 3, 2026  
+**Updated:** January 3, 2026  
 **Goal:** Optimize codebase for future development and maintainability  
 **Estimated Total Effort:** 8-12 hours
 
@@ -8,74 +9,51 @@
 
 ## 📊 Executive Summary
 
-| Category | Items | Priority | Estimated Hours |
-|----------|-------|----------|-----------------|
-| Dead Code Removal | 7 items | 🔴 High | 1-2 hrs |
-| Deprecated Route Cleanup | 6 routes | 🟡 Medium | 2-3 hrs |
-| Store Consolidation | 2 stores | 🟡 Medium | 2-3 hrs |
-| Type Consolidation | 2 files | 🟢 Low | 1 hr |
-| CSS Optimization | ~100 lines | 🟢 Low | 1-2 hrs |
+| Category | Items | Priority | Status |
+|----------|-------|----------|--------|
+| Dead Code Removal | 7 items | 🔴 High | ✅ DONE |
+| Route Consolidation | 6 routes | 🟡 Medium | ✅ DONE |
+| Store Consolidation | 2 stores | 🟡 Medium | 🔜 Next |
+| Type Consolidation | 2 files | 🟢 Low | Pending |
+| CSS Optimization | ~100 lines | 🟢 Low | Deferred |
 
 ---
 
-## 🔴 PHASE 1: Dead Code Removal (High Priority)
+## ✅ PHASE 1: Dead Code & Route Cleanup (COMPLETED)
 
-### ✅ Already Completed
-- [x] `src/components/diagnostic/` - Deleted
-- [x] `src/lib/generation/diagnostic-generator.ts` - Deleted
-- [x] `src/lib/types/diagnostic.ts` - Deleted
-- [x] `generation-store.ts` diagnostic references - Cleaned
+**Commit:** `ea7812d` - refactor: Phase 1 technical debt cleanup - route consolidation
 
-### 1.1 Remove Deprecated Routes from App.tsx
+### Files Deleted
+- [x] `src/components/diagnostic/` - Previously deleted
+- [x] `src/lib/generation/diagnostic-generator.ts` - Previously deleted
+- [x] `src/lib/types/diagnostic.ts` - Previously deleted
+- [x] `src/pages/Learn.tsx` - Merged into Study.tsx
+- [x] `src/pages/Learn.module.css` - Deleted
+- [x] `src/pages/SprintResults.tsx` - Merged into Sprint flow
+- [x] `src/pages/SprintResults.module.css` - Deleted
 
-**File:** `src/App.tsx`
+### Routes Updated
+| Old Route | New Route | Type |
+|-----------|-----------|------|
+| `/learn` | `/study/current` | Redirect |
+| `/sprint-results` | `/study/current?tab=sprint` | Redirect |
+| `/saved` | `/library` | Redirect + Rename |
+| `/palace` | `/study/current?tab=palace` | Navigation updated |
 
-The following routes are marked `@deprecated` and now have unified alternatives:
+### Navigation Updated
+- `Home.tsx` → `/study/current`, `/library`
+- `Results.tsx` → `/study/current?tab=palace`
+- `SavedResults.tsx` → `/study/current`
+- `Settings.tsx` → `/study/current`
+- `Sprint.tsx` → `/study/current?tab=sprint`, `/study/current`
+- `ExteriorView.tsx` → `/study/current`
 
-| Deprecated Route | Replacement | Action |
-|-----------------|-------------|--------|
-| `/results/:id` | `/study/:subjectId` | Keep temporarily (used by Generate redirect) |
-| `/learn` | `/study/:subjectId` (Learn tab) | **DELETE after migration** |
-| `/palace` | `/study/:subjectId` (Palace tab) | **DELETE after migration** |
-| `/sprint` | `/study/:subjectId` (Sprint tab) | **DELETE after migration** |
-| `/sprint-results` | Sprint completion flow | **DELETE after migration** |
-| `/saved` | Rename to `/library` | **RENAME route** |
+### TypeScript Fixes Applied
+- `Study.tsx`: Removed unused variables, fixed ConceptChunks props
+- `ExteriorView.tsx`: Fixed handleStartWalk onClick handler type
+- `Results.tsx`: Removed unused imports
 
-**Migration Steps:**
-1. Update all `navigate('/learn')` calls → `navigate('/study/current')`
-2. Update all `navigate('/palace')` calls → embedded in Study page
-3. Update all `navigate('/sprint')` calls → embedded in Study page
-4. Delete lazy imports: `Learn`, `Palace`, `Sprint`, `SprintResults`
-5. Delete route definitions
-
-**Files to update:**
-- `src/pages/Home.tsx` - Line 338: `navigate('/learn')` → `/study/current`
-- `src/pages/Learn.tsx` - Line 167: `navigate('/sprint')` → handled internally
-- `src/pages/Results.tsx` - Already updated to `/study/:subjectId`
-
-### 1.2 Delete Standalone Page Files (After Route Migration)
-
-```
-Files to DELETE after route migration:
-src/pages/Learn.tsx          # Merged into Study.tsx
-src/pages/Learn.module.css   # Merged into Study.module.css
-src/pages/SprintResults.tsx  # Merged into Sprint completion
-src/pages/SprintResults.module.css
-```
-
-**Keep for now:**
-- `Sprint.tsx` - Still used standalone AND in Study
-- `Palace.tsx` - Still used standalone AND in Study
-
-### 1.3 Remove Unused Exports from Index Files
-
-**File:** `src/components/learning/index.ts`
-
-Check and remove any exports that are no longer used:
-```bash
-# For each export, verify it's imported elsewhere
-grep -r "from '@/components/learning'" src/
-```
+**Net result: -746 lines of code**
 
 ---
 
