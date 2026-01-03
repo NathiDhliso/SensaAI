@@ -34,35 +34,79 @@ function App() {
     <BrowserRouter>
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          {/* Public routes */}
+          {/* ═══════════════════════════════════════════════════════════════
+              PUBLIC ROUTES
+              ═══════════════════════════════════════════════════════════════ */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Protected routes - require auth in production */}
+          {/* ═══════════════════════════════════════════════════════════════
+              GENERATION FLOW
+              ═══════════════════════════════════════════════════════════════ */}
           <Route path="/generate/:subject" element={
             <ProtectedRoute><Generate /></ProtectedRoute>
           } />
+          
+          {/* 
+           * @deprecated Phase 2.1 - Will be replaced by /study/:subjectId
+           * Results page shows generation output and navigation to learning
+           * TODO: Merge into unified Study Command Center
+           */}
           <Route path="/results/:id" element={
             <ProtectedRoute><Results /></ProtectedRoute>
           } />
-          <Route path="/settings" element={
-            <ProtectedRoute><Settings /></ProtectedRoute>
-          } />
+
+          {/* ═══════════════════════════════════════════════════════════════
+              LEARNING FLOW (Phase 2.1 - To be unified under /study/:subjectId)
+              ═══════════════════════════════════════════════════════════════ */}
+          
+          {/* 
+           * @deprecated Phase 2.1 - Will become /study/:subjectId (Learn tab)
+           * Linear concept learning with lifecycle phases
+           */}
           <Route path="/learn" element={
             <ProtectedRoute><Learn /></ProtectedRoute>
           } />
-          <Route path="/saved" element={
-            <ProtectedRoute><SavedResults /></ProtectedRoute>
-          } />
+          
+          {/* 
+           * @deprecated Phase 2.1 - Will become /study/:subjectId (Palace tab)
+           * Memory Palace spatial learning environment
+           */}
           <Route path="/palace" element={
             <ProtectedRoute><Palace /></ProtectedRoute>
           } />
+          
+          {/* 
+           * @deprecated Phase 2.1 - Will become /study/:subjectId/sprint
+           * Automaticity Sprint - timed pattern recognition test
+           */}
           <Route path="/sprint" element={
             <ProtectedRoute><Sprint /></ProtectedRoute>
           } />
+          
+          {/* 
+           * @deprecated Phase 2.1 - Will merge into Sprint completion flow
+           * Sprint results and exam readiness assessment
+           */}
           <Route path="/sprint-results" element={
             <ProtectedRoute><SprintResults /></ProtectedRoute>
+          } />
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SETTINGS & LIBRARY
+              ═══════════════════════════════════════════════════════════════ */}
+          <Route path="/settings" element={
+            <ProtectedRoute><Settings /></ProtectedRoute>
+          } />
+          
+          {/* 
+           * @deprecated Phase 2.1 - Will become /library
+           * Saved/bookmarked generation results
+           * TODO: Rename to /library for clarity
+           */}
+          <Route path="/saved" element={
+            <ProtectedRoute><SavedResults /></ProtectedRoute>
           } />
         </Routes>
         <SettingsPanel />
