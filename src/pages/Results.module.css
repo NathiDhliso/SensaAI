@@ -77,10 +77,7 @@
   color: var(--color-text-light);
 }
 
-.headerActions {
-  display: flex;
-  gap: 0.75rem;
-}
+/* NOTE: .headerActions removed - unused after Phase 0.1 button consolidation */
 
 .primaryButton {
   display: inline-flex;
@@ -124,12 +121,7 @@
   height: 1rem;
 }
 
-.metricsCard {
-  background: var(--color-surface);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-md);
-  padding: 1.5rem;
-}
+/* NOTE: .metricsCard removed - unused, replaced by inline metrics display */
 
 .sectionTitle {
   font-size: 1.125rem;
@@ -173,34 +165,7 @@
   color: var(--color-text-dark);
 }
 
-.detailsCard {
-  background: var(--color-surface);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-md);
-  padding: 1.5rem;
-}
-
-.detailsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.detailItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.detailLabel {
-  font-size: 0.875rem;
-  color: var(--color-text-light);
-}
-
-.detailValue {
-  font-weight: 500;
-  color: var(--color-text-dark);
-}
+/* NOTE: .detailsCard, .detailsGrid, .detailItem, .detailLabel, .detailValue removed - unused */
 
 .contentCard {
   background: var(--color-surface);
