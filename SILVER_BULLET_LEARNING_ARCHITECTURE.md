@@ -1000,9 +1000,16 @@ export function LifecyclePhaseRenderer({
   - Created `LifecyclePhaseStep.tsx` + `LifecyclePhaseStep.module.css`
   - Exports: `LifecyclePhaseStep`, `LifecycleFlow`
   - Integrated into `ConceptCard.tsx`
-- [ ] **0.3** Unify `learning-store.ts` state structure
+- [x] **0.3** Unify `learning-store.ts` state structure ✅ (commit: a219940)
+  - Created `CurrentSession` interface consolidating customContent, sprintResult, cognitiveMetrics
+  - New primary API: `loadSession()`, `updateSessionProgress()`, `setSessionMode()`, `clearSession()`
+  - All existing actions now session-aware with legacy backward compatibility
+  - Persist now includes currentSession for proper hydration
 - [ ] **0.4** Create `StudyLayout` wrapper
-- [ ] **0.5** Remove unused CSS classes
+- [x] **0.5** Remove unused CSS classes ✅ (commit: 7c516e0)
+  - Removed: `.headerActions`, `.metricsCard`, `.detailsCard`, `.detailsGrid`
+  - Removed: `.detailItem`, `.detailLabel`, `.detailValue`
+  - ~38 lines of dead CSS removed
 - [ ] **0.6** Mark deprecated routes (`/saved`, `/results/:id`)
 - [x] **0.7** Run TypeScript check: `npx tsc --noEmit` ✅ (all phases verified)
 - [ ] **0.8** Test all refactored components
