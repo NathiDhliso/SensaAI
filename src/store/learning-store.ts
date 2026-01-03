@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { FOCUS_SESSION_CONFIG } from '@/constants/ui-constants';
 import type { 
   UserProgress, 
   CelebrationData, 
@@ -13,8 +14,7 @@ import type {
 import type { SprintResult } from '@/lib/types/sprint';
 
 // ============================================================================
-// PHASE 0.3: UNIFIED SESSION STATE
-// Consolidates: customContent, sprintResult, cognitiveMetrics, showNeuralReset
+// TYPES
 // ============================================================================
 
 /**
@@ -29,66 +29,76 @@ export type ContentMetadata = {
 
 /**
  * Cognitive load tracking for adaptive learning.
- * Used to detect when student needs a "neural reset" break.
  */
 export type CognitiveMetrics = {
-  currentLoad: number;           // 0-100 scale
-  consecutiveCorrect: number;    // Fast/correct streaks
-  consecutiveErrors: number;     // Wrong/slow streaks
-  avgResponseTimeMs: number;     // Rolling average
-  lastInteractionTime: number;   // Timestamp
-  conceptsThisSession: number;   // Concepts viewed this session
-  needsReset: boolean;           // Triggers neural reset modal
+  currentLoad: number;
+  consecutiveCorrect: number;
+  consecutiveErrors: number;
+  avgResponseTimeMs: number;
+  lastInteractionTime: number;
+  conceptsThisSession: number;
+  needsReset: boolean;
 };
 
 /**
- * UNIFIED LEARNING SESSION
- * 
- * Single source of truth for all active learning state.
- * Replaces scattered customContent, sprintResult, cognitiveMetrics.
- * 
- * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Phase 0.3
+ * Focus session concept timing tracking
+ */
+export type ConceptTiming = {
+  conceptId: string;
+  conceptName: string;
+  startTime: number;
+  endTime: number | null;
+  durationSeconds: number;
+  completed: boolean;
+};
+
+/**
+ * Pace rating based on reading time vs target
+ */
+export type PaceRating = 'optimal' | 'good' | 'warning' | 'overtime';
+
+/**
+ * Session summary for display in modal
+ */
+export type SessionSummary = {
+  duration: number;
+  conceptsCount: number;
+  conceptsCompleted: number;
+  avgPaceSeconds: number;
+  paceRating: PaceRating;
+  conceptTimings: ConceptTiming[];
+  recommendation: string;
+};
+
+/**
+ * Current learning session - single source of truth for active content
  */
 export interface CurrentSession {
-  /** Unique session ID (UUID) */
   id: string;
-  /** Generated subject identifier (matches Results page) */
   subjectId: string;
-  /** Human-readable subject name */
   subject: string;
-  /** Current learning mode */
   mode: 'learn' | 'sprint' | 'explore';
-  /** When session was created */
   createdAt: string;
   
-  // ─── Content ─────────────────────────────────────────────────────────
+  // Content
   stages: LearningStage[];
   concepts: LearningConcept[];
   metadata: ContentMetadata | null;
   
-  // ─── Progress ────────────────────────────────────────────────────────
+  // Progress
   progress: UserProgress;
   
-  // ─── Sprint Results (if mode === 'sprint') ───────────────────────────
+  // Sprint Results (if mode === 'sprint')
   sprintResult?: SprintResult;
   
-  // ─── Cognitive Metrics ───────────────────────────────────────────────
+  // Cognitive Metrics
   cognitiveMetrics: CognitiveMetrics;
 }
 
-// Legacy type alias for backward compatibility during migration
-type CustomContent = {
-  stages: LearningStage[];
-  concepts: LearningConcept[];
-  metadata: ContentMetadata | null;
-};
-
 // ============================================================================
-// PHASE 5: STUDY SESSION STATE
-// Session-based learning model for single-page experience
+// HELPER FUNCTIONS
 // ============================================================================
 
-/** Default enhanced cognitive metrics for new study sessions */
 const getDefaultEnhancedMetrics = (): EnhancedCognitiveMetrics => ({
   currentLoad: 30,
   consecutiveCorrect: 0,
@@ -102,7 +112,6 @@ const getDefaultEnhancedMetrics = (): EnhancedCognitiveMetrics => ({
   flowStateMinutes: 0,
 });
 
-/** Create a new study session */
 const createStudySession = (
   subjectId: string,
   goal: StudyGoal,
@@ -126,118 +135,6 @@ const createStudySession = (
   goalAchieved: false,
 });
 
-type LearningState = {
-  // ─── UNIFIED SESSION (Phase 0.3) ─────────────────────────────────────
-  currentSession: CurrentSession | null;
-  
-  // ─── STUDY SESSION (Phase 5) ─────────────────────────────────────────
-  /** Active study session for single-page experience */
-  studySession: StudySession | null;
-  /** Show session start modal */
-  showSessionModal: boolean;
-  
-  // ─── UI State ────────────────────────────────────────────────────────
-  showCelebration: boolean;
-  celebrationData: CelebrationData | null;
-  showNeuralReset: boolean;
-  isExploreMode: boolean;
-  isSprintReady: boolean;
-  
-  // ─── Internal ────────────────────────────────────────────────────────
-  sessionTimer: ReturnType<typeof setInterval> | null;
-  
-  // ─── LEGACY (deprecated - use currentSession instead) ────────────────
-  /** @deprecated Use currentSession.progress */
-  progress: UserProgress;
-  /** @deprecated Use currentSession */
-  customContent: CustomContent | null;
-  /** @deprecated Use currentSession.sprintResult */
-  sprintResult: SprintResult | null;
-  /** @deprecated Use currentSession.cognitiveMetrics */
-  cognitiveMetrics: CognitiveMetrics;
-};
-
-type LearningActions = {
-  // ─── UNIFIED SESSION ACTIONS (Phase 0.3 - PRIMARY API) ───────────────
-  /** Load a new learning session with all content and state */
-  loadSession: (session: Omit<CurrentSession, 'id' | 'createdAt' | 'progress' | 'cognitiveMetrics'> & { 
-    progress?: UserProgress;
-    cognitiveMetrics?: CognitiveMetrics;
-  }) => void;
-  /** Update session progress */
-  updateSessionProgress: (progress: Partial<UserProgress>) => void;
-  /** Update session mode (learn/sprint/explore) */
-  setSessionMode: (mode: CurrentSession['mode']) => void;
-  /** Clear current session */
-  clearSession: () => void;
-  /** Get current session data */
-  getSession: () => CurrentSession | null;
-  
-  // ─── STUDY SESSION ACTIONS (Phase 5) ─────────────────────────────────
-  /** Start a new study session */
-  startStudySession: (goal: StudyGoal, duration: number, targetConcepts?: string[]) => void;
-  /** End the current study session */
-  endStudySession: () => void;
-  /** Update study session metrics */
-  updateStudyMetrics: (metrics: Partial<EnhancedCognitiveMetrics>) => void;
-  /** Complete a concept in study session */
-  completeStudySessionConcept: (conceptId: string, phase?: LifecyclePhaseKey) => void;
-  /** Record confusion drill completion */
-  recordConfusionDrill: (passed: boolean) => void;
-  /** Record a break taken */
-  recordBreak: () => void;
-  /** Show/hide session start modal */
-  setShowSessionModal: (show: boolean) => void;
-  /** Get study session stats */
-  getStudySessionStats: () => { 
-    elapsedMinutes: number; 
-    conceptsCompleted: number;
-    goalProgress: number;
-  } | null;
-  
-  // ─── CONCEPT NAVIGATION ──────────────────────────────────────────────
-  completeConcept: (conceptId: string) => void;
-  setCurrentConcept: (conceptId: string) => void;
-  getConceptStatus: (conceptId: string) => 'locked' | 'available' | 'current' | 'completed';
-  getStageStatus: (stageId: string) => 'locked' | 'available' | 'current' | 'completed';
-  getNextConcept: () => string | null;
-  getPreviousConcept: () => string | null;
-  canAccessConcept: (conceptId: string) => boolean;
-  
-  // ─── UI STATE ────────────────────────────────────────────────────────
-  triggerCelebration: (data: CelebrationData) => void;
-  dismissCelebration: () => void;
-  toggleExploreMode: () => void;
-  resetProgress: () => void;
-  
-  // ─── SESSION TIMER ───────────────────────────────────────────────────
-  startSession: () => void;
-  endSession: () => void;
-  
-  // ─── CONTENT ACCESSORS ───────────────────────────────────────────────
-  getStages: () => LearningStage[];
-  getConcepts: () => LearningConcept[];
-  hasCustomContent: () => boolean;
-  
-  // ─── SPRINT ──────────────────────────────────────────────────────────
-  setSprintResult: (result: SprintResult) => void;
-  clearSprintResult: () => void;
-  setSprintReady: (ready: boolean) => void;
-  
-  // ─── COGNITIVE LOAD ──────────────────────────────────────────────────
-  recordInteraction: (correct: boolean, responseTimeMs: number) => void;
-  triggerNeuralReset: () => void;
-  dismissNeuralReset: () => void;
-  resetCognitiveLoad: () => void;
-  getCognitiveLoadLevel: () => 'low' | 'optimal' | 'high' | 'overload';
-  
-  // ─── LEGACY (deprecated - maintained for backward compatibility) ─────
-  /** @deprecated Use loadSession instead */
-  loadCustomContent: (content: { stages: LearningStage[]; concepts: LearningConcept[]; metadata: ContentMetadata }) => void;
-  /** @deprecated Use clearSession instead */
-  clearCustomContent: () => void;
-};
-
 const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]): UserProgress => {
   const firstStage = stages[0];
   const firstConcept = concepts.find(c => c.stageId === firstStage?.id && c.order === 1) || concepts[0];
@@ -254,14 +151,12 @@ const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]
   };
 };
 
-/** Generate unique session ID */
 const generateSessionId = (): string => {
   return `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 };
 
-/** Default cognitive metrics for new sessions */
 const getDefaultCognitiveMetrics = (): CognitiveMetrics => ({
-  currentLoad: 30,  // Start at 30% (light load)
+  currentLoad: 30,
   consecutiveCorrect: 0,
   consecutiveErrors: 0,
   avgResponseTimeMs: 0,
@@ -270,17 +165,161 @@ const getDefaultCognitiveMetrics = (): CognitiveMetrics => ({
   needsReset: false,
 });
 
+const getInitialFocusSessionState = () => ({
+  isSessionActive: false,
+  isPaused: false,
+  sessionType: 'focus' as const,
+  focusDurationMinutes: FOCUS_SESSION_CONFIG.DEFAULT_FOCUS_MINUTES,
+  breakDurationMinutes: FOCUS_SESSION_CONFIG.DEFAULT_BREAK_MINUTES,
+  timeRemainingSeconds: FOCUS_SESSION_CONFIG.DEFAULT_FOCUS_MINUTES * 60,
+  focusSessionStartTime: null as number | null,
+  currentFocusConceptId: null as string | null,
+  currentFocusConceptStartTime: null as number | null,
+  conceptTimings: [] as ConceptTiming[],
+  totalSessionsCompleted: 0,
+  totalFocusMinutes: 0,
+  totalConceptsMastered: 0,
+  sessionsUntilLongBreak: FOCUS_SESSION_CONFIG.SESSIONS_UNTIL_LONG_BREAK,
+  showSessionSummary: false,
+  lastSessionSummary: null as SessionSummary | null,
+});
+
+// ============================================================================
+// STATE TYPE
+// ============================================================================
+
+type LearningState = {
+  // Current Learning Session
+  currentSession: CurrentSession | null;
+  
+  // Study Session (Phase 5)
+  studySession: StudySession | null;
+  showSessionModal: boolean;
+  
+  // UI State
+  showCelebration: boolean;
+  celebrationData: CelebrationData | null;
+  showNeuralReset: boolean;
+  isExploreMode: boolean;
+  isSprintReady: boolean;
+  sessionTimer: ReturnType<typeof setInterval> | null;
+  
+  // Focus Session State (merged from focus-session-store)
+  isSessionActive: boolean;
+  isPaused: boolean;
+  sessionType: 'focus' | 'break';
+  focusDurationMinutes: number;
+  breakDurationMinutes: number;
+  timeRemainingSeconds: number;
+  focusSessionStartTime: number | null;
+  currentFocusConceptId: string | null;
+  currentFocusConceptStartTime: number | null;
+  conceptTimings: ConceptTiming[];
+  totalSessionsCompleted: number;
+  totalFocusMinutes: number;
+  totalConceptsMastered: number;
+  sessionsUntilLongBreak: number;
+  showSessionSummary: boolean;
+  lastSessionSummary: SessionSummary | null;
+};
+
+// ============================================================================
+// ACTIONS TYPE
+// ============================================================================
+
+type LearningActions = {
+  // Session Actions
+  loadSession: (session: Omit<CurrentSession, 'id' | 'createdAt' | 'progress' | 'cognitiveMetrics'> & { 
+    progress?: UserProgress;
+    cognitiveMetrics?: CognitiveMetrics;
+  }) => void;
+  updateSessionProgress: (progress: Partial<UserProgress>) => void;
+  setSessionMode: (mode: CurrentSession['mode']) => void;
+  clearSession: () => void;
+  getSession: () => CurrentSession | null;
+  
+  // Study Session Actions
+  startStudySession: (goal: StudyGoal, duration: number, targetConcepts?: string[]) => void;
+  endStudySession: () => void;
+  updateStudyMetrics: (metrics: Partial<EnhancedCognitiveMetrics>) => void;
+  completeStudySessionConcept: (conceptId: string, phase?: LifecyclePhaseKey) => void;
+  recordConfusionDrill: (passed: boolean) => void;
+  recordBreak: () => void;
+  setShowSessionModal: (show: boolean) => void;
+  getStudySessionStats: () => { 
+    elapsedMinutes: number; 
+    conceptsCompleted: number;
+    goalProgress: number;
+  } | null;
+  
+  // Concept Navigation
+  completeConcept: (conceptId: string) => void;
+  setCurrentConcept: (conceptId: string) => void;
+  getConceptStatus: (conceptId: string) => 'locked' | 'available' | 'current' | 'completed';
+  getStageStatus: (stageId: string) => 'locked' | 'available' | 'current' | 'completed';
+  getNextConcept: () => string | null;
+  getPreviousConcept: () => string | null;
+  canAccessConcept: (conceptId: string) => boolean;
+  
+  // UI State
+  triggerCelebration: (data: CelebrationData) => void;
+  dismissCelebration: () => void;
+  toggleExploreMode: () => void;
+  resetProgress: () => void;
+  
+  // Learning Session Timer
+  startSession: () => void;
+  endSession: () => void;
+  
+  // Content Accessors
+  getStages: () => LearningStage[];
+  getConcepts: () => LearningConcept[];
+  hasCustomContent: () => boolean;
+  
+  // Sprint
+  setSprintResult: (result: SprintResult) => void;
+  clearSprintResult: () => void;
+  setSprintReady: (ready: boolean) => void;
+  
+  // Cognitive Load
+  recordInteraction: (correct: boolean, responseTimeMs: number) => void;
+  triggerNeuralReset: () => void;
+  dismissNeuralReset: () => void;
+  resetCognitiveLoad: () => void;
+  getCognitiveLoadLevel: () => 'low' | 'optimal' | 'high' | 'overload';
+  
+  // Focus Session Actions (merged from focus-session-store)
+  startFocusSession: () => void;
+  pauseSession: () => void;
+  resumeSession: () => void;
+  endFocusSession: () => void;
+  startBreak: () => void;
+  skipToBreak: () => void;
+  tick: () => void;
+  setFocusDuration: (minutes: number) => void;
+  setBreakDuration: (minutes: number) => void;
+  recordConceptStart: (conceptId: string, conceptName: string) => void;
+  recordConceptEnd: (conceptId: string, completed: boolean) => void;
+  getSessionSummary: () => SessionSummary;
+  dismissSessionSummary: () => void;
+  getFormattedTimeRemaining: () => string;
+  getProgressPercent: () => number;
+  getConceptsThisSession: () => number;
+  getAvgPaceThisSession: () => number;
+  getPaceRating: (avgSeconds: number) => PaceRating;
+};
+
+// ============================================================================
+// STORE
+// ============================================================================
+
 export const useLearningStore = create<LearningState & LearningActions>()(
   persist(
     (set, get) => ({
-      // ─── UNIFIED SESSION (Phase 0.3) ─────────────────────────────────
+      // Initial State
       currentSession: null,
-      
-      // ─── STUDY SESSION (Phase 5) ─────────────────────────────────────
       studySession: null,
       showSessionModal: false,
-      
-      // ─── UI State ────────────────────────────────────────────────────
       showCelebration: false,
       celebrationData: null,
       showNeuralReset: false,
@@ -288,15 +327,12 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       isSprintReady: false,
       sessionTimer: null,
       
-      // ─── LEGACY STATE (kept for backward compatibility) ──────────────
-      progress: getInitialProgress([], []),
-      customContent: null,
-      sprintResult: null,
-      cognitiveMetrics: getDefaultCognitiveMetrics(),
+      // Focus Session Initial State
+      ...getInitialFocusSessionState(),
 
-      // ═══════════════════════════════════════════════════════════════════
-      // UNIFIED SESSION ACTIONS (Phase 0.3 - PRIMARY API)
-      // ═══════════════════════════════════════════════════════════════════
+      // =====================================================================
+      // SESSION ACTIONS
+      // =====================================================================
 
       loadSession: (sessionData) => {
         const stages = sessionData.stages;
@@ -320,10 +356,6 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         
         set({
           currentSession: session,
-          // Also update legacy state for backward compatibility
-          customContent: { stages, concepts, metadata: sessionData.metadata },
-          progress: initialProgress,
-          cognitiveMetrics: initialMetrics,
           showCelebration: false,
           celebrationData: null,
         });
@@ -340,8 +372,6 @@ export const useLearningStore = create<LearningState & LearningActions>()(
             ...state.currentSession,
             progress: newProgress,
           },
-          // Legacy sync
-          progress: newProgress,
         });
       },
       
@@ -358,14 +388,8 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       },
       
       clearSession: () => {
-        const newProgress = getInitialProgress([], []);
         set({
           currentSession: null,
-          // Legacy sync
-          customContent: null,
-          progress: newProgress,
-          sprintResult: null,
-          cognitiveMetrics: getDefaultCognitiveMetrics(),
           showCelebration: false,
           celebrationData: null,
         });
@@ -373,20 +397,15 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       
       getSession: () => get().currentSession,
 
-      // ═══════════════════════════════════════════════════════════════════
-      // STUDY SESSION ACTIONS (Phase 5 - Single-Page Experience)
-      // ═══════════════════════════════════════════════════════════════════
+      // =====================================================================
+      // STUDY SESSION ACTIONS
+      // =====================================================================
 
       startStudySession: (goal, duration, targetConcepts = []) => {
         const state = get();
         const subjectId = state.currentSession?.subjectId || 'unknown';
-        
         const session = createStudySession(subjectId, goal, duration, targetConcepts);
-        
-        set({ 
-          studySession: session,
-          showSessionModal: false,
-        });
+        set({ studySession: session, showSessionModal: false });
       },
       
       endStudySession: () => {
@@ -396,7 +415,6 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const session = state.studySession;
         const elapsed = (Date.now() - new Date(session.startedAt).getTime()) / 1000 / 60;
         
-        // Check if goal was achieved
         const goalAchieved = session.goal === 'sprint' 
           ? session.confusionDrillsCompleted >= 3
           : session.conceptsCompleted.length >= session.targetConcepts.length || 
@@ -419,10 +437,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         set({
           studySession: {
             ...state.studySession,
-            metrics: {
-              ...state.studySession.metrics,
-              ...metrics,
-            },
+            metrics: { ...state.studySession.metrics, ...metrics },
           },
         });
       },
@@ -470,10 +485,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           studySession: {
             ...session,
             confusionDrillsCompleted: session.confusionDrillsCompleted + 1,
-            metrics: {
-              ...session.metrics,
-              confusionDrillAccuracy: newAccuracy,
-            },
+            metrics: { ...session.metrics, confusionDrillAccuracy: newAccuracy },
           },
         });
       },
@@ -486,17 +498,12 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           studySession: {
             ...state.studySession,
             breaksTaken: state.studySession.breaksTaken + 1,
-            metrics: {
-              ...state.studySession.metrics,
-              uninterruptedConceptStreak: 0, // Reset streak on break
-            },
+            metrics: { ...state.studySession.metrics, uninterruptedConceptStreak: 0 },
           },
         });
       },
       
-      setShowSessionModal: (show) => {
-        set({ showSessionModal: show });
-      },
+      setShowSessionModal: (show) => set({ showSessionModal: show }),
       
       getStudySessionStats: () => {
         const state = get();
@@ -518,52 +525,25 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         };
       },
 
-      // ═══════════════════════════════════════════════════════════════════
-      // CONTENT ACCESSORS (now session-aware)
-      // ═══════════════════════════════════════════════════════════════════
+      // =====================================================================
+      // CONTENT ACCESSORS
+      // =====================================================================
 
-      getStages: () => {
-        const state = get();
-        // Prefer unified session, fallback to legacy
-        return state.currentSession?.stages || state.customContent?.stages || [];
-      },
+      getStages: () => get().currentSession?.stages || [],
+      getConcepts: () => get().currentSession?.concepts || [],
+      hasCustomContent: () => get().currentSession !== null,
 
-      getConcepts: () => {
-        const state = get();
-        return state.currentSession?.concepts || state.customContent?.concepts || [];
-      },
-
-      hasCustomContent: () => {
-        const state = get();
-        return state.currentSession !== null || state.customContent !== null;
-      },
-
-      // ═══════════════════════════════════════════════════════════════════
-      // LEGACY ACTIONS (deprecated - maintained for backward compatibility)
-      // ═══════════════════════════════════════════════════════════════════
-
-      loadCustomContent: (content) => {
-        // Bridge to new unified session API
-        get().loadSession({
-          subjectId: `legacy-${Date.now()}`,
-          subject: content.metadata?.domain || 'Imported Content',
-          mode: 'learn',
-          stages: content.stages,
-          concepts: content.concepts,
-          metadata: content.metadata,
-        });
-      },
-
-      clearCustomContent: () => {
-        get().clearSession();
-      },
+      // =====================================================================
+      // CONCEPT NAVIGATION
+      // =====================================================================
 
       completeConcept: (conceptId: string) => {
         const state = get();
-        const concepts = state.getConcepts();
-        const stages = state.getStages();
-        // Get current progress from session or legacy
-        const currentProgress = state.currentSession?.progress || state.progress;
+        if (!state.currentSession) return;
+        
+        const concepts = state.currentSession.concepts;
+        const stages = state.currentSession.stages;
+        const currentProgress = state.currentSession.progress;
 
         const concept = concepts.find(c => c.id === conceptId);
         if (!concept) return;
@@ -603,21 +583,15 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           lastSessionDate: today,
         };
 
-        // Update both session and legacy state
         set({
-          progress: newProgress,
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              progress: newProgress,
-            },
-          }),
+          currentSession: {
+            ...state.currentSession,
+            progress: newProgress,
+          },
         });
 
         if (allStageConceptsComplete) {
-          const allStagesComplete = stages.every(s =>
-            newCompletedStages.includes(s.id)
-          );
+          const allStagesComplete = stages.every(s => newCompletedStages.includes(s.id));
 
           if (allStagesComplete) {
             get().triggerCelebration({
@@ -625,7 +599,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
               title: 'Course Complete!',
               message: 'Congratulations! You\'ve mastered all the core concepts!',
               conceptsCompleted: newCompletedConcepts,
-              timeSpent: state.progress.totalTimeSpentMinutes,
+              timeSpent: currentProgress.totalTimeSpentMinutes,
               badgeIcon: '🏆',
             });
           } else {
@@ -642,24 +616,20 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
       setCurrentConcept: (conceptId: string) => {
         const state = get();
-        const concepts = state.getConcepts();
-        const concept = concepts.find(c => c.id === conceptId);
+        if (!state.currentSession) return;
+        
+        const concept = state.currentSession.concepts.find(c => c.id === conceptId);
         if (!concept) return;
 
-        const newProgress = {
-          ...(state.currentSession?.progress || state.progress),
-          currentConceptId: conceptId,
-          currentStageId: concept.stageId,
-        };
-
         set({
-          progress: newProgress,
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              progress: newProgress,
+          currentSession: {
+            ...state.currentSession,
+            progress: {
+              ...state.currentSession.progress,
+              currentConceptId: conceptId,
+              currentStageId: concept.stageId,
             },
-          }),
+          },
         });
       },
 
@@ -677,65 +647,58 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
       resetProgress: () => {
         const state = get();
-        const stages = state.getStages();
-        const concepts = state.getConcepts();
-        const newProgress = getInitialProgress(stages, concepts);
+        if (!state.currentSession) return;
+        
+        const newProgress = getInitialProgress(
+          state.currentSession.stages, 
+          state.currentSession.concepts
+        );
         
         set({
-          progress: newProgress,
+          currentSession: {
+            ...state.currentSession,
+            progress: newProgress,
+          },
           showCelebration: false,
           celebrationData: null,
           isExploreMode: false,
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              progress: newProgress,
-            },
-          }),
         });
       },
 
       startSession: () => {
         const state = get();
+        if (!state.currentSession) return;
+        
         if (state.sessionTimer) {
           clearInterval(state.sessionTimer);
         }
 
         const timer = setInterval(() => {
           const current = get();
-          const currentProgress = current.currentSession?.progress || current.progress;
-          if (currentProgress.sessionStartTime) {
-            const newProgress = {
-              ...currentProgress,
-              totalTimeSpentMinutes: currentProgress.totalTimeSpentMinutes + 1,
-            };
+          if (!current.currentSession) return;
+          
+          if (current.currentSession.progress.sessionStartTime) {
             set({
-              progress: newProgress,
-              ...(current.currentSession && {
-                currentSession: {
-                  ...current.currentSession,
-                  progress: newProgress,
+              currentSession: {
+                ...current.currentSession,
+                progress: {
+                  ...current.currentSession.progress,
+                  totalTimeSpentMinutes: current.currentSession.progress.totalTimeSpentMinutes + 1,
                 },
-              }),
+              },
             });
           }
         }, 60000);
 
-        const currentProgress = state.currentSession?.progress || state.progress;
-        const newProgress = {
-          ...currentProgress,
-          sessionStartTime: Date.now(),
-        };
-
         set({
-          progress: newProgress,
-          sessionTimer: timer,
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              progress: newProgress,
+          currentSession: {
+            ...state.currentSession,
+            progress: {
+              ...state.currentSession.progress,
+              sessionStartTime: Date.now(),
             },
-          }),
+          },
+          sessionTimer: timer,
         });
       },
 
@@ -745,47 +708,36 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           clearInterval(state.sessionTimer);
         }
 
-        const currentProgress = state.currentSession?.progress || state.progress;
-
-        if (!currentProgress.sessionStartTime) {
+        if (!state.currentSession?.progress.sessionStartTime) {
           set({ sessionTimer: null });
           return;
         }
 
         const sessionMinutes = Math.round(
-          (Date.now() - currentProgress.sessionStartTime) / 60000
+          (Date.now() - state.currentSession.progress.sessionStartTime) / 60000
         );
 
-        const newProgress = {
-          ...currentProgress,
-          totalTimeSpentMinutes: currentProgress.totalTimeSpentMinutes + sessionMinutes,
-          sessionStartTime: null,
-        };
-
         set({
-          progress: newProgress,
-          sessionTimer: null,
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              progress: newProgress,
+          currentSession: {
+            ...state.currentSession,
+            progress: {
+              ...state.currentSession.progress,
+              totalTimeSpentMinutes: state.currentSession.progress.totalTimeSpentMinutes + sessionMinutes,
+              sessionStartTime: null,
             },
-          }),
+          },
+          sessionTimer: null,
         });
       },
 
       getConceptStatus: (conceptId: string) => {
         const state = get();
-        const concepts = state.getConcepts();
-        const progress = state.currentSession?.progress || state.progress;
+        if (!state.currentSession) return 'locked';
+        
+        const { progress, concepts } = state.currentSession;
 
-        if (progress.completedConcepts.includes(conceptId)) {
-          return 'completed';
-        }
-
-        if (progress.currentConceptId === conceptId) {
-          return 'current';
-        }
+        if (progress.completedConcepts.includes(conceptId)) return 'completed';
+        if (progress.currentConceptId === conceptId) return 'current';
 
         const concept = concepts.find(c => c.id === conceptId);
         if (!concept) return 'locked';
@@ -799,16 +751,12 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
       getStageStatus: (stageId: string) => {
         const state = get();
-        const stages = state.getStages();
-        const progress = state.currentSession?.progress || state.progress;
+        if (!state.currentSession) return 'locked';
+        
+        const { progress, stages } = state.currentSession;
 
-        if (progress.completedStages.includes(stageId)) {
-          return 'completed';
-        }
-
-        if (progress.currentStageId === stageId) {
-          return 'current';
-        }
+        if (progress.completedStages.includes(stageId)) return 'completed';
+        if (progress.currentStageId === stageId) return 'current';
 
         const stage = stages.find(s => s.id === stageId);
         if (!stage) return 'locked';
@@ -817,20 +765,16 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         if (stageIndex === 0) return 'available';
 
         const previousStage = stages[stageIndex - 1];
-        return progress.completedStages.includes(previousStage.id)
-          ? 'available'
-          : 'locked';
+        return progress.completedStages.includes(previousStage.id) ? 'available' : 'locked';
       },
 
       getNextConcept: () => {
         const state = get();
-        const concepts = state.getConcepts();
-        const stages = state.getStages();
-        const progress = state.currentSession?.progress || state.progress;
+        if (!state.currentSession) return null;
+        
+        const { concepts, stages, progress } = state.currentSession;
 
-        const currentConcept = concepts.find(
-          c => c.id === progress.currentConceptId
-        );
+        const currentConcept = concepts.find(c => c.id === progress.currentConceptId);
         if (!currentConcept) return null;
 
         const sameStageConcepts = concepts
@@ -838,15 +782,12 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           .sort((a, b) => a.order - b.order);
 
         const nextInStage = sameStageConcepts.find(
-          c => c.order > currentConcept.order &&
-            !progress.completedConcepts.includes(c.id)
+          c => c.order > currentConcept.order && !progress.completedConcepts.includes(c.id)
         );
 
         if (nextInStage) return nextInStage.id;
 
-        const currentStageIndex = stages.findIndex(
-          s => s.id === currentConcept.stageId
-        );
+        const currentStageIndex = stages.findIndex(s => s.id === currentConcept.stageId);
 
         for (let i = currentStageIndex + 1; i < stages.length; i++) {
           const nextStage = stages[i];
@@ -864,13 +805,11 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
       getPreviousConcept: () => {
         const state = get();
-        const concepts = state.getConcepts();
-        const stages = state.getStages();
-        const progress = state.currentSession?.progress || state.progress;
+        if (!state.currentSession) return null;
+        
+        const { concepts, stages, progress } = state.currentSession;
 
-        const currentConcept = concepts.find(
-          c => c.id === progress.currentConceptId
-        );
+        const currentConcept = concepts.find(c => c.id === progress.currentConceptId);
         if (!currentConcept) return null;
 
         const sameStageConcepts = concepts
@@ -883,9 +822,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
         if (prevInStage) return prevInStage.id;
 
-        const currentStageIndex = stages.findIndex(
-          s => s.id === currentConcept.stageId
-        );
+        const currentStageIndex = stages.findIndex(s => s.id === currentConcept.stageId);
 
         if (currentStageIndex > 0) {
           const prevStage = stages[currentStageIndex - 1];
@@ -900,82 +837,70 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       },
 
       canAccessConcept: (conceptId: string) => {
-        const state = get();
-        const status = state.getConceptStatus(conceptId);
-        return status !== 'locked';
+        return get().getConceptStatus(conceptId) !== 'locked';
       },
+
+      // =====================================================================
+      // SPRINT
+      // =====================================================================
 
       setSprintResult: (result) => {
         const state = get();
+        if (!state.currentSession) return;
+        
         set({ 
-          sprintResult: result,
-          // Update unified session if active
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              sprintResult: result,
-              mode: 'sprint' as const,
-            },
-          }),
+          currentSession: {
+            ...state.currentSession,
+            sprintResult: result,
+            mode: 'sprint',
+          },
         });
       },
 
       clearSprintResult: () => {
         const state = get();
+        if (!state.currentSession) return;
+        
         set({ 
-          sprintResult: null,
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              sprintResult: undefined,
-            },
-          }),
+          currentSession: {
+            ...state.currentSession,
+            sprintResult: undefined,
+          },
         });
       },
 
       setSprintReady: (ready) => set({ isSprintReady: ready }),
 
-      // Cognitive load actions
+      // =====================================================================
+      // COGNITIVE LOAD
+      // =====================================================================
+
       recordInteraction: (correct, responseTimeMs) => {
         const state = get();
-        // Use session metrics if available, otherwise legacy
-        const metrics = state.currentSession?.cognitiveMetrics || state.cognitiveMetrics;
+        if (!state.currentSession) return;
+        
+        const metrics = state.currentSession.cognitiveMetrics;
 
-        // Update streaks
         const newConsecutiveCorrect = correct ? metrics.consecutiveCorrect + 1 : 0;
         const newConsecutiveErrors = !correct ? metrics.consecutiveErrors + 1 : 0;
 
-        // Rolling average response time (weighted)
         const newAvgTime = metrics.avgResponseTimeMs === 0
           ? responseTimeMs
           : Math.round(metrics.avgResponseTimeMs * 0.7 + responseTimeMs * 0.3);
 
-        // Calculate cognitive load
         let loadDelta = 0;
-
-        // Fast correct answers reduce load
         if (correct && responseTimeMs < 4000) {
           loadDelta = -5;
-        }
-        // Slow correct answers slightly reduce load
-        else if (correct) {
+        } else if (correct) {
           loadDelta = -2;
-        }
-        // Errors increase load significantly
-        else {
+        } else {
           loadDelta = 15;
         }
 
-        // Consecutive errors compound the load
-        if (newConsecutiveErrors >= 3) {
-          loadDelta += 10;
-        }
+        if (newConsecutiveErrors >= 3) loadDelta += 10;
 
-        // Time between interactions affects load
         const timeSinceLastMs = Date.now() - metrics.lastInteractionTime;
-        if (timeSinceLastMs > 300000) {  // 5+ minutes
-          loadDelta += 5;  // Slight increase for cold restart
-        }
+        if (timeSinceLastMs > 300000) loadDelta += 5;
 
         const newLoad = Math.min(100, Math.max(0, metrics.currentLoad + loadDelta));
         const needsReset = newLoad >= 85 || newConsecutiveErrors >= 5;
@@ -991,15 +916,11 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         };
 
         set({
-          cognitiveMetrics: newMetrics,
+          currentSession: {
+            ...state.currentSession,
+            cognitiveMetrics: newMetrics,
+          },
           showNeuralReset: needsReset,
-          // Update unified session if active
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              cognitiveMetrics: newMetrics,
-            },
-          }),
         });
       },
 
@@ -1007,60 +928,301 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
       dismissNeuralReset: () => {
         const state = get();
-        const currentMetrics = state.currentSession?.cognitiveMetrics || state.cognitiveMetrics;
-        const newMetrics: CognitiveMetrics = {
-          ...currentMetrics,
-          currentLoad: Math.max(30, currentMetrics.currentLoad - 30),
-          consecutiveErrors: 0,
-          needsReset: false,
-        };
+        if (!state.currentSession) {
+          set({ showNeuralReset: false });
+          return;
+        }
         
+        const currentMetrics = state.currentSession.cognitiveMetrics;
         set({
           showNeuralReset: false,
-          cognitiveMetrics: newMetrics,
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              cognitiveMetrics: newMetrics,
+          currentSession: {
+            ...state.currentSession,
+            cognitiveMetrics: {
+              ...currentMetrics,
+              currentLoad: Math.max(30, currentMetrics.currentLoad - 30),
+              consecutiveErrors: 0,
+              needsReset: false,
             },
-          }),
+          },
         });
       },
 
       resetCognitiveLoad: () => {
         const state = get();
-        const defaultMetrics = getDefaultCognitiveMetrics();
+        if (!state.currentSession) return;
         
         set({
-          cognitiveMetrics: defaultMetrics,
           showNeuralReset: false,
-          ...(state.currentSession && {
-            currentSession: {
-              ...state.currentSession,
-              cognitiveMetrics: defaultMetrics,
-            },
-          }),
+          currentSession: {
+            ...state.currentSession,
+            cognitiveMetrics: getDefaultCognitiveMetrics(),
+          },
         });
       },
 
       getCognitiveLoadLevel: () => {
         const state = get();
-        const { currentLoad } = state.currentSession?.cognitiveMetrics || state.cognitiveMetrics;
+        const currentLoad = state.currentSession?.cognitiveMetrics.currentLoad || 30;
         if (currentLoad < 30) return 'low';
         if (currentLoad < 60) return 'optimal';
         if (currentLoad < 85) return 'high';
         return 'overload';
       },
+
+      // =====================================================================
+      // FOCUS SESSION (merged from focus-session-store)
+      // =====================================================================
+
+      startFocusSession: () => {
+        const state = get();
+        set({
+          isSessionActive: true,
+          isPaused: false,
+          sessionType: 'focus',
+          timeRemainingSeconds: state.focusDurationMinutes * 60,
+          focusSessionStartTime: Date.now(),
+          currentFocusConceptId: null,
+          currentFocusConceptStartTime: null,
+          conceptTimings: [],
+          showSessionSummary: false,
+        });
+      },
+
+      pauseSession: () => set({ isPaused: true }),
+
+      resumeSession: () => set({ isPaused: false }),
+
+      endFocusSession: () => {
+        const state = get();
+
+        // Finalize any in-progress concept timing
+        if (state.currentFocusConceptId && state.currentFocusConceptStartTime) {
+          const timing = state.conceptTimings.find(t => t.conceptId === state.currentFocusConceptId);
+          if (timing && timing.endTime === null) {
+            timing.endTime = Date.now();
+            timing.durationSeconds = Math.round((timing.endTime - timing.startTime) / 1000);
+          }
+        }
+
+        const sessionDurationMinutes = state.focusSessionStartTime
+          ? Math.round((Date.now() - state.focusSessionStartTime) / 60000)
+          : 0;
+
+        const summary = get().getSessionSummary();
+        const completedConcepts = state.conceptTimings.filter(t => t.completed).length;
+
+        set({
+          isSessionActive: false,
+          isPaused: false,
+          focusSessionStartTime: null,
+          currentFocusConceptId: null,
+          currentFocusConceptStartTime: null,
+          totalSessionsCompleted: state.totalSessionsCompleted + 1,
+          totalFocusMinutes: state.totalFocusMinutes + sessionDurationMinutes,
+          totalConceptsMastered: state.totalConceptsMastered + completedConcepts,
+          sessionsUntilLongBreak: state.sessionsUntilLongBreak > 1
+            ? state.sessionsUntilLongBreak - 1
+            : FOCUS_SESSION_CONFIG.SESSIONS_UNTIL_LONG_BREAK,
+          showSessionSummary: true,
+          lastSessionSummary: summary,
+        });
+      },
+
+      startBreak: () => {
+        const state = get();
+        const breakMinutes = state.sessionsUntilLongBreak === 0
+          ? FOCUS_SESSION_CONFIG.LONG_BREAK_MINUTES
+          : state.breakDurationMinutes;
+
+        set({
+          isSessionActive: true,
+          isPaused: false,
+          sessionType: 'break',
+          timeRemainingSeconds: breakMinutes * 60,
+          focusSessionStartTime: Date.now(),
+          showSessionSummary: false,
+        });
+      },
+
+      skipToBreak: () => {
+        get().endFocusSession();
+        setTimeout(() => get().startBreak(), 100);
+      },
+
+      tick: () => {
+        const state = get();
+        if (!state.isSessionActive || state.isPaused) return;
+
+        const newTime = state.timeRemainingSeconds - 1;
+
+        if (newTime <= 0) {
+          if (state.sessionType === 'focus') {
+            get().endFocusSession();
+          } else {
+            set({
+              isSessionActive: false,
+              sessionType: 'focus',
+              timeRemainingSeconds: state.focusDurationMinutes * 60,
+            });
+          }
+        } else {
+          set({ timeRemainingSeconds: newTime });
+        }
+      },
+
+      setFocusDuration: (minutes) => {
+        const state = get();
+        set({
+          focusDurationMinutes: minutes,
+          timeRemainingSeconds: state.isSessionActive ? state.timeRemainingSeconds : minutes * 60,
+        });
+      },
+
+      setBreakDuration: (minutes) => set({ breakDurationMinutes: minutes }),
+
+      recordConceptStart: (conceptId, conceptName) => {
+        const state = get();
+        if (!state.isSessionActive) return;
+
+        if (state.currentFocusConceptId && state.currentFocusConceptId !== conceptId) {
+          get().recordConceptEnd(state.currentFocusConceptId, false);
+        }
+
+        const existing = state.conceptTimings.find(t => t.conceptId === conceptId);
+        if (existing) {
+          set({
+            currentFocusConceptId: conceptId,
+            currentFocusConceptStartTime: Date.now(),
+          });
+        } else {
+          const newTiming: ConceptTiming = {
+            conceptId,
+            conceptName,
+            startTime: Date.now(),
+            endTime: null,
+            durationSeconds: 0,
+            completed: false,
+          };
+
+          set({
+            currentFocusConceptId: conceptId,
+            currentFocusConceptStartTime: Date.now(),
+            conceptTimings: [...state.conceptTimings, newTiming],
+          });
+        }
+      },
+
+      recordConceptEnd: (conceptId, completed) => {
+        const state = get();
+        const timings = [...state.conceptTimings];
+        const timing = timings.find(t => t.conceptId === conceptId);
+
+        if (timing && state.currentFocusConceptStartTime) {
+          const additionalTime = Math.round((Date.now() - state.currentFocusConceptStartTime) / 1000);
+          timing.durationSeconds += additionalTime;
+          timing.endTime = Date.now();
+          timing.completed = completed || timing.completed;
+
+          set({
+            conceptTimings: timings,
+            currentFocusConceptId: null,
+            currentFocusConceptStartTime: null,
+          });
+        }
+      },
+
+      getSessionSummary: () => {
+        const state = get();
+        const timings = state.conceptTimings;
+
+        const duration = state.focusSessionStartTime
+          ? Math.round((Date.now() - state.focusSessionStartTime) / 1000)
+          : 0;
+
+        const conceptsWithTime = timings.filter(t => t.durationSeconds > 0);
+        const avgPace = conceptsWithTime.length > 0
+          ? Math.round(conceptsWithTime.reduce((sum, t) => sum + t.durationSeconds, 0) / conceptsWithTime.length)
+          : 0;
+
+        const paceRating = get().getPaceRating(avgPace);
+
+        let recommendation = '';
+        switch (paceRating) {
+          case 'optimal':
+            recommendation = 'Excellent pacing! You\'re reading efficiently. Keep this rhythm.';
+            break;
+          case 'good':
+            recommendation = 'Good pace! You\'re taking time to understand concepts well.';
+            break;
+          case 'warning':
+            recommendation = 'Consider taking shorter reviews. Focus on key terms first.';
+            break;
+          case 'overtime':
+            recommendation = 'Try the Speed Reader technique: scan headings, then key terms, then details.';
+            break;
+        }
+
+        return {
+          duration,
+          conceptsCount: timings.length,
+          conceptsCompleted: timings.filter(t => t.completed).length,
+          avgPaceSeconds: avgPace,
+          paceRating,
+          conceptTimings: timings,
+          recommendation,
+        };
+      },
+
+      dismissSessionSummary: () => set({ showSessionSummary: false }),
+
+      getFormattedTimeRemaining: () => {
+        const seconds = get().timeRemainingSeconds;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      },
+
+      getProgressPercent: () => {
+        const state = get();
+        const totalSeconds = state.sessionType === 'focus'
+          ? state.focusDurationMinutes * 60
+          : state.breakDurationMinutes * 60;
+        return ((totalSeconds - state.timeRemainingSeconds) / totalSeconds) * 100;
+      },
+
+      getConceptsThisSession: () => get().conceptTimings.length,
+
+      getAvgPaceThisSession: () => {
+        const timings = get().conceptTimings.filter(t => t.durationSeconds > 0);
+        if (timings.length === 0) return 0;
+        return Math.round(timings.reduce((sum, t) => sum + t.durationSeconds, 0) / timings.length);
+      },
+
+      getPaceRating: (avgSeconds) => {
+        const target = FOCUS_SESSION_CONFIG.CONCEPT_TARGET_SECONDS;
+        const ratio = avgSeconds / target;
+
+        if (ratio <= FOCUS_SESSION_CONFIG.PACE_THRESHOLDS.optimal) return 'optimal';
+        if (ratio <= FOCUS_SESSION_CONFIG.PACE_THRESHOLDS.good) return 'good';
+        if (ratio <= FOCUS_SESSION_CONFIG.PACE_THRESHOLDS.warning) return 'warning';
+        return 'overtime';
+      },
     }),
     {
-      name: 'sensa-learning-progress',
+      name: 'sensa-learning',
       partialize: (state) => ({
-        // Unified session (Phase 0.3)
         currentSession: state.currentSession,
-        // Legacy state (backward compatibility)
-        progress: state.progress,
-        customContent: state.customContent,
+        focusDurationMinutes: state.focusDurationMinutes,
+        breakDurationMinutes: state.breakDurationMinutes,
+        totalSessionsCompleted: state.totalSessionsCompleted,
+        totalFocusMinutes: state.totalFocusMinutes,
+        totalConceptsMastered: state.totalConceptsMastered,
+        sessionsUntilLongBreak: state.sessionsUntilLongBreak,
       }),
     }
   )
 );
+
+// Re-export for backward compatibility with existing imports
+export const useFocusSessionStore = useLearningStore;

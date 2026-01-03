@@ -104,22 +104,22 @@ export function StudyLayout({
   const {
     getSession,
     getConcepts,
-    progress: sessionProgress,
     getCognitiveLoadLevel
   } = useLearningStore();
 
   const session = getSession();
   const concepts = getConcepts();
   const cognitiveLevel = getCognitiveLoadLevel();
+  const progress = session?.progress;
 
   // Calculate progress for lifecycle navigator
   const lifecycleProgress = useMemo(() => {
-    const progress = concepts.reduce((acc, concept) => {
+    const progressData = concepts.reduce((acc, concept) => {
       // Determine phase based on lifecycle presence
       const hasPhase1 = !!concept.lifecycle?.phase1;
       const hasPhase2 = !!concept.lifecycle?.phase2;
       const hasPhase3 = !!concept.lifecycle?.phase3;
-      const isCompleted = sessionProgress.completedConcepts.includes(concept.id);
+      const isCompleted = progress?.completedConcepts.includes(concept.id) ?? false;
 
       // Count concepts by phase (simplified - assumes all concepts have all phases)
       if (hasPhase1) {
@@ -141,8 +141,8 @@ export function StudyLayout({
       phase3: { total: 0, completed: 0 },
     });
 
-    return progress;
-  }, [concepts, sessionProgress.completedConcepts]);
+    return progressData;
+  }, [concepts, progress?.completedConcepts]);
 
   // Default lifecycle labels
   const lifecycleLabels = {

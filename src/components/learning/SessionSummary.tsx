@@ -8,7 +8,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Coffee, Play, Clock, BookOpen, Zap, CheckCircle2, Circle, TrendingUp } from 'lucide-react';
-import { useFocusSessionStore } from '@/store/focus-session-store';
+import { useLearningStore } from '@/store/learning-store';
 import { formatDuration, formatPace } from '@/lib/utils';
 import styles from './SessionSummary.module.css';
 
@@ -22,7 +22,7 @@ export function SessionSummary() {
         totalSessionsCompleted,
         totalFocusMinutes,
         sessionsUntilLongBreak,
-    } = useFocusSessionStore();
+    } = useLearningStore();
 
     if (!showSessionSummary || !lastSessionSummary) return null;
 

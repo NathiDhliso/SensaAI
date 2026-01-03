@@ -93,12 +93,13 @@ export default function Home() {
   const navigate = useNavigate();
   const { recentSubjects, bedrockConfig } = useGenerationStore();
   const { openSettingsPanel } = useUIStore();
-  const { progress, getConcepts } = useLearningStore();
+  const { currentSession, getConcepts } = useLearningStore();
 
   const concepts = getConcepts();
-  const hasProgress = concepts.length > 0 && progress.completedConcepts.length > 0;
+  const progress = currentSession?.progress;
+  const hasProgress = concepts.length > 0 && (progress?.completedConcepts?.length ?? 0) > 0;
   const progressPercent = concepts.length > 0
-    ? Math.round((progress.completedConcepts.length / concepts.length) * 100)
+    ? Math.round(((progress?.completedConcepts?.length ?? 0) / concepts.length) * 100)
     : 0;
 
   const filteredSuggestions = useMemo(() => {
@@ -159,7 +160,7 @@ export default function Home() {
               <TrendingUp size={20} />
               <div>
                 <strong>Continue Learning</strong>
-                <p>{progress.completedConcepts.length} of {concepts.length} concepts mastered</p>
+                <p>{progress?.completedConcepts?.length ?? 0} of {concepts.length} concepts mastered</p>
               </div>
             </div>
             <div className={styles.progressBar}>

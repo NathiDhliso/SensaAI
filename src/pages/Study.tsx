@@ -27,7 +27,7 @@ import {
   NeuralResetBanner,
   SessionSummary,
 } from '@/components/learning';
-import { useFocusSessionStore } from '@/store/focus-session-store';
+// Focus session is now merged into learning-store
 import styles from './Study.module.css';
 
 // Lazy load heavy components
@@ -47,7 +47,7 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
   const { 
     getConcepts, 
     getStages, 
-    progress,
+    currentSession,
   } = useLearningStore();
   
   const { validation } = useGenerationStore();
@@ -55,9 +55,10 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
   const concepts = getConcepts();
   const stages = getStages();
   const hasContent = concepts.length > 0;
+  const progress = currentSession?.progress;
   
   const progressPercent = hasContent
-    ? Math.round((progress.completedConcepts.length / concepts.length) * 100)
+    ? Math.round(((progress?.completedConcepts?.length ?? 0) / concepts.length) * 100)
     : 0;
   
   // Lifecycle progress calculation
@@ -71,7 +72,7 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
     }
     
     const total = concepts.length;
-    const completed = progress.completedConcepts.length;
+    const completed = progress?.completedConcepts?.length ?? 0;
     const perPhase = Math.ceil(total / 3);
     
     return {
@@ -88,7 +89,7 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
         completed: Math.max(0, completed - perPhase * 2),
       },
     };
-  }, [concepts, progress.completedConcepts, hasContent]);
+  }, [concepts, progress?.completedConcepts, hasContent]);
 
   if (!hasContent) {
     return (
@@ -109,7 +110,7 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
           <span className={styles.statLabel}>Concepts</span>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statValue}>{progress.completedConcepts.length}</span>
+          <span className={styles.statValue}>{progress?.completedConcepts?.length ?? 0}</span>
           <span className={styles.statLabel}>Mastered</span>
         </div>
         <div className={styles.statCard}>
@@ -192,27 +193,31 @@ interface LearnTabProps {
 
 function LearnTab({ onComplete }: LearnTabProps) {
   const {
-    progress,
+    currentSession,
     completeConcept,
     setCurrentConcept,
     getConcepts,
     getStages,
+    isSessionActive,
+    recordConceptEnd,
   } = useLearningStore();
-  
-  const { isSessionActive, recordConceptEnd } = useFocusSessionStore();
   
   const concepts = getConcepts();
   const stages = getStages();
-  const currentConcept = concepts.find(c => c.id === progress.currentConceptId);
+  const progress = currentSession?.progress;
+  const currentConcept = concepts.find(c => c.id === progress?.currentConceptId);
   const hasContent = stages.length > 0 && concepts.length > 0;
 
   const handleConceptComplete = useCallback(() => {
-    if (isSessionActive && progress.currentConceptId) {
-      recordConceptEnd(progress.currentConceptId, true);
+    const currentConceptId = progress?.currentConceptId;
+    if (isSessionActive && currentConceptId) {
+      recordConceptEnd(currentConceptId, true);
     }
-    completeConcept(progress.currentConceptId);
+    if (currentConceptId) {
+      completeConcept(currentConceptId);
+    }
     onComplete();
-  }, [isSessionActive, progress.currentConceptId, recordConceptEnd, completeConcept, onComplete]);
+  }, [isSessionActive, progress, recordConceptEnd, completeConcept, onComplete]);
 
   const handleNavigate = useCallback((conceptId: string) => {
     setCurrentConcept(conceptId);

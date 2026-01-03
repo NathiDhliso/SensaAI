@@ -27,12 +27,12 @@ function getAnchorName(anchor?: string): string | null {
 }
 
 export default function JourneyMap({ onConceptClick }: JourneyMapProps) {
-  const { progress, getStageStatus, getConceptStatus, getStages, getConcepts } = useLearningStore();
+  const { currentSession, getStageStatus, getConceptStatus, getStages, getConcepts } = useLearningStore();
 
   const stages = useMemo(() => getStages(), [getStages]);
   const concepts = useMemo(() => getConcepts(), [getConcepts]);
   const currentConceptRef = useRef<HTMLDivElement>(null);
-  const completedCount = progress.completedConcepts.length;
+  const completedCount = currentSession?.progress?.completedConcepts?.length ?? 0;
   const totalCount = concepts.length;
 
   const [expandedStages, setExpandedStages] = useState<Set<string>>(() => {
@@ -48,7 +48,7 @@ export default function JourneyMap({ onConceptClick }: JourneyMapProps) {
         inline: 'center'
       });
     }
-  }, [progress.currentConceptId]);
+  }, [currentSession?.progress?.currentConceptId]);
 
   const toggleStage = (stageId: string) => {
     setExpandedStages(prev => {
@@ -123,7 +123,7 @@ export default function JourneyMap({ onConceptClick }: JourneyMapProps) {
                     <div className={styles.blocks}>
                       {stageConcepts.map((concept) => {
                         const conceptStatus = getConceptStatus(concept.id);
-                        const isCurrent = concept.id === progress.currentConceptId;
+                        const isCurrent = concept.id === currentSession?.progress?.currentConceptId;
                         
                         // Mnemonic-first display
                         const emoji = getAnchorEmoji(concept.mnemonic?.anchor);

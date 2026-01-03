@@ -11,15 +11,16 @@ interface ProgressAnalyticsProps {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
-    const { progress, getConcepts, getStages } = useLearningStore();
+    const { currentSession, getConcepts, getStages } = useLearningStore();
 
     const concepts = getConcepts();
     const stages = getStages();
+    const progress = currentSession?.progress;
 
     const stats = useMemo(() => {
         const totalConcepts = concepts.length;
-        const completedConcepts = progress.completedConcepts.length;
-        const completedStages = progress.completedStages.length;
+        const completedConcepts = progress?.completedConcepts?.length ?? 0;
+        const completedStages = progress?.completedStages?.length ?? 0;
         const totalStages = stages.length;
         const percentComplete = totalConcepts > 0 
             ? Math.round((completedConcepts / totalConcepts) * 100) 
@@ -29,7 +30,7 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
         const dayOfWeek = today.getDay();
         const weeklyData = DAYS.map((day, idx) => ({
             day,
-            count: idx === dayOfWeek ? progress.conceptsLearnedToday : (idx < dayOfWeek ? Math.floor((idx + 1) * 0.7) : 0),
+            count: idx === dayOfWeek ? (progress?.conceptsLearnedToday ?? 0) : (idx < dayOfWeek ? Math.floor((idx + 1) * 0.7) : 0),
             isToday: idx === dayOfWeek,
         }));
 
@@ -41,15 +42,15 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
             completedStages,
             totalStages,
             percentComplete,
-            totalTime: progress.totalTimeSpentMinutes,
-            todayCount: progress.conceptsLearnedToday,
+            totalTime: progress?.totalTimeSpentMinutes ?? 0,
+            todayCount: progress?.conceptsLearnedToday ?? 0,
             weeklyData,
             maxCount,
         };
     }, [concepts, stages, progress]);
 
     const dueForReview = useMemo(() => {
-        return progress.completedConcepts.slice(0, 3).map((id, idx) => {
+        return (progress?.completedConcepts ?? []).slice(0, 3).map((id: string, idx: number) => {
             const concept = concepts.find(c => c.id === id);
             return {
                 id,
@@ -57,7 +58,7 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
                 dueIn: idx,
             };
         });
-    }, [progress.completedConcepts, concepts]);
+    }, [progress?.completedConcepts, concepts]);
 
     if (!isOpen) return null;
 

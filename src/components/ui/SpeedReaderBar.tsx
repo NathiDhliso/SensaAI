@@ -10,7 +10,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Clock, Zap, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
-import { useFocusSessionStore } from '@/store/focus-session-store';
 import { useLearningStore } from '@/store/learning-store';
 import { formatTime } from '@/lib/utils';
 import styles from './SpeedReaderBar.module.css';
@@ -39,9 +38,8 @@ export default function SpeedReaderBar({
     const [isMinimized, setIsMinimized] = useState(true);  // Start minimized to reduce distraction
     const prevConceptId = useRef<string>(conceptId);
 
-    // Focus session integration
-    const { isSessionActive, recordConceptStart, recordConceptEnd } = useFocusSessionStore();
-    const { getConcepts } = useLearningStore();
+    // Focus session integration (merged into learning store)
+    const { isSessionActive, recordConceptStart, recordConceptEnd, getConcepts } = useLearningStore();
 
     // Get concept name for session tracking
     const getConceptName = (id: string) => {

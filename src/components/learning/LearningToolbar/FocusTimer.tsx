@@ -7,7 +7,7 @@
 
 import { useEffect } from 'react';
 import { X, Play, Pause, RotateCcw, Coffee } from 'lucide-react';
-import { useFocusSessionStore } from '@/store/focus-session-store';
+import { useLearningStore } from '@/store/learning-store';
 import { FOCUS_SESSION_CONFIG } from '@/constants/ui-constants';
 import styles from './LearningToolbar.module.css';
 
@@ -32,7 +32,7 @@ export function FocusTimer({ isOpen, onClose }: FocusTimerProps) {
         startBreak,
         setFocusDuration,
         setBreakDuration,
-    } = useFocusSessionStore();
+    } = useLearningStore();
 
     const isBreak = sessionType === 'break';
     const isRunning = isSessionActive && !isPaused;

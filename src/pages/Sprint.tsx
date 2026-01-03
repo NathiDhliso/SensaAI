@@ -22,7 +22,7 @@ type SprintPhase = 'loading' | 'countdown' | 'active' | 'feedback' | 'complete';
 export default function Sprint() {
     const navigate = useNavigate();
     const { bedrockConfig } = useGenerationStore();
-    const { getConcepts, customContent, setSprintResult } = useLearningStore();
+    const { getConcepts, currentSession, setSprintResult } = useLearningStore();
 
     // Phase state - start with 'loading' instead of 'countdown'
     const [phase, setPhase] = useState<SprintPhase>('loading');
@@ -45,7 +45,7 @@ export default function Sprint() {
 
     const currentQuestion = questions[currentIndex];
     const concepts = getConcepts();
-    const subject = customContent?.metadata?.domain || 'General Knowledge';
+    const subject = currentSession?.metadata?.domain || 'General Knowledge';
 
     // Generate questions immediately on mount (loading phase)
     useEffect(() => {

@@ -17,7 +17,7 @@ interface QuizQuestion {
 }
 
 export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
-    const { getConcepts, progress } = useLearningStore();
+    const { getConcepts, currentSession } = useLearningStore();
     const concepts = getConcepts();
 
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -27,7 +27,7 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
 
     const targetConcept = conceptId 
         ? concepts.find(c => c.id === conceptId)
-        : concepts.find(c => c.id === progress.currentConceptId);
+        : concepts.find(c => c.id === currentSession?.progress?.currentConceptId);
 
     const questions: QuizQuestion[] = useMemo(() => {
         if (!targetConcept) return [];

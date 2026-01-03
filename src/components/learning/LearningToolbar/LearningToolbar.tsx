@@ -9,15 +9,14 @@
 import { useState } from 'react';
 import { Timer, BarChart3, Brain, Flame, FileText, RotateCcw } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
-import { useFocusSessionStore } from '@/store/focus-session-store';
 import { FocusTimer } from './FocusTimer';
 import { ProgressAnalytics } from './ProgressAnalytics';
 import { QuickQuiz } from './QuickQuiz';
 import styles from './LearningToolbar.module.css';
 
 export function LearningToolbar() {
-    const { progress, customContent, resetProgress } = useLearningStore();
-    const { isSessionActive } = useFocusSessionStore();
+    const { currentSession, isSessionActive, resetProgress } = useLearningStore();
+    const progress = currentSession?.progress;
 
     const [showTimer, setShowTimer] = useState(false);
     const [showAnalytics, setShowAnalytics] = useState(false);
@@ -33,7 +32,7 @@ export function LearningToolbar() {
     return (
         <>
             <div className={styles.toolbar}>
-                {progress.conceptsLearnedToday > 0 && (
+                {progress && progress.conceptsLearnedToday > 0 && (
                     <div className={styles.streakBadge}>
                         <Flame size={14} />
                         {progress.conceptsLearnedToday} today
@@ -43,7 +42,7 @@ export function LearningToolbar() {
                 {/* Only show divider and timer button when session is NOT active */}
                 {!isSessionActive && (
                     <>
-                        {progress.conceptsLearnedToday > 0 && (
+                        {progress && progress.conceptsLearnedToday > 0 && (
                             <div className={styles.toolbarDivider} />
                         )}
 
@@ -65,7 +64,7 @@ export function LearningToolbar() {
                 >
                     <BarChart3 size={14} />
                     Stats
-                    {progress.completedConcepts.length > 0 && (
+                    {progress && progress.completedConcepts.length > 0 && (
                         <span className={styles.statsBadge}>
                             {progress.completedConcepts.length}
                         </span>
@@ -92,7 +91,7 @@ export function LearningToolbar() {
                 </button>
 
                 {/* Reset Progress button - only show if there's progress */}
-                {progress.completedConcepts.length > 0 && (
+                {progress && progress.completedConcepts.length > 0 && (
                     <button
                         className={`${styles.toolbarButton} ${styles.resetButton}`}
                         onClick={() => setShowResetConfirm(true)}
@@ -131,11 +130,11 @@ export function LearningToolbar() {
                             </button>
                         </div>
                         <div className={styles.sourceContent}>
-                            {customContent?.metadata ? (
+                            {currentSession?.metadata ? (
                                 <div className={styles.sourceInfo}>
-                                    <p><strong>Domain:</strong> {customContent.metadata.domain}</p>
-                                    <p><strong>Role:</strong> {customContent.metadata.role}</p>
-                                    <p><strong>Concepts:</strong> {customContent.metadata.conceptCount}</p>
+                                    <p><strong>Domain:</strong> {currentSession.metadata.domain}</p>
+                                    <p><strong>Role:</strong> {currentSession.metadata.role}</p>
+                                    <p><strong>Concepts:</strong> {currentSession.metadata.conceptCount}</p>
                                     <p className={styles.sourceHint}>
                                         The full document can be found in your Saved Results.
                                     </p>

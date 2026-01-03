@@ -71,7 +71,9 @@ export default function Settings() {
   const updateFamiliarSystem = usePersonalizationStore(s => s.updateFamiliarSystem);
 
   // Learning
-  const { resetProgress, clearCustomContent, progress, customContent } = useLearningStore();
+  const { resetProgress, clearSession, currentSession, getSession } = useLearningStore();
+  const progress = currentSession?.progress;
+  const customContent = getSession();
 
   // Generation
   const { bedrockConfig, setBedrockConfig, clearBedrockConfig, results, recentSubjects } = useGenerationStore();
@@ -119,7 +121,7 @@ export default function Settings() {
           break;
         case 'all':
           resetProgress();
-          clearCustomContent();
+          clearSession();
           resetOnboarding();
           clearPalace();
           useGenerationStore.setState({ results: [], recentSubjects: [] });
@@ -302,7 +304,7 @@ export default function Settings() {
 
             <div className={styles.dataStats}>
               <div className={styles.dataStat}>
-                <span className={styles.dataValue}>{progress.completedConcepts.length}</span>
+                <span className={styles.dataValue}>{progress?.completedConcepts.length ?? 0}</span>
                 <span className={styles.dataLabel}>Concepts Learned</span>
               </div>
               <div className={styles.dataStat}>
@@ -310,7 +312,7 @@ export default function Settings() {
                 <span className={styles.dataLabel}>Saved Results</span>
               </div>
               <div className={styles.dataStat}>
-                <span className={styles.dataValue}>{progress.totalTimeSpentMinutes}</span>
+                <span className={styles.dataValue}>{progress?.totalTimeSpentMinutes ?? 0}</span>
                 <span className={styles.dataLabel}>Minutes Studied</span>
               </div>
             </div>

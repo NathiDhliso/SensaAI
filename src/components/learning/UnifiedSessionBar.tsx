@@ -12,7 +12,6 @@
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, Pause, Play, Coffee, X, BookOpen, Zap } from 'lucide-react';
-import { useFocusSessionStore } from '@/store/focus-session-store';
 import { useLearningStore } from '@/store/learning-store';
 import styles from './UnifiedSessionBar.module.css';
 
@@ -30,11 +29,10 @@ export function UnifiedSessionBar() {
         pauseSession,
         resumeSession,
         skipToBreak,
-        endSession,
+        endFocusSession,
         tick,
-    } = useFocusSessionStore();
-
-    const { getConcepts } = useLearningStore();
+        getConcepts,
+    } = useLearningStore();
     const concepts = getConcepts();
     const totalConcepts = concepts.length;
     const conceptsThisSession = getConceptsThisSession();
@@ -159,7 +157,7 @@ export function UnifiedSessionBar() {
 
                     <button
                         className={`${styles.controlButton} ${styles.endButton}`}
-                        onClick={endSession}
+                        onClick={endFocusSession}
                         title="End Session"
                     >
                         <X size={16} />

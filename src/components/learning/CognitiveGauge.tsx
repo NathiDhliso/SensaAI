@@ -16,11 +16,11 @@ interface CognitiveGaugeProps {
 }
 
 export default function CognitiveGauge({ compact = false }: CognitiveGaugeProps) {
-    const { cognitiveMetrics, getCognitiveLoadLevel } = useLearningStore();
+    const { currentSession, getCognitiveLoadLevel } = useLearningStore();
     const [showTooltip, setShowTooltip] = useState(false);
 
     const loadLevel = getCognitiveLoadLevel();
-    const loadPercent = cognitiveMetrics.currentLoad;
+    const loadPercent = currentSession?.cognitiveMetrics?.currentLoad ?? 0;
 
     // Get status message based on load level
     const getStatusMessage = () => {

@@ -18,9 +18,10 @@ export interface ParseAndLoadResult {
  * This centralizes the duplicate logic found in Results.tsx and SavedResults.tsx.
  * 
  * @param rawContent - The raw generated document content
+ * @param subjectId - Optional subject ID (defaults to generated ID)
  * @returns Result object indicating success or containing error message
  */
-export function parseAndLoadContent(rawContent: string): ParseAndLoadResult {
+export function parseAndLoadContent(rawContent: string, subjectId?: string): ParseAndLoadResult {
     try {
         const parseResult = parseGeneratedContent(rawContent);
 
@@ -31,8 +32,17 @@ export function parseAndLoadContent(rawContent: string): ParseAndLoadResult {
             };
         }
 
-        const transformed = transformGeneratedContent(parseResult.data);
-        useLearningStore.getState().loadCustomContent(transformed);
+        const transformed = transformGeneratedContent(parseResult.data, subjectId);
+        
+        // Add required session fields
+        useLearningStore.getState().loadSession({
+            subjectId: subjectId || `subject-${Date.now()}`,
+            subject: transformed.metadata.domain,
+            mode: 'learn',
+            stages: transformed.stages,
+            concepts: transformed.concepts,
+            metadata: transformed.metadata,
+        });
 
         return { success: true };
     } catch (error) {
@@ -48,9 +58,9 @@ export function parseAndLoadContent(rawContent: string): ParseAndLoadResult {
  * Returns a function that can be called with content
  */
 export function useParseAndLoadContent() {
-    const loadCustomContent = useLearningStore((state) => state.loadCustomContent);
+    const loadSession = useLearningStore((state) => state.loadSession);
 
-    return (rawContent: string): ParseAndLoadResult => {
+    return (rawContent: string, subjectId?: string): ParseAndLoadResult => {
         try {
             const parseResult = parseGeneratedContent(rawContent);
 
@@ -61,8 +71,17 @@ export function useParseAndLoadContent() {
                 };
             }
 
-            const transformed = transformGeneratedContent(parseResult.data);
-            loadCustomContent(transformed);
+            const transformed = transformGeneratedContent(parseResult.data, subjectId);
+            
+            // Add required session fields
+            loadSession({
+                subjectId: subjectId || `subject-${Date.now()}`,
+                subject: transformed.metadata.domain,
+                mode: 'learn',
+                stages: transformed.stages,
+                concepts: transformed.concepts,
+                metadata: transformed.metadata,
+            });
 
             return { success: true };
         } catch (error) {
