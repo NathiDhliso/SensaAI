@@ -1034,7 +1034,11 @@ export function LifecyclePhaseRenderer({
   - Created `ConceptChunks.tsx` + `ConceptChunks.module.css`
   - Groups 67 concepts → 3 tier chunks (Foundation/Keystone/Utility)
   - Expandable "show more" (5 per tier default), Start Learning per tier
-- [ ] **2.1** Create `/study/:subjectId` page (uses all above)
+- [x] **2.1** Create `/study/:subjectId` page ✅ (commits: 7bd22d2, ff1362f)
+  - Created unified `Study.tsx` with tabbed interface (Overview/Learn/Palace/Sprint)
+  - Added `/study/:subjectId` route to App.tsx
+  - Updated Results "Start Learning" to navigate to new Study page
+  - Uses StudyLayout wrapper with LifecycleNavigator integration
 
 ---
 
