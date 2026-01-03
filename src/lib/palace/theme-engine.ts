@@ -1,5 +1,15 @@
 export type RoomTheme = 'Factory' | 'Library' | 'Garden' | 'Laboratory' | 'Studio' | 'Default';
 
+export const VISUAL_PALETTES = {
+    Tech: ['shape:construct', 'shape:synapse', 'shape:bastion', 'shape:prism'],
+    Nature: ['shape:seed', 'shape:sprout', 'shape:bloom', 'shape:crown'],
+    Abstract: ['shape:nebula', 'shape:prism', 'shape:synapse', 'shape:bloom'],
+    Structural: ['shape:bastion', 'shape:construct', 'shape:prism', 'shape:crown'],
+    Default: ['shape:nebula', 'shape:synapse', 'shape:construct', 'shape:bastion', 'shape:prism']
+};
+
+export type PaletteType = keyof typeof VISUAL_PALETTES;
+
 export interface ThemeConfig {
     name: RoomTheme;
     colors: {

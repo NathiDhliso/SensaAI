@@ -402,12 +402,26 @@ export default function ExteriorView() {
         };
     }, [tourPlaying, markerPositions]);
 
-    const handleStartWalk = useCallback(() => {
+    const [isStartingWalk, setIsStartingWalk] = useState(false);
+
+    // Effect to trigger tour when starting walk
+    useEffect(() => {
+        if (isStartingWalk && markerPositions.length > 0 && !isLoading) {
+            startTour();
+            setIsStartingWalk(false);
+        }
+    }, [isStartingWalk, markerPositions, isLoading]);
+
+    const handleStartWalk = useCallback((startBuildingIndex: number) => {
         if (!currentPalace) return;
         updateStreak();
-        const today = new Date().getDay();
-        const startBuilding = today % currentPalace.buildings.length;
-        setCurrentBuilding(startBuilding);
+
+        // Switch building
+        const buildingIndex = startBuildingIndex % currentPalace.buildings.length;
+        setCurrentBuilding(buildingIndex);
+
+        // Flag to start tour once loaded
+        setIsStartingWalk(true);
     }, [currentPalace, updateStreak, setCurrentBuilding]);
 
     const toggleFullscreen = useCallback(() => {

@@ -54,13 +54,17 @@ export async function enhanceWithVisuals(
             // Inject into Markdown
             // We look for the JSON anchor line and inject the imageUrl line before it
             // Using regex to be whitespace agnostic for the anchor key
-            const anchorRegex = new RegExp(`"anchor"\\s*:\\s*"${escapeRegExp(concept.mnemonic.anchor)}"`);
+            // This regex looks for "anchor" : "The Anchor Value" handling spaces
+            const sourceAnchor = escapeRegExp(concept.mnemonic.anchor);
+            const anchorRegex = new RegExp(`"anchor"\\s*:\\s*"${sourceAnchor}"`);
 
             if (enhancedContent.match(anchorRegex)) {
                 const replacement = `"imageUrl": "${imageUrl}",\n    "anchor": "${concept.mnemonic.anchor}"`;
                 enhancedContent = enhancedContent.replace(anchorRegex, replacement);
+                console.log(`Successfully injected image for ${concept.name}`);
             } else {
-                console.warn(`Could not find anchor string for ${concept.name} to inject image`);
+                console.warn(`Could not find anchor string for ${concept.name} to inject image. searched for regex:`, anchorRegex);
+                console.log('Partial content preview:', enhancedContent.substring(0, 500));
             }
 
         } catch (error) {

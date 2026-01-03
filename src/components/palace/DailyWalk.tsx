@@ -3,7 +3,7 @@ import { usePalaceStore } from '@/store/palace-store';
 import styles from './EnhancedFeatures.module.css';
 
 interface DailyWalkProps {
-    onStartWalk: () => void;
+    onStartWalk: (startBuildingIndex: number) => void;
 }
 
 export default function DailyWalk({ onStartWalk }: DailyWalkProps) {
@@ -18,12 +18,12 @@ export default function DailyWalk({ onStartWalk }: DailyWalkProps) {
     const buildingsPerWalk = Math.min(3, totalBuildings);
     const today = new Date().getDay();
     const startBuilding = (today * buildingsPerWalk) % totalBuildings;
-    const endBuilding = totalBuildings > 1 
-        ? (startBuilding + buildingsPerWalk - 1) % totalBuildings 
+    const endBuilding = totalBuildings > 1
+        ? (startBuilding + buildingsPerWalk - 1) % totalBuildings
         : 0;
     const displayStart = startBuilding + 1;
-    const displayEnd = endBuilding >= startBuilding 
-        ? endBuilding + 1 
+    const displayEnd = endBuilding >= startBuilding
+        ? endBuilding + 1
         : totalBuildings;
 
     // Count concepts in these buildings
@@ -59,7 +59,7 @@ export default function DailyWalk({ onStartWalk }: DailyWalkProps) {
                 </span>
             </div>
 
-            <button className={styles.startWalkButton} onClick={onStartWalk}>
+            <button className={styles.startWalkButton} onClick={() => onStartWalk(startBuilding)}>
                 Start Walk (Buildings {displayStart} → {displayEnd})
             </button>
         </div>

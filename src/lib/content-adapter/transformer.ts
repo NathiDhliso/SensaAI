@@ -2,42 +2,68 @@ import type { ParsedGeneratedContent, ParsedConcept, ParsedMentalAnchor } from '
 import type { LearningStage, LearningConcept, ConceptLifecycle, SubjectGraph, MnemonicContext } from '@/lib/types/learning';
 import { buildSubjectGraph } from '@/lib/generation/dependency-parser';
 import { generateFloorPlan, buildTreemapInput, buildTreemapStages, type FloorPlanLayout } from '@/lib/generation/floor-plan-generator';
+import { VISUAL_PALETTES, type PaletteType } from '@/lib/palace/theme-engine';
 
-const DEFAULT_ICONS = ['shape:nebula', 'shape:synapse', 'shape:construct', 'shape:bastion', 'shape:prism'];
 const DEFAULT_STAGE_ICONS = ['shape:seed', 'shape:sprout', 'shape:bloom', 'shape:crown', 'shape:synapse'];
 
-function extractIconFromMetaphor(metaphor: string): string {
-  const iconMap: Record<string, string> = {
-    // Structural / Foundational -> Prism/Bastion
-    'building': 'shape:prism', 'foundation': 'shape:bastion', 'structure': 'shape:construct',
-    'house': 'shape:bastion', 'room': 'shape:construct', 'door': 'shape:prism',
+function getPaletteForDomain(domain: string): PaletteType {
+  const d = domain.toLowerCase();
 
-    // Connected / Network -> Nebula/Synapse
-    'network': 'shape:nebula', 'connection': 'shape:synapse', 'link': 'shape:synapse',
-    'web': 'shape:nebula', 'cloud': 'shape:nebula', 'road': 'shape:nebula',
+  // Tech / Engineering / Crypto
+  if (d.includes('computer') || d.includes('tech') || d.includes('data') || d.includes('cyber') || d.includes('code') || d.includes('engineer')) {
+    return 'Tech';
+  }
+  // Nature / Biology / Health
+  if (d.includes('biology') || d.includes('health') || d.includes('environment') || d.includes('nature') || d.includes('agriculture')) {
+    return 'Nature';
+  }
+  // Abstract / Philosophy / History / Arts
+  if (d.includes('philosophy') || d.includes('history') || d.includes('art') || d.includes('literature') || d.includes('music')) {
+    return 'Abstract';
+  }
+  // Structural / Architecture / Business / Law
+  if (d.includes('architecture') || d.includes('business') || d.includes('law') || d.includes('finance') || d.includes('construct')) {
+    return 'Structural';
+  }
 
-    // Logic / Intelligence -> Synapse
-    'brain': 'shape:synapse', 'mind': 'shape:synapse', 'thought': 'shape:synapse',
-    'nerve': 'shape:synapse', 'computer': 'shape:construct',
+  return 'Default';
+}
 
-    // Security / Strength -> Bastion
-    'lock': 'shape:bastion', 'shield': 'shape:bastion', 'wall': 'shape:bastion',
-    'security': 'shape:bastion', 'safe': 'shape:bastion',
-
-    // Tool / Action -> Construct
-    'tool': 'shape:construct', 'hammer': 'shape:construct', 'wrench': 'shape:construct',
-    'machine': 'shape:construct', 'engine': 'shape:construct',
+function extractIconFromMetaphor(metaphor: string, domain: string = 'General'): string {
+  // 1. GLOBAL KEYWORDS (Strong matches independent of domain)
+  // These are universally recognized metaphors
+  const globalIcons: Record<string, string> = {
+    'brain': 'shape:synapse', 'mind': 'shape:synapse', 'logic': 'shape:synapse',
+    'cloud': 'shape:nebula', 'web': 'shape:nebula',
+    'security': 'shape:bastion', 'shield': 'shape:bastion',
+    'foundation': 'shape:bastion', 'core': 'shape:construct',
+    'tool': 'shape:construct', 'engine': 'shape:construct',
+    'plant': 'shape:sprout', 'growth': 'shape:bloom',
+    'light': 'shape:prism', 'vision': 'shape:prism'
   };
 
   const lowerMetaphor = metaphor.toLowerCase();
-  for (const [keyword, icon] of Object.entries(iconMap)) {
+  for (const [keyword, icon] of Object.entries(globalIcons)) {
     if (lowerMetaphor.includes(keyword)) {
       return icon;
     }
   }
 
-  // Default fallback if no metaphor match
-  return DEFAULT_ICONS[0];
+  // 2. DOMAIN CONTEXT PALETTE (The Silver Bullet)
+  // If no strong global keyword, we look at the specific palette for this domain
+  const paletteName = getPaletteForDomain(domain);
+  const palette = VISUAL_PALETTES[paletteName];
+
+  // 3. DETERMINISTIC HASH FALLBACK WITHIN PALETTE
+  // We use the hash to pick *from the curated palette* instead of a random shape
+  // This ensures "Data Science" (Tech) gets Tech shapes, "Botany" gets Nature shapes
+  let hash = 0;
+  for (let i = 0; i < metaphor.length; i++) {
+    hash = ((hash << 5) - hash) + metaphor.charCodeAt(i);
+    hash |= 0;
+  }
+
+  return palette[Math.abs(hash) % palette.length];
 }
 
 function findMetaphorForConcept(conceptName: string, mentalAnchors: ParsedMentalAnchor[]): string {
@@ -55,10 +81,12 @@ function findMetaphorForConcept(conceptName: string, mentalAnchors: ParsedMental
   return conceptName;
 }
 
-function getConceptIcon(conceptName: string, mentalAnchors: ParsedMentalAnchor[]): string {
+function getConceptIcon(conceptName: string, mentalAnchors: ParsedMentalAnchor[], domain: string): string {
   const metaphor = findMetaphorForConcept(conceptName, mentalAnchors);
-  return extractIconFromMetaphor(metaphor);
+  return extractIconFromMetaphor(metaphor, domain);
 }
+
+
 
 function generateHookSentence(concept: ParsedConcept, metaphor: string): string {
   // Use extracted hook sentence if available
@@ -306,7 +334,7 @@ export function transformToLearningConcepts(
     };
 
     const metaphor = getConceptMetaphor(parsedConcept, parsed.mentalAnchors);
-    const icon = getConceptIcon(parsedConcept.name, parsed.mentalAnchors);
+    const icon = getConceptIcon(parsedConcept.name, parsed.mentalAnchors, parsed.domainAnalysis.domain);
 
     // Transform parsed mnemonic to MnemonicContext
     let mnemonic: MnemonicContext | undefined;
