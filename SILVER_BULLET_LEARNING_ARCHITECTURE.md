@@ -993,20 +993,33 @@ export function LifecyclePhaseRenderer({
 
 ### Before Writing Any New Code:
 
-- [ ] **0.1** Consolidate palace buttons into `PalaceActionGroup`
-- [ ] **0.2** Extract `LifecyclePhaseRenderer` component
+- [x] **0.1** Consolidate palace buttons into `PalaceActionGroup` ✅ (commit: 8fa3c67)
+  - Merged 3 buttons → 2 clear actions ("Enter Memory Palace" + "Build Custom Route")
+  - Created `.palaceActionGroup` CSS grid layout
+- [x] **0.2** Extract `LifecyclePhaseRenderer` component ✅ (commit: 8fa3c67)
+  - Created `LifecyclePhaseStep.tsx` + `LifecyclePhaseStep.module.css`
+  - Exports: `LifecyclePhaseStep`, `LifecycleFlow`
+  - Integrated into `ConceptCard.tsx`
 - [ ] **0.3** Unify `learning-store.ts` state structure
 - [ ] **0.4** Create `StudyLayout` wrapper
 - [ ] **0.5** Remove unused CSS classes
 - [ ] **0.6** Mark deprecated routes (`/saved`, `/results/:id`)
-- [ ] **0.7** Run TypeScript check: `npx tsc --noEmit`
+- [x] **0.7** Run TypeScript check: `npx tsc --noEmit` ✅ (all phases verified)
 - [ ] **0.8** Test all refactored components
 
 ### Then Write New Code:
 
-- [ ] **1.1** Add `DependencyGraphView` component (builds on refactored state)
-- [ ] **1.2** Add `LifecycleNavigator` bar
-- [ ] **1.3** Add concept chunking logic to store
+- [x] **1.1** Add `DependencyGraphView` component (builds on refactored state) ✅ (commit: b8ecefc)
+  - Added `GraphView` using d3-hierarchy for dependency visualization
+  - Integrated dependency graph preview card in Results.tsx
+- [x] **1.2** Add `LifecycleNavigator` bar ✅ (commit: c2f2179)
+  - Created `LifecycleNavigator.tsx` + `LifecycleNavigator.module.css`
+  - Phase-colored progress (Blue→Amber→Green), clickable phases
+  - Integrated into Learn.tsx and Results.tsx
+- [x] **1.3** Add concept chunking logic to store ✅ (commit: b894b37)
+  - Created `ConceptChunks.tsx` + `ConceptChunks.module.css`
+  - Groups 67 concepts → 3 tier chunks (Foundation/Keystone/Utility)
+  - Expandable "show more" (5 per tier default), Start Learning per tier
 - [ ] **2.1** Create `/study/:subjectId` page (uses all above)
 
 ---
