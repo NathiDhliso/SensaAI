@@ -121,13 +121,8 @@ export default function Home() {
   const handleGenerate = () => {
     if (subject.trim()) {
       setShowSuggestions(false);
-      if (bedrockConfig) {
-        // Navigate directly to Generate page - diagnostic will happen after Pass 1 completes
-        navigate(`/generate/${encodeURIComponent(subject)}`);
-      } else {
-        // No credentials - prompt to configure
-        openSettingsPanel();
-      }
+      // Navigate directly to Generate page - we trust the backend/store setup
+      navigate(`/generate/${encodeURIComponent(subject)}`);
     }
   };
 
