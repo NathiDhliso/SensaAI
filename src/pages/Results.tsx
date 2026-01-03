@@ -503,7 +503,7 @@ export default function Results() {
                       // console.log('Selected concept:', concept.name);
                     }
                   }}
-                  onStartChunk={(tier, conceptIds) => {
+                  onStartChunk={() => {
                     // console.log(`Start learning ${tier}:`, conceptIds);
                     handleStartLearning();
                   }}

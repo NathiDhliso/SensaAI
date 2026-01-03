@@ -9,6 +9,7 @@
 
 import { useMemo } from 'react';
 import { ClipboardList, Settings, BarChart3 } from 'lucide-react';
+import { LIFECYCLE_COLORS } from '@/constants/theme-colors';
 import styles from './LifecycleNavigator.module.css';
 
 export interface LifecycleLabels {
@@ -45,11 +46,7 @@ const PHASE_ICONS = {
   phase3: BarChart3,
 };
 
-const PHASE_COLORS = {
-  phase1: { bg: '#DBEAFE', fill: '#3B82F6', text: '#1E40AF' },  // Blue
-  phase2: { bg: '#FEF3C7', fill: '#F59E0B', text: '#92400E' },  // Amber
-  phase3: { bg: '#D1FAE5', fill: '#10B981', text: '#065F46' },  // Green
-};
+const PHASE_COLORS = LIFECYCLE_COLORS;
 
 export function LifecycleNavigator({
   labels,
@@ -58,7 +55,7 @@ export function LifecycleNavigator({
   onPhaseClick,
   compact = false,
 }: LifecycleNavigatorProps) {
-  
+
   const phases = useMemo(() => [
     { key: 'phase1' as const, label: labels.phase1, progress: progress.phase1 },
     { key: 'phase2' as const, label: labels.phase2, progress: progress.phase2 },
@@ -72,7 +69,7 @@ export function LifecycleNavigator({
   }, [progress]);
 
   return (
-    <nav 
+    <nav
       className={`${styles.navigator} ${compact ? styles.compact : ''}`}
       aria-label="Learning lifecycle progress"
     >
@@ -80,8 +77,8 @@ export function LifecycleNavigator({
         {phases.map((phase, index) => {
           const Icon = PHASE_ICONS[phase.key];
           const colors = PHASE_COLORS[phase.key];
-          const percentage = phase.progress.total > 0 
-            ? Math.round((phase.progress.completed / phase.progress.total) * 100) 
+          const percentage = phase.progress.total > 0
+            ? Math.round((phase.progress.completed / phase.progress.total) * 100)
             : 0;
           const isActive = activePhase === phase.key;
           const isClickable = !!onPhaseClick;
@@ -103,9 +100,9 @@ export function LifecycleNavigator({
                   <Icon size={compact ? 16 : 18} className={styles.phaseIcon} />
                   <span className={styles.phaseLabel}>{phase.label}</span>
                 </div>
-                
+
                 <div className={styles.progressBarContainer}>
-                  <div 
+                  <div
                     className={styles.progressBar}
                     style={{ width: `${percentage}%` }}
                     aria-valuenow={percentage}
@@ -113,7 +110,7 @@ export function LifecycleNavigator({
                     aria-valuemax={100}
                   />
                 </div>
-                
+
                 <div className={styles.phaseStats}>
                   <span className={styles.phaseCount}>
                     {phase.progress.completed}/{phase.progress.total}
@@ -140,7 +137,7 @@ export function LifecycleNavigator({
         <div className={styles.totalProgress}>
           <span className={styles.totalLabel}>Overall Progress</span>
           <div className={styles.totalBarContainer}>
-            <div 
+            <div
               className={styles.totalBar}
               style={{ width: `${totalProgress.percentage}%` }}
             />
