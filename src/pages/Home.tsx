@@ -222,9 +222,9 @@ export default function Home() {
                               color: DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.color
                             }}
                           >
-                            <SensaShape 
-                              type={DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.shapeType} 
-                              size="sm" 
+                            <SensaShape
+                              type={DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.shapeType}
+                              size="sm"
                               animate={false}
                             />
                             {s.difficulty}
@@ -250,14 +250,7 @@ export default function Home() {
             Generate Learning System
           </button>
 
-          {!bedrockConfig && (
-            <div className={styles.infoBox}>
-              <span>AWS credentials required. </span>
-              <button onClick={openSettingsPanel} className={styles.settingsLink}>
-                Configure in Settings
-              </button>
-            </div>
-          )}
+
 
           <div className={styles.categoriesSection}>
             <p className={styles.categoriesLabel}>Or explore by category:</p>
@@ -301,9 +294,9 @@ export default function Home() {
                             color: DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.color
                           }}
                         >
-                          <SensaShape 
-                            type={DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.shapeType} 
-                            size="sm" 
+                          <SensaShape
+                            type={DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.shapeType}
+                            size="sm"
                             animate={false}
                           />
                           {s.difficulty}

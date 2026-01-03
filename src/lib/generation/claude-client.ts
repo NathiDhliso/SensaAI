@@ -4,10 +4,14 @@ import {
   InvokeModelWithResponseStreamCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 
+import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
+import { useAuthStore } from '@/store/auth-store';
+
 export type BedrockConfig = {
   region: string;
-  accessKeyId: string;
-  secretAccessKey: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  useCognito?: boolean;
 };
 
 export type BedrockMessage = {
@@ -25,18 +29,43 @@ let currentRegion: string | null = null;
 
 export function getBedrockClient(config: BedrockConfig): BedrockRuntimeClient {
   const configKey = JSON.stringify(config);
-  
+
   if (!clientInstance || currentRegion !== configKey) {
-    clientInstance = new BedrockRuntimeClient({
-      region: config.region,
-      credentials: {
+    let credentials;
+
+    if (config.useCognito) {
+      const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID;
+      const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
+
+      const idToken = useAuthStore.getState().tokens?.idToken;
+
+      if (!identityPoolId || !userPoolId || !idToken) {
+        throw new Error('Cognito configuration missing or user not authenticated');
+      }
+
+      credentials = fromCognitoIdentityPool({
+        clientConfig: { region: config.region },
+        identityPoolId,
+        logins: {
+          [`cognito-idp.${config.region}.amazonaws.com/${userPoolId}`]: idToken
+        }
+      });
+    } else if (config.accessKeyId && config.secretAccessKey) {
+      credentials = {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
-      },
+      };
+    } else {
+      throw new Error('Invalid Bedrock Configuration: No credentials provided');
+    }
+
+    clientInstance = new BedrockRuntimeClient({
+      region: config.region,
+      credentials,
     });
     currentRegion = configKey;
   }
-  
+
   return clientInstance;
 }
 
@@ -72,7 +101,7 @@ export async function invokeClaudeModel(
 
   const response = await client.send(command);
   const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-  
+
   return extractTextFromBedrockResponse(responseBody);
 }
 
@@ -116,7 +145,7 @@ export async function* invokeClaudeModelStream(
     }
     if (event.chunk) {
       const chunk = JSON.parse(new TextDecoder().decode(event.chunk.bytes));
-      
+
       if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
         yield chunk.delta.text;
       }

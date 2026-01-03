@@ -64,7 +64,17 @@ type GenerationActions = {
 };
 
 const getEnvBedrockConfig = (): BedrockConfig | null => {
-  const region = import.meta.env.VITE_AWS_REGION;
+  const region = import.meta.env.VITE_AWS_REGION || 'us-east-1';
+
+  // Strategy 1: Cognito (Prod)
+  const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID;
+  const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
+
+  if (identityPoolId && userPoolId) {
+    return { region, useCognito: true };
+  }
+
+  // Strategy 2: Direct Keys (Dev)
   const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
   const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
 
