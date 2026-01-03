@@ -2,6 +2,8 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
+import { useAuthStore } from '@/store/auth-store';
 import type { SavedResult, StorageProvider } from './types';
 
 export class CloudStorage implements StorageProvider {
@@ -9,25 +11,56 @@ export class CloudStorage implements StorageProvider {
   private ddbClient: DynamoDBDocumentClient | null = null;
   private bucketName: string | null = null;
   private tableName: string | null = null;
+  private readonly region = import.meta.env.VITE_AWS_REGION || 'us-east-1';
 
   constructor() {
     this.initClients();
   }
 
   private initClients() {
-    const region = import.meta.env.VITE_AWS_REGION;
-    const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
-    const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
-
     this.bucketName = import.meta.env.VITE_AWS_S3_BUCKET_NAME || null;
     this.tableName = import.meta.env.VITE_AWS_DYNAMODB_TABLE_NAME || null;
 
-    if (region && accessKeyId && secretAccessKey) {
+    // Strategy 1: Cognito Identity Pool (Production / Secure)
+    // Requires VITE_COGNITO_IDENTITY_POOL_ID and VITE_COGNITO_USER_POOL_ID in .env
+    const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID;
+    const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
+
+    if (identityPoolId && userPoolId) {
+      console.log('🔐 CloudStorage: Using Cognito Identity Pool');
+
+      const credentials = () => {
+        const idToken = useAuthStore.getState().tokens?.idToken;
+        if (!idToken) {
+          // Keep this silent to prevent console spam before login
+          throw new Error('Waiting for login...');
+        }
+
+        return fromCognitoIdentityPool({
+          clientConfig: { region: this.region },
+          identityPoolId,
+          logins: {
+            [`cognito-idp.${this.region}.amazonaws.com/${userPoolId}`]: idToken
+          }
+        })();
+      };
+
+      this.s3Client = new S3Client({ region: this.region, credentials });
+      const ddb = new DynamoDBClient({ region: this.region, credentials });
+      this.ddbClient = DynamoDBDocumentClient.from(ddb);
+      return;
+    }
+
+    // Strategy 2: Direct Keys (Development Only)
+    const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
+    const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
+
+    if (accessKeyId && secretAccessKey) {
+      console.log('🔧 CloudStorage: Using .env Keys (Dev Mode)');
       const credentials = { accessKeyId, secretAccessKey };
 
-      this.s3Client = new S3Client({ region, credentials });
-
-      const ddb = new DynamoDBClient({ region, credentials });
+      this.s3Client = new S3Client({ region: this.region, credentials });
+      const ddb = new DynamoDBClient({ region: this.region, credentials });
       this.ddbClient = DynamoDBDocumentClient.from(ddb);
     }
   }

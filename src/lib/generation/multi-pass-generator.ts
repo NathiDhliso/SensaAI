@@ -281,8 +281,10 @@ Then provide the answer immediately below.
 Example: "Question: When would you choose Lambda over EC2? Answer: When your workload is event-driven, unpredictable, or you want zero server management."
 
 **E - ELIMINATION LOGIC** (10 seconds to read)
-"⚠️ Don't confuse [THIS] with [THAT]" - one critical distinction.
-Example: "⚠️ Don't confuse Lambda cold starts (initialization delay) with Lambda timeouts (execution limit). Cold starts are about speed; timeouts are about duration."
+One critical distinction clarifying common confusion points. Use POSITIVE framing:
+Format: "[CONCEPT A] is [definition], while [CONCEPT B] is [different definition]—they serve different purposes."
+Example: "Lambda cold starts (initialization delay) differ from Lambda timeouts (execution limit). Cold starts affect startup speed; timeouts limit execution duration. Understanding both prevents performance misconfigurations."
+⚠️ MANDATORY: Frame as clarifications, NOT negations. Never use "Don't confuse" language.
 
 OUTPUT FORMAT FOR EACH CONCEPT:
 \`\`\`

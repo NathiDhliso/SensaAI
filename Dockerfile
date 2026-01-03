@@ -16,7 +16,23 @@ RUN npm ci --ignore-scripts || npm install --ignore-scripts
 COPY . .
 
 # Build the application (skip native module rebuilds)
-ENV VITE_API_URL=/api
+# Build the application (skip native module rebuilds)
+# Accept build arguments for environment variables
+ARG VITE_API_URL=/api
+ARG VITE_AWS_REGION=us-east-1
+ARG VITE_COGNITO_IDENTITY_POOL_ID
+ARG VITE_COGNITO_USER_POOL_ID
+ARG VITE_AWS_S3_BUCKET_NAME
+ARG VITE_AWS_DYNAMODB_TABLE_NAME
+
+# Set as environment variables for the build process
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_AWS_REGION=$VITE_AWS_REGION
+ENV VITE_COGNITO_IDENTITY_POOL_ID=$VITE_COGNITO_IDENTITY_POOL_ID
+ENV VITE_COGNITO_USER_POOL_ID=$VITE_COGNITO_USER_POOL_ID
+ENV VITE_AWS_S3_BUCKET_NAME=$VITE_AWS_S3_BUCKET_NAME
+ENV VITE_AWS_DYNAMODB_TABLE_NAME=$VITE_AWS_DYNAMODB_TABLE_NAME
+
 RUN npm run build
 
 # Production stage

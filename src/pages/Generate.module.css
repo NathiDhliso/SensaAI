@@ -350,28 +350,30 @@
   height: 0.75rem;
   background: var(--color-border);
   border-radius: 9999px;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-primary-amethyst) 0%, var(--color-accent-light) 50%, var(--color-primary-coral) 100%);
+  background: linear-gradient(90deg, #9333EA 0%, #F59E0B 50%, #FF6B6B 100%);
   border-radius: 9999px;
-  transition: width 0.5s ease;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  box-shadow: 0 0 12px rgba(147, 51, 234, 0.4);
 }
 
 .progressGlow {
   position: absolute;
   top: 50%;
-  transform: translate(-50%, -50%);
-  width: 1.5rem;
-  height: 1.5rem;
-  background: var(--color-primary-amethyst);
+  right: 0;
+  transform: translate(50%, -50%);
+  width: 1rem;
+  height: 1rem;
+  background: white;
   border-radius: 50%;
-  filter: blur(8px);
-  opacity: 0.6;
-  transition: left 0.5s ease;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 16px rgba(147, 51, 234, 0.6);
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 .progressStats {

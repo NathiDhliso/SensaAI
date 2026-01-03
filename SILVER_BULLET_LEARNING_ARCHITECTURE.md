@@ -11,63 +11,65 @@
 
 ### Generation Complete Page - Current Buttons & Routes
 
-| Button | Destination | Purpose | Issues Identified |
-|--------|-------------|---------|-------------------|
-| `Start Learning` | `/learn` | Begin concept-by-concept learning | Requires re-parsing content; no lifecycle context |
-| `NYC Memory Palace` | `/palace` | Pre-built spatial memory route | Disconnected from learning progress |
-| `Regenerate Layout` | Same page | Re-run treemap generator | Function identical to NYC Palace button |
-| `Custom Palace` | RouteBuilder modal | Create custom memory palace | 3-step wizard is 2 steps too many |
-| `Save Result` | IndexedDB | Persist generation | No sync with cloud/progress |
-| `Copy` | Clipboard | Copy raw text | Limited utility |
-| `Download` | File download | Export .txt file | No structured format (JSON/Markdown) |
-| `Back` | `/` | Return home | Loses generation context |
+| Button | Destination | Purpose | Enhancement Opportunity |
+|--------|-------------|---------|--------------------------|
+| `Start Learning` | `/learn` | Begin concept-by-concept learning | Preserve lifecycle context during transition |
+| `NYC Memory Palace` | `/palace` | Pre-built spatial memory route | Sync with unified learning state |
+| `Regenerate Layout` | Same page | Re-run treemap generator | Consolidate with memory mode selector |
+| `Custom Palace` | RouteBuilder modal | Create custom memory palace | Streamline to single-step wizard |
+| `Save Result` | IndexedDB | Persist generation | Add cloud sync & progress tracking |
+| `Copy` | Clipboard | Copy raw text | Generate structured export options |
+| `Download` | File download | Export .txt file | Add JSON/Markdown format options |
+| `Back` | `/` | Return home | Maintain generation context in session |
 
-### Current Flow Problems
+### Unified Learning Flow Opportunity
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                    CURRENT DISJOINTED FLOW                          │
+│                    OPPORTUNITY: UNIFIED LEARNING FLOW                │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│   Home → Generate → Results → Learn → Sprint → SprintResults        │
-│                        │                                             │
-│                        ├──→ Palace (disconnected)                    │
-│                        │                                             │
-│                        └──→ SavedResults (separate location)         │
+│   Home → Generate → Learning Command Center (unified state)         │
+│                          │                                           │
+│                          ├──→ Dashboard view                         │
+│                          ├──→ Map view                               │
+│                          ├──→ Palace view                            │
+│                          ├──→ Sprint view                            │
+│                          └──→ Progress tracking                      │
 │                                                                      │
-│   PROBLEM: 6 separate pages with no unified learning state          │
+│   BENEFIT: Single source of truth + seamless view switching          │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🧠 Cognitive Load Issues Identified
+## 🧠 Cognitive Load Optimization Opportunities
 
-### 1. **Germane Load Dilution** (Learning effort wasted on navigation)
-- Students must decide between 4 learning modalities (Learn, Palace, Sprint)
-- Each modality has separate UI paradigms requiring re-orientation
-- Lifecycle phases (PREPARE → MODEL → DELIVER) not visually persistent
+### 1. **Unified Learning Navigation** (Consolidate decision points)
+- Integrate 4 learning modalities into single intelligent command center
+- Standardize UI paradigms across all viewing modes for instant familiarity
+- Make lifecycle phases (PREPARE → MODEL → DELIVER) always visible and actionable
 
-### 2. **Extraneous Load Amplifiers**
-| Issue | Location | Impact |
-|-------|----------|--------|
-| Double content parsing | Results → Learn transition | 2-3 second delay |
-| 67 concepts shown flat | Results page concept tags | Overwhelming choice paralysis |
-| Hidden dependencies | Concept cards | Can't see prerequisites |
-| Duplicate buttons | "NYC Palace" vs "Regenerate" | Confusion about function |
-| Raw text generation view | Results page main panel | No structure, wall of text |
+### 2. **Intelligent Content Presentation**
+| Opportunity | Location | Benefit |
+|------------|----------|--------|
+| Dependency-aware content assembly | Results → Learn transition | Pre-parsed concepts, instant access |
+| Smart concept prioritization | Results page concept display | User sees Foundation tier first, naturally scaffolded |
+| Visible prerequisite chains | Concept cards | Prerequisites shown inline, learning path clear |
+| Unified action buttons | Results page controls | Single memory mode toggle, clear purpose |
+| Interactive concept visualization | Results page main panel | Structured, scannable, relationships visible |
 
-### 3. **Intrinsic Load Mismanagement**
-- Complex concepts (Foundation tier) shown same size as Utility tier
-- No visual hierarchy in concept list (first 8 shown arbitrarily)
-- Lifecycle verbs (PREPARE/MODEL/DELIVER) visible but not actionable
+### 3. **Natural Concept Hierarchy**
+- Foundation concepts weighted visually larger → automatic user prioritization
+- Concept list ordered by dependency depth, not arbitrary order
+- Lifecycle verbs directly tied to actionable learning phases
 
-### 4. **Missing Scaffolding Elements**
-- No concept dependency graph visualization on Results page
-- No "recommended first concept" guidance
-- No spaced repetition integration
-- No confusion pair drilling at concept boundaries
+### 4. **Built-in Learning Scaffolding**
+- Concept dependency graph visualization surfaces on Results page
+- Recommended learning path shown prominently
+- Spaced repetition prompts integrated into lifecycle phases
+- Confusion pair challenges appear at optimal concept boundaries
 
 ---
 
@@ -126,12 +128,12 @@
 #### B. Consolidate Palace Buttons into Single "Memory Mode" Toggle
 
 ```tsx
-// BEFORE: 3 confusing buttons
+// CURRENT: Multiple specialized buttons
 <button>NYC Memory Palace</button>
-<button>Regenerate Layout</button>  // Does same thing!
+<button>Regenerate Layout</button>
 <button>Custom Palace</button>
 
-// AFTER: Single intelligent toggle
+// UNIFIED: Single intelligent mode selector
 <MemoryModeToggle
   defaultMode="graph"
   modes={[
@@ -171,9 +173,9 @@
 
 ---
 
-### Phase 2: Eliminate Duplicate Routes & Unnecessary Steps
+### Phase 2: Streamline Route Architecture
 
-#### Current Routes to Consolidate:
+#### Routes to Unify:
 
 ```typescript
 // BEFORE: 8 routes, fragmented experience
@@ -274,7 +276,7 @@ function getSmartChunks(concepts: LearningConcept[]): ConceptChunk[] {
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### B. Prerequisite Gates (Prevent Out-of-Order Learning)
+#### B. Prerequisite Guidance (Optimize Learning Sequence)
 
 ```tsx
 // In ConceptCard - Add prerequisite visualization
@@ -294,11 +296,11 @@ function getSmartChunks(concepts: LearningConcept[]): ConceptChunk[] {
 />
 ```
 
-#### C. Lifecycle Phase Drill-Down (Not Just Labels)
+#### C. Lifecycle Phase Deep Integration
 
-Current problem: Lifecycle phases (PREPARE/MODEL/DELIVER) are shown but not actionable.
+**Opportunity: Make lifecycle phases (PREPARE/MODEL/DELIVER) fully actionable and progress-tracked.**
 
-**Solution: Phase-Specific Learning Actions**
+**Implementation: Phase-Specific Learning Actions**
 
 ```tsx
 // For each concept, show phase-specific micro-goals
@@ -328,16 +330,16 @@ Current problem: Lifecycle phases (PREPARE/MODEL/DELIVER) are shown but not acti
 
 ---
 
-### Phase 4: Confusion Prevention System
+### Phase 4: Confusion-Aware Learning Foundation
 
-#### PREREQUISITE: Confusion Pair Data Structure
+#### Foundation: Confusion Pair Data Structure
 
-Your critique is **100% correct** — we need to add confusion pair generation to the data model first.
+To enable intelligent confusion drilling, we need to integrate confusion pair data throughout the learning model.
 
-**Current State:**
-- [src/lib/types/learning.ts](src/lib/types/learning.ts) — `LearningConcept` interface doesn't have `confusionPairs` field
-- [src/lib/system-prompt.ts](src/lib/system-prompt.ts) — Generation prompt doesn't request "Common Confusions"
-- [src/lib/content-adapter/parser.ts](src/lib/content-adapter/parser.ts) — Parser doesn't extract confusion pairs from markdown
+**To Add:**
+- [src/lib/types/learning.ts](src/lib/types/learning.ts) — Add `confusionPairs` field to `LearningConcept` interface
+- [src/lib/system-prompt.ts](src/lib/system-prompt.ts) — Request "Common Confusions" in generation prompt
+- [src/lib/content-adapter/parser.ts](src/lib/content-adapter/parser.ts) — Extract confusion pairs from markdown output
 
 **Implementation Steps:**
 
@@ -380,9 +382,9 @@ interface ConfusionPair {
 const pass3ContentGeneration = `
 ...existing prompt...
 
-## CRITICAL: Common Confusions
+## Powerful Concept Clarifications
 
-For EACH concept, identify 2-3 concepts from other stages that students commonly confuse with it.
+For EACH concept, identify 2-3 concepts from other stages that students commonly encounter confusion about, then clarify distinctions.
 
 Format for each confusion pair:
 \`\`\`
@@ -451,11 +453,11 @@ function transformConceptWithConfusions(
 }
 ```
 
-**This prerequisite is CRITICAL because:**
-1. Without confusion pairs in the data, we can't trigger drills
-2. The LLM must explicitly generate them (they don't appear in lifecycle phases)
-3. Parser must extract them from markdown
-4. UI can then reference `concept.confusionPairs` to show drill triggers
+**This foundation is essential because:**
+1. With confusion pairs in the data, we enable targeted clarification drills
+2. The LLM should explicitly generate them (distinct from lifecycle phases)
+3. Parser extracts them from markdown output
+4. UI references `concept.confusionPairs` to surface clarification opportunities
 
 **Estimated Effort:** 3 hours (1 type update + 2 prompt/parser updates)
 
@@ -632,7 +634,7 @@ interface StudySession {
 
 **File:** [src/pages/Results.tsx](src/pages/Results.tsx#L144-L200)
 
-**Current Problem:** 3 palace buttons with near-identical styling, different handlers
+**Refactoring Opportunity:** Consolidate 3 redundant palace buttons into single smart control
 
 ```tsx
 // CURRENT (REDUNDANT)
@@ -722,7 +724,7 @@ export function PalaceActionGroup({ onEnterPalace, onCreateCustom }: PalaceActio
 
 **File:** [src/App.tsx](src/App.tsx#L1-L50)
 
-**Current Problem:** 8 routes with similar patterns, no shared layout structure
+**Refactoring Opportunity:** Unify 8 learning routes under single layout container
 
 ```tsx
 // CURRENT (fragmented)
@@ -781,7 +783,7 @@ export function StudyLayout({ children }: { children: React.ReactNode }) {
 
 **File:** [src/store/learning-store.ts](src/store/learning-store.ts#L1-L100)
 
-**Current Problem:** `customContent` state exists but not used consistently; `cognitiveMetrics` partially implemented
+**Refactoring Opportunity:** Consolidate scattered state properties into unified learning context
 
 **Refactoring Step 1: Consolidate State Structure**
 
@@ -1359,7 +1361,7 @@ Component Padding:
 
 #### 1. UNIFIED ACTION BUTTONS
 
-**Current Problem:** 3 confusing palace buttons with unclear hierarchy
+**Design Improvement:** Merge palace buttons into single intelligent control with clear hierarchy
 
 **New Design - Single Smart Button + Dropdown**
 

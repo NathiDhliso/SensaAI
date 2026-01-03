@@ -1,0 +1,15 @@
+---
+- name: SensaPBL Infrastructure Provisioning
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # these would typically be encrypted with ansible-vault
+    sensapbl_secrets:
+      VITE_COGNITO_IDENTITY_POOL_ID: "{{ lookup('env', 'VITE_COGNITO_IDENTITY_POOL_ID') }}"
+      VITE_COGNITO_USER_POOL_ID: "{{ lookup('env', 'VITE_COGNITO_USER_POOL_ID') }}"
+      VITE_AWS_S3_BUCKET_NAME: "sensa-pbl-storage-nathi-01"
+      VITE_AWS_DYNAMODB_TABLE_NAME: "SensaResults"
+
+  roles:
+    - { role: secrets, tags: ['secrets'] }
