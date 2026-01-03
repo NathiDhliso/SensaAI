@@ -112,7 +112,10 @@ export default function Results() {
       return;
     }
 
-    navigate('/learn');
+    // Navigate to unified Study Command Center with subject ID
+    // Use the loaded result id or current params id, fallback to 'current' for fresh generations
+    const subjectId = loadedResult?.id || id || 'current';
+    navigate(`/study/${subjectId}`);
   };
 
   const handleSaveResult = async () => {

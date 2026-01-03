@@ -13,6 +13,7 @@ const SavedResults = lazy(() => import('./pages/SavedResults'));
 const Palace = lazy(() => import('./pages/Palace'));
 const Sprint = lazy(() => import('./pages/Sprint'));
 const SprintResults = lazy(() => import('./pages/SprintResults'));
+const Study = lazy(() => import('./pages/Study'));
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
 
@@ -60,6 +61,15 @@ function App() {
           {/* ═══════════════════════════════════════════════════════════════
               LEARNING FLOW (Phase 2.1 - To be unified under /study/:subjectId)
               ═══════════════════════════════════════════════════════════════ */}
+          
+          {/* 
+           * NEW: Unified Study Command Center
+           * Combines Overview, Learn, Palace, and Sprint into tabbed interface
+           * Phase 2.1 of Silver Bullet Architecture
+           */}
+          <Route path="/study/:subjectId" element={
+            <ProtectedRoute><Study /></ProtectedRoute>
+          } />
           
           {/* 
            * @deprecated Phase 2.1 - Will become /study/:subjectId (Learn tab)
