@@ -26,4 +26,19 @@ dist-ssr
 # Environment variables
 .env
 .env.local
+
+# Vite cache
+*.timestamp-*.mjs
+
+# Terraform
 infra/terraform/.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+tfplan
+*.tfplan
+
+# Backend compiled JS (build output, not source)
+backend/src/**/*.js
+backend/src/**/*.js.map
+backend/dist/
+

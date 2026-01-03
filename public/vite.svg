@@ -1,3 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="12" cy="12" r="10"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 257" preserveAspectRatio="xMidYMid">
+  <defs>
+    <linearGradient id="grad1" x1="100%" y1="0%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#FFEA83" />
+      <stop offset="8.333%" stop-color="#FFDD35" />
+      <stop offset="100%" stop-color="#FFA800" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="100%" y1="0%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#61D9FB" />
+      <stop offset="100%" stop-color="#63A4FF" />
+    </linearGradient>
+  </defs>
+  <path d="M255.153 37.938 134.897 252.976c-2.811 5.086-10.079 5.112-12.933.045L.875 37.958c-3.124-5.447 1.59-12.02 7.668-10.876l119.35 22.487a6.87 6.87 0 0 0 2.444-.001l117.258-22.468c6.07-1.163 10.788 5.393 7.68 10.842Z" fill="url(#grad1)" />
+  <path d="M185.432.063 96.44 17.501c-3.234.654-5.512 3.51-5.512 6.811v122.811c0 4.675 4.378 8.044 8.917 6.816l24.63-6.799c3.104-.857 5.25-3.69 5.25-6.905V62.672c0-4.57 4.22-7.948 8.702-6.94l14.42 3.245c3.12.701 5.34 3.486 5.34 6.688v60.124c0 4.737 4.566 8.11 9.055 6.797l15.226-4.328c3.154-.897 5.338-3.756 5.338-6.997V6.838c0-4.506-4.103-7.89-8.484-6.775Z" fill="url(#grad2)" />
 </svg>

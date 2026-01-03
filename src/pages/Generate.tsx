@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, Loader2, ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { generateWithBackend } from '@/lib/generation/backend-generator';
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
 import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
-import type { PassStatus, Pass1Result, ValidationResult } from '@/lib/types/generation';
+import type { PassStatus, Pass1Result, ValidationResult, StreamedConceptPreview } from '@/lib/types/generation';
 import styles from './Generate.module.css';
 
 type ProgressData = {
@@ -14,6 +15,7 @@ type ProgressData = {
   progress?: number;
   content?: string;
   domain?: string;
+  streamedConcepts?: StreamedConceptPreview[];
 } & Partial<Pass1Result> & Partial<ValidationResult>;
 
 export default function Generate() {
@@ -27,6 +29,9 @@ export default function Generate() {
     pass1Data,
     error,
     isGenerating,
+    streamedConcepts,
+    constructionPhase,
+    expectedConceptCount,
     startGeneration,
     completeGeneration,
     setError,
@@ -36,6 +41,9 @@ export default function Generate() {
     clearCheckpoint,
     saveCheckpoint,
     updateGenerationProgress,
+    addStreamedConcept,
+    setConstructionPhase,
+    setExpectedConceptCount,
   } = useGenerationStore();
 
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -132,10 +140,36 @@ export default function Generate() {
       // Handle pass-specific data
       if (pass === 1 && status === 'complete' && data && 'domain' in data && data.domain) {
         update.pass1Data = data as Pass1Result;
+        // Set expected concept count for optimistic UI
+        if (data.concepts) {
+          setExpectedConceptCount(data.concepts.length);
+          setConstructionPhase('framing');
+        }
       }
 
       if (pass === 2 && status === 'complete' && data?.content) {
         update.pass2Content = data.content;
+      }
+
+      // Handle streamed concepts for optimistic UI
+      if (pass === 3 && data?.streamedConcepts && data.streamedConcepts.length > 0) {
+        setConstructionPhase('detailing');
+        // Add each new concept to the store
+        for (const concept of data.streamedConcepts) {
+          addStreamedConcept({
+            id: `streamed-${concept.order}`,
+            name: concept.name,
+            order: concept.order,
+            stageId: 'stage-1',
+            mnemonic: concept.anchor ? { tier: 'Foundation', anchor: concept.anchor, story: '' } : undefined,
+            phase1: { hookSentence: '', microMetaphor: '', prerequisite: '', selection: [], execution: '' },
+            phase2: [],
+            phase3: { tool: '', metrics: [], thresholds: '' },
+            criticalDistinctions: [],
+            designBoundaries: [],
+            examFocus: [],
+          });
+        }
       }
 
       if (pass === 3 && status === 'complete' && data?.content) {
@@ -144,6 +178,7 @@ export default function Generate() {
 
       if (pass === 4 && status === 'complete' && data) {
         update.validation = data as ValidationResult;
+        setConstructionPhase('complete');
       }
 
       // Single atomic update
@@ -154,7 +189,7 @@ export default function Generate() {
         saveCheckpoint(pass);
       }
     };
-  }, [updateGenerationProgress, saveCheckpoint]);
+  }, [updateGenerationProgress, saveCheckpoint, addStreamedConcept, setConstructionPhase, setExpectedConceptCount]);
 
   // Start generation
   const startGenerationProcess = useCallback((decodedSubject: string, resumeData?: ReturnType<typeof getCheckpointResumeData>) => {
@@ -545,10 +580,10 @@ export default function Generate() {
                 <div className={styles.livePreview}>
                   <div className={styles.previewHeader}>
                     <div className={styles.previewTitle}>
-                      🏰 Your Memory Palace is Taking Shape
+                      🏰 {constructionPhase === 'complete' ? 'Memory Palace Complete!' : 'Building Your Memory Palace'}
                     </div>
                     <div className={styles.previewBadge}>
-                      <span></span> Live
+                      <span></span> {constructionPhase === 'complete' ? 'Done' : 'Live'}
                     </div>
                   </div>
 
@@ -562,20 +597,70 @@ export default function Generate() {
                     </div>
                   )}
 
+                  {/* Construction Progress Indicator */}
+                  {constructionPhase !== 'idle' && (
+                    <div className={styles.constructionStatus}>
+                      <span className={styles.constructionPhase}>
+                        {constructionPhase === 'foundation' && '🔍 Analyzing domain...'}
+                        {constructionPhase === 'framing' && '🏗️ Framing structure...'}
+                        {constructionPhase === 'detailing' && `🎨 Placing anchors (${streamedConcepts.length}/${expectedConceptCount})...`}
+                        {constructionPhase === 'complete' && '✨ Palace complete!'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Animated Concept Grid */}
                   <div className={styles.conceptsGrid}>
-                    {pass1Data.concepts.slice(0, 12).map((concept, idx) => (
-                      <div
-                        key={idx}
-                        className={`${styles.conceptChip} ${passes[3] === 'in-progress' && idx === pass1Data.concepts.length - 1 ? styles.generating : ''}`}
-                      >
-                        <span className={styles.conceptIcon}>🎭</span>
-                        <span className={styles.conceptName}>{concept}</span>
-                      </div>
-                    ))}
+                    <AnimatePresence mode="popLayout">
+                      {/* Show streamed concepts with emoji anchors */}
+                      {streamedConcepts.slice(0, 12).map((concept, idx) => {
+                        // Extract emoji from anchor string
+                        const emojiMatch = concept.mnemonic?.anchor?.match(/\p{Emoji}/u);
+                        const emoji = emojiMatch ? emojiMatch[0] : '🎭';
+
+                        return (
+                          <motion.div
+                            key={concept.id}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 300,
+                              damping: 20,
+                              delay: idx * 0.05
+                            }}
+                            className={`${styles.conceptChip} ${styles.streamedConcept}`}
+                          >
+                            <span className={styles.conceptIcon}>{emoji}</span>
+                            <span className={styles.conceptName}>{concept.name}</span>
+                          </motion.div>
+                        );
+                      })}
+
+                      {/* Show remaining concepts as placeholder outlines if we haven't streamed them yet */}
+                      {streamedConcepts.length < Math.min(12, pass1Data.concepts.length) &&
+                        pass1Data.concepts.slice(streamedConcepts.length, 12).map((concept, idx) => (
+                          <div
+                            key={`placeholder-${idx}`}
+                            className={`${styles.conceptChip} ${styles.conceptPlaceholder}`}
+                          >
+                            <span className={styles.conceptIcon}>⏳</span>
+                            <span className={styles.conceptName}>{concept}</span>
+                          </div>
+                        ))}
+                    </AnimatePresence>
+
                     {pass1Data.concepts.length > 12 && (
-                      <div className={styles.conceptChip}>
-                        <span className={styles.conceptName}>+{pass1Data.concepts.length - 12} more anchors</span>
-                      </div>
+                      <motion.div
+                        className={styles.conceptChip}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <span className={styles.conceptName}>
+                          +{pass1Data.concepts.length - 12} more anchors
+                        </span>
+                      </motion.div>
                     )}
                   </div>
                 </div>

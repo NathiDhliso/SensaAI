@@ -304,6 +304,7 @@
     opacity: 0;
     transform: translateY(-5px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -648,4 +649,53 @@
 
 .cancelConfirmButton:hover {
   opacity: 0.9;
+}
+
+/* Optimistic UI - Construction Status */
+.constructionStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--overlay-primary-10) 0%, var(--overlay-primary-5) 100%);
+  border: 1px solid var(--color-primary-amethyst);
+  border-radius: 0.5rem;
+}
+
+.constructionPhase {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary-amethyst);
+  animation: pulseText 2s ease-in-out infinite;
+}
+
+@keyframes pulseText {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Streamed concept - popped in with animation */
+.streamedConcept {
+  border-color: var(--color-accent);
+  background: linear-gradient(135deg, var(--overlay-accent-10) 0%, var(--overlay-accent-5) 100%);
+  box-shadow: 0 2px 8px var(--overlay-accent-15);
+}
+
+/* Placeholder concept - waiting to be filled */
+.conceptPlaceholder {
+  opacity: 0.5;
+  border-style: dashed;
+  background: transparent;
+}
+
+.conceptPlaceholder .conceptIcon {
+  animation: spin 2s linear infinite;
 }

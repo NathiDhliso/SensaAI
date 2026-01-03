@@ -2,6 +2,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Pass1Result, PassStatus, ValidationResult, GenerationResult } from '@/lib/types/generation';
 import type { BedrockConfig } from '@/lib/generation/claude-client';
+import type { ParsedConcept } from '@/lib/content-adapter/types';
+
+// Construction phases for optimistic UI
+export type ConstructionPhase = 'idle' | 'foundation' | 'framing' | 'detailing' | 'complete';
 
 type GenerationCheckpoint = {
   subject: string;
@@ -28,6 +32,10 @@ type GenerationState = {
   isGenerating: boolean;
   error: string | null;
   checkpoint: GenerationCheckpoint | null;
+  // Progressive rendering state for optimistic UI
+  streamedConcepts: ParsedConcept[];
+  constructionPhase: ConstructionPhase;
+  expectedConceptCount: number;
 };
 
 type GenerationProgressUpdate = {
@@ -61,12 +69,26 @@ type GenerationActions = {
   canResumeFromCheckpoint: (subject: string) => boolean;
   getCheckpointResumeData: () => { startFromPass: number; restoredState: Partial<GenerationState> } | null;
   clearCheckpoint: () => void;
+  // Progressive rendering actions
+  addStreamedConcept: (concept: ParsedConcept) => void;
+  setConstructionPhase: (phase: ConstructionPhase) => void;
+  setExpectedConceptCount: (count: number) => void;
+  clearStreamedConcepts: () => void;
 };
 
 const getEnvBedrockConfig = (): BedrockConfig | null => {
   const region = import.meta.env.VITE_AWS_REGION || 'us-east-1';
 
-  // Strategy 1: Cognito (Prod)
+  // Strategy 1: Direct Keys (Dev preference)
+  // Check for direct keys first so dev mode works without login if keys are present
+  const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
+  const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
+
+  if (region && accessKeyId && secretAccessKey) {
+    return { region, accessKeyId, secretAccessKey };
+  }
+
+  // Strategy 2: Cognito (Prod/Auth preference)
   const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID;
   const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
 
@@ -74,13 +96,6 @@ const getEnvBedrockConfig = (): BedrockConfig | null => {
     return { region, useCognito: true };
   }
 
-  // Strategy 2: Direct Keys (Dev)
-  const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
-  const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
-
-  if (region && accessKeyId && secretAccessKey) {
-    return { region, accessKeyId, secretAccessKey };
-  }
   return null;
 };
 
@@ -105,6 +120,10 @@ const initialState: GenerationState = {
   isGenerating: false,
   error: null,
   checkpoint: null,
+  // Progressive rendering initial state
+  streamedConcepts: [],
+  constructionPhase: 'idle',
+  expectedConceptCount: 0,
 };
 
 export const useGenerationStore = create<GenerationState & GenerationActions>()(
@@ -134,6 +153,10 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
           pass3Content: null,
           validation: null,
           fullDocument: null,
+          // Reset progressive rendering state
+          streamedConcepts: [],
+          constructionPhase: 'foundation',
+          expectedConceptCount: 0,
         }),
 
       updatePassStatus: (pass, status) =>
@@ -245,6 +268,18 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
       },
 
       clearCheckpoint: () => set({ checkpoint: null }),
+
+      // Progressive rendering actions
+      addStreamedConcept: (concept) =>
+        set((state) => ({
+          streamedConcepts: [...state.streamedConcepts, concept],
+        })),
+
+      setConstructionPhase: (phase) => set({ constructionPhase: phase }),
+
+      setExpectedConceptCount: (count) => set({ expectedConceptCount: count }),
+
+      clearStreamedConcepts: () => set({ streamedConcepts: [], constructionPhase: 'idle' }),
     }),
     {
       name: 'chart-generator-storage',

@@ -9,6 +9,7 @@ import type {
   ParsedConfusionPair,
   ParsedMnemonic,
 } from './types';
+import { validateBatchResponse, type GeneratedConcept } from '@/lib/types/concept-schema';
 
 export type ParseResult =
   | { success: true; data: ParsedGeneratedContent }
@@ -382,7 +383,135 @@ function parseShapeSections(block: string): ParsedConcept['shape'] | undefined {
   };
 }
 
+/**
+ * Detects if content contains JSON-structured concepts (new format).
+ */
+function isJsonConceptFormat(content: string): boolean {
+  return content.includes('"concepts":') ||
+    content.includes('"shape":') ||
+    (content.includes('"order":') && content.includes('"name":'));
+}
+
+/**
+ * Extracts JSON data from content, handling code blocks and mixed content.
+ */
+function extractJsonData(content: string): unknown | null {
+  // Try to find JSON in code blocks first
+  const jsonBlockMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+  if (jsonBlockMatch) {
+    try {
+      return JSON.parse(jsonBlockMatch[1]);
+    } catch {
+      // Fall through
+    }
+  }
+
+  // Try to find raw JSON object with concepts
+  const conceptsMatch = content.match(/\{\s*"concepts"\s*:\s*\[[\s\S]*?\]\s*\}/);
+  if (conceptsMatch) {
+    try {
+      return JSON.parse(conceptsMatch[0]);
+    } catch {
+      // Fall through
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Converts a GeneratedConcept (from JSON schema) to ParsedConcept format.
+ */
+function convertJsonToParsedConcept(jsonConcept: GeneratedConcept, stageId: string): ParsedConcept {
+  const id = slugify(jsonConcept.name);
+
+  return {
+    id,
+    name: jsonConcept.name,
+    order: jsonConcept.order,
+    stageId,
+    logicalConnection: jsonConcept.annotations?.logicalConnection,
+    phase1: {
+      hookSentence: jsonConcept.lifecycle?.phase1?.hookSentence || '',
+      microMetaphor: jsonConcept.lifecycle?.phase1?.microMetaphor || '',
+      prerequisite: jsonConcept.lifecycle?.phase1?.prerequisite || '',
+      selection: jsonConcept.lifecycle?.phase1?.selection || [],
+      execution: jsonConcept.lifecycle?.phase1?.execution || '',
+    },
+    phase2: jsonConcept.lifecycle?.phase2 || [],
+    phase3: {
+      tool: jsonConcept.lifecycle?.phase3?.tool || '',
+      metrics: jsonConcept.lifecycle?.phase3?.metrics || [],
+      thresholds: jsonConcept.lifecycle?.phase3?.thresholds || '',
+    },
+    shape: jsonConcept.shape ? {
+      simpleCore: jsonConcept.shape.simpleCore,
+      highStakesExample: jsonConcept.shape.highStakesExample,
+      analogicalModel: jsonConcept.shape.analogicalModel,
+      patternRecognition: {
+        question: jsonConcept.shape.patternRecognition?.question || '',
+        answer: jsonConcept.shape.patternRecognition?.answer || '',
+      },
+      eliminationLogic: jsonConcept.shape.eliminationLogic,
+    } : undefined,
+    mnemonic: jsonConcept.mnemonic ? {
+      tier: jsonConcept.mnemonic.tier,
+      anchor: jsonConcept.mnemonic.anchor,
+      story: jsonConcept.mnemonic.story,
+      imageUrl: jsonConcept.mnemonic.imageUrl,
+      parentName: jsonConcept.mnemonic.parentConcept || undefined,
+      dependsOn: jsonConcept.mnemonic.depends_on,
+    } : undefined,
+    criticalDistinctions: jsonConcept.annotations?.criticalDistinctions || [],
+    designBoundaries: jsonConcept.annotations?.designBoundaries || [],
+    examFocus: jsonConcept.annotations?.examFocus || [],
+  };
+}
+
+/**
+ * Parses concepts from JSON-structured content (new format).
+ */
+function parseConceptsFromJson(content: string, stageId: string): ParsedConcept[] {
+  const jsonData = extractJsonData(content);
+  if (!jsonData) {
+    console.warn('[parser] No valid JSON found in content');
+    return [];
+  }
+
+  const validated = validateBatchResponse(jsonData);
+  if (!validated) {
+    console.warn('[parser] JSON validation failed, falling back to regex');
+    return [];
+  }
+
+  const concepts = validated.concepts.map(c => convertJsonToParsedConcept(c, stageId));
+
+  // Resolve mnemonic parentName -> parentId
+  const nameToIdMap = new Map(concepts.map(c => [c.name.toLowerCase(), c.id]));
+  for (const concept of concepts) {
+    if (concept.mnemonic?.parentName) {
+      const parentId = nameToIdMap.get(concept.mnemonic.parentName.toLowerCase());
+      if (parentId) {
+        concept.mnemonic.parentId = parentId;
+      }
+    }
+  }
+
+  console.log(`[parser] Successfully parsed ${concepts.length} concepts from JSON`);
+  return concepts;
+}
+
 function parseConcepts(content: string, lifecycle: LifecyclePhases): ParsedConcept[] {
+  // Try JSON parsing first (new format) - more reliable
+  if (isJsonConceptFormat(content)) {
+    const jsonConcepts = parseConceptsFromJson(content, 'stage-1');
+    if (jsonConcepts.length > 0) {
+      return jsonConcepts;
+    }
+    console.log('[parser] JSON parsing returned no concepts, trying regex fallback');
+  }
+
+  // Fallback to regex parsing (legacy markdown format)
   const chartSection = extractSection(content, 'MASTER HIERARCHICAL CHART', 'VISUAL MENTAL ANCHORS');
 
   // Strip code block markers (```) that wrap concept definitions

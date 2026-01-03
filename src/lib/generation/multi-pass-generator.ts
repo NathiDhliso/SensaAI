@@ -19,7 +19,40 @@ import {
   getDefaultLifecycle,
 } from './dynamic-lifecycle';
 import { enhanceWithVisuals } from './visual-enhancer';
+import { extractPartialConcepts } from '@/lib/types/concept-schema';
 import type { Pass1Result, ProgressCallback, GenerationResult, ValidationResult, DynamicLifecycle } from '@/lib/types/generation';
+
+/**
+ * Extract JSON from Claude's response, handling various wrapper formats.
+ */
+function extractJsonFromResponse<T>(text: string): T | null {
+  // Try direct parse first
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Extract from code block
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[1]);
+      } catch {
+        // Fall through
+      }
+    }
+    // Try to find JSON object boundaries
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      try {
+        return JSON.parse(text.slice(start, end + 1));
+      } catch {
+        // Fall through
+      }
+    }
+    console.warn('[multi-pass] Failed to extract JSON from response');
+    return null;
+  }
+}
 
 export async function generateChartIteratively(
   subject: string,
@@ -246,6 +279,7 @@ If you don't know a specific technical detail, state "[Verify: specific feature 
     const endIdx = Math.min(startIdx + batchSize, totalConcepts);
     const batchConcepts = pass1Data.concepts.slice(startIdx, endIdx);
 
+    // JSON-structured output prompt for reliable parsing
     const batchPrompt = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BATCH ${batch + 1}/${batches}: Generate concepts ${startIdx + 1}-${endIdx} for "${subject}"
@@ -257,111 +291,99 @@ CONCEPTS TO GENERATE IN THIS BATCH:
 ${batchConcepts.map((c, i) => `${startIdx + i + 1}. ${c}`).join('\n')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SHAPE STRUCTURE (Each concept MUST follow this 2-minute learning format)
+OUTPUT FORMAT: JSON (REQUIRED)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-For EACH concept, generate content using the SHAPE framework:
+You MUST output a single JSON object. No markdown, no explanations, ONLY valid JSON.
 
-**S - SIMPLE CORE** (15 seconds to read)
-One sentence. No jargon. A complete beginner could repeat it.
-Example: "Lambda runs your code without you managing servers - you just upload and trigger."
+SHAPE Framework (each concept must include):
+- S (Simple Core): One sentence a beginner can understand
+- H (High-Stakes Example): Real company + year + dollar/human impact
+- A (Analogical Model): Familiar metaphor with 3+ concept mappings
+- P (Pattern Recognition): Self-test question with answer
+- E (Elimination Logic): Distinction between similar concepts (positive framing)
 
-**H - HIGH-STAKES EXAMPLE** (30 seconds to read)  
-A real company + year + dollar amount or human impact.
-Example: "In 2017, the S3 outage cost companies $150M in 4 hours - Lambda functions depending on S3 also failed, teaching engineers about regional dependencies."
+LIFECYCLE PHASES TO USE:
+- Phase 1 (${pass1Data.lifecycle.phase1}): Setup/prerequisites
+- Phase 2 (${pass1Data.lifecycle.phase2}): Configuration/execution
+- Phase 3 (${pass1Data.lifecycle.phase3}): Verification/monitoring
 
-**A - ANALOGICAL MODEL** (45 seconds to read)
-Map to a familiar system (construction, cooking, sports, etc.) that matches the user's background.
-3-4 specific technical concepts mapped to physical elements.
-Example: "Think of Lambda like a restaurant kitchen: You're the chef (code), AWS is the kitchen equipment (infrastructure). You focus on recipes (logic), they handle the stove, fridge, and cleanup (scaling, patching, monitoring)."
-
-**P - PATTERN RECOGNITION** (20 seconds to read)
-A self-test question. "You know you've mastered this when you can answer:"
-Then provide the answer immediately below.
-Example: "Question: When would you choose Lambda over EC2? Answer: When your workload is event-driven, unpredictable, or you want zero server management."
-
-**E - ELIMINATION LOGIC** (10 seconds to read)
-One critical distinction clarifying common confusion points. Use POSITIVE framing:
-Format: "[CONCEPT A] is [definition], while [CONCEPT B] is [different definition]—they serve different purposes."
-Example: "Lambda cold starts (initialization delay) differ from Lambda timeouts (execution limit). Cold starts affect startup speed; timeouts limit execution duration. Understanding both prevents performance misconfigurations."
-⚠️ MANDATORY: Frame as clarifications, NOT negations. Never use "Don't confuse" language.
-
-OUTPUT FORMAT FOR EACH CONCEPT:
-\`\`\`
-## ${startIdx + 1}. ${batchConcepts[0]}
-
-### S - Simple Core
-[One clear sentence - anyone can understand it]
-
-### H - High-Stakes Example  
-[Real company, real year, real numbers or impact]
-
-### A - Analogical Model
-[Familiar metaphor with 3-4 concept mappings]
-
-### P - Pattern Recognition
-**Question:** [Self-test question the learner should be able to answer]
-**Answer:** [Clear, concise answer]
-
-### E - Elimination Logic
-⚠️ Don't confuse [X] with [Y]: [Key difference]
-
-### M - Mnemonic Anchor (REQUIRED)
 \`\`\`json
 {
-  "mnemonic": {
-    "tier": "Foundation" | "Keystone" | "Utility",
-    "anchor": "Concrete Object + Emoji",
-    "story": "Bizarre interaction...",
-    "parentConcept": "Name of parent concept",
-    "depends_on": ["Concept A", "Concept B"] 
-  }
+  "concepts": [
+    {
+      "order": ${startIdx + 1},
+      "name": "${batchConcepts[0]}",
+      "shape": {
+        "simpleCore": "One clear sentence anyone can understand",
+        "highStakesExample": "In [YEAR], [COMPANY] [IMPACT with $AMOUNT or human cost]...",
+        "analogicalModel": "Think of [CONCEPT] like [FAMILIAR SYSTEM]: [MAPPING 1], [MAPPING 2], [MAPPING 3]",
+        "patternRecognition": {
+          "question": "When would you use X vs Y?",
+          "answer": "Use X when [CONDITION], use Y when [CONDITION]"
+        },
+        "eliminationLogic": "[CONCEPT A] handles [FUNCTION], while [CONCEPT B] handles [DIFFERENT FUNCTION]"
+      },
+      "lifecycle": {
+        "phase1": {
+          "hookSentence": "Compelling 10-15 word intro",
+          "prerequisite": "ACTUAL tool/license/data source required",
+          "selection": ["ACTUAL option 1 with real name", "ACTUAL option 2"],
+          "execution": "ACTUAL menu path: File > Import > From Source"
+        },
+        "phase2": [
+          "ACTUAL setting: Set [SETTING NAME] to [VALUE]",
+          "ACTUAL code: =FUNCTION(args)",
+          "[Design Boundary]: ACTUAL limitation and workaround"
+        ],
+        "phase3": {
+          "tool": "ACTUAL verification tool name",
+          "metrics": ["ACTUAL metric 1", "ACTUAL metric 2"],
+          "thresholds": "Success when [ACTUAL criteria]"
+        }
+      },
+      "mnemonic": {
+        "tier": "Foundation",
+        "anchor": "🏔️ Mountain",
+        "story": "A giant Mountain rises from the data center, its peaks pointing to different cloud regions...",
+        "parentConcept": null,
+        "depends_on": []
+      },
+      "annotations": {
+        "criticalDistinctions": ["Key difference from similar concept"],
+        "designBoundaries": ["Selection made at creation time"],
+        "examFocus": ["Commonly tested aspect"]
+      }
+    }
+  ]
 }
 \`\`\`
 
----
-LIFECYCLE DETAILS:
-
-- ${pass1Data.lifecycle.phase1}:
-  • Prerequisite: [ACTUAL tool/license/data source]
-  • Selection: [ACTUAL options with real names]
-  • Execution: [ACTUAL menu path or command]
-
-• ${pass1Data.lifecycle.phase2}:
-  • [ACTUAL setting/configuration]
-  • [ACTUAL code snippet or formula]
-  • **[Design Boundary]:** [ACTUAL limitation and workaround]
-
-○ ${pass1Data.lifecycle.phase3}:
-  • Tool: [ACTUAL verification tool]
-  • Metric: [ACTUAL metric to check]
-  • Success: [ACTUAL success criteria]
-
-[Continue for remaining concepts...]
-\`\`\`
+MNEMONIC TIER RULES:
+- "Foundation": Core concepts with no dependencies (anchor = large object like building, mountain, volcano)
+- "Keystone": Depends on Foundation (anchor = medium object, must specify parentConcept)
+- "Utility": Tools/add-ons (anchor = small handheld object, must specify depends_on)
 
 QUALITY REQUIREMENTS:
 1. SHAPE sections are MANDATORY for every concept
-2. High-Stakes Examples MUST have real company names and real numbers
-3. Analogical Models MUST map 3+ technical terms to physical elements
-4. Pattern Recognition MUST be answerable in under 10 seconds
-5. No generic phrases like "configure settings" - use ACTUAL names
-6. MNEMONICS ARE MANDATORY: Use "depends_on" to track prerequisites.
-   - Foundation = No parents (usually)
-   - Keystone = Depends on Foundation
-   - Utility = Depends on Keystone/Foundation
+2. highStakesExample MUST include real company name, year, and numbers
+3. analogicalModel MUST map 3+ technical terms to physical elements
+4. patternRecognition MUST be answerable in under 10 seconds
+5. NO generic phrases like "configure settings" - use ACTUAL tool/feature names
+6. Mnemonic anchor MUST start with same letter as concept name + include emoji
 
-CRITICAL: Generate ALL ${batchConcepts.length} concepts with COMPLETE SHAPE structure.
+CRITICAL: Output ONLY valid JSON. Generate ALL ${batchConcepts.length} concepts.
 `;
 
 
     let batchText = '';
+    let lastExtractedCount = 0;
     if (abortSignal?.aborted) throw new Error('Generation cancelled by user');
 
     const batchStream = invokeClaudeModelStream(
       bedrockClient,
       [{ role: 'user', content: batchPrompt }],
-      lifecycleScopePrompt + '\nYou are an automated content generator. Output content only. No questions.',
+      lifecycleScopePrompt + '\nYou are an automated content generator. Output ONLY valid JSON. No explanations.',
       32000,
       abortSignal
     );
@@ -372,14 +394,31 @@ CRITICAL: Generate ALL ${batchConcepts.length} concepts with COMPLETE SHAPE stru
       // Calculate potential progress for this specific batch
       const currentBatchProgress = Math.round(((batch + 0.5) / batches) * 100);
 
+      // Try to extract partial concepts for optimistic UI
+      const partialData = extractJsonFromResponse<{ concepts?: unknown[] }>(batchText);
+      const extractedConcepts = partialData ? extractPartialConcepts(partialData) : [];
+
       // Only update UI if this batch represents a "forward step" in progress
       // This prevents Batch 1 (10%) from overwriting Batch 2 (30%)
       if (currentBatchProgress >= globalMaxProgress) {
         globalMaxProgress = currentBatchProgress;
 
+        // Emit new concepts for optimistic rendering
+        const newConceptCount = extractedConcepts.length;
+        const conceptsToEmit = newConceptCount > lastExtractedCount
+          ? extractedConcepts.slice(lastExtractedCount)
+          : [];
+        lastExtractedCount = newConceptCount;
+
         onProgress(3, 'in-progress', {
-          message: `Batch ${batch + 1}/${batches}: ${batchText.length} chars`,
+          message: `Building room ${startIdx + newConceptCount} of ${totalConcepts}...`,
           progress: globalMaxProgress,
+          // Pass streamed concepts for optimistic UI (will need to convert types)
+          streamedConcepts: conceptsToEmit.map((c, i) => ({
+            order: startIdx + lastExtractedCount - conceptsToEmit.length + i + 1,
+            name: c.name,
+            anchor: c.mnemonic?.anchor,
+          })),
         });
       }
     }

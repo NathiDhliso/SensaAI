@@ -121,6 +121,15 @@ export type GenerationResult = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
+ * Partial concept data for optimistic UI rendering
+ */
+export type StreamedConceptPreview = {
+  order: number;
+  name: string;
+  anchor?: string;
+};
+
+/**
  * Callback for tracking generation progress
  */
 export type ProgressCallback = (
@@ -133,5 +142,6 @@ export type ProgressCallback = (
     content?: string;
     lifecycle?: LifecyclePhases;
     roleScope?: string;
+    streamedConcepts?: StreamedConceptPreview[];
   } & Partial<Pass1Result> & Partial<ValidationResult>
 ) => void;
