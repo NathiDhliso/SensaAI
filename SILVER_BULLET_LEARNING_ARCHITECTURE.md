@@ -1005,12 +1005,19 @@ export function LifecyclePhaseRenderer({
   - New primary API: `loadSession()`, `updateSessionProgress()`, `setSessionMode()`, `clearSession()`
   - All existing actions now session-aware with legacy backward compatibility
   - Persist now includes currentSession for proper hydration
-- [ ] **0.4** Create `StudyLayout` wrapper
+- [x] **0.4** Create `StudyLayout` wrapper ✅ (commit: a3a9fc2)
+  - Created `StudyLayout.tsx` + `StudyLayout.module.css` + barrel export
+  - Tab navigation (Overview, Learn, Palace, Sprint) with responsive mobile dropdown
+  - Lifecycle progress bar integration, cognitive load indicator
+  - Animated tab transitions with framer-motion
 - [x] **0.5** Remove unused CSS classes ✅ (commit: 7c516e0)
   - Removed: `.headerActions`, `.metricsCard`, `.detailsCard`, `.detailsGrid`
   - Removed: `.detailItem`, `.detailLabel`, `.detailValue`
   - ~38 lines of dead CSS removed
-- [ ] **0.6** Mark deprecated routes (`/saved`, `/results/:id`)
+- [x] **0.6** Mark deprecated routes (`/saved`, `/results/:id`) ✅ (commit: 5f0c43c)
+  - Added @deprecated JSDoc comments to all routes being unified
+  - Organized routes into logical sections (Public, Generation, Learning, Settings)
+  - Documented Phase 2.1 migration plan in comments
 - [x] **0.7** Run TypeScript check: `npx tsc --noEmit` ✅ (all phases verified)
 - [ ] **0.8** Test all refactored components
 
