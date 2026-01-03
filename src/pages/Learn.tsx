@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Map, Zap, HelpCircle, Timer } from 'lucide-react';
 import {
@@ -10,6 +10,7 @@ import {
   NeuralResetBanner,
   UnifiedSessionBar,
   SessionSummary,
+  LifecycleNavigator,
 } from '@/components/learning';
 import HelpModal from '@/components/ui/HelpModal';
 import { useLearningStore } from '@/store/learning-store';
@@ -51,6 +52,54 @@ export default function Learn() {
   const [showHelp, setShowHelp] = useState(false);
   const [showFocusToast, setShowFocusToast] = useState(false);
   const wasSessionActiveRef = useRef(isSessionActive);
+
+  // Compute lifecycle phase progress from concepts
+  const lifecycleProgress = useMemo(() => {
+    if (!hasContent || concepts.length === 0) {
+      return {
+        labels: { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' },
+        progress: {
+          phase1: { total: 0, completed: 0 },
+          phase2: { total: 0, completed: 0 },
+          phase3: { total: 0, completed: 0 },
+        },
+      };
+    }
+
+    // Get lifecycle labels from first concept (all concepts share same lifecycle)
+    const firstWithLifecycle = concepts.find(c => c.lifecycle);
+    const labels = firstWithLifecycle?.lifecycle
+      ? {
+          phase1: firstWithLifecycle.lifecycle.phase1.title || 'PREPARE',
+          phase2: firstWithLifecycle.lifecycle.phase2.title || 'MODEL',
+          phase3: firstWithLifecycle.lifecycle.phase3.title || 'DELIVER',
+        }
+      : { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' };
+
+    // For now, distribute concepts evenly across phases
+    // TODO: Track per-phase completion when phase-specific learning is added
+    const total = concepts.length;
+    const completed = progress.completedConcepts.length;
+    const perPhase = Math.ceil(total / 3);
+
+    return {
+      labels,
+      progress: {
+        phase1: {
+          total: Math.min(perPhase, total),
+          completed: Math.min(completed, perPhase),
+        },
+        phase2: {
+          total: Math.min(perPhase, Math.max(0, total - perPhase)),
+          completed: Math.max(0, Math.min(completed - perPhase, perPhase)),
+        },
+        phase3: {
+          total: Math.max(0, total - perPhase * 2),
+          completed: Math.max(0, completed - perPhase * 2),
+        },
+      },
+    };
+  }, [concepts, progress.completedConcepts, hasContent]);
 
   useEffect(() => {
     startSession();
@@ -139,6 +188,15 @@ export default function Learn() {
           </button>
         </div>
       </header>
+
+      {/* Lifecycle Navigator - Always visible progress across phases */}
+      {hasContent && (
+        <LifecycleNavigator
+          labels={lifecycleProgress.labels}
+          progress={lifecycleProgress.progress}
+          compact
+        />
+      )}
 
       <div className={styles.mainLayout}>
         <aside className={styles.scaffoldPanel}>

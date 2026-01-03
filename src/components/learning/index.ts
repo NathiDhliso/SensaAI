@@ -8,3 +8,5 @@ export { default as ConfusionDrill } from './ConfusionDrill';
 export { UnifiedSessionBar } from './UnifiedSessionBar';
 export { SessionSummary } from './SessionSummary';
 export { LifecycleFlow, LifecyclePhaseStep } from './LifecyclePhaseStep';
+export { LifecycleNavigator } from './LifecycleNavigator';
+export type { LifecycleLabels, PhaseProgress, LifecycleNavigatorProps } from './LifecycleNavigator';

@@ -10,6 +10,7 @@ import { storageManager } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
 import { QUALITY_THRESHOLDS, UI_TIMINGS } from '@/constants/ui-constants';
 import { RouteBuilder, GraphView } from '@/components/palace';
+import { LifecycleNavigator } from '@/components/learning';
 import type { RouteBuilding } from '@/lib/types/palace';
 import styles from './Results.module.css';
 
@@ -307,6 +308,23 @@ export default function Results() {
           <span className={styles.subtitle}>{displaySubject}</span>
         </div>
       </header>
+
+      {/* Lifecycle Navigator - Preview of the learning journey phases */}
+      {displayPass1Data?.lifecycle && (
+        <LifecycleNavigator
+          labels={{
+            phase1: displayPass1Data.lifecycle.phase1,
+            phase2: displayPass1Data.lifecycle.phase2,
+            phase3: displayPass1Data.lifecycle.phase3,
+          }}
+          progress={{
+            phase1: { total: Math.ceil(displayPass1Data.concepts.length / 3), completed: 0 },
+            phase2: { total: Math.ceil(displayPass1Data.concepts.length / 3), completed: 0 },
+            phase3: { total: Math.ceil(displayPass1Data.concepts.length / 3), completed: 0 },
+          }}
+          compact
+        />
+      )}
 
       {/* Dashboard Layout */}
       <div className={styles.mainLayout}>
