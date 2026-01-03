@@ -1,0 +1,78 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.42kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+#2 DONE 0.4s
+
+#3 [internal] load metadata for docker.io/library/nginx:alpine
+#3 DONE 0.5s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 498B 0.0s done
+#4 DONE 0.1s
+
+#5 [internal] load build context
+#5 DONE 0.0s
+
+#6 [builder 1/7] FROM docker.io/library/node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448
+#6 resolve docker.io/library/node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448 0.1s done
+#6 DONE 0.2s
+
+#7 [stage-1 1/3] FROM docker.io/library/nginx:alpine@sha256:8491795299c8e739b7fcc6285d531d9812ce2666e07bd3dd8db00020ad132295
+#7 resolve docker.io/library/nginx:alpine@sha256:8491795299c8e739b7fcc6285d531d9812ce2666e07bd3dd8db00020ad132295 0.1s done
+#7 DONE 0.2s
+
+#5 [internal] load build context
+#5 transferring context: 942.73kB 1.7s done
+#5 DONE 1.7s
+
+#8 [builder 3/7] WORKDIR /app
+#8 CACHED
+
+#9 [builder 4/7] COPY package*.json ./
+#9 CACHED
+
+#10 [builder 2/7] RUN apk add --no-cache python3 make g++ cairo-dev pango-dev jpeg-dev giflib-dev
+#10 CACHED
+
+#11 [builder 5/7] RUN npm ci --ignore-scripts || npm install --ignore-scripts
+#11 CACHED
+
+#12 [builder 6/7] COPY . .
+#12 DONE 4.1s
+
+#13 [builder 7/7] RUN npm run build
+#13 1.414 
+#13 1.414 > SensaAI@1.0.0 build
+#13 1.414 > tsc -b && vite build
+#13 1.414 
+#13 9.652 src/components/settings/SettingsPanel.tsx(219,11): error TS17015: Expected corresponding closing tag for JSX fragment.
+#13 9.653 src/components/settings/SettingsPanel.tsx(220,9): error TS1109: Expression expected.
+#13 9.654 src/components/settings/SettingsPanel.tsx(220,11): error TS1109: Expression expected.
+#13 9.654 src/components/settings/SettingsPanel.tsx(220,12): error TS1109: Expression expected.
+#13 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 2
+------
+ > [builder 7/7] RUN npm run build:
+1.414 
+1.414 > SensaAI@1.0.0 build
+1.414 > tsc -b && vite build
+1.414 
+9.652 src/components/settings/SettingsPanel.tsx(219,11): error TS17015: Expected corresponding closing tag for JSX fragment.
+9.653 src/components/settings/SettingsPanel.tsx(220,9): error TS1109: Expression expected.
+9.654 src/components/settings/SettingsPanel.tsx(220,11): error TS1109: Expression expected.
+9.654 src/components/settings/SettingsPanel.tsx(220,12): error TS1109: Expression expected.
+------
+Dockerfile:36
+--------------------
+  34 |     ENV VITE_AWS_DYNAMODB_TABLE_NAME=$VITE_AWS_DYNAMODB_TABLE_NAME
+  35 |     
+  36 | >>> RUN npm run build
+  37 |     
+  38 |     # Production stage
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 2
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/an0qkxvdvj181z3ue8slgpu63

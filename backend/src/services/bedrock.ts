@@ -3,6 +3,7 @@ import {
     InvokeModelWithResponseStreamCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 import { v4 as uuidv4 } from 'uuid';
+import { getSystemPrompt } from '../lib/system-prompt.js';
 
 interface GenerationRequest {
     userId: string;
@@ -122,7 +123,10 @@ class BedrockService {
         abortControllers.set(jobId, controller);
 
         try {
-            const systemPrompt = request.systemPrompt || this.getDefaultSystemPrompt();
+            // Use full Memory Palace system prompt
+            const basePrompt = getSystemPrompt();
+            // Replace subject placeholder in prompt
+            const systemPrompt = request.systemPrompt || basePrompt.replace('[INSERT SUBJECT HERE]', request.subject);
 
             const payload = {
                 anthropic_version: 'bedrock-2023-05-31',
@@ -131,7 +135,20 @@ class BedrockService {
                 messages: [
                     {
                         role: 'user',
-                        content: `Generate comprehensive study material for: ${request.subject}`,
+                        content: `Generate comprehensive Memory Palace study material for: ${request.subject}
+
+Please follow ALL steps in the system prompt to generate:
+1. Source Verification with recent updates
+2. Lifecycle Definition (3-phase cycle)
+3. Master Hierarchical Chart with SHAPE sections
+4. Mnemonic Anchors (JSON with tier, anchor emoji, story)
+5. Decision Framework Trees
+6. Visual Mental Anchors
+7. Worked Example
+8. Confusion Pairs (JSON)
+9. Learning Path Sequence (4-6 stages)
+
+Ensure all concepts have mnemonic objects for the Memory Palace visualization.`,
                     },
                 ],
             };
@@ -176,12 +193,7 @@ class BedrockService {
             abortControllers.delete(jobId);
         }
     }
-
-    private getDefaultSystemPrompt(): string {
-        return `You are an expert educator creating comprehensive study materials.
-Generate structured learning content with clear explanations, examples, and practice questions.
-Use markdown formatting for readability.`;
-    }
 }
 
 export const bedrockService = new BedrockService();
+

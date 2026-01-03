@@ -91,7 +91,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
-  const { recentSubjects, bedrockConfig } = useGenerationStore();
+  const { recentSubjects } = useGenerationStore();
   const { openSettingsPanel } = useUIStore();
   const { currentSession, getConcepts } = useLearningStore();
 

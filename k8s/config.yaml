@@ -7,9 +7,11 @@ data:
   AWS_REGION: "us-east-1"
   NODE_ENV: "production"
   COGNITO_CLIENT_ID: "5krssa43aq6gjaev84al0qp2te"
+  COGNITO_USER_POOL_ID: "us-east-1_ldLKZ5Tp0"
   S3_BUCKET: "sensapbl-pilot-content-311964231104"
   REDIS_PORT: "6379"
   CORS_ORIGINS: "http://localhost:5173,https://sensapbl.com"
+
 ---
 apiVersion: v1
 kind: Secret

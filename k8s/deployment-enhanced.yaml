@@ -1,0 +1,389 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sensapbl
+  labels:
+    name: sensapbl
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sensapbl-config
+  namespace: sensapbl
+data:
+  VITE_API_URL: "https://api.sensapbl.io"
+  VITE_AWS_REGION: "us-east-1"
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sensapbl-secrets
+  namespace: sensapbl
+type: Opaque
+stringData:
+  VITE_COGNITO_IDENTITY_POOL_ID: "${VITE_COGNITO_IDENTITY_POOL_ID}"
+  VITE_COGNITO_USER_POOL_ID: "${VITE_COGNITO_USER_POOL_ID}"
+  VITE_AWS_S3_BUCKET_NAME: "${VITE_AWS_S3_BUCKET_NAME}"
+  VITE_AWS_DYNAMODB_TABLE_NAME: "${VITE_AWS_DYNAMODB_TABLE_NAME}"
+  JWT_SECRET: "${JWT_SECRET}"
+  DATABASE_URL: "${DATABASE_URL}"
+  REDIS_URL: "${REDIS_URL}"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensapbl-frontend
+  namespace: sensapbl
+  labels:
+    app: sensapbl-frontend
+    version: "${IMAGE_TAG}"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: sensapbl-frontend
+  template:
+    metadata:
+      labels:
+        app: sensapbl-frontend
+        version: "${IMAGE_TAG}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+    spec:
+      serviceAccountName: sensapbl-frontend
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        fsGroup: 101
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - sensapbl-frontend
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: frontend
+          image: ${REGISTRY}/sensapbl-pilot-frontend:${IMAGE_TAG}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: sensapbl-config
+            - secretRef:
+                name: sensapbl-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: cache
+              mountPath: /var/cache/nginx
+            - name: run
+              mountPath: /var/run
+      volumes:
+        - name: cache
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+      terminationGracePeriodSeconds: 30
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensapbl-backend
+  namespace: sensapbl
+  labels:
+    app: sensapbl-backend
+    version: "${IMAGE_TAG}"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: sensapbl-backend
+  template:
+    metadata:
+      labels:
+        app: sensapbl-backend
+        version: "${IMAGE_TAG}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+    spec:
+      serviceAccountName: sensapbl-backend
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - sensapbl-backend
+                topologyKey: kubernetes.io/hostname
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.35
+          command: ['sh', '-c', 'until nc -z sensapbl-postgres 5432; do echo waiting for db; sleep 2; done']
+        - name: run-migrations
+          image: ${REGISTRY}/sensapbl-pilot-backend:${IMAGE_TAG}
+          command: ["npm", "run", "migrate"]
+          envFrom:
+            - secretRef:
+                name: sensapbl-secrets
+      containers:
+        - name: backend
+          image: ${REGISTRY}/sensapbl-pilot-backend:${IMAGE_TAG}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: sensapbl-config
+            - secretRef:
+                name: sensapbl-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      terminationGracePeriodSeconds: 30
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensapbl-frontend
+  namespace: sensapbl
+  labels:
+    app: sensapbl-frontend
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: sensapbl-frontend
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensapbl-backend
+  namespace: sensapbl
+  labels:
+    app: sensapbl-backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: sensapbl-backend
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sensapbl-frontend
+  namespace: sensapbl
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sensapbl-backend
+  namespace: sensapbl
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sensapbl-frontend-hpa
+  namespace: sensapbl
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sensapbl-frontend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sensapbl-backend-hpa
+  namespace: sensapbl
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sensapbl-backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sensapbl-network-policy
+  namespace: sensapbl
+spec:
+  podSelector:
+    matchLabels: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: sensapbl
+  egress:
+    - to:
+        - namespaceSelector: {}
+    - to:
+        - podSelector: {}
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sensapbl-frontend-pdb
+  namespace: sensapbl
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: sensapbl-frontend
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sensapbl-backend-pdb
+  namespace: sensapbl
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: sensapbl-backend

@@ -8,6 +8,7 @@ import {
     Palette,
     Brain,
     RefreshCw,
+    Settings,
 } from 'lucide-react';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
@@ -199,6 +200,20 @@ export default function SettingsPanel() {
                             </button>
                         )}
                     </section>
+                </div>
+
+                {/* Footer Actions */}
+                <div className={styles.panelFooter}>
+                    <button
+                        onClick={() => {
+                            handleClose();
+                            setTimeout(() => window.location.href = '/settings', 300);
+                        }}
+                        className={styles.advancedButton}
+                    >
+                        <Settings size={14} />
+                        Advanced Settings
+                    </button>
                 </div>
             </div>
         </>,

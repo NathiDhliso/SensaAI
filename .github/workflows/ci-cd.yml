@@ -1,0 +1,340 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, staging ]
+  pull_request:
+    branches: [ main, develop, staging ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+  FRONTEND_IMAGE: sensapbl-pilot-frontend
+  BACKEND_IMAGE: sensapbl-pilot-backend
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      build-version: ${{ steps.version.outputs.BUILD_VERSION }}
+      environment: ${{ steps.env.outputs.ENVIRONMENT }}
+    steps:
+      - name: Generate Build Version
+        id: version
+        run: |
+          VERSION="${{ github.run_number }}-${{ github.sha | truncate(7) }}"
+          echo "BUILD_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Determine Environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            ENV="production"
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            ENV="staging"
+          else
+            ENV="dev"
+          fi
+          echo "ENVIRONMENT=${ENV}" >> $GITHUB_OUTPUT
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint || echo "Linting completed with warnings"
+
+      - name: Run TypeScript Compiler
+        run: npx tsc --noEmit
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm run test -- --run --coverage
+
+      - name: Upload Coverage Reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate || true
+
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: SARIF Upload to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: snyk.sarif
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [setup, lint, test, security-scan]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - image: ${{ env.FRONTEND_IMAGE }}
+            dockerfile: Dockerfile
+            context: .
+          - image: ${{ env.BACKEND_IMAGE }}
+            dockerfile: backend/Dockerfile
+            context: backend
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Fetch Secrets from AWS Secrets Manager
+        id: secrets
+        run: |
+          SECRETS=$(aws secretsmanager get-secret-value \
+            --secret-id sensapbl/${{ needs.setup.outputs.environment }}/config \
+            --query SecretString \
+            --output text)
+          
+          echo "IDENTITY_POOL_ID=$(echo $SECRETS | jq -r .VITE_COGNITO_IDENTITY_POOL_ID)" >> $GITHUB_OUTPUT
+          echo "USER_POOL_ID=$(echo $SECRETS | jq -r .VITE_COGNITO_USER_POOL_ID)" >> $GITHUB_OUTPUT
+          echo "S3_BUCKET=$(echo $SECRETS | jq -r .VITE_AWS_S3_BUCKET_NAME)" >> $GITHUB_OUTPUT
+          echo "DDB_TABLE=$(echo $SECRETS | jq -r .VITE_AWS_DYNAMODB_TABLE_NAME)" >> $GITHUB_OUTPUT
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag, and Push Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ needs.setup.outputs.build-version }}
+        run: |
+          docker build \
+            --build-arg VITE_COGNITO_IDENTITY_POOL_ID=${{ steps.secrets.outputs.IDENTITY_POOL_ID }} \
+            --build-arg VITE_COGNITO_USER_POOL_ID=${{ steps.secrets.outputs.USER_POOL_ID }} \
+            --build-arg VITE_AWS_S3_BUCKET_NAME=${{ steps.secrets.outputs.S3_BUCKET }} \
+            --build-arg VITE_AWS_DYNAMODB_TABLE_NAME=${{ steps.secrets.outputs.DDB_TABLE }} \
+            --cache-from ${ECR_REGISTRY}/${{ matrix.image }}:latest \
+            -t ${ECR_REGISTRY}/${{ matrix.image }}:${IMAGE_TAG} \
+            -t ${ECR_REGISTRY}/${{ matrix.image }}:latest \
+            -f ${{ matrix.dockerfile }} \
+            ${{ matrix.context }}
+          
+          docker push ${ECR_REGISTRY}/${{ matrix.image }}:${IMAGE_TAG}
+          docker push ${ECR_REGISTRY}/${{ matrix.image }}:latest
+
+      - name: Scan Image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.ECR_REGISTRY }}/${{ matrix.image }}:${{ needs.setup.outputs.build-version }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Upload Trivy Results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [setup, build-and-push]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name sensapbl-cluster
+
+      - name: Update Kubernetes Manifests
+        env:
+          IMAGE_TAG: ${{ needs.setup.outputs.build-version }}
+        run: |
+          sed -i "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/deployment.yaml
+          sed -i "s|REGISTRY|${ECR_REGISTRY}|g" k8s/deployment.yaml
+          sed -i "s|ENVIRONMENT|${{ needs.setup.outputs.environment }}|g" k8s/deployment.yaml
+
+      - name: Apply Kubernetes Configuration
+        run: |
+          kubectl apply -f k8s/config.yaml -n sensapbl
+          kubectl apply -f k8s/deployment.yaml -n sensapbl
+
+      - name: Wait for Rollout
+        run: |
+          kubectl rollout status deployment/sensapbl-frontend -n sensapbl --timeout=5m
+          kubectl rollout status deployment/sensapbl-backend -n sensapbl --timeout=5m
+
+      - name: Run Smoke Tests
+        run: |
+          echo "Testing frontend health..."
+          curl -f http://sensapbl-frontend.sensapbl.svc.cluster.local/health || exit 1
+          
+          echo "Testing backend health..."
+          curl -f http://sensapbl-backend.sensapbl.svc.cluster.local/health || exit 1
+
+      - name: Get Deployment Status
+        run: kubectl get pods -n sensapbl -o wide
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [setup, build-and-push, deploy]
+    if: always()
+    steps:
+      - name: Determine Status
+        id: status
+        run: |
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "MESSAGE=✓ Deployment successful for version ${{ needs.setup.outputs.build-version }}" >> $GITHUB_OUTPUT
+            echo "COLOR=good" >> $GITHUB_OUTPUT
+          else
+            echo "MESSAGE=✗ Deployment failed for version ${{ needs.setup.outputs.build-version }}" >> $GITHUB_OUTPUT
+            echo "COLOR=danger" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1
+        if: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "SensaPBL CI/CD Notification"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n${{ steps.status.outputs.MESSAGE }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Author:*\n${{ github.actor }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Workflow"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Create GitHub Deployment
+        uses: actions/github-script@v6
+        if: success()
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: '${{ needs.setup.outputs.environment }}',
+              production_environment: '${{ needs.setup.outputs.environment }}' === 'production',
+              auto_merge: false,
+              required_contexts: []
+            });
