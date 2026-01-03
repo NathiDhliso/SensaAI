@@ -283,7 +283,7 @@ export default function Settings() {
               <button
                 onClick={() => {
                   resetOnboarding();
-                  navigate('/learn');
+                  navigate('/study/current');
                 }}
                 className={styles.linkButton}
               >

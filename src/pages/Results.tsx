@@ -212,7 +212,7 @@ export default function Results() {
 
     // Pass floorPlan and dependencyGraph to bake them into the palace
     createPalace(displaySubject || 'study', 'tech-campus', mappedStages, lifecycleLabels, floorPlan, dependencyGraph);
-    navigate('/palace');
+    navigate('/study/current?tab=palace');
   };
 
   const getPalaceStages = () => {
@@ -272,7 +272,7 @@ export default function Results() {
 
     createCustomPalace(displaySubject || 'study', routeName, buildings, stages);
     setShowRouteBuilder(false);
-    navigate('/palace');
+    navigate('/study/current?tab=palace');
   };
 
   // Show loading state when fetching from storage

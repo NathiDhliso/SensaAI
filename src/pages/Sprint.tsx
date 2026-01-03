@@ -148,7 +148,7 @@ export default function Sprint() {
 
         // Navigate to results after brief delay
         setTimeout(() => {
-            navigate('/sprint-results');
+            navigate('/study/current?tab=sprint');
         }, 1000);
     };
 
@@ -283,7 +283,7 @@ export default function Sprint() {
                             <h2 className={styles.introTitle}>Can't Start Sprint</h2>
                             <p className={styles.introDescription}>{error}</p>
                             <button
-                                onClick={() => navigate('/learn')}
+                                onClick={() => navigate('/study/current')}
                                 className={styles.startButton}
                             >
                                 <ArrowLeft size={20} />

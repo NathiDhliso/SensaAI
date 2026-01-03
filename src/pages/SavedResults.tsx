@@ -75,7 +75,7 @@ export default function SavedResults() {
     }
 
     setPreviewResult(null);
-    navigate('/learn');
+    navigate('/study/current');
   };
 
   const handleImportClick = () => {

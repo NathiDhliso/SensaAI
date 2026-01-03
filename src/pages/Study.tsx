@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { StudyLayout, type StudyTab } from '@/components/layout';
@@ -48,10 +48,9 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
     getConcepts, 
     getStages, 
     progress,
-    hasCustomContent,
   } = useLearningStore();
   
-  const { pass1Data, validation } = useGenerationStore();
+  const { validation } = useGenerationStore();
   
   const concepts = getConcepts();
   const stages = getStages();
@@ -137,14 +136,13 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
         <h3 className={styles.sectionTitle}>Concepts by Priority</h3>
         <ConceptChunks
           concepts={concepts}
-          completedIds={progress.completedConcepts}
           onConceptClick={(id) => onStartLearning(id)}
-          onStartTier={(tier) => {
-            const tierConcepts = concepts.filter(c => c.mnemonic?.tier === tier);
-            if (tierConcepts.length > 0) {
-              onStartLearning(tierConcepts[0].id);
+          onStartChunk={(_tier, conceptIds) => {
+            if (conceptIds.length > 0) {
+              onStartLearning(conceptIds[0]);
             }
           }}
+          showStartButtons
         />
       </section>
 
@@ -257,28 +255,22 @@ function LearnTab({ onComplete }: LearnTabProps) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export default function Study() {
-  const { subjectId } = useParams<{ subjectId: string }>();
   const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState<StudyTab>('overview');
   
   const {
     getSession,
-    getConcepts,
-    hasCustomContent,
     showCelebration,
     celebrationData,
     dismissCelebration,
     startSession,
     endSession,
-    loadSession,
   } = useLearningStore();
   
   const { currentSubject, pass1Data } = useGenerationStore();
   
   const session = getSession();
-  const concepts = getConcepts();
-  const hasContent = hasCustomContent() && concepts.length > 0;
   
   // Start learning session on mount
   useEffect(() => {
@@ -320,7 +312,7 @@ export default function Study() {
   }, [dismissCelebration, navigate]);
 
   // Determine subject name for header
-  const subjectName = session?.subject || currentSubject || pass1Data?.domainAnalysis?.domain || 'Study Session';
+  const subjectName = session?.subject || currentSubject || pass1Data?.domain || 'Study Session';
 
   // Render active tab content
   const renderTabContent = () => {

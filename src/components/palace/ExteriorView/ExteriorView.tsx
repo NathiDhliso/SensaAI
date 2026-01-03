@@ -70,7 +70,7 @@ export default function ExteriorView() {
 
     // Escape key exits Palace view (unless modals are open)
     const hasOpenModal = showQuiz || showProgress || showGuide || showRoutePreview || showTooltip;
-    useEscapeKey(() => navigate('/learn'), !hasOpenModal);
+    useEscapeKey(() => navigate('/study/current'), !hasOpenModal);
 
     // Compute route and building info first (needed by effects below)
     const route = currentPalace
@@ -734,7 +734,7 @@ export default function ExteriorView() {
                 )}
                 <button
                     className={styles.footerButton}
-                    onClick={handleStartWalk}
+                    onClick={() => handleStartWalk(0)}
                 >
                     <Footprints size={16} />
                     Daily Walk

@@ -170,7 +170,7 @@ export default function Home() {
             </div>
             <button
               className={styles.continueButton}
-              onClick={() => navigate('/learn')}
+              onClick={() => navigate('/study/current')}
             >
               Continue <ChevronRight size={16} />
             </button>
@@ -353,11 +353,11 @@ export default function Home() {
         </div>
 
         <div className={styles.actionButtons}>
-          <button onClick={() => navigate('/learn')} className={styles.learnButton}>
+          <button onClick={() => navigate('/study/current')} className={styles.learnButton}>
             <BookOpen size={18} />
             Learning Journey
           </button>
-          <button onClick={() => navigate('/saved')} className={styles.savedButton}>
+          <button onClick={() => navigate('/library')} className={styles.savedButton}>
             <Archive size={18} />
             Saved Results
           </button>
