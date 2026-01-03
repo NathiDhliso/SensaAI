@@ -30,4 +30,5 @@ export interface StorageProvider {
   loadResult(id: string): Promise<SavedResult | null>;
   deleteResult(id: string): Promise<boolean>;
   listResults(): Promise<SavedResult[]>;
+  findLatestBySubject?(subject: string): Promise<SavedResult | null>;
 }

@@ -27,8 +27,9 @@ export class StorageManager {
       this.primaryProvider = localFileStorage;
     }
     this.cloudProvider = cloudStorage;
-    this.useCloud = false;
-    
+    // Auto-enable cloud if configured (keys present)
+    this.useCloud = cloudStorage.isConfigured();
+
     // Run migration on construction
     this.migrateFromLocalStorage();
   }
@@ -123,7 +124,7 @@ export class StorageManager {
         if (stored) {
           const results: SavedResult[] = JSON.parse(stored);
           result = results.find(r => r.id === id) || null;
-          
+
           // If found in fallback, save to primary
           if (result) {
             await this.primaryProvider.saveResult(result);
@@ -143,6 +144,20 @@ export class StorageManager {
     }
 
     return result;
+  }
+
+  async findLatestBySubject(subject: string): Promise<SavedResult | null> {
+    if (this.useCloud && this.cloudProvider.findLatestBySubject) {
+      return await this.cloudProvider.findLatestBySubject(subject);
+    }
+
+    // Check local storage fallback
+    const results = await this.listResults();
+    const match = results
+      .filter(r => r.subject === subject)
+      .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime())[0];
+
+    return match || null;
   }
 
   async deleteResult(id: string): Promise<boolean> {

@@ -251,6 +251,43 @@ export default function Generate() {
 
     const decodedSubject = decodeURIComponent(subject);
 
+    // Check for shared/existing intelligence before starting
+    if (!hasStartedRef.current && !canResumeFromCheckpoint(decodedSubject)) {
+      const checkForExisting = async () => {
+        try {
+          const { storageManager } = await import('@/lib/storage');
+          const existing = await storageManager.findLatestBySubject(decodedSubject);
+
+          if (existing) {
+            // Found a match! Ask user what to do
+            const shouldLoad = window.confirm(
+              `Shared Intelligence Found! 🧠\n\n` +
+              `We found an existing version of "${decodedSubject}" generated on ${new Date(existing.generatedAt).toLocaleDateString()}.\n\n` +
+              `Would you like to load this shared knowledge instead of generating from scratch?`
+            );
+
+            if (shouldLoad) {
+              navigate(`/results/${existing.id}`);
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to check shared intelligence:', e);
+        }
+
+        // Proceed with generation if no match or user chose to generate new
+        if (canResumeFromCheckpoint(decodedSubject)) {
+          setShowResumeDialog(true);
+        } else {
+          hasStartedRef.current = true;
+          startGenerationProcess(decodedSubject);
+        }
+      };
+
+      checkForExisting();
+      return;
+    }
+
     if (canResumeFromCheckpoint(decodedSubject)) {
       setShowResumeDialog(true);
       return;
