@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, Copy, CheckCircle2, BookOpen, Save, FolderDown, Map, Plus } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ArrowLeft, Download, Copy, CheckCircle2, BookOpen, Save, FolderDown, Map, Plus, Network } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
 import { useGenerationStore } from '@/store/generation-store';
 import { usePalaceStore } from '@/store/palace-store';
 import { parseGeneratedContent } from '@/lib/content-adapter';
@@ -9,7 +9,7 @@ import { useParseAndLoadContent } from '@/lib/content-loader';
 import { storageManager } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
 import { QUALITY_THRESHOLDS, UI_TIMINGS } from '@/constants/ui-constants';
-import { RouteBuilder } from '@/components/palace';
+import { RouteBuilder, GraphView } from '@/components/palace';
 import type { RouteBuilding } from '@/lib/types/palace';
 import styles from './Results.module.css';
 
@@ -41,12 +41,41 @@ export default function Results() {
   // Use in-memory state or fallback to loaded result
   const displayDocument = fullDocument || loadedResult?.fullDocument || null;
   const displayValidation = validation || loadedResult?.validation || null;
-  const displayPass1Data = pass1Data || (loadedResult?.pass1Data ? {
-    ...loadedResult.pass1Data,
-    lifecycle: loadedResult.pass1Data.lifecycle
-  } : null);
+  const displayPass1Data = useMemo(() => {
+    if (pass1Data) return pass1Data;
+    if (loadedResult?.pass1Data) {
+      return {
+        ...loadedResult.pass1Data,
+        lifecycle: loadedResult.pass1Data.lifecycle
+      };
+    }
+    return null;
+  }, [pass1Data, loadedResult?.pass1Data]);
   const displaySubject = currentSubject || loadedResult?.subject || null;
   const parseAndLoad = useParseAndLoadContent();
+
+  // Compute dependency graph for preview (memoized)
+  const graphData = useMemo(() => {
+    if (!displayDocument || !displayPass1Data) return null;
+    
+    try {
+      const parseResult = parseGeneratedContent(displayDocument);
+      if (!parseResult.success) return null;
+      
+      const transformed = transformGeneratedContent(parseResult.data, displayPass1Data.domain);
+      
+      // Only return if we have valid graph data
+      if (transformed.dependencyGraph && transformed.concepts.length > 0) {
+        return {
+          graph: transformed.dependencyGraph,
+          concepts: transformed.concepts,
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to compute graph preview:', e);
+    }
+    return null;
+  }, [displayDocument, displayPass1Data]);
 
   const handleCopy = async () => {
     if (displayDocument) {
@@ -455,6 +484,49 @@ export default function Results() {
                   <span>📊</span> {displayPass1Data.lifecycle.phase3}
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* Dependency Graph Preview - Visual understanding of concept relationships */}
+          {graphData && (
+            <div className={styles.graphPreviewCard}>
+              <div className={styles.graphHeader}>
+                <div className={styles.graphTitle}>
+                  <Network size={20} />
+                  <span>Concept Network</span>
+                </div>
+                <div className={styles.graphLegend}>
+                  <span className={styles.legendItem}>
+                    <span className={styles.legendDot} style={{ backgroundColor: '#10b981' }} />
+                    Foundation
+                  </span>
+                  <span className={styles.legendItem}>
+                    <span className={styles.legendDot} style={{ backgroundColor: '#8b5cf6' }} />
+                    Keystone
+                  </span>
+                  <span className={styles.legendItem}>
+                    <span className={styles.legendDot} style={{ backgroundColor: '#f59e0b' }} />
+                    Utility
+                  </span>
+                </div>
+              </div>
+              <div className={styles.graphContainer}>
+                <GraphView
+                  graph={graphData.graph}
+                  concepts={graphData.concepts}
+                  width={600}
+                  height={350}
+                  onNodeClick={(id) => {
+                    const concept = graphData.concepts.find(c => c.id === id);
+                    if (concept) {
+                      console.log('Selected concept:', concept.name);
+                    }
+                  }}
+                />
+              </div>
+              <p className={styles.graphHint}>
+                Larger nodes are foundational concepts - learn these first. Lines show dependencies.
+              </p>
             </div>
           )}
 
