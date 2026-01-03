@@ -9,13 +9,13 @@
  */
 
 import { useState, useCallback, useMemo, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  BookOpen, 
-  Map, 
-  Zap, 
+import {
+  ArrowLeft,
+  BookOpen,
+  Map,
+  Zap,
   BarChart3,
   ChevronDown,
   Settings,
@@ -51,31 +51,31 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { 
-    id: 'overview', 
-    label: 'Overview', 
-    icon: BarChart3, 
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: BarChart3,
     description: 'Progress & insights',
     color: 'var(--color-primary-amethyst)'
   },
-  { 
-    id: 'learn', 
-    label: 'Learn', 
-    icon: BookOpen, 
+  {
+    id: 'learn',
+    label: 'Learn',
+    icon: BookOpen,
     description: 'Concept mastery',
     color: 'var(--color-phase-prepare)'
   },
-  { 
-    id: 'palace', 
-    label: 'Palace', 
-    icon: Map, 
+  {
+    id: 'palace',
+    label: 'Palace',
+    icon: Map,
     description: 'Memory anchors',
     color: 'var(--color-secondary-amber)'
   },
-  { 
-    id: 'sprint', 
-    label: 'Sprint', 
-    icon: Zap, 
+  {
+    id: 'sprint',
+    label: 'Sprint',
+    icon: Zap,
     description: 'Exam readiness',
     color: 'var(--color-accent-coral)'
   },
@@ -90,9 +90,9 @@ const TABS: TabConfig[] = [
  * - Session info header
  * - Cognitive load indicator
  */
-export function StudyLayout({ 
-  activeTab, 
-  onTabChange, 
+export function StudyLayout({
+  activeTab,
+  onTabChange,
   subjectName,
   children,
   showLifecycleNav = true,
@@ -100,18 +100,18 @@ export function StudyLayout({
 }: StudyLayoutProps) {
   const navigate = useNavigate();
   const [isTabMenuOpen, setIsTabMenuOpen] = useState(false);
-  
-  const { 
+
+  const {
     getSession,
-    getConcepts, 
+    getConcepts,
     progress: sessionProgress,
-    getCognitiveLoadLevel 
+    getCognitiveLoadLevel
   } = useLearningStore();
-  
+
   const session = getSession();
   const concepts = getConcepts();
   const cognitiveLevel = getCognitiveLoadLevel();
-  
+
   // Calculate progress for lifecycle navigator
   const lifecycleProgress = useMemo(() => {
     const progress = concepts.reduce((acc, concept) => {
@@ -120,7 +120,7 @@ export function StudyLayout({
       const hasPhase2 = !!concept.lifecycle?.phase2;
       const hasPhase3 = !!concept.lifecycle?.phase3;
       const isCompleted = sessionProgress.completedConcepts.includes(concept.id);
-      
+
       // Count concepts by phase (simplified - assumes all concepts have all phases)
       if (hasPhase1) {
         acc.phase1.total++;
@@ -140,32 +140,39 @@ export function StudyLayout({
       phase2: { total: 0, completed: 0 },
       phase3: { total: 0, completed: 0 },
     });
-    
+
     return progress;
   }, [concepts, sessionProgress.completedConcepts]);
-  
+
   // Default lifecycle labels
   const lifecycleLabels = {
     phase1: 'PREPARE',
     phase2: 'MODEL',
     phase3: 'DELIVER',
   };
-  
+
   const displaySubject = subjectName || session?.subject || 'Study Session';
-  
+
   const handleTabClick = useCallback((tab: StudyTab) => {
     if (onTabChange) {
       onTabChange(tab);
     }
     setIsTabMenuOpen(false);
   }, [onTabChange]);
-  
+
+  const location = useLocation();
+
   const handleBack = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
-  
+    // Check if there is history to go back to
+    if (location.key !== 'default') {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  }, [navigate, location]);
+
   const activeTabConfig = TABS.find(t => t.id === activeTab) || TABS[0];
-  
+
   // Cognitive load indicator color
   const cognitiveColor = {
     low: 'var(--color-success)',
@@ -182,23 +189,23 @@ export function StudyLayout({
           <button onClick={handleBack} className={styles.backButton} aria-label="Back to home">
             <ArrowLeft size={18} />
           </button>
-          
+
           <div className={styles.titleGroup}>
             <h1 className={styles.title}>{displaySubject}</h1>
             <span className={styles.sessionMode}>
-              {session?.mode === 'sprint' ? 'Sprint Mode' : 
-               session?.mode === 'explore' ? 'Explore Mode' : 'Learning Mode'}
+              {session?.mode === 'sprint' ? 'Sprint Mode' :
+                session?.mode === 'explore' ? 'Explore Mode' : 'Learning Mode'}
             </span>
           </div>
         </div>
-        
+
         <div className={styles.headerCenter}>
           {/* Desktop Tab Navigation */}
           <nav className={styles.tabNav} role="tablist">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
-              
+
               return (
                 <button
                   key={tab.id}
@@ -214,10 +221,10 @@ export function StudyLayout({
               );
             })}
           </nav>
-          
+
           {/* Mobile Tab Dropdown */}
           <div className={styles.tabDropdown}>
-            <button 
+            <button
               className={styles.tabDropdownTrigger}
               onClick={() => setIsTabMenuOpen(!isTabMenuOpen)}
               aria-expanded={isTabMenuOpen}
@@ -226,7 +233,7 @@ export function StudyLayout({
               <span>{activeTabConfig.label}</span>
               <ChevronDown size={14} className={isTabMenuOpen ? styles.rotated : ''} />
             </button>
-            
+
             <AnimatePresence>
               {isTabMenuOpen && (
                 <motion.div
@@ -256,10 +263,10 @@ export function StudyLayout({
             </AnimatePresence>
           </div>
         </div>
-        
+
         <div className={styles.headerRight}>
           {/* Cognitive Load Indicator */}
-          <div 
+          <div
             className={styles.cognitiveIndicator}
             title={`Cognitive Load: ${cognitiveLevel}`}
             style={{ '--cognitive-color': cognitiveColor } as React.CSSProperties}
@@ -267,10 +274,10 @@ export function StudyLayout({
             <Brain size={16} />
             <span className={styles.cognitiveLevel}>{cognitiveLevel}</span>
           </div>
-          
+
           {headerActions}
-          
-          <button 
+
+          <button
             className={styles.settingsButton}
             onClick={() => navigate('/settings')}
             aria-label="Settings"
@@ -279,7 +286,7 @@ export function StudyLayout({
           </button>
         </div>
       </header>
-      
+
       {/* Lifecycle Progress Bar */}
       {showLifecycleNav && concepts.length > 0 && (
         <LifecycleNavigator
@@ -288,7 +295,7 @@ export function StudyLayout({
           compact={true}
         />
       )}
-      
+
       {/* Main Content */}
       <main className={styles.main}>
         <AnimatePresence mode="wait">

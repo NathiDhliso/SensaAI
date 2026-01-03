@@ -2,6 +2,8 @@ export type ConceptStatus = 'locked' | 'available' | 'current' | 'completed';
 
 export type StageStatus = 'locked' | 'available' | 'current' | 'completed';
 
+export type LifecyclePhaseKey = 'phase1' | 'phase2' | 'phase3';
+
 export interface LifecyclePhase {
   title: string;
   steps: string[];
@@ -11,6 +13,51 @@ export interface ConceptLifecycle {
   phase1: LifecyclePhase;
   phase2: LifecyclePhase;
   phase3: LifecyclePhase;
+}
+
+// ============================================================================
+// PHASE 4: CONFUSION PREVENTION SYSTEM
+// Enables targeted drilling to prevent common concept mix-ups
+// ============================================================================
+
+/**
+ * Represents a common confusion between two concepts.
+ * Used to trigger confusion drills at concept boundaries.
+ * 
+ * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Phase 4
+ */
+export interface ConfusionPair {
+  /** Unique identifier */
+  id: string;
+  /** ID of the concept this is commonly confused with */
+  relatedConceptId: string;
+  /** Name of the related concept (for display) */
+  relatedConceptName: string;
+  /** Description of why students confuse these concepts */
+  commonMistake: string;
+  /** Clear explanation of the key difference */
+  correctDifference: string;
+  /** Memorable phrase to distinguish them */
+  mnemonicDistinguisher: string;
+  /** How critical is this confusion to address */
+  priority: 'high' | 'medium' | 'low';
+}
+
+/**
+ * Quiz question specifically for confusion drill.
+ */
+export interface ConfusionDrillQuestion {
+  id: string;
+  /** The question asking to distinguish concepts */
+  question: string;
+  /** Available options */
+  options: string[];
+  /** Index of correct option */
+  correctIndex: number;
+  /** Explanation shown after answering */
+  explanation: string;
+  /** Related confusion pair ID */
+  confusionPairId: string;
 }
 
 /**
@@ -121,6 +168,10 @@ export interface LearningConcept {
   logicalConnection?: string;
   /** Memory Palace mnemonic context */
   mnemonic?: MnemonicContext;
+  /** Phase 4: Confusion pairs for drilling at concept boundaries */
+  confusionPairs?: ConfusionPair[];
+  /** Phase 4: Pre-generated confusion drill questions */
+  confusionDrillQuestions?: ConfusionDrillQuestion[];
 }
 
 export interface LearningStage {
@@ -154,4 +205,118 @@ export interface CelebrationData {
   conceptsCompleted?: string[];
   timeSpent?: number;
   badgeIcon?: string;
+}
+
+// ============================================================================
+// PHASE 5: SINGLE-PAGE LEARNING EXPERIENCE
+// Session-based model for unified learning flow
+// ============================================================================
+
+/**
+ * Study session goal types.
+ * Determines UI behavior and concept selection.
+ */
+export type StudyGoal = 'learn-new' | 'review' | 'sprint' | 'explore';
+
+/**
+ * Session duration presets in minutes.
+ */
+export type SessionDuration = 15 | 30 | 45 | 60 | 'custom';
+
+/**
+ * Enhanced cognitive metrics with lifecycle-specific tracking.
+ * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Key Metrics
+ */
+export interface EnhancedCognitiveMetrics {
+  /** Base cognitive load (0-100) */
+  currentLoad: number;
+  /** Consecutive correct answers */
+  consecutiveCorrect: number;
+  /** Consecutive errors */
+  consecutiveErrors: number;
+  /** Rolling average response time */
+  avgResponseTimeMs: number;
+  
+  // ─── Lifecycle-Specific Tracking ─────────────────────────────────────
+  /** Distribution of session time across lifecycle phases */
+  phaseLoadBalance: {
+    prepare: number;  // % of session in PREPARE
+    model: number;    // % of session in MODEL
+    deliver: number;  // % of session in DELIVER
+  };
+  
+  // ─── Confusion Prevention ────────────────────────────────────────────
+  /** Accuracy on confusion drills (0-100) */
+  confusionDrillAccuracy: number;
+  /** Number of times student went back to previous concepts */
+  conceptRevisits: number;
+  
+  // ─── Flow State Indicators ───────────────────────────────────────────
+  /** Consecutive concepts without interruption */
+  uninterruptedConceptStreak: number;
+  /** Average time per concept (seconds) */
+  averageConceptTime: number;
+  /** Minutes in optimal flow state */
+  flowStateMinutes: number;
+}
+
+/**
+ * Study Session - The unified learning experience model.
+ * 
+ * Replaces fragmented page navigation with a session-based approach.
+ * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Phase 5
+ */
+export interface StudySession {
+  /** Unique session ID */
+  id: string;
+  /** Subject/content identifier */
+  subjectId: string;
+  /** When session started */
+  startedAt: string;
+  /** When session ended (null if active) */
+  endedAt?: string;
+  
+  // ─── Session Goals ───────────────────────────────────────────────────
+  /** What the student wants to achieve */
+  goal: StudyGoal;
+  /** Target concepts for this session */
+  targetConcepts: string[];
+  /** Focus on specific lifecycle phases */
+  targetPhases: LifecyclePhaseKey[];
+  /** Planned session length in minutes */
+  targetDuration: number;
+  
+  // ─── Progress Within Session ─────────────────────────────────────────
+  /** Concepts completed during this session */
+  conceptsCompleted: string[];
+  /** Phases completed per concept */
+  phasesCompleted: Record<string, LifecyclePhaseKey[]>;
+  /** Confusion drills passed */
+  confusionDrillsCompleted: number;
+  
+  // ─── Cognitive State ─────────────────────────────────────────────────
+  /** Enhanced metrics for this session */
+  metrics: EnhancedCognitiveMetrics;
+  /** Number of breaks taken */
+  breaksTaken: number;
+  
+  // ─── Session Status ──────────────────────────────────────────────────
+  /** Whether session is active */
+  isActive: boolean;
+  /** Whether student achieved their goal */
+  goalAchieved: boolean;
+}
+
+/**
+ * Recommended action shown at session start.
+ */
+export interface SessionRecommendation {
+  /** Action description */
+  action: string;
+  /** Estimated duration */
+  estimatedMinutes: number;
+  /** Why this is recommended */
+  reason: string;
+  /** Target concepts */
+  conceptIds: string[];
 }

@@ -12,3 +12,9 @@ export { LifecycleNavigator } from './LifecycleNavigator';
 export type { LifecycleLabels, PhaseProgress, LifecycleNavigatorProps } from './LifecycleNavigator';
 export { ConceptChunks } from './ConceptChunks';
 export type { ConceptChunksProps } from './ConceptChunks';
+
+// Phase 3: Prerequisite Gates
+export { PrerequisiteCheck, usePrerequisiteCheck } from './PrerequisiteCheck';
+
+// Phase 5: Session Start Modal
+export { SessionStartModal } from './SessionStartModal';

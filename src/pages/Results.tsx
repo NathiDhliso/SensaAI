@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, Copy, CheckCircle2, BookOpen, Save, FolderDown, Map, Plus, Network } from 'lucide-react';
+import { ArrowLeft, Download, Copy, CheckCircle2, BookOpen, Save, FolderDown, Map, Plus, Network, AlertTriangle } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useGenerationStore } from '@/store/generation-store';
 import { usePalaceStore } from '@/store/palace-store';
@@ -9,6 +9,7 @@ import { useParseAndLoadContent } from '@/lib/content-loader';
 import { storageManager } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
 import { QUALITY_THRESHOLDS, UI_TIMINGS } from '@/constants/ui-constants';
+import { GRAPH_COLORS } from '@/constants/theme-colors';
 import { RouteBuilder, GraphView } from '@/components/palace';
 import { LifecycleNavigator, ConceptChunks } from '@/components/learning';
 import type { RouteBuilding } from '@/lib/types/palace';
@@ -24,6 +25,7 @@ export default function Results() {
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
   const [loadedResult, setLoadedResult] = useState<SavedResult | null>(null);
   const [isLoadingResult, setIsLoadingResult] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { fullDocument, validation, pass1Data, currentSubject } = useGenerationStore();
 
   // Load from storage if in-memory state is not available
@@ -58,13 +60,13 @@ export default function Results() {
   // Compute dependency graph for preview (memoized)
   const graphData = useMemo(() => {
     if (!displayDocument || !displayPass1Data) return null;
-    
+
     try {
       const parseResult = parseGeneratedContent(displayDocument);
       if (!parseResult.success) return null;
-      
+
       const transformed = transformGeneratedContent(parseResult.data, displayPass1Data.domain);
-      
+
       // Only return if we have valid graph data
       if (transformed.dependencyGraph && transformed.concepts.length > 0) {
         return {
@@ -151,6 +153,8 @@ export default function Results() {
       }
     } catch (error) {
       console.error('Failed to save result:', error);
+      setError('Failed to save result. Please try again.');
+      setTimeout(() => setError(null), UI_TIMINGS.TOAST_LONG);
     } finally {
       setSaving(false);
     }
@@ -168,7 +172,8 @@ export default function Results() {
     // Use transformer to generate layouts (Freeze & Bake)
     const parseResult = parseGeneratedContent(displayDocument);
     if (!parseResult.success) {
-      console.error('Failed to parse content for palace:', parseResult.error);
+      setError(`Failed to parse content: ${parseResult.error}`);
+      setTimeout(() => setError(null), UI_TIMINGS.TOAST_LONG);
       return;
     }
 
@@ -177,7 +182,8 @@ export default function Results() {
     const { stages, floorPlan, dependencyGraph } = transformed;
 
     if (!stages || stages.length === 0) {
-      console.error('No stages generated');
+      setError('No stages generated in content. Cannot create palace.');
+      setTimeout(() => setError(null), UI_TIMINGS.TOAST_LONG);
       return;
     }
 
@@ -311,6 +317,14 @@ export default function Results() {
           <span className={styles.subtitle}>{displaySubject}</span>
         </div>
       </header>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="mx-8 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
+          <AlertTriangle size={20} />
+          <p>{error}</p>
+        </div>
+      )}
 
       {/* Lifecycle Navigator - Preview of the learning journey phases */}
       {displayPass1Data?.lifecycle && (
@@ -486,11 +500,11 @@ export default function Results() {
                   onConceptClick={(id) => {
                     const concept = graphData.concepts.find(c => c.id === id);
                     if (concept) {
-                      console.log('Selected concept:', concept.name);
+                      // console.log('Selected concept:', concept.name);
                     }
                   }}
                   onStartChunk={(tier, conceptIds) => {
-                    console.log(`Start learning ${tier}:`, conceptIds);
+                    // console.log(`Start learning ${tier}:`, conceptIds);
                     handleStartLearning();
                   }}
                 />
@@ -537,15 +551,15 @@ export default function Results() {
                 </div>
                 <div className={styles.graphLegend}>
                   <span className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: '#10b981' }} />
+                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.foundation }} />
                     Foundation
                   </span>
                   <span className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: '#8b5cf6' }} />
+                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.keystone }} />
                     Keystone
                   </span>
                   <span className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: '#f59e0b' }} />
+                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.utility }} />
                     Utility
                   </span>
                 </div>
@@ -559,7 +573,7 @@ export default function Results() {
                   onNodeClick={(id) => {
                     const concept = graphData.concepts.find(c => c.id === id);
                     if (concept) {
-                      console.log('Selected concept:', concept.name);
+                      // console.log('Selected concept:', concept.name);
                     }
                   }}
                 />

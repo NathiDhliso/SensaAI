@@ -113,6 +113,24 @@ export const ICON_COLORS = {
 } as const;
 
 // ============================================
+// LIFECYCLE COLORS (for LifecycleNavigator.tsx)
+// ============================================
+export const LIFECYCLE_COLORS = {
+    phase1: { bg: '#DBEAFE', fill: '#3B82F6', text: '#1E40AF' },  // Blue
+    phase2: { bg: '#FEF3C7', fill: '#F59E0B', text: '#92400E' },  // Amber
+    phase3: { bg: '#D1FAE5', fill: '#10B981', text: '#065F46' },  // Green
+} as const;
+
+// ============================================
+// GRAPH COLORS (for Results.tsx & GraphView)
+// ============================================
+export const GRAPH_COLORS = {
+    foundation: COLORS.secondary.sage,   // #10b981
+    keystone: COLORS.accent.light,       // #8b5cf6
+    utility: COLORS.secondary.amber,     // #f59e0b
+} as const;
+
+// ============================================
 // HELPER: Get CSS variable value at runtime
 // ============================================
 export function getCSSVariable(name: string): string {
