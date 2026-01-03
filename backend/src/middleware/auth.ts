@@ -1,0 +1,88 @@
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import jwksRsa from 'jwks-rsa';
+
+const COGNITO_REGION = process.env.AWS_REGION || 'us-east-1';
+const COGNITO_USER_POOL_ID = process.env.COGNITO_USER_POOL_ID;
+
+// JWKS client for Cognito token verification
+const jwksClient = jwksRsa({
+    jwksUri: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
+    cache: true,
+    cacheMaxEntries: 5,
+    cacheMaxAge: 600000, // 10 minutes
+});
+
+interface AuthenticatedRequest extends Request {
+    user?: {
+        sub: string;
+        email: string;
+        name?: string;
+    };
+}
+
+function getKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) {
+    jwksClient.getSigningKey(header.kid, (err, key) => {
+        if (err) {
+            callback(err);
+            return;
+        }
+        const signingKey = key?.getPublicKey();
+        callback(null, signingKey);
+    });
+}
+
+export async function authMiddleware(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'No authorization token provided' });
+        return;
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // Skip verification in development mode
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+        req.user = {
+            sub: 'dev-user',
+            email: 'dev@sensapbl.com',
+            name: 'Developer',
+        };
+        next();
+        return;
+    }
+
+    if (!COGNITO_USER_POOL_ID) {
+        res.status(500).json({ error: 'Cognito not configured' });
+        return;
+    }
+
+    jwt.verify(
+        token,
+        getKey,
+        {
+            algorithms: ['RS256'],
+            issuer: `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`,
+        },
+        (err, decoded) => {
+            if (err) {
+                res.status(401).json({ error: 'Invalid or expired token' });
+                return;
+            }
+
+            const payload = decoded as jwt.JwtPayload;
+            req.user = {
+                sub: payload.sub || '',
+                email: payload.email || '',
+                name: payload.name,
+            };
+
+            next();
+        }
+    );
+}

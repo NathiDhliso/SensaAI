@@ -1,0 +1,35 @@
+# Global Ansible Variables for SensaPBL
+
+# AWS Configuration
+aws_region: us-east-1
+aws_account_id: "311964231104"
+
+# Application settings
+app_name: sensapbl
+app_version: "{{ lookup('env', 'APP_VERSION') | default('latest', true) }}"
+
+# Kubernetes namespace
+k8s_namespace: sensapbl
+
+# Container Registry
+ecr_registry: "{{ aws_account_id }}.dkr.ecr.{{ aws_region }}.amazonaws.com"
+
+# Resource replicas (overridden per environment)
+frontend_replicas: 2
+backend_replicas: 2
+worker_replicas: 1
+
+# Database settings
+db_name: sensapbl
+db_port: 5432
+
+# Redis settings
+redis_port: 6379
+
+# Monitoring
+enable_monitoring: true
+prometheus_namespace: monitoring
+
+# Ingress settings
+ingress_class: alb
+enable_ssl: true
