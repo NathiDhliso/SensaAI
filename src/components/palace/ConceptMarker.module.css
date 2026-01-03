@@ -156,7 +156,7 @@
   width: 52px;
   height: 52px;
   background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3b82f6 100%);
-  box-shadow: 
+  box-shadow:
     0 6px 24px rgba(30, 58, 95, 0.5),
     0 0 0 3px rgba(59, 130, 246, 0.3);
   animation: foundationPulse 3s ease-in-out infinite;
@@ -164,19 +164,22 @@
 
 .markerFoundation:hover .markerPin {
   transform: scale(1.15);
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(30, 58, 95, 0.6),
     0 0 0 4px rgba(59, 130, 246, 0.5);
 }
 
 @keyframes foundationPulse {
-  0%, 100% {
-    box-shadow: 
+
+  0%,
+  100% {
+    box-shadow:
       0 6px 24px rgba(30, 58, 95, 0.5),
       0 0 0 3px rgba(59, 130, 246, 0.3);
   }
+
   50% {
-    box-shadow: 
+    box-shadow:
       0 8px 32px rgba(30, 58, 95, 0.6),
       0 0 0 6px rgba(59, 130, 246, 0.15);
   }
@@ -196,8 +199,15 @@
 }
 
 @keyframes keystoneBounce {
-  0%, 100% { transform: scale(1.2) translateY(0); }
-  50% { transform: scale(1.2) translateY(-4px); }
+
+  0%,
+  100% {
+    transform: scale(1.2) translateY(0);
+  }
+
+  50% {
+    transform: scale(1.2) translateY(-4px);
+  }
 }
 
 /* Utility Markers: The Items - Small, subtle loot/accessories */
@@ -234,6 +244,14 @@
   font-size: 0.9rem;
 }
 
+.generatedImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
 /* Dark sleek hover label for the "Hook" experience */
 .markerLabel {
   background: rgba(15, 23, 42, 0.95);
@@ -246,4 +264,12 @@
 .markerLabel strong {
   font-weight: 700;
   letter-spacing: 0.01em;
+}
+
+.generatedImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid white;
 }

@@ -1,3 +1,6 @@
+import type { FloorPlanLayout } from '@/lib/generation/floor-plan-generator';
+import type { SubjectGraph } from '@/lib/types/learning';
+
 export type LifecyclePhases = {
   phase1: string;
   phase2: string;
@@ -58,6 +61,8 @@ export type GenerationResult = {
   pass3: string;
   validation: ValidationResult;
   fullDocument: string;
+  floorPlan?: FloorPlanLayout;
+  dependencyGraph?: SubjectGraph;
   metadata: {
     subject: string;
     generatedAt: string;

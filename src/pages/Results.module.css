@@ -295,16 +295,16 @@
   box-shadow: var(--shadow-glow-amber-hover);
 }
 
-.palaceButtons {
-  display: flex;
-  gap: 0.5rem;
+.palaceActionGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
 }
 
-.palaceButtons .palaceButton,
-.palaceButtons .customPalaceButton {
+.palaceActionGroup .palaceButton,
+.palaceActionGroup .customPalaceButton {
   flex: 1;
-  padding: 0.625rem 0.75rem;
-  font-size: 0.8125rem;
+  justify-content: center;
 }
 
 .customPalaceButton {

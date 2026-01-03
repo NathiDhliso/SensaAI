@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { MemoryPalace, PalaceProgress, PlacedConcept, PalaceBuilding, PalaceRoute, RouteBuilding } from '@/lib/types/palace';
-import type { MnemonicContext } from '@/lib/types/learning';
+import type { MnemonicContext, SubjectGraph } from '@/lib/types/learning';
+import type { FloorPlanLayout } from '@/lib/generation/floor-plan-generator';
 import { getRouteById } from '@/constants/palace-routes';
 import { capturePanorama } from '@/lib/panorama';
 
@@ -33,7 +34,14 @@ interface PalaceState {
     progress: Record<string, PalaceProgress>; // palaceId -> progress
 
     // Actions
-    createPalace: (subjectId: string, routeId: string, stages: StageData[], lifecycleLabels?: { phase1: string; phase2: string; phase3: string }) => MemoryPalace;
+    createPalace: (
+        subjectId: string,
+        routeId: string,
+        stages: StageData[],
+        lifecycleLabels?: { phase1: string; phase2: string; phase3: string },
+        floorPlan?: FloorPlanLayout,
+        dependencyGraph?: SubjectGraph
+    ) => MemoryPalace;
     createCustomPalace: (subjectId: string, routeName: string, customBuildings: RouteBuilding[], stages: StageData[], lifecycleLabels?: { phase1: string; phase2: string; phase3: string }) => MemoryPalace;
     saveCustomRoute: (routeName: string, buildings: RouteBuilding[]) => PalaceRoute;
     setCurrentBuilding: (index: number) => void;
@@ -81,7 +89,7 @@ export const usePalaceStore = create<PalaceState>()(
             panoramaMarkers: {},
             progress: {},
 
-            createPalace: (subjectId, routeId, stages, lifecycleLabels) => {
+            createPalace: (subjectId, routeId, stages, lifecycleLabels, floorPlan, dependencyGraph) => {
                 const route = getRouteById(routeId);
                 if (!route) throw new Error(`Route ${routeId} not found`);
 
@@ -97,6 +105,7 @@ export const usePalaceStore = create<PalaceState>()(
                         conceptName: concept.name,
                         slotId: routeBuilding.placements[cIdx]?.id || `slot-${cIdx}`,
                         lifecycle: concept.lifecycle,
+                        mnemonic: concept.mnemonic,
                         mastery: 0,
                     }));
 
@@ -115,6 +124,10 @@ export const usePalaceStore = create<PalaceState>()(
                     buildings,
                     createdAt: new Date().toISOString(),
                     lifecycleLabels,
+                    viewMode: 'exterior',
+                    layoutVersion: 1,
+                    floorPlan,
+                    dependencyGraph,
                 };
 
                 // Initialize progress
@@ -171,6 +184,8 @@ export const usePalaceStore = create<PalaceState>()(
                     buildings,
                     createdAt: new Date().toISOString(),
                     lifecycleLabels,
+                    viewMode: 'exterior',
+                    layoutVersion: 1,
                 };
 
                 // Initialize progress
@@ -329,7 +344,7 @@ export const usePalaceStore = create<PalaceState>()(
                 set(state => {
                     const palaceOverrides = state.placementOverrides[palace.id] || {};
                     const buildingOverrides = palaceOverrides[buildingId] || {};
-                    
+
                     return {
                         placementOverrides: {
                             ...state.placementOverrides,
@@ -366,7 +381,7 @@ export const usePalaceStore = create<PalaceState>()(
                 set(state => {
                     const palaceMarkers = state.panoramaMarkers[palace.id] || {};
                     const buildingMarkers = palaceMarkers[buildingId] || {};
-                    
+
                     return {
                         panoramaMarkers: {
                             ...state.panoramaMarkers,

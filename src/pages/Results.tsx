@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useGenerationStore } from '@/store/generation-store';
 import { usePalaceStore } from '@/store/palace-store';
 import { parseGeneratedContent } from '@/lib/content-adapter';
+import { transformGeneratedContent } from '@/lib/content-adapter/transformer';
 import { useParseAndLoadContent } from '@/lib/content-loader';
 import { storageManager } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
@@ -131,60 +132,37 @@ export default function Results() {
   const handleCreatePalace = () => {
     if (!displayDocument || !displayPass1Data) return;
 
+    // Use transformer to generate layouts (Freeze & Bake)
     const parseResult = parseGeneratedContent(displayDocument);
     if (!parseResult.success) {
       console.error('Failed to parse content for palace:', parseResult.error);
       return;
     }
 
-    const { learningPath, concepts } = parseResult.data;
+    // Generate Graph & Layout
+    const transformed = transformGeneratedContent(parseResult.data, displayPass1Data.domain);
+    const { stages, floorPlan, dependencyGraph } = transformed;
 
-    if (concepts.length === 0) {
-      console.error('No concepts found in parsed content');
+    if (!stages || stages.length === 0) {
+      console.error('No stages generated');
       return;
     }
 
-    const numBuildings = Math.min(7, Math.max(learningPath.stages.length, 1));
-    const conceptsPerBuilding = Math.ceil(concepts.length / numBuildings);
-
-    const stages = Array.from({ length: numBuildings }, (_, idx) => {
-      const stageName = learningPath.stages[idx]?.name || `Stage ${idx + 1}`;
-      const stageOrder = learningPath.stages[idx]?.order || idx + 1;
-
-      const startIdx = idx * conceptsPerBuilding;
-      const endIdx = Math.min(startIdx + conceptsPerBuilding, concepts.length);
-      const buildingConcepts = concepts.slice(startIdx, endIdx);
-
-      return {
-        id: `stage-${stageOrder}`,
-        name: stageName,
-        concepts: buildingConcepts.map(concept => ({
-          id: concept.id,
-          name: concept.name,
-          lifecycle: {
-            phase1: [
-              concept.phase1.prerequisite,
-              ...concept.phase1.selection,
-              concept.phase1.execution,
-            ].filter(Boolean),
-            phase2: concept.phase2 || [],
-            phase3: [
-              concept.phase3.tool,
-              ...concept.phase3.metrics,
-              concept.phase3.thresholds,
-            ].filter(Boolean),
-          },
-          // Include mnemonic data for Memory Palace scavenger hunt experience
-          mnemonic: concept.mnemonic ? {
-            anchor: concept.mnemonic.anchor,
-            story: concept.mnemonic.story,
-            tier: concept.mnemonic.tier,
-            parentName: concept.mnemonic.parentName,
-            parentId: concept.mnemonic.parentId,
-          } : undefined,
-        })),
-      };
-    });
+    // Helper to map transformed concepts to palace structure
+    const mappedStages = stages.map(stage => ({
+      id: stage.id,
+      name: stage.name,
+      concepts: transformed.concepts.filter(c => c.stageId === stage.id).map(c => ({
+        id: c.id,
+        name: c.name,
+        lifecycle: c.lifecycle ? {
+          phase1: c.lifecycle.phase1.steps,
+          phase2: c.lifecycle.phase2.steps,
+          phase3: c.lifecycle.phase3.steps
+        } : { phase1: [], phase2: [], phase3: [] },
+        mnemonic: c.mnemonic
+      }))
+    }));
 
     // Pass lifecycle labels from the generation results
     const lifecycleLabels = displayPass1Data.lifecycle ? {
@@ -193,7 +171,8 @@ export default function Results() {
       phase3: displayPass1Data.lifecycle.phase3,
     } : undefined;
 
-    createPalace(displaySubject || 'study', 'tech-campus', stages, lifecycleLabels);
+    // Pass floorPlan and dependencyGraph to bake them into the palace
+    createPalace(displaySubject || 'study', 'tech-campus', mappedStages, lifecycleLabels, floorPlan, dependencyGraph);
     navigate('/palace');
   };
 
@@ -315,21 +294,21 @@ export default function Results() {
               {loadingLearn ? 'Loading...' : 'Start Learning'}
             </button>
 
-            {/* Palace buttons - pre-built and custom */}
-            <div className={styles.palaceButtons}>
+            {/* Memory Palace Actions - consolidated from 3 buttons to 2 */}
+            <div className={styles.palaceActionGroup}>
               <button
                 onClick={handleCreatePalace}
                 className={styles.palaceButton}
               >
                 <Map className={styles.buttonIcon} />
-                NYC Memory Palace
+                Enter Memory Palace
               </button>
               <button
                 onClick={() => setShowRouteBuilder(true)}
                 className={styles.customPalaceButton}
               >
                 <Plus className={styles.buttonIcon} />
-                Custom Palace
+                Build Custom Route
               </button>
             </div>
             <button

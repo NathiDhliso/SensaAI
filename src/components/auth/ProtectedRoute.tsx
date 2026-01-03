@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 const isDev = import.meta.env.DEV;
 

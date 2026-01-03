@@ -193,10 +193,19 @@ Include a \`mnemonic\` object for each concept in structured output:
     "tier": "Foundation" | "Keystone" | "Utility",
     "anchor": "Concrete Object + Emoji (e.g., 'Volcano 🌋')",
     "story": "The 2-3 sentence bizarre scene...",
-    "parentConcept": "Exact Name of Parent Concept" | null
+    "parentConcept": "Exact Name of Parent Concept" | null,
+    "depends_on": ["Prerequisite Concept 1", "Prerequisite Concept 2"]
   }
 }
 \`\`\`
+
+**DEPENDENCY TRACKING RULES:**
+For the \`depends_on\` array, identify concepts that must be understood BEFORE this concept:
+- Use EXACT concept names from your Master Chart
+- Foundation concepts typically have empty \`depends_on\` arrays (they are the bedrock)
+- Keystone concepts reference their logical Foundation parents
+- Utility concepts reference the Keystone or Foundation concepts they attach to
+- A concept can depend on multiple prerequisites
 
 **⚠️ QUALITY GATE: Every concept MUST include a mnemonic object. Concepts without mnemonics will cause the memory palace visualization to fail. This is NOT optional.**
 

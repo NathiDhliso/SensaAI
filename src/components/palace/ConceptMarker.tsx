@@ -154,7 +154,13 @@ export default function ConceptMarker({
         </div>
       )}
       <div className={styles.markerPin}>
-        {marker.mnemonic ? (
+        {marker.mnemonic?.imageUrl ? (
+          <img
+            src={marker.mnemonic.imageUrl}
+            alt={hoverLabel}
+            className={styles.generatedImage}
+          />
+        ) : marker.mnemonic ? (
           <span className={styles.markerEmoji}>{markerIcon}</span>
         ) : (
           <>

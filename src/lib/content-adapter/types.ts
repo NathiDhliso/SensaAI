@@ -5,8 +5,10 @@ export interface ParsedMnemonic {
   tier: 'Foundation' | 'Keystone' | 'Utility';
   anchor: string;      // e.g., "Volcano 🌋"
   story: string;       // Bizarre scene linking anchor to concept
+  imageUrl?: string;   // Generated image URL (Silver Bullet)
   parentName?: string; // Parent concept name (pre-resolution)
   parentId?: string;   // Resolved parent ID
+  dependsOn?: string[]; // Array of concept names this depends on
 }
 
 export interface ParsedConcept {

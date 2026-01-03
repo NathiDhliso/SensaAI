@@ -3,6 +3,7 @@ import { Check, Lightbulb } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { renderShapeOrIcon } from '@/components/ui';
 import SpeedReaderBar from '@/components/ui/SpeedReaderBar';
+import { LifecycleFlow } from './LifecyclePhaseStep';
 import styles from './ConceptCard.module.css';
 
 interface ConceptCardProps {
@@ -98,43 +99,7 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
         {activeTab === 'how' && (
           <div className={styles.howContent}>
             {concept.lifecycle ? (
-              <div className={styles.lifecycleFlow}>
-                <div className={styles.lifecycleStep}>
-                  <div className={styles.stepBadge}>1</div>
-                  <div className={styles.stepContent}>
-                    <span className={styles.stepLabel}>{concept.lifecycle.phase1.title}</span>
-                    <ul className={styles.stepItems}>
-                      {concept.lifecycle.phase1.steps.map((step, idx) => (
-                        <li key={idx}>{step}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className={styles.flowArrow}>→</div>
-                <div className={styles.lifecycleStep}>
-                  <div className={styles.stepBadge}>2</div>
-                  <div className={styles.stepContent}>
-                    <span className={styles.stepLabel}>{concept.lifecycle.phase2.title}</span>
-                    <ul className={styles.stepItems}>
-                      {concept.lifecycle.phase2.steps.map((step, idx) => (
-                        <li key={idx}>{step}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className={styles.flowArrow}>→</div>
-                <div className={styles.lifecycleStep}>
-                  <div className={styles.stepBadge}>3</div>
-                  <div className={styles.stepContent}>
-                    <span className={styles.stepLabel}>{concept.lifecycle.phase3.title}</span>
-                    <ul className={styles.stepItems}>
-                      {concept.lifecycle.phase3.steps.map((step, idx) => (
-                        <li key={idx}>{step}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <LifecycleFlow lifecycle={concept.lifecycle} />
             ) : (
               <ol className={styles.stepList}>
                 {concept.howToUse.map((step, index) => (

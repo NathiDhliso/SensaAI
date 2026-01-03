@@ -1,5 +1,7 @@
 import type { ParsedGeneratedContent, ParsedConcept, ParsedMentalAnchor } from './types';
-import type { LearningStage, LearningConcept, ConceptLifecycle } from '@/lib/types/learning';
+import type { LearningStage, LearningConcept, ConceptLifecycle, SubjectGraph, MnemonicContext } from '@/lib/types/learning';
+import { buildSubjectGraph } from '@/lib/generation/dependency-parser';
+import { generateFloorPlan, buildTreemapInput, buildTreemapStages, type FloorPlanLayout } from '@/lib/generation/floor-plan-generator';
 
 const DEFAULT_ICONS = ['shape:nebula', 'shape:synapse', 'shape:construct', 'shape:bastion', 'shape:prism'];
 const DEFAULT_STAGE_ICONS = ['shape:seed', 'shape:sprout', 'shape:bloom', 'shape:crown', 'shape:synapse'];
@@ -306,6 +308,19 @@ export function transformToLearningConcepts(
     const metaphor = getConceptMetaphor(parsedConcept, parsed.mentalAnchors);
     const icon = getConceptIcon(parsedConcept.name, parsed.mentalAnchors);
 
+    // Transform parsed mnemonic to MnemonicContext
+    let mnemonic: MnemonicContext | undefined;
+    if (parsedConcept.mnemonic) {
+      mnemonic = {
+        anchor: parsedConcept.mnemonic.anchor,
+        story: parsedConcept.mnemonic.story,
+        tier: parsedConcept.mnemonic.tier,
+        parentName: parsedConcept.mnemonic.parentName,
+        parentId: parsedConcept.mnemonic.parentId,
+        dependsOn: parsedConcept.mnemonic.dependsOn,
+      };
+    }
+
     concepts.push({
       id: parsedConcept.id,
       stageId: stage?.id || 'stage-1-foundation',
@@ -323,15 +338,18 @@ export function transformToLearningConcepts(
       actionButtonText: `Master ${parsedConcept.name}`,
       lifecycle,
       logicalConnection: parsedConcept.logicalConnection,
+      mnemonic,
     });
   }
 
   return concepts;
 }
 
-export function transformGeneratedContent(parsed: ParsedGeneratedContent): {
+export function transformGeneratedContent(parsed: ParsedGeneratedContent, subjectId?: string): {
   stages: LearningStage[];
   concepts: LearningConcept[];
+  dependencyGraph: SubjectGraph;
+  floorPlan: FloorPlanLayout;
   metadata: {
     domain: string;
     role: string;
@@ -342,9 +360,32 @@ export function transformGeneratedContent(parsed: ParsedGeneratedContent): {
   const stages = transformToLearningStages(parsed);
   const concepts = transformToLearningConcepts(parsed, stages);
 
+  // Build the dependency graph from parsed concepts
+  // This is the "Freeze & Bake" foundation - calculated once at generation time
+  const dependencyGraph = buildSubjectGraph(
+    subjectId || `subject-${Date.now()}`,
+    parsed.concepts
+  );
+
+  // Build floor plan layout (treemap positions)
+  // This is the "Freeze & Bake" visual layer - positions saved forever
+  const treemapConcepts = buildTreemapInput(
+    concepts.map(c => ({
+      id: c.id,
+      name: c.name,
+      stageId: c.stageId,
+      mnemonic: c.mnemonic,
+      dependencyMetrics: dependencyGraph.nodes.find(n => n.id === c.id)?.metrics,
+    }))
+  );
+  const treemapStages = buildTreemapStages(stages);
+  const floorPlan = generateFloorPlan(treemapConcepts, treemapStages);
+
   return {
     stages,
     concepts,
+    dependencyGraph,
+    floorPlan,
     metadata: {
       domain: parsed.domainAnalysis.domain,
       role: parsed.domainAnalysis.professionalRole,

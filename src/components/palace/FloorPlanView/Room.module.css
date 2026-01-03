@@ -1,0 +1,10 @@
+/**
+ * Room Component Styles
+ */
+
+.roomLabel {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    user-select: none;
+    pointer-events: none;
+}

@@ -204,6 +204,8 @@ export interface MnemonicContext {
   anchor: string;
   /** Bizarre story linking anchor to concept function */
   story: string;
+  /** Generated image URL for "Foundation" concepts (Silver Bullet) */
+  imageUrl?: string;
   /** Visual tier override (user can adjust for personal preference) */
   tierOverride?: 'Foundation' | 'Keystone' | 'Utility';
 }
@@ -382,6 +384,29 @@ export interface PlacedConcept {
 - [ ] Anchor starts with same letter as concept name
 - [ ] `SubjectGraph` is saved with subject data
 - [ ] Graph and mnemonics can be retrieved for any generated subject
+
+
+---
+
+## Phase 1.5 (NEW): The Visual Bridge (Titan Image Gen)
+
+**Duration**: 2-3 days
+**Goal**: Generate ACTUAL images for Foundation concepts using AWS Bedrock (Titan), bridging the Aphantasia gap.
+
+### Tasks
+
+- [ ] **1.5.1** Setup Bedrock Image Generator
+  - File: `src/lib/generation/image-generator.ts` (NEW)
+  - Model: `amazon.titan-image-generator-v1`
+  - Prompt: "Surrealist oil painting of [Anchor] [Story Interaction]"
+  
+- [ ] **1.5.2** Update Generation Store
+  - Async generation of images *after* text content is done
+  - Only generate for `dependsOn.length >= 8` (Cost control)
+
+- [ ] **1.5.3** Update Mnemonic Context
+  - Add `imageUrl` field
+  - Display requested image in Tooltip/Card
 
 ---
 
@@ -578,6 +603,30 @@ export interface PlacedConcept {
 - [ ] **Positions are saved** and identical on reload
 - [ ] Hover shows anchor name, click shows story
 - [ ] Can navigate between rooms smoothly
+
+
+---
+
+## Phase 3.5 (NEW): Semantic Room Themes (Cognitive Load)
+
+**Duration**: 2 days
+**Goal**: Visually differentiate rooms based on domain to reduce "Same-ness" fatigue.
+
+### Tasks
+
+- [ ] **3.5.1** Create Theme Engine
+  - File: `src/lib/palace/theme-engine.ts` (NEW)
+  - Themes: `Factory`, `Library`, `Garden`, `Laboratory`
+  - Auto-select based on Course Subject (e.g., CS = Factory)
+
+- [ ] **3.5.2** Create CSS Themes
+  - File: `src/components/palace/FloorPlanView/RoomThemes.module.css` (NEW)
+  - SVG Patterns for backgrounds
+  - Color palettes (border, background, accent)
+
+- [ ] **3.5.3** Integrate with FloorPlanView
+  - Pass `theme` prop to Room component
+  - Render static "Landmarks" in empty Foundation spots
 
 ---
 

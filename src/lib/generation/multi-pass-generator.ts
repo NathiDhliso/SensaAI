@@ -18,6 +18,7 @@ import {
   createLifecycleScopePrompt,
   getDefaultLifecycle,
 } from './dynamic-lifecycle';
+import { enhanceWithVisuals } from './visual-enhancer';
 import type { Pass1Result, ProgressCallback, GenerationResult, ValidationResult, DynamicLifecycle } from '@/lib/types';
 
 export async function generateChartIteratively(
@@ -27,7 +28,7 @@ export async function generateChartIteratively(
   abortSignal?: AbortSignal
 ): Promise<GenerationResult> {
   const bedrockClient = getBedrockClient(config);
-  
+
   // Get aphantasia mode preference for prompt adaptation
   const aphantasiaMode = usePersonalizationStore.getState().aphantasiaMode;
   const systemPrompt = getSystemPrompt(aphantasiaMode);
@@ -303,6 +304,19 @@ OUTPUT FORMAT FOR EACH CONCEPT:
 ### E - Elimination Logic
 ⚠️ Don't confuse [X] with [Y]: [Key difference]
 
+### M - Mnemonic Anchor (REQUIRED)
+\`\`\`json
+{
+  "mnemonic": {
+    "tier": "Foundation" | "Keystone" | "Utility",
+    "anchor": "Concrete Object + Emoji",
+    "story": "Bizarre interaction...",
+    "parentConcept": "Name of parent concept",
+    "depends_on": ["Concept A", "Concept B"] 
+  }
+}
+\`\`\`
+
 ---
 LIFECYCLE DETAILS:
 
@@ -330,6 +344,10 @@ QUALITY REQUIREMENTS:
 3. Analogical Models MUST map 3+ technical terms to physical elements
 4. Pattern Recognition MUST be answerable in under 10 seconds
 5. No generic phrases like "configure settings" - use ACTUAL names
+6. MNEMONICS ARE MANDATORY: Use "depends_on" to track prerequisites.
+   - Foundation = No parents (usually)
+   - Keystone = Depends on Foundation
+   - Utility = Depends on Keystone/Foundation
 
 CRITICAL: Generate ALL ${batchConcepts.length} concepts with COMPLETE SHAPE structure.
 `;
@@ -563,6 +581,17 @@ OUTPUT JSON ONLY - Focus on quality assessment:
       message: `Auto-correcting ${Object.keys(validation.fixes).length} issues...`,
     });
     finalContent = applyFixes(pass3Text, validation.fixes);
+  }
+
+  // Phase 1.5: Visual Bridge (Titan Image Gen)
+  onProgress(4, 'in-progress', { message: 'Painting memory anchors (Titan)...' });
+  try {
+    finalContent = await enhanceWithVisuals(finalContent, config, (msg: string) => {
+      onProgress(4, 'in-progress', { message: msg });
+    });
+  } catch (err) {
+    console.error('Visual enhancement failed:', err);
+    // Proceed without images if enhancement fails
   }
 
   const fullDocument = assembleFinalDocument(pass1Data, pass2Text, finalContent);

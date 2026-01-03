@@ -6,3 +6,19 @@ export { default as ProgressPanel } from './ProgressPanel';
 export { default as RoutePreviewCard } from './RoutePreviewCard';
 export { RouteBuilder } from './RouteBuilder';
 export { PlacementGuide } from './PlacementGuide';
+
+// Floor Plan View components (Mind Palace Overhaul)
+export {
+    FloorPlanView,
+    Room,
+    MnemonicNode,
+    DoorwayTransition,
+    EntranceMarker,
+    ViewModeSwitcher,
+    MindPalaceContainer,
+    GraphView,
+    LayoutEditorToolbar,
+    useTransitionPhase,
+    useLayoutEditor,
+    TOTAL_TRANSITION_DURATION,
+} from './FloorPlanView';

@@ -258,27 +258,50 @@ function parseConceptBlock(block: string, order: number, stageId: string, lifecy
  * Supports both JSON format and text-based format.
  */
 function parseMnemonic(block: string): ParsedMnemonic | undefined {
-  // Try JSON format first (preferred)
-  const jsonMatch = block.match(/"mnemonic"\s*:\s*\{([^}]+)\}/i) ||
-    block.match(/```json\s*\n?\s*\{\s*"mnemonic"\s*:\s*\{([^}]+)\}/i);
+  // Try JSON format first (preferred) - use more robust extraction
+  // Look for mnemonic object with balanced braces
+  const mnemonicStart = block.search(/"mnemonic"\s*:\s*\{/i);
 
-  if (jsonMatch) {
+  if (mnemonicStart !== -1) {
     try {
-      // Reconstruct and parse the mnemonic object
-      const jsonStr = `{${jsonMatch[1]}}`;
-      const parsed = JSON.parse(jsonStr);
+      // Find the matching closing brace for the mnemonic object
+      let braceCount = 0;
+      let startIdx = block.indexOf('{', mnemonicStart);
+      let endIdx = startIdx;
 
-      const tier = parsed.tier as 'Foundation' | 'Keystone' | 'Utility';
-      if (!['Foundation', 'Keystone', 'Utility'].includes(tier)) {
-        return undefined;
+      for (let i = startIdx; i < block.length; i++) {
+        if (block[i] === '{') braceCount++;
+        if (block[i] === '}') braceCount--;
+        if (braceCount === 0) {
+          endIdx = i + 1;
+          break;
+        }
       }
 
-      return {
-        tier,
-        anchor: parsed.anchor || '',
-        story: parsed.story || '',
-        parentName: parsed.parentConcept || parsed.parentName || undefined,
-      };
+      if (endIdx > startIdx) {
+        const jsonStr = block.slice(startIdx, endIdx);
+        const parsed = JSON.parse(jsonStr);
+
+        const tier = parsed.tier as 'Foundation' | 'Keystone' | 'Utility';
+        if (!['Foundation', 'Keystone', 'Utility'].includes(tier)) {
+          // Fall through to text-based parsing
+        } else {
+          // Extract depends_on array if present
+          let dependsOn: string[] | undefined;
+          if (Array.isArray(parsed.depends_on)) {
+            dependsOn = parsed.depends_on.filter((d: unknown) => typeof d === 'string');
+          }
+
+          return {
+            tier,
+            anchor: parsed.anchor || '',
+            story: parsed.story || '',
+            imageUrl: parsed.imageUrl,
+            parentName: parsed.parentConcept || parsed.parentName || undefined,
+            dependsOn,
+          };
+        }
+      }
     } catch {
       // Fall through to text-based parsing
     }
