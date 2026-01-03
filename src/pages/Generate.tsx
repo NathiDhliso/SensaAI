@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, Loader2, ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
-import { generateChartIteratively } from '@/lib/generation/multi-pass-generator';
+import { generateWithBackend } from '@/lib/generation/backend-generator';
 import { useGenerationStore } from '@/store/generation-store';
-import { useUIStore } from '@/store/ui-store';
+import { useAuthStore } from '@/store/auth-store';
 import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
 import type { PassStatus, Pass1Result, ValidationResult } from '@/lib/types';
 import styles from './Generate.module.css';
@@ -48,11 +48,11 @@ export default function Generate() {
   const messageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Track which pass is currently in progress for message cycling
-  const currentInProgressPass = passes[1] === 'in-progress' ? 1 
-    : passes[2] === 'in-progress' ? 2 
-    : passes[3] === 'in-progress' ? 3 
-    : passes[4] === 'in-progress' ? 4 
-    : 0;
+  const currentInProgressPass = passes[1] === 'in-progress' ? 1
+    : passes[2] === 'in-progress' ? 2
+      : passes[3] === 'in-progress' ? 3
+        : passes[4] === 'in-progress' ? 4
+          : 0;
 
   // Cycle through whimsical messages based on current pass
   useEffect(() => {
@@ -178,7 +178,7 @@ export default function Generate() {
 
     const progressCallback = createProgressCallback();
 
-    generateChartIteratively(decodedSubject, bedrockConfig!, progressCallback, controller.signal)
+    generateWithBackend(decodedSubject, progressCallback, controller.signal)
       .then(async (result) => {
         console.log('Generation completed successfully');
         completeGeneration(result);
@@ -234,24 +234,22 @@ export default function Generate() {
 
   useEffect(() => {
     console.log('Generate useEffect:', { subject, bedrockConfig: !!bedrockConfig, hasStarted: hasStartedRef.current });
-    
+
     if (!subject) {
       console.log('No subject, returning');
       return;
     }
-    
-    // If no bedrockConfig, redirect to home with settings panel open
-    if (!bedrockConfig) {
-      console.log('No bedrockConfig, redirecting to home');
-      navigate('/');
-      // Use setTimeout to ensure navigation completes before opening panel
-      setTimeout(() => {
-        const { openSettingsPanel } = useUIStore.getState();
-        openSettingsPanel();
-      }, 100);
+
+    // Check authentication
+    const { isAuthenticated } = useAuthStore.getState();
+
+    // If not authenticated (and no env config fallback), redirect to login
+    if (!isAuthenticated && !bedrockConfig) {
+      console.log('Not authenticated, redirecting to login');
+      navigate('/login', { state: { from: `/generate/${subject}` } });
       return;
     }
-    
+
     if (hasStartedRef.current) {
       console.log('Already started, returning');
       return;
@@ -537,8 +535,8 @@ export default function Generate() {
 
                   <div className={styles.conceptsGrid}>
                     {pass1Data.concepts.slice(0, 12).map((concept, idx) => (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         className={`${styles.conceptChip} ${passes[3] === 'in-progress' && idx === pass1Data.concepts.length - 1 ? styles.generating : ''}`}
                       >
                         <span className={styles.conceptIcon}>🎭</span>
