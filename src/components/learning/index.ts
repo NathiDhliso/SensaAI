@@ -10,3 +10,5 @@ export { SessionSummary } from './SessionSummary';
 export { LifecycleFlow, LifecyclePhaseStep } from './LifecyclePhaseStep';
 export { LifecycleNavigator } from './LifecycleNavigator';
 export type { LifecycleLabels, PhaseProgress, LifecycleNavigatorProps } from './LifecycleNavigator';
+export { ConceptChunks } from './ConceptChunks';
+export type { ConceptChunksProps } from './ConceptChunks';

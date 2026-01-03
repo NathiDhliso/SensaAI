@@ -10,7 +10,7 @@ import { storageManager } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
 import { QUALITY_THRESHOLDS, UI_TIMINGS } from '@/constants/ui-constants';
 import { RouteBuilder, GraphView } from '@/components/palace';
-import { LifecycleNavigator } from '@/components/learning';
+import { LifecycleNavigator, ConceptChunks } from '@/components/learning';
 import type { RouteBuilding } from '@/lib/types/palace';
 import styles from './Results.module.css';
 
@@ -475,19 +475,38 @@ export default function Results() {
                 </div>
               </div>
 
-              <div className={styles.conceptsList}>
-                {displayPass1Data.concepts.slice(0, 8).map((concept, idx) => (
-                  <span key={idx} className={styles.conceptTag}>
-                    <span className={styles.conceptTagIcon}>💡</span>
-                    {concept}
-                  </span>
-                ))}
-                {displayPass1Data.concepts.length > 8 && (
-                  <span className={styles.conceptTag}>
-                    +{displayPass1Data.concepts.length - 8} more
-                  </span>
-                )}
-              </div>
+              {/* Smart Concept Chunking - Miller's Law (7±2 items) */}
+              {graphData?.concepts && graphData.concepts.length > 0 ? (
+                <ConceptChunks
+                  concepts={graphData.concepts}
+                  maxVisiblePerChunk={5}
+                  onConceptClick={(id) => {
+                    const concept = graphData.concepts.find(c => c.id === id);
+                    if (concept) {
+                      console.log('Selected concept:', concept.name);
+                    }
+                  }}
+                  onStartChunk={(tier, conceptIds) => {
+                    console.log(`Start learning ${tier}:`, conceptIds);
+                    handleStartLearning();
+                  }}
+                />
+              ) : (
+                // Fallback to flat tags if no parsed concepts
+                <div className={styles.conceptsList}>
+                  {displayPass1Data.concepts.slice(0, 8).map((concept, idx) => (
+                    <span key={idx} className={styles.conceptTag}>
+                      <span className={styles.conceptTagIcon}>💡</span>
+                      {concept}
+                    </span>
+                  ))}
+                  {displayPass1Data.concepts.length > 8 && (
+                    <span className={styles.conceptTag}>
+                      +{displayPass1Data.concepts.length - 8} more
+                    </span>
+                  )}
+                </div>
+              )}
 
               <div className={styles.lifecycleFlow}>
                 <span className={styles.lifecycleStep}>
