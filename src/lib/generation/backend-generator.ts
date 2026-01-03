@@ -5,7 +5,7 @@
 import { generationApi } from '@/lib/api';
 import { generateChartIteratively as generateDirect } from '@/lib/generation/multi-pass-generator';
 import { useGenerationStore } from '@/store/generation-store';
-import type { ProgressCallback, GenerationResult, ValidationResult } from '@/lib/types';
+import type { ProgressCallback, GenerationResult, ValidationResult } from '@/lib/types/generation';
 
 const isDev = import.meta.env.DEV;
 

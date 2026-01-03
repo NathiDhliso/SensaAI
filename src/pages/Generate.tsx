@@ -5,7 +5,7 @@ import { generateWithBackend } from '@/lib/generation/backend-generator';
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
 import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
-import type { PassStatus, Pass1Result, ValidationResult } from '@/lib/types';
+import type { PassStatus, Pass1Result, ValidationResult } from '@/lib/types/generation';
 import styles from './Generate.module.css';
 
 type ProgressData = {
@@ -180,7 +180,6 @@ export default function Generate() {
 
     generateWithBackend(decodedSubject, progressCallback, controller.signal)
       .then(async (result) => {
-        console.log('Generation completed successfully');
         completeGeneration(result);
         clearCheckpoint();
 
@@ -233,10 +232,7 @@ export default function Generate() {
   }, [bedrockConfig, createProgressCallback, startGeneration, addRecentSubject, completeGeneration, clearCheckpoint, setError, navigate]);
 
   useEffect(() => {
-    console.log('Generate useEffect:', { subject, bedrockConfig: !!bedrockConfig, hasStarted: hasStartedRef.current });
-
     if (!subject) {
-      console.log('No subject, returning');
       return;
     }
 
@@ -245,25 +241,21 @@ export default function Generate() {
 
     // If not authenticated (and no env config fallback), redirect to login
     if (!isAuthenticated && !bedrockConfig) {
-      console.log('Not authenticated, redirecting to login');
       navigate('/login', { state: { from: `/generate/${subject}` } });
       return;
     }
 
     if (hasStartedRef.current) {
-      console.log('Already started, returning');
       return;
     }
 
     const decodedSubject = decodeURIComponent(subject);
 
     if (canResumeFromCheckpoint(decodedSubject)) {
-      console.log('Can resume from checkpoint');
       setShowResumeDialog(true);
       return;
     }
 
-    console.log('Starting generation for:', decodedSubject);
     hasStartedRef.current = true;
     startGenerationProcess(decodedSubject);
     // eslint-disable-next-line react-hooks/exhaustive-deps

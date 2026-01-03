@@ -1,4 +1,4 @@
-import type { Pass1Result, ValidationResult } from '@/lib/types';
+import type { Pass1Result, ValidationResult } from '@/lib/types/generation';
 
 export function calculateProgress(content: string, totalConcepts: number): number {
   const conceptsGenerated = (content.match(/CORE CONCEPT \d+:/g) || []).length;

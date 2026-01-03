@@ -65,7 +65,6 @@ export default function Sprint() {
         }
 
         isGenerating.current = true;
-        console.log('Sprint: Starting question generation for', concepts.length, 'concepts');
         
         // Create a timeout promise
         const timeoutPromise = new Promise<never>((_, reject) => {
@@ -78,7 +77,6 @@ export default function Sprint() {
             timeoutPromise
         ])
             .then(generatedQuestions => {
-                console.log('Sprint: Generated', generatedQuestions.length, 'questions');
                 setQuestions(generatedQuestions);
                 // When ready, transition to countdown
                 setPhase('countdown');

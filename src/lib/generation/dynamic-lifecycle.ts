@@ -1,4 +1,4 @@
-import type { DynamicLifecycle } from '@/lib/types';
+import type { DynamicLifecycle } from '@/lib/types/generation';
 
 export const DYNAMIC_LIFECYCLE_PROMPT = `You are an expert curriculum designer. Analyze the given subject and determine the optimal 3-phase operational lifecycle that best captures how professionals work with this content.
 

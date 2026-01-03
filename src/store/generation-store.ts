@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Pass1Result, PassStatus, ValidationResult, GenerationResult } from '@/lib/types';
+import type { Pass1Result, PassStatus, ValidationResult, GenerationResult } from '@/lib/types/generation';
 import type { BedrockConfig } from '@/lib/generation/claude-client';
 
 type GenerationCheckpoint = {
@@ -68,17 +68,9 @@ const getEnvBedrockConfig = (): BedrockConfig | null => {
   const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
   const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
 
-  console.log('ENV Config Check:', {
-    region: region ? '✓ set' : '✗ missing',
-    accessKeyId: accessKeyId ? '✓ set' : '✗ missing',
-    secretAccessKey: secretAccessKey ? '✓ set' : '✗ missing',
-  });
-
   if (region && accessKeyId && secretAccessKey) {
-    console.log('BedrockConfig: Loaded from env vars');
     return { region, accessKeyId, secretAccessKey };
   }
-  console.log('BedrockConfig: NULL - missing env vars');
   return null;
 };
 

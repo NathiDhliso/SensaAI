@@ -19,7 +19,7 @@ import {
   getDefaultLifecycle,
 } from './dynamic-lifecycle';
 import { enhanceWithVisuals } from './visual-enhancer';
-import type { Pass1Result, ProgressCallback, GenerationResult, ValidationResult, DynamicLifecycle } from '@/lib/types';
+import type { Pass1Result, ProgressCallback, GenerationResult, ValidationResult, DynamicLifecycle } from '@/lib/types/generation';
 
 export async function generateChartIteratively(
   subject: string,

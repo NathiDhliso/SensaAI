@@ -1,4 +1,4 @@
-import type { DynamicLifecycle } from '@/lib/types';
+import type { DynamicLifecycle } from '@/lib/types/generation';
 
 export function validateLifecycleConsistency(
   content: string,

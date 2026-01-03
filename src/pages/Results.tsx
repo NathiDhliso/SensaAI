@@ -9,8 +9,7 @@ import { useParseAndLoadContent } from '@/lib/content-loader';
 import { storageManager } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
 import { QUALITY_THRESHOLDS, UI_TIMINGS } from '@/constants/ui-constants';
-import { GRAPH_COLORS } from '@/constants/theme-colors';
-import { RouteBuilder, GraphView } from '@/components/palace';
+import { RouteBuilder, GraphView, IntegratedLegend, ConceptInspector } from '@/components/palace';
 import { LifecycleNavigator, ConceptChunks } from '@/components/learning';
 import type { RouteBuilding } from '@/lib/types/palace';
 import styles from './Results.module.css';
@@ -23,6 +22,7 @@ export default function Results() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
+  const [selectedConceptId, setSelectedConceptId] = useState<string | null>(null);
   const [loadedResult, setLoadedResult] = useState<SavedResult | null>(null);
   const [isLoadingResult, setIsLoadingResult] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -549,21 +549,15 @@ export default function Results() {
                   <Network size={20} />
                   <span>Concept Network</span>
                 </div>
-                <div className={styles.graphLegend}>
-                  <span className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.foundation }} />
-                    Foundation
-                  </span>
-                  <span className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.keystone }} />
-                    Keystone
-                  </span>
-                  <span className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.utility }} />
-                    Utility
-                  </span>
+                <div className="px-6 mb-4">
+                  <IntegratedLegend lifecycle={displayPass1Data?.lifecycle ? {
+                    phase1: displayPass1Data.lifecycle.phase1,
+                    phase2: displayPass1Data.lifecycle.phase2,
+                    phase3: displayPass1Data.lifecycle.phase3
+                  } : undefined} />
                 </div>
               </div>
+
               <div className={styles.graphContainer}>
                 <GraphView
                   graph={graphData.graph}
@@ -571,18 +565,35 @@ export default function Results() {
                   width={600}
                   height={350}
                   onNodeClick={(id) => {
-                    const concept = graphData.concepts.find(c => c.id === id);
-                    if (concept) {
-                      // console.log('Selected concept:', concept.name);
-                    }
+                    setSelectedConceptId(id);
                   }}
+                  selectedConceptId={selectedConceptId || undefined}
                 />
               </div>
               <p className={styles.graphHint}>
-                Larger nodes are foundational concepts - learn these first. Lines show dependencies.
+                Select any node to reveal its Universal Lifecycle.
               </p>
             </div>
           )}
+
+          {/* Concept Inspector - The "Silver Bullet" integration point */}
+          {selectedConceptId && graphData && (() => {
+            const concept = graphData.concepts.find(c => c.id === selectedConceptId);
+            const node = graphData.graph.nodes.find(n => n.id === selectedConceptId);
+
+            if (concept && node) {
+              return (
+                <div className="mb-6 animate-in slide-in-from-top-4 duration-300">
+                  <ConceptInspector
+                    concept={concept}
+                    tier={node.metrics.calculatedTier}
+                    onClose={() => setSelectedConceptId(null)}
+                  />
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           <div className={styles.contentCard}>
             <h2 className={styles.sectionTitle}>Generated Content</h2>
