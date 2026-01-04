@@ -10,6 +10,7 @@ import type {
   ParsedMnemonic,
 } from './types';
 import { validateBatchResponse, type GeneratedConcept } from '@/lib/types/concept-schema';
+import { parsePL300Content } from './pl300-json-parser';
 
 export type ParseResult =
   | { success: true; data: ParsedGeneratedContent }
@@ -23,15 +24,26 @@ function slugify(text: string): string {
 }
 
 function extractSection(content: string, startMarker: string, endMarker?: string): string {
-  const startIndex = content.indexOf(startMarker);
-  if (startIndex === -1) return '';
+  // Use regex for case-insensitive matching
+  const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const startRegex = new RegExp(escapeRegExp(startMarker), 'i');
 
-  const startPos = startIndex + startMarker.length;
+  const startMatch = content.match(startRegex);
+  if (!startMatch || startMatch.index === undefined) return '';
+
+  const startPos = startMatch.index + startMatch[0].length;
 
   if (endMarker) {
-    const endIndex = content.indexOf(endMarker, startPos);
-    if (endIndex === -1) return content.slice(startPos).trim();
-    return content.slice(startPos, endIndex).trim();
+    // Search for end marker in the remaining content
+    const remainingContent = content.slice(startPos);
+    const endRegex = new RegExp(escapeRegExp(endMarker), 'i');
+    const endMatch = remainingContent.match(endRegex);
+
+    if (!endMatch || endMatch.index === undefined) {
+      return remainingContent.trim();
+    }
+    // Return content up to the end marker
+    return remainingContent.slice(0, endMatch.index).trim();
   }
 
   return content.slice(startPos).trim();
@@ -100,8 +112,16 @@ interface LifecyclePhases {
 }
 
 function parseConceptBlock(block: string, order: number, stageId: string, lifecycle: LifecyclePhases): ParsedConcept | null {
-  const nameMatch = block.match(/^##\s*\d+\.\s*(.+)/m);
-  if (!nameMatch) return null;
+  // Relaxed match for name: allow leading whitespace/newlines
+  let nameMatch = block.match(/(?:^|[\r\n]+)##\s*\d+\.\s*(.+)/);
+
+  if (!nameMatch) {
+    // Try fallback without header if block is just the content (edge case)
+    // Try matching if it's at the very start of the string without newline
+    const startMatch = block.match(/^##\s*\d+\.\s*(.+)/);
+    if (!startMatch) return null;
+    nameMatch = startMatch;
+  }
 
   const name = nameMatch[1].trim();
   const id = slugify(name);
@@ -512,13 +532,22 @@ function parseConcepts(content: string, lifecycle: LifecyclePhases): ParsedConce
   }
 
   // Fallback to regex parsing (legacy markdown format)
-  const chartSection = extractSection(content, 'MASTER HIERARCHICAL CHART', 'VISUAL MENTAL ANCHORS');
+  // Try "MASTER HIERARCHICAL CHART" first, fallback to "VISUAL MASTER CHART"
+  let chartSection = extractSection(content, 'MASTER HIERARCHICAL CHART', 'VISUAL MENTAL ANCHORS');
+  if (!chartSection) {
+    console.log('[parser] "MASTER HIERARCHICAL CHART" section not found, trying "VISUAL MASTER CHART"');
+    chartSection = extractSection(content, 'VISUAL MASTER CHART', 'VISUAL MENTAL ANCHORS');
+  }
+
+  console.log(`[parser] chartSection length: ${chartSection.length}`);
 
   // Strip code block markers (```) that wrap concept definitions
-  // The content may have concepts inside markdown code blocks which prevents regex matching
   const cleanedSection = chartSection.replace(/```/g, '');
 
-  const conceptBlocks = cleanedSection.split(/(?=^##\s*\d+\.)/m).filter(b => b.trim());
+  // Relaxed split regex: handles newlines more robustly and optional spacing
+  // Matches: Newline(s) + ## + Number + .
+  const conceptBlocks = cleanedSection.split(/(?=(?:^|[\r\n]+)##\s*\d+\.)/m).filter(b => b.trim());
+  console.log(`[parser] Found ${conceptBlocks.length} concept blocks (regex split)`);
 
   const concepts: ParsedConcept[] = [];
   let order = 1;
@@ -529,6 +558,8 @@ function parseConcepts(content: string, lifecycle: LifecyclePhases): ParsedConce
     if (concept) {
       concepts.push(concept);
       order++;
+    } else {
+      console.warn(`[parser] Failed to parse concept block ${order}:`, block.slice(0, 100));
     }
   }
 
@@ -729,6 +760,34 @@ function parseConfusionPairs(content: string): ParsedConfusionPair[] {
   return pairs;
 }
 
+/**
+ * Detects if content is from a PL-300 JSON file format
+ */
+function isPL300JsonFormat(content: string): boolean {
+  return content.includes('VISUAL MASTER CHART: Microsoft Learn - PL-300') ||
+         content.includes('PL-300: Microsoft Power BI Data Analyst') ||
+         (content.includes('Core Concepts Identified: 68') && content.includes('Power BI Desktop'));
+}
+
+/**
+ * Parse PL-300 JSON content using the specialized parser
+ */
+function parsePL300JsonContent(rawContent: string): ParseResult {
+  const result = parsePL300Content(rawContent);
+  
+  if (!result.success) {
+    return {
+      success: false,
+      error: result.error || 'Failed to parse PL-300 content'
+    };
+  }
+  
+  return {
+    success: true,
+    data: result.data!
+  };
+}
+
 export function parseGeneratedContent(rawContent: string): ParseResult {
   try {
     if (!rawContent || rawContent.trim().length === 0) {
@@ -737,6 +796,12 @@ export function parseGeneratedContent(rawContent: string): ParseResult {
         error: 'Empty content received - please regenerate',
       };
     }
+
+    // Check if this is a PL-300 JSON file format
+    if (isPL300JsonFormat(rawContent)) {
+      return parsePL300JsonContent(rawContent);
+    }
+
     const domainAnalysis = parseDomainAnalysis(rawContent);
 
     if (!domainAnalysis.domain || domainAnalysis.domain.trim().length === 0) {

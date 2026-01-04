@@ -202,7 +202,7 @@
 }
 
 .confirmButton:hover:not(:disabled) {
-  background: #059669;
+  background: var(--color-sage-dark);
   transform: translateY(-1px);
 }
 

@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { FOCUS_SESSION_CONFIG } from '@/constants/ui-constants';
-import type { 
-  UserProgress, 
-  CelebrationData, 
-  LearningStage, 
+import type {
+  UserProgress,
+  CelebrationData,
+  LearningStage,
   LearningConcept,
   StudySession,
   StudyGoal,
@@ -19,12 +19,17 @@ import type { SprintResult } from '@/lib/types/sprint';
 
 /**
  * Metadata about the generated content source.
+ * Extended with SensaAI Learning Velocity Engine readiness fields.
  */
 export type ContentMetadata = {
   domain: string;
   role: string;
   source: string;
   conceptCount: number;
+  // SensaAI Learning Velocity Engine fields
+  foundationConcepts?: number;        // Count of foundation-level concepts eligible for diagnostics
+  diagnosticReady?: boolean;          // True if enough foundation concepts for diagnostic assessments
+  metadataCompleteness?: number;      // 0-100% - completeness of learning metadata for velocity engine
 };
 
 /**
@@ -79,20 +84,45 @@ export interface CurrentSession {
   subject: string;
   mode: 'learn' | 'sprint' | 'explore';
   createdAt: string;
-  
+
   // Content
   stages: LearningStage[];
   concepts: LearningConcept[];
   metadata: ContentMetadata | null;
-  
+
   // Progress
   progress: UserProgress;
-  
+
   // Sprint Results (if mode === 'sprint')
   sprintResult?: SprintResult;
-  
+
   // Cognitive Metrics
   cognitiveMetrics: CognitiveMetrics;
+}
+
+/**
+ * SensaAI Diagnostic Session - tracks diagnostic assessment state
+ * Used by the Learning Velocity Engine for diagnostic-first learning flow
+ */
+export interface DiagnosticSession {
+  /** Unique session ID */
+  id: string;
+  /** When diagnostic started */
+  startedAt: string;
+  /** When diagnostic completed */
+  completedAt?: string;
+  /** Total time limit in seconds (3 minutes default) */
+  timeLimitSeconds: number;
+  /** Concepts that were correctly identified as known */
+  knownConcepts: string[];
+  /** Concepts identified as knowledge gaps */
+  knowledgeGaps: string[];
+  /** Confidence scores per concept (1-5) */
+  confidenceScores: Record<string, number>;
+  /** Whether learner can skip foundation content */
+  canSkipFoundation: boolean;
+  /** Whether assessment is complete */
+  isComplete: boolean;
 }
 
 // ============================================================================
@@ -191,11 +221,14 @@ const getInitialFocusSessionState = () => ({
 type LearningState = {
   // Current Learning Session
   currentSession: CurrentSession | null;
-  
+
   // Study Session (Phase 5)
   studySession: StudySession | null;
   showSessionModal: boolean;
-  
+
+  // SensaAI Diagnostic Session
+  diagnosticSession: DiagnosticSession | null;
+
   // UI State
   showCelebration: boolean;
   celebrationData: CelebrationData | null;
@@ -203,7 +236,7 @@ type LearningState = {
   isExploreMode: boolean;
   isSprintReady: boolean;
   sessionTimer: ReturnType<typeof setInterval> | null;
-  
+
   // Focus Session State (merged from focus-session-store)
   isSessionActive: boolean;
   isPaused: boolean;
@@ -229,7 +262,7 @@ type LearningState = {
 
 type LearningActions = {
   // Session Actions
-  loadSession: (session: Omit<CurrentSession, 'id' | 'createdAt' | 'progress' | 'cognitiveMetrics'> & { 
+  loadSession: (session: Omit<CurrentSession, 'id' | 'createdAt' | 'progress' | 'cognitiveMetrics'> & {
     progress?: UserProgress;
     cognitiveMetrics?: CognitiveMetrics;
   }) => void;
@@ -237,7 +270,18 @@ type LearningActions = {
   setSessionMode: (mode: CurrentSession['mode']) => void;
   clearSession: () => void;
   getSession: () => CurrentSession | null;
-  
+
+  // Diagnostic Session Actions (SensaAI Learning Velocity Engine)
+  startDiagnostic: () => void;
+  completeDiagnostic: (results: {
+    knownConcepts: string[];
+    knowledgeGaps: string[];
+    confidenceScores: Record<string, number>;
+    canSkipFoundation: boolean;
+  }) => void;
+  clearDiagnostic: () => void;
+  getDiagnosticSession: () => DiagnosticSession | null;
+
   // Study Session Actions
   startStudySession: (goal: StudyGoal, duration: number, targetConcepts?: string[]) => void;
   endStudySession: () => void;
@@ -246,12 +290,12 @@ type LearningActions = {
   recordConfusionDrill: (passed: boolean) => void;
   recordBreak: () => void;
   setShowSessionModal: (show: boolean) => void;
-  getStudySessionStats: () => { 
-    elapsedMinutes: number; 
+  getStudySessionStats: () => {
+    elapsedMinutes: number;
     conceptsCompleted: number;
     goalProgress: number;
   } | null;
-  
+
   // Concept Navigation
   completeConcept: (conceptId: string) => void;
   setCurrentConcept: (conceptId: string) => void;
@@ -260,34 +304,34 @@ type LearningActions = {
   getNextConcept: () => string | null;
   getPreviousConcept: () => string | null;
   canAccessConcept: (conceptId: string) => boolean;
-  
+
   // UI State
   triggerCelebration: (data: CelebrationData) => void;
   dismissCelebration: () => void;
   toggleExploreMode: () => void;
   resetProgress: () => void;
-  
+
   // Learning Session Timer
   startSession: () => void;
   endSession: () => void;
-  
+
   // Content Accessors
   getStages: () => LearningStage[];
   getConcepts: () => LearningConcept[];
   hasCustomContent: () => boolean;
-  
+
   // Sprint
   setSprintResult: (result: SprintResult) => void;
   clearSprintResult: () => void;
   setSprintReady: (ready: boolean) => void;
-  
+
   // Cognitive Load
   recordInteraction: (correct: boolean, responseTimeMs: number) => void;
   triggerNeuralReset: () => void;
   dismissNeuralReset: () => void;
   resetCognitiveLoad: () => void;
   getCognitiveLoadLevel: () => 'low' | 'optimal' | 'high' | 'overload';
-  
+
   // Focus Session Actions (merged from focus-session-store)
   startFocusSession: () => void;
   pauseSession: () => void;
@@ -320,15 +364,57 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       currentSession: null,
       studySession: null,
       showSessionModal: false,
+      diagnosticSession: null,
       showCelebration: false,
       celebrationData: null,
       showNeuralReset: false,
       isExploreMode: false,
       isSprintReady: false,
       sessionTimer: null,
-      
+
       // Focus Session Initial State
       ...getInitialFocusSessionState(),
+
+      // =====================================================================
+      // DIAGNOSTIC SESSION ACTIONS (SensaAI Learning Velocity Engine)
+      // =====================================================================
+
+      startDiagnostic: () => {
+        const diagnosticSession: DiagnosticSession = {
+          id: `diagnostic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          startedAt: new Date().toISOString(),
+          timeLimitSeconds: 180, // 3 minutes default
+          knownConcepts: [],
+          knowledgeGaps: [],
+          confidenceScores: {},
+          canSkipFoundation: false,
+          isComplete: false,
+        };
+        set({ diagnosticSession });
+      },
+
+      completeDiagnostic: (results) => {
+        const state = get();
+        if (!state.diagnosticSession) return;
+
+        set({
+          diagnosticSession: {
+            ...state.diagnosticSession,
+            completedAt: new Date().toISOString(),
+            knownConcepts: results.knownConcepts,
+            knowledgeGaps: results.knowledgeGaps,
+            confidenceScores: results.confidenceScores,
+            canSkipFoundation: results.canSkipFoundation,
+            isComplete: true,
+          },
+        });
+      },
+
+      clearDiagnostic: () => {
+        set({ diagnosticSession: null });
+      },
+
+      getDiagnosticSession: () => get().diagnosticSession,
 
       // =====================================================================
       // SESSION ACTIONS
@@ -339,7 +425,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const concepts = sessionData.concepts;
         const initialProgress = sessionData.progress || getInitialProgress(stages, concepts);
         const initialMetrics = sessionData.cognitiveMetrics || getDefaultCognitiveMetrics();
-        
+
         const session: CurrentSession = {
           id: generateSessionId(),
           subjectId: sessionData.subjectId,
@@ -353,20 +439,20 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           sprintResult: sessionData.sprintResult,
           cognitiveMetrics: initialMetrics,
         };
-        
+
         set({
           currentSession: session,
           showCelebration: false,
           celebrationData: null,
         });
       },
-      
+
       updateSessionProgress: (progressUpdate) => {
         const state = get();
         if (!state.currentSession) return;
-        
+
         const newProgress = { ...state.currentSession.progress, ...progressUpdate };
-        
+
         set({
           currentSession: {
             ...state.currentSession,
@@ -374,11 +460,11 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           },
         });
       },
-      
+
       setSessionMode: (mode) => {
         const state = get();
         if (!state.currentSession) return;
-        
+
         set({
           currentSession: {
             ...state.currentSession,
@@ -386,7 +472,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           },
         });
       },
-      
+
       clearSession: () => {
         set({
           currentSession: null,
@@ -394,7 +480,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           celebrationData: null,
         });
       },
-      
+
       getSession: () => get().currentSession,
 
       // =====================================================================
@@ -407,19 +493,19 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const session = createStudySession(subjectId, goal, duration, targetConcepts);
         set({ studySession: session, showSessionModal: false });
       },
-      
+
       endStudySession: () => {
         const state = get();
         if (!state.studySession) return;
-        
+
         const session = state.studySession;
         const elapsed = (Date.now() - new Date(session.startedAt).getTime()) / 1000 / 60;
-        
-        const goalAchieved = session.goal === 'sprint' 
+
+        const goalAchieved = session.goal === 'sprint'
           ? session.confusionDrillsCompleted >= 3
-          : session.conceptsCompleted.length >= session.targetConcepts.length || 
-            elapsed >= session.targetDuration;
-        
+          : session.conceptsCompleted.length >= session.targetConcepts.length ||
+          elapsed >= session.targetDuration;
+
         set({
           studySession: {
             ...session,
@@ -429,11 +515,11 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           },
         });
       },
-      
+
       updateStudyMetrics: (metrics) => {
         const state = get();
         if (!state.studySession) return;
-        
+
         set({
           studySession: {
             ...state.studySession,
@@ -441,16 +527,16 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           },
         });
       },
-      
+
       completeStudySessionConcept: (conceptId, phase) => {
         const state = get();
         if (!state.studySession) return;
-        
+
         const session = state.studySession;
         const newCompleted = session.conceptsCompleted.includes(conceptId)
           ? session.conceptsCompleted
           : [...session.conceptsCompleted, conceptId];
-        
+
         const newPhasesCompleted = { ...session.phasesCompleted };
         if (phase) {
           const existingPhases = newPhasesCompleted[conceptId] || [];
@@ -458,7 +544,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
             newPhasesCompleted[conceptId] = [...existingPhases, phase];
           }
         }
-        
+
         set({
           studySession: {
             ...session,
@@ -471,16 +557,16 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           },
         });
       },
-      
+
       recordConfusionDrill: (passed) => {
         const state = get();
         if (!state.studySession) return;
-        
+
         const session = state.studySession;
-        const newAccuracy = passed 
+        const newAccuracy = passed
           ? Math.min(100, session.metrics.confusionDrillAccuracy + 10)
           : Math.max(0, session.metrics.confusionDrillAccuracy - 5);
-        
+
         set({
           studySession: {
             ...session,
@@ -489,11 +575,11 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           },
         });
       },
-      
+
       recordBreak: () => {
         const state = get();
         if (!state.studySession) return;
-        
+
         set({
           studySession: {
             ...state.studySession,
@@ -502,22 +588,22 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           },
         });
       },
-      
+
       setShowSessionModal: (show) => set({ showSessionModal: show }),
-      
+
       getStudySessionStats: () => {
         const state = get();
         if (!state.studySession) return null;
-        
+
         const session = state.studySession;
         const elapsed = (Date.now() - new Date(session.startedAt).getTime()) / 1000 / 60;
-        
+
         const goalProgress = session.goal === 'sprint'
           ? (session.confusionDrillsCompleted / 10) * 100
           : session.targetConcepts.length > 0
             ? (session.conceptsCompleted.length / session.targetConcepts.length) * 100
             : (elapsed / session.targetDuration) * 100;
-        
+
         return {
           elapsedMinutes: Math.round(elapsed),
           conceptsCompleted: session.conceptsCompleted.length,
@@ -540,7 +626,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       completeConcept: (conceptId: string) => {
         const state = get();
         if (!state.currentSession) return;
-        
+
         const concepts = state.currentSession.concepts;
         const stages = state.currentSession.stages;
         const currentProgress = state.currentSession.progress;
@@ -617,7 +703,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       setCurrentConcept: (conceptId: string) => {
         const state = get();
         if (!state.currentSession) return;
-        
+
         const concept = state.currentSession.concepts.find(c => c.id === conceptId);
         if (!concept) return;
 
@@ -648,12 +734,12 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       resetProgress: () => {
         const state = get();
         if (!state.currentSession) return;
-        
+
         const newProgress = getInitialProgress(
-          state.currentSession.stages, 
+          state.currentSession.stages,
           state.currentSession.concepts
         );
-        
+
         set({
           currentSession: {
             ...state.currentSession,
@@ -668,7 +754,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       startSession: () => {
         const state = get();
         if (!state.currentSession) return;
-        
+
         if (state.sessionTimer) {
           clearInterval(state.sessionTimer);
         }
@@ -676,7 +762,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const timer = setInterval(() => {
           const current = get();
           if (!current.currentSession) return;
-          
+
           if (current.currentSession.progress.sessionStartTime) {
             set({
               currentSession: {
@@ -733,7 +819,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       getConceptStatus: (conceptId: string) => {
         const state = get();
         if (!state.currentSession) return 'locked';
-        
+
         const { progress, concepts } = state.currentSession;
 
         if (progress.completedConcepts.includes(conceptId)) return 'completed';
@@ -752,7 +838,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       getStageStatus: (stageId: string) => {
         const state = get();
         if (!state.currentSession) return 'locked';
-        
+
         const { progress, stages } = state.currentSession;
 
         if (progress.completedStages.includes(stageId)) return 'completed';
@@ -771,7 +857,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       getNextConcept: () => {
         const state = get();
         if (!state.currentSession) return null;
-        
+
         const { concepts, stages, progress } = state.currentSession;
 
         const currentConcept = concepts.find(c => c.id === progress.currentConceptId);
@@ -806,7 +892,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       getPreviousConcept: () => {
         const state = get();
         if (!state.currentSession) return null;
-        
+
         const { concepts, stages, progress } = state.currentSession;
 
         const currentConcept = concepts.find(c => c.id === progress.currentConceptId);
@@ -847,8 +933,8 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       setSprintResult: (result) => {
         const state = get();
         if (!state.currentSession) return;
-        
-        set({ 
+
+        set({
           currentSession: {
             ...state.currentSession,
             sprintResult: result,
@@ -860,8 +946,8 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       clearSprintResult: () => {
         const state = get();
         if (!state.currentSession) return;
-        
-        set({ 
+
+        set({
           currentSession: {
             ...state.currentSession,
             sprintResult: undefined,
@@ -878,7 +964,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       recordInteraction: (correct, responseTimeMs) => {
         const state = get();
         if (!state.currentSession) return;
-        
+
         const metrics = state.currentSession.cognitiveMetrics;
 
         const newConsecutiveCorrect = correct ? metrics.consecutiveCorrect + 1 : 0;
@@ -932,7 +1018,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           set({ showNeuralReset: false });
           return;
         }
-        
+
         const currentMetrics = state.currentSession.cognitiveMetrics;
         set({
           showNeuralReset: false,
@@ -951,7 +1037,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       resetCognitiveLoad: () => {
         const state = get();
         if (!state.currentSession) return;
-        
+
         set({
           showNeuralReset: false,
           currentSession: {

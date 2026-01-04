@@ -55,12 +55,12 @@
 .tooltipText {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--color-text-primary, #ffffff);
+    color: white;
 }
 
 .tooltipHint {
     font-size: 0.75rem;
-    color: var(--color-text-secondary, #a0a0a0);
+    color: var(--color-text-muted);
 }
 
 .particle {

@@ -51,7 +51,7 @@ export default function CognitiveGauge({ compact = false }: CognitiveGaugeProps)
     };
 
     return (
-        <div 
+        <div
             className={`${styles.container} ${compact ? styles.compact : ''}`}
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
@@ -79,9 +79,9 @@ export default function CognitiveGauge({ compact = false }: CognitiveGaugeProps)
                 <div className={styles.tooltip}>
                     <strong>What is Mental Load?</strong>
                     <p>
-                        Based on Cognitive Load Theory, your brain has limited 
-                        working memory. This gauge tracks your session length 
-                        and interaction patterns to suggest optimal break times.
+                        Based on Cognitive Load Theory, working memory has a natural capacity.
+                        This gauge tracks utilization to suggest optimal timing for
+                        consolidation breaks.
                     </p>
                     <ul>
                         <li><strong>Fresh:</strong> Ideal for challenging concepts</li>

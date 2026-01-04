@@ -141,6 +141,8 @@ export interface MindPalaceContainerProps {
     onConceptSelect?: (conceptId: string) => void;
     /** Callback when view mode changes */
     onModeChange?: (mode: ViewMode) => void;
+    /** Disable internal CinematicView overlay (for external handling) */
+    disableInternalCinematic?: boolean;
 }
 
 /**
@@ -154,6 +156,7 @@ export function MindPalaceContainer({
     exteriorView,
     onConceptSelect,
     onModeChange,
+    disableInternalCinematic = false,
 }: MindPalaceContainerProps) {
     const [currentMode, setCurrentMode] = useState<ViewMode>(initialMode);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -310,7 +313,7 @@ export function MindPalaceContainer({
 
             {/* Cinematic Focus Mode Overlay */}
             <AnimatePresence>
-                {selectedConcept && (
+                {selectedConcept && !disableInternalCinematic && (
                     <CinematicView
                         concept={selectedConcept}
                         onClose={handleCloseCinematic}

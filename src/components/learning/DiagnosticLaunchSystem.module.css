@@ -1,0 +1,467 @@
+/**
+ * DiagnosticLaunchSystem styles
+ * 
+ * Premium, modern UI for diagnostic assessment flow
+ */
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-6);
+    min-height: 400px;
+}
+
+/* ============================================================================
+   INTRO CARD
+   ============================================================================ */
+
+.introCard,
+.resultsCard {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-8);
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+}
+
+.iconContainer {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--overlay-primary-10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--spacing-4);
+    color: var(--primary);
+}
+
+.title {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-2);
+}
+
+.subtitle {
+    font-size: var(--font-size-md);
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-6);
+}
+
+.statsRow {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-4);
+}
+
+.statItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.statItem svg {
+    color: var(--primary);
+}
+
+.description {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-6);
+}
+
+.notReadyMessage {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    background: var(--overlay-amber-10);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-6);
+}
+
+.buttonGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.primaryButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-6);
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.primaryButton:hover {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-glow-primary-hover);
+}
+
+.primaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.secondaryButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-6);
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondaryButton:hover {
+    background: var(--overlay-primary-5);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* ============================================================================
+   QUESTION CARD
+   ============================================================================ */
+
+.questionCard {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    max-width: 600px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.progressBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--overlay-primary-10);
+}
+
+.progressFill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.questionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-4);
+    padding-top: var(--spacing-2);
+}
+
+.questionNumber {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.conceptBadge {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1) var(--spacing-2);
+    background: var(--overlay-primary-10);
+    color: var(--primary);
+    border-radius: var(--radius-full);
+}
+
+.questionText {
+    font-size: var(--font-size-lg);
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-6);
+    line-height: 1.5;
+}
+
+.answerSection {
+    margin-bottom: var(--spacing-6);
+}
+
+.optionsList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.optionButton {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+}
+
+.optionButton:hover {
+    border-color: var(--primary);
+    background: var(--overlay-primary-5);
+}
+
+.optionButton.optionSelected {
+    border-color: var(--primary);
+    background: var(--overlay-primary-10);
+}
+
+.optionLetter {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--overlay-primary-10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--primary);
+}
+
+.trueFalseOptions {
+    display: flex;
+    gap: var(--spacing-4);
+}
+
+.tfButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-4);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+    font-weight: 500;
+}
+
+.tfButton:hover {
+    border-color: var(--primary);
+}
+
+.tfButton.optionSelected {
+    border-color: var(--primary);
+    background: var(--overlay-primary-10);
+    color: var(--primary);
+}
+
+.shortAnswerInput {
+    width: 100%;
+    padding: var(--spacing-3);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    color: var(--text-primary);
+    resize: vertical;
+    min-height: 80px;
+}
+
+.shortAnswerInput:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.shortAnswerInput::placeholder {
+    color: var(--text-muted);
+}
+
+/* ============================================================================
+   CONFIDENCE SECTION
+   ============================================================================ */
+
+.confidenceSection {
+    margin-bottom: var(--spacing-6);
+}
+
+.confidenceLabel {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-2);
+}
+
+.confidenceSlider {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-2);
+}
+
+.confidenceButton {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.confidenceButton:hover {
+    transform: scale(1.1);
+}
+
+.confidenceButton.confidenceActive {
+    border-color: var(--primary);
+    background: var(--overlay-primary-10);
+    transform: scale(1.1);
+}
+
+/* ============================================================================
+   FEEDBACK OVERLAY
+   ============================================================================ */
+
+.feedbackOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-3);
+    background: rgba(255, 255, 255, 0.95);
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    z-index: 10;
+}
+
+.feedbackCorrect {
+    color: var(--success);
+}
+
+.feedbackIncorrect {
+    color: var(--warning);
+}
+
+.submitButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-6);
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-glow-primary-hover);
+}
+
+.submitButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================================================
+   RESULTS CARD
+   ============================================================================ */
+
+.scoreCircle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--overlay-primary-10);
+    border: 4px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--spacing-4);
+}
+
+.scoreValue {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.scoreLabel {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.resultsTitle {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-4);
+}
+
+.resultsStats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-4);
+}
+
+.resultStat {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.correctIcon {
+    color: var(--success);
+}
+
+.resultsMessage {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-6);
+}
+
+/* ============================================================================
+   DARK MODE ADJUSTMENTS
+   ============================================================================ */
+
+:root[data-theme="dark"] .feedbackOverlay {
+    background: rgba(30, 30, 30, 0.95);
+}

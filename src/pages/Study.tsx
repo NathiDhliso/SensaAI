@@ -17,50 +17,58 @@ import { useNavigate } from 'react-router-dom';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { StudyLayout, type StudyTab } from '@/components/layout';
-import { 
-  ConceptChunks,
+import {
   LifecycleNavigator,
-  JourneyMap,
-  ConceptCard,
   CelebrationModal,
   CognitiveGauge,
   NeuralResetBanner,
   SessionSummary,
 } from '@/components/learning';
+import { MindPalaceContainer } from '@/components/palace/FloorPlanView/MindPalaceContainer';
 // Focus session is now merged into learning-store
 import styles from './Study.module.css';
 
 // Lazy load heavy components
-const Palace = lazy(() => import('./Palace'));
 const Sprint = lazy(() => import('./Sprint'));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TAB CONTENT COMPONENTS
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB CONTENT COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
 interface OverviewTabProps {
-  onStartLearning: (conceptId?: string) => void;
+  onStartLearning: (conceptId: string) => void;
   onStartSprint: () => void;
+  session: any;
 }
 
-function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
-  const { 
-    getConcepts, 
-    getStages, 
+function OverviewTab({ onStartLearning, onStartSprint, session }: OverviewTabProps) {
+  const {
+    getConcepts,
+    getStages,
     currentSession,
   } = useLearningStore();
-  
-  const { validation } = useGenerationStore();
-  
+
+  const { validation, results } = useGenerationStore();
+
   const concepts = getConcepts();
   const stages = getStages();
   const hasContent = concepts.length > 0;
   const progress = currentSession?.progress;
-  
+
+  // Find floor plan and graph from generation results for the current subject
+  const currentResult = useMemo(() =>
+    results.find(r => r.metadata.subject === session?.subject),
+    [results, session?.subject]
+  );
+
   const progressPercent = hasContent
     ? Math.round(((progress?.completedConcepts?.length ?? 0) / concepts.length) * 100)
     : 0;
-  
+
   // Lifecycle progress calculation
   const lifecycleProgress = useMemo(() => {
     if (!hasContent) {
@@ -70,11 +78,11 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
         phase3: { total: 0, completed: 0 },
       };
     }
-    
+
     const total = concepts.length;
     const completed = progress?.completedConcepts?.length ?? 0;
     const perPhase = Math.ceil(total / 3);
-    
+
     return {
       phase1: {
         total: Math.min(perPhase, total),
@@ -132,19 +140,30 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
         />
       </section>
 
-      {/* Concept Chunks - Miller's Law Grouping */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Concepts by Priority</h3>
-        <ConceptChunks
-          concepts={concepts}
-          onConceptClick={(id) => onStartLearning(id)}
-          onStartChunk={(_tier, conceptIds) => {
-            if (conceptIds.length > 0) {
-              onStartLearning(conceptIds[0]);
-            }
-          }}
-          showStartButtons
-        />
+      {/* GRAPH MAP - The "Macro" View */}
+      <section className={styles.section} style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+        <h3 className={styles.sectionTitle}>Knowledge Map</h3>
+
+        <div className={styles.graphContainer}>
+          <Suspense fallback={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+              Loading Map...
+            </div>
+          }>
+            {/* 
+                  Directly embed MindPalaceContainer in Graph Mode 
+                  This provides the interactive graph we just built
+                */}
+            <MindPalaceContainer
+              initialMode="graph"
+              concepts={concepts}
+              floorPlan={currentResult?.floorPlan}
+              dependencyGraph={currentResult?.dependencyGraph}
+              onConceptSelect={(id: string) => onStartLearning(id)}
+              disableInternalCinematic={true}
+            />
+          </Suspense>
+        </div>
       </section>
 
       {/* Quality Metrics (from validation) */}
@@ -187,83 +206,20 @@ function OverviewTab({ onStartLearning, onStartSprint }: OverviewTabProps) {
   );
 }
 
-interface LearnTabProps {
-  onComplete: () => void;
-}
-
-function LearnTab({ onComplete }: LearnTabProps) {
-  const {
-    currentSession,
-    completeConcept,
-    setCurrentConcept,
-    getConcepts,
-    getStages,
-    isSessionActive,
-    recordConceptEnd,
-  } = useLearningStore();
-  
-  const concepts = getConcepts();
-  const stages = getStages();
-  const progress = currentSession?.progress;
-  const currentConcept = concepts.find(c => c.id === progress?.currentConceptId);
-  const hasContent = stages.length > 0 && concepts.length > 0;
-
-  const handleConceptComplete = useCallback(() => {
-    const currentConceptId = progress?.currentConceptId;
-    if (isSessionActive && currentConceptId) {
-      recordConceptEnd(currentConceptId, true);
-    }
-    if (currentConceptId) {
-      completeConcept(currentConceptId);
-    }
-    onComplete();
-  }, [isSessionActive, progress, recordConceptEnd, completeConcept, onComplete]);
-
-  const handleNavigate = useCallback((conceptId: string) => {
-    setCurrentConcept(conceptId);
-  }, [setCurrentConcept]);
-
-  if (!hasContent) {
-    return (
-      <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>📚</div>
-        <h2>No Content Loaded</h2>
-        <p>Generate learning content to start your journey</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.learnTab}>
-      <aside className={styles.journeyPanel}>
-        <JourneyMap onConceptClick={handleNavigate} />
-      </aside>
-      
-      <main className={styles.conceptPanel}>
-        {currentConcept ? (
-          <ConceptCard
-            conceptId={currentConcept.id}
-            onComplete={handleConceptComplete}
-          />
-        ) : (
-          <div className={styles.selectPrompt}>
-            <p>Select a concept from the journey map to begin</p>
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // MAIN STUDY PAGE
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Import Velocity Engine components locally to avoid circular deps if any
+import { MicroLearningLoopController } from '@/components/learning';
+import { AnimatePresence, motion } from 'framer-motion';
+
 export default function Study() {
   const navigate = useNavigate();
-  
+
   const [activeTab, setActiveTab] = useState<StudyTab>('overview');
-  
+  const [learningConceptId, setLearningConceptId] = useState<string | null>(null);
+
   const {
     getSession,
     showCelebration,
@@ -271,12 +227,14 @@ export default function Study() {
     dismissCelebration,
     startSession,
     endSession,
+    getConcepts,
   } = useLearningStore();
-  
+
   const { currentSubject, pass1Data } = useGenerationStore();
-  
+
   const session = getSession();
-  
+  const concepts = getConcepts();
+
   // Start learning session on mount
   useEffect(() => {
     startSession();
@@ -286,24 +244,24 @@ export default function Study() {
   // Handle tab changes
   const handleTabChange = useCallback((tab: StudyTab) => {
     setActiveTab(tab);
+    setLearningConceptId(null); // Exit learning mode on tab change
   }, []);
 
-  // Navigate to learn tab with specific concept
-  const handleStartLearning = useCallback((conceptId?: string) => {
-    if (conceptId) {
-      useLearningStore.getState().setCurrentConcept(conceptId);
+  // Navigate to unified learning view (The "Zoom")
+  const handleStartLearning = useCallback((conceptId: string) => {
+    setLearningConceptId(conceptId);
+    // We stay in 'overview' tab but show the overlay, or we could switch tab.
+    // Keeping 'overview' lets the graph stay mounted underneath for smoother exit.
+  }, []);
+
+  // Handle concept completion in Micro-Loop
+  const handleLoopComplete = useCallback((outcome: string, _time: number) => {
+    // Optional: Play a sound or mini-celebration
+    // Then close the loop or go to next recommended concept
+    if (outcome === 'mastered') {
+      // Find next concept logic could go here
     }
-    setActiveTab('learn');
-  }, []);
-
-  // Navigate to sprint tab
-  const handleStartSprint = useCallback(() => {
-    setActiveTab('sprint');
-  }, []);
-
-  // Handle concept completion
-  const handleConceptComplete = useCallback(() => {
-    // Could show a micro-celebration or update UI
+    setLearningConceptId(null); // Zoom back out
   }, []);
 
   // Handle celebration modal
@@ -319,29 +277,27 @@ export default function Study() {
   // Determine subject name for header
   const subjectName = session?.subject || currentSubject || pass1Data?.domain || 'Study Session';
 
+  // Get active concept object
+  const activeConcept = useMemo(() =>
+    concepts.find(c => c.id === learningConceptId),
+    [concepts, learningConceptId]);
+
   // Render active tab content
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
         return (
           <OverviewTab
+            session={session}
             onStartLearning={handleStartLearning}
-            onStartSprint={handleStartSprint}
+            onStartSprint={() => setActiveTab('sprint')}
           />
         );
-      
+
       case 'learn':
-        return <LearnTab onComplete={handleConceptComplete} />;
-      
-      case 'palace':
-        return (
-          <Suspense fallback={<div className={styles.loading}>Loading Palace...</div>}>
-            <div className={styles.embeddedPage}>
-              <Palace />
-            </div>
-          </Suspense>
-        );
-      
+        // Legacy list-based learning, kept for fallback/preference
+        return <OverviewTab session={session} onStartLearning={handleStartLearning} onStartSprint={() => setActiveTab('sprint')} />; // Reusing overview for now as learn tab is redundant with graph
+
       case 'sprint':
         return (
           <Suspense fallback={<div className={styles.loading}>Loading Sprint...</div>}>
@@ -350,7 +306,7 @@ export default function Study() {
             </div>
           </Suspense>
         );
-      
+
       default:
         return null;
     }
@@ -362,13 +318,71 @@ export default function Study() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         subjectName={subjectName}
-        showLifecycleNav={activeTab === 'overview' || activeTab === 'learn'}
+        showLifecycleNav={activeTab === 'overview'}
         headerActions={
-          activeTab === 'learn' ? <CognitiveGauge compact /> : undefined
+          <CognitiveGauge compact />
         }
       >
         {renderTabContent()}
       </StudyLayout>
+
+      {/* 
+        SILVER BULLET: Cinematic Learning Bridge
+        This overlay provides the "Zoom-to-Learn" experience.
+        It sits on top of the Graph, creating a seamless transition.
+      */}
+      <AnimatePresence>
+        {learningConceptId && activeConcept && (
+          <motion.div
+            key="learning-overlay"
+            initial={{ opacity: 0, scale: 0.8, backdropFilter: 'blur(0px)' }}
+            animate={{ opacity: 1, scale: 1, backdropFilter: 'blur(10px)' }}
+            exit={{ opacity: 0, scale: 0.8, backdropFilter: 'blur(0px)' }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 50, // Above everything including layout
+              background: 'rgba(15, 23, 42, 0.95)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '2rem'
+            }}
+          >
+            <div style={{ width: '100%', maxWidth: '1000px', height: '100%', maxHeight: '90vh', position: 'relative' }}>
+              <button
+                onClick={() => setLearningConceptId(null)}
+                style={{
+                  position: 'absolute',
+                  top: '-3rem',
+                  right: 0,
+                  background: 'none',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontWeight: 500
+                }}
+              >
+                ✕ Close Interaction
+              </button>
+
+              <MicroLearningLoopController
+                concept={activeConcept}
+                complexityScore={5}
+                onLoopComplete={handleLoopComplete}
+                onSkip={() => setLearningConceptId(null)}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Celebration Modal */}
       {showCelebration && celebrationData && (

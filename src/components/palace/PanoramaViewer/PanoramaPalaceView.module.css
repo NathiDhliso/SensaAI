@@ -286,7 +286,7 @@
 
 .fullscreenMode .staticImage {
     object-fit: contain;
-    background: #000;
+    background: black;
 }
 
 .fullscreenMode .controls {

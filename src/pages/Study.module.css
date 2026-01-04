@@ -144,6 +144,28 @@
   color: var(--color-text-dark);
 }
 
+
+.graphContainer {
+  flex: 1;
+  border: 1px solid var(--color-accent-light);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  position: relative;
+  background: var(--color-surface);
+  /* Ensure border transparency matches design if needed, using opacity on color or rgba if variable supports it.
+     Using --color-accent-light is solid. If we want opacity, we might need a specific variable or keep it solid.
+     The inline style was `rgba(139, 92, 246, 0.2)`. 
+     --overlay-accent-20 doesn't exist? --overlay-accent-15 does.
+     Let's use a border variable that represents the intended subtlety. 
+     --color-border-emphasis or overlay-accent-15 (but border usually needs color, not bg).
+     Let's stick to --color-border-emphasis or define a local scope. 
+     Actually, let's use `border-color: var(--color-accent-light); opacity: 0.3;` on the border? No.
+     Let's use `border-color: var(--overlay-accent-15);` if it works (it's rgba). 
+     Yes, --overlay-accent-15 is `rgba(139, 92, 246, 0.15)`. Close to 0.2.
+  */
+  border-color: var(--overlay-accent-15);
+}
+
 .sprintPrompt {
   display: flex;
   align-items: center;
@@ -255,28 +277,28 @@
   .statsRow {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .learnTab {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
   }
-  
+
   .journeyPanel {
     border-right: none;
     border-bottom: 1px solid var(--color-border);
     max-height: 40vh;
   }
-  
+
   .metricsGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .sprintPrompt {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
   }
-  
+
   .sprintPromptContent {
     flex-direction: column;
   }
@@ -286,16 +308,16 @@
   .overviewTab {
     padding: 1rem;
   }
-  
+
   .statsRow {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
-  
+
   .statCard {
     padding: 1rem;
   }
-  
+
   .statValue {
     font-size: 1.5rem;
   }

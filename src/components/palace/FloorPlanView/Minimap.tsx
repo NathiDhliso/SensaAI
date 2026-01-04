@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { FloorPlanLayout } from '@/lib/generation/floor-plan-generator';
 import type { LearningConcept } from '@/lib/types/learning';
+import { GRAPH_COLORS, COLORS, hexToRgba } from '@/constants/theme-colors';
 import styles from './Minimap.module.css';
 
 export interface MinimapProps {
@@ -38,10 +39,10 @@ export interface MinimapProps {
  */
 function getTierColor(tier: string | undefined): string {
     switch (tier) {
-        case 'Foundation': return '#10b981';
-        case 'Keystone': return '#8b5cf6';
-        case 'Utility': return '#f59e0b';
-        default: return '#6b7280';
+        case 'Foundation': return GRAPH_COLORS.foundation;
+        case 'Keystone': return GRAPH_COLORS.keystone;
+        case 'Utility': return GRAPH_COLORS.utility;
+        default: return COLORS.text.light;
     }
 }
 
@@ -94,7 +95,7 @@ export function Minimap({
                 <rect
                     width={width}
                     height={height}
-                    fill="rgba(0, 0, 0, 0.4)"
+                    fill={hexToRgba('#000000', 0.4)}
                     rx="4"
                 />
 
@@ -109,7 +110,7 @@ export function Minimap({
                         <path
                             d="M 10 0 L 0 0 0 10"
                             fill="none"
-                            stroke="rgba(59, 130, 246, 0.1)"
+                            stroke={hexToRgba(COLORS.info, 0.1)}
                             strokeWidth="0.5"
                         />
                     </pattern>
@@ -124,8 +125,8 @@ export function Minimap({
                         y={room.y * height}
                         width={room.width * width}
                         height={room.height * height}
-                        fill="rgba(59, 130, 246, 0.15)"
-                        stroke="rgba(59, 130, 246, 0.4)"
+                        fill={hexToRgba(COLORS.info, 0.15)}
+                        stroke={hexToRgba(COLORS.info, 0.4)}
                         strokeWidth="1"
                         rx="2"
                     />
@@ -168,8 +169,8 @@ export function Minimap({
                     y={viewport.y * height}
                     width={viewport.width * width}
                     height={viewport.height * height}
-                    fill="rgba(139, 92, 246, 0.1)"
-                    stroke="rgba(139, 92, 246, 0.6)"
+                    fill={hexToRgba(COLORS.accent.light, 0.1)}
+                    stroke={hexToRgba(COLORS.accent.light, 0.6)}
                     strokeWidth="1.5"
                     strokeDasharray="3 2"
                     rx="2"

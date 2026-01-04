@@ -46,26 +46,34 @@ export async function generateSprintQuestions(
 ): Promise<SprintQuestion[]> {
     const { core, discrimination, application } = SPRINT_CONFIG.DISTRIBUTION;
 
-    // Extract concept names for context
-    const conceptNames = concepts.map(c => c.name).join(', ');
+    // Extract concept data with mnemonics for context
+    const conceptContext = concepts.map(c => {
+        const mnemonicInfo = c.mnemonic
+            ? ` (Mnemonic: ${c.mnemonic.anchor} - ${c.mnemonic.story})`
+            : '';
+        return `- ${c.name}${mnemonicInfo}`;
+    }).join('\n');
 
     console.log('Sprint Generator: Starting generation for', concepts.length, 'concepts');
     console.log('Sprint Generator: Config region:', config.region);
 
     const prompt = `Generate exactly ${SPRINT_CONFIG.QUESTION_COUNT} binary YES/NO questions for testing automaticity in: "${subject}"
 
-The learner has studied these concepts: ${conceptNames}
+The learner has studied these concepts (with their memory palace analogies):
+${conceptContext}
 
 Distribution:
 - ${core} CORE questions (test single concept understanding)
 - ${discrimination} DISCRIMINATION questions (distinguish similar concepts)  
 - ${application} APPLICATION questions (when/where to use concepts)
+- IMPORTANT: Include questions that reference the Mnemonics/Analogies explicitly to reinforce the memory palace connection (e.g., "In our story, does the [Anchor] represent [Concept]?").
 
 Questions should:
 1. Be answerable in 6 seconds or less
-2. Test pattern recognition, not memorization
+2. Test pattern recognition and mnemonic association
 3. Use realistic scenarios where applicable
 4. Have clear, unambiguous yes/no answers
+5. Use child-friendly language matching the analogies
 
 Return ONLY the JSON array, no other text.`;
 
@@ -73,7 +81,7 @@ Return ONLY the JSON array, no other text.`;
     const messages = [{ role: 'user' as const, content: prompt }];
 
     console.log('Sprint Generator: Calling Bedrock API...');
-    
+
     try {
         const response = await invokeClaudeModel(
             client,
@@ -112,7 +120,7 @@ Return ONLY the JSON array, no other text.`;
         }));
     } catch (error) {
         console.error('Sprint Generator: Error:', error);
-        
+
         // Provide more specific error messages
         if (error instanceof Error) {
             if (error.message.includes('AccessDenied') || error.message.includes('credentials')) {

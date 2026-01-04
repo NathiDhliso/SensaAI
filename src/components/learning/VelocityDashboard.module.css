@@ -1,0 +1,194 @@
+/**
+ * VelocityDashboard styles
+ * 
+ * Compact dashboard showing learning velocity and metrics
+ * Uses CSS variables from index.css
+ */
+
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+}
+
+/* ============================================================================
+   VELOCITY SECTION
+   ============================================================================ */
+
+.velocitySection {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.velocityMain {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.velocityIcon {
+    color: var(--color-accent);
+}
+
+.velocityValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+}
+
+.velocityLabel {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.trend {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.trendUp {
+    background: var(--overlay-sage-10);
+    color: var(--color-success);
+}
+
+.trendDown {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+}
+
+/* ============================================================================
+   METRICS ROW
+   ============================================================================ */
+
+.metricsRow {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.metric {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--color-text-dark);
+}
+
+.metric svg {
+    color: var(--color-accent);
+}
+
+.metricLabel {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+}
+
+/* ============================================================================
+   COGNITIVE LOAD
+   ============================================================================ */
+
+.loadSection {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.loadSection svg {
+    color: var(--color-text-muted);
+}
+
+.loadBar {
+    flex: 1;
+    height: 6px;
+    background: var(--color-surface-subtle);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.loadFill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 999px;
+}
+
+.loadLow {
+    background: var(--color-success);
+}
+
+.loadMed {
+    background: var(--color-warning);
+}
+
+.loadHigh {
+    background: var(--color-error);
+}
+
+.loadLabel {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    min-width: 60px;
+}
+
+/* ============================================================================
+   ACTION BUTTON
+   ============================================================================ */
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.actionButton span {
+    flex: 1;
+    text-align: left;
+}
+
+.priorityHigh {
+    background: var(--overlay-primary-10);
+    color: var(--color-accent);
+}
+
+.priorityHigh:hover {
+    background: var(--color-accent);
+    color: white;
+}
+
+.priorityMedium {
+    background: var(--overlay-amber-10);
+    color: var(--color-warning);
+}
+
+.priorityMedium:hover {
+    background: var(--color-warning);
+    color: white;
+}
+
+.priorityLow {
+    background: var(--color-surface-subtle);
+    color: var(--color-text-light);
+}
+
+.priorityLow:hover {
+    background: var(--overlay-primary-10);
+    color: var(--color-accent);
+}

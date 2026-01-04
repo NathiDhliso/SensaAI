@@ -8,6 +8,7 @@
 import { getBedrockClient, invokeClaudeModel, type BedrockConfig } from './claude-client';
 import type { ConfusionPair, ConfusionQuestion, ConfusionDrillResult, ConfusionAnswer } from '@/lib/types/confusion';
 import type { LearningConcept } from '@/lib/types/learning';
+import type { SensaAILearningConcept, ConfusionPairMetadata } from '@/lib/content-adapter/transformer';
 
 const CONFUSION_SYSTEM_PROMPT = `You are an expert at identifying commonly confused concepts. 
 Generate confusion pairs that test the learner's ability to discriminate between similar concepts.
@@ -19,25 +20,65 @@ RULES:
 4. Keep all text concise and action-oriented`;
 
 /**
- * Generate confusion pairs from a list of concepts
+ * Enhanced confusion pair generation using SensaAI metadata
  */
-export async function generateConfusionPairs(
-    concepts: LearningConcept[],
-    subject: string,
-    config: BedrockConfig,
-    maxPairs: number = 5
-): Promise<ConfusionPair[]> {
-    const conceptNames = concepts.map(c => c.name).join(', ');
+export async function generateSensaAIConfusionPairs(
+  concepts: SensaAILearningConcept[],
+  subject: string,
+  config: BedrockConfig,
+  maxPairs: number = 5
+): Promise<ConfusionPairMetadata[]> {
+  // Use existing confusion pairs from metadata as a starting point
+  const existingPairs = new Map<string, ConfusionPairMetadata>();
+  
+  concepts.forEach(concept => {
+    concept.confusionPairs.forEach(pair => {
+      const key = `${concept.id}-${pair.relatedConceptId}`;
+      if (!existingPairs.has(key)) {
+        existingPairs.set(key, pair);
+      }
+    });
+  });
+  
+  // If we have enough high-quality pairs from metadata, use those
+  const highQualityPairs = Array.from(existingPairs.values())
+    .filter(pair => pair.similarityScore > 0.4)
+    .sort((a, b) => b.similarityScore - a.similarityScore)
+    .slice(0, maxPairs);
+  
+  if (highQualityPairs.length >= Math.min(3, maxPairs)) {
+    console.log(`[ConfusionGenerator] Using ${highQualityPairs.length} high-quality pairs from metadata`);
+    return highQualityPairs;
+  }
+  
+  // Otherwise, generate new pairs using Claude with enhanced context
+  const conceptContext = concepts
+    .filter(c => c.foundationLevel || c.tierLevel === 'Keystone')
+    .map(c => ({
+      name: c.name,
+      purpose: c.hookSentence,
+      keyPoints: c.keyPoints.slice(0, 2),
+      tier: c.tierLevel,
+      complexity: c.complexityScore
+    }));
+  
+  const prompt = `For the subject "${subject}", identify ${maxPairs} pairs of concepts that learners commonly confuse.
 
-    const prompt = `For the subject "${subject}", identify ${maxPairs} pairs of concepts that learners commonly confuse.
+Available concepts with context:
+${conceptContext.map(c => `- ${c.name}: ${c.purpose} (${c.tier}, complexity: ${c.complexity})`).join('\n')}
 
-Available concepts: ${conceptNames}
+Focus on concepts that are:
+1. Similar in purpose or application
+2. Used in related contexts
+3. Have overlapping terminology
+4. Differ in subtle but important ways
 
 For each pair, provide:
 1. The two concepts that are confused
 2. A one-sentence key distinction
 3. When to use each one
 4. What people commonly get wrong
+5. A memorable way to distinguish them
 
 OUTPUT JSON ARRAY:
 [
@@ -54,33 +95,46 @@ OUTPUT JSON ARRAY:
     "distinctionKey": "One sentence explaining the key difference",
     "whenToUseA": "Use A when...",
     "whenToUseB": "Use B when...",
-    "commonMistake": "People often wrongly think..."
+    "commonMistake": "People often wrongly think...",
+    "mnemonicDistinguisher": "Remember: A is like X, B is like Y"
   }
 ]
 
 Return ONLY the JSON array.`;
 
+  try {
     const client = getBedrockClient(config);
     const messages = [{ role: 'user' as const, content: prompt }];
 
     const response = await invokeClaudeModel(
-        client,
-        messages,
-        CONFUSION_SYSTEM_PROMPT
+      client,
+      messages,
+      CONFUSION_SYSTEM_PROMPT
     );
 
-    try {
-        const jsonMatch = response.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) {
-            throw new Error('No JSON array found in response');
-        }
-
-        const pairs: ConfusionPair[] = JSON.parse(jsonMatch[0]);
-        return pairs.slice(0, maxPairs);
-    } catch (error) {
-        console.error('Failed to parse confusion pairs:', error);
-        return [];
+    const jsonMatch = response.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      throw new Error('No JSON array found in response');
     }
+
+    const pairs: ConfusionPair[] = JSON.parse(jsonMatch[0]);
+    
+    // Convert to SensaAI format
+    return pairs.slice(0, maxPairs).map((pair, index) => ({
+      id: pair.id || `generated-conf-${index + 1}`,
+      relatedConceptId: pair.conceptB.name.toLowerCase().replace(/\s+/g, '-'),
+      relatedConceptName: pair.conceptB.name,
+      similarityScore: 0.7, // Assume high similarity for generated pairs
+      commonMistakes: [pair.commonMistake || `Confusing ${pair.conceptA.name} with ${pair.conceptB.name}`],
+      keyDifferences: [pair.distinctionKey],
+      mnemonicDistinguisher: (pair as any).mnemonicDistinguisher || pair.distinctionKey
+    }));
+    
+  } catch (error) {
+    console.error('Failed to generate enhanced confusion pairs:', error);
+    // Fallback to existing pairs
+    return Array.from(existingPairs.values()).slice(0, maxPairs);
+  }
 }
 
 /**

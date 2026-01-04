@@ -14,12 +14,12 @@
 /* --- FACTORY THEME (Engineering/CS) --- */
 /* Blueprint style grid */
 .themeFactory {
-    background-color: #f1f5f9;
+    background-color: var(--color-border-light);
     background-image:
-        linear-gradient(#cbd5e1 1px, transparent 1px),
-        linear-gradient(90deg, #cbd5e1 1px, transparent 1px);
+        linear-gradient(var(--color-border-emphasis) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-border-emphasis) 1px, transparent 1px);
     background-size: 20px 20px;
-    border-color: #94a3b8;
+    border-color: var(--color-text-muted);
 }
 
 .themeFactory::after {
@@ -37,45 +37,45 @@
 /* --- LIBRARY THEME (Humanities/Law) --- */
 /* Wood texture and warmth */
 .themeLibrary {
-    background-color: #fffbeb;
-    background-image: repeating-linear-gradient(45deg, #fef3c7 25%, transparent 25%, transparent 75%, #fef3c7 75%, #fef3c7), repeating-linear-gradient(45deg, #fef3c7 25%, #fffbeb 25%, #fffbeb 75%, #fef3c7 75%, #fef3c7);
+    background-color: var(--color-warning-bg);
+    background-image: repeating-linear-gradient(45deg, var(--color-warning-border) 25%, transparent 25%, transparent 75%, var(--color-warning-border) 75%, var(--color-warning-border)), repeating-linear-gradient(45deg, var(--color-warning-border) 25%, var(--color-warning-bg) 25%, var(--color-warning-bg) 75%, var(--color-warning-border) 75%, var(--color-warning-border));
     background-position: 0 0, 10px 10px;
     background-size: 20px 20px;
-    border-color: #b45309;
+    border-color: var(--color-amber-darker);
 }
 
 /* --- LABORATORY THEME (Science) --- */
 /* Clean graph paper */
 .themeLaboratory {
-    background-color: #f0f9ff;
+    background-color: var(--color-info-bg);
     background-image:
-        linear-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(14, 165, 233, 0.1) 1px, transparent 1px);
+        linear-gradient(var(--overlay-primary-10) 1px, transparent 1px),
+        linear-gradient(90deg, var(--overlay-primary-10) 1px, transparent 1px);
     background-size: 10px 10px;
-    border-color: #0ea5e9;
+    border-color: var(--color-info);
 }
 
 /* --- GARDEN THEME (Health/Social) --- */
 /* Organic leaves */
 .themeGarden {
-    background-color: #f0fdf4;
-    background-image: radial-gradient(#86efac 15%, transparent 16%);
+    background-color: var(--color-success-bg);
+    background-image: radial-gradient(var(--color-success-text) 15%, transparent 16%);
     background-size: 16px 16px;
-    border-color: #22c55e;
+    border-color: var(--color-success);
 }
 
 /* --- STUDIO THEME (Arts) --- */
 /* Abstract shapes */
 .themeStudio {
-    background-color: #faf5ff;
+    background-color: var(--color-bg-primary);
     background-image:
-        radial-gradient(circle at 100% 150%, #d8b4fe 24%, #faf5ff 25%, #faf5ff 28%, #d8b4fe 29%, #d8b4fe 36%, #faf5ff 36%, #faf5ff 40%, transparent 40%, transparent),
-        radial-gradient(circle at 0 150%, #d8b4fe 24%, #faf5ff 25%, #faf5ff 28%, #d8b4fe 29%, #d8b4fe 36%, #faf5ff 36%, #faf5ff 40%, transparent 40%, transparent),
-        radial-gradient(circle at 50% 100%, #f3e8ff 10%, #faf5ff 11%, #faf5ff 23%, #f3e8ff 24%, #f3e8ff 30%, #faf5ff 30%, #faf5ff 43%, transparent 43%, transparent),
-        radial-gradient(circle at 100% 50%, #f3e8ff 5%, #faf5ff 6%, #faf5ff 15%, #f3e8ff 16%, #f3e8ff 20%, #faf5ff 20%, #faf5ff 34%, #d8b4fe 34%, #d8b4fe 44%, #faf5ff 44%, #faf5ff 49%, transparent 49%, transparent),
-        radial-gradient(circle at 0 50%, #f3e8ff 5%, #faf5ff 6%, #faf5ff 15%, #f3e8ff 16%, #f3e8ff 20%, #faf5ff 20%, #faf5ff 34%, #d8b4fe 34%, #d8b4fe 44%, #faf5ff 44%, #faf5ff 49%, transparent 49%, transparent);
+        radial-gradient(circle at 100% 150%, var(--color-text-medium) 24%, var(--color-bg-primary) 25%, var(--color-bg-primary) 28%, var(--color-text-medium) 29%, var(--color-text-medium) 36%, var(--color-bg-primary) 36%, var(--color-bg-primary) 40%, transparent 40%, transparent),
+        radial-gradient(circle at 0 150%, var(--color-text-medium) 24%, var(--color-bg-primary) 25%, var(--color-bg-primary) 28%, var(--color-text-medium) 29%, var(--color-text-medium) 36%, var(--color-bg-primary) 36%, var(--color-bg-primary) 40%, transparent 40%, transparent),
+        radial-gradient(circle at 50% 100%, var(--color-text-light) 10%, var(--color-bg-primary) 11%, var(--color-bg-primary) 23%, var(--color-text-light) 24%, var(--color-text-light) 30%, var(--color-bg-primary) 30%, var(--color-bg-primary) 43%, transparent 43%, transparent),
+        radial-gradient(circle at 100% 50%, var(--color-text-light) 5%, var(--color-bg-primary) 6%, var(--color-bg-primary) 15%, var(--color-text-light) 16%, var(--color-text-light) 20%, var(--color-bg-primary) 20%, var(--color-bg-primary) 34%, var(--color-text-medium) 34%, var(--color-text-medium) 44%, var(--color-bg-primary) 44%, var(--color-bg-primary) 49%, transparent 49%, transparent),
+        radial-gradient(circle at 0 50%, var(--color-text-light) 5%, var(--color-bg-primary) 6%, var(--color-bg-primary) 15%, var(--color-text-light) 16%, var(--color-text-light) 20%, var(--color-bg-primary) 20%, var(--color-bg-primary) 34%, var(--color-text-medium) 34%, var(--color-text-medium) 44%, var(--color-bg-primary) 44%, var(--color-bg-primary) 49%, transparent 49%, transparent);
     background-size: 50px 50px;
-    border-color: #a855f7;
+    border-color: var(--color-accent);
 }
 
 /* Landmark Icon Containers */

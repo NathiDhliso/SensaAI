@@ -38,7 +38,7 @@
 .blueprintGrid {
     position: absolute;
     inset: 0;
-    background: var(--color-background-secondary, #0a0a1a);
+    background: var(--color-bg-secondary);
 }
 
 .gridSvg {

@@ -1,7 +1,7 @@
 .backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-black-60);
     backdrop-filter: blur(4px);
     z-index: 1000;
 }
@@ -12,7 +12,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     background: var(--color-bg-neutral);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--overlay-white-10);
     border-radius: 1rem;
     padding: 1.5rem;
     width: 90%;
@@ -54,7 +54,7 @@
 }
 
 .warningIcon {
-    color: #f59e0b;
+    color: var(--color-warning);
 }
 
 .title {
@@ -74,18 +74,18 @@
 }
 
 .warning {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: var(--overlay-amber-10);
+    border: 1px solid var(--overlay-amber-20);
     border-radius: 0.5rem;
     padding: 0.75rem 1rem;
     font-size: 0.8125rem;
-    color: #fbbf24;
+    color: var(--color-secondary-amber);
     margin-bottom: 1.25rem;
     line-height: 1.5;
 }
 
 .warning strong {
-    color: #f59e0b;
+    color: var(--color-warning);
 }
 
 .actions {
@@ -108,8 +108,8 @@
 }
 
 .cancelButton {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--overlay-white-05);
+    border: 1px solid var(--overlay-white-10);
     color: var(--color-text-light);
 }
 
@@ -119,13 +119,13 @@
 }
 
 .confirmButton {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: var(--gradient-amber);
     border: none;
     color: white;
 }
 
 .confirmButton:hover:not(:disabled) {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    background: var(--gradient-amber);
     transform: translateY(-1px);
 }
 
@@ -144,6 +144,7 @@
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }

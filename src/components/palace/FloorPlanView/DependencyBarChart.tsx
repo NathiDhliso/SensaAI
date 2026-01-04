@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { SubjectGraph } from '@/lib/types/learning';
 import type { LearningConcept } from '@/lib/types/learning';
+import { GRAPH_COLORS, COLORS } from '@/constants/theme-colors';
 import styles from './DependencyBarChart.module.css';
 
 export interface DependencyBarChartProps {
@@ -29,10 +30,10 @@ export interface DependencyBarChartProps {
  */
 function getTierColor(tier: string | undefined): string {
     switch (tier) {
-        case 'Foundation': return '#10b981';
-        case 'Keystone': return '#8b5cf6';
-        case 'Utility': return '#f59e0b';
-        default: return '#6b7280';
+        case 'Foundation': return GRAPH_COLORS.foundation;
+        case 'Keystone': return GRAPH_COLORS.keystone;
+        case 'Utility': return GRAPH_COLORS.utility;
+        default: return COLORS.text.light;
     }
 }
 
@@ -137,15 +138,15 @@ export function DependencyBarChart({
             {/* Legend */}
             <div className={styles.legend}>
                 <div className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: '#10b981' }} />
+                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.foundation }} />
                     <span>Foundation</span>
                 </div>
                 <div className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: '#8b5cf6' }} />
+                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.keystone }} />
                     <span>Keystone</span>
                 </div>
                 <div className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ backgroundColor: '#f59e0b' }} />
+                    <span className={styles.legendDot} style={{ backgroundColor: GRAPH_COLORS.utility }} />
                     <span>Utility</span>
                 </div>
             </div>
