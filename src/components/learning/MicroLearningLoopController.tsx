@@ -620,80 +620,71 @@ export function MicroLearningLoopController({
                 </div>
             </div>
 
-            {/* Loop timing info and Cognitive Gauge */}
-            <div className={styles.loopInfo}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Zap size={16} />
-                    <span>Target: {Math.round(loopDuration / 60)}min loop</span>
-                </div>
-                <span className={styles.separator}>•</span>
-                <span>Complexity: {complexityScore}/10</span>
-                <span className={styles.separator}>•</span>
-                {/* Embedded Cognitive Gauge - Active monitoring during learning */}
-                <CognitiveGauge compact />
-            </div>
+
 
             {/* Phase content */}
-            <AnimatePresence mode="wait">
-                {phase === 'worked-example' && (
-                    <WorkedExamplePhase
-                        key="worked-example"
-                        concept={concept}
-                        onComplete={handleWorkedExampleComplete}
-                    />
-                )}
-                {phase === 'test' && (
-                    <TestPhase
-                        key="test"
-                        concept={concept}
-                        keyPoints={keyPoints}
-                        timeLimit={Math.round(loopDuration * 0.4)} // 40% of loop for test
-                        onComplete={handleTestComplete}
-                    />
-                )}
-                {phase === 'learn' && (
-                    <LearnPhase
-                        key="learn"
-                        concept={concept}
-                        keyPoints={keyPoints}
-                        onComplete={handleLearnComplete}
-                    />
-                )}
-                {phase === 'verify' && (
-                    <VerifyPhase
-                        key="verify"
-                        concept={concept}
-                        keyPoints={keyPoints}
-                        onComplete={handleVerifyComplete}
-                    />
-                )}
-                {phase === 'confusion' && allConcepts && (
-                    <ConfusionPrevention
-                        key="confusion"
-                        currentConcept={concept}
-                        allConcepts={allConcepts}
-                        onDrillComplete={(res) => {
-                            // Can record drill result
-                            const outcome = testResult && verifyResultData
-                                ? determineOutcome(testResult, verifyResultData)
-                                : 'mastered';
-                            onLoopComplete(outcome, totalTimeSpent + res.timeSpent);
-                        }}
-                        onSkip={() => {
-                            const outcome = testResult && verifyResultData
-                                ? determineOutcome(testResult, verifyResultData)
-                                : 'mastered';
-                            onLoopComplete(outcome, totalTimeSpent);
-                        }}
-                    />
-                )}
-            </AnimatePresence>
+            {/* Main Content Area */}
+            <div className={styles.contentArea}>
+                <AnimatePresence mode="wait">
+                    {phase === 'worked-example' && (
+                        <WorkedExamplePhase
+                            key="worked-example"
+                            concept={concept}
+                            onComplete={handleWorkedExampleComplete}
+                        />
+                    )}
+                    {phase === 'test' && (
+                        <TestPhase
+                            key="test"
+                            concept={concept}
+                            keyPoints={keyPoints}
+                            timeLimit={Math.round(loopDuration * 0.4)}
+                            onComplete={handleTestComplete}
+                        />
+                    )}
+                    {phase === 'learn' && (
+                        <LearnPhase
+                            key="learn"
+                            concept={concept}
+                            keyPoints={keyPoints}
+                            onComplete={handleLearnComplete}
+                        />
+                    )}
+                    {phase === 'verify' && (
+                        <VerifyPhase
+                            key="verify"
+                            concept={concept}
+                            keyPoints={keyPoints}
+                            onComplete={handleVerifyComplete}
+                        />
+                    )}
+                    {phase === 'confusion' && allConcepts && (
+                        <ConfusionPrevention
+                            key="confusion"
+                            currentConcept={concept}
+                            allConcepts={allConcepts}
+                            onDrillComplete={(res) => {
+                                const outcome = testResult && verifyResultData
+                                    ? determineOutcome(testResult, verifyResultData)
+                                    : 'mastered';
+                                onLoopComplete(outcome, totalTimeSpent + res.timeSpent);
+                            }}
+                            onSkip={() => {
+                                const outcome = testResult && verifyResultData
+                                    ? determineOutcome(testResult, verifyResultData)
+                                    : 'mastered';
+                                onLoopComplete(outcome, totalTimeSpent);
+                            }}
+                        />
+                    )}
+                </AnimatePresence>
 
-            {/* Skip button */}
-            <button className={styles.skipButton} onClick={onSkip}>
-                <RotateCcw size={16} />
-                Skip this concept
-            </button>
+                {/* Skip button - positioned at bottom of content */}
+                <button className={styles.skipButton} onClick={onSkip}>
+                    <RotateCcw size={16} />
+                    Skip this concept
+                </button>
+            </div>
         </div>
     );
 }

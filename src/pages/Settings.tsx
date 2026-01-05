@@ -186,9 +186,9 @@ export default function Settings() {
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
-        <button onClick={() => navigate('/')} className={styles.backButton}>
+        <button onClick={() => navigate(-1)} className={styles.backButton}>
           <ArrowLeft className={styles.backIcon} />
-          Back to Home
+          Back
         </button>
 
         <div className={styles.card}>

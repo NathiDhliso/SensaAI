@@ -8,14 +8,31 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    max-width: 640px;
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+    width: 100%;
+    /* Remove max-width constraint */
+    max-width: none;
     margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+    .container {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        /* Sidebar | Content */
+        align-items: start;
+        gap: var(--spacing-8);
+        padding: var(--spacing-8);
+    }
 }
 
 /* ============================================================================
    PHASE INDICATOR
+   ============================================================================ */
+
+/* ============================================================================
+   PHASE INDICATOR (SIDEBAR)
    ============================================================================ */
 
 .phaseIndicator {
@@ -24,6 +41,25 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 0;
+
+    /* Grid placement */
+    grid-column: 1 / -1;
+}
+
+@media (min-width: 1024px) {
+    .phaseIndicator {
+        grid-column: 1 / 2;
+        grid-row: 1;
+        flex-direction: column;
+        /* Vertical stack */
+        align-items: stretch;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-4);
+        position: sticky;
+        top: var(--spacing-4);
+    }
 }
 
 .phaseStep {
@@ -37,6 +73,13 @@
     color: var(--color-text-muted);
     background: var(--color-surface-subtle);
     transition: all 0.3s ease;
+}
+
+@media (min-width: 1024px) {
+    .phaseStep {
+        border-radius: var(--radius-lg);
+        justify-content: flex-start;
+    }
 }
 
 .phaseStep.active {
@@ -56,25 +99,48 @@
     background: var(--color-border);
 }
 
+@media (min-width: 1024px) {
+    .phaseLine {
+        width: 2px;
+        height: 16px;
+        /* Vertical connector */
+        margin-left: 1.5rem;
+        /* Align with icons */
+        background: var(--color-border);
+    }
+}
+
 /* ============================================================================
-   LOOP INFO
+   LOOP INFO (SIDEBAR)
    ============================================================================ */
 
-.loopInfo {
+
+
+/* ============================================================================
+   PHASE CARD
+   ============================================================================ */
+
+/* ============================================================================
+   CONTENT AREA (MAIN GRID COLUMN)
+   ============================================================================ */
+
+.contentArea {
+    /* Grid placement - Default Mobile */
+    grid-column: 1 / -1;
+
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
+    flex-direction: column;
+    gap: var(--spacing-4);
+    min-width: 0;
+    /* Prevent grid blowout */
 }
 
-.loopInfo svg {
-    color: var(--color-accent);
-}
-
-.separator {
-    color: var(--color-border);
+@media (min-width: 1024px) {
+    .contentArea {
+        grid-column: 2 / -1;
+        grid-row: 1 / -1;
+        /* Span full height */
+    }
 }
 
 /* ============================================================================
@@ -87,6 +153,9 @@
     border-radius: 1rem;
     overflow: hidden;
     box-shadow: var(--shadow-lg);
+    width: 100%;
+
+    /* No specific grid placement needed here as it's inside contentArea */
 }
 
 .phaseHeader {
@@ -112,7 +181,7 @@
 .phaseTitle {
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     margin: 0;
 }
 
@@ -133,7 +202,7 @@
     font-size: 1rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    color: var(--color-text);
+    color: var(--color-text-dark);
 }
 
 .timer.timerWarning {
@@ -156,7 +225,7 @@
     border: 2px solid var(--color-border);
     border-radius: 0.75rem;
     font-size: 1rem;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     resize: vertical;
     min-height: 150px;
     font-family: inherit;
@@ -199,7 +268,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: var(--color-text);
+    color: var(--color-text-dark);
 }
 
 .confidenceBtn:hover {
@@ -235,13 +304,13 @@
 .conceptHighlight h4 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     margin: 0;
 }
 
 .hookSentence {
     font-size: 1.125rem;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     line-height: 1.6;
     margin-bottom: 1rem;
 }
@@ -279,7 +348,7 @@
     padding: 0.5rem 0;
     padding-left: 1rem;
     position: relative;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     font-size: 1rem;
     line-height: 1.5;
 }
@@ -300,7 +369,9 @@
     background: var(--color-surface-subtle);
     border-radius: 0.75rem;
     padding: 1rem;
+    padding: 1rem;
     border: 1px solid var(--color-border);
+    color: var(--color-text-medium);
 }
 
 .sectionHeader {
@@ -328,7 +399,7 @@
 .sectionTitle {
     font-size: 1rem;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     margin: 0;
     line-height: 1.2;
 }
@@ -348,7 +419,7 @@
 .systemPhysicsList {
     margin: 0;
     padding-left: 1.5rem;
-    color: var(--color-text);
+    color: var(--color-text-dark);
 }
 
 .sectionList li,
@@ -395,7 +466,7 @@
 
 .technicalDetails p {
     font-size: 0.875rem;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     line-height: 1.6;
     margin: 0;
 }
@@ -406,7 +477,7 @@
 
 .verifyQuestion {
     font-size: 1.125rem;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     line-height: 1.5;
     margin-bottom: 1rem;
 }
@@ -457,7 +528,7 @@
 
 .optionText {
     font-size: 1rem;
-    color: var(--color-text);
+    color: var(--color-text-dark);
     line-height: 1.4;
 }
 

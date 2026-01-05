@@ -333,9 +333,9 @@ export function BlankSheetTest({
                                     onClick={() => toggle(result.coachFeedback!.encouragement + " " + result.coachFeedback!.message)}
                                     disabled={isVoiceLoading}
                                     title={isVoicePlaying ? "Stop" : "Hear coach"}
-                                    style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', display: 'inline-flex', verticalAlign: 'middle' }}
+                                    className={styles.coachAudioButton}
                                 >
-                                    {isVoiceLoading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> :
+                                    {isVoiceLoading ? <Loader2 size={16} className={styles.spinning} /> :
                                         isVoicePlaying ? <Square size={16} fill="currentColor" /> : <Volume2 size={16} />}
                                 </button>
                             </p>

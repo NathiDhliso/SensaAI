@@ -53,8 +53,10 @@
 /* Grid layout for larger screens - minimize scrolling */
 @media (min-width: 1200px) {
     .content {
-        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        /* Full width grid */
+        grid-template-columns: 1fr;
         padding: 2rem 3rem;
+        max-width: none;
     }
 }
 
@@ -65,7 +67,8 @@
     justify-content: center;
     height: 100%;
     text-align: center;
-    max-width: 400px;
+    max-width: 600px;
+    /* Increased from 400px */
     color: var(--color-text-light);
     margin: 0 auto;
 }
@@ -118,12 +121,13 @@
 /* Full-width grid layout for better screen utilization */
 @media (min-width: 1400px) {
     .mainArea {
-        grid-template-columns: 1fr 1fr;
+        /* If dashboard is present, side-by-side, otherwise full */
+        grid-template-columns: 1fr;
         gap: 2rem;
     }
 
     .dashboardContainer {
-        grid-column: 1 / -1;
+        width: 100%;
     }
 }
 

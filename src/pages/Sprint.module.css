@@ -78,7 +78,8 @@
 /* Question card */
 .questionCard {
     width: 100%;
-    max-width: 700px;
+    /* Unlocking width for Silver Bullet Grid */
+    max-width: 1200px;
     background: var(--color-bg-primary);
     border-radius: 1.5rem;
     box-shadow: var(--shadow-lg);

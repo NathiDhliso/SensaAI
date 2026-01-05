@@ -116,13 +116,29 @@
 
 .overviewTab {
   padding: 1.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 1200px) {
+  .overviewTab {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    grid-template-rows: auto 1fr auto;
+    /* Stats | Map/Sidebar | Bottom */
+    align-items: start;
+    gap: 2rem;
+  }
 }
 
 .statsRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
-  margin-bottom: 2rem;
+  /* margin-bottom: 2rem; handled by grid gap */
+
+  grid-column: 1 / -1;
 }
 
 .statCard {
@@ -158,7 +174,31 @@
 }
 
 .section {
-  margin-bottom: 2rem;
+  /* margin-bottom: 2rem; handled by grid gap */
+  min-width: 0;
+  /* Fixes empty ruleset and prevents grid overflow */
+}
+
+/* Specific section targeting via child index or class would be better if structure allows */
+/* Since Study.tsx uses generic .section, we target mapContainer specifically */
+
+.mapContainer {
+  flex: 1;
+  /* ... existing styles ... */
+  min-height: 600px;
+
+  grid-column: 1 / -1;
+  /* Default mobile */
+}
+
+@media (min-width: 1200px) {
+  .mapContainer {
+    grid-column: 1 / 2;
+    grid-row: 2 / 5;
+    /* Spans down to cover sidebar items */
+    height: 100%;
+    min-height: 700px;
+  }
 }
 
 .sectionTitle {
@@ -183,7 +223,23 @@
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  /* Default row */
   gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+
+  /* If this section is the metrics section */
+  .section:has(.metricsGrid) {
+    grid-column: 2 / 3;
+    grid-row: 2;
+    margin-bottom: 0;
+  }
+
+  .metricsGrid {
+    grid-template-columns: 1fr;
+    /* Stack vertically in sidebar */
+  }
 }
 
 .metricItem {
@@ -227,6 +283,20 @@
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   margin-top: 1rem;
+
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1200px) {
+  .sprintPrompt {
+    grid-column: 2 / 3;
+    grid-row: 3;
+    /* Below metrics */
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    margin-top: 0;
+  }
 }
 
 .sprintPromptContent {
@@ -390,25 +460,15 @@
 
   .overlayContainer {
     width: 100%;
-    max-width: 1000px;
+    /* max-width: 1000px; REMOVED */
     height: 100%;
     max-height: 90vh;
     position: relative;
+    padding: 0 var(--spacing-8);
+    /* Add some breathing room */
   }
 
-  .overlayCloseButton {
-    position: absolute;
-    top: -3rem;
-    right: 0;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 500;
-  }
+  /* ... close button ... */
 
   .overlayModal {
     position: fixed;
@@ -422,5 +482,6 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    backdrop-filter: blur(10px);
   }
 }
