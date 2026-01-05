@@ -65,7 +65,7 @@ export default function SavedResults() {
 
   const handleConfirmLearning = () => {
     if (!previewResult) return;
-    
+
     const parseResult = parseAndLoad(previewResult.fullDocument);
 
     if (!parseResult.success) {
@@ -80,6 +80,35 @@ export default function SavedResults() {
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleOpenDownloads = () => {
+    // Create a temporary link to trigger the browser's download folder opening
+    // This works by creating a download that the user can then "Show in folder"
+    // Note: Direct folder opening is not possible in browsers for security reasons
+    // Instead, we'll show a helpful message
+    const isWindows = navigator.userAgent.includes('Windows');
+    const isMac = navigator.userAgent.includes('Mac');
+
+    let message = 'Files are saved to your browser\'s default Downloads folder.\n\n';
+
+    if (isWindows) {
+      message += 'To open Downloads folder:\n';
+      message += '• Press Win + E to open File Explorer\n';
+      message += '• Click "Downloads" in the left sidebar\n';
+      message += '• Or type "downloads" in the Windows search bar';
+    } else if (isMac) {
+      message += 'To open Downloads folder:\n';
+      message += '• Press Cmd + Option + L in Finder\n';
+      message += '• Or press Cmd + Shift + J in Chrome/Edge\n';
+      message += '• Or click Downloads in Finder sidebar';
+    } else {
+      message += 'To open Downloads folder:\n';
+      message += '• Press Ctrl + J in most browsers to see downloads\n';
+      message += '• Or check your file manager\'s Downloads folder';
+    }
+
+    alert(message);
   };
 
   const filteredResults = useMemo(() => {
@@ -186,10 +215,14 @@ export default function SavedResults() {
                 Cloud Sync Enabled
               </div>
             ) : (
-              <div className={styles.localHint}>
+              <button
+                onClick={handleOpenDownloads}
+                className={styles.localHint}
+                title="Click for info on opening Downloads folder"
+              >
                 <HardDrive size={14} />
                 Files saved to Downloads folder
-              </div>
+              </button>
             )}
           </div>
         </div>
@@ -356,13 +389,13 @@ export default function SavedResults() {
         {previewResult && (
           <div className={styles.previewOverlay} onClick={() => setPreviewResult(null)}>
             <div className={styles.previewModal} onClick={e => e.stopPropagation()}>
-              <button 
-                className={styles.previewCloseButton} 
+              <button
+                className={styles.previewCloseButton}
                 onClick={() => setPreviewResult(null)}
               >
                 <X size={20} />
               </button>
-              
+
               <div className={styles.previewHeader}>
                 <Sparkles className={styles.previewIcon} />
                 <h2>{previewResult.subject}</h2>
@@ -397,13 +430,13 @@ export default function SavedResults() {
               </div>
 
               <div className={styles.previewActions}>
-                <button 
+                <button
                   className={styles.previewCancelButton}
                   onClick={() => setPreviewResult(null)}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   className={styles.previewStartButton}
                   onClick={handleConfirmLearning}
                 >
