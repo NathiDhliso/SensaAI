@@ -1,3 +1,7 @@
+import { COLORS } from '@/constants/theme-colors';
+
+export type PalaceTheme = 'blueprint' | 'warm' | 'cool' | 'nature' | 'mystic' | 'minimal';
+
 export type RoomTheme = 'Factory' | 'Library' | 'Garden' | 'Laboratory' | 'Studio' | 'Default';
 
 export const VISUAL_PALETTES = {
@@ -45,32 +49,32 @@ export function getThemeForSubject(subject: string): RoomTheme {
 export const THEMES: Record<RoomTheme, ThemeConfig> = {
     Factory: {
         name: 'Factory',
-        colors: { background: '#f1f5f9', border: '#94a3b8', accent: '#64748b' },
+        colors: { background: COLORS.text.light, border: COLORS.text.muted, accent: COLORS.text.medium },
         pattern: 'blueprint'
     },
     Library: {
         name: 'Library',
-        colors: { background: '#fffbeb', border: '#b45309', accent: '#92400e' },
+        colors: { background: COLORS.warning, border: COLORS.secondary.amber, accent: COLORS.secondary.amber },
         pattern: 'dark-wood'
     },
     Laboratory: {
         name: 'Laboratory',
-        colors: { background: '#f0f9ff', border: '#0ea5e9', accent: '#0284c7' },
+        colors: { background: COLORS.info, border: COLORS.info, accent: COLORS.info },
         pattern: 'graph-paper'
     },
     Garden: {
         name: 'Garden',
-        colors: { background: '#f0fdf4', border: '#22c55e', accent: '#16a34a' },
+        colors: { background: COLORS.success, border: COLORS.success, accent: COLORS.secondary.sage },
         pattern: 'leaf'
     },
     Studio: {
         name: 'Studio',
-        colors: { background: '#faf5ff', border: '#a855f7', accent: '#9333ea' },
+        colors: { background: COLORS.primary.amethyst, border: COLORS.primary.plum, accent: COLORS.accent.default },
         pattern: 'abstract'
     },
     Default: {
         name: 'Default',
-        colors: { background: '#ffffff', border: '#e2e8f0', accent: '#64748b' },
+        colors: { background: '#ffffff', border: COLORS.text.muted, accent: COLORS.text.muted },
         pattern: 'none'
     }
 };

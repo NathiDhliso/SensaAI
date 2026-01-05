@@ -11,7 +11,6 @@
   flex-direction: column;
   background: var(--color-bg-neutral);
   /* Ensure text legibility on potential texture backgrounds */
-  background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(2px);
   overflow: hidden;
 }

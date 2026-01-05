@@ -80,14 +80,14 @@
 
   /* ========== NEUTRAL TEXT COLORS ========== */
   /* WCAG AA compliant contrast ratios */
-  --color-text-dark: #111827;
-  /* Primary text - very dark gray */
-  --color-text-medium: #374151;
-  /* Secondary text - dark gray */
-  --color-text-light: #4b5563;
-  /* Tertiary text - medium gray */
-  --color-text-muted: #6b7280;
-  /* Muted/placeholder - still readable */
+  --color-text-dark: #171923;
+  /* Primary text - Deep, high contrast */
+  --color-text-medium: #4A5568;
+  /* Secondary text - Readable AA standard */
+  --color-text-light: #595959;
+  /* Tertiary text - Darkened for legibility */
+  --color-text-muted: #64748b;
+  /* Muted/placeholder - Slate 500 (Passes WCAG AA) */
 
   /* Text Color Aliases (for component compatibility) */
   --color-text-primary: var(--color-text-dark);

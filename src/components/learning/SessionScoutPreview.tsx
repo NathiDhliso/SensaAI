@@ -134,12 +134,12 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                         </div>
                         <div className={styles.visualsGrid}>
                             {concepts.slice(0, 4).map(c => (
-                                <div key={c.id} className={styles.visualCard}>
+                                <motion.div key={c.id} className={styles.visualCard} layoutId={`learning-focus-container`}>
                                     <div className={styles.visualPlaceholder}>
                                         {renderShapeOrIcon(c.icon, 'md')}
                                     </div>
                                     <span className={styles.visualLabel}>Diagram: {c.name} Structure</span>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
                     </div>

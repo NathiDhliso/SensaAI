@@ -47,6 +47,11 @@ function processTextNodes(element: Element): void {
                     return NodeFilter.FILTER_REJECT;
                 }
 
+                // Skip SVG elements and their children
+                if (parent.closest('svg')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+
                 // Skip if already has bionic formatting
                 if (parent.classList.contains('bionic') || parent.closest('.bionic-processed')) {
                     return NodeFilter.FILTER_REJECT;

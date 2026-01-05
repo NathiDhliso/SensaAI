@@ -117,6 +117,7 @@ export default function VelocityLearning() {
         }
     }, [currentSession, studySession?.isActive, studySession?.primer, showStartModal]);
 
+
     // Handlers
     const handleStartSession = (goal: any, duration: number, primer?: { reason: string; action: string; reward: string }) => {
         startStudySession(goal, duration);
@@ -131,8 +132,19 @@ export default function VelocityLearning() {
         markSessionPreviewed();
     };
 
-    const handleLoopComplete = (_outcome: 'mastered' | 'needs-learning' | 'needs-review', _timeSpent: number) => {
+    const handleLoopComplete = (outcome: 'mastered' | 'needs-learning' | 'needs-review', _timeSpent: number) => {
         if (!activeConcept) return;
+
+        // "Sonic Boom" Effect for Mastery
+        if (outcome === 'mastered') {
+            // Play success sound
+            const audio = new Audio('/audio/voice/sage_master_success.mp3');
+            audio.volume = 0.5; // Reasonable volume
+            audio.play().catch(e => console.warn('Audio play failed', e));
+
+            // Visual flash handled by CSS/Component if desired, or assume MicroLearningLoop handles it internal visuals relative to its own state
+            // But we can also add a global flash here via store or transient state
+        }
 
         // 1. Mark concept as complete
         completeConcept(activeConcept.id);
@@ -154,6 +166,8 @@ export default function VelocityLearning() {
         // For now, let the store logic handle standard flow
     };
 
+    const cognitiveLoad = 0.4; // TODO: Connect to real store metric
+
     // 1. Empty State - No Content Loaded
     if (!currentSession) {
         return (
@@ -170,26 +184,36 @@ export default function VelocityLearning() {
 
     // 2. Active Learning Interface
     return (
-        <div className={styles.container}>
-            {/* Header with Dashboard */}
-            <header className={styles.header}>
-                <div className={styles.title}>
-                    <Rocket size={24} color={COLORS.info} />
-                    <span>Velocity Learning</span>
-                </div>
-                {/* Dashboard integrated in header or just below */}
-            </header>
+        <div className={styles.container} style={{
+            // Reactive Environment: Vignette based on load
+            '--cognitive-load': cognitiveLoad
+        } as React.CSSProperties}>
+
+            {/* HIDE Header during active loop for immersion */}
+            {(!activeConcept || !studySession?.primer) && (
+                <header className={styles.header}>
+                    <div className={styles.title}>
+                        <Rocket size={24} color={COLORS.info} />
+                        <span>Velocity Learning</span>
+                    </div>
+                </header>
+            )}
 
             <main className={styles.content}>
                 <div className={styles.mainArea}>
-                    {/* Velocity Dashboard */}
-                    <VelocityDashboard
-                        sessionConceptsCompleted={currentSession.progress.conceptsLearnedToday}
-                        sessionStartTime={currentSession.progress.sessionStartTime ? new Date(currentSession.progress.sessionStartTime) : undefined}
-                        // Simple mapping or fetch real cognitive load
-                        cognitiveLoad={0.4}
-                        onActionSelect={(action) => console.log('Action selected:', action)}
-                    />
+                    {/* THE COCKPIT: Only show full dashboard in "Meta" phases (Scout/Summary) */}
+                    <AnimatePresence>
+                        {(shouldShowScout || showDiagnostic || (!activeConcept && !showDiagnostic && !shouldShowScout)) && (
+                            <motion.div exit={{ opacity: 0, height: 0 }} className={styles.dashboardContainer}>
+                                <VelocityDashboard
+                                    sessionConceptsCompleted={currentSession.progress.conceptsLearnedToday}
+                                    sessionStartTime={currentSession.progress.sessionStartTime ? new Date(currentSession.progress.sessionStartTime) : undefined}
+                                    cognitiveLoad={cognitiveLoad}
+                                    onActionSelect={(action) => console.log('Action selected:', action)}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     <AnimatePresence mode="wait">
                         {/* Mode 0: Scout & Preview */}
@@ -242,9 +266,11 @@ export default function VelocityLearning() {
                             activeConcept && studySession?.primer ? (
                                 <motion.div
                                     key={`loop-${activeConcept.id}`}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
+                                    layoutId="learning-focus-container" // The Golden Thread
+                                    className={styles.immersiveContainer} // New class for full focus
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
                                 >
                                     <MicroLearningLoopController
                                         concept={activeConcept}

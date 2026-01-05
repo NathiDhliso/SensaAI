@@ -7,6 +7,8 @@
 
 export type PersonaId = 'goggins' | 'sage' | 'socratic' | 'coach' | 'buddy';
 
+import { COLORS } from '@/constants/theme-colors';
+
 export interface Persona {
     id: PersonaId;
     name: string;
@@ -37,7 +39,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
         tagline: "Stay hard! No excuses.",
         description: "Intense motivation. Pushes you through comfort zones. No shortcuts.",
         voiceStyle: "commanding, intense, no-nonsense",
-        color: '#DC2626', // Red
+        color: COLORS.error, // Red
         traits: {
             intensity: 5,
             warmth: 2,
@@ -58,7 +60,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
         tagline: "Wisdom through patience.",
         description: "Gentle guidance. Patient explanations. Celebrates small wins.",
         voiceStyle: "calm, measured, reassuring",
-        color: '#059669', // Emerald
+        color: COLORS.secondary.sage, // Emerald
         traits: {
             intensity: 1,
             warmth: 5,
@@ -78,7 +80,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
         tagline: "The answer is within you.",
         description: "Never gives answers. Asks questions that lead to insight.",
         voiceStyle: "curious, probing, thoughtful",
-        color: '#7C3AED', // Violet
+        color: COLORS.primary.amethyst, // Violet
         traits: {
             intensity: 2,
             warmth: 3,
@@ -98,7 +100,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
         tagline: "Let's go team!",
         description: "High energy. Celebrates victories. Keeps you pumped.",
         voiceStyle: "energetic, encouraging, team-oriented",
-        color: '#F59E0B', // Amber
+        color: COLORS.secondary.amber, // Amber
         traits: {
             intensity: 4,
             warmth: 4,
@@ -118,7 +120,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
         tagline: "We're in this together!",
         description: "Casual and friendly. Like studying with a smart friend.",
         voiceStyle: "casual, friendly, relatable",
-        color: '#3B82F6', // Blue
+        color: COLORS.info, // Blue
         traits: {
             intensity: 2,
             warmth: 4,

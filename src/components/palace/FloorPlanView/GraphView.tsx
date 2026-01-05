@@ -15,9 +15,11 @@ import styles from './GraphView.module.css';
 // Ensure surface/text colors are available on GRAPH_COLORS or define local fallback
 // Since GRAPH_COLORS is imported, assume it has palette. If not, we might need to cast or extend.
 // For safety, let's define the semantic colors used for the labels here if missing from constant.
+import { COLORS } from '@/constants/theme-colors';
+
 const LABEL_COLORS = {
-    surface: '#1e1e2e', // Dark background for pill
-    text: '#ffffff'     // White text
+    surface: COLORS.text.dark, // Dark background for pill
+    text: '#ffffff'     // White text - keeping white for contrast on dark pill
 };
 
 export interface GraphViewProps {
