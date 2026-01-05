@@ -52,14 +52,14 @@ function getEmojiSize(tier: MnemonicContext['tier'] | undefined, nodeWidth: numb
 /**
  * Get tier-based stroke color
  */
-function getTierColor(tier: MnemonicContext['tier'] | undefined): string {
+const getTierColor = (tier: string | undefined): string => {
     switch (tier) {
-        case 'Foundation': return 'rgba(16, 185, 129, 0.6)'; // Sage/green
-        case 'Keystone': return 'rgba(139, 92, 246, 0.6)'; // Purple
-        case 'Utility': return 'rgba(245, 158, 11, 0.5)'; // Amber
-        default: return 'rgba(107, 114, 128, 0.5)';
+        case 'Foundation': return 'var(--overlay-sage-10)';
+        case 'Keystone': return 'var(--overlay-accent-10)';
+        case 'Utility': return 'var(--overlay-amber-10)';
+        default: return 'var(--overlay-white-10)';
     }
-}
+};
 
 /**
  * MnemonicNode renders a concept as an interactive emoji rectangle.
@@ -125,8 +125,8 @@ export function MnemonicNode({
                 height={height}
                 rx="6"
                 ry="6"
-                fill={isSelected ? 'rgba(139, 92, 246, 0.2)' : 'rgba(30, 30, 50, 0.8)'}
-                stroke={isSelected ? 'rgba(139, 92, 246, 0.8)' : tierColor}
+                fill={isSelected ? 'var(--overlay-accent-10)' : 'var(--overlay-black-60)'}
+                stroke={isSelected ? 'var(--color-accent)' : tierColor}
                 strokeWidth={isSelected ? 3 : 2}
                 animate={{
                     scale: isHovered ? 1.02 : 1,
@@ -159,7 +159,7 @@ export function MnemonicNode({
                         y={centerY + emojiSize / 2 + 12}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fill="rgba(255, 255, 255, 0.9)"
+                        fill="var(--overlay-white-80)"
                         fontSize={Math.min(12, width / 8)}
                         fontWeight="500"
                         fontFamily="system-ui, sans-serif"

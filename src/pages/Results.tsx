@@ -190,7 +190,7 @@ export default function Results() {
     // Helper to map transformed concepts to palace structure
     const mappedStages = stages.map(stage => ({
       id: stage.id,
-      name: stage.name,
+      name: stage.name || stage.title,
       concepts: transformed.concepts.filter(c => c.stageId === stage.id).map(c => ({
         id: c.id,
         name: c.name,

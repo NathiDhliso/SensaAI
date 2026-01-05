@@ -81,7 +81,7 @@ export function FloorPlanView({
                         <path
                             d="M 40 0 L 0 0 0 40"
                             fill="none"
-                            stroke="rgba(59, 130, 246, 0.1)"
+                            stroke="var(--overlay-primary-5)"
                             strokeWidth="1"
                         />
                     </pattern>

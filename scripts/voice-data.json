@@ -1,0 +1,732 @@
+[
+    {
+        "persona": "goggins",
+        "voiceId": "pNInz6obpgDQGcFmaJgB",
+        "lines": [
+            {
+                "filename": "goggins_prime_intro.mp3",
+                "text": "Time to work. No excuses. Write down WHY you're here."
+            },
+            {
+                "filename": "goggins_prime_encouragement.mp3",
+                "text": "Good. You showed up. That's more than most people do."
+            },
+            {
+                "filename": "goggins_prime_struggle.mp3",
+                "text": "Struggling? Good. That's where growth happens. Push through."
+            },
+            {
+                "filename": "goggins_prime_success.mp3",
+                "text": "You set your intention. Now LIVE it. Let's go."
+            },
+            {
+                "filename": "goggins_prime_transition.mp3",
+                "text": "Engine's primed. Now it's time to hunt."
+            },
+            {
+                "filename": "goggins_scout_intro.mp3",
+                "text": "Survey the battlefield. Know what you're up against."
+            },
+            {
+                "filename": "goggins_scout_encouragement.mp3",
+                "text": "You're building the map. Most people just dive in blind."
+            },
+            {
+                "filename": "goggins_scout_struggle.mp3",
+                "text": "Confused? That means you're paying attention. Keep going."
+            },
+            {
+                "filename": "goggins_scout_success.mp3",
+                "text": "Territory scouted. You know where the fight is."
+            },
+            {
+                "filename": "goggins_scout_transition.mp3",
+                "text": "You've seen the terrain. Now find the targets."
+            },
+            {
+                "filename": "goggins_preview_intro.mp3",
+                "text": "Look at these problems. These are your TARGETS. Study them."
+            },
+            {
+                "filename": "goggins_preview_encouragement.mp3",
+                "text": "You're not solving yet. You're loading the gun."
+            },
+            {
+                "filename": "goggins_preview_struggle.mp3",
+                "text": "Don't understand the problem? PERFECT. Now you know what to hunt for."
+            },
+            {
+                "filename": "goggins_preview_success.mp3",
+                "text": "Targets acquired. Now go get the knowledge to destroy them."
+            },
+            {
+                "filename": "goggins_preview_transition.mp3",
+                "text": "You know what mastery looks like. Time to build."
+            },
+            {
+                "filename": "goggins_build_intro.mp3",
+                "text": "Concept map time. Connect the dots. Find the RELATIONSHIPS."
+            },
+            {
+                "filename": "goggins_build_encouragement.mp3",
+                "text": "Each connection you make is a weapon in your arsenal."
+            },
+            {
+                "filename": "goggins_build_struggle.mp3",
+                "text": "Can't find the connection? Dig deeper. It's there."
+            },
+            {
+                "filename": "goggins_build_success.mp3",
+                "text": "Web is built. Your understanding is taking shape."
+            },
+            {
+                "filename": "goggins_build_transition.mp3",
+                "text": "Understanding built. Now prove you can USE it."
+            },
+            {
+                "filename": "goggins_apply_intro.mp3",
+                "text": "Theory is nothing without practice. Let's work problems."
+            },
+            {
+                "filename": "goggins_apply_encouragement.mp3",
+                "text": "Struggle with the example. That's how you BURN it in."
+            },
+            {
+                "filename": "goggins_apply_struggle.mp3",
+                "text": "Wrong answer? Good information. Now you know where to improve."
+            },
+            {
+                "filename": "goggins_apply_success.mp3",
+                "text": "You worked through it. That's how champions train."
+            },
+            {
+                "filename": "goggins_apply_transition.mp3",
+                "text": "Skills sharpening. Now lock them in permanently."
+            },
+            {
+                "filename": "goggins_retain_intro.mp3",
+                "text": "Blank sheet. No notes. Show me what you ACTUALLY know."
+            },
+            {
+                "filename": "goggins_retain_encouragement.mp3",
+                "text": "The struggle of recall is what makes memory permanent."
+            },
+            {
+                "filename": "goggins_retain_struggle.mp3",
+                "text": "Can't remember? THAT'S the signal to your brain: STORE THIS."
+            },
+            {
+                "filename": "goggins_retain_success.mp3",
+                "text": "You pulled it from memory. That's REAL knowledge."
+            },
+            {
+                "filename": "goggins_retain_transition.mp3",
+                "text": "Memory strengthened. One more challenge awaits."
+            },
+            {
+                "filename": "goggins_master_intro.mp3",
+                "text": "Final test. Can you APPLY this knowledge anywhere? Prove it."
+            },
+            {
+                "filename": "goggins_master_encouragement.mp3",
+                "text": "Change the scenario. If you truly understand, you can adapt."
+            },
+            {
+                "filename": "goggins_master_struggle.mp3",
+                "text": "Getting tripped up? That's showing you where understanding is shallow."
+            },
+            {
+                "filename": "goggins_master_success.mp3",
+                "text": "You can transfer knowledge. You EARNED this mastery."
+            },
+            {
+                "filename": "goggins_master_transition.mp3",
+                "text": "Mastery achieved. You did the work. Stay hard."
+            }
+        ]
+    },
+    {
+        "persona": "sage",
+        "voiceId": "aipLxTYFE7dum3mKtPZI",
+        "lines": [
+            {
+                "filename": "sage_prime_intro.mp3",
+                "text": "Take a breath. Before we begin, let's connect with your purpose."
+            },
+            {
+                "filename": "sage_prime_encouragement.mp3",
+                "text": "Your intention is beautiful. It will guide your learning."
+            },
+            {
+                "filename": "sage_prime_struggle.mp3",
+                "text": "It's okay to be uncertain. Clarity comes through action."
+            },
+            {
+                "filename": "sage_prime_success.mp3",
+                "text": "You've planted the seed. Now let's nurture it together."
+            },
+            {
+                "filename": "sage_prime_transition.mp3",
+                "text": "With clear intention, we're ready to explore."
+            },
+            {
+                "filename": "sage_scout_intro.mp3",
+                "text": "Let's gently survey what lies ahead. No pressure—just curiosity."
+            },
+            {
+                "filename": "sage_scout_encouragement.mp3",
+                "text": "You're creating scaffolding for understanding. Wise approach."
+            },
+            {
+                "filename": "sage_scout_struggle.mp3",
+                "text": "Confusion is the beginning of wisdom. Embrace it."
+            },
+            {
+                "filename": "sage_scout_success.mp3",
+                "text": "You've seen the landscape. The path is becoming clear."
+            },
+            {
+                "filename": "sage_scout_transition.mp3",
+                "text": "With awareness of the whole, we can explore the parts."
+            },
+            {
+                "filename": "sage_preview_intro.mp3",
+                "text": "Let's look at where this knowledge leads. What problems will you solve?"
+            },
+            {
+                "filename": "sage_preview_encouragement.mp3",
+                "text": "You're learning with purpose. That's rare and powerful."
+            },
+            {
+                "filename": "sage_preview_struggle.mp3",
+                "text": "These problems seem hard now. That's natural. You're not meant to solve them yet."
+            },
+            {
+                "filename": "sage_preview_success.mp3",
+                "text": "You see the destination. The journey will be meaningful."
+            },
+            {
+                "filename": "sage_preview_transition.mp3",
+                "text": "Purpose clarified. Let's build understanding."
+            },
+            {
+                "filename": "sage_build_intro.mp3",
+                "text": "Now we weave connections. Each link brings deeper understanding."
+            },
+            {
+                "filename": "sage_build_encouragement.mp3",
+                "text": "Every connection you make is a moment of insight."
+            },
+            {
+                "filename": "sage_build_struggle.mp3",
+                "text": "Some connections are subtle. Give them time to reveal themselves."
+            },
+            {
+                "filename": "sage_build_success.mp3",
+                "text": "Your understanding is blooming. Beautiful work."
+            },
+            {
+                "filename": "sage_build_transition.mp3",
+                "text": "Understanding flows. Let's channel it into practice."
+            },
+            {
+                "filename": "sage_apply_intro.mp3",
+                "text": "Knowledge becomes wisdom through application. Let's practice."
+            },
+            {
+                "filename": "sage_apply_encouragement.mp3",
+                "text": "Each attempt teaches you something. There are no failures here."
+            },
+            {
+                "filename": "sage_apply_struggle.mp3",
+                "text": "Mistakes are teachers in disguise. What did this one show you?"
+            },
+            {
+                "filename": "sage_apply_success.mp3",
+                "text": "You've transformed understanding into skill. Well done."
+            },
+            {
+                "filename": "sage_apply_transition.mp3",
+                "text": "Skills developing. Let's strengthen your memory."
+            },
+            {
+                "filename": "sage_retain_intro.mp3",
+                "text": "Close your eyes and reach inward. What do you truly remember?"
+            },
+            {
+                "filename": "sage_retain_encouragement.mp3",
+                "text": "Even partial recall strengthens memory. Every bit matters."
+            },
+            {
+                "filename": "sage_retain_struggle.mp3",
+                "text": "Forgetting is natural. It's pointing you toward what needs attention."
+            },
+            {
+                "filename": "sage_retain_success.mp3",
+                "text": "You pulled knowledge from within. It's becoming part of you."
+            },
+            {
+                "filename": "sage_retain_transition.mp3",
+                "text": "Memories deepening. One final exploration awaits."
+            },
+            {
+                "filename": "sage_master_intro.mp3",
+                "text": "True mastery is flexible wisdom. Can you apply this anywhere?"
+            },
+            {
+                "filename": "sage_master_encouragement.mp3",
+                "text": "You're stretching your understanding. That's growth."
+            },
+            {
+                "filename": "sage_master_struggle.mp3",
+                "text": "Meeting your edges is where growth lives. Stay curious."
+            },
+            {
+                "filename": "sage_master_success.mp3",
+                "text": "You've achieved flexible understanding. This knowledge is truly yours."
+            },
+            {
+                "filename": "sage_master_transition.mp3",
+                "text": "Mastery attained. Carry this wisdom forward gently."
+            }
+        ]
+    },
+    {
+        "persona": "socratic",
+        "voiceId": "ErXwobaYiN019PkySvjV",
+        "lines": [
+            {
+                "filename": "socratic_prime_intro.mp3",
+                "text": "Before we begin... why does this truly matter to you?"
+            },
+            {
+                "filename": "socratic_prime_encouragement.mp3",
+                "text": "Interesting. And what makes that reason important?"
+            },
+            {
+                "filename": "socratic_prime_struggle.mp3",
+                "text": "What's making this difficult? What would make it clearer?"
+            },
+            {
+                "filename": "socratic_prime_success.mp3",
+                "text": "You've defined your why. But... what does success look like?"
+            },
+            {
+                "filename": "socratic_prime_transition.mp3",
+                "text": "With purpose established, what should we explore first?"
+            },
+            {
+                "filename": "socratic_scout_intro.mp3",
+                "text": "What do you notice as you survey this material?"
+            },
+            {
+                "filename": "socratic_scout_encouragement.mp3",
+                "text": "What patterns are emerging? What connects to what?"
+            },
+            {
+                "filename": "socratic_scout_struggle.mp3",
+                "text": "What specifically is confusing? How might you find out?"
+            },
+            {
+                "filename": "socratic_scout_success.mp3",
+                "text": "What's the overall shape you're seeing now?"
+            },
+            {
+                "filename": "socratic_scout_transition.mp3",
+                "text": "Knowing the territory... what problems might this solve?"
+            },
+            {
+                "filename": "socratic_preview_intro.mp3",
+                "text": "Looking at these problems... what would you need to know to solve them?"
+            },
+            {
+                "filename": "socratic_preview_encouragement.mp3",
+                "text": "What's similar between these problems? What varies?"
+            },
+            {
+                "filename": "socratic_preview_struggle.mp3",
+                "text": "Which part feels most unclear? Start there."
+            },
+            {
+                "filename": "socratic_preview_success.mp3",
+                "text": "Now you know what to hunt for. What's your strategy?"
+            },
+            {
+                "filename": "socratic_preview_transition.mp3",
+                "text": "Target identified. How will you build understanding?"
+            },
+            {
+                "filename": "socratic_build_intro.mp3",
+                "text": "How do these concepts relate? What connects them?"
+            },
+            {
+                "filename": "socratic_build_encouragement.mp3",
+                "text": "Why does A connect to B? What's the nature of that relationship?"
+            },
+            {
+                "filename": "socratic_build_struggle.mp3",
+                "text": "If you had to explain this connection... how would you?"
+            },
+            {
+                "filename": "socratic_build_success.mp3",
+                "text": "Your map reveals relationships. What surprises you about it?"
+            },
+            {
+                "filename": "socratic_build_transition.mp3",
+                "text": "Understanding mapped. But can you USE it?"
+            },
+            {
+                "filename": "socratic_apply_intro.mp3",
+                "text": "Given what you now understand... how would you approach this problem?"
+            },
+            {
+                "filename": "socratic_apply_encouragement.mp3",
+                "text": "What's your reasoning here? Why this approach?"
+            },
+            {
+                "filename": "socratic_apply_struggle.mp3",
+                "text": "Where did your solution diverge? What assumption was different?"
+            },
+            {
+                "filename": "socratic_apply_success.mp3",
+                "text": "You solved it. But why did that approach work?"
+            },
+            {
+                "filename": "socratic_apply_transition.mp3",
+                "text": "Skills developing. But will you remember tomorrow?"
+            },
+            {
+                "filename": "socratic_retain_intro.mp3",
+                "text": "Without looking... what do you actually recall?"
+            },
+            {
+                "filename": "socratic_retain_encouragement.mp3",
+                "text": "Which parts came easily? Which required effort?"
+            },
+            {
+                "filename": "socratic_retain_struggle.mp3",
+                "text": "What's blocking recall? How might you strengthen that path?"
+            },
+            {
+                "filename": "socratic_retain_success.mp3",
+                "text": "You retrieved it from memory. What made that possible?"
+            },
+            {
+                "filename": "socratic_retain_transition.mp3",
+                "text": "Memory accessed. But is it flexible understanding?"
+            },
+            {
+                "filename": "socratic_master_intro.mp3",
+                "text": "If conditions changed... how would your understanding adapt?"
+            },
+            {
+                "filename": "socratic_master_encouragement.mp3",
+                "text": "What's the underlying principle? How does it generalize?"
+            },
+            {
+                "filename": "socratic_master_struggle.mp3",
+                "text": "Where does your model break down? What does that reveal?"
+            },
+            {
+                "filename": "socratic_master_success.mp3",
+                "text": "You can transfer knowledge. What makes that possible?"
+            },
+            {
+                "filename": "socratic_master_transition.mp3",
+                "text": "True understanding demonstrated. What will you explore next?"
+            }
+        ]
+    },
+    {
+        "persona": "coach",
+        "voiceId": "21m00Tcm4TlvDq8ikWAM",
+        "lines": [
+            {
+                "filename": "coach_prime_intro.mp3",
+                "text": "Alright team! Let's get locked in! What are we playing for today?"
+            },
+            {
+                "filename": "coach_prime_encouragement.mp3",
+                "text": "That's what I'm talking about! Great energy!"
+            },
+            {
+                "filename": "coach_prime_struggle.mp3",
+                "text": "Hey, it's okay! Even the pros have off days. Shake it off!"
+            },
+            {
+                "filename": "coach_prime_success.mp3",
+                "text": "YES! We've got our game plan! Let's EXECUTE!"
+            },
+            {
+                "filename": "coach_prime_transition.mp3",
+                "text": "Warm-up complete! Time to scout the competition!"
+            },
+            {
+                "filename": "coach_scout_intro.mp3",
+                "text": "Let's check out the playbook! See what we're working with!"
+            },
+            {
+                "filename": "coach_scout_encouragement.mp3",
+                "text": "You're doing your homework! Champions prepare!"
+            },
+            {
+                "filename": "coach_scout_struggle.mp3",
+                "text": "Tricky play? Let's break it down piece by piece!"
+            },
+            {
+                "filename": "coach_scout_success.mp3",
+                "text": "Playbook reviewed! You know the game now!"
+            },
+            {
+                "filename": "coach_scout_transition.mp3",
+                "text": "Scouting complete! Let's see the practice problems!"
+            },
+            {
+                "filename": "coach_preview_intro.mp3",
+                "text": "Game film time! Let's see what winning looks like!"
+            },
+            {
+                "filename": "coach_preview_encouragement.mp3",
+                "text": "You're studying the competition! Smart player!"
+            },
+            {
+                "filename": "coach_preview_struggle.mp3",
+                "text": "Tough opponent? That's what makes the win sweeter!"
+            },
+            {
+                "filename": "coach_preview_success.mp3",
+                "text": "You know what to practice! Let's get those reps in!"
+            },
+            {
+                "filename": "coach_preview_transition.mp3",
+                "text": "Film studied! Time to hit the practice field!"
+            },
+            {
+                "filename": "coach_build_intro.mp3",
+                "text": "Diagram time! Let's map out our plays!"
+            },
+            {
+                "filename": "coach_build_encouragement.mp3",
+                "text": "Every connection is a new play in your arsenal!"
+            },
+            {
+                "filename": "coach_build_struggle.mp3",
+                "text": "Confused play? Run it again! Repetition is key!"
+            },
+            {
+                "filename": "coach_build_success.mp3",
+                "text": "Playbook looking SOLID! Great work!"
+            },
+            {
+                "filename": "coach_build_transition.mp3",
+                "text": "Plays designed! Time for practice drills!"
+            },
+            {
+                "filename": "coach_apply_intro.mp3",
+                "text": "Drill time! Let's work those reps! Muscle memory!"
+            },
+            {
+                "filename": "coach_apply_encouragement.mp3",
+                "text": "That's it! Smooth execution! Keep it up!"
+            },
+            {
+                "filename": "coach_apply_struggle.mp3",
+                "text": "Fumble? No worries! Run it again! That's what practice is for!"
+            },
+            {
+                "filename": "coach_apply_success.mp3",
+                "text": "Clean execution! You're game-ready!"
+            },
+            {
+                "filename": "coach_apply_transition.mp3",
+                "text": "Great practice! Time for the memory test!"
+            },
+            {
+                "filename": "coach_retain_intro.mp3",
+                "text": "Pop quiz! No playbook! Show me what you've got!"
+            },
+            {
+                "filename": "coach_retain_encouragement.mp3",
+                "text": "Trust your training! You put in the work!"
+            },
+            {
+                "filename": "coach_retain_struggle.mp3",
+                "text": "Can't remember? That's feedback! We know what to drill!"
+            },
+            {
+                "filename": "coach_retain_success.mp3",
+                "text": "YOU NAILED IT! That's championship memory!"
+            },
+            {
+                "filename": "coach_retain_transition.mp3",
+                "text": "Memory locked in! Final challenge time!"
+            },
+            {
+                "filename": "coach_master_intro.mp3",
+                "text": "Championship round! Can you adapt when the play breaks down?"
+            },
+            {
+                "filename": "coach_master_encouragement.mp3",
+                "text": "Improvise! True champions adapt on the fly!"
+            },
+            {
+                "filename": "coach_master_struggle.mp3",
+                "text": "Getting pressured? Stay calm! Find the open lane!"
+            },
+            {
+                "filename": "coach_master_success.mp3",
+                "text": "MVP PERFORMANCE! You can handle ANYTHING!"
+            },
+            {
+                "filename": "coach_master_transition.mp3",
+                "text": "Championship WON! Incredible work today!"
+            }
+        ]
+    },
+    {
+        "persona": "buddy",
+        "voiceId": "yoZ06aMxZJJ28mfd3POQ",
+        "lines": [
+            {
+                "filename": "buddy_prime_intro.mp3",
+                "text": "Hey! Ready to study? Let's figure out what we're tackling today."
+            },
+            {
+                "filename": "buddy_prime_encouragement.mp3",
+                "text": "Nice! I like it. Solid plan."
+            },
+            {
+                "filename": "buddy_prime_struggle.mp3",
+                "text": "Hmm, not sure what to pick? Happens to me too. Let's brainstorm."
+            },
+            {
+                "filename": "buddy_prime_success.mp3",
+                "text": "Cool, we've got our mission. Let's do this!"
+            },
+            {
+                "filename": "buddy_prime_transition.mp3",
+                "text": "Alright, plan set! Let's take a quick look at the material."
+            },
+            {
+                "filename": "buddy_scout_intro.mp3",
+                "text": "Okay, let's skim through and see what's here. No deep reading yet!"
+            },
+            {
+                "filename": "buddy_scout_encouragement.mp3",
+                "text": "Oh that diagram looks important! Good catch."
+            },
+            {
+                "filename": "buddy_scout_struggle.mp3",
+                "text": "Yeah this section looks dense. We'll break it down later."
+            },
+            {
+                "filename": "buddy_scout_success.mp3",
+                "text": "Nice overview! I think I see how this fits together."
+            },
+            {
+                "filename": "buddy_scout_transition.mp3",
+                "text": "Got the lay of the land. Let's peek at some practice problems?"
+            },
+            {
+                "filename": "buddy_preview_intro.mp3",
+                "text": "Let's see what kind of problems we'll need to solve..."
+            },
+            {
+                "filename": "buddy_preview_encouragement.mp3",
+                "text": "Ooh interesting problem. I see what they're asking."
+            },
+            {
+                "filename": "buddy_preview_struggle.mp3",
+                "text": "This one's tricky. But that's why we're studying, right?"
+            },
+            {
+                "filename": "buddy_preview_success.mp3",
+                "text": "Okay, now I know what we're aiming for. Let's learn this!"
+            },
+            {
+                "filename": "buddy_preview_transition.mp3",
+                "text": "Targets identified! Time to build our concept map."
+            },
+            {
+                "filename": "buddy_build_intro.mp3",
+                "text": "Concept map time! My favorite part. Let's connect the dots."
+            },
+            {
+                "filename": "buddy_build_encouragement.mp3",
+                "text": "Oh nice connection! That's a good one."
+            },
+            {
+                "filename": "buddy_build_struggle.mp3",
+                "text": "Hmm how do these connect... let me think..."
+            },
+            {
+                "filename": "buddy_build_success.mp3",
+                "text": "Looking good! This is really coming together."
+            },
+            {
+                "filename": "buddy_build_transition.mp3",
+                "text": "Map's done! Now let's practice some problems."
+            },
+            {
+                "filename": "buddy_apply_intro.mp3",
+                "text": "Practice time! Let's work through some examples together."
+            },
+            {
+                "filename": "buddy_apply_encouragement.mp3",
+                "text": "You're getting it! I see the pattern too."
+            },
+            {
+                "filename": "buddy_apply_struggle.mp3",
+                "text": "Okay that step was tricky. Let's look at it again."
+            },
+            {
+                "filename": "buddy_apply_success.mp3",
+                "text": "Nice! You figured it out. On to the next one?"
+            },
+            {
+                "filename": "buddy_apply_transition.mp3",
+                "text": "Good practice session! Let's test our memory now."
+            },
+            {
+                "filename": "buddy_retain_intro.mp3",
+                "text": "Memory check! Put away the notes. What do we remember?"
+            },
+            {
+                "filename": "buddy_retain_encouragement.mp3",
+                "text": "Hey that's pretty good! You remembered a lot."
+            },
+            {
+                "filename": "buddy_retain_struggle.mp3",
+                "text": "Blanking on that part too, honestly. Let's review it quick."
+            },
+            {
+                "filename": "buddy_retain_success.mp3",
+                "text": "Wow, you recalled most of it! Memory's solid."
+            },
+            {
+                "filename": "buddy_retain_transition.mp3",
+                "text": "Memory's looking good! One more challenge?"
+            },
+            {
+                "filename": "buddy_master_intro.mp3",
+                "text": "Final boss! Can we apply this to new situations?"
+            },
+            {
+                "filename": "buddy_master_encouragement.mp3",
+                "text": "Interesting take! That makes sense."
+            },
+            {
+                "filename": "buddy_master_struggle.mp3",
+                "text": "Hmm that's making me think too. Let's puzzle through it."
+            },
+            {
+                "filename": "buddy_master_success.mp3",
+                "text": "You totally get this now! Mastery achieved!"
+            },
+            {
+                "filename": "buddy_master_transition.mp3",
+                "text": "We crushed it! Great study session. Same time tomorrow?"
+            }
+        ]
+    }
+]

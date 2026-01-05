@@ -160,7 +160,7 @@ export function DoorwayTransition({
                                 <svg className={styles.gridSvg} viewBox="0 0 100 100" preserveAspectRatio="none">
                                     <defs>
                                         <pattern id="transitionGrid" width="5" height="5" patternUnits="userSpaceOnUse">
-                                            <path d="M 5 0 L 0 0 0 5" fill="none" stroke="rgba(59, 130, 246, 0.2)" strokeWidth="0.5" />
+                                            <path d="M 5 0 L 0 0 0 5" fill="none" stroke="var(--overlay-primary-10)" strokeWidth="0.5" />
                                         </pattern>
                                     </defs>
                                     <rect width="100" height="100" fill="url(#transitionGrid)" />

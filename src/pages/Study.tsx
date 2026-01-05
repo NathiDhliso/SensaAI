@@ -426,7 +426,7 @@ export default function Study() {
               right: 0,
               bottom: 0,
               zIndex: 50, // Above everything including layout
-              background: 'rgba(15, 23, 42, 0.95)',
+              background: 'var(--overlay-black-60)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

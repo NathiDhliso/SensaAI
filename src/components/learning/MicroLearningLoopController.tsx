@@ -15,7 +15,8 @@ import {
     CheckCircle2,
     RotateCcw,
     Zap,
-    ChevronRight
+    ChevronRight,
+    Lightbulb
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
 import { useLearningStore } from '@/store/learning-store';
@@ -29,7 +30,7 @@ import styles from './MicroLearningLoopController.module.css';
 // TYPES
 // ============================================================================
 
-export type LoopPhase = 'test' | 'learn' | 'verify' | 'confusion';
+export type LoopPhase = 'worked-example' | 'test' | 'learn' | 'verify' | 'confusion';
 
 export type LoopOutcome = 'mastered' | 'needs-learning' | 'needs-review';
 
@@ -105,6 +106,104 @@ function determineOutcome(
 // PHASE COMPONENTS
 // ============================================================================
 
+interface WorkedExamplePhaseProps {
+    concept: LearningConcept;
+    onComplete: (timeSpent: number) => void;
+}
+
+/**
+ * Worked Example Phase: Make It Real
+ * Show problem -> Hide Solution -> User Solves (Mental) -> Reveal Solution
+ */
+function WorkedExamplePhase({ concept, onComplete }: WorkedExamplePhaseProps) {
+    const [isSolutionRevealed, setIsSolutionRevealed] = useState(false);
+    const [revealStep, setRevealStep] = useState(0);
+    const [startTime] = useState(Date.now());
+
+    // Synthesize problem/solution if not explicitly provided
+    const example = useMemo(() => {
+        if (concept.workedExample) return concept.workedExample;
+
+        // Fallback synthesis
+        return {
+            problem: `Scenario: You need to utilize ${concept.name} to ${concept.whyYouNeed ? concept.whyYouNeed.toLowerCase() : 'improve efficiency'}. How would you approach this?`,
+            solution: `Applying ${concept.name} effectively:`,
+            steps: concept.howToUse || ['Step 1: Analyze the requirements', `Step 2: Implement ${concept.name}`]
+        };
+    }, [concept]);
+
+    const handleReveal = () => {
+        setIsSolutionRevealed(true);
+    };
+
+    const handleStepReveal = () => {
+        if (revealStep < example.steps.length) {
+            setRevealStep(prev => prev + 1);
+        } else {
+            const timeSpent = (Date.now() - startTime) / 1000;
+            onComplete(timeSpent);
+        }
+    };
+
+    return (
+        <motion.div
+            className={styles.phaseCard}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+        >
+            <div className={styles.phaseHeader}>
+                <div className={styles.phaseIcon} style={{ background: 'var(--color-bg-secondary)', color: 'var(--color-accent-alt)' }}>
+                    <Lightbulb size={24} />
+                </div>
+                <div>
+                    <h3 className={styles.phaseTitle}>Make It Real</h3>
+                    <p className={styles.phaseSubtitle}>Worked Example</p>
+                </div>
+            </div>
+
+            <div className={styles.phaseContent}>
+                <div className={styles.learningSection}>
+                    <h5 className={styles.sectionTitle}>The Problem</h5>
+                    <p>{example.problem}</p>
+                </div>
+
+                {!isSolutionRevealed ? (
+                    <button className={styles.submitButton} onClick={handleReveal}>
+                        <span>I have a solution in mind</span>
+                        <ChevronRight size={20} />
+                    </button>
+                ) : (
+                    <div className={styles.learningSection}>
+                        <div className={styles.sectionHeader}>
+                            <h5 className={styles.sectionTitle}>The Solution</h5>
+                        </div>
+                        <ul className={styles.executionList}>
+                            {example.steps.map((step, idx) => (
+                                <motion.li
+                                    key={idx}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: idx <= revealStep ? 1 : 0.3, x: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    {step}
+                                </motion.li>
+                            ))}
+                        </ul>
+                        <button
+                            className={styles.submitButton}
+                            onClick={handleStepReveal}
+                        >
+                            <span>{revealStep < example.steps.length - 1 ? 'Next Step' : 'Complete Example'}</span>
+                            <ChevronRight size={20} />
+                        </button>
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+}
+
 interface TestPhaseProps {
     concept: LearningConcept;
     keyPoints: string[];
@@ -112,9 +211,6 @@ interface TestPhaseProps {
     onComplete: (result: TestPhaseResult) => void;
 }
 
-/**
- * Test Phase: Blank sheet recall
- */
 /**
  * Test Phase: Blank sheet recall
  * Uses the comprehensive BlankSheetTest component
@@ -422,13 +518,14 @@ export function MicroLearningLoopController({
     onLoopComplete,
     onSkip,
 }: MicroLearningLoopProps) {
-    const [phase, setPhase] = useState<LoopPhase>('test');
+    // Phase 2.5: Start with worked example (Make It Real) -> Phase 3: Test (Blank Sheet)
+    const [phase, setPhase] = useState<LoopPhase>('worked-example');
     const [testResult, setTestResult] = useState<TestPhaseResult | null>(null);
     const [totalTimeSpent, setTotalTimeSpent] = useState(0);
 
     const { recordInteraction } = useLearningStore();
 
-    // Calculate adaptive timing
+    // Calculate adaptive loop duration based on concept complexity and user velocity
     const loopDuration = useMemo(() =>
         calculateLoopDuration(complexityScore, userVelocity),
         [complexityScore, userVelocity]
@@ -447,14 +544,17 @@ export function MicroLearningLoopController({
     }, [concept]);
 
     // Check if confusion prevention is needed
-    // This runs only once per concept ideally, or we check it dynamically
     const hasConfusionPairs = useMemo(() => {
         if (!allConcepts) return false;
         const pairs = findConfusionPairs(concept, allConcepts);
         return pairs.length > 0;
     }, [concept, allConcepts]);
 
-
+    const handleWorkedExampleComplete = useCallback((timeSpent: number) => {
+        setTotalTimeSpent(prev => prev + timeSpent);
+        // After Worked Example (Make It Real), go to Test (Blank Sheet / Keep It Strong)
+        setPhase('test');
+    }, []);
 
     const handleTestComplete = useCallback((result: TestPhaseResult) => {
         setTestResult(result);
@@ -499,12 +599,17 @@ export function MicroLearningLoopController({
         <div className={styles.container}>
             {/* Phase indicator */}
             <div className={styles.phaseIndicator}>
-                <div className={`${styles.phaseStep} ${phase === 'test' ? styles.active : ''} ${testResult ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${phase === 'worked-example' ? styles.active : ''} ${['test', 'learn', 'verify', 'confusion'].includes(phase) ? styles.complete : ''}`}>
+                    <Lightbulb size={18} />
+                    <span>Real</span>
+                </div>
+                <div className={styles.phaseLine} />
+                <div className={`${styles.phaseStep} ${phase === 'test' ? styles.active : ''} ${['learn', 'verify', 'confusion'].includes(phase) ? styles.complete : ''}`}>
                     <Brain size={18} />
                     <span>Test</span>
                 </div>
                 <div className={styles.phaseLine} />
-                <div className={`${styles.phaseStep} ${phase === 'learn' ? styles.active : ''} ${phase === 'verify' ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${phase === 'learn' ? styles.active : ''} ${['verify', 'confusion'].includes(phase) ? styles.complete : ''}`}>
                     <BookOpen size={18} />
                     <span>Learn</span>
                 </div>
@@ -530,6 +635,13 @@ export function MicroLearningLoopController({
 
             {/* Phase content */}
             <AnimatePresence mode="wait">
+                {phase === 'worked-example' && (
+                    <WorkedExamplePhase
+                        key="worked-example"
+                        concept={concept}
+                        onComplete={handleWorkedExampleComplete}
+                    />
+                )}
                 {phase === 'test' && (
                     <TestPhase
                         key="test"

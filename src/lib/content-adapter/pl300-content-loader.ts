@@ -165,6 +165,8 @@ export function loadPL300Content(): {
 
         return {
             id: `stage-${stageDef.order}`,
+            title: stageDef.name,
+            description: stageDef.metaphorDescription,
             order: stageDef.order,
             name: stageDef.name,
             metaphor: stageDef.metaphor,

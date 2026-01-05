@@ -41,7 +41,7 @@ const TIER_CONFIG: TierConfig[] = [
     label: 'Foundation',
     icon: Layers,
     color: '#FFD700',
-    bgColor: 'rgba(255, 215, 0, 0.1)',
+    bgColor: 'var(--overlay-amber-10)',
     description: 'Core concepts with 4+ dependents. Learn these first.',
   },
   {
@@ -49,7 +49,7 @@ const TIER_CONFIG: TierConfig[] = [
     label: 'Keystone',
     icon: Gem,
     color: '#8B5CF6',
-    bgColor: 'rgba(139, 92, 246, 0.1)',
+    bgColor: 'var(--overlay-accent-10)',
     description: 'Bridge concepts connecting foundations to utilities.',
   },
   {
@@ -57,7 +57,7 @@ const TIER_CONFIG: TierConfig[] = [
     label: 'Utility',
     icon: Wrench,
     color: '#F59E0B',
-    bgColor: 'rgba(245, 158, 11, 0.1)',
+    bgColor: 'var(--overlay-amber-10)',
     description: 'Practical tools and techniques. Build on prerequisites.',
   },
 ];

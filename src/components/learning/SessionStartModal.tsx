@@ -10,9 +10,12 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Clock, Target, BookOpen, RefreshCw, Zap, Compass,
-  ChevronRight, Brain, Sparkles
+  ChevronRight, Brain, Sparkles, Heart
 } from 'lucide-react';
 import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/types/learning';
+import { MOOD_OPTIONS, type Mood } from '@/lib/ai/coach';
+import { usePersonalizationStore } from '@/store/personalization-store';
+import GuidedPrimer from './GuidedPrimer';
 import styles from './SessionStartModal.module.css';
 
 interface SessionStartModalProps {
@@ -87,11 +90,9 @@ export function SessionStartModal({
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
   const [customDuration, setCustomDuration] = useState<string>('');
   const [showCustom, setShowCustom] = useState(false);
+  const [selectedMood, setSelectedMood] = useState<Mood>('neutral');
 
-  // Prime State
-  const [reason, setReason] = useState('');
-  const [action, setAction] = useState('');
-  const [reward, setReward] = useState('');
+  const { setLastSessionMood } = usePersonalizationStore();
 
   const progress = useMemo(() => {
     return Math.round((completedConcepts / totalConcepts) * 100);
@@ -103,19 +104,10 @@ export function SessionStartModal({
   };
 
   const handleNext = () => {
-    // Auto-fill action based on selected goal/duration if empty
-    if (!action) {
-      if (selectedGoal === 'learn-new') setAction(`I will complete the 'Prepare' phase for ${Math.floor(selectedDuration / 15)} new concepts`);
-      else if (selectedGoal === 'review') setAction(`I will review my concept map for 20 minutes`);
-      else if (selectedGoal === 'sprint') setAction(`I will complete 3 confusion drills`);
-    }
+    // Phase 0 Requirement: User must actively define their intention.
+    // Store the selected mood before moving to prime phase
+    setLastSessionMood(selectedMood);
     setStep('prime');
-  };
-
-  const handleStart = () => {
-    const duration = showCustom ? parseInt(customDuration) || 30 : selectedDuration;
-    // Pass primer data as the 3rd argument (will need to update onStart signature or handle in parent)
-    onStart(selectedGoal, duration, { reason, action, reward });
   };
 
   return (
@@ -160,6 +152,27 @@ export function SessionStartModal({
                 <span className={styles.progressText}>
                   {completedConcepts} of {totalConcepts} concepts ({progress}%)
                 </span>
+              </div>
+
+              {/* Mood Selection */}
+              <div className={styles.moodSection}>
+                <div className={styles.moodHeader}>
+                  <Heart size={18} />
+                  <h3>How are you feeling right now?</h3>
+                </div>
+                <div className={styles.moodGrid}>
+                  {MOOD_OPTIONS.map(mood => (
+                    <button
+                      key={mood.id}
+                      className={`${styles.moodCard} ${selectedMood === mood.id ? styles.moodCardActive : ''}`}
+                      onClick={() => setSelectedMood(mood.id)}
+                      title={mood.description}
+                    >
+                      <span className={styles.moodEmoji}>{mood.emoji}</span>
+                      <span className={styles.moodLabel}>{mood.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Recommendation */}
@@ -266,75 +279,15 @@ export function SessionStartModal({
               </button>
             </motion.div>
           ) : (
-            <motion.div
-              key="prime"
-              initial={{ x: 20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -20, opacity: 0 }}
-              className={styles.primeSection}
-            >
-              <div className={styles.primeInfo}>
-                <Zap size={24} className={styles.primeIcon} />
-                <p>Before we start, give your brain a roadmap. This reduces anxiety and decision fatigue.</p>
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label>
-                  <span>Your Reason</span>
-                  <span className={styles.labelHint}>Why does this matter to YOU right now?</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="E.g., I want to understand how my body creates energy..."
-                  value={reason}
-                  onChange={e => setReason(e.target.value)}
-                  autoFocus
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label>
-                  <span>Your Action</span>
-                  <span className={styles.labelHint}>What specific task will you control?</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="E.g., I will build one concept map..."
-                  value={action}
-                  onChange={e => setAction(e.target.value)}
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label>
-                  <span>Your Reward</span>
-                  <span className={styles.labelHint}>What happens when you finish?</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="E.g., A fresh cup of coffee..."
-                  value={reward}
-                  onChange={e => setReward(e.target.value)}
-                />
-              </div>
-
-              <div className={styles.buttonGroup}>
-                <button
-                  className={styles.backButton}
-                  onClick={() => setStep('setup')}
-                >
-                  Back
-                </button>
-                <button
-                  className={styles.startButton}
-                  onClick={handleStart}
-                  disabled={!reason || !action || !reward}
-                >
-                  Start Phase 1: Scout
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </motion.div>
+            <GuidedPrimer
+              subjectName={subjectName}
+              duration={showCustom ? parseInt(customDuration) || 30 : selectedDuration}
+              mood={selectedMood}
+              onComplete={(data) => {
+                onStart(selectedGoal, showCustom ? parseInt(customDuration) || 30 : selectedDuration, data);
+              }}
+              onBack={() => setStep('setup')}
+            />
           )}
         </AnimatePresence>
       </motion.div>

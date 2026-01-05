@@ -79,10 +79,20 @@
   --color-secondary-sage: #10B981;
 
   /* ========== NEUTRAL TEXT COLORS ========== */
-  --color-text-dark: #1f2937;
-  --color-text-medium: #4b5563;
-  --color-text-light: #6b7280;
-  --color-text-muted: #94a3b8;
+  /* WCAG AA compliant contrast ratios */
+  --color-text-dark: #111827;
+  /* Primary text - very dark gray */
+  --color-text-medium: #374151;
+  /* Secondary text - dark gray */
+  --color-text-light: #4b5563;
+  /* Tertiary text - medium gray */
+  --color-text-muted: #6b7280;
+  /* Muted/placeholder - still readable */
+
+  /* Text Color Aliases (for component compatibility) */
+  --color-text-primary: var(--color-text-dark);
+  --color-text-secondary: var(--color-text-medium);
+  --color-text-tertiary: var(--color-text-light);
 
   /* ========== LIGHT MODE BACKGROUNDS ========== */
   --color-bg-primary: #FAF5FF;
@@ -95,6 +105,8 @@
   --color-surface: white;
   --color-surface-elevated: white;
   --color-surface-subtle: #f8fafc;
+  --color-surface-secondary: #f8fafc;
+  --color-surface-hover: #f1f5f9;
 
   /* ========== BORDER COLORS ========== */
   --color-border: #e2e8f0;
@@ -107,6 +119,12 @@
   --color-accent-light: #8b5cf6;
   --color-accent-alt: #F97316;
   --color-accent-alt-hover: #ea580c;
+
+  /* Color Aliases (for component compatibility) */
+  --color-primary: var(--color-primary-amethyst);
+  --color-secondary: var(--color-secondary-sage);
+  --color-primary-rgb: 107, 70, 193;
+  /* #6B46C1 in RGB for rgba() usage */
 
   /* ========== SEMANTIC COLORS ========== */
   --color-success: #22c55e;
@@ -216,10 +234,17 @@
   --color-text-light: #c4b5d0;
   --color-text-muted: #a78bbd;
 
+  /* Text Color Aliases (for component compatibility) */
+  --color-text-primary: var(--color-text-dark);
+  --color-text-secondary: var(--color-text-medium);
+  --color-text-tertiary: var(--color-text-muted);
+
   /* Dark Mode Surfaces */
   --color-surface: #2d1b4e;
   --color-surface-elevated: #3d2963;
   --color-surface-subtle: #251640;
+  --color-surface-secondary: #3d2963;
+  --color-surface-hover: #4a3470;
 
   /* Dark Mode Borders */
   --color-border: #4a3470;
@@ -460,4 +485,39 @@ pre,
   letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;
   color: var(--color-text-light);
+}
+
+/* ============================================
+   BIONIC READING MODE
+   Enhances readability by bolding first half of words
+   Applied globally when [data-bionic-reading="true"]
+   ============================================ */
+
+[data-bionic-reading="true"] p,
+[data-bionic-reading="true"] span:not([class*="icon"]),
+[data-bionic-reading="true"] li,
+[data-bionic-reading="true"] td,
+[data-bionic-reading="true"] label,
+[data-bionic-reading="true"] .prose,
+[data-bionic-reading="true"] .text-body {
+  /* Apply bionic-text attribute to trigger JS processing */
+  --bionic-enabled: 1;
+}
+
+/* Visual indicator that bionic mode is active */
+[data-bionic-reading="true"] {
+  /* Slightly increased letter-spacing for better readability */
+  letter-spacing: 0.01em;
+}
+
+/* Bold effect for bionic reading - applied via JS */
+[data-bionic-reading="true"] b.bionic,
+[data-bionic-reading="true"] strong.bionic {
+  font-weight: 700;
+  color: inherit;
+}
+
+/* Bionic reading indicator badge (optional, for debugging) */
+[data-bionic-reading="true"]::after {
+  content: '';
 }

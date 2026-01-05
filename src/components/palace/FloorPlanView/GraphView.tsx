@@ -387,7 +387,7 @@ export function GraphView({
                 {/* Grid background (Fixed, behind pan/zoom) */}
                 <defs>
                     <pattern id="graphGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(139, 92, 246, 0.05)" strokeWidth="1" />
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--overlay-accent-5)" strokeWidth="1" />
                     </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#graphGrid)" />
@@ -429,7 +429,7 @@ export function GraphView({
                                         y1={edge.y1}
                                         x2={edge.x2}
                                         y2={edge.y2}
-                                        stroke={isHighlighted ? GRAPH_COLORS.keystone : 'rgba(139, 92, 246, 0.2)'}
+                                        stroke={isHighlighted ? GRAPH_COLORS.keystone : 'var(--overlay-accent-10)'}
                                         strokeWidth={(isHighlighted ? 2 : 1) / viewState.scale}
                                         strokeDasharray={edge.relationship === 'depends-on' ? 'none' : '4 2'}
                                         initial={{ opacity: 0 }}
@@ -494,7 +494,7 @@ export function GraphView({
                         >
                             <polygon
                                 points="0 0, 10 3.5, 0 7"
-                                fill="rgba(139, 92, 246, 0.4)"
+                                fill="var(--overlay-accent-15)"
                             />
                         </marker>
                     </defs>

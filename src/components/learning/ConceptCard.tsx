@@ -100,7 +100,7 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
           <div className={styles.howContent}>
             {concept.lifecycle ? (
               <LifecycleFlow lifecycle={concept.lifecycle} />
-            ) : (
+            ) : concept.howToUse ? (
               <ol className={styles.stepList}>
                 {concept.howToUse.map((step, index) => (
                   <li key={index} className={styles.stepItem}>
@@ -109,18 +109,18 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
                   </li>
                 ))}
               </ol>
-            )}
+            ) : null}
           </div>
         )}
 
         {activeTab === 'details' && (
           <div className={styles.detailsContent}>
             <p className={styles.technicalText}>{concept.technicalDetails}</p>
-            {concept.prerequisites.length > 0 && (
+            {concept.prerequisites && concept.prerequisites.length > 0 && (
               <div className={styles.prereqSection}>
                 <h4 className={styles.prereqTitle}>Prerequisites</h4>
                 <div className={styles.prereqList}>
-                  {concept.prerequisites.map((prereq, idx) => (
+                  {concept.prerequisites?.map((prereq, idx) => (
                     <span key={idx} className={styles.prereqBadge}>{prereq}</span>
                   ))}
                 </div>

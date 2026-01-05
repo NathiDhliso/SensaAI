@@ -23,7 +23,12 @@ import DiagnosticLaunchSystem from '@/components/learning/DiagnosticLaunchSystem
 import SessionStartModal from '@/components/learning/SessionStartModal';
 import type { SensaAILearningConcept } from '@/lib/content-adapter/transformer';
 import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
+import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
+import MapReconstructionTest from '@/components/learning/MapReconstructionTest';
+import MasteryChallenge from '@/components/learning/MasteryChallenge';
 import styles from './VelocityLearning.module.css';
+
+import { COLORS } from '@/constants/theme-colors';
 
 export default function VelocityLearning() {
     const {
@@ -65,14 +70,23 @@ export default function VelocityLearning() {
         return !studySession.scouted || !studySession.previewed;
     }, [studySession]);
 
+    // Derived state: Should show Concept Map Builder?
+    // Show if: Active Session AND Scouted AND Not MapBuilt
+    const shouldShowConceptMapBuilder = useMemo(() => {
+        if (!studySession?.isActive) return false;
+        return studySession.scouted && !studySession.mapBuilt;
+    }, [studySession]);
+
     // Derived state: Is Diagnostic Needed?
     // Diagnostic-First Rule: Show diagnostic if:
     // 1. An explicit diagnostic session exists and is incomplete, OR
     // 2. Fresh session (no completed concepts) AND content has enough foundation concepts (>= 5)
     // AND we are NOT in Scout mode (Scout comes before Diagnostic)
+    // AND we are NOT in Concept Map Builder mode (Map Builder comes before Diagnostic)
     const showDiagnostic = useMemo(() => {
         if (!currentSession) return false;
         if (shouldShowScout) return false; // prioritizing Scout
+        if (shouldShowConceptMapBuilder) return false; // prioritizing Concept Map Builder
 
         // If we have an active diagnostic session that isn't complete
         if (diagnosticSession && !diagnosticSession.isComplete) return true;
@@ -97,10 +111,11 @@ export default function VelocityLearning() {
 
     // Effect: Enforce Phase 0 (Prime) if missing
     useEffect(() => {
-        if (studySession?.isActive && !studySession.primer && !showStartModal) {
+        // Show modal if: 1) No study session exists, OR 2) Active session without primer
+        if (currentSession && (!studySession || (studySession.isActive && !studySession.primer)) && !showStartModal) {
             setShowStartModal(true);
         }
-    }, [studySession?.isActive, studySession?.primer]);
+    }, [currentSession, studySession?.isActive, studySession?.primer, showStartModal]);
 
     // Handlers
     const handleStartSession = (goal: any, duration: number, primer?: { reason: string; action: string; reward: string }) => {
@@ -159,7 +174,7 @@ export default function VelocityLearning() {
             {/* Header with Dashboard */}
             <header className={styles.header}>
                 <div className={styles.title}>
-                    <Rocket size={24} color="#3b82f6" />
+                    <Rocket size={24} color={COLORS.info} />
                     <span>Velocity Learning</span>
                 </div>
                 {/* Dashboard integrated in header or just below */}
@@ -192,6 +207,19 @@ export default function VelocityLearning() {
                                     onComplete={handleScoutComplete}
                                 />
                             </motion.div>
+                        ) : shouldShowConceptMapBuilder ? (
+                            <motion.div
+                                key="map-builder"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className={styles.fullWidthContainer}
+                            >
+                                <ConceptMapBuilder
+                                    concepts={currentSession.concepts}
+                                    onComplete={(data) => useLearningStore.getState().markSessionMapBuilt(data)}
+                                />
+                            </motion.div>
                         ) : showDiagnostic ? (
                             <motion.div
                                 key="diagnostic"
@@ -209,7 +237,9 @@ export default function VelocityLearning() {
                             </motion.div>
                         ) : (
                             /* Mode 2: Micro-Learning Loop */
-                            activeConcept ? (
+                            // All concepts completed? Check if Phase 3 (Reconstruction) is needed
+                            // Only show if Prime phase is complete
+                            activeConcept && studySession?.primer ? (
                                 <motion.div
                                     key={`loop-${activeConcept.id}`}
                                     initial={{ opacity: 0, x: 20 }}
@@ -227,11 +257,38 @@ export default function VelocityLearning() {
                                     />
                                 </motion.div>
                             ) : (
-                                <div className={styles.emptyState}>
-                                    <Brain size={48} className={styles.emptyIcon} />
-                                    <h2>All Caught Up!</h2>
-                                    <p>You've completed all available concepts for now.</p>
-                                </div>
+                                studySession && !studySession.mapReconstructed && studySession.mapBuilt ? (
+                                    <motion.div
+                                        key="reconstruction"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className={styles.fullWidthContainer}
+                                    >
+                                        <MapReconstructionTest
+                                            concepts={currentSession.concepts}
+                                            originalMap={studySession?.conceptMap || null}
+                                            onComplete={(passed) => useLearningStore.getState().markSessionMapReconstructed(passed)}
+                                        />
+                                    </motion.div>
+                                ) : studySession && studySession.mapReconstructed && !studySession.mastered ? (
+                                    <motion.div
+                                        key="mastery"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className={styles.fullWidthContainer}
+                                    >
+                                        <MasteryChallenge
+                                            concepts={currentSession.concepts}
+                                            onComplete={(_passed) => useLearningStore.getState().markSessionMastered()}
+                                        />
+                                    </motion.div>
+                                ) : (
+                                    <div className={styles.emptyState}>
+                                        <Brain size={48} className={styles.emptyIcon} />
+                                        <h2>All Caught Up!</h2>
+                                        <p>You've completed all available concepts for now.</p>
+                                    </div>
+                                )
                             )
                         )}
                     </AnimatePresence>

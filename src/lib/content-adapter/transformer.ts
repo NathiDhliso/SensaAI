@@ -536,6 +536,8 @@ export function transformToLearningStages(
 
       stages.push({
         id: stageId,
+        title: stage.name,
+        description: metaphorDesc,
         order: stage.order,
         name: stage.name,
         metaphor: stage.name,
@@ -550,6 +552,8 @@ export function transformToLearningStages(
   } else {
     stages.push({
       id: 'stage-1-foundation',
+      title: 'Foundation',
+      description: 'Establish the core concepts.',
       order: 1,
       name: 'Foundation',
       metaphor: 'Foundation',
@@ -566,10 +570,11 @@ export function transformToLearningStages(
 
 function findStageForConcept(conceptId: string, stages: LearningStage[]): LearningStage | undefined {
   for (const stage of stages) {
-    if (stage.concepts.includes(conceptId)) {
+    const concepts = stage.concepts || [];
+    if (concepts.includes(conceptId)) {
       return stage;
     }
-    for (const stageConceptId of stage.concepts) {
+    for (const stageConceptId of concepts) {
       if (stageConceptId.includes(conceptId) || conceptId.includes(stageConceptId)) {
         return stage;
       }
@@ -821,7 +826,11 @@ export function transformGeneratedContent(parsed: ParsedGeneratedContent, subjec
       dependencyMetrics: dependencyGraph.nodes.find(n => n.id === c.id)?.metrics,
     }))
   );
-  const treemapStages = buildTreemapStages(stages);
+  const treemapStages = buildTreemapStages(stages.map((s, i) => ({
+    id: s.id,
+    name: s.name || s.title,
+    order: s.order ?? i + 1,
+  })));
   const floorPlan = generateFloorPlan(treemapConcepts, treemapStages);
 
   return {
@@ -875,7 +884,11 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
       dependencyMetrics: dependencyGraph.nodes.find(n => n.id === c.id)?.metrics,
     }))
   );
-  const treemapStages = buildTreemapStages(stages);
+  const treemapStages = buildTreemapStages(stages.map((s, i) => ({
+    id: s.id,
+    name: s.name || s.title,
+    order: s.order ?? i + 1,
+  })));
   const floorPlan = generateFloorPlan(treemapConcepts, treemapStages);
 
   // Calculate SensaAI metrics

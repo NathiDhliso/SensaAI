@@ -1,0 +1,356 @@
+/**
+ * MasteryChallenge styles
+ * 
+ * Boss Battle UI - uses design system tokens
+ */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--color-surface);
+    border-radius: var(--radius-xl, 1.5rem);
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-6);
+    background: var(--overlay-amber-5);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.headerContent {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+.headerIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-secondary-amber);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0;
+    line-height: var(--line-height-tight);
+}
+
+.subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: var(--spacing-1) 0 0;
+}
+
+.timerBadge {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-4);
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.timerBadge.warning {
+    background: var(--color-error-bg);
+    border-color: var(--color-error);
+}
+
+.timerText {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.timerText.warning {
+    color: var(--color-error);
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+    padding: var(--spacing-8);
+    overflow-y: auto;
+}
+
+.introContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.infoCard {
+    background: var(--color-surface-elevated);
+    padding: var(--spacing-6);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.infoCard h3 {
+    margin-bottom: var(--spacing-4);
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-semibold);
+}
+
+.infoCard ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    padding-left: var(--spacing-6);
+    margin: 0;
+}
+
+.infoCard li {
+    color: var(--color-text-primary);
+    line-height: var(--line-height-relaxed);
+}
+
+.warningCard {
+    background: var(--color-warning-bg);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-warning);
+    display: flex;
+    gap: var(--spacing-3);
+}
+
+.warningCard p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-warning-text);
+}
+
+.startButton {
+    align-self: center;
+    padding: var(--spacing-4) var(--spacing-8);
+    font-size: var(--font-size-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    background: var(--color-secondary-amber);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.startButton:hover {
+    background: var(--color-amber-dark);
+    box-shadow: var(--shadow-glow-amber-hover);
+    transform: translateY(-2px);
+}
+
+.challengeContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+    height: 100%;
+}
+
+.scenarioCard {
+    background: var(--color-surface-elevated);
+    padding: var(--spacing-6);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.scenarioCard pre {
+    white-space: pre-wrap;
+    font-family: inherit;
+    margin: 0;
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-primary);
+}
+
+.textarea {
+    flex: 1;
+    min-height: 300px;
+    padding: var(--spacing-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    resize: vertical;
+    transition: all 0.2s ease;
+}
+
+.textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-glow-primary);
+}
+
+.textarea::placeholder {
+    color: var(--color-text-muted);
+}
+
+.submitButton {
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-6);
+    background: var(--color-success);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+    background: var(--color-success-text);
+    box-shadow: var(--shadow-glow-sage);
+}
+
+.submitButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.completeContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-8);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.responseCard {
+    background: var(--color-surface-elevated);
+    padding: var(--spacing-6);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.responseCard h3 {
+    margin-bottom: var(--spacing-4);
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-semibold);
+}
+
+.responseContent {
+    background: var(--color-surface-base, var(--color-surface));
+    padding: var(--spacing-4);
+    border-radius: var(--radius-md);
+    max-height: 300px;
+    overflow: auto;
+}
+
+.responseContent p {
+    white-space: pre-wrap;
+    margin: 0;
+    color: var(--color-text-primary);
+    line-height: var(--line-height-relaxed);
+}
+
+.assessmentSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+.assessmentSection h3 {
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-semibold);
+}
+
+.assessmentButtons {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: center;
+}
+
+.assessmentButton {
+    padding: var(--spacing-4) var(--spacing-8);
+    border: 1px solid;
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.assessmentButton.excellent {
+    background: var(--color-success-bg);
+    border-color: var(--color-success);
+    color: var(--color-success-text);
+}
+
+.assessmentButton.excellent:hover {
+    background: var(--color-success);
+    color: white;
+    box-shadow: var(--shadow-glow-sage);
+}
+
+.assessmentButton.good {
+    background: var(--overlay-accent-5);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.assessmentButton.good:hover {
+    background: var(--color-accent);
+    color: white;
+    box-shadow: var(--shadow-glow-primary);
+}
+
+.assessmentButton.needsWork {
+    background: var(--color-warning-bg);
+    border-color: var(--color-warning);
+    color: var(--color-warning-text);
+}
+
+.assessmentButton.needsWork:hover {
+    background: var(--color-warning);
+    color: white;
+    box-shadow: var(--shadow-glow-amber);
+}
+
+.celebrationCard {
+    text-align: center;
+    padding: var(--spacing-8);
+    background: var(--color-success-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-success);
+}
+
+.celebrationIcon {
+    color: var(--color-success);
+    margin: 0 auto var(--spacing-4);
+}
+
+.celebrationCard h2 {
+    color: var(--color-success);
+    margin-bottom: var(--spacing-2);
+    font-family: var(--font-display);
+}
+
+.celebrationCard p {
+    color: var(--color-success-text);
+    margin: 0;
+}

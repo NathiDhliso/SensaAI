@@ -47,18 +47,54 @@ const initialState: AuthState = {
     error: null,
 };
 
+// Helper to generate random string for PKCE
+const generateRandomString = (length: number) => {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    let result = '';
+    const values = new Uint8Array(length);
+    crypto.getRandomValues(values);
+    for (let i = 0; i < length; i++) {
+        result += charset[values[i] % charset.length];
+    }
+    return result;
+};
+
+// Helper to generate code challenge from verifier
+const generateCodeChallenge = async (verifier: string) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+
+    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+};
+
+const CODE_VERIFIER_KEY = 'auth_code_verifier';
+
 export const useAuthStore = create<AuthState & AuthActions>()(
     persist(
         (set, get) => ({
             ...initialState,
 
-            login: () => {
+            login: async () => {
+                // Generate PKCE verifier and challenge
+                const codeVerifier = generateRandomString(128);
+                const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+                // Store verifier in localStorage (needs to persist across redirect)
+                // We use localStorage directly to ensure it survives the redirect cycle safely outside of Zustand state if state cleared
+                localStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
+
                 // Redirect to Cognito hosted UI
                 const params = new URLSearchParams({
                     client_id: COGNITO_CLIENT_ID,
                     response_type: 'code',
                     scope: 'email openid profile',
                     redirect_uri: COGNITO_REDIRECT_URI,
+                    code_challenge: codeChallenge,
+                    code_challenge_method: 'S256'
                 });
 
                 window.location.href = `https://${COGNITO_DOMAIN}/login?${params.toString()}`;
@@ -67,6 +103,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             logout: () => {
                 // Clear local state
                 set({ user: null, tokens: null, isAuthenticated: false });
+                localStorage.removeItem(CODE_VERIFIER_KEY);
 
                 // Redirect to Cognito logout
                 const params = new URLSearchParams({
@@ -81,6 +118,18 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 set({ isLoading: true, error: null });
 
                 try {
+                    // Retrieve code verifier
+                    const codeVerifier = localStorage.getItem(CODE_VERIFIER_KEY);
+
+                    if (!codeVerifier) {
+                        console.warn('PKCE code verifier missing, redirecting to login...');
+                        // Clear any stale state
+                        set({ user: null, tokens: null, isAuthenticated: false });
+                        // Trigger login flow again
+                        get().login();
+                        return;
+                    }
+
                     // Exchange code for tokens via backend
                     const response = await fetch('/api/v1/auth/token', {
                         method: 'POST',
@@ -88,8 +137,12 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         body: JSON.stringify({
                             code,
                             redirect_uri: COGNITO_REDIRECT_URI,
+                            code_verifier: codeVerifier
                         }),
                     });
+
+                    // Clean up verifier
+                    localStorage.removeItem(CODE_VERIFIER_KEY);
 
                     if (!response.ok) {
                         throw new Error('Failed to exchange auth code');
@@ -202,6 +255,11 @@ export const useAuthStore = create<AuthState & AuthActions>()(
 
 // Initialize API client on app load
 if (typeof window !== 'undefined') {
+    // Clean up any stale verifier on fresh load (login will generate a new one)
+    if (!window.location.search.includes('code=')) {
+        localStorage.removeItem(CODE_VERIFIER_KEY);
+    }
+
     const tokens = useAuthStore.getState().tokens;
     if (tokens) {
         apiClient.configure({

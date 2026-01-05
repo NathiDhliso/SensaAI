@@ -1,0 +1,332 @@
+/**
+ * Audio Manager - Singleton for managing background music and voice narration
+ * 
+ * Features:
+ * - Background music with loop and volume control
+ * - Voice narration queue with sequential playback
+ * - Preloading for smooth playback
+ * - User preference respect (mute, volume)
+ */
+
+// Primer audio files path
+const PRIMER_AUDIO_BASE = '/Audio/Primer';
+
+// Audio file definitions
+export const PRIMER_AUDIO = {
+    // Narrations
+    breathe: `${PRIMER_AUDIO_BASE}/breathe.mp3`,
+    reason: `${PRIMER_AUDIO_BASE}/Reason.mp3`,
+    action: `${PRIMER_AUDIO_BASE}/action.mp3`,
+    reward: `${PRIMER_AUDIO_BASE}/reward.mp3`,
+    ready: `${PRIMER_AUDIO_BASE}/ready.mp3`,
+
+    // Background music
+    ambientStudy: `${PRIMER_AUDIO_BASE}/ambient-study.mp3`,
+    ambientStudy2: `${PRIMER_AUDIO_BASE}/ambient-study2.mp3`,
+} as const;
+
+export type PrimerAudioKey = keyof typeof PRIMER_AUDIO;
+
+class AudioManager {
+    private static instance: AudioManager;
+
+    // Audio elements
+    private backgroundMusic: HTMLAudioElement | null = null;
+    private narration: HTMLAudioElement | null = null;
+
+    // State
+    private isMuted: boolean = false;
+    private musicVolume: number = 0.3;
+    private narrationVolume: number = 0.8;
+    private isBackgroundMusicEnabled: boolean = true;
+    private isNarrationEnabled: boolean = true;
+
+    // Preloaded audio cache
+    private audioCache: Map<string, HTMLAudioElement> = new Map();
+
+    private constructor() {
+        // Load preferences from localStorage
+        this.loadPreferences();
+    }
+
+    static getInstance(): AudioManager {
+        if (!AudioManager.instance) {
+            AudioManager.instance = new AudioManager();
+        }
+        return AudioManager.instance;
+    }
+
+    /**
+     * Load user preferences from localStorage
+     */
+    private loadPreferences(): void {
+        try {
+            const prefs = localStorage.getItem('audio-preferences');
+            if (prefs) {
+                const parsed = JSON.parse(prefs);
+                this.isMuted = parsed.isMuted ?? false;
+                this.musicVolume = parsed.musicVolume ?? 0.3;
+                this.narrationVolume = parsed.narrationVolume ?? 0.8;
+                this.isBackgroundMusicEnabled = parsed.isBackgroundMusicEnabled ?? true;
+                this.isNarrationEnabled = parsed.isNarrationEnabled ?? true;
+            }
+        } catch {
+            // Use defaults
+        }
+    }
+
+    /**
+     * Save preferences to localStorage
+     */
+    private savePreferences(): void {
+        localStorage.setItem('audio-preferences', JSON.stringify({
+            isMuted: this.isMuted,
+            musicVolume: this.musicVolume,
+            narrationVolume: this.narrationVolume,
+            isBackgroundMusicEnabled: this.isBackgroundMusicEnabled,
+            isNarrationEnabled: this.isNarrationEnabled,
+        }));
+    }
+
+    /**
+     * Preload audio files for smooth playback
+     */
+    async preloadPrimerAudio(): Promise<void> {
+        const audioFiles = Object.values(PRIMER_AUDIO);
+
+        await Promise.all(
+            audioFiles.map(src => this.preloadAudio(src))
+        );
+    }
+
+    /**
+     * Preload a single audio file
+     */
+    private async preloadAudio(src: string): Promise<HTMLAudioElement> {
+        if (this.audioCache.has(src)) {
+            return this.audioCache.get(src)!;
+        }
+
+        return new Promise((resolve, reject) => {
+            const audio = new Audio(src);
+            audio.preload = 'auto';
+
+            audio.addEventListener('canplaythrough', () => {
+                this.audioCache.set(src, audio);
+                resolve(audio);
+            }, { once: true });
+
+            audio.addEventListener('error', () => {
+                console.warn(`Failed to preload audio: ${src}`);
+                reject(new Error(`Failed to load ${src}`));
+            }, { once: true });
+
+            // Start loading
+            audio.load();
+        });
+    }
+
+    /**
+     * Play background music
+     */
+    async playBackgroundMusic(key: 'ambientStudy' | 'ambientStudy2' = 'ambientStudy'): Promise<void> {
+        if (!this.isBackgroundMusicEnabled || this.isMuted) return;
+
+        // Stop current music if playing
+        this.stopBackgroundMusic();
+
+        const src = PRIMER_AUDIO[key];
+
+        try {
+            let audio = this.audioCache.get(src);
+            if (!audio) {
+                audio = await this.preloadAudio(src);
+            }
+
+            this.backgroundMusic = audio.cloneNode(true) as HTMLAudioElement;
+            this.backgroundMusic.loop = true;
+            this.backgroundMusic.volume = this.musicVolume;
+
+            await this.backgroundMusic.play();
+        } catch (error) {
+            console.warn('Failed to play background music:', error);
+        }
+    }
+
+    /**
+     * Stop background music
+     */
+    stopBackgroundMusic(): void {
+        if (this.backgroundMusic) {
+            this.backgroundMusic.pause();
+            this.backgroundMusic.currentTime = 0;
+            this.backgroundMusic = null;
+        }
+    }
+
+    /**
+     * Fade out background music
+     */
+    fadeOutBackgroundMusic(duration: number = 2000): Promise<void> {
+        return new Promise((resolve) => {
+            if (!this.backgroundMusic) {
+                resolve();
+                return;
+            }
+
+            const startVolume = this.backgroundMusic.volume;
+            const steps = 20;
+            const stepDuration = duration / steps;
+            const volumeStep = startVolume / steps;
+
+            let step = 0;
+            const interval = setInterval(() => {
+                step++;
+                if (this.backgroundMusic) {
+                    this.backgroundMusic.volume = Math.max(0, startVolume - (volumeStep * step));
+                }
+
+                if (step >= steps) {
+                    clearInterval(interval);
+                    this.stopBackgroundMusic();
+                    resolve();
+                }
+            }, stepDuration);
+        });
+    }
+
+    /**
+     * Play voice narration
+     */
+    async playNarration(key: Exclude<PrimerAudioKey, 'ambientStudy' | 'ambientStudy2'>): Promise<void> {
+        if (!this.isNarrationEnabled || this.isMuted) return;
+
+        // Stop current narration if playing
+        this.stopNarration();
+
+        const src = PRIMER_AUDIO[key];
+
+        try {
+            let audio = this.audioCache.get(src);
+            if (!audio) {
+                audio = await this.preloadAudio(src);
+            }
+
+            this.narration = audio.cloneNode(true) as HTMLAudioElement;
+            this.narration.volume = this.narrationVolume;
+
+            // Lower background music during narration
+            if (this.backgroundMusic) {
+                this.backgroundMusic.volume = this.musicVolume * 0.3;
+            }
+
+            await this.narration.play();
+
+            // Wait for narration to finish
+            return new Promise((resolve) => {
+                this.narration?.addEventListener('ended', () => {
+                    // Restore background music volume
+                    if (this.backgroundMusic) {
+                        this.backgroundMusic.volume = this.musicVolume;
+                    }
+                    resolve();
+                }, { once: true });
+            });
+        } catch (error) {
+            console.warn('Failed to play narration:', error);
+        }
+    }
+
+    /**
+     * Stop voice narration
+     */
+    stopNarration(): void {
+        if (this.narration) {
+            this.narration.pause();
+            this.narration.currentTime = 0;
+            this.narration = null;
+        }
+
+        // Restore background music volume
+        if (this.backgroundMusic) {
+            this.backgroundMusic.volume = this.musicVolume;
+        }
+    }
+
+    /**
+     * Stop all audio
+     */
+    stopAll(): void {
+        this.stopBackgroundMusic();
+        this.stopNarration();
+    }
+
+    // === Preference Setters ===
+
+    setMuted(muted: boolean): void {
+        this.isMuted = muted;
+        if (muted) {
+            this.stopAll();
+        }
+        this.savePreferences();
+    }
+
+    setMusicVolume(volume: number): void {
+        this.musicVolume = Math.max(0, Math.min(1, volume));
+        if (this.backgroundMusic) {
+            this.backgroundMusic.volume = this.musicVolume;
+        }
+        this.savePreferences();
+    }
+
+    setNarrationVolume(volume: number): void {
+        this.narrationVolume = Math.max(0, Math.min(1, volume));
+        this.savePreferences();
+    }
+
+    setBackgroundMusicEnabled(enabled: boolean): void {
+        this.isBackgroundMusicEnabled = enabled;
+        if (!enabled) {
+            this.stopBackgroundMusic();
+        }
+        this.savePreferences();
+    }
+
+    setNarrationEnabled(enabled: boolean): void {
+        this.isNarrationEnabled = enabled;
+        if (!enabled) {
+            this.stopNarration();
+        }
+        this.savePreferences();
+    }
+
+    // === Getters ===
+
+    getMuted(): boolean {
+        return this.isMuted;
+    }
+
+    getMusicVolume(): number {
+        return this.musicVolume;
+    }
+
+    getNarrationVolume(): number {
+        return this.narrationVolume;
+    }
+
+    getBackgroundMusicEnabled(): boolean {
+        return this.isBackgroundMusicEnabled;
+    }
+
+    getNarrationEnabled(): boolean {
+        return this.isNarrationEnabled;
+    }
+}
+
+// Export singleton instance
+export const audioManager = AudioManager.getInstance();
+
+// Export hook for React components
+export function useAudioManager() {
+    return audioManager;
+}

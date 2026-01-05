@@ -9,7 +9,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-black-60);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -25,7 +25,7 @@
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-xl);
 }
 
 .header {
@@ -106,7 +106,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1.5rem;
-  background: rgba(var(--color-primary-rgb), 0.1);
+  background: var(--overlay-primary-10);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -269,7 +269,7 @@
 
 .goalButton.selected {
   border-color: var(--goal-color, var(--color-primary));
-  background: rgba(var(--color-primary-rgb), 0.1);
+  background: var(--overlay-primary-10);
 }
 
 .goalIcon {
@@ -317,26 +317,234 @@
   .modal {
     max-height: 85vh;
   }
-  
+
   .durationGrid {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .goalGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .goalButton {
     flex-direction: row;
     text-align: left;
     gap: 0.75rem;
   }
-  
+
   .goalIcon {
     flex-shrink: 0;
   }
-  
-  .goalButton > div {
+
+  .goalButton>div {
     flex: 1;
+  }
+}
+
+.quoteBox {
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  border-left: 3px solid var(--color-primary);
+  padding-left: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.helperText {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.5rem;
+  line-height: 1.4;
+  background: var(--color-surface-secondary);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.helperText strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* Prime Step Styles */
+.primeSection {
+  padding: 1.25rem 1.5rem;
+}
+
+.primeInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-surface-secondary);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.primeInfo h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.primeInfo p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.primeIcon {
+  color: var(--color-warning);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.inputGroup {
+  margin-bottom: 1.25rem;
+}
+
+.inputGroup label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.labelHint {
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.inputGroup input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.inputGroup input::placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.inputGroup input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--overlay-primary-10);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1.5rem;
+}
+
+.backButton {
+  padding: 0.875rem 1.5rem;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-emphasis);
+}
+
+.buttonGroup .startButton {
+  flex: 1;
+  margin: 0;
+  width: auto;
+}
+
+.startButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Mood Selection */
+.moodSection {
+  padding: 1rem 1.5rem;
+  background: var(--overlay-sage-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.moodHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.moodHeader h3 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.moodGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.moodCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.moodCard:hover {
+  border-color: var(--color-sage);
+  transform: translateY(-2px);
+}
+
+.moodCardActive {
+  border-color: var(--color-sage);
+  background: var(--overlay-sage-10);
+}
+
+.moodEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.moodLabel {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 600px) {
+  .moodGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

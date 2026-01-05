@@ -16,9 +16,20 @@ import {
     CheckCircle2,
     AlertTriangle,
     Send,
-    Lightbulb
+    Lightbulb,
+    Sparkles,
+    Volume2,
+    Loader2,
+    Square
 } from 'lucide-react';
+import { useVoice } from '@/hooks/useVoice';
 import type { LearningConcept } from '@/lib/types/learning';
+import {
+    generateCoachFeedback,
+    type CoachFeedback,
+    type BlankSheetScore
+} from '@/lib/ai/phases';
+import { usePersonalizationStore } from '@/store/personalization-store';
 import styles from './BlankSheetTest.module.css';
 
 // ============================================================================
@@ -51,6 +62,8 @@ export interface BlankSheetResult {
     scoringConfidence: number;
     /** Typing metrics */
     metrics: TypingMetrics;
+    /** AI Coach Feedback */
+    coachFeedback?: CoachFeedback;
 }
 
 export interface TypingMetrics {
@@ -184,6 +197,9 @@ export function BlankSheetTest({
     const [lastKeystrokeTime, setLastKeystrokeTime] = useState<number | null>(null);
     const [pauseCount, setPauseCount] = useState(0);
 
+    const { selectedPersona } = usePersonalizationStore();
+    const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
+
     // Real-time metrics
     const metrics = useMemo((): TypingMetrics => {
         const now = Date.now();
@@ -257,10 +273,25 @@ export function BlankSheetTest({
             },
         };
 
+        // Generate AI Coach Feedback (single concept mode)
+        const scoreAdapter: BlankSheetScore = {
+            conceptsRecalled: blankSheetResult.identifiedPoints.length,
+            conceptsTotal: keyPoints.length,
+            connectionsRecalled: 0,
+            connectionsTotal: 0,
+            labelsAccuracy: 0,
+            overallScore: blankSheetResult.score,
+            strengthAreas: blankSheetResult.identifiedPoints,
+            focusAreas: blankSheetResult.missedPoints
+        };
+
+        const feedback = generateCoachFeedback(scoreAdapter, selectedPersona);
+        blankSheetResult.coachFeedback = feedback;
+
         setResult(blankSheetResult);
         setShowResults(true);
         setIsSubmitting(false);
-    }, [response, keyPoints, isValid, metrics, startTime]);
+    }, [response, keyPoints, isValid, metrics, startTime, selectedPersona]);
 
     // Handle continue after results
     const handleContinue = useCallback(() => {
@@ -287,6 +318,35 @@ export function BlankSheetTest({
                             {result.score >= 70 ? 'Great Recall!' : result.score >= 40 ? 'Good Progress' : 'Keep Learning'}
                         </h2>
                     </div>
+
+                    {/* AI Coach Feedback */}
+                    {result.coachFeedback && (
+                        <div className={styles.coachFeedback}>
+                            <div className={styles.coachHeader}>
+                                <Sparkles size={16} />
+                                <span>Coach Insight</span>
+                            </div>
+                            <h3 className={styles.feedbackHeadline}>{result.coachFeedback.headline}</h3>
+                            <p className={styles.feedbackMessage}>
+                                "{result.coachFeedback.encouragement}"
+                                <button
+                                    onClick={() => toggle(result.coachFeedback!.encouragement + " " + result.coachFeedback!.message)}
+                                    disabled={isVoiceLoading}
+                                    title={isVoicePlaying ? "Stop" : "Hear coach"}
+                                    style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', display: 'inline-flex', verticalAlign: 'middle' }}
+                                >
+                                    {isVoiceLoading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> :
+                                        isVoicePlaying ? <Square size={16} fill="currentColor" /> : <Volume2 size={16} />}
+                                </button>
+                            </p>
+                            <p className={styles.feedbackDetail}>
+                                {result.coachFeedback.message}
+                            </p>
+                            <div className={styles.nextAction}>
+                                <strong>Next Step:</strong> {result.coachFeedback.nextAction}
+                            </div>
+                        </div>
+                    )}
 
                     <div className={styles.metricsRow}>
                         <div className={styles.metricItem}>

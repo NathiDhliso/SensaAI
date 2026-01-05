@@ -252,3 +252,36 @@
     outline: none;
     border-color: var(--color-primary);
 }
+
+.coachContextBox {
+    display: flex;
+    gap: 1rem;
+    background: linear-gradient(135deg, var(--color-surface-base) 0%, var(--color-surface-subtle) 100%);
+    border: 1px solid var(--color-primary-subtle);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.coachIcon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.coachContextBox h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-primary);
+}
+
+.coachContextBox p {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    font-style: italic;
+    line-height: 1.5;
+}

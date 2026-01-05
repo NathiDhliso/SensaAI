@@ -25,7 +25,9 @@ import {
   Stethoscope,
   Trophy,
   Leaf,
-  EyeOff
+  EyeOff,
+  BookOpenCheck
+  , Volume2, VolumeX, Bot
 } from 'lucide-react';
 import { SensaIcon } from '@/components/ui';
 import { useThemeStore, type Theme } from '@/store/theme-store';
@@ -34,6 +36,7 @@ import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { usePalaceStore } from '@/store/palace-store';
 import { UI_TIMINGS } from '@/constants/ui-constants';
+import { getAllPersonas } from '@/lib/ai/coach';
 import type { BedrockConfig } from '@/lib/generation/claude-client';
 import styles from './Settings.module.css';
 
@@ -66,9 +69,18 @@ export default function Settings() {
     resetOnboarding,
     aphantasiaMode,
     setAphantasiaMode,
+    bionicReading,
+    setBionicReading,
+    selectedPersona,
+    setSelectedPersona,
+    coachVoiceEnabled,
+    setCoachVoiceEnabled,
+    coachIntensity,
+    setCoachIntensity,
   } = usePersonalizationStore();
   const updateLearningStyle = usePersonalizationStore(s => s.completeOnboarding);
   const updateFamiliarSystem = usePersonalizationStore(s => s.updateFamiliarSystem);
+  const personas = getAllPersonas();
 
   // Learning
   const { resetProgress, clearSession, currentSession, getSession } = useLearningStore();
@@ -281,6 +293,24 @@ export default function Settings() {
               </button>
             </div>
 
+            {/* Bionic Reading Toggle */}
+            <div className={styles.settingRow}>
+              <div className={styles.settingInfo}>
+                <span className={styles.settingLabel}>Bionic Reading</span>
+                <span className={styles.settingDesc}>
+                  Bolds the first half of each word to guide the eye and improve reading speed. Helps with dyslexia and ADHD.
+                </span>
+              </div>
+              <button
+                onClick={() => setBionicReading(!bionicReading)}
+                className={`${styles.toggleButton} ${bionicReading ? styles.toggleActive : ''}`}
+                aria-pressed={bionicReading}
+              >
+                <BookOpenCheck size={16} />
+                <span>{bionicReading ? 'Enabled' : 'Disabled'}</span>
+              </button>
+            </div>
+
             {onboardingComplete && (
               <button
                 onClick={() => {
@@ -293,6 +323,91 @@ export default function Settings() {
                 Retake onboarding quiz
               </button>
             )}
+          </div>
+
+          {/* AI Companion Section */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <Bot className={styles.sectionIcon} />
+              <h2 className={styles.sectionTitle}>AI Companion</h2>
+            </div>
+
+            <div className={styles.settingRow}>
+              <div className={styles.settingInfo}>
+                <span className={styles.settingLabel}>Select Your Coach</span>
+                <span className={styles.settingDesc}>Choose a persona that matches your learning style</span>
+              </div>
+              <div className={styles.personaGrid}>
+                {personas.map((persona) => (
+                  <button
+                    key={persona.id}
+                    onClick={() => setSelectedPersona(persona.id)}
+                    className={`${styles.personaCard} ${selectedPersona === persona.id ? styles.personaCardActive : ''}`}
+                  >
+                    <span className={styles.personaEmoji}>{persona.emoji}</span>
+                    <div className={styles.personaInfo}>
+                      <span className={styles.personaName}>{persona.name}</span>
+                      <span className={styles.personaTagline}>{persona.tagline}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.settingRow}>
+              <div className={styles.intensityRow}>
+                <span className={styles.intensityLabel}>Intensity</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  value={coachIntensity}
+                  onChange={(e) => setCoachIntensity(Number(e.target.value))}
+                  className={styles.intensitySlider}
+                />
+                <span className={styles.intensityValue}>{coachIntensity}</span>
+              </div>
+            </div>
+
+            <div className={styles.settingRow}>
+              <div className={styles.voiceRow}>
+                <div className={styles.voiceInfo}>
+                  <span className={styles.voiceLabel}>Coach Voice</span>
+                  <span className={styles.voiceDesc}>
+                    Hear your coach speak using ElevenLabs AI.
+                  </span>
+
+                  {/* ElevenLabs API Key Input */}
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <input
+                      type="password"
+                      placeholder="ElevenLabs API Key"
+                      value={usePersonalizationStore.getState().elevenLabsApiKey || ''}
+                      onChange={(e) => usePersonalizationStore.getState().setElevenLabsApiKey(e.target.value)}
+                      className={styles.input}
+                      style={{ fontSize: '0.85rem', padding: '0.5rem', width: '100%' }}
+                    />
+                    {!usePersonalizationStore.getState().elevenLabsApiKey && (
+                      <span className={styles.voiceDisabled} style={{ display: 'block', marginTop: '0.25rem' }}>
+                        API Key required
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.voiceControls}>
+                  <button
+                    onClick={() => setCoachVoiceEnabled(!coachVoiceEnabled)}
+                    className={`${styles.toggleButton} ${coachVoiceEnabled ? styles.toggleActive : ''}`}
+                    aria-pressed={coachVoiceEnabled}
+                    disabled={!usePersonalizationStore.getState().elevenLabsApiKey}
+                  >
+                    {coachVoiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                    <span>{coachVoiceEnabled ? 'Enabled' : 'Disabled'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Data Management Section */}
@@ -425,7 +540,7 @@ export default function Settings() {
                         />
                         <button
                           onClick={() => setShowSecrets(!showSecrets)}
-                          className={styles.toggleButton}
+                          className={styles.inputToggle}
                           type="button"
                         >
                           {showSecrets ? <EyeOff size={16} /> : <Eye size={16} />}

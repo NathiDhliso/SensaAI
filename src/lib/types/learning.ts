@@ -1,4 +1,80 @@
 
+// ============================================================================
+// Mnemonic & Dependency Types
+// ============================================================================
+
+export interface MnemonicContext {
+  anchor: string;
+  story: string;
+  tier: 'Foundation' | 'Keystone' | 'Utility';
+  parentName?: string;
+  parentId?: string;
+  dependsOn?: string[];
+  imageUrl?: string;
+}
+
+export interface DependencyEdge {
+  id: string;
+  source: string;
+  target: string;
+  relationship: 'depends-on' | 'related-to';
+  weight: number;
+}
+
+export interface DependencyMetrics {
+  conceptId: string;
+  conceptName: string;
+  dependentCount: number;
+  dependencyCount: number;
+  totalConnections: number;
+  calculatedTier: 'Foundation' | 'Keystone' | 'Utility';
+  centralityScore: number;
+  clusterGroup: string;
+}
+
+export interface SubjectGraphNode {
+  id: string;
+  name: string;
+  stageId: string;
+  metrics: DependencyMetrics;
+}
+
+export interface SubjectGraphStats {
+  totalNodes: number;
+  totalEdges: number;
+  foundationCount: number;
+  keystoneCount: number;
+  utilityCount: number;
+  centralHub: string;
+}
+
+export interface SubjectGraph {
+  subjectId: string;
+  generatedAt: string;
+  nodes: SubjectGraphNode[];
+  edges: DependencyEdge[];
+  stats: SubjectGraphStats;
+}
+
+// ============================================================================
+// Lifecycle Types  
+// ============================================================================
+
+export interface ConceptLifecyclePhase {
+  title: string;
+  steps: string[];
+}
+
+export interface ConceptLifecycle {
+  phase1: ConceptLifecyclePhase;
+  phase2: ConceptLifecyclePhase;
+  phase3: ConceptLifecyclePhase;
+}
+
+// ============================================================================
+// Session Types
+// ============================================================================
+
 export interface SessionPrimer {
   reason: string;
   action: string;
@@ -28,6 +104,16 @@ export interface EnhancedCognitiveMetrics {
   flowStateMinutes: number;
 }
 
+export interface WorkedExample {
+  problem: string;
+  solution: string;
+  steps: string[];
+}
+
+// ============================================================================
+// Learning Concept Types
+// ============================================================================
+
 export interface LearningConcept {
   id: string;
   name: string;
@@ -41,30 +127,40 @@ export interface LearningConcept {
   howToUse?: string[];
   technicalDetails?: string;
   metaphor?: string;
+  workedExample?: WorkedExample;
+  realWorldExample?: string;
+  logicalConnection?: string;
+  visualElement?: string;
+  actionButtonText?: string;
 
   // Metadata
-  mnemonic?: {
-    tier: 'Foundation' | 'Keystone' | 'Utility';
-    parentId?: string;
-    dependsOn?: string[];
-  };
+  mnemonic?: MnemonicContext;
 
-  lifecycle?: {
-    phase1: { title: string; steps: string[] };
-    phase2: { title: string; steps: string[] };
-    phase3: { title: string; steps: string[] };
-  };
+  lifecycle?: ConceptLifecycle;
 
   prerequisites?: string[];
+  keyPoints?: string[];
 }
+
+// ============================================================================
+// Learning Stage Types
+// ============================================================================
 
 export interface LearningStage {
   id: string;
+  // Required core fields
   title: string;
   description: string;
   icon: string;
   celebrationTitle: string;
   celebrationMessage: string;
+  // Extended fields for content generation
+  order?: number;
+  name?: string;
+  metaphor?: string;
+  metaphorDescription?: string;
+  concepts?: string[];
+  narrativeBridge?: string;
 }
 
 export interface UserProgress {
@@ -113,4 +209,16 @@ export interface StudySession {
   scouted: boolean;
   // Phase 1.5: Preview
   previewed: boolean;
+  // Phase 2: Build the Web
+  mapBuilt: boolean;
+  conceptMap?: ConceptMapData | null;
+  // Phase 3: Keep It Strong (Reconstruction)
+  mapReconstructed: boolean;
+  // Phase 3.5: Prove Mastery
+  mastered: boolean;
+}
+
+export interface ConceptMapData {
+  nodes: { id: string; conceptId: string; x: number; y: number }[];
+  connections: { id: string; fromId: string; toId: string; label: string }[];
 }

@@ -38,6 +38,24 @@ authRouter.post('/token', async (req: Request, res: Response) => {
         params.append('code', code);
         params.append('redirect_uri', redirect_uri);
 
+        // Header object for the request
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+
+        // Handle Confidential Client (Server-side secret)
+        if (process.env.COGNITO_CLIENT_SECRET) {
+            const secret = process.env.COGNITO_CLIENT_SECRET;
+            const clientId = process.env.COGNITO_CLIENT_ID || '';
+            const authHeader = Buffer.from(`${clientId}:${secret}`).toString('base64');
+            headers['Authorization'] = `Basic ${authHeader}`;
+        }
+
+        // Add PKCE verifier if present
+        if (req.body.code_verifier) {
+            params.append('code_verifier', req.body.code_verifier);
+        }
+
         // Construct token endpoint, handling both full domain and prefix-only configurations
         const domain = process.env.COGNITO_DOMAIN || '';
         const region = process.env.AWS_REGION || 'us-east-1';
@@ -59,15 +77,14 @@ authRouter.post('/token', async (req: Request, res: Response) => {
         console.log('Auth Debug: Request params:', {
             client_id: process.env.COGNITO_CLIENT_ID,
             redirect_uri: redirect_uri,
-            code_length: code.length
+            code_length: code.length,
+            has_verifier: !!req.body.code_verifier
         });
 
         // Direct call to Cognito Token Endpoint
         const response = await fetch(tokenEndpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
+            headers: headers,
             body: params
         });
 
@@ -104,6 +121,19 @@ authRouter.post('/refresh', async (req: Request, res: Response) => {
         params.append('client_id', process.env.COGNITO_CLIENT_ID || '');
         params.append('refresh_token', refresh_token);
 
+        // Header object for the request
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+
+        // Handle Confidential Client
+        if (process.env.COGNITO_CLIENT_SECRET) {
+            const secret = process.env.COGNITO_CLIENT_SECRET;
+            const clientId = process.env.COGNITO_CLIENT_ID || '';
+            const authHeader = Buffer.from(`${clientId}:${secret}`).toString('base64');
+            headers['Authorization'] = `Basic ${authHeader}`;
+        }
+
         // Reuse logic for domain construction
         const domain = process.env.COGNITO_DOMAIN || '';
         const region = process.env.AWS_REGION || 'us-east-1';
@@ -120,9 +150,7 @@ authRouter.post('/refresh', async (req: Request, res: Response) => {
 
         const response = await fetch(tokenEndpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
+            headers: headers,
             body: params
         });
 

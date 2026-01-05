@@ -1,0 +1,8 @@
+
+> SensaAI@1.0.0 build
+> tsc -b && vite build
+
+src/App.tsx(11,7): error TS6133: 'Results' is declared but its value is never read.
+src/components/learning/SessionScoutPreview.tsx(13,5): error TS6133: 'Search' is declared but its value is never read.
+src/pages/VelocityLearning.tsx(282,58): error TS6133: 'passed' is declared but its value is never read.
+src/store/learning-store.ts(555,37): error TS6133: 'passed' is declared but its value is never read.

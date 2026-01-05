@@ -40,7 +40,7 @@
 .panelTitle {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--color-text-dark);
+    color: var(--color-text-primary);
     margin: 0;
 }
 
@@ -53,14 +53,14 @@
     background: transparent;
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
-    color: var(--color-text-light);
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .closeButton:hover {
     background: var(--color-surface-subtle);
-    color: var(--color-text-dark);
+    color: var(--color-text-primary);
     border-color: var(--color-border-emphasis);
 }
 
@@ -97,7 +97,7 @@
 .sectionTitle {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--color-text-dark);
+    color: var(--color-text-primary);
     margin: 0;
 }
 
@@ -117,12 +117,12 @@
 .settingLabel {
     font-weight: 500;
     font-size: 0.875rem;
-    color: var(--color-text-dark);
+    color: var(--color-text-primary);
 }
 
 .settingDesc {
     font-size: 0.75rem;
-    color: var(--color-text-light);
+    color: var(--color-text-secondary);
 }
 
 .themeToggle {
@@ -141,14 +141,14 @@
     background: transparent;
     border: none;
     border-radius: 0.375rem;
-    color: var(--color-text-light);
+    color: var(--color-text-secondary);
     font-size: 0.8125rem;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .themeOption:hover {
-    color: var(--color-text-dark);
+    color: var(--color-text-primary);
 }
 
 .themeOptionActive {
@@ -202,6 +202,33 @@
 
 .linkButton:hover {
     opacity: 0.8;
+}
+
+/* Footer */
+.panelFooter {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface-subtle);
+}
+
+.advancedButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.advancedButton:hover {
+    border-color: var(--color-primary-amethyst);
+    color: var(--color-primary-amethyst);
 }
 
 /* Animations */

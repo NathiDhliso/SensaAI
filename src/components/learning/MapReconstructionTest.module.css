@@ -1,0 +1,131 @@
+/**
+ * MapReconstructionTest styles
+ * 
+ * Uses design system tokens for consistent theming
+ */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--color-surface);
+    border-radius: var(--radius-xl, 1.5rem);
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-6);
+    background: var(--overlay-primary-5);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.headerContent {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+.headerIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0;
+    line-height: var(--line-height-tight);
+}
+
+.subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: var(--spacing-1) 0 0;
+}
+
+.headerActions {
+    display: flex;
+    gap: var(--spacing-3);
+}
+
+.toggleButton {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggleButton:hover {
+    background: var(--overlay-accent-5);
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-glow-primary);
+}
+
+.completeButton {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-4);
+    background: var(--color-success);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.completeButton:hover {
+    background: var(--color-success-text);
+    box-shadow: var(--shadow-glow-sage);
+}
+
+.comparisonContainer {
+    flex: 1;
+    position: relative;
+    background: var(--color-surface-base, #0e0e12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.viewLabel {
+    position: absolute;
+    bottom: var(--spacing-4);
+    right: var(--spacing-4);
+    background: var(--overlay-black-60);
+    padding: var(--spacing-2) var(--spacing-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+    z-index: 10;
+}
+
+.viewLabel span {
+    color: var(--color-text-primary);
+}
+
+.viewLabel span.original {
+    color: var(--color-accent);
+}

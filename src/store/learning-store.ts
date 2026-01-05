@@ -11,6 +11,7 @@ import type {
   LifecyclePhaseKey,
   EnhancedCognitiveMetrics,
   SessionPrimer,
+  ConceptMapData,
 } from '@/lib/types/learning';
 import type { SprintResult } from '@/lib/types/sprint';
 
@@ -144,6 +145,8 @@ const getDefaultEnhancedMetrics = (): EnhancedCognitiveMetrics => ({
   flowStateMinutes: 0,
 });
 
+
+
 const createStudySession = (
   subjectId: string,
   goal: StudyGoal,
@@ -171,6 +174,11 @@ const createStudySession = (
   scouted: false,
   // Phase 1.5: Preview
   previewed: false,
+  // Phase 2: Build the Web
+  mapBuilt: false,
+  conceptMap: null,
+  mapReconstructed: false,
+  mastered: false,
 });
 
 const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]): UserProgress => {
@@ -295,7 +303,12 @@ type LearningActions = {
   setSessionPrimer: (primer: SessionPrimer) => void;
   markSessionScouted: () => void;
   markSessionPreviewed: () => void;
-  endStudySession: () => void;
+  markSessionMapBuilt: (data?: ConceptMapData) => void;
+  markSessionMapReconstructed: (passed: boolean) => void;
+  markSessionMastered: () => void;
+
+  // Progress
+  completeConcept: (conceptId: string) => void;
   updateStudyMetrics: (metrics: Partial<EnhancedCognitiveMetrics>) => void;
   completeStudySessionConcept: (conceptId: string, phase?: LifecyclePhaseKey) => void;
   recordConfusionDrill: (passed: boolean) => void;
@@ -308,7 +321,6 @@ type LearningActions = {
   } | null;
 
   // Concept Navigation
-  completeConcept: (conceptId: string) => void;
   setCurrentConcept: (conceptId: string) => void;
   getConceptStatus: (conceptId: string) => 'locked' | 'available' | 'current' | 'completed';
   getStageStatus: (stageId: string) => 'locked' | 'available' | 'current' | 'completed';
@@ -517,26 +529,48 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       },
 
       markSessionScouted: () => {
-        const state = get();
-        if (!state.studySession) return;
-        set({
-          studySession: {
-            ...state.studySession,
-            scouted: true
-          }
-        });
+        set((state) => ({
+          studySession: state.studySession
+            ? { ...state.studySession, scouted: true }
+            : null
+        }));
       },
 
       markSessionPreviewed: () => {
-        const state = get();
-        if (!state.studySession) return;
-        set({
-          studySession: {
-            ...state.studySession,
-            previewed: true
-          }
-        });
+        set((state) => ({
+          studySession: state.studySession
+            ? { ...state.studySession, previewed: true }
+            : null
+        }));
       },
+
+      markSessionMapBuilt: (data?: ConceptMapData) => {
+        set((state) => ({
+          studySession: state.studySession
+            ? { ...state.studySession, mapBuilt: true, conceptMap: data || null }
+            : null
+        }));
+      },
+
+      markSessionMapReconstructed: (_passed: boolean) => {
+        set((state) => ({
+          studySession: state.studySession
+            ? { ...state.studySession, mapReconstructed: true }
+            : null
+        }));
+      },
+
+      markSessionMastered: () => {
+        set((state) => ({
+          studySession: state.studySession
+            ? { ...state.studySession, mastered: true }
+            : null
+        }));
+      },
+
+      // =====================================================================
+      // PROGRESS ACTIONS
+      // =====================================================================
 
       endStudySession: () => {
         const state = get();
@@ -872,7 +906,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const concept = concepts.find(c => c.id === conceptId);
         if (!concept) return 'locked';
 
-        const prerequisitesMet = concept.prerequisites.every(prereq =>
+        const prerequisitesMet = (concept.prerequisites || []).every(prereq =>
           progress.completedConcepts.includes(prereq)
         );
 

@@ -76,7 +76,7 @@ export function Room({ room, canvasSize, animationDelay = 0, theme = 'Default' }
                 width={width - padding * 2}
                 height={height - padding * 2}
                 fill="none"
-                stroke="rgba(59, 130, 246, 0.15)"
+                stroke="var(--overlay-primary-10)"
                 strokeWidth="1"
                 strokeDasharray="8 4"
                 rx="4"
@@ -89,7 +89,7 @@ export function Room({ room, canvasSize, animationDelay = 0, theme = 'Default' }
                 y={y + 8}
                 width={Math.min(room.name.length * 10 + 24, width - 24)}
                 height="28"
-                fill="rgba(0, 0, 0, 0.6)"
+                fill="var(--overlay-black-60)"
                 rx="4"
                 ry="4"
             />
@@ -99,7 +99,7 @@ export function Room({ room, canvasSize, animationDelay = 0, theme = 'Default' }
                 x={x + 24}
                 y={y + 27}
                 className={styles.roomLabel}
-                fill="rgba(59, 130, 246, 0.9)"
+                fill="var(--color-info)"
                 fontSize="14"
                 fontWeight="600"
                 fontFamily="system-ui, sans-serif"
@@ -108,7 +108,7 @@ export function Room({ room, canvasSize, animationDelay = 0, theme = 'Default' }
             </text>
 
             {/* Corner decorations (blueprint style) */}
-            <g stroke="rgba(59, 130, 246, 0.4)" strokeWidth="2" fill="none">
+            <g stroke="var(--overlay-primary-15)" strokeWidth="2" fill="none">
                 {/* Top-left corner */}
                 <path d={`M ${x + 4} ${y + 16} L ${x + 4} ${y + 4} L ${x + 16} ${y + 4}`} />
                 {/* Top-right corner */}

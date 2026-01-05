@@ -25,7 +25,7 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
     const [showFeedback, setShowFeedback] = useState(false);
     const [answers, setAnswers] = useState<('correct' | 'incorrect')[]>([]);
 
-    const targetConcept = conceptId 
+    const targetConcept = conceptId
         ? concepts.find(c => c.id === conceptId)
         : concepts.find(c => c.id === currentSession?.progress?.currentConceptId);
 
@@ -37,13 +37,13 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
         qs.push({
             question: `What is the main purpose of ${targetConcept.name}?`,
             options: [
-                targetConcept.whyYouNeed.slice(0, 80) + '...',
+                (targetConcept.whyYouNeed || targetConcept.hookSentence || 'Primary functionality').slice(0, 80) + '...',
                 'To manage user authentication only',
                 'For logging and debugging purposes',
                 'To handle network requests exclusively',
             ],
             correctIndex: 0,
-            explanation: targetConcept.whyYouNeed,
+            explanation: targetConcept.whyYouNeed || 'This is the main purpose of this concept.',
         });
 
         if (targetConcept.lifecycle) {
@@ -63,7 +63,7 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
         qs.push({
             question: `Which metaphor best describes ${targetConcept.name}?`,
             options: [
-                targetConcept.metaphor,
+                targetConcept.metaphor || targetConcept.name,
                 'A simple calculator',
                 'A traffic light system',
                 'A filing cabinet',
@@ -132,11 +132,10 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
                                     {questions.map((_, idx) => (
                                         <div
                                             key={idx}
-                                            className={`${styles.quizProgressDot} ${
-                                                answers[idx] === 'correct' ? styles.correct :
+                                            className={`${styles.quizProgressDot} ${answers[idx] === 'correct' ? styles.correct :
                                                 answers[idx] === 'incorrect' ? styles.incorrect :
-                                                idx === currentIndex ? styles.current : ''
-                                            }`}
+                                                    idx === currentIndex ? styles.current : ''
+                                                }`}
                                         />
                                     ))}
                                 </div>
@@ -148,7 +147,7 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
                                 {currentQuestion.options.map((option, idx) => {
                                     const letters = ['A', 'B', 'C', 'D'];
                                     let optionClass = styles.quizOption;
-                                    
+
                                     if (showFeedback) {
                                         optionClass += ` ${styles.disabled}`;
                                         if (idx === currentQuestion.correctIndex) {
@@ -182,7 +181,7 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
                                         <XCircle size={20} className={styles.quizFeedbackIcon} />
                                     )}
                                     <p className={styles.quizFeedbackText}>
-                                        {isCorrect 
+                                        {isCorrect
                                             ? "Correct! " + currentQuestion.explanation
                                             : "Not quite. " + currentQuestion.explanation
                                         }

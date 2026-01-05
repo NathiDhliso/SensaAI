@@ -3,10 +3,11 @@ import { lazy, Suspense, useEffect } from 'react';
 import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
 import { loadPanoramaManifest } from './lib/panorama';
+import { usePersonalizationStore } from './store/personalization-store';
+import { useBionicReading } from './hooks/useBionicReading';
 
 const Home = lazy(() => import('./pages/Home'));
 const Generate = lazy(() => import('./pages/Generate'));
-const Results = lazy(() => import('./pages/Results'));
 const Settings = lazy(() => import('./pages/Settings'));
 const SavedResults = lazy(() => import('./pages/SavedResults'));
 const Palace = lazy(() => import('./pages/Palace'));
@@ -34,9 +35,23 @@ function ResultsRedirect() {
 }
 
 function App() {
+  const bionicReading = usePersonalizationStore(state => state.bionicReading);
+
   useEffect(() => {
     loadPanoramaManifest();
   }, []);
+
+  // Apply bionic reading mode to document
+  useEffect(() => {
+    if (bionicReading) {
+      document.documentElement.setAttribute('data-bionic-reading', 'true');
+    } else {
+      document.documentElement.removeAttribute('data-bionic-reading');
+    }
+  }, [bionicReading]);
+
+  // Apply bionic reading text processing
+  useBionicReading();
 
   return (
     <BrowserRouter>
