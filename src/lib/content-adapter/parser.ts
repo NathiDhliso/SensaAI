@@ -10,7 +10,7 @@ import type {
   ParsedMnemonic,
 } from './types';
 import { validateBatchResponse, type GeneratedConcept } from '@/lib/types/concept-schema';
-import { parsePL300Content } from './pl300-json-parser';
+import { parseContent } from './json-content-parser';
 
 export type ParseResult =
   | { success: true; data: ParsedGeneratedContent }
@@ -864,8 +864,8 @@ function isPL300JsonFormat(content: string): boolean {
 /**
  * Parse PL-300 JSON content using the specialized parser
  */
-function parsePL300JsonContent(rawContent: string): ParseResult {
-  const result = parsePL300Content(rawContent);
+function parseGenericJsonContent(rawContent: string): ParseResult {
+  const result = parseContent(rawContent);
 
   if (!result.success) {
     return {
@@ -891,7 +891,7 @@ export function parseGeneratedContent(rawContent: string): ParseResult {
 
     // Check if this is a PL-300 JSON file format
     if (isPL300JsonFormat(rawContent)) {
-      return parsePL300JsonContent(rawContent);
+      return parseGenericJsonContent(rawContent);
     }
 
     const domainAnalysis = parseDomainAnalysis(rawContent);

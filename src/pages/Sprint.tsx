@@ -51,7 +51,7 @@ export default function Sprint() {
     useEffect(() => {
         if (phase !== 'loading') return;
         if (isGenerating.current) return; // Prevent duplicate calls
-        
+
         // Check prerequisites first
         if (!bedrockConfig) {
             console.error('Sprint: AWS credentials not configured');
@@ -65,10 +65,10 @@ export default function Sprint() {
         }
 
         isGenerating.current = true;
-        
+
         // Create a timeout promise
         const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('Generation timed out. Please try again.')), 60000);
+            setTimeout(() => reject(new Error('Generation timed out. Please try again.')), UI_TIMINGS.GENERATION_TIMEOUT);
         });
 
         // Race between generation and timeout
@@ -96,7 +96,7 @@ export default function Sprint() {
         if (phase !== 'countdown') return;
 
         if (countdown > 0) {
-            const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+            const timer = setTimeout(() => setCountdown(c => c - 1), UI_TIMINGS.ONE_SECOND);
             return () => clearTimeout(timer);
         }
 
@@ -147,7 +147,7 @@ export default function Sprint() {
         // Navigate to results after brief delay
         setTimeout(() => {
             navigate('/study/current?tab=sprint');
-        }, 1000);
+        }, UI_TIMINGS.ONE_SECOND);
     };
 
     // Keyboard shortcuts
@@ -179,7 +179,7 @@ export default function Sprint() {
                 }
                 return prev - 1;
             });
-        }, 1000);
+        }, UI_TIMINGS.ONE_SECOND);
 
         return () => clearInterval(interval);
     }, [phase, answers]);
@@ -197,7 +197,7 @@ export default function Sprint() {
                 }
                 return prev - 0.1;
             });
-        }, 100);
+        }, UI_TIMINGS.MARKER_UPDATE_FAST);
 
         return () => clearInterval(interval);
     }, [phase, handleAnswer]);

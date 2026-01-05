@@ -1,5 +1,5 @@
 /**
- * PL-300 JSON File Parser
+ * JSON Content Parser
  * 
  * Handles the special JSON format with fullDocument field containing escaped content.
  * This parser extracts and processes the embedded content properly.
@@ -19,7 +19,7 @@ import type {
 // TYPES
 // ============================================================================
 
-interface PL300JsonFile {
+interface ContentJsonFile {
     id?: string;
     subject?: string;
     generatedAt?: string;
@@ -39,16 +39,16 @@ type ParseResult = {
 // ============================================================================
 
 /**
- * Parse PL-300 JSON content
+ * Parse JSON content
  * Handles the wrapper format with fullDocument field
  */
-export function parsePL300Content(rawContent: string): ParseResult {
+export function parseContent(rawContent: string): ParseResult {
     try {
         // Try to parse as JSON wrapper first
         let content = rawContent;
 
         try {
-            const parsed = JSON.parse(rawContent) as PL300JsonFile;
+            const parsed = JSON.parse(rawContent) as ContentJsonFile;
             if (parsed.fullDocument) {
                 content = parsed.fullDocument;
             }
@@ -57,23 +57,23 @@ export function parsePL300Content(rawContent: string): ParseResult {
         }
 
         // Parse domain analysis from content
-        const domainAnalysis = parseDomainAnalysisPL300(content);
+        const domainAnalysis = parseDomainAnalysis(content);
 
         // Parse concepts from JSON blocks
-        const concepts = parseConceptsPL300(content);
+        const concepts = parseConcepts(content);
 
         if (concepts.length === 0) {
             return {
                 success: false,
-                error: 'No concepts detected in PL-300 content'
+                error: 'No concepts detected in content'
             };
         }
 
         // Parse learning path
-        const learningPath = parseLearningPathPL300(concepts);
+        const learningPath = parseLearningPath(concepts);
 
         // Parse mental anchors from mnemonics
-        const mentalAnchors = parseMentalAnchorsPL300(concepts);
+        const mentalAnchors = parseMentalAnchors(concepts);
 
         // Parse confusion pairs
         const confusionPairs: ParsedConfusionPair[] = [];
@@ -92,7 +92,7 @@ export function parsePL300Content(rawContent: string): ParseResult {
     } catch (error) {
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Failed to parse PL-300 content'
+            error: error instanceof Error ? error.message : 'Failed to parse content'
         };
     }
 }
@@ -101,7 +101,7 @@ export function parsePL300Content(rawContent: string): ParseResult {
 // DOMAIN ANALYSIS PARSER
 // ============================================================================
 
-function parseDomainAnalysisPL300(content: string): ParsedDomainAnalysis {
+function parseDomainAnalysis(content: string): ParsedDomainAnalysis {
     // Extract lifecycle phases from content
     const lifecycleMatch = content.match(/Lifecycle:\s*([A-Z]+)\s*→\s*([A-Z]+)\s*→\s*([A-Z]+)/i);
 
@@ -116,14 +116,14 @@ function parseDomainAnalysisPL300(content: string): ParsedDomainAnalysis {
     }
 
     return {
-        domain: extractValue(content, 'Domain:') || 'Business Intelligence & Data Analytics',
-        professionalRole: extractValue(content, 'Professional Role:') || 'Power BI Data Analyst',
+        domain: extractValue(content, 'Domain:') || 'General Domain',
+        professionalRole: extractValue(content, 'Professional Role:') || 'Learner',
         lifecycle: {
             phase1: lifecycleMatch?.[1] || 'PREPARE',
             phase2: lifecycleMatch?.[2] || 'MODEL',
             phase3: lifecycleMatch?.[3] || 'DELIVER',
         },
-        sourceVerification: 'Microsoft Learn PL-300 Documentation',
+        sourceVerification: 'Documentation',
         recentUpdates: extractListItems(content, 'Recent Updates:'),
         numericalLimits: extractListItems(content, 'Numerical Limits:'),
         coreConceptsCount: conceptNames.length || parseInt(extractValue(content, 'Core Concepts Identified:') || '0', 10),
@@ -162,7 +162,7 @@ function extractListItems(content: string, marker: string): string[] {
 // CONCEPTS PARSER
 // ============================================================================
 
-function parseConceptsPL300(content: string): ParsedConcept[] {
+function parseConcepts(content: string): ParsedConcept[] {
     const concepts: ParsedConcept[] = [];
 
     // Find JSON blocks containing concepts array
@@ -189,7 +189,7 @@ function parseConceptsPL300(content: string): ParsedConcept[] {
                 }
             }
         } catch (e) {
-            console.warn('[PL300Parser] Failed to parse JSON block:', e);
+            console.warn('[ContentParser] Failed to parse JSON block:', e);
         }
     }
 
@@ -310,7 +310,7 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
         concepts.push(concept);
     }
 
-    console.log(`[PL300Parser] Parsed ${concepts.length} concepts from markdown format`);
+    console.log(`[ContentParser] Parsed ${concepts.length} concepts from markdown format`);
     return concepts;
 }
 
@@ -453,12 +453,10 @@ function extractMnemonic(content: string, conceptName: string): ParsedMnemonic |
 }
 
 function determineStageId(order: number): string {
-    if (order <= 10) return 'stage-1';
-    if (order <= 20) return 'stage-2';
-    if (order <= 30) return 'stage-3';
-    if (order <= 40) return 'stage-4';
-    if (order <= 50) return 'stage-5';
-    return 'stage-6';
+    // Dynamic stage assignment based on order
+    // Assuming ~10-15 concepts per stage
+    const stageNum = Math.ceil(order / 12);
+    return `stage-${Math.min(stageNum, 6)}`;
 }
 
 function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | null {
@@ -551,6 +549,7 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
             prerequisite,
             selection,
             execution,
+            ...((c.lifecycle as any)?.phase1 || {})
         },
         phase2,
         phase3: {
@@ -570,7 +569,7 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
 // LEARNING PATH PARSER
 // ============================================================================
 
-function parseLearningPathPL300(concepts: ParsedConcept[]): ParsedLearningPath {
+function parseLearningPath(concepts: ParsedConcept[]): ParsedLearningPath {
     // Group concepts by stage
     const stageMap = new Map<string, ParsedConcept[]>();
 
@@ -582,14 +581,14 @@ function parseLearningPathPL300(concepts: ParsedConcept[]): ParsedLearningPath {
         stageMap.get(stageId)!.push(concept);
     }
 
-    // Define stage metadata
+    // Define stage metadata (Generic fallback)
     const stageNames: Record<string, string> = {
         'stage-1': 'Foundation Concepts',
-        'stage-2': 'Data Preparation',
-        'stage-3': 'Data Modeling',
-        'stage-4': 'Advanced DAX',
-        'stage-5': 'Visualization',
-        'stage-6': 'Administration',
+        'stage-2': 'Building Blocks',
+        'stage-3': 'Structuring',
+        'stage-4': 'Advanced Logic',
+        'stage-5': 'Presentation',
+        'stage-6': 'Administration & Optimization',
     };
 
     const stages: ParsedLearningPath['stages'] = [];
@@ -618,7 +617,7 @@ function parseLearningPathPL300(concepts: ParsedConcept[]): ParsedLearningPath {
 // MENTAL ANCHORS PARSER
 // ============================================================================
 
-function parseMentalAnchorsPL300(concepts: ParsedConcept[]): ParsedMentalAnchor[] {
+function parseMentalAnchors(concepts: ParsedConcept[]): ParsedMentalAnchor[] {
     return concepts
         .filter(c => c.mnemonic?.anchor)
         .map(c => ({
@@ -632,4 +631,4 @@ function parseMentalAnchorsPL300(concepts: ParsedConcept[]): ParsedMentalAnchor[
         }));
 }
 
-export default parsePL300Content;
+export default parseContent;

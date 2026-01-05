@@ -25,6 +25,8 @@ export const PRIMER_AUDIO = {
     ambientStudy2: `${PRIMER_AUDIO_BASE}/ambient-study2.mp3`,
 } as const;
 
+import { STORAGE_KEYS } from '@/constants/storage-keys';
+
 export type PrimerAudioKey = keyof typeof PRIMER_AUDIO;
 
 class AudioManager {
@@ -61,7 +63,7 @@ class AudioManager {
      */
     private loadPreferences(): void {
         try {
-            const prefs = localStorage.getItem('audio-preferences');
+            const prefs = localStorage.getItem(STORAGE_KEYS.AUDIO_PREFERENCES);
             if (prefs) {
                 const parsed = JSON.parse(prefs);
                 this.isMuted = parsed.isMuted ?? false;
@@ -79,7 +81,7 @@ class AudioManager {
      * Save preferences to localStorage
      */
     private savePreferences(): void {
-        localStorage.setItem('audio-preferences', JSON.stringify({
+        localStorage.setItem(STORAGE_KEYS.AUDIO_PREFERENCES, JSON.stringify({
             isMuted: this.isMuted,
             musicVolume: this.musicVolume,
             narrationVolume: this.narrationVolume,

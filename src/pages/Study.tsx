@@ -112,7 +112,7 @@ function OverviewTab({ onStartLearning, onStartSprint, session, navigate }: Over
 
 
       {/* GRAPH MAP - The "Macro" View */}
-      <section className={styles.section} style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+      <section className={`${styles.section} ${styles.mapContainer}`}>
         <h3 className={styles.sectionTitle}>Knowledge Map</h3>
 
         <div className={styles.knowledgeMapContainer}>
@@ -130,7 +130,7 @@ function OverviewTab({ onStartLearning, onStartSprint, session, navigate }: Over
             </div>
           ) : (
             <Suspense fallback={
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+              <div className={styles.flexCenterFull}>
                 Loading Map...
               </div>
             }>
@@ -419,36 +419,12 @@ export default function Study() {
             animate={{ opacity: 1, scale: 1, backdropFilter: 'blur(10px)' }}
             exit={{ opacity: 0, scale: 0.8, backdropFilter: 'blur(0px)' }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 50, // Above everything including layout
-              background: 'var(--overlay-black-60)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '2rem'
-            }}
+            className={styles.overlayModal}
           >
-            <div style={{ width: '100%', maxWidth: '1000px', height: '100%', maxHeight: '90vh', position: 'relative' }}>
+            <div className={styles.overlayContainer}>
               <button
                 onClick={() => setLearningConceptId(null)}
-                style={{
-                  position: 'absolute',
-                  top: '-3rem',
-                  right: 0,
-                  background: 'none',
-                  border: 'none',
-                  color: 'white',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  fontWeight: 500
-                }}
+                className={styles.overlayCloseButton}
               >
                 ✕ Close Interaction
               </button>

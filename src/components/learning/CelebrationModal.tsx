@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Share2, Check } from 'lucide-react';
-import { LEARNING_CONCEPTS } from '@/constants/learning-content';
+import { useContent } from '@/contexts/ContentContext';
 import { CONFETTI_COLORS } from '@/constants/theme-colors';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import type { CelebrationData } from '@/lib/types/learning';
@@ -35,6 +35,7 @@ const generateConfetti = () => {
 const CONFETTI_PIECES = generateConfetti();
 
 export default function CelebrationModal({ data, onContinue, onTakeBreak }: CelebrationModalProps) {
+  const { concepts } = useContent();
   const confettiPieces = CONFETTI_PIECES;
   const [autoDismissCountdown, setAutoDismissCountdown] = useState(4);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -63,10 +64,10 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
   const completedConceptNames = useMemo(() => {
     if (!data.conceptsCompleted) return [];
     return data.conceptsCompleted
-      .map(id => LEARNING_CONCEPTS.find(c => c.id === id)?.name)
+      .map(id => concepts.find(c => c.id === id)?.name)
       .filter(Boolean)
       .slice(0, 6);
-  }, [data.conceptsCompleted]);
+  }, [data.conceptsCompleted, concepts]);
 
   const [shared, setShared] = useState(false);
 
@@ -99,7 +100,7 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
   };
 
   return (
-    <div 
+    <div
       className={styles.overlay}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}

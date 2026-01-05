@@ -373,4 +373,54 @@
   .statValue {
     font-size: 1.5rem;
   }
+
+  /* New styles for compliance */
+  .flexCenterFull {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .mapContainer {
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .overlayContainer {
+    width: 100%;
+    max-width: 1000px;
+    height: 100%;
+    max-height: 90vh;
+    position: relative;
+  }
+
+  .overlayCloseButton {
+    position: absolute;
+    top: -3rem;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+  }
+
+  .overlayModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: var(--overlay-black-60);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
 }

@@ -1,25 +1,26 @@
 import type { SavedResult, StorageProvider } from './types';
+import { STORAGE_KEYS } from '@/constants/storage-keys';
 
 export class LocalFileStorage implements StorageProvider {
-  private readonly STORAGE_KEY = 'sensa-saved-results';
+  private readonly STORAGE_KEY = STORAGE_KEYS.SAVED_RESULTS;
 
   async saveResult(result: SavedResult): Promise<{ success: boolean; path?: string; error?: string }> {
     try {
       const existingResults = await this.listResults();
       const updatedResults = [result, ...existingResults.filter(r => r.id !== result.id)];
-      
+
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updatedResults));
-      
+
       // NOTE: Removed auto-download behavior - files are now downloaded only when user explicitly clicks download
-      
-      return { 
-        success: true, 
-        path: `localStorage://${this.STORAGE_KEY}/${result.id}` 
+
+      return {
+        success: true,
+        path: `localStorage://${this.STORAGE_KEY}/${result.id}`
       };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to save result' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save result'
       };
     }
   }

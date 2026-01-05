@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { FOCUS_SESSION_CONFIG } from '@/constants/ui-constants';
+import { STORAGE_KEYS } from '@/constants/storage-keys';
 import type {
   UserProgress,
   CelebrationData,
@@ -1374,7 +1375,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       },
     }),
     {
-      name: 'sensa-learning',
+      name: STORAGE_KEYS.LEARNING_STORE,
       partialize: (state) => ({
         currentSession: state.currentSession,
         focusDurationMinutes: state.focusDurationMinutes,

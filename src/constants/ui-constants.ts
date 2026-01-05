@@ -90,6 +90,12 @@ export const UI_TIMINGS = {
   TWO_HOUR_SESSION_MS: 7200000,     // 2 hours in milliseconds
   LEARNING_PHASE_MS: 5400000,       // 90 minutes learning phase
   SPRINT_PHASE_MS: 900000,          // 15 minutes sprint phase
+
+  // General timeouts
+  GENERATION_TIMEOUT: 60000,        // 60 seconds generation timeout
+  PANEL_EXIT_DELAY: 300,            // Delay for panel close animations
+  ONE_SECOND: 1000,                 // Standard 1s interval
+  TOUR_INTERVAL: 8000,              // 8 seconds per tour stop
 } as const;
 
 /**

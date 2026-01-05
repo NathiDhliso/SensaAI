@@ -15,7 +15,9 @@ import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useUIStore } from '@/store/ui-store';
 import { useThemeStore, type Theme } from '@/store/theme-store';
 import { usePersonalizationStore, type FamiliarSystem } from '@/store/personalization-store';
+import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './SettingsPanel.module.css';
+
 
 const LEARNING_STYLES = [
     { value: 'visual', label: 'Visual', icon: '👁️' },
@@ -63,7 +65,7 @@ export default function SettingsPanel() {
             setIsExiting(false);
             // Return focus to trigger
             triggerRef.current?.focus();
-        }, 280);
+        }, UI_TIMINGS.PANEL_EXIT_DELAY);
     }, [closeSettingsPanel]);
 
     // Hooks for closing
@@ -207,7 +209,7 @@ export default function SettingsPanel() {
                     <button
                         onClick={() => {
                             handleClose();
-                            setTimeout(() => window.location.href = '/settings', 300);
+                            setTimeout(() => window.location.href = '/settings', UI_TIMINGS.PANEL_EXIT_DELAY);
                         }}
                         className={styles.advancedButton}
                     >
