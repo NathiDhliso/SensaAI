@@ -66,7 +66,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
             humor: 2,
         },
         voiceConfig: {
-            elevenLabsId: 'aipLxTYFE7dum3mKtPZI', // Aurora (Calm/Soothing)
+            elevenLabsId: 'EXAVITQu4vr4xnSDxMaL', // Bella (Calm/Soothing)
             stability: 0.85,
             similarityBoost: 0.75
         }

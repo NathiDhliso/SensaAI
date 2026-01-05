@@ -11,6 +11,7 @@ import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, Layers, Gem, Wrench, Play } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
 import { renderShapeOrIcon } from '@/components/ui';
+import { COLORS } from '@/constants/theme-colors';
 import styles from './ConceptChunks.module.css';
 
 export interface ConceptChunksProps {
@@ -40,7 +41,7 @@ const TIER_CONFIG: TierConfig[] = [
     key: 'Foundation',
     label: 'Foundation',
     icon: Layers,
-    color: '#FFD700',
+    color: COLORS.warning, // Gold/Amber equivalent
     bgColor: 'var(--overlay-amber-10)',
     description: 'Core concepts with 4+ dependents. Learn these first.',
   },
@@ -48,7 +49,7 @@ const TIER_CONFIG: TierConfig[] = [
     key: 'Keystone',
     label: 'Keystone',
     icon: Gem,
-    color: '#8B5CF6',
+    color: COLORS.accent.light, // Purple/Accent equivalent
     bgColor: 'var(--overlay-accent-10)',
     description: 'Bridge concepts connecting foundations to utilities.',
   },
@@ -56,7 +57,7 @@ const TIER_CONFIG: TierConfig[] = [
     key: 'Utility',
     label: 'Utility',
     icon: Wrench,
-    color: '#F59E0B',
+    color: COLORS.warning, // Amber equivalent
     bgColor: 'var(--overlay-amber-10)',
     description: 'Practical tools and techniques. Build on prerequisites.',
   },
@@ -124,13 +125,13 @@ export function ConceptChunks({
           <strong>{stats.total}</strong> concepts organized by learning priority
         </span>
         <div className={styles.summaryStats}>
-          <span className={styles.statBadge} style={{ color: '#FFD700' }}>
+          <span className={styles.statBadge} style={{ color: COLORS.warning }}>
             {stats.foundation} Foundation
           </span>
-          <span className={styles.statBadge} style={{ color: '#8B5CF6' }}>
+          <span className={styles.statBadge} style={{ color: COLORS.accent.light }}>
             {stats.keystone} Keystone
           </span>
-          <span className={styles.statBadge} style={{ color: '#F59E0B' }}>
+          <span className={styles.statBadge} style={{ color: COLORS.warning }}>
             {stats.utility} Utility
           </span>
         </div>

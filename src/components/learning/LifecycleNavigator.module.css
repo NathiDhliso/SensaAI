@@ -5,11 +5,9 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  background: linear-gradient(
-    to right,
-    var(--color-surface) 0%,
-    var(--color-bg-neutral) 100%
-  );
+  background: linear-gradient(to right,
+      var(--color-surface) 0%,
+      var(--color-bg-neutral) 100%);
   border-bottom: 2px solid var(--color-border);
 }
 
@@ -155,8 +153,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Total Progress Bar */
@@ -185,12 +190,10 @@
 
 .totalBar {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    #3B82F6 0%,
-    #F59E0B 50%,
-    #10B981 100%
-  );
+  background: linear-gradient(90deg,
+      var(--color-primary-blue) 0%,
+      var(--color-warning) 50%,
+      var(--color-success) 100%);
   border-radius: 4px;
   transition: width 0.4s ease;
 }
@@ -240,10 +243,8 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .navigator {
-    background: linear-gradient(
-      to right,
-      var(--color-surface) 0%,
-      var(--color-bg-primary) 100%
-    );
+    background: linear-gradient(to right,
+        var(--color-surface) 0%,
+        var(--color-bg-primary) 100%);
   }
 }

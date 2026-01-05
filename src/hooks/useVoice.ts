@@ -8,6 +8,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { voiceService } from '@/lib/voice/elevenlabs';
+import { STATIC_VOICE_LINES } from '@/lib/voice/static-lines';
 import type { PersonaId } from '@/lib/ai/coach';
 
 interface UseVoiceResult {
@@ -73,8 +74,43 @@ export function useVoice(): UseVoiceResult {
 
         const targetPersona = overridePersonaId || selectedPersona;
 
+        // Check for local static file first
+        if (STATIC_VOICE_LINES[text]) {
+            const localUrl = `/audio/voice/${STATIC_VOICE_LINES[text]}`;
+            console.log('Using local voice asset:', localUrl);
+            setAudioUrl(localUrl);
+
+            const audio = new Audio(localUrl);
+            audioRef.current = audio;
+
+            audio.onended = () => setIsPlaying(false);
+            audio.onerror = () => {
+                // If local fails (e.g. file missing), fallback to API if enabled
+                console.warn('Local asset missing, falling back to API');
+                // We'll let it fall through to the API call below if we want hybrid, 
+                // but for now let's just error or try API cleanly.
+                // Let's recursively call play without the static line check? 
+                // No, complex. Let's just try API.
+                voiceService.speak(text, targetPersona)
+                    .then(url => {
+                        setAudioUrl(url);
+                        audio.src = url;
+                        audio.play();
+                    })
+                    .catch(err => {
+                        setError('Voice playback failed');
+                        setIsPlaying(false);
+                    });
+            };
+
+            await audio.play();
+            setIsPlaying(true);
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            // Generate audio
+            // Generate audio via API
             const url = await voiceService.speak(text, targetPersona);
             setAudioUrl(url);
 

@@ -199,7 +199,7 @@
 
 /* Tier-based block styles for Memory Palace scavenger hunt */
 .blockFoundation {
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid var(--color-primary);
   background: linear-gradient(135deg, rgba(30, 58, 95, 0.1), transparent);
 }
 
@@ -208,7 +208,7 @@
 }
 
 .blockUtility {
-  border-left: 3px solid #6b7280;
+  border-left: 3px solid var(--color-text-muted);
   opacity: 0.9;
 }
 

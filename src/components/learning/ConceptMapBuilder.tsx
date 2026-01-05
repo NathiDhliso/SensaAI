@@ -22,6 +22,7 @@ import {
     type GapDetection
 } from '@/lib/ai/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './ConceptMapBuilder.module.css';
 
 interface ConceptMapBuilderProps {
@@ -119,7 +120,7 @@ export default function ConceptMapBuilder({
     // Trigger analysis on changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        const timer = setTimeout(analyzeMap, 1000); // 1s debounce
+        const timer = setTimeout(analyzeMap, UI_TIMINGS.MAP_LOAD_DELAY); // 500ms debounce
         return () => clearTimeout(timer);
     }, [nodes, connections]);
 

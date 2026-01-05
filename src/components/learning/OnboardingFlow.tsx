@@ -19,6 +19,7 @@ import {
     HelpCircle,
     Lightbulb
 } from 'lucide-react';
+import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './OnboardingFlow.module.css';
 
 // ============================================================================
@@ -142,7 +143,7 @@ export function OnboardingFlow({
     const handlePracticeSubmit = useCallback(() => {
         setPracticeSubmitted(true);
         // Show feedback for 2 seconds then proceed
-        setTimeout(handleNext, 2000);
+        setTimeout(handleNext, UI_TIMINGS.TOAST_SHORT);
     }, [handleNext]);
 
     const renderPracticeTest = () => (
