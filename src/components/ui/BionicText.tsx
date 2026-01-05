@@ -27,8 +27,8 @@ function formatWord(word: string): React.ReactElement {
     const normalPart = word.slice(splitPoint);
 
     return (
-        <span key={Math.random()}>
-            <strong>{boldPart}</strong>{normalPart}
+        <span key={Math.random()} style={{ fontWeight: 400, color: '#000000' }}>
+            <strong style={{ fontWeight: 800, color: '#000000' }}>{boldPart}</strong>{normalPart}
         </span>
     );
 }

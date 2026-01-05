@@ -44,11 +44,12 @@ export const COLORS = {
 
     // Text colors
     text: {
-        dark: '#1f2937',
-        medium: '#4b5563',
-        light: '#6b7280',
-        muted: '#94a3b8',
+        dark: '#171923',   // Deep, high contrast (was #1f2937)
+        medium: '#4A5568', // Readable AA standard (was #4b5563)
+        light: '#595959',  // Darkened for legibility (was #6b7280)
+        muted: '#64748b',  // Slate 500 - Passes WCAG AA (was #94a3b8)
     },
+
 } as const;
 
 // ============================================

@@ -175,6 +175,7 @@ import { usePalaceStore } from '@/store/palace-store';
 import { useUIStore } from '@/store/ui-store';
 import { useThemeStore } from '@/store/theme-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { useAuthStore } from '@/store/auth-store'; // ✅ ADDED: Authentication state
 ```
 
 **Store responsibilities:**
@@ -184,6 +185,7 @@ import { usePersonalizationStore } from '@/store/personalization-store';
 - `useUIStore` - UI panel states (settings panel open/close)
 - `useThemeStore` - Theme preference (light/dark/system)
 - `usePersonalizationStore` - Learning style, familiar system, onboarding
+- `useAuthStore` - **CRITICAL**: User authentication state, tokens, PKCE
 
 **NEVER duplicate state that exists in stores:**
 
@@ -195,6 +197,60 @@ const { isGenerating } = useGenerationStore(); // already exists!
 // ✅ CORRECT - use store state
 const { isGenerating } = useGenerationStore();
 ```
+
+---
+
+## 🎨 Extended Color Documentation
+
+Beyond the base palette, use these specialized color objects:
+
+### Icon Colors
+Ensure consistency across all icons using `ICON_COLORS`:
+
+```typescript
+import { ICON_COLORS } from '@/constants/theme-colors';
+
+// Usage
+<SensaIcon color={ICON_COLORS.success} />
+```
+
+### Lifecycle Colors
+Critical for Phase 1/2/3 visual language:
+
+```typescript
+import { LIFECYCLE_COLORS } from '@/constants/theme-colors';
+
+// Phase 1 (Blue)
+const style = { background: LIFECYCLE_COLORS.phase1.bg, color: LIFECYCLE_COLORS.phase1.text };
+```
+
+### Graph Colors
+For node graph visualizations:
+
+```typescript
+import { GRAPH_COLORS } from '@/constants/theme-colors';
+
+// foundation -> sage, keystone -> accent, utility -> amber
+```
+
+---
+
+## ⚙️ Configuration Objects
+
+Avoid magic numbers by using these configuration objects from `ui-constants.ts`:
+
+- `DIAGNOSTIC_CONFIG` - Defines the 20-question limit (Beginner/Intermediate/Advanced split)
+- `SPRINT_CONFIG` - Defines the 15-minute timebox and question distribution
+- `FOCUS_SESSION_CONFIG` - Defines Pomodoro intervals (25/5) and reading pace targets
+
+---
+
+## 📏 CSS & Layout Rules
+
+### Bionic Reading Strictness
+**NEVER** apply layout-shifting properties (like `letter-spacing`, `font-size`, or `margin`) to global toggles like `[data-bionic-reading="true"]`.
+
+**Scope them:** Apply strictly to content classes (`.prose`, `.learning-card`, `.bionic-content`) only. Global shifts cause UI jitter.
 
 ---
 

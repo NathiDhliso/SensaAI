@@ -51,13 +51,18 @@
 }
 
 .card {
+  /* PRODUCTION READY: Scrim for legibility on textured backgrounds */
   background: var(--color-surface);
+  /* Fallback */
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(2px);
   border-radius: 1rem;
   box-shadow: var(--shadow-xl);
   padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  position: relative;
 }
 
 .inputSection {

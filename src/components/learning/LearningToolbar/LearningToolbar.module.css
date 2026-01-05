@@ -15,6 +15,13 @@
     justify-content: center;
     gap: 0.375rem;
     padding: 0.5rem 0.75rem;
+    /* Visual padding */
+    min-width: 44px;
+    /* Minimum touch target width */
+    min-height: 44px;
+    /* Minimum touch target height */
+    box-sizing: border-box;
+    /* Ensure padding is included or excluded as needed, usually border-box is safely default but we want to ensure total click area */
     background: var(--color-surface-subtle);
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
@@ -79,8 +86,15 @@
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .streakBadge {
@@ -130,8 +144,13 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal {
@@ -150,6 +169,7 @@
         opacity: 0;
         transform: translateY(20px) scale(0.98);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);

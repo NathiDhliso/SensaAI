@@ -391,173 +391,151 @@ export default function ExteriorView() {
             } else {
                 stopTour();
             }
-        } else {
-            stopTour();
-        }
         }, UI_TIMINGS.TOUR_INTERVAL);
 
-    return () => {
-        if (tourIntervalRef.current) {
-            clearInterval(tourIntervalRef.current);
-            tourIntervalRef.current = null;
+        return () => {
+            if (tourIntervalRef.current) {
+                clearInterval(tourIntervalRef.current);
+                tourIntervalRef.current = null;
+            }
+        };
+    }, [tourPlaying, markerPositions]);
+
+    const [isStartingWalk, setIsStartingWalk] = useState(false);
+
+    // Effect to trigger tour when starting walk
+    useEffect(() => {
+        if (isStartingWalk && markerPositions.length > 0 && !isLoading) {
+            startTour();
+            setIsStartingWalk(false);
         }
-    };
-}, [tourPlaying, markerPositions]);
+    }, [isStartingWalk, markerPositions, isLoading]);
 
-const [isStartingWalk, setIsStartingWalk] = useState(false);
+    const handleStartWalk = useCallback((startBuildingIndex: number) => {
+        if (!currentPalace) return;
+        updateStreak();
 
-// Effect to trigger tour when starting walk
-useEffect(() => {
-    if (isStartingWalk && markerPositions.length > 0 && !isLoading) {
-        startTour();
-        setIsStartingWalk(false);
+        // Switch building
+        const buildingIndex = startBuildingIndex % currentPalace.buildings.length;
+        setCurrentBuilding(buildingIndex);
+
+        // Flag to start tour once loaded
+        setIsStartingWalk(true);
+    }, [currentPalace, updateStreak, setCurrentBuilding]);
+
+    const toggleFullscreen = useCallback(() => {
+        if (!fullscreenRef.current) return;
+
+        if (!document.fullscreenElement) {
+            fullscreenRef.current.requestFullscreen().then(() => {
+                setIsFullscreen(true);
+                setTimeout(updateMarkerPositions, UI_TIMINGS.MARKER_UPDATE_FAST);
+            }).catch(() => { });
+        } else {
+            document.exitFullscreen().then(() => {
+                setIsFullscreen(false);
+                setTimeout(updateMarkerPositions, UI_TIMINGS.MARKER_UPDATE_FAST);
+            }).catch(() => { });
+        }
+    }, [updateMarkerPositions]);
+
+    const handleMarkerDragEnd = useCallback((conceptId: string, deltaX: number, deltaY: number) => {
+        if (!routeBuilding || !currentBuilding || !streetViewRef.current || !currentPalace) return;
+
+        const container = streetViewRef.current;
+        const fov = 90;
+
+        const headingChange = (deltaX / container.offsetWidth) * fov;
+        const pitchChange = -(deltaY / container.offsetHeight) * 45;
+
+        const concept = currentBuilding.concepts.find(c => c.conceptId === conceptId);
+        if (!concept) return;
+
+        const slot = routeBuilding.placements.find(p => p.id === concept.slotId);
+        if (!slot) return;
+
+        const palaceOverrides = placementOverrides[currentPalace.id];
+        const buildingOverrides = palaceOverrides?.[routeBuilding.id] || {};
+        const existingOverride = buildingOverrides[concept.slotId];
+
+        const currentHeadingOffset = existingOverride?.headingOffset ?? slot.headingOffset ?? 0;
+        const currentPitch = existingOverride?.pitch ?? slot.pitch ?? 0;
+
+        const newHeadingOffset = currentHeadingOffset + headingChange;
+        const newPitch = Math.max(-30, Math.min(30, currentPitch + pitchChange));
+
+        updatePlacementPosition(routeBuilding.id, concept.slotId, newHeadingOffset, newPitch);
+    }, [routeBuilding, currentBuilding, currentPalace, placementOverrides, updatePlacementPosition]);
+
+    if (!currentPalace) {
+        return (
+            <div className={styles.palaceContainer}>
+                <div className={styles.emptyState}>
+                    <Map size={64} strokeWidth={1} />
+                    <h2>No Memory Palace Active</h2>
+                    <p>Generate learning content first, then create a Memory Palace from the Results page.</p>
+                    <button
+                        className={styles.openMapsButton}
+                        onClick={() => navigate('/')}
+                    >
+                        Go to Home
+                    </button>
+                </div>
+            </div>
+        );
     }
-}, [isStartingWalk, markerPositions, isLoading]);
 
-const handleStartWalk = useCallback((startBuildingIndex: number) => {
-    if (!currentPalace) return;
-    updateStreak();
-
-    // Switch building
-    const buildingIndex = startBuildingIndex % currentPalace.buildings.length;
-    setCurrentBuilding(buildingIndex);
-
-    // Flag to start tour once loaded
-    setIsStartingWalk(true);
-}, [currentPalace, updateStreak, setCurrentBuilding]);
-
-const toggleFullscreen = useCallback(() => {
-    if (!fullscreenRef.current) return;
-
-    if (!document.fullscreenElement) {
-        fullscreenRef.current.requestFullscreen().then(() => {
-            setIsFullscreen(true);
-            setTimeout(updateMarkerPositions, UI_TIMINGS.MARKER_UPDATE_FAST);
-        }).catch(() => { });
-    } else {
-        document.exitFullscreen().then(() => {
-            setIsFullscreen(false);
-            setTimeout(updateMarkerPositions, UI_TIMINGS.MARKER_UPDATE_FAST);
-        }).catch(() => { });
+    if (!route) {
+        return (
+            <div className={styles.palaceContainer}>
+                <div className={styles.emptyState}>
+                    <Map size={64} strokeWidth={1} />
+                    <h2>Route Not Found</h2>
+                    <p>The route for this Memory Palace could not be found. Please create a new palace.</p>
+                    <button
+                        className={styles.openMapsButton}
+                        onClick={() => navigate('/results')}
+                    >
+                        Go to Results
+                    </button>
+                </div>
+            </div>
+        );
     }
-}, [updateMarkerPositions]);
 
-const handleMarkerDragEnd = useCallback((conceptId: string, deltaX: number, deltaY: number) => {
-    if (!routeBuilding || !currentBuilding || !streetViewRef.current || !currentPalace) return;
-
-    const container = streetViewRef.current;
-    const fov = 90;
-
-    const headingChange = (deltaX / container.offsetWidth) * fov;
-    const pitchChange = -(deltaY / container.offsetHeight) * 45;
-
-    const concept = currentBuilding.concepts.find(c => c.conceptId === conceptId);
-    if (!concept) return;
-
-    const slot = routeBuilding.placements.find(p => p.id === concept.slotId);
-    if (!slot) return;
-
-    const palaceOverrides = placementOverrides[currentPalace.id];
-    const buildingOverrides = palaceOverrides?.[routeBuilding.id] || {};
-    const existingOverride = buildingOverrides[concept.slotId];
-
-    const currentHeadingOffset = existingOverride?.headingOffset ?? slot.headingOffset ?? 0;
-    const currentPitch = existingOverride?.pitch ?? slot.pitch ?? 0;
-
-    const newHeadingOffset = currentHeadingOffset + headingChange;
-    const newPitch = Math.max(-30, Math.min(30, currentPitch + pitchChange));
-
-    updatePlacementPosition(routeBuilding.id, concept.slotId, newHeadingOffset, newPitch);
-}, [routeBuilding, currentBuilding, currentPalace, placementOverrides, updatePlacementPosition]);
-
-if (!currentPalace) {
     return (
         <div className={styles.palaceContainer}>
-            <div className={styles.emptyState}>
-                <Map size={64} strokeWidth={1} />
-                <h2>No Memory Palace Active</h2>
-                <p>Generate learning content first, then create a Memory Palace from the Results page.</p>
-                <button
-                    className={styles.openMapsButton}
-                    onClick={() => navigate('/')}
-                >
-                    Go to Home
-                </button>
-            </div>
-        </div>
-    );
-}
+            {/* Quiz Mode Overlay */}
+            {showQuiz && <QuizMode onClose={() => setShowQuiz(false)} />}
 
-if (!route) {
-    return (
-        <div className={styles.palaceContainer}>
-            <div className={styles.emptyState}>
-                <Map size={64} strokeWidth={1} />
-                <h2>Route Not Found</h2>
-                <p>The route for this Memory Palace could not be found. Please create a new palace.</p>
-                <button
-                    className={styles.openMapsButton}
-                    onClick={() => navigate('/results')}
-                >
-                    Go to Results
-                </button>
-            </div>
-        </div>
-    );
-}
+            {/* Placement Guide Overlay */}
+            <PlacementGuide isOpen={showGuide} onClose={() => setShowGuide(false)} />
 
-return (
-    <div className={styles.palaceContainer}>
-        {/* Quiz Mode Overlay */}
-        {showQuiz && <QuizMode onClose={() => setShowQuiz(false)} />}
+            {/* Route Preview Card - Advance Organizer (CLT) */}
+            <AnimatePresence>
+                {showRoutePreview && currentPalace && route && (
+                    <RoutePreviewCard
+                        routeName={route.name}
+                        buildingCount={currentPalace.buildings.length}
+                        conceptCount={currentPalace.buildings.reduce(
+                            (sum, b) => sum + b.concepts.length, 0
+                        )}
+                        onStart={dismissRoutePreview}
+                    />
+                )}
+            </AnimatePresence>
 
-        {/* Placement Guide Overlay */}
-        <PlacementGuide isOpen={showGuide} onClose={() => setShowGuide(false)} />
+            {/* Main Content */}
+            <div className={styles.mainContent}>
+                {/* Street View Panel */}
+                <div className={styles.streetViewPanel}>
+                    <DailyWalk onStartWalk={handleStartWalk} />
 
-        {/* Route Preview Card - Advance Organizer (CLT) */}
-        <AnimatePresence>
-            {showRoutePreview && currentPalace && route && (
-                <RoutePreviewCard
-                    routeName={route.name}
-                    buildingCount={currentPalace.buildings.length}
-                    conceptCount={currentPalace.buildings.reduce(
-                        (sum, b) => sum + b.concepts.length, 0
-                    )}
-                    onStart={dismissRoutePreview}
-                />
-            )}
-        </AnimatePresence>
-
-        {/* Main Content */}
-        <div className={styles.mainContent}>
-            {/* Street View Panel */}
-            <div className={styles.streetViewPanel}>
-                <DailyWalk onStartWalk={handleStartWalk} />
-
-                {/* Priority 1: Pre-built panorama from public folder */}
-                {prebuiltPanoramaUrl && currentBuilding && routeBuilding ? (
-                    <div className={styles.streetViewWrapper}>
-                        <StaticPanoramaView
-                            imageUrl={prebuiltPanoramaUrl}
-                            routeBuildingId={routeBuilding.id}
-                            concepts={currentBuilding.concepts.map(c => ({
-                                conceptId: c.conceptId,
-                                conceptName: c.conceptName,
-                                slotId: c.slotId,
-                            }))}
-                            fullConceptData={currentBuilding.concepts}
-                            lifecycleLabels={currentPalace?.lifecycleLabels}
-                            onMarkerClick={(conceptId) => {
-                                setActiveConcept(conceptId);
-                                setShowTooltip(true);
-                            }}
-                        />
-                    </div>
-                ) : /* Priority 2: Custom route panorama from IndexedDB */
-                    hasPanoramaImage && currentPalace && routeBuilding && currentBuilding ? (
+                    {/* Priority 1: Pre-built panorama from public folder */}
+                    {prebuiltPanoramaUrl && currentBuilding && routeBuilding ? (
                         <div className={styles.streetViewWrapper}>
-                            <PanoramaPalaceView
-                                palaceId={currentPalace.id}
+                            <StaticPanoramaView
+                                imageUrl={prebuiltPanoramaUrl}
                                 routeBuildingId={routeBuilding.id}
                                 concepts={currentBuilding.concepts.map(c => ({
                                     conceptId: c.conceptId,
@@ -572,183 +550,202 @@ return (
                                 }}
                             />
                         </div>
-                    ) : /* Priority 3: Live Google Street View */
-                        streetViewEnabled ? (
-                            <div
-                                ref={fullscreenRef}
-                                className={`${styles.streetViewWrapper} ${isFullscreen ? styles.fullscreenMode : ''}`}
-                            >
-                                <div ref={streetViewRef} className={styles.streetViewContainer} />
+                    ) : /* Priority 2: Custom route panorama from IndexedDB */
+                        hasPanoramaImage && currentPalace && routeBuilding && currentBuilding ? (
+                            <div className={styles.streetViewWrapper}>
+                                <PanoramaPalaceView
+                                    palaceId={currentPalace.id}
+                                    routeBuildingId={routeBuilding.id}
+                                    concepts={currentBuilding.concepts.map(c => ({
+                                        conceptId: c.conceptId,
+                                        conceptName: c.conceptName,
+                                        slotId: c.slotId,
+                                    }))}
+                                    fullConceptData={currentBuilding.concepts}
+                                    lifecycleLabels={currentPalace?.lifecycleLabels}
+                                    onMarkerClick={(conceptId) => {
+                                        setActiveConcept(conceptId);
+                                        setShowTooltip(true);
+                                    }}
+                                />
+                            </div>
+                        ) : /* Priority 3: Live Google Street View */
+                            streetViewEnabled ? (
+                                <div
+                                    ref={fullscreenRef}
+                                    className={`${styles.streetViewWrapper} ${isFullscreen ? styles.fullscreenMode : ''}`}
+                                >
+                                    <div ref={streetViewRef} className={styles.streetViewContainer} />
 
-                                {isLoading && (
-                                    <div className={styles.streetViewLoading}>
-                                        <Loader2 size={32} className={styles.spinner} />
-                                        <span>Loading Street View...</span>
-                                        <span className={styles.loadingHint}>
-                                            Ensure Google Maps API key is configured
-                                        </span>
+                                    {isLoading && (
+                                        <div className={styles.streetViewLoading}>
+                                            <Loader2 size={32} className={styles.spinner} />
+                                            <span>Loading Street View...</span>
+                                            <span className={styles.loadingHint}>
+                                                Ensure Google Maps API key is configured
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {!isLoading && (
+                                        <div className={`${styles.markerOverlay} ${isFullscreen ? styles.markerOverlayFullscreen : ''} ${editMode ? styles.markerOverlayEdit : ''}`}>
+                                            {markerPositions.map(marker => (
+                                                <ConceptMarker
+                                                    key={marker.conceptId}
+                                                    marker={marker}
+                                                    isActive={activeConcept === marker.conceptId}
+                                                    onClick={() => handleMarkerClick(marker.conceptId, marker.heading)}
+                                                    hideTooltip={showTour || editMode}
+                                                    editMode={editMode}
+                                                    onDragEnd={handleMarkerDragEnd}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className={`${styles.streetViewControls} ${isFullscreen ? styles.streetViewControlsFullscreen : ''}`}>
+                                        <button
+                                            className={`${styles.controlBtn} ${editMode ? styles.controlBtnActive : ''}`}
+                                            onClick={() => setEditMode(!editMode)}
+                                            title={editMode ? "Save & Exit Edit Mode" : "Edit Marker Positions"}
+                                        >
+                                            {editMode ? <Save size={16} /> : <Edit3 size={16} />}
+                                            {editMode ? 'Done Editing' : 'Edit Positions'}
+                                        </button>
+                                        <button className={styles.controlBtn} onClick={toggleFullscreen} title="Toggle Fullscreen">
+                                            {isFullscreen ? <ExternalLink size={16} /> : <ExternalLink size={16} />}
+                                            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                                        </button>
                                     </div>
-                                )}
 
-                                {!isLoading && (
-                                    <div className={`${styles.markerOverlay} ${isFullscreen ? styles.markerOverlayFullscreen : ''} ${editMode ? styles.markerOverlayEdit : ''}`}>
-                                        {markerPositions.map(marker => (
-                                            <ConceptMarker
-                                                key={marker.conceptId}
-                                                marker={marker}
-                                                isActive={activeConcept === marker.conceptId}
-                                                onClick={() => handleMarkerClick(marker.conceptId, marker.heading)}
-                                                hideTooltip={showTour || editMode}
-                                                editMode={editMode}
-                                                onDragEnd={handleMarkerDragEnd}
-                                            />
-                                        ))}
+                                    {showTour && (
+                                        <GuidedTour
+                                            markers={markerPositions}
+                                            currentIndex={tourIndex}
+                                            isPlaying={tourPlaying}
+                                            onPlay={() => setTourPlaying(true)}
+                                            onPause={stopTour}
+                                            onNext={nextTourConcept}
+                                            onPrev={prevTourConcept}
+                                            onClose={closeTour}
+                                            onSelectConcept={selectTourConcept}
+                                        />
+                                    )}
+                                </div>
+                            ) : (
+                                <div className={styles.streetViewCard}>
+                                    <div className={styles.mapIcon}>
+                                        <MapPin size={32} />
                                     </div>
-                                )}
-
-                                <div className={`${styles.streetViewControls} ${isFullscreen ? styles.streetViewControlsFullscreen : ''}`}>
-                                    <button
-                                        className={`${styles.controlBtn} ${editMode ? styles.controlBtnActive : ''}`}
-                                        onClick={() => setEditMode(!editMode)}
-                                        title={editMode ? "Save & Exit Edit Mode" : "Edit Marker Positions"}
-                                    >
-                                        {editMode ? <Save size={16} /> : <Edit3 size={16} />}
-                                        {editMode ? 'Done Editing' : 'Edit Positions'}
-                                    </button>
-                                    <button className={styles.controlBtn} onClick={toggleFullscreen} title="Toggle Fullscreen">
-                                        {isFullscreen ? <ExternalLink size={16} /> : <ExternalLink size={16} />}
-                                        {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                                    <h2>{routeBuilding?.name}</h2>
+                                    <p>{routeBuilding?.visualTheme}</p>
+                                    {loadError && <p className={styles.errorText}>{loadError}</p>}
+                                    <button className={styles.openMapsButton} onClick={handleOpenStreetView}>
+                                        <ExternalLink size={16} />
+                                        Open in Street View
                                     </button>
                                 </div>
+                            )}
 
-                                {showTour && (
-                                    <GuidedTour
-                                        markers={markerPositions}
-                                        currentIndex={tourIndex}
-                                        isPlaying={tourPlaying}
-                                        onPlay={() => setTourPlaying(true)}
-                                        onPause={stopTour}
-                                        onNext={nextTourConcept}
-                                        onPrev={prevTourConcept}
-                                        onClose={closeTour}
-                                        onSelectConcept={selectTourConcept}
-                                    />
-                                )}
+                    {showProgress && <ProgressPanel />}
+
+                    {(() => {
+                        const activeMarker = showTooltip && activeConcept && !showTour
+                            ? markerPositions.find(m => m.conceptId === activeConcept)
+                            : null;
+
+                        if (!activeMarker) return null;
+
+                        // Adapt PlacedConcept to LearningConcept format for CinematicView
+                        const adaptedConcept: any = {
+                            id: activeMarker.conceptId,
+                            name: activeMarker.conceptName,
+                            mnemonic: activeMarker.mnemonic,
+                            lifecycle: {
+                                phase1: { steps: activeMarker.lifecycle.phase1 },
+                                phase2: { steps: activeMarker.lifecycle.phase2 },
+                                phase3: { steps: activeMarker.lifecycle.phase3 },
+                            }
+                        };
+
+                        return (
+                            <div style={{ position: 'fixed', inset: 0, zIndex: 10000 }}>
+                                <CinematicView
+                                    concept={adaptedConcept}
+                                    onClose={() => setShowTooltip(false)}
+                                />
                             </div>
-                        ) : (
-                            <div className={styles.streetViewCard}>
-                                <div className={styles.mapIcon}>
-                                    <MapPin size={32} />
-                                </div>
-                                <h2>{routeBuilding?.name}</h2>
-                                <p>{routeBuilding?.visualTheme}</p>
-                                {loadError && <p className={styles.errorText}>{loadError}</p>}
-                                <button className={styles.openMapsButton} onClick={handleOpenStreetView}>
-                                    <ExternalLink size={16} />
-                                    Open in Street View
-                                </button>
-                            </div>
+                        );
+                    })()}
+                </div>
+
+                {/* Placement Panel */}
+                <aside className={styles.placementPanel}>
+                    <div className={styles.placementHeader}>
+                        <MapPin size={16} />
+                        <h2>Placement Map</h2>
+                        {currentPalace?.lifecycleLabels && (
+                            <span className={styles.lifecycleVerbs}>
+                                {currentPalace.lifecycleLabels.phase1} → {currentPalace.lifecycleLabels.phase2} → {currentPalace.lifecycleLabels.phase3}
+                            </span>
                         )}
+                    </div>
 
-                {showProgress && <ProgressPanel />}
+                    <div className={styles.placementList}>
+                        {currentBuilding?.concepts.map(concept => {
+                            const slot = routeBuilding?.placements.find(p => p.id === concept.slotId);
+                            return (
+                                <LifecycleCard
+                                    key={concept.conceptId}
+                                    concept={concept}
+                                    slot={slot}
+                                    lifecycleLabels={currentPalace?.lifecycleLabels}
+                                />
+                            );
+                        })}
 
-                {(() => {
-                    const activeMarker = showTooltip && activeConcept && !showTour
-                        ? markerPositions.find(m => m.conceptId === activeConcept)
-                        : null;
-
-                    if (!activeMarker) return null;
-
-                    // Adapt PlacedConcept to LearningConcept format for CinematicView
-                    const adaptedConcept: any = {
-                        id: activeMarker.conceptId,
-                        name: activeMarker.conceptName,
-                        mnemonic: activeMarker.mnemonic,
-                        lifecycle: {
-                            phase1: { steps: activeMarker.lifecycle.phase1 },
-                            phase2: { steps: activeMarker.lifecycle.phase2 },
-                            phase3: { steps: activeMarker.lifecycle.phase3 },
-                        }
-                    };
-
-                    return (
-                        <div style={{ position: 'fixed', inset: 0, zIndex: 10000 }}>
-                            <CinematicView
-                                concept={adaptedConcept}
-                                onClose={() => setShowTooltip(false)}
-                            />
-                        </div>
-                    );
-                })()}
+                        {(!currentBuilding?.concepts || currentBuilding.concepts.length === 0) && (
+                            <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: '2rem' }}>
+                                No concepts placed in this building yet.
+                            </p>
+                        )}
+                    </div>
+                </aside>
             </div>
 
-            {/* Placement Panel */}
-            <aside className={styles.placementPanel}>
-                <div className={styles.placementHeader}>
-                    <MapPin size={16} />
-                    <h2>Placement Map</h2>
-                    {currentPalace?.lifecycleLabels && (
-                        <span className={styles.lifecycleVerbs}>
-                            {currentPalace.lifecycleLabels.phase1} → {currentPalace.lifecycleLabels.phase2} → {currentPalace.lifecycleLabels.phase3}
-                        </span>
-                    )}
-                </div>
-
-                <div className={styles.placementList}>
-                    {currentBuilding?.concepts.map(concept => {
-                        const slot = routeBuilding?.placements.find(p => p.id === concept.slotId);
-                        return (
-                            <LifecycleCard
-                                key={concept.conceptId}
-                                concept={concept}
-                                slot={slot}
-                                lifecycleLabels={currentPalace?.lifecycleLabels}
-                            />
-                        );
-                    })}
-
-                    {(!currentBuilding?.concepts || currentBuilding.concepts.length === 0) && (
-                        <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: '2rem' }}>
-                            No concepts placed in this building yet.
-                        </p>
-                    )}
-                </div>
-            </aside>
-        </div>
-
-        {/* Footer */}
-        <footer className={styles.footer}>
-            <button
-                className={styles.footerButton}
-                onClick={() => setShowQuiz(true)}
-            >
-                <Target size={16} />
-                Quiz Mode
-            </button>
-            {streetViewEnabled && markerPositions.length > 0 && (
+            {/* Footer */}
+            <footer className={styles.footer}>
                 <button
                     className={styles.footerButton}
-                    onClick={startTour}
+                    onClick={() => setShowQuiz(true)}
                 >
-                    <Navigation size={16} />
-                    Guided Tour
+                    <Target size={16} />
+                    Quiz Mode
                 </button>
-            )}
-            <button
-                className={styles.footerButton}
-                onClick={() => handleStartWalk(0)}
-            >
-                <Footprints size={16} />
-                Daily Walk
-            </button>
-            <button
-                className={styles.footerButton}
-                onClick={() => setShowProgress(!showProgress)}
-            >
-                <BarChart3 size={16} />
-                {showProgress ? 'Hide Progress' : 'Progress'}
-            </button>
-        </footer>
-    </div>
-);
+                {streetViewEnabled && markerPositions.length > 0 && (
+                    <button
+                        className={styles.footerButton}
+                        onClick={startTour}
+                    >
+                        <Navigation size={16} />
+                        Guided Tour
+                    </button>
+                )}
+                <button
+                    className={styles.footerButton}
+                    onClick={() => handleStartWalk(0)}
+                >
+                    <Footprints size={16} />
+                    Daily Walk
+                </button>
+                <button
+                    className={styles.footerButton}
+                    onClick={() => setShowProgress(!showProgress)}
+                >
+                    <BarChart3 size={16} />
+                    {showProgress ? 'Hide Progress' : 'Progress'}
+                </button>
+            </footer>
+        </div>
+    );
 }
