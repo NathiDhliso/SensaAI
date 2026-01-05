@@ -11,3 +11,10 @@ export interface Coordinates {
     lat: number;
     lng: number;
 }
+
+export const CONCEPT_LIMITS = {
+    subject: { min: 50, max: 75 },
+    // CHANGE THIS: Match the subject limits. Do not throttle the data.
+    feature: { min: 40, max: 60 },
+    topic: { min: 10, max: 20 }
+};

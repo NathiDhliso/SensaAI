@@ -28,7 +28,9 @@ let clientInstance: BedrockRuntimeClient | null = null;
 let currentRegion: string | null = null;
 
 export function getBedrockClient(config: BedrockConfig): BedrockRuntimeClient {
-  const configKey = JSON.stringify(config);
+  const idToken = config.useCognito ? useAuthStore.getState().tokens?.idToken : undefined;
+  // Include idToken in cache key so we recreate client when token refreshes
+  const configKey = JSON.stringify({ ...config, idTokenHash: idToken ? idToken.substring(idToken.length - 20) : 'none' });
 
   if (!clientInstance || currentRegion !== configKey) {
     let credentials;

@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Check, X, ArrowLeft } from 'lucide-react';
 import { useGenerationStore } from '@/store/generation-store';
 import { useLearningStore } from '@/store/learning-store';
+import { useAuthStore } from '@/store/auth-store';
 import { generateSprintQuestions, calculateSprintResult } from '@/lib/generation/sprint-generator';
 import { UI_TIMINGS, SPRINT_CONFIG } from '@/constants/ui-constants';
 import { formatTime, getTimerUrgency } from '@/lib/utils';
@@ -72,8 +73,21 @@ export default function Sprint() {
         });
 
         // Race between generation and timeout
+        // But first, ensure we have a valid token!
+        const ensureToken = async () => {
+            const token = await useAuthStore.getState().getAccessToken();
+            if (!token && bedrockConfig?.useCognito) {
+                throw new Error("Authentication session expired. Please log in again.");
+            }
+            return token;
+        };
+
+        const generationPromise = ensureToken().then(() =>
+            generateSprintQuestions(concepts, subject, bedrockConfig)
+        );
+
         Promise.race([
-            generateSprintQuestions(concepts, subject, bedrockConfig),
+            generationPromise,
             timeoutPromise
         ])
             .then(generatedQuestions => {

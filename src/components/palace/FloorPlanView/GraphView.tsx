@@ -22,6 +22,9 @@ const LABEL_COLORS = {
     text: '#ffffff'     // White text - keeping white for contrast on dark pill
 };
 
+// Detail Levels
+export type DetailLevel = 'Core Framework' | 'Exam Ready' | 'Deep Dive';
+
 export interface GraphViewProps {
     /** Dependency graph data */
     graph: SubjectGraph;
@@ -179,6 +182,7 @@ export function GraphView({
     const [nodePositions, setNodePositions] = useState<Map<string, { x: number; y: number }>>(new Map());
     const [isDragging, setIsDragging] = useState(false);
     const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
+    const [detailLevel, setDetailLevel] = useState<DetailLevel>('Exam Ready');
 
     // Drag offset to keep mouse relative to node center
     // const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -190,6 +194,73 @@ export function GraphView({
         concepts.forEach(c => map.set(c.id, c));
         return map;
     }, [concepts]);
+
+    // Get connected nodes for highlighting (MOVED UP for scope access)
+    const connectedNodes = useMemo(() => {
+        const targetId = hoveredNodeId || selectedConceptId;
+        if (!targetId) return new Set<string>();
+
+        const connected = new Set<string>();
+        connected.add(targetId);
+
+        graph.edges.forEach(edge => {
+            if (edge.source === targetId) connected.add(edge.target);
+            if (edge.target === targetId) connected.add(edge.source);
+        });
+
+        return connected;
+    }, [hoveredNodeId, selectedConceptId, graph.edges]);
+
+    // FILTER NODES BASED ON DETAIL LEVEL
+    const visibleNodes = useMemo(() => {
+        // Map concept ID to its tier for easier filtering
+        // We rely on graph.nodes[i].metrics.calculatedTier or look it up via conceptMap?
+        // graph.nodes has the metrics.
+
+        // Helper to check if a node is relevant to selected selection
+        // Since we don't effectively have "parent pointers" easily accessible on the fly without looking at the concept or edges,
+        // we'll assume the graph edges define the hierarchy or the concept.mnemonic.parentConcept property.
+
+        return graph.nodes.filter(node => {
+            const tier = node.metrics.calculatedTier;
+
+            // 1. Selection Override: Always show children of selected node
+            // We need to check if this node's parent is the selectedConceptId
+            // Or if this node IS the selected node
+            if (node.id === selectedConceptId) return true;
+
+            // const concept = conceptMap.get(node.id); // Removed unused variable
+            // Check implicit parent/child relationship if available
+            // Note: Data might not have fully populated parentConcept strings that match IDs exactly yet, 
+            // but we'll try our best or use edges.
+
+            // Simpler approach: If 'connectedNodes' contains it and it's a child? 
+            // "Clicking a Foundation node expands it" -> Show neighbors.
+            const isConnectedToSelection = selectedConceptId && connectedNodes.has(node.id);
+            if (isConnectedToSelection) return true;
+
+            // 2. Level Filtering
+            if (detailLevel === 'Deep Dive') return true;
+
+            if (detailLevel === 'Exam Ready') {
+                // Show Foundation + Keystone
+                return tier === 'Foundation' || tier === 'Keystone';
+            }
+
+            if (detailLevel === 'Core Framework') {
+                // Show Foundation only
+                return tier === 'Foundation';
+            }
+
+            return false;
+        });
+    }, [graph.nodes, detailLevel, selectedConceptId, connectedNodes, conceptMap]);
+
+    // Re-filter edges to only show those connecting visible nodes
+    const visibleEdges = useMemo(() => {
+        const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+        return graph.edges.filter(e => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target));
+    }, [graph.edges, visibleNodes]);
 
     // Zoom/Pan State
     const [viewState, setViewState] = useState({ x: 0, y: 0, scale: 1 });
@@ -214,7 +285,11 @@ export function GraphView({
             }
         }
 
-        // Fallback to force layout
+        // Fallback to force layout (using visible nodes only for layout might be unstable if set changes, 
+        // but typically we layout ALL nodes and just hide some. 
+        // However, user asked for "Cluster & Collapse" - if we hide them, they shouldn't take space?
+        // Actually physically collapsing them is better. 
+        // For now, let's run layout on ALL nodes so positions are stable, but only Render visible ones.
         const initialPositions = calculateForceLayout(graph.nodes, graph.edges, width, height);
         setNodePositions(initialPositions);
     }, [graph.nodes, graph.edges, width, height, graph.subjectId]);
@@ -346,25 +421,22 @@ export function GraphView({
         }).filter(Boolean) as Array<DependencyEdge & { x1: number; y1: number; x2: number; y2: number }>;
     }, [graph.edges, nodePositions]);
 
-    // Get connected nodes for highlighting
-    const connectedNodes = useMemo(() => {
-        const targetId = hoveredNodeId || selectedConceptId;
-        if (!targetId) return new Set<string>();
 
-        const connected = new Set<string>();
-        connected.add(targetId);
-
-        graph.edges.forEach(edge => {
-            if (edge.source === targetId) connected.add(edge.target);
-            if (edge.target === targetId) connected.add(edge.source);
-        });
-
-        return connected;
-    }, [hoveredNodeId, selectedConceptId, graph.edges]);
 
     return (
         <div className={styles.graphContainer}>
             <div className={styles.controls}>
+                <div className={styles.detailToggle}>
+                    {(['Core Framework', 'Exam Ready', 'Deep Dive'] as DetailLevel[]).map(level => (
+                        <button
+                            key={level}
+                            className={`${styles.toggleButton} ${detailLevel === level ? styles.active : ''}`}
+                            onClick={() => setDetailLevel(level)}
+                        >
+                            {level}
+                        </button>
+                    ))}
+                </div>
                 <button onClick={handleResetLayout} className={styles.resetButton} title="Reset Layout">
                     ↺ Reset Physics
                 </button>
@@ -397,9 +469,13 @@ export function GraphView({
                 {/* Transformed Content Group */}
                 <g transform={`translate(${viewState.x},${viewState.y}) scale(${viewState.scale})`}>
 
-                    {/* Edges */}
+                    {/* Edges - Filtered */}
                     <g className={styles.edges}>
-                        {edgesWithPositions.map(edge => {
+                        {edgesWithPositions.filter(e => {
+                            // Only render if edge connects visible nodes
+                            const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+                            return visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target);
+                        }).map(edge => {
                             const isSourceSelected = selectedConceptId === edge.source;
                             const isTargetSelected = selectedConceptId === edge.target;
                             const isHighlighted = isSourceSelected || isTargetSelected || (connectedNodes.has(edge.source) && connectedNodes.has(edge.target));
@@ -501,9 +577,9 @@ export function GraphView({
                         </marker>
                     </defs>
 
-                    {/* Nodes */}
+                    {/* Nodes - Filtered */}
                     <g className={styles.nodes}>
-                        {graph.nodes.map(node => {
+                        {visibleNodes.map(node => {
                             const pos = nodePositions.get(node.id);
                             if (!pos) return null;
 
@@ -641,7 +717,7 @@ export function GraphView({
                 </div>
 
                 <div className={styles.chartFooter}>
-                    <span className={styles.connectionsLabel}>{graph.stats.totalEdges} Connections</span>
+                    <span className={styles.connectionsLabel}>{visibleEdges.length} Visible Connections</span>
                 </div>
             </div>
         </div>

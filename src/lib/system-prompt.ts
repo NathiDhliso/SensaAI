@@ -44,6 +44,10 @@ Create a Single Code Block containing a structured outline. You must follow thes
 4. Quality Standard: The format used for Concept 1 MUST be IDENTICAL to Concept 37. Copy-paste the structure template for each concept.
 5. **NARRATIVE CONTINUITY:** For every Core Concept (except the first), include a brief "Logical Connection" sentence at the start explaining how this concept relates to or builds upon the immediately preceding concept. Format: **[Logical Connection]:** followed by the connection statement.
 
+**CRITICAL STRUCTURAL RULE:**
+Every concept that is NOT a "Foundation" concept must explicitly identify which Foundation concept it belongs to.
+Structure your JSON output so that "Utility" concepts are nested or explicitly linked via a "parent_id" or "belongs_to" field.
+
 **CONTENT DENSITY & POSITIVE FRAMING RULES:**
 
 * **Foundation Level (Phase 1): The "Blueprint Pattern"** — Use \`[LIFECYCLE_PHASE_1]\` marker
