@@ -32,7 +32,7 @@ export class ElevenLabsService {
      * Synthesize text to speech
      * Returns a Blob url to the audio file
      */
-    async speak(text: string, personaId: PersonaId): Promise<string> {
+    async speak(text: string, personaId: PersonaId, overrides?: { stability?: number; style?: number }): Promise<string> {
         if (!this.apiKey) {
             console.warn('ElevenLabs API key not found. Voice disabled.');
             throw new Error('API key missing');
@@ -45,6 +45,10 @@ export class ElevenLabsService {
 
         const { elevenLabsId, stability, similarityBoost, style } = persona.voiceConfig;
 
+        // Apply overrides if provided
+        const finalStability = overrides?.stability ?? stability;
+        const finalStyle = overrides?.style ?? style ?? 0;
+
         try {
             const response = await fetch(`${this.baseUrl}/text-to-speech/${elevenLabsId}`, {
                 method: 'POST',
@@ -56,9 +60,9 @@ export class ElevenLabsService {
                     text,
                     model_id: 'eleven_monolingual_v1', // or 'eleven_turbo_v2' for speed
                     voice_settings: {
-                        stability,
+                        stability: finalStability,
                         similarity_boost: similarityBoost,
-                        style: style || 0,
+                        style: finalStyle,
                         use_speaker_boost: true,
                     },
                 }),

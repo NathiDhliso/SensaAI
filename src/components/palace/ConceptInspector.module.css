@@ -1,9 +1,9 @@
 .container {
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: var(--color-surface-base);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-md);
     position: relative;
     animation: slideIn 0.3s ease-out;
 }
@@ -24,7 +24,7 @@
     position: absolute;
     top: 1rem;
     right: 1rem;
-    color: #9ca3af;
+    color: var(--color-text-tertiary);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -37,8 +37,8 @@
 }
 
 .closeButton:hover {
-    background: #f3f4f6;
-    color: #4b5563;
+    background: var(--color-surface-subtle);
+    color: var(--color-text-secondary);
 }
 
 .header {
@@ -68,38 +68,38 @@
 }
 
 .tierBadge[data-tier="Foundation"] {
-    background-color: #d1fae5;
-    color: #065f46;
+    background-color: var(--color-success-bg);
+    color: var(--color-success-text);
 }
 
 .tierBadge[data-tier="Keystone"] {
-    background-color: #ede9fe;
-    color: #5b21b6;
+    background-color: var(--overlay-accent-10);
+    color: var(--color-primary);
 }
 
 .tierBadge[data-tier="Utility"] {
-    background-color: #ffedd5;
-    color: #9a3412;
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning-text);
 }
 
 .conceptName {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--color-text-primary);
     margin: 0 0 0.25rem 0;
     line-height: 1.2;
 }
 
 .metaphor {
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--color-text-secondary);
     margin: 0;
     font-style: italic;
 }
 
 .divider {
     height: 1px;
-    background-color: #f3f4f6;
+    background-color: var(--color-border-light);
     margin: 1.25rem 0;
 }
 
@@ -113,7 +113,7 @@
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.25rem;
-    color: #374151;
+    color: var(--color-text-secondary);
 }
 
 .sectionTitle {
@@ -155,7 +155,7 @@
     font-weight: 700;
     font-size: 0.75rem;
     text-transform: uppercase;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--color-border-light);
     padding-bottom: 0.5rem;
 }
 
@@ -167,7 +167,7 @@
     height: 16px;
     border-radius: 50%;
     background: currentColor;
-    color: white;
+    color: var(--color-text-primary);
     font-size: 0.65rem;
 }
 
@@ -186,16 +186,16 @@
 .verb {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.7rem;
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--overlay-white-60);
     padding: 0.125rem 0.25rem;
     border-radius: 2px;
     text-align: center;
-    color: #1f2937;
+    color: var(--color-text-primary);
     font-weight: 600;
 }
 
 .flowArrow {
-    color: #d1d5db;
+    color: var(--color-border-emphasis);
     align-self: center;
     flex-shrink: 0;
 }

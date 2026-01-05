@@ -14,14 +14,13 @@ import {
     BookOpen,
     CheckCircle2,
     RotateCcw,
-    Zap,
     ChevronRight,
     Lightbulb
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
 import { useLearningStore } from '@/store/learning-store';
 import { renderShapeOrIcon } from '@/components/ui/SensaShape';
-import CognitiveGauge from './CognitiveGauge';
+
 import BlankSheetTest from './BlankSheetTest';
 import ConfusionPrevention, { findConfusionPairs } from './ConfusionPrevention';
 import styles from './MicroLearningLoopController.module.css';

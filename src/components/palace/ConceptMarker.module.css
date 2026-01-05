@@ -29,15 +29,15 @@
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  border: 2px solid white;
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--color-surface);
   transition: all 0.2s ease;
 }
 
 .marker:hover .markerPin,
 .markerHovered .markerPin {
   transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .markerActive .markerPin {
@@ -67,7 +67,6 @@
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translateX(-50%);
   margin-top: 0.5rem;
   background: var(--color-surface);
   padding: 0.5rem 0.75rem;
@@ -75,7 +74,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-dark);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
   white-space: nowrap;
   max-width: 200px;
@@ -121,7 +120,7 @@
 
 .markerDragging .markerPin {
   transform: scale(1.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-xl);
 }
 
 .dragHandle {
@@ -130,7 +129,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--color-primary-amethyst);
-  color: white;
+  color: var(--color-text-primary);
   padding: 2px 4px;
   border-radius: 4px;
   font-size: 10px;
@@ -141,11 +140,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 0 0 var(--overlay-accent-10);
   }
 
   50% {
-    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+    box-shadow: 0 0 0 8px var(--overlay-accent-5);
   }
 }
 
@@ -155,18 +154,18 @@
 .markerFoundation .markerPin {
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--color-info) 0%, var(--color-info) 50%, var(--color-info) 100%);
   box-shadow:
-    0 6px 24px rgba(30, 58, 95, 0.5),
-    0 0 0 3px rgba(59, 130, 246, 0.3);
+    var(--shadow-glow-primary),
+    0 0 0 3px var(--overlay-accent-10);
   animation: foundationPulse 3s ease-in-out infinite;
 }
 
 .markerFoundation:hover .markerPin {
   transform: scale(1.15);
   box-shadow:
-    0 8px 32px rgba(30, 58, 95, 0.6),
-    0 0 0 4px rgba(59, 130, 246, 0.5);
+    var(--shadow-glow-primary-hover),
+    0 0 0 4px var(--overlay-accent-15);
 }
 
 @keyframes foundationPulse {
@@ -174,14 +173,14 @@
   0%,
   100% {
     box-shadow:
-      0 6px 24px rgba(30, 58, 95, 0.5),
-      0 0 0 3px rgba(59, 130, 246, 0.3);
+      var(--shadow-glow-primary),
+      0 0 0 3px var(--overlay-accent-10);
   }
 
   50% {
     box-shadow:
-      0 8px 32px rgba(30, 58, 95, 0.6),
-      0 0 0 6px rgba(59, 130, 246, 0.15);
+      var(--shadow-glow-primary-hover),
+      0 0 0 6px var(--overlay-accent-5);
   }
 }
 
@@ -190,7 +189,7 @@
   width: 38px;
   height: 38px;
   background: linear-gradient(135deg, var(--color-secondary-amber), var(--color-accent-alt));
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+  box-shadow: var(--shadow-glow-amber);
 }
 
 .markerKeystone:hover .markerPin {
@@ -214,22 +213,22 @@
 .markerUtility .markerPin {
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #4b5563, #6b7280);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--color-surface-subtle), var(--color-surface-hover));
+  box-shadow: var(--shadow-md);
   opacity: 0.9;
 }
 
 .markerUtility:hover .markerPin {
   transform: scale(1.25);
   opacity: 1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Emoji display style for mnemonic anchors */
 .markerEmoji {
   font-size: 1.25rem;
   line-height: 1;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(var(--shadow-sm));
 }
 
 .markerFoundation .markerEmoji {
@@ -254,11 +253,11 @@
 
 /* Dark sleek hover label for the "Hook" experience */
 .markerLabel {
-  background: rgba(15, 23, 42, 0.95);
-  color: white;
+  background: var(--color-surface-elevated);
+  color: var(--color-text-primary);
   border: none;
   padding: 0.625rem 1rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .markerLabel strong {

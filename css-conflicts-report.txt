@@ -1,0 +1,65 @@
+≡ƒöì Scanning for CSS conflicts and quality issues...
+
+Γ£ô Found 149 defined CSS variables
+
+
+≡ƒöì CSS Conflict & Quality Scanner Report
+
+================================================================================
+
+ΓÜá∩╕Å  !IMPORTANT OVERUSE: 2 instances
+
+   ExteriorView.module.css: .fullscreenMode
+      5 !important declarations
+   PanoramaPalaceView.module.css: /* Fullscreen mode */
+.fullscreenMode
+      7 !important declarations
+
+ΓÜá∩╕Å  HIGH SPECIFICITY: 1 selectors
+
+   index.css: #root
+      Specificity: 101
+
+ΓÜá∩╕Å  UNDEFINED CSS VARIABLES: 148 instances
+
+   StudyLayout.module.css: .tabButton.tabActive svg
+      --tab-color
+   StudyLayout.module.css: .cognitiveIndicator svg
+      --cognitive-color
+   BlankSheetTest.module.css: .continueButton
+      --font-size-md
+   CelebrationModal.module.css: .autoDismissHint
+      --color-text-lightest
+   CognitiveGauge.module.css: }
+
+/* Help icon */
+.helpIcon
+      --transition-fast
+
+ΓÜá∩╕Å  Z-INDEX CONFLICTS: 6 values used by multiple elements
+
+   z-index: 10 (20 selectors)
+   z-index: 100 (18 selectors)
+   z-index: 20 (10 selectors)
+   z-index: 1000 (9 selectors)
+   z-index: 1 (8 selectors)
+
+ΓÜá∩╕Å  INLINE STYLES IN TSX: 60 instances
+
+   StudyLayout.tsx:261
+   ConceptChunks.tsx:128
+   ConceptChunks.tsx:131
+   ConceptChunks.tsx:134
+   ConceptMapBuilder.tsx:258
+
+================================================================================
+
+≡ƒôè Total Issues: 217
+
+≡ƒÆí Recommendations:
+   - Remove duplicate properties
+   - Avoid !important, use specificity instead
+   - Keep selectors simple (specificity < 100)
+   - Define missing CSS variables in index.css
+   - Use CSS modules instead of inline styles
+

@@ -1,0 +1,8 @@
+src/components/learning/ConceptMapBuilder.tsx(84,15): error TS6133: 'existingConns' is declared but its value is never read.
+src/components/learning/MicroLearningLoopController.tsx(17,5): error TS6133: 'Zap' is declared but its value is never read.
+src/components/learning/MicroLearningLoopController.tsx(24,1): error TS6133: 'CognitiveGauge' is declared but its value is never read.
+src/hooks/useVoice.ts(107,28): error TS6133: 'err' is declared but its value is never read.
+src/lib/ai/phases/build-ai.ts(246,23): error TS6133: 'from' is declared but its value is never read.
+src/lib/ai/phases/build-ai.ts(246,46): error TS6133: 'to' is declared but its value is never read.
+src/lib/ai/phases/preview-ai.ts(9,51): error TS6133: 'PhaseKey' is declared but its value is never read.
+src/lib/ai/phases/preview-ai.ts(30,35): error TS6133: 'index' is declared but its value is never read.

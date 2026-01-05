@@ -433,11 +433,25 @@ Apply this accommodation to ALL Mental Anchors, Worked Examples, and Learning Pa
 `;
 
 /**
- * Returns the system prompt with optional aphantasia enhancements
+ * Returns the system prompt with optional aphantasia and familiar system enhancements
  */
-export function getSystemPrompt(aphantasiaMode: boolean = false): string {
-  if (aphantasiaMode) {
-    return SYSTEM_PROMPT_V4 + APHANTASIA_MODE_ENHANCEMENT;
+export function getSystemPrompt(aphantasiaMode: boolean = false, familiarSystem?: string | null): string {
+  let prompt = SYSTEM_PROMPT_V4;
+
+  if (familiarSystem) {
+    // 1. Replace generic analogy instruction
+    prompt = prompt.replace(
+      'Map to a familiar system (construction, cooking, sports, etc.) that matches typical learner backgrounds.',
+      `Map to the familiar system of "${familiarSystem.toUpperCase()}".`
+    );
+
+    // 2. Add mandatory constraint
+    prompt += `\n\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFAMILIAR SYSTEM OVERRIDE: ${familiarSystem.toUpperCase()}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nYou MUST use metaphors related to "${familiarSystem}" for ALL Analogical Models.\nExample: If system is "Cooking", map concepts to ingredients, recipes, chefs, kitchen tools.\nDO NOT use generic examples.\n`;
   }
-  return SYSTEM_PROMPT_V4;
+
+  if (aphantasiaMode) {
+    prompt += APHANTASIA_MODE_ENHANCEMENT;
+  }
+
+  return prompt;
 }

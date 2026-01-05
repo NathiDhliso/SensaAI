@@ -243,7 +243,7 @@ export function validateConnectionLabel(
 /**
  * Suggest a label for a connection
  */
-function suggestLabel(from: LearningConcept, to: LearningConcept): string {
+function suggestLabel(_from: LearningConcept, _to: LearningConcept): string {
     const suggestions = [
         'uses',
         'requires',

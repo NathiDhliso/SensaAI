@@ -81,7 +81,8 @@ export default function ConceptMapBuilder({
         if (nodes.length < 2) return;
 
         // generated suggestions
-        const existingConns = connections.map(c => ({ fromId: c.fromId, toId: c.toId }));
+        // const existingConns = connections.map(c => ({ fromId: c.fromId, toId: c.toId }));
+
         // Note: AI needs concept IDs, but nodes manage positions. Map nodes lack direct concept ref mapping easily available?
         // nodes has conceptId. 
 

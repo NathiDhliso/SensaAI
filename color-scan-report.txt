@@ -1,0 +1,1551 @@
+≡ƒöì Scanning codebase for hardcoded colors...
+
+Starting scan in: C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src
+
+
+≡ƒÄ¿ Hardcoded Color Scanner Report
+
+================================================================================
+
+ΓÜá∩╕Å  Found 658 potential issues in 72 files
+
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\index.css
+   168 issue(s):
+   Line 117: #6B46C1
+   ΓåÆ --color-primary-amethyst: #6B46C1;
+   Line 118: #F97316
+   ΓåÆ --color-primary-coral: #F97316;
+   Line 119: #7C2D92
+   ΓåÆ --color-primary-plum: #7C2D92;
+   Line 122: #F59E0B
+   ΓåÆ --color-secondary-amber: #F59E0B;
+   Line 123: #EC4899
+   ΓåÆ --color-secondary-rose: #EC4899;
+   Line 124: #10B981
+   ΓåÆ --color-secondary-sage: #10B981;
+   Line 128: #171923
+   ΓåÆ --color-text-dark: #171923;
+   Line 130: #4A5568
+   ΓåÆ --color-text-medium: #4A5568;
+   Line 132: #595959
+   ΓåÆ --color-text-light: #595959;
+   Line 134: #64748b
+   ΓåÆ --color-text-muted: #64748b;
+   Line 143: #FAF5FF
+   ΓåÆ --color-bg-primary: #FAF5FF;
+   Line 144: #FFF7ED
+   ΓåÆ --color-bg-secondary: #FFF7ED;
+   Line 145: #FDF2F8
+   ΓåÆ --color-bg-tertiary: #FDF2F8;
+   Line 146: #f8fafc
+   ΓåÆ --color-bg-neutral: #f8fafc;
+   Line 147: #f1f5f9
+   ΓåÆ --color-bg-neutral-alt: #f1f5f9;
+   Line 150: white
+   ΓåÆ --color-surface: white;
+   Line 151: white
+   ΓåÆ --color-surface-elevated: white;
+   Line 152: #f8fafc
+   ΓåÆ --color-surface-subtle: #f8fafc;
+   Line 153: #f8fafc
+   ΓåÆ --color-surface-secondary: #f8fafc;
+   Line 154: #f1f5f9
+   ΓåÆ --color-surface-hover: #f1f5f9;
+   Line 157: #e2e8f0
+   ΓåÆ --color-border: #e2e8f0;
+   Line 158: #f1f5f9
+   ΓåÆ --color-border-light: #f1f5f9;
+   Line 159: #cbd5e1
+   ΓåÆ --color-border-emphasis: #cbd5e1;
+   Line 162: #6B46C1
+   ΓåÆ --color-accent: #6B46C1;
+   Line 163: #553c9a
+   ΓåÆ --color-accent-hover: #553c9a;
+   Line 164: #8b5cf6
+   ΓåÆ --color-accent-light: #8b5cf6;
+   Line 165: #F97316
+   ΓåÆ --color-accent-alt: #F97316;
+   Line 166: #ea580c
+   ΓåÆ --color-accent-alt-hover: #ea580c;
+   Line 172: #6B46C1
+   ΓåÆ /* #6B46C1 in RGB for rgba() usage */
+   Line 175: #22c55e
+   ΓåÆ --color-success: #22c55e;
+   Line 176: #f0fdf4
+   ΓåÆ --color-success-bg: #f0fdf4;
+   Line 177: #bbf7d0
+   ΓåÆ --color-success-border: #bbf7d0;
+   Line 178: #166534
+   ΓåÆ --color-success-text: #166534;
+   Line 180: #f59e0b
+   ΓåÆ --color-warning: #f59e0b;
+   Line 181: #fffbeb
+   ΓåÆ --color-warning-bg: #fffbeb;
+   Line 182: #fde68a
+   ΓåÆ --color-warning-border: #fde68a;
+   Line 183: #92400e
+   ΓåÆ --color-warning-text: #92400e;
+   Line 185: #dc2626
+   ΓåÆ --color-error: #dc2626;
+   Line 186: #fef2f2
+   ΓåÆ --color-error-bg: #fef2f2;
+   Line 187: #fecaca
+   ΓåÆ --color-error-border: #fecaca;
+   Line 188: #991b1b
+   ΓåÆ --color-error-text: #991b1b;
+   Line 190: #3b82f6
+   ΓåÆ --color-info: #3b82f6;
+   Line 191: #dbeafe
+   ΓåÆ --color-info-bg: #dbeafe;
+   Line 192: #60a5fa
+   ΓåÆ --color-info-border: #60a5fa;
+   Line 193: #1e40af
+   ΓåÆ --color-info-text: #1e40af;
+   Line 204: rgba(0, 0, 0, 0.05)
+   ΓåÆ --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+   Line 205: rgba(0, 0, 0, 0.1)
+   ΓåÆ --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+   Line 206: rgba(0, 0, 0, 0.1)
+   ΓåÆ --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+   Line 207: rgba(0, 0, 0, 0.25)
+   ΓåÆ --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+   Line 208: rgba(107, 70, 193, 0.3)
+   ΓåÆ --shadow-glow-primary: 0 4px 15px rgba(107, 70, 193, 0.3);
+   Line 209: rgba(107, 70, 193, 0.4)
+   ΓåÆ --shadow-glow-primary-hover: 0 6px 20px rgba(107, 70, 193, 0.4);
+   Line 210: rgba(16, 185, 129, 0.3)
+   ΓåÆ --shadow-glow-sage: 0 4px 15px rgba(16, 185, 129, 0.3);
+   Line 211: rgba(16, 185, 129, 0.4)
+   ΓåÆ --shadow-glow-sage-hover: 0 6px 20px rgba(16, 185, 129, 0.4);
+   Line 212: rgba(245, 158, 11, 0.3)
+   ΓåÆ --shadow-glow-amber: 0 4px 15px rgba(245, 158, 11, 0.3);
+   Line 213: rgba(245, 158, 11, 0.4)
+   ΓåÆ --shadow-glow-amber-hover: 0 6px 20px rgba(245, 158, 11, 0.4);
+   Line 214: rgba(220, 38, 38, 0.3)
+   ΓåÆ --shadow-glow-error: 0 4px 12px rgba(220, 38, 38, 0.3);
+   Line 226: rgba(107, 70, 193, 0.05)
+   ΓåÆ --overlay-primary-5: rgba(107, 70, 193, 0.05);
+   Line 227: rgba(107, 70, 193, 0.1)
+   ΓåÆ --overlay-primary-10: rgba(107, 70, 193, 0.1);
+   Line 228: rgba(107, 70, 193, 0.15)
+   ΓåÆ --overlay-primary-15: rgba(107, 70, 193, 0.15);
+   Line 229: rgba(139, 92, 246, 0.05)
+   ΓåÆ --overlay-accent-5: rgba(139, 92, 246, 0.05);
+   Line 230: rgba(139, 92, 246, 0.1)
+   ΓåÆ --overlay-accent-10: rgba(139, 92, 246, 0.1);
+   Line 231: rgba(139, 92, 246, 0.15)
+   ΓåÆ --overlay-accent-15: rgba(139, 92, 246, 0.15);
+   Line 232: rgba(16, 185, 129, 0.05)
+   ΓåÆ --overlay-sage-5: rgba(16, 185, 129, 0.05);
+   Line 233: rgba(16, 185, 129, 0.1)
+   ΓåÆ --overlay-sage-10: rgba(16, 185, 129, 0.1);
+   Line 234: rgba(245, 158, 11, 0.05)
+   ΓåÆ --overlay-amber-5: rgba(245, 158, 11, 0.05);
+   Line 235: rgba(245, 158, 11, 0.1)
+   ΓåÆ --overlay-amber-10: rgba(245, 158, 11, 0.1);
+   Line 236: rgba(245, 158, 11, 0.2)
+   ΓåÆ --overlay-amber-20: rgba(245, 158, 11, 0.2);
+   Line 237: rgba(255, 255, 255, 0.1)
+   ΓåÆ --overlay-white-10: rgba(255, 255, 255, 0.1);
+   Line 237: white
+   ΓåÆ --overlay-white-10: rgba(255, 255, 255, 0.1);
+   Line 238: rgba(255, 255, 255, 0.2)
+   ΓåÆ --overlay-white-20: rgba(255, 255, 255, 0.2);
+   Line 238: white
+   ΓåÆ --overlay-white-20: rgba(255, 255, 255, 0.2);
+   Line 239: rgba(255, 255, 255, 0.3)
+   ΓåÆ --overlay-white-30: rgba(255, 255, 255, 0.3);
+   Line 239: white
+   ΓåÆ --overlay-white-30: rgba(255, 255, 255, 0.3);
+   Line 240: rgba(255, 255, 255, 0.4)
+   ΓåÆ --overlay-white-40: rgba(255, 255, 255, 0.4);
+   Line 240: white
+   ΓåÆ --overlay-white-40: rgba(255, 255, 255, 0.4);
+   Line 241: rgba(255, 255, 255, 0.5)
+   ΓåÆ --overlay-white-50: rgba(255, 255, 255, 0.5);
+   Line 241: white
+   ΓåÆ --overlay-white-50: rgba(255, 255, 255, 0.5);
+   Line 242: rgba(255, 255, 255, 0.6)
+   ΓåÆ --overlay-white-60: rgba(255, 255, 255, 0.6);
+   Line 242: white
+   ΓåÆ --overlay-white-60: rgba(255, 255, 255, 0.6);
+   Line 243: rgba(255, 255, 255, 0.8)
+   ΓåÆ --overlay-white-80: rgba(255, 255, 255, 0.8);
+   Line 243: white
+   ΓåÆ --overlay-white-80: rgba(255, 255, 255, 0.8);
+   Line 244: rgba(0, 0, 0, 0.4)
+   ΓåÆ --overlay-black-40: rgba(0, 0, 0, 0.4);
+   Line 244: black
+   ΓåÆ --overlay-black-40: rgba(0, 0, 0, 0.4);
+   Line 245: rgba(0, 0, 0, 0.6)
+   ΓåÆ --overlay-black-60: rgba(0, 0, 0, 0.6);
+   Line 245: black
+   ΓåÆ --overlay-black-60: rgba(0, 0, 0, 0.6);
+   Line 249: #059669
+   ΓåÆ --color-sage-dark: #059669;
+   Line 250: #b91c1c
+   ΓåÆ --color-error-dark: #b91c1c;
+   Line 251: #d97706
+   ΓåÆ --color-amber-dark: #d97706;
+   Line 252: #b45309
+   ΓåÆ --color-amber-darker: #b45309;
+   Line 254: #fef08a
+   ΓåÆ --color-gold-highlight: #fef08a;
+   Line 258: rgba(0, 0, 0, 0.02)
+   ΓåÆ inset 20px 30px 40px rgba(0, 0, 0, 0.02),
+   Line 259: rgba(0, 0, 0, 0.02)
+   ΓåÆ inset -20px -30px 40px rgba(0, 0, 0, 0.02),
+   Line 260: rgba(0, 0, 0, 0.015)
+   ΓåÆ inset 40px -20px 50px rgba(0, 0, 0, 0.015),
+   Line 261: rgba(0, 0, 0, 0.015)
+   ΓåÆ inset -40px 20px 50px rgba(0, 0, 0, 0.015);
+   Line 270: #1a0b2e
+   ΓåÆ --color-bg-primary: #1a0b2e;
+   Line 271: #2d1b4e
+   ΓåÆ --color-bg-secondary: #2d1b4e;
+   Line 272: #3d2963
+   ΓåÆ --color-bg-tertiary: #3d2963;
+   Line 273: #1a0b2e
+   ΓåÆ --color-bg-neutral: #1a0b2e;
+   Line 274: #2d1b4e
+   ΓåÆ --color-bg-neutral-alt: #2d1b4e;
+   Line 277: #f3e8ff
+   ΓåÆ --color-text-dark: #f3e8ff;
+   Line 278: #d4b5f7
+   ΓåÆ --color-text-medium: #d4b5f7;
+   Line 279: #c4b5d0
+   ΓåÆ --color-text-light: #c4b5d0;
+   Line 280: #a78bbd
+   ΓåÆ --color-text-muted: #a78bbd;
+   Line 288: #2d1b4e
+   ΓåÆ --color-surface: #2d1b4e;
+   Line 289: #3d2963
+   ΓåÆ --color-surface-elevated: #3d2963;
+   Line 290: #251640
+   ΓåÆ --color-surface-subtle: #251640;
+   Line 291: #3d2963
+   ΓåÆ --color-surface-secondary: #3d2963;
+   Line 292: #4a3470
+   ΓåÆ --color-surface-hover: #4a3470;
+   Line 295: #4a3470
+   ΓåÆ --color-border: #4a3470;
+   Line 296: #3d2963
+   ΓåÆ --color-border-light: #3d2963;
+   Line 297: #6b46c1
+   ΓåÆ --color-border-emphasis: #6b46c1;
+   Line 300: #8b5cf6
+   ΓåÆ --color-accent: #8b5cf6;
+   Line 301: #a78bfa
+   ΓåÆ --color-accent-hover: #a78bfa;
+   Line 302: #a78bfa
+   ΓåÆ --color-accent-light: #a78bfa;
+   Line 303: #fb923c
+   ΓåÆ --color-accent-alt: #fb923c;
+   Line 304: #fdba74
+   ΓåÆ --color-accent-alt-hover: #fdba74;
+   Line 311: #4ade80
+   ΓåÆ --color-success: #4ade80;
+   Line 312: rgba(34, 197, 94, 0.15)
+   ΓåÆ --color-success-bg: rgba(34, 197, 94, 0.15);
+   Line 313: rgba(34, 197, 94, 0.3)
+   ΓåÆ --color-success-border: rgba(34, 197, 94, 0.3);
+   Line 314: #86efac
+   ΓåÆ --color-success-text: #86efac;
+   Line 316: #fbbf24
+   ΓåÆ --color-warning: #fbbf24;
+   Line 317: rgba(245, 158, 11, 0.15)
+   ΓåÆ --color-warning-bg: rgba(245, 158, 11, 0.15);
+   Line 318: rgba(245, 158, 11, 0.3)
+   ΓåÆ --color-warning-border: rgba(245, 158, 11, 0.3);
+   Line 319: #fcd34d
+   ΓåÆ --color-warning-text: #fcd34d;
+   Line 321: #f87171
+   ΓåÆ --color-error: #f87171;
+   Line 322: rgba(239, 68, 68, 0.15)
+   ΓåÆ --color-error-bg: rgba(239, 68, 68, 0.15);
+   Line 323: rgba(239, 68, 68, 0.3)
+   ΓåÆ --color-error-border: rgba(239, 68, 68, 0.3);
+   Line 324: #fca5a5
+   ΓåÆ --color-error-text: #fca5a5;
+   Line 326: #60a5fa
+   ΓåÆ --color-info: #60a5fa;
+   Line 327: rgba(59, 130, 246, 0.15)
+   ΓåÆ --color-info-bg: rgba(59, 130, 246, 0.15);
+   Line 328: rgba(59, 130, 246, 0.3)
+   ΓåÆ --color-info-border: rgba(59, 130, 246, 0.3);
+   Line 329: #93c5fd
+   ΓåÆ --color-info-text: #93c5fd;
+   Line 335: #1a0b2e
+   ΓåÆ --color-bg-primary: #1a0b2e;
+   Line 336: #2d1b4e
+   ΓåÆ --color-bg-secondary: #2d1b4e;
+   Line 337: #3d2963
+   ΓåÆ --color-bg-tertiary: #3d2963;
+   Line 338: #1a0b2e
+   ΓåÆ --color-bg-neutral: #1a0b2e;
+   Line 339: #2d1b4e
+   ΓåÆ --color-bg-neutral-alt: #2d1b4e;
+   Line 341: #f3e8ff
+   ΓåÆ --color-text-dark: #f3e8ff;
+   Line 342: #d4b5f7
+   ΓåÆ --color-text-medium: #d4b5f7;
+   Line 343: #c4b5d0
+   ΓåÆ --color-text-light: #c4b5d0;
+   Line 344: #a78bbd
+   ΓåÆ --color-text-muted: #a78bbd;
+   Line 346: #2d1b4e
+   ΓåÆ --color-surface: #2d1b4e;
+   Line 347: #3d2963
+   ΓåÆ --color-surface-elevated: #3d2963;
+   Line 348: #251640
+   ΓåÆ --color-surface-subtle: #251640;
+   Line 350: #4a3470
+   ΓåÆ --color-border: #4a3470;
+   Line 351: #3d2963
+   ΓåÆ --color-border-light: #3d2963;
+   Line 352: #6b46c1
+   ΓåÆ --color-border-emphasis: #6b46c1;
+   Line 354: #8b5cf6
+   ΓåÆ --color-accent: #8b5cf6;
+   Line 355: #a78bfa
+   ΓåÆ --color-accent-hover: #a78bfa;
+   Line 356: #a78bfa
+   ΓåÆ --color-accent-light: #a78bfa;
+   Line 357: #fb923c
+   ΓåÆ --color-accent-alt: #fb923c;
+   Line 358: #fdba74
+   ΓåÆ --color-accent-alt-hover: #fdba74;
+   Line 364: #4ade80
+   ΓåÆ --color-success: #4ade80;
+   Line 365: rgba(34, 197, 94, 0.15)
+   ΓåÆ --color-success-bg: rgba(34, 197, 94, 0.15);
+   Line 366: rgba(34, 197, 94, 0.3)
+   ΓåÆ --color-success-border: rgba(34, 197, 94, 0.3);
+   Line 367: #86efac
+   ΓåÆ --color-success-text: #86efac;
+   Line 369: #fbbf24
+   ΓåÆ --color-warning: #fbbf24;
+   Line 370: rgba(245, 158, 11, 0.15)
+   ΓåÆ --color-warning-bg: rgba(245, 158, 11, 0.15);
+   Line 371: rgba(245, 158, 11, 0.3)
+   ΓåÆ --color-warning-border: rgba(245, 158, 11, 0.3);
+   Line 372: #fcd34d
+   ΓåÆ --color-warning-text: #fcd34d;
+   Line 374: #f87171
+   ΓåÆ --color-error: #f87171;
+   Line 375: rgba(239, 68, 68, 0.15)
+   ΓåÆ --color-error-bg: rgba(239, 68, 68, 0.15);
+   Line 376: rgba(239, 68, 68, 0.3)
+   ΓåÆ --color-error-border: rgba(239, 68, 68, 0.3);
+   Line 377: #fca5a5
+   ΓåÆ --color-error-text: #fca5a5;
+   Line 379: #60a5fa
+   ΓåÆ --color-info: #60a5fa;
+   Line 380: rgba(59, 130, 246, 0.15)
+   ΓåÆ --color-info-bg: rgba(59, 130, 246, 0.15);
+   Line 381: rgba(59, 130, 246, 0.3)
+   ΓåÆ --color-info-border: rgba(59, 130, 246, 0.3);
+   Line 382: #93c5fd
+   ΓåÆ --color-info-text: #93c5fd;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\constants\theme-colors.ts
+   72 issue(s):
+   Line 18: #6B46C1
+   ΓåÆ amethyst: '#6B46C1',
+   Line 19: #F97316
+   ΓåÆ coral: '#F97316',
+   Line 20: #7C2D92
+   ΓåÆ plum: '#7C2D92',
+   Line 25: #F59E0B
+   ΓåÆ amber: '#F59E0B',
+   Line 26: #EC4899
+   ΓåÆ rose: '#EC4899',
+   Line 27: #10B981
+   ΓåÆ sage: '#10B981',
+   Line 32: #8b5cf6
+   ΓåÆ light: '#8b5cf6',
+   Line 33: #6B46C1
+   ΓåÆ default: '#6B46C1',
+   Line 34: #553c9a
+   ΓåÆ hover: '#553c9a',
+   Line 35: #F97316
+   ΓåÆ alt: '#F97316',
+   Line 36: #ea580c
+   ΓåÆ altHover: '#ea580c',
+   Line 40: #22c55e
+   ΓåÆ success: '#22c55e',
+   Line 41: #f59e0b
+   ΓåÆ warning: '#f59e0b',
+   Line 42: #ef4444
+   ΓåÆ error: '#ef4444',
+   Line 43: #3b82f6
+   ΓåÆ info: '#3b82f6',
+   Line 47: #171923
+   ΓåÆ dark: '#171923',   // Deep, high contrast (was #1f2937)
+   Line 47: #1f2937
+   ΓåÆ dark: '#171923',   // Deep, high contrast (was #1f2937)
+   Line 48: #4A5568
+   ΓåÆ medium: '#4A5568', // Readable AA standard (was #4b5563)
+   Line 48: #4b5563
+   ΓåÆ medium: '#4A5568', // Readable AA standard (was #4b5563)
+   Line 49: #595959
+   ΓåÆ light: '#595959',  // Darkened for legibility (was #6b7280)
+   Line 49: #6b7280
+   ΓåÆ light: '#595959',  // Darkened for legibility (was #6b7280)
+   Line 50: #64748b
+   ΓåÆ muted: '#64748b',  // Slate 500 - Passes WCAG AA (was #94a3b8)
+   Line 50: #94a3b8
+   ΓåÆ muted: '#64748b',  // Slate 500 - Passes WCAG AA (was #94a3b8)
+   Line 59: #3b82f6
+   ΓåÆ cloud: COLORS.info,           // #3b82f6 - blue
+   Line 59: blue
+   ΓåÆ cloud: COLORS.info,           // #3b82f6 - blue
+   Line 60: #8b5cf6
+   ΓåÆ data: COLORS.accent.light,    // #8b5cf6 - purple
+   Line 60: purple
+   ΓåÆ data: COLORS.accent.light,    // #8b5cf6 - purple
+   Line 61: #10b981
+   ΓåÆ dev: COLORS.secondary.sage,   // #10b981 - green
+   Line 61: green
+   ΓåÆ dev: COLORS.secondary.sage,   // #10b981 - green
+   Line 62: #ef4444
+   ΓåÆ security: COLORS.error,       // #ef4444 - red
+   Line 62: red
+   ΓåÆ security: COLORS.error,       // #ef4444 - red
+   Line 63: #f59e0b
+   ΓåÆ business: COLORS.secondary.amber, // #f59e0b - amber
+   Line 70: #22c55e
+   ΓåÆ Beginner: COLORS.success,      // #22c55e - green
+   Line 70: green
+   ΓåÆ Beginner: COLORS.success,      // #22c55e - green
+   Line 71: #f59e0b
+   ΓåÆ Intermediate: COLORS.warning,  // #f59e0b - amber
+   Line 72: #ef4444
+   ΓåÆ Advanced: COLORS.error,        // #ef4444 - red
+   Line 72: red
+   ΓåÆ Advanced: COLORS.error,        // #ef4444 - red
+   Line 73: #8b5cf6
+   ΓåÆ Expert: COLORS.accent.light,   // #8b5cf6 - purple
+   Line 73: purple
+   ΓåÆ Expert: COLORS.accent.light,   // #8b5cf6 - purple
+   Line 80: #fbbf24
+   ΓåÆ COLORS.secondary.amber,  // #fbbf24 -> using amber
+   Line 81: #3b82f6
+   ΓåÆ COLORS.info,             // #3b82f6
+   Line 82: #22c55e
+   ΓåÆ COLORS.success,          // #22c55e
+   Line 83: #f43f5e
+   ΓåÆ COLORS.secondary.rose,   // #f43f5e -> using rose
+   Line 84: #8b5cf6
+   ΓåÆ COLORS.accent.light,     // #8b5cf6
+   Line 85: #06b6d4
+   ΓåÆ '#06b6d4',               // cyan (not in main palette, keeping for variety)
+   Line 92: #1f2937
+   ΓåÆ markerText: COLORS.text.dark,     // #1f2937
+   Line 93: #F59E0B
+   ΓåÆ polylineStroke: COLORS.secondary.amber, // #F59E0B
+   Line 100: #22c55e
+   ΓåÆ correct: COLORS.success,  // #22c55e
+   Line 101: #ef4444
+   ΓåÆ incorrect: COLORS.error,  // #ef4444
+   Line 108: #6B46C1
+   ΓåÆ default: COLORS.accent.default,    // #6B46C1 - primary amethyst
+   Line 109: #8b5cf6
+   ΓåÆ accent: COLORS.accent.light,       // #8b5cf6 - lighter purple
+   Line 109: purple
+   ΓåÆ accent: COLORS.accent.light,       // #8b5cf6 - lighter purple
+   Line 110: #22c55e
+   ΓåÆ success: COLORS.success,           // #22c55e - green
+   Line 110: green
+   ΓåÆ success: COLORS.success,           // #22c55e - green
+   Line 111: #f59e0b
+   ΓåÆ warning: COLORS.warning,           // #f59e0b - amber
+   Line 112: #ef4444
+   ΓåÆ error: COLORS.error,               // #ef4444 - red
+   Line 112: red
+   ΓåÆ error: COLORS.error,               // #ef4444 - red
+   Line 113: #94a3b8
+   ΓåÆ muted: COLORS.text.muted,          // #94a3b8 - gray
+   Line 113: gray
+   ΓåÆ muted: COLORS.text.muted,          // #94a3b8 - gray
+   Line 120: #DBEAFE
+   ΓåÆ phase1: { bg: '#DBEAFE', fill: '#3B82F6', text: '#1E40AF' },  // Blue
+   Line 120: #3B82F6
+   ΓåÆ phase1: { bg: '#DBEAFE', fill: '#3B82F6', text: '#1E40AF' },  // Blue
+   Line 120: #1E40AF
+   ΓåÆ phase1: { bg: '#DBEAFE', fill: '#3B82F6', text: '#1E40AF' },  // Blue
+   Line 121: #FEF3C7
+   ΓåÆ phase2: { bg: '#FEF3C7', fill: '#F59E0B', text: '#92400E' },  // Amber
+   Line 121: #F59E0B
+   ΓåÆ phase2: { bg: '#FEF3C7', fill: '#F59E0B', text: '#92400E' },  // Amber
+   Line 121: #92400E
+   ΓåÆ phase2: { bg: '#FEF3C7', fill: '#F59E0B', text: '#92400E' },  // Amber
+   Line 122: #D1FAE5
+   ΓåÆ phase3: { bg: '#D1FAE5', fill: '#10B981', text: '#065F46' },  // Green
+   Line 122: #10B981
+   ΓåÆ phase3: { bg: '#D1FAE5', fill: '#10B981', text: '#065F46' },  // Green
+   Line 122: #065F46
+   ΓåÆ phase3: { bg: '#D1FAE5', fill: '#10B981', text: '#065F46' },  // Green
+   Line 129: #10b981
+   ΓåÆ foundation: COLORS.secondary.sage,   // #10b981
+   Line 130: #8b5cf6
+   ΓåÆ keystone: COLORS.accent.light,       // #8b5cf6
+   Line 131: #f59e0b
+   ΓåÆ utility: COLORS.secondary.amber,     // #f59e0b
+   Line 149: rgba(${r}, ${g}, ${b}, ${alpha})
+   ΓåÆ return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\CinematicView\CinematicView.module.css
+   50 issue(s):
+   Line 22: rgba(10, 10, 26, 0.85)
+   ΓåÆ background: rgba(10, 10, 26, 0.85);
+   Line 44: rgba(30, 41, 59, 0.9)
+   ΓåÆ background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+   Line 44: rgba(15, 23, 42, 0.95)
+   ΓåÆ background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+   Line 45: rgba(139, 92, 246, 0.3)
+   ΓåÆ border: 1px solid rgba(139, 92, 246, 0.3);
+   Line 49: rgba(0, 0, 0, 0.5)
+   ΓåÆ 0 20px 50px rgba(0, 0, 0, 0.5),
+   Line 50: rgba(255, 255, 255, 0.1)
+   ΓåÆ 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+   Line 52: white
+   ΓåÆ color: white;
+   Line 61: rgba(255, 255, 255, 0.4)
+   ΓåÆ color: rgba(255, 255, 255, 0.4);
+   Line 68: white
+   ΓåÆ color: white;
+   Line 81: rgba(0, 0, 0, 0.3)
+   ΓåÆ filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+   Line 88: #fff
+   ΓåÆ background: linear-gradient(to right, #fff, #a5b4fc);
+   Line 88: #a5b4fc
+   ΓåÆ background: linear-gradient(to right, #fff, #a5b4fc);
+   Line 105: rgba(16, 185, 129, 0.2)
+   ΓåÆ background: rgba(16, 185, 129, 0.2);
+   Line 106: #34d399
+   ΓåÆ color: #34d399;
+   Line 110: rgba(139, 92, 246, 0.2)
+   ΓåÆ background: rgba(139, 92, 246, 0.2);
+   Line 111: #a78bfa
+   ΓåÆ color: #a78bfa;
+   Line 115: rgba(245, 158, 11, 0.2)
+   ΓåÆ background: rgba(245, 158, 11, 0.2);
+   Line 116: #fbbf24
+   ΓåÆ color: #fbbf24;
+   Line 134: rgba(255, 255, 255, 0.6)
+   ΓåÆ color: rgba(255, 255, 255, 0.6);
+   Line 144: white
+   ΓåÆ color: white;
+   Line 146: rgba(255, 255, 255, 0.1)
+   ΓåÆ background: rgba(255, 255, 255, 0.1);
+   Line 161: #7c3aed
+   ΓåÆ background: linear-gradient(135deg, #7c3aed, #4f46e5);
+   Line 161: #4f46e5
+   ΓåÆ background: linear-gradient(135deg, #7c3aed, #4f46e5);
+   Line 164: white
+   ΓåÆ color: white;
+   Line 169: rgba(124, 58, 237, 0.4)
+   ΓåÆ box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+   Line 174: rgba(124, 58, 237, 0.6)
+   ΓåÆ box-shadow: 0 8px 30px rgba(124, 58, 237, 0.6);
+   Line 178: #334155
+   ΓåÆ background: #334155;
+   Line 195: #e2e8f0
+   ΓåÆ color: #e2e8f0;
+   Line 199: rgba(139, 92, 246, 0.5)
+   ΓåÆ border-left: 2px solid rgba(139, 92, 246, 0.5);
+   Line 200: rgba(139, 92, 246, 0.5)
+   ΓåÆ border-right: 2px solid rgba(139, 92, 246, 0.5);
+   Line 208: rgba(255, 255, 255, 0.6)
+   ΓåÆ color: rgba(255, 255, 255, 0.6);
+   Line 213: #fbbf24
+   ΓåÆ color: #fbbf24;
+   Line 218: rgba(16, 185, 129, 0.1)
+   ΓåÆ background: rgba(16, 185, 129, 0.1);
+   Line 219: rgba(16, 185, 129, 0.3)
+   ΓåÆ border: 1px solid rgba(16, 185, 129, 0.3);
+   Line 227: #34d399
+   ΓåÆ color: #34d399;
+   Line 234: white
+   ΓåÆ color: white;
+   Line 244: rgba(255, 255, 255, 0.05)
+   ΓåÆ background: rgba(255, 255, 255, 0.05);
+   Line 245: rgba(255, 255, 255, 0.1)
+   ΓåÆ border: 1px solid rgba(255, 255, 255, 0.1);
+   Line 247: rgba(255, 255, 255, 0.8)
+   ΓåÆ color: rgba(255, 255, 255, 0.8);
+   Line 254: rgba(255, 255, 255, 0.1)
+   ΓåÆ background: rgba(255, 255, 255, 0.1);
+   Line 255: white
+   ΓåÆ color: white;
+   Line 262: #0f172a
+   ΓåÆ background: #0f172a;
+   Line 274: rgba(255, 255, 255, 0.6)
+   ΓåÆ color: rgba(255, 255, 255, 0.6);
+   Line 281: white
+   ΓåÆ color: white;
+   Line 287: white
+   ΓåÆ color: white;
+   Line 292: #cbd5e1
+   ΓåÆ color: #cbd5e1;
+   Line 304: #94a3b8
+   ΓåÆ color: #94a3b8;
+   Line 306: rgba(255, 255, 255, 0.1)
+   ΓåÆ border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+   Line 318: #e2e8f0
+   ΓåÆ color: #e2e8f0;
+   Line 328: #7c3aed
+   ΓåÆ color: #7c3aed;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\ConceptMarker.module.css
+   32 issue(s):
+   Line 31: white
+   ΓåÆ color: white;
+   Line 32: rgba(0, 0, 0, 0.3)
+   ΓåÆ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+   Line 33: white
+   ΓåÆ border: 2px solid white;
+   Line 40: rgba(0, 0, 0, 0.4)
+   ΓåÆ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+   Line 78: rgba(0, 0, 0, 0.15)
+   ΓåÆ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+   Line 80: white
+   ΓåÆ white-space: nowrap;
+   Line 124: rgba(0, 0, 0, 0.4)
+   ΓåÆ box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+   Line 133: white
+   ΓåÆ color: white;
+   Line 144: rgba(139, 92, 246, 0.4)
+   ΓåÆ box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+   Line 148: rgba(139, 92, 246, 0)
+   ΓåÆ box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+   Line 158: #1e3a5f
+   ΓåÆ background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3b82f6 100%);
+   Line 158: #2d5a87
+   ΓåÆ background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3b82f6 100%);
+   Line 158: #3b82f6
+   ΓåÆ background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3b82f6 100%);
+   Line 160: rgba(30, 58, 95, 0.5)
+   ΓåÆ 0 6px 24px rgba(30, 58, 95, 0.5),
+   Line 161: rgba(59, 130, 246, 0.3)
+   ΓåÆ 0 0 0 3px rgba(59, 130, 246, 0.3);
+   Line 168: rgba(30, 58, 95, 0.6)
+   ΓåÆ 0 8px 32px rgba(30, 58, 95, 0.6),
+   Line 169: rgba(59, 130, 246, 0.5)
+   ΓåÆ 0 0 0 4px rgba(59, 130, 246, 0.5);
+   Line 177: rgba(30, 58, 95, 0.5)
+   ΓåÆ 0 6px 24px rgba(30, 58, 95, 0.5),
+   Line 178: rgba(59, 130, 246, 0.3)
+   ΓåÆ 0 0 0 3px rgba(59, 130, 246, 0.3);
+   Line 183: rgba(30, 58, 95, 0.6)
+   ΓåÆ 0 8px 32px rgba(30, 58, 95, 0.6),
+   Line 184: rgba(59, 130, 246, 0.15)
+   ΓåÆ 0 0 0 6px rgba(59, 130, 246, 0.15);
+   Line 193: rgba(245, 158, 11, 0.35)
+   ΓåÆ box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+   Line 217: #4b5563
+   ΓåÆ background: linear-gradient(135deg, #4b5563, #6b7280);
+   Line 217: #6b7280
+   ΓåÆ background: linear-gradient(135deg, #4b5563, #6b7280);
+   Line 218: rgba(0, 0, 0, 0.3)
+   ΓåÆ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+   Line 225: rgba(0, 0, 0, 0.4)
+   ΓåÆ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+   Line 232: rgba(0, 0, 0, 0.3)
+   ΓåÆ filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+   Line 252: white
+   ΓåÆ border: 2px solid white;
+   Line 257: rgba(15, 23, 42, 0.95)
+   ΓåÆ background: rgba(15, 23, 42, 0.95);
+   Line 258: white
+   ΓåÆ color: white;
+   Line 261: rgba(0, 0, 0, 0.4)
+   ΓåÆ box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+   Line 274: white
+   ΓåÆ border: 2px solid white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\ConceptInspector.module.css
+   24 issue(s):
+   Line 2: white
+   ΓåÆ background: white;
+   Line 3: #e5e7eb
+   ΓåÆ border: 1px solid #e5e7eb;
+   Line 6: rgba(0, 0, 0, 0.1)
+   ΓåÆ box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+   Line 6: rgba(0, 0, 0, 0.06)
+   ΓåÆ box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+   Line 27: #9ca3af
+   ΓåÆ color: #9ca3af;
+   Line 40: #f3f4f6
+   ΓåÆ background: #f3f4f6;
+   Line 41: #4b5563
+   ΓåÆ color: #4b5563;
+   Line 71: #d1fae5
+   ΓåÆ background-color: #d1fae5;
+   Line 72: #065f46
+   ΓåÆ color: #065f46;
+   Line 76: #ede9fe
+   ΓåÆ background-color: #ede9fe;
+   Line 77: #5b21b6
+   ΓåÆ color: #5b21b6;
+   Line 81: #ffedd5
+   ΓåÆ background-color: #ffedd5;
+   Line 82: #9a3412
+   ΓåÆ color: #9a3412;
+   Line 88: #1f2937
+   ΓåÆ color: #1f2937;
+   Line 95: #6b7280
+   ΓåÆ color: #6b7280;
+   Line 102: #f3f4f6
+   ΓåÆ background-color: #f3f4f6;
+   Line 116: #374151
+   ΓåÆ color: #374151;
+   Line 128: #6b7280
+   ΓåÆ color: #6b7280;
+   Line 158: rgba(0, 0, 0, 0.05)
+   ΓåÆ border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+   Line 170: white
+   ΓåÆ color: white;
+   Line 175: white
+   ΓåÆ white-space: nowrap;
+   Line 189: rgba(255, 255, 255, 0.6)
+   ΓåÆ background: rgba(255, 255, 255, 0.6);
+   Line 193: #1f2937
+   ΓåÆ color: #1f2937;
+   Line 198: #d1d5db
+   ΓåÆ color: #d1d5db;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\RouteBuilder\RouteBuilder.module.css
+   20 issue(s):
+   Line 132: white
+   ΓåÆ color: white;
+   Line 139: white
+   ΓåÆ color: white;
+   Line 493: rgba(220, 38, 38, 0.08)
+   ΓåÆ background: rgba(220, 38, 38, 0.08);
+   Line 494: rgba(220, 38, 38, 0.2)
+   ΓåÆ border: 1px solid rgba(220, 38, 38, 0.2);
+   Line 518: white
+   ΓåÆ color: white;
+   Line 526: rgba(16, 185, 129, 0.08)
+   ΓåÆ background: rgba(16, 185, 129, 0.08);
+   Line 527: rgba(16, 185, 129, 0.2)
+   ΓåÆ border: 1px solid rgba(16, 185, 129, 0.2);
+   Line 851: white
+   ΓåÆ color: white;
+   Line 971: white
+   ΓåÆ color: white;
+   Line 978: white
+   ΓåÆ color: white;
+   Line 1024: white
+   ΓåÆ color: white;
+   Line 1090: rgba(220, 38, 38, 0.05)
+   ΓåÆ background: rgba(220, 38, 38, 0.05);
+   Line 1100: rgba(16, 185, 129, 0.05)
+   ΓåÆ background: rgba(16, 185, 129, 0.05);
+   Line 1101: rgba(16, 185, 129, 0.2)
+   ΓåÆ border: 1px solid rgba(16, 185, 129, 0.2);
+   Line 1130: white
+   ΓåÆ color: white;
+   Line 1286: rgba(16, 185, 129, 0.05)
+   ΓåÆ background: rgba(16, 185, 129, 0.05);
+   Line 1287: rgba(16, 185, 129, 0.3)
+   ΓåÆ border-color: rgba(16, 185, 129, 0.3);
+   Line 1309: white
+   ΓåÆ color: white;
+   Line 1369: white
+   ΓåÆ color: white;
+   Line 1373: rgba(220, 38, 38, 0.1)
+   ΓåÆ background: rgba(220, 38, 38, 0.1);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\LayoutEditorToolbar.module.css
+   17 issue(s):
+   Line 17: rgba(0, 0, 0, 0.6)
+   ΓåÆ background: rgba(0, 0, 0, 0.6);
+   Line 18: rgba(255, 255, 255, 0.1)
+   ΓåÆ border: 1px solid rgba(255, 255, 255, 0.1);
+   Line 27: rgba(139, 92, 246, 0.2)
+   ΓåÆ background: rgba(139, 92, 246, 0.2);
+   Line 28: rgba(139, 92, 246, 0.3)
+   ΓåÆ border-color: rgba(139, 92, 246, 0.3);
+   Line 33: rgba(16, 185, 129, 0.2)
+   ΓåÆ background: rgba(16, 185, 129, 0.2);
+   Line 34: rgba(16, 185, 129, 0.4)
+   ΓåÆ border-color: rgba(16, 185, 129, 0.4);
+   Line 35: #10b981
+   ΓåÆ color: #10b981;
+   Line 43: rgba(239, 68, 68, 0.1)
+   ΓåÆ background: rgba(239, 68, 68, 0.1);
+   Line 44: rgba(239, 68, 68, 0.3)
+   ΓåÆ border: 1px solid rgba(239, 68, 68, 0.3);
+   Line 46: #ef4444
+   ΓåÆ color: #ef4444;
+   Line 53: rgba(239, 68, 68, 0.2)
+   ΓåÆ background: rgba(239, 68, 68, 0.2);
+   Line 54: rgba(239, 68, 68, 0.5)
+   ΓåÆ border-color: rgba(239, 68, 68, 0.5);
+   Line 62: rgba(245, 158, 11, 0.1)
+   ΓåÆ background: rgba(245, 158, 11, 0.1);
+   Line 63: rgba(245, 158, 11, 0.3)
+   ΓåÆ border: 1px solid rgba(245, 158, 11, 0.3);
+   Line 65: #f59e0b
+   ΓåÆ color: #f59e0b;
+   Line 72: rgba(245, 158, 11, 0.2)
+   ΓåÆ background: rgba(245, 158, 11, 0.2);
+   Line 73: rgba(245, 158, 11, 0.5)
+   ΓåÆ border-color: rgba(245, 158, 11, 0.5);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\PanoramaViewer\PanoramaPalaceView.module.css
+   17 issue(s):
+   Line 46: white
+   ΓåÆ color: white;
+   Line 61: rgba(139, 92, 246, 0.4)
+   ΓåÆ box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4);
+   Line 109: white
+   ΓåÆ color: white;
+   Line 123: white
+   ΓåÆ color: white;
+   Line 158: white
+   ΓåÆ color: white;
+   Line 191: white
+   ΓåÆ color: white;
+   Line 194: rgba(0, 0, 0, 0.3)
+   ΓåÆ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+   Line 195: white
+   ΓåÆ border: 2px solid white;
+   Line 203: rgba(0, 0, 0, 0.4)
+   ΓåÆ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+   Line 243: white
+   ΓåÆ border-color: white;
+   Line 249: white
+   ΓåÆ background: white;
+   Line 260: white
+   ΓåÆ color: white;
+   Line 263: white
+   ΓåÆ white-space: nowrap;
+   Line 289: black
+   ΓåÆ background: black;
+   Line 347: white
+   ΓåÆ color: white;
+   Line 359: white
+   ΓåÆ color: white;
+   Line 404: rgba(255, 255, 255, 0.9)
+   ΓåÆ color: rgba(255, 255, 255, 0.9);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\ConceptTooltip.module.css
+   16 issue(s):
+   Line 17: rgba(0, 0, 0, 0.25)
+   ΓåÆ box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+   Line 128: white
+   ΓåÆ color: white;
+   Line 158: rgba(0, 0, 0, 0.2)
+   ΓåÆ filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+   Line 179: #1e3a5f
+   ΓåÆ background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+   Line 179: #2d5a87
+   ΓåÆ background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+   Line 180: #eff6ff
+   ΓåÆ color: #eff6ff;
+   Line 185: white
+   ΓåÆ color: white;
+   Line 189: #4b5563
+   ΓåÆ background: linear-gradient(135deg, #4b5563, #6b7280);
+   Line 189: #6b7280
+   ΓåÆ background: linear-gradient(135deg, #4b5563, #6b7280);
+   Line 190: #f9fafb
+   ΓåÆ color: #f9fafb;
+   Line 195: rgba(139, 92, 246, 0.08)
+   ΓåÆ background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(168, 85, 247, 0.04));
+   Line 195: rgba(168, 85, 247, 0.04)
+   ΓåÆ background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(168, 85, 247, 0.04));
+   Line 221: rgba(15, 23, 42, 0.04)
+   ΓåÆ background: rgba(15, 23, 42, 0.04);
+   Line 229: rgba(139, 92, 246, 0.1)
+   ΓåÆ background: rgba(139, 92, 246, 0.1);
+   Line 275: white
+   ΓåÆ color: white;
+   Line 299: rgba(139, 92, 246, 0.4)
+   ΓåÆ box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\DependencyBarChart.module.css
+   15 issue(s):
+   Line 4: rgba(15, 15, 26, 0.95)
+   ΓåÆ background: rgba(15, 15, 26, 0.95);
+   Line 6: rgba(255, 255, 255, 0.1)
+   ΓåÆ border: 1px solid rgba(255, 255, 255, 0.1);
+   Line 13: rgba(0, 0, 0, 0.3)
+   ΓåÆ box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+   Line 19: rgba(255, 255, 255, 0.1)
+   ΓåÆ border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+   Line 25: white
+   ΓåÆ color: white;
+   Line 50: rgba(255, 255, 255, 0.05)
+   ΓåÆ background: rgba(255, 255, 255, 0.05);
+   Line 55: rgba(139, 92, 246, 0.3)
+   ΓåÆ background: rgba(139, 92, 246, 0.3);
+   Line 67: rgba(255, 255, 255, 0.02)
+   ΓåÆ background: rgba(255, 255, 255, 0.02);
+   Line 71: rgba(139, 92, 246, 0.15)
+   ΓåÆ background: rgba(139, 92, 246, 0.15);
+   Line 75: rgba(139, 92, 246, 0.25)
+   ΓåÆ background: rgba(139, 92, 246, 0.25);
+   Line 76: rgba(139, 92, 246, 0.4)
+   ΓåÆ border: 1px solid rgba(139, 92, 246, 0.4);
+   Line 95: white
+   ΓåÆ white-space: nowrap;
+   Line 110: rgba(255, 255, 255, 0.1)
+   ΓåÆ background: rgba(255, 255, 255, 0.1);
+   Line 124: white
+   ΓåÆ color: white;
+   Line 142: rgba(255, 255, 255, 0.1)
+   ΓåÆ border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\EntranceMarker.module.css
+   13 issue(s):
+   Line 21: rgba(139, 92, 246, 0.4)
+   ΓåÆ rgba(139, 92, 246, 0.4) 0%,
+   Line 22: rgba(139, 92, 246, 0.1)
+   ΓåÆ rgba(139, 92, 246, 0.1) 50%,
+   Line 24: rgba(139, 92, 246, 0.5)
+   ΓåÆ border: 2px solid rgba(139, 92, 246, 0.5);
+   Line 26: rgba(139, 92, 246, 0.3)
+   ΓåÆ 0 0 20px rgba(139, 92, 246, 0.3),
+   Line 27: rgba(139, 92, 246, 0.2)
+   ΓåÆ 0 0 40px rgba(139, 92, 246, 0.2),
+   Line 28: rgba(139, 92, 246, 0.1)
+   ΓåÆ inset 0 0 20px rgba(139, 92, 246, 0.1);
+   Line 35: rgba(139, 92, 246, 0.5)
+   ΓåÆ filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
+   Line 48: rgba(0, 0, 0, 0.85)
+   ΓåÆ background: rgba(0, 0, 0, 0.85);
+   Line 49: rgba(139, 92, 246, 0.4)
+   ΓåÆ border: 1px solid rgba(139, 92, 246, 0.4);
+   Line 51: white
+   ΓåÆ white-space: nowrap;
+   Line 58: white
+   ΓåÆ color: white;
+   Line 71: rgba(139, 92, 246, 0.8)
+   ΓåÆ background: rgba(139, 92, 246, 0.8);
+   Line 72: rgba(139, 92, 246, 0.6)
+   ΓåÆ box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\PanoramaViewer\PanoramaViewer.module.css
+   11 issue(s):
+   Line 78: white
+   ΓåÆ color: white;
+   Line 81: rgba(0, 0, 0, 0.3)
+   ΓåÆ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+   Line 82: white
+   ΓåÆ border: 2px solid white;
+   Line 88: rgba(0, 0, 0, 0.4)
+   ΓåÆ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+   Line 113: rgba(0, 0, 0, 0.15)
+   ΓåÆ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+   Line 115: white
+   ΓåÆ white-space: nowrap;
+   Line 145: rgba(0, 0, 0, 0.4)
+   ΓåÆ box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+   Line 152: rgba(139, 92, 246, 0.4)
+   ΓåÆ box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+   Line 156: rgba(139, 92, 246, 0)
+   ΓåÆ box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+   Line 166: white
+   ΓåÆ color: white;
+   Line 172: rgba(0, 0, 0, 0.2)
+   ΓåÆ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\LearningToolbar\LearningToolbar.module.css
+   9 issue(s):
+   Line 33: white
+   ΓåÆ white-space: nowrap;
+   Line 45: white
+   ΓåÆ color: white;
+   Line 127: white
+   ΓåÆ color: white;
+   Line 238: white
+   ΓåÆ color: white;
+   Line 355: white
+   ΓåÆ color: white;
+   Line 603: white
+   ΓåÆ color: white;
+   Line 609: white
+   ΓåÆ color: white;
+   Line 615: white
+   ΓåÆ color: white;
+   Line 878: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\MasteryChallenge.module.css
+   7 issue(s):
+   Line 152: white
+   ΓåÆ color: white;
+   Line 179: white
+   ΓåÆ white-space: pre-wrap;
+   Line 219: white
+   ΓåÆ color: white;
+   Line 265: white
+   ΓåÆ white-space: pre-wrap;
+   Line 306: white
+   ΓåÆ color: white;
+   Line 318: white
+   ΓåÆ color: white;
+   Line 330: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\FloorPlanView.module.css
+   7 issue(s):
+   Line 31: rgba(0, 0, 0, 0.6)
+   ΓåÆ background: rgba(0, 0, 0, 0.6);
+   Line 32: rgba(59, 130, 246, 0.3)
+   ΓåÆ border: 1px solid rgba(59, 130, 246, 0.3);
+   Line 41: rgba(59, 130, 246, 0.2)
+   ΓåÆ background: rgba(59, 130, 246, 0.2);
+   Line 42: rgba(59, 130, 246, 0.5)
+   ΓåÆ border-color: rgba(59, 130, 246, 0.5);
+   Line 52: rgba(139, 92, 246, 0.3)
+   ΓåÆ stroke: rgba(139, 92, 246, 0.3);
+   Line 65: rgba(0, 0, 0, 0.7)
+   ΓåÆ background: rgba(0, 0, 0, 0.7);
+   Line 66: rgba(59, 130, 246, 0.2)
+   ΓåÆ border: 1px solid rgba(59, 130, 246, 0.2);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\RegenerateLayoutDialog.module.css
+   7 issue(s):
+   Line 21: rgba(0, 0, 0, 0.4)
+   ΓåÆ box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+   Line 41: white
+   ΓåÆ color: white;
+   Line 42: rgba(255, 255, 255, 0.1)
+   ΓåÆ background: rgba(255, 255, 255, 0.1);
+   Line 63: white
+   ΓåÆ color: white;
+   Line 117: rgba(255, 255, 255, 0.1)
+   ΓåÆ background: rgba(255, 255, 255, 0.1);
+   Line 118: white
+   ΓåÆ color: white;
+   Line 124: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\RouteBuilder\StreetViewPreview.module.css
+   7 issue(s):
+   Line 167: rgba(220, 38, 38, 0.1)
+   ΓåÆ background: rgba(220, 38, 38, 0.1);
+   Line 197: white
+   ΓåÆ color: white;
+   Line 231: rgba(0, 0, 0, 0.5)
+   ΓåÆ filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+   Line 307: white
+   ΓåÆ color: white;
+   Line 316: white
+   ΓåÆ white-space: nowrap;
+   Line 336: rgba(220, 38, 38, 0.1)
+   ΓåÆ background: rgba(220, 38, 38, 0.1);
+   Line 358: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\Results.module.css
+   7 issue(s):
+   Line 88: white
+   ΓåÆ color: white;
+   Line 184: white
+   ΓåÆ white-space: pre-wrap;
+   Line 197: white
+   ΓåÆ color: white;
+   Line 223: white
+   ΓåÆ color: white;
+   Line 243: white
+   ΓåÆ color: white;
+   Line 269: white
+   ΓåÆ color: white;
+   Line 454: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\PrerequisiteCheck.module.css
+   6 issue(s):
+   Line 14: rgba(251, 191, 36, 0.1)
+   ΓåÆ background: rgba(251, 191, 36, 0.1);
+   Line 15: rgba(251, 191, 36, 0.3)
+   ΓåÆ border: 1px solid rgba(251, 191, 36, 0.3);
+   Line 19: rgba(239, 68, 68, 0.1)
+   ΓåÆ background: rgba(239, 68, 68, 0.1);
+   Line 20: rgba(239, 68, 68, 0.3)
+   ΓåÆ border: 1px solid rgba(239, 68, 68, 0.3);
+   Line 131: rgba(0, 0, 0, 0.7)
+   ΓåÆ background: rgba(0, 0, 0, 0.7);
+   Line 138: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\Generate.module.css
+   6 issue(s):
+   Line 114: white
+   ΓåÆ color: white;
+   Line 258: white
+   ΓåÆ color: white;
+   Line 373: white
+   ΓåÆ background: white;
+   Line 438: white
+   ΓåÆ color: white;
+   Line 556: white
+   ΓåÆ white-space: nowrap;
+   Line 642: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\Login.module.css
+   6 issue(s):
+   Line 16: rgba(0, 0, 0, 0.5)
+   ΓåÆ box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+   Line 34: white
+   ΓåÆ color: white;
+   Line 50: rgba(239, 68, 68, 0.1)
+   ΓåÆ background: rgba(239, 68, 68, 0.1);
+   Line 51: rgba(239, 68, 68, 0.3)
+   ΓåÆ border: 1px solid rgba(239, 68, 68, 0.3);
+   Line 69: white
+   ΓåÆ color: white;
+   Line 84: rgba(139, 92, 246, 0.3)
+   ΓåÆ box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\GoogleMap.tsx
+   5 issue(s):
+   Line 42: red
+   ΓåÆ <div className={`flex items-center justify-center bg-red-50 text-red-500 rounded-lg ${className}`}>
+   Line 42: red
+   ΓåÆ <div className={`flex items-center justify-center bg-red-50 text-red-500 rounded-lg ${className}`}>
+   Line 50: gray
+   ΓåÆ <div className={`flex items-center justify-center bg-gray-100 animate-pulse rounded-lg text-gray-400...
+   Line 50: gray
+   ΓåÆ <div className={`flex items-center justify-center bg-gray-100 animate-pulse rounded-lg text-gray-400...
+   Line 57: gray
+   ΓåÆ <div className={`relative overflow-hidden rounded-lg shadow-md border border-gray-200 ${className}`}...
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\BlankSheetTest.module.css
+   5 issue(s):
+   Line 108: rgba(0, 0, 0, 0.1)
+   ΓåÆ text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+   Line 246: rgba(0, 0, 0, 0.05)
+   ΓåÆ box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+   Line 334: white
+   ΓåÆ color: white;
+   Line 549: white
+   ΓåÆ color: white;
+   Line 636: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\ConceptCard.module.css
+   5 issue(s):
+   Line 51: white
+   ΓåÆ color: white;
+   Line 174: white
+   ΓåÆ color: white;
+   Line 237: white
+   ΓåÆ color: white;
+   Line 299: white
+   ΓåÆ color: white;
+   Line 322: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\ConceptMapBuilder.module.css
+   5 issue(s):
+   Line 46: white
+   ΓåÆ color: white;
+   Line 94: rgba(0, 0, 0, 0.1)
+   ΓåÆ box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+   Line 126: rgba(0, 0, 0, 0.1)
+   ΓåÆ box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+   Line 172: white
+   ΓåÆ color: white;
+   Line 193: rgba(0, 0, 0, 0.15)
+   ΓåÆ box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\JourneyMap.module.css
+   5 issue(s):
+   Line 130: white
+   ΓåÆ white-space: nowrap;
+   Line 235: rgba(0, 0, 0, 0.15)
+   ΓåÆ filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+   Line 259: white
+   ΓåÆ white-space: normal;
+   Line 271: white
+   ΓåÆ white-space: nowrap;
+   Line 287: white
+   ΓåÆ white-space: normal;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\NeuralResetModal.module.css
+   5 issue(s):
+   Line 25: white
+   ΓåÆ color: white;
+   Line 30: white
+   ΓåÆ color: white;
+   Line 45: rgba(255, 255, 255, 0.2)
+   ΓåÆ background: rgba(255, 255, 255, 0.2);
+   Line 48: white
+   ΓåÆ color: white;
+   Line 55: rgba(255, 255, 255, 0.3)
+   ΓåÆ background: rgba(255, 255, 255, 0.3);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\DoorwayTransition.module.css
+   5 issue(s):
+   Line 33: rgba(10, 10, 26, 0.7)
+   ΓåÆ rgba(10, 10, 26, 0.7) 0%,
+   Line 34: rgba(10, 10, 26, 0.95)
+   ΓåÆ rgba(10, 10, 26, 0.95) 70%,
+   Line 35: rgba(10, 10, 26, 1)
+   ΓåÆ rgba(10, 10, 26, 1) 100%);
+   Line 60: rgba(59, 130, 246, 0.5)
+   ΓåÆ filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.5));
+   Line 67: rgba(59, 130, 246, 0.9)
+   ΓåÆ color: rgba(59, 130, 246, 0.9);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\ViewModeSwitcher.module.css
+   5 issue(s):
+   Line 14: rgba(0, 0, 0, 0.6)
+   ΓåÆ background: rgba(0, 0, 0, 0.6);
+   Line 17: rgba(255, 255, 255, 0.1)
+   ΓåÆ border: 1px solid rgba(255, 255, 255, 0.1);
+   Line 59: white
+   ΓåÆ white-space: nowrap;
+   Line 65: rgba(139, 92, 246, 0.2)
+   ΓåÆ background: rgba(139, 92, 246, 0.2);
+   Line 66: rgba(139, 92, 246, 0.4)
+   ΓåÆ border: 1px solid rgba(139, 92, 246, 0.4);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\Home.module.css
+   5 issue(s):
+   Line 121: white
+   ΓåÆ color: white;
+   Line 220: white
+   ΓåÆ color: white;
+   Line 242: white
+   ΓåÆ color: white;
+   Line 328: white
+   ΓåÆ color: white;
+   Line 335: white
+   ΓåÆ white-space: nowrap;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\SavedResults.module.css
+   5 issue(s):
+   Line 134: white
+   ΓåÆ color: white;
+   Line 159: white
+   ΓåÆ color: white;
+   Line 252: white
+   ΓåÆ color: white;
+   Line 439: white
+   ΓåÆ color: white;
+   Line 682: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\ConfusionDrill.module.css
+   4 issue(s):
+   Line 178: white
+   ΓåÆ color: white;
+   Line 183: rgba(239, 68, 68, 0.05)
+   ΓåÆ background: rgba(239, 68, 68, 0.05);
+   Line 188: white
+   ΓåÆ color: white;
+   Line 255: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\DiagnosticLaunchSystem.module.css
+   4 issue(s):
+   Line 104: white
+   ΓåÆ color: white;
+   Line 359: rgba(255, 255, 255, 0.95)
+   ΓåÆ background: rgba(255, 255, 255, 0.95);
+   Line 381: white
+   ΓåÆ color: white;
+   Line 466: rgba(30, 30, 30, 0.95)
+   ΓåÆ background: rgba(30, 30, 30, 0.95);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\GuidedPrimer.module.css
+   4 issue(s):
+   Line 172: rgba(107, 70, 193, 0.15)
+   ΓåÆ box-shadow: 0 4px 12px rgba(107, 70, 193, 0.15);
+   Line 318: white
+   ΓåÆ color: white;
+   Line 321: rgba(107, 70, 193, 0.3)
+   ΓåÆ box-shadow: 0 4px 16px rgba(107, 70, 193, 0.3);
+   Line 326: rgba(107, 70, 193, 0.4)
+   ΓåÆ box-shadow: 0 6px 20px rgba(107, 70, 193, 0.4);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\ExteriorView\ExteriorView.module.css
+   4 issue(s):
+   Line 98: white
+   ΓåÆ color: white;
+   Line 113: rgba(139, 92, 246, 0.4)
+   ΓåÆ box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4);
+   Line 162: white
+   ΓåÆ color: white;
+   Line 184: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\Minimap.module.css
+   4 issue(s):
+   Line 2: rgba(15, 15, 26, 0.95)
+   ΓåÆ background: rgba(15, 15, 26, 0.95);
+   Line 4: rgba(255, 255, 255, 0.1)
+   ΓåÆ border: 1px solid rgba(255, 255, 255, 0.1);
+   Line 7: rgba(0, 0, 0, 0.3)
+   ΓåÆ box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+   Line 32: rgba(139, 92, 246, 0.3)
+   ΓåÆ box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\RouteBuilder\AddressAutocomplete.module.css
+   4 issue(s):
+   Line 39: rgba(220, 38, 38, 0.1)
+   ΓåÆ box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+   Line 44: rgba(16, 185, 129, 0.05)
+   ΓåÆ background: rgba(16, 185, 129, 0.05);
+   Line 83: white
+   ΓåÆ color: white;
+   Line 186: white
+   ΓåÆ white-space: nowrap;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\ConfusionPrevention.module.css
+   3 issue(s):
+   Line 179: rgba(255, 255, 255, 0.95)
+   ΓåÆ background: rgba(255, 255, 255, 0.95);
+   Line 203: white
+   ΓåÆ color: white;
+   Line 235: rgba(30, 30, 30, 0.95)
+   ΓåÆ background: rgba(30, 30, 30, 0.95);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\LifecycleNavigator.module.css
+   3 issue(s):
+   Line 52: rgba(0, 0, 0, 0.1)
+   ΓåÆ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+   Line 86: white
+   ΓåÆ white-space: nowrap;
+   Line 180: white
+   ΓåÆ white-space: nowrap;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\SessionStartModal.module.css
+   3 issue(s):
+   Line 149: white
+   ΓåÆ color: white;
+   Line 213: white
+   ΓåÆ color: white;
+   Line 301: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\EnhancedFeatures.module.css
+   3 issue(s):
+   Line 52: white
+   ΓåÆ color: white;
+   Line 265: white
+   ΓåÆ color: white;
+   Line 308: white
+   ΓåÆ white-space: nowrap;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\GraphView.tsx
+   3 issue(s):
+   Line 22: #ffffff
+   ΓåÆ text: '#ffffff'     // White text - keeping white for contrast on dark pill
+   Line 22: white
+   ΓåÆ text: '#ffffff'     // White text - keeping white for contrast on dark pill
+   Line 649: white
+   ΓåÆ fill="white"
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\IntegratedLegend.module.css
+   3 issue(s):
+   Line 4: white
+   ΓåÆ background: white;
+   Line 10: rgba(0, 0, 0, 0.05)
+   ΓåÆ box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+   Line 97: white
+   ΓåÆ white-space: nowrap;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\Results.tsx
+   3 issue(s):
+   Line 323: red
+   ΓåÆ <div className="mx-8 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 tex...
+   Line 323: red
+   ΓåÆ <div className="mx-8 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 tex...
+   Line 323: red
+   ΓåÆ <div className="mx-8 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 tex...
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\Study.module.css
+   3 issue(s):
+   Line 41: white
+   ΓåÆ color: white;
+   Line 106: white
+   ΓåÆ white-space: pre-wrap;
+   Line 330: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\CognitiveGauge.module.css
+   2 issue(s):
+   Line 19: white
+   ΓåÆ white-space: nowrap;
+   Line 82: white
+   ΓåÆ white-space: nowrap;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\ConceptChunks.module.css
+   2 issue(s):
+   Line 115: white
+   ΓåÆ color: white;
+   Line 180: white
+   ΓåÆ white-space: nowrap;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\MicroLearningLoopController.module.css
+   2 issue(s):
+   Line 391: white
+   ΓåÆ color: white;
+   Line 547: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\OnboardingFlow.module.css
+   2 issue(s):
+   Line 121: white
+   ΓåÆ color: white;
+   Line 172: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\SessionGoalManager.module.css
+   2 issue(s):
+   Line 93: white
+   ΓåÆ color: white;
+   Line 200: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\SessionScoutPreview.module.css
+   2 issue(s):
+   Line 178: white
+   ΓåÆ color: white;
+   Line 504: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\SessionSummary.module.css
+   2 issue(s):
+   Line 176: white
+   ΓåÆ white-space: nowrap;
+   Line 251: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\VelocityDashboard.module.css
+   2 issue(s):
+   Line 173: white
+   ΓåÆ color: white;
+   Line 183: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\Minimap.tsx
+   2 issue(s):
+   Line 98: #000000
+   ΓåÆ fill={hexToRgba('#000000', 0.4)}
+   Line 154: white
+   ΓåÆ stroke={isSelected ? 'white' : 'none'}
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\GuidedTour.module.css
+   2 issue(s):
+   Line 104: white
+   ΓåÆ white-space: nowrap;
+   Line 163: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\PalaceView.module.css
+   2 issue(s):
+   Line 88: white
+   ΓåÆ color: white;
+   Line 165: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\PlacementGuide.module.css
+   2 issue(s):
+   Line 59: white
+   ΓåÆ color: white;
+   Line 175: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\RoutePreviewCard.module.css
+   2 issue(s):
+   Line 22: rgba(0, 0, 0, 0.25)
+   ΓåÆ box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+   Line 110: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\ui\BionicText.tsx
+   2 issue(s):
+   Line 30: #000000
+   ΓåÆ <span key={Math.random()} style={{ fontWeight: 400, color: '#000000' }}>
+   Line 31: #000000
+   ΓåÆ <strong style={{ fontWeight: 800, color: '#000000' }}>{boldPart}</strong>{normalPart}
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\Settings.module.css
+   2 issue(s):
+   Line 290: white
+   ΓåÆ color: white;
+   Line 458: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\VelocityLearning.module.css
+   2 issue(s):
+   Line 20: rgba(0, 0, 0, 0.1)
+   ΓåÆ filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.1));
+   Line 92: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\layout\StudyLayout.module.css
+   1 issue(s):
+   Line 84: white
+   ΓåÆ white-space: nowrap;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\CelebrationModal.module.css
+   1 issue(s):
+   Line 186: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\LifecyclePhaseStep.module.css
+   1 issue(s):
+   Line 38: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\MapReconstructionTest.module.css
+   1 issue(s):
+   Line 93: white
+   ΓåÆ color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\FloorPlanView\MindPalaceContainer.module.css
+   1 issue(s):
+   Line 64: rgba(139, 92, 246, 0.8)
+   ΓåÆ color: rgba(139, 92, 246, 0.8);
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\PalaceView.tsx
+   1 issue(s):
+   Line 50: #0f0f1a
+   ΓåÆ <div className={styles.palaceContainer} style={{ background: '#0f0f1a' }}> {/* Override background f...
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\ui\LoadingSpinner.module.css
+   1 issue(s):
+   Line 50: white
+   ΓåÆ border-top-color: white;
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\lib\content-adapter\parser.test.ts
+   1 issue(s):
+   Line 314: purple
+   ΓåÆ "story": "A purple Subway Bench sits inside the Volcano's crater, channeling the lava flow.",
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\lib\palace\theme-engine.ts
+   1 issue(s):
+   Line 77: #ffffff
+   ΓåÆ colors: { background: '#ffffff', border: COLORS.text.muted, accent: COLORS.text.muted },
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\lib\system-prompt.ts
+   1 issue(s):
+   Line 192: purple
+   ΓåÆ - Keystone (NSG as Night Guard, parent: Subnet): "A muscular Night Guard wearing badges made of port...
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\pages\Sprint.module.css
+   1 issue(s):
+   Line 376: white
+   ΓåÆ color: white;
+
+================================================================================
+
+≡ƒÆí Recommendation: Replace hardcoded colors with CSS variables from theme-colors.ts
+
+   Example: #ffffff ΓåÆ var(--color-text-primary)
+   Example: black ΓåÆ var(--color-surface-base)
+

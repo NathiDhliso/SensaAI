@@ -6,7 +6,7 @@
  */
 
 import type { LearningConcept } from '@/lib/types/learning';
-import { getPersonaResponse, type PersonaId, type PhaseKey } from '../coach';
+import { getPersonaResponse, type PersonaId } from '../coach';
 
 export interface PracticeQuestion {
     id: string;
@@ -27,7 +27,7 @@ export interface PreviewAnalysis {
  * Generate practice questions from concepts
  */
 export function generatePracticeQuestions(concepts: LearningConcept[]): PracticeQuestion[] {
-    return concepts.map((concept, index) => {
+    return concepts.map((concept) => {
         const difficulty = getDifficultyLevel(concept);
 
         return {

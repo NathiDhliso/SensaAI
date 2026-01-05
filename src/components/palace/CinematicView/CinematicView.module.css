@@ -19,7 +19,7 @@
 .backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(10, 10, 26, 0.85);
+    background: var(--overlay-black-60);
     backdrop-filter: blur(12px);
     z-index: 0;
 }
@@ -41,15 +41,15 @@
 .card {
     position: relative;
     width: 100%;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: linear-gradient(135deg, var(--color-surface-elevated), var(--color-surface-base));
+    border: 1px solid var(--color-primary-subtle);
     border-radius: 1.5rem;
     padding: 2.5rem;
     box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        var(--shadow-xl),
+        0 0 0 1px var(--overlay-white-10) inset;
     overflow: hidden;
-    color: white;
+    color: var(--color-text-primary);
 }
 
 .closeButton {
@@ -58,14 +58,14 @@
     right: 1.5rem;
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--color-text-tertiary);
     cursor: pointer;
     transition: color 0.2s;
     z-index: 10;
 }
 
 .closeButton:hover {
-    color: white;
+    color: var(--color-text-primary);
 }
 
 /* Hero Section */
@@ -78,14 +78,14 @@
     font-size: 5rem;
     line-height: 1;
     margin-bottom: 1rem;
-    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(var(--shadow-lg));
 }
 
 .anchorTitle {
     font-size: 2rem;
     font-weight: 700;
     margin: 0 0 0.5rem 0;
-    background: linear-gradient(to right, #fff, #a5b4fc);
+    background: linear-gradient(to right, var(--color-text-primary), var(--color-accent-light));
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -102,18 +102,18 @@
 }
 
 .tierBadge[data-tier="Foundation"] {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
+    background: var(--color-success-bg);
+    color: var(--color-success);
 }
 
 .tierBadge[data-tier="Keystone"] {
-    background: rgba(139, 92, 246, 0.2);
-    color: #a78bfa;
+    background: var(--overlay-accent-10);
+    color: var(--color-accent-light);
 }
 
 .tierBadge[data-tier="Utility"] {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fbbf24;
+    background: var(--color-warning-bg);
+    color: var(--color-warning);
 }
 
 /* Content Body */
@@ -131,7 +131,7 @@
 }
 
 .mysteryText {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text-secondary);
     margin-bottom: 1rem;
     text-transform: uppercase;
     font-size: 0.875rem;
@@ -141,9 +141,9 @@
 .blurredConcept {
     font-size: 1.5rem;
     font-weight: 600;
-    color: white;
+    color: var(--color-text-primary);
     filter: blur(12px);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--overlay-white-10);
     display: inline-block;
     padding: 0.5rem 1.5rem;
     border-radius: 0.5rem;
@@ -158,7 +158,7 @@
     gap: 0.5rem;
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    background: var(--color-primary);
     border: none;
     border-radius: 1rem;
     color: white;
@@ -166,16 +166,16 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+    box-shadow: var(--shadow-glow-primary);
 }
 
 .actionButton:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(124, 58, 237, 0.6);
+    box-shadow: var(--shadow-glow-primary-hover);
 }
 
 .actionButton.revealing {
-    background: #334155;
+    background: var(--color-surface-subtle);
     cursor: wait;
     box-shadow: none;
     transform: none;
@@ -192,12 +192,12 @@
     font-size: 1.25rem;
     line-height: 1.6;
     font-style: italic;
-    color: #e2e8f0;
+    color: var(--color-text-secondary);
     margin: 0;
     text-align: center;
     padding: 0 1rem;
-    border-left: 2px solid rgba(139, 92, 246, 0.5);
-    border-right: 2px solid rgba(139, 92, 246, 0.5);
+    border-left: 2px solid var(--color-primary-subtle);
+    border-right: 2px solid var(--color-primary-subtle);
 }
 
 .connectionLine {
@@ -205,18 +205,18 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text-secondary);
     font-size: 0.875rem;
 }
 
 .zapIcon {
-    color: #fbbf24;
+    color: var(--color-warning);
 }
 
 .revealBanner {
     text-align: center;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    background: var(--color-success-bg);
+    border: 1px solid var(--color-success-border);
     border-radius: 0.75rem;
     padding: 1rem;
 }
@@ -224,14 +224,14 @@
 .revealBanner span {
     font-size: 0.75rem;
     text-transform: uppercase;
-    color: #34d399;
+    color: var(--color-success);
     letter-spacing: 0.1em;
 }
 
 .revealBanner h3 {
     margin: 0.25rem 0 0 0;
     font-size: 1.5rem;
-    color: white;
+    color: var(--color-text-primary);
 }
 
 .secondaryButton {
@@ -241,25 +241,25 @@
     gap: 0.5rem;
     width: 100%;
     padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--overlay-white-10);
+    border: 1px solid var(--color-border);
     border-radius: 0.75rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-text-secondary);
     font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .secondaryButton:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: var(--overlay-white-20);
+    color: var(--color-text-primary);
 }
 
 /* Details Panel (Slide Over) */
 .detailsPanel {
     position: absolute;
     inset: 0;
-    background: #0f172a;
+    background: var(--color-surface-base);
     z-index: 20;
     padding: 2rem;
     overflow-y: auto;
@@ -289,7 +289,7 @@
 
 .description {
     font-size: 1.125rem;
-    color: #cbd5e1;
+    color: var(--color-text-secondary);
     margin-bottom: 2rem;
     line-height: 1.6;
 }
@@ -301,9 +301,9 @@
 .section h3 {
     font-size: 0.875rem;
     text-transform: uppercase;
-    color: #94a3b8;
+    color: var(--color-text-tertiary);
     margin-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--color-border);
     padding-bottom: 0.5rem;
 }
 
@@ -325,7 +325,7 @@
     content: "•";
     position: absolute;
     left: 0;
-    color: #7c3aed;
+    color: var(--color-primary);
 }
 
 @keyframes fadeIn {

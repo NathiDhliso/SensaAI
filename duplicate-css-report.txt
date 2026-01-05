@@ -1,0 +1,36 @@
+≡ƒöì Scanning CSS files for duplicate properties...
+
+Starting scan in: C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src
+
+
+≡ƒöì Duplicate CSS Property Scanner Report
+
+================================================================================
+
+ΓÜá∩╕Å  Found 2 duplicate properties in 2 files
+
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\learning\MicroLearningLoopController.module.css
+   1 duplicate(s):
+
+   Selector: /* ============================================================================
+   STRUCTURED LEARNING SECTIONS
+   ============================================================================ */
+
+.learningSection
+   ΓÜá∩╕Å  Property "padding" declared twice:
+      First:  1rem
+      Second: 1rem (this value wins)
+
+≡ƒôä C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\src\components\palace\ConceptMarker.module.css
+   1 duplicate(s):
+
+   Selector: .markerLabel
+   ΓÜá∩╕Å  Property "transform" declared twice:
+      First:  translateX(-50%)
+      Second: translateX(-50%) translateY(-4px) (this value wins)
+
+================================================================================
+
+≡ƒÆí Fix: Remove the first declaration or consolidate into one.
+

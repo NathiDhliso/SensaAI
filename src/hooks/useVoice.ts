@@ -77,7 +77,7 @@ export function useVoice(): UseVoiceResult {
         // Check for local static file first
         if (STATIC_VOICE_LINES[text]) {
             const localUrl = `/audio/voice/${STATIC_VOICE_LINES[text]}`;
-            console.log('Using local voice asset:', localUrl);
+            // console.log('Using local voice asset:', localUrl); // Reduced noise
             setAudioUrl(localUrl);
 
             const audio = new Audio(localUrl);
@@ -85,19 +85,26 @@ export function useVoice(): UseVoiceResult {
 
             audio.onended = () => setIsPlaying(false);
             audio.onerror = () => {
-                // If local fails (e.g. file missing), fallback to API if enabled
+                // If local fails (e.g. file missing), fallback to API
                 console.warn('Local asset missing, falling back to API');
-                // We'll let it fall through to the API call below if we want hybrid, 
-                // but for now let's just error or try API cleanly.
-                // Let's recursively call play without the static line check? 
-                // No, complex. Let's just try API.
-                voiceService.speak(text, targetPersona)
+
+                // --- INTENSITY LOGIC (Fallback) ---
+                const { coachIntensity } = usePersonalizationStore.getState();
+                let intensityMod = 0;
+                let styleMod = 0;
+
+                if (coachIntensity === 1) intensityMod = 0.2; // Calmer
+                if (coachIntensity === 2) intensityMod = 0.1;
+                if (coachIntensity === 4) { intensityMod = -0.1; styleMod = 0.1; }
+                if (coachIntensity === 5) { intensityMod = -0.2; styleMod = 0.2; } // Intense
+
+                voiceService.speak(text, targetPersona, { stability: 0.5 + intensityMod, style: styleMod }) // Estimate base stability if not accessible here, or just pass clean overrides
                     .then(url => {
                         setAudioUrl(url);
                         audio.src = url;
                         audio.play();
                     })
-                    .catch(err => {
+                    .catch(() => {
                         setError('Voice playback failed');
                         setIsPlaying(false);
                     });
@@ -110,8 +117,33 @@ export function useVoice(): UseVoiceResult {
         }
 
         try {
+            // --- INTENSITY LOGIC (Primary) ---
+            const { coachIntensity } = usePersonalizationStore.getState();
+
+            // Get base config from persona map directly to be accurate
+            const { PERSONAS } = await import('@/lib/ai/coach/personas');
+            const personaConfig = PERSONAS[targetPersona]?.voiceConfig;
+            const baseStability = personaConfig?.stability || 0.5;
+            const baseStyle = personaConfig?.style || 0.0;
+
+            let intensityMod = 0;
+            let styleMod = 0;
+
+            if (coachIntensity === 1) intensityMod = 0.2;
+            if (coachIntensity === 2) intensityMod = 0.1;
+            if (coachIntensity === 4) { intensityMod = -0.1; styleMod = 0.1; }
+            if (coachIntensity === 5) { intensityMod = -0.2; styleMod = 0.2; }
+
+            // Clamp stability 0-1
+            const targetStability = Math.max(0.1, Math.min(1.0, baseStability + intensityMod));
+            const targetStyle = Math.max(0.0, Math.min(1.0, baseStyle + styleMod));
+
             // Generate audio via API
-            const url = await voiceService.speak(text, targetPersona);
+            const url = await voiceService.speak(text, targetPersona, {
+                stability: targetStability,
+                style: targetStyle
+            });
+
             setAudioUrl(url);
 
             // Play

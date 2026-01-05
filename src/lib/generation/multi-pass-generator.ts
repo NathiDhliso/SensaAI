@@ -62,9 +62,9 @@ export async function generateChartIteratively(
 ): Promise<GenerationResult> {
   const bedrockClient = getBedrockClient(config);
 
-  // Get aphantasia mode preference for prompt adaptation
-  const aphantasiaMode = usePersonalizationStore.getState().aphantasiaMode;
-  const systemPrompt = getSystemPrompt(aphantasiaMode);
+  // Get aphantasia mode and familiar system for prompt adaptation
+  const { aphantasiaMode, familiarSystem } = usePersonalizationStore.getState();
+  const systemPrompt = getSystemPrompt(aphantasiaMode, familiarSystem);
 
   if (abortSignal?.aborted) {
     throw new Error('Generation cancelled by user');

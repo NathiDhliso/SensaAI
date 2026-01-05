@@ -13,12 +13,24 @@ import { usePersonalizationStore } from '@/store/personalization-store';
  * Bolds the first half of each word
  */
 function applyBionicFormatting(text: string): string {
-    return text.split(/(\s+)/).map(word => {
+    // Regex to detect emojis and other unicode symbols
+    const emojiRegex = /[\p{Emoji}\p{Emoji_Presentation}\p{Emoji_Modifier}\p{Emoji_Component}]/gu;
+
+    return text.split(/([\s\p{Emoji}\p{Emoji_Presentation}\p{Emoji_Modifier}\p{Emoji_Component}]+)/u).map(word => {
         // Skip whitespace
         if (/^\s+$/.test(word)) return word;
 
+        // Skip emojis and unicode symbols
+        if (emojiRegex.test(word)) {
+            emojiRegex.lastIndex = 0; // Reset regex state
+            return word;
+        }
+
         // Skip very short words
         if (word.length <= 1) return word;
+
+        // Skip if word contains only non-alphabetic characters
+        if (!/[a-zA-Z]/.test(word)) return word;
 
         // Bold first half of word
         const splitPoint = Math.ceil(word.length / 2);
