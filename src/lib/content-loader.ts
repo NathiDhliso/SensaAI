@@ -33,15 +33,18 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string): Par
         }
 
         const transformed = transformGeneratedContent(parseResult.data, subjectId);
-        
-        // Add required session fields
+
+        // Add required session fields, including raw document for reference tab
         useLearningStore.getState().loadSession({
             subjectId: subjectId || `subject-${Date.now()}`,
             subject: transformed.metadata.domain,
             mode: 'learn',
             stages: transformed.stages,
             concepts: transformed.concepts,
-            metadata: transformed.metadata,
+            metadata: {
+                ...transformed.metadata,
+                fullDocument: rawContent,
+            },
         });
 
         return { success: true };
@@ -72,15 +75,18 @@ export function useParseAndLoadContent() {
             }
 
             const transformed = transformGeneratedContent(parseResult.data, subjectId);
-            
-            // Add required session fields
+
+            // Add required session fields, including raw document for reference tab
             loadSession({
                 subjectId: subjectId || `subject-${Date.now()}`,
                 subject: transformed.metadata.domain,
                 mode: 'learn',
                 stages: transformed.stages,
                 concepts: transformed.concepts,
-                metadata: transformed.metadata,
+                metadata: {
+                    ...transformed.metadata,
+                    fullDocument: rawContent,
+                },
             });
 
             return { success: true };

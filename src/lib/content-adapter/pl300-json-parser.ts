@@ -201,7 +201,170 @@ function parseConceptsPL300(content: string): ParsedConcept[] {
         }
     }
 
+    // Final fallback: Parse markdown-style concept headers (## N. Concept Name)
+    if (concepts.length === 0) {
+        return parseConceptsFromMarkdown(content);
+    }
+
     return concepts;
+}
+
+/**
+ * Parse concepts from markdown-style headers like:
+ * ## 1. Power BI Service Workspace Management
+ */
+function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
+    const concepts: ParsedConcept[] = [];
+
+    // Find concept blocks using markdown headers: ## N. Concept Name
+    // The format is ## followed by a number, period, and concept name
+    const conceptHeaderRegex = /##\s*(\d+)\.\s*([^\n]+)/g;
+    const conceptMatches: Array<{ order: number; name: string; startIndex: number }> = [];
+
+    let match;
+    while ((match = conceptHeaderRegex.exec(content)) !== null) {
+        conceptMatches.push({
+            order: parseInt(match[1], 10),
+            name: match[2].trim(),
+            startIndex: match.index,
+        });
+    }
+
+    // Parse each concept block
+    for (let i = 0; i < conceptMatches.length; i++) {
+        const current = conceptMatches[i];
+        const next = conceptMatches[i + 1];
+
+        // Extract block content between this header and the next
+        const blockEnd = next ? next.startIndex : content.length;
+        const blockContent = content.substring(current.startIndex, blockEnd);
+
+        // Extract PREPARE section (phase1)
+        const prepareMatch = blockContent.match(/[-─]\s*PREPARE:\s*([\s\S]*?)(?:\n•\s*MODEL:|\n[-─]\s*MODEL:|$)/i);
+        const modelMatch = blockContent.match(/[•]\s*MODEL:\s*([\s\S]*?)(?:\n○\s*DELIVER:|\n[-─]\s*DELIVER:|$)/i);
+        const deliverMatch = blockContent.match(/[○]\s*DELIVER:\s*([\s\S]*?)(?=\n##|\n```|$)/i);
+
+        // Extract critical distinction
+        const criticalMatch = blockContent.match(/\*\*\[Critical Distinction\]:\*\*\s*([^\n]+)/i);
+        const designMatch = blockContent.match(/\*\*\[Design Boundary\]:\*\*\s*([^\n]+)/i);
+        const examMatch = blockContent.match(/\*\*\[Exam Focus\]:\*\*\s*([^\n]+)/i);
+
+        // Extract prerequisite if available
+        const prereqMatch = prepareMatch?.[1]?.match(/Prerequisite:\s*([^\n]+)/i);
+        const executionMatch = prepareMatch?.[1]?.match(/Execution:\s*([^\n]+(?:\n(?![•○-])[^\n]+)*)/i);
+
+        // Extract tool and metrics from DELIVER section
+        const toolMatch = deliverMatch?.[1]?.match(/Tool:\s*([^\n]+)/i);
+        const metricMatch = deliverMatch?.[1]?.match(/Metric:\s*([^\n]+)/i);
+        const validationMatch = deliverMatch?.[1]?.match(/Validation:\s*([^\n]+)/i);
+
+        // Parse MODEL section for configuration items
+        const phase2Items: string[] = [];
+        if (modelMatch?.[1]) {
+            const configLines = modelMatch[1].match(/\*\*([^*]+)\*\*:\s*([^\n]+)/g);
+            if (configLines) {
+                configLines.forEach(line => {
+                    const cleaned = line.replace(/\*\*/g, '').trim();
+                    if (cleaned.length > 0 && cleaned.length < 200) {
+                        phase2Items.push(cleaned);
+                    }
+                });
+            }
+        }
+
+        const concept: ParsedConcept = {
+            id: slugifyName(current.name),
+            name: current.name,
+            order: current.order,
+            stageId: determineStageId(current.order),
+            phase1: {
+                hookSentence: extractFirstSentence(prepareMatch?.[1] || ''),
+                microMetaphor: '',
+                prerequisite: prereqMatch?.[1]?.trim() || '',
+                selection: [],
+                execution: executionMatch?.[1]?.trim() || '',
+            },
+            phase2: phase2Items.slice(0, 10), // Limit to 10 items
+            phase3: {
+                tool: toolMatch?.[1]?.trim() || '',
+                metrics: metricMatch ? [metricMatch[1].trim()] : [],
+                thresholds: validationMatch?.[1]?.trim() || '',
+            },
+            shape: {
+                simpleCore: extractFirstSentence(prepareMatch?.[1] || ''),
+                highStakesExample: examMatch?.[1]?.trim() || '',
+                analogicalModel: '',
+                patternRecognition: { question: '', answer: '' },
+                eliminationLogic: '',
+            },
+            mnemonic: {
+                tier: determineTier(current.order, current.name) as 'Foundation' | 'Keystone' | 'Utility',
+                anchor: `${current.name}`,
+                story: criticalMatch?.[1]?.trim() || '',
+            },
+            criticalDistinctions: criticalMatch ? [criticalMatch[1].trim()] : [],
+            designBoundaries: designMatch ? [designMatch[1].trim()] : [],
+            examFocus: examMatch ? [examMatch[1].trim()] : [],
+        };
+
+        concepts.push(concept);
+    }
+
+    console.log(`[PL300Parser] Parsed ${concepts.length} concepts from markdown format`);
+    return concepts;
+}
+
+/**
+ * Create a URL-safe slug from a concept name
+ */
+function slugifyName(name: string): string {
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+}
+
+/**
+ * Extract the first meaningful sentence from a block of text
+ */
+function extractFirstSentence(text: string): string {
+    // Clean up the text
+    const cleaned = text
+        .replace(/•\s*/g, '')
+        .replace(/○\s*/g, '')
+        .replace(/-\s*/g, '')
+        .replace(/\*\*/g, '')
+        .trim();
+
+    // Get first sentence
+    const match = cleaned.match(/^([^.!?]+[.!?])/);
+    return match ? match[1].trim() : cleaned.slice(0, 200);
+}
+
+/**
+ * Determine tier based on concept order and name
+ */
+function determineTier(order: number, name: string): string {
+    // Foundation concepts (first in each stage, or core infrastructure)
+    const foundationKeywords = ['workspace', 'environment', 'schema', 'security', 'dashboard', 'apps'];
+    const keystoneKeywords = ['query', 'relationship', 'dax', 'filter', 'refresh', 'gateway'];
+
+    const nameLower = name.toLowerCase();
+
+    for (const keyword of foundationKeywords) {
+        if (nameLower.includes(keyword)) return 'Foundation';
+    }
+
+    for (const keyword of keystoneKeywords) {
+        if (nameLower.includes(keyword)) return 'Keystone';
+    }
+
+    // Fallback based on order
+    if (order <= 5 || order % 10 === 1) return 'Foundation';
+    if (order <= 30) return 'Keystone';
+    return 'Utility';
 }
 
 function parseConceptsFromEscapedContent(content: string): ParsedConcept[] {

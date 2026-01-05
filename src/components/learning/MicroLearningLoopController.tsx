@@ -7,13 +7,12 @@
  * Requirements: 2.1, 2.6, 2.7
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Brain,
     BookOpen,
     CheckCircle2,
-    Clock,
     RotateCcw,
     Zap,
     ChevronRight
@@ -22,19 +21,23 @@ import type { LearningConcept } from '@/lib/types/learning';
 import { useLearningStore } from '@/store/learning-store';
 import { renderShapeOrIcon } from '@/components/ui/SensaShape';
 import CognitiveGauge from './CognitiveGauge';
+import BlankSheetTest from './BlankSheetTest';
+import ConfusionPrevention, { findConfusionPairs } from './ConfusionPrevention';
 import styles from './MicroLearningLoopController.module.css';
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-export type LoopPhase = 'test' | 'learn' | 'verify';
+export type LoopPhase = 'test' | 'learn' | 'verify' | 'confusion';
 
 export type LoopOutcome = 'mastered' | 'needs-learning' | 'needs-review';
 
 export interface MicroLearningLoopProps {
     /** Current concept being learned */
     concept: LearningConcept;
+    /** All concepts for confusion detection */
+    allConcepts?: LearningConcept[];
     /** Complexity score (1-10) for adaptive timing */
     complexityScore: number;
     /** User's historical velocity for this type of concept */
@@ -112,109 +115,37 @@ interface TestPhaseProps {
 /**
  * Test Phase: Blank sheet recall
  */
-function TestPhase({ concept, keyPoints, timeLimit, onComplete }: TestPhaseProps) {
-    const [recalledText, setRecalledText] = useState('');
-    const [confidence, setConfidence] = useState(3);
-    const [timeRemaining, setTimeRemaining] = useState(timeLimit);
-    const [startTime] = useState(Date.now());
-
-    // Timer countdown
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeRemaining(prev => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    handleSubmit();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const handleSubmit = useCallback(() => {
-        const timeSpent = (Date.now() - startTime) / 1000;
-
-        // Simple keyword matching for recalled points
-        const recalledWords = recalledText.toLowerCase().split(/\s+/);
-        let matchedPoints = 0;
-
-        for (const point of keyPoints) {
-            const pointWords = point.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-            const matches = pointWords.filter(pw => recalledWords.some(rw => rw.includes(pw)));
-            if (matches.length >= pointWords.length * 0.3) {
-                matchedPoints++;
-            }
-        }
-
+/**
+ * Test Phase: Blank sheet recall
+ * Uses the comprehensive BlankSheetTest component
+ */
+function TestPhase({ concept, keyPoints, timeLimit: _timeLimit, onComplete }: TestPhaseProps) {
+    const handleComplete = useCallback((result: any) => {
+        // Map BlankSheetResult to TestPhaseResult
         onComplete({
-            recalledPoints: matchedPoints,
+            recalledPoints: result.score / 100 * keyPoints.length, // approximation
             totalPoints: keyPoints.length,
-            confidence,
-            timeSpent,
+            confidence: result.scoringConfidence * 5,
+            timeSpent: result.metrics.totalTime,
         });
-    }, [recalledText, keyPoints, confidence, startTime, onComplete]);
+    }, [keyPoints.length, onComplete]);
 
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
+    const handleSkip = useCallback(() => {
+        onComplete({
+            recalledPoints: 0,
+            totalPoints: keyPoints.length,
+            confidence: 0,
+            timeSpent: 0
+        });
+    }, [keyPoints.length, onComplete]);
 
     return (
-        <motion.div
-            className={styles.phaseCard}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-        >
-            <div className={styles.phaseHeader}>
-                <div className={styles.phaseIcon}>
-                    <Brain size={24} />
-                </div>
-                <div>
-                    <h3 className={styles.phaseTitle}>Test Your Recall</h3>
-                    <p className={styles.phaseSubtitle}>Write what you remember about {concept.name}</p>
-                </div>
-                <div className={`${styles.timer} ${timeRemaining < 30 ? styles.timerWarning : ''}`}>
-                    <Clock size={16} />
-                    <span>{formatTime(timeRemaining)}</span>
-                </div>
-            </div>
-
-            <div className={styles.phaseContent}>
-                <textarea
-                    className={styles.recallInput}
-                    value={recalledText}
-                    onChange={(e) => setRecalledText(e.target.value)}
-                    placeholder="Write everything you remember about this concept..."
-                    rows={6}
-                    autoFocus
-                />
-
-                <div className={styles.confidenceSection}>
-                    <label>How confident are you?</label>
-                    <div className={styles.confidenceButtons}>
-                        {[1, 2, 3, 4, 5].map((level) => (
-                            <button
-                                key={level}
-                                className={`${styles.confidenceBtn} ${confidence === level ? styles.active : ''}`}
-                                onClick={() => setConfidence(level)}
-                            >
-                                {level}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <button className={styles.submitButton} onClick={handleSubmit}>
-                    <span>Submit & Continue</span>
-                    <ChevronRight size={20} />
-                </button>
-            </div>
-        </motion.div>
+        <BlankSheetTest
+            concept={concept}
+            keyPoints={keyPoints}
+            onComplete={handleComplete}
+            onSkip={handleSkip}
+        />
     );
 }
 
@@ -485,6 +416,7 @@ function VerifyPhase({ concept, keyPoints, onComplete }: VerifyPhaseProps) {
 
 export function MicroLearningLoopController({
     concept,
+    allConcepts,
     complexityScore,
     userVelocity = 1.0,
     onLoopComplete,
@@ -514,6 +446,16 @@ export function MicroLearningLoopController({
         return points.slice(0, 5); // Max 5 key points
     }, [concept]);
 
+    // Check if confusion prevention is needed
+    // This runs only once per concept ideally, or we check it dynamically
+    const hasConfusionPairs = useMemo(() => {
+        if (!allConcepts) return false;
+        const pairs = findConfusionPairs(concept, allConcepts);
+        return pairs.length > 0;
+    }, [concept, allConcepts]);
+
+
+
     const handleTestComplete = useCallback((result: TestPhaseResult) => {
         setTestResult(result);
         setTotalTimeSpent(prev => prev + result.timeSpent);
@@ -527,18 +469,31 @@ export function MicroLearningLoopController({
         setPhase('verify');
     }, []);
 
+    const [verifyResultData, setVerifyResultData] = useState<{ correct: boolean, timeSpent: number } | null>(null);
+
     const handleVerifyComplete = useCallback((correct: boolean, timeSpent: number) => {
         const finalTimeSpent = totalTimeSpent + timeSpent;
         setTotalTimeSpent(finalTimeSpent);
+        setVerifyResultData({ correct, timeSpent });
 
         // Record the interaction for cognitive metrics
         recordInteraction(correct, timeSpent * 1000);
 
         if (testResult) {
             const outcome = determineOutcome(testResult, { correct, timeSpent });
+
+            // If mastered AND has potential confusion pairs, go to confusion phase
+            // This ensures we only clarify confusion for concepts the user is starting to get right,
+            // or maybe we should do it even if they fail?
+            // "Prevention" implies doing it early. But let's do it after they verify basic understanding.
+            if (hasConfusionPairs && phase !== 'confusion') {
+                setPhase('confusion');
+                return;
+            }
+
             onLoopComplete(outcome, finalTimeSpent);
         }
-    }, [testResult, totalTimeSpent, onLoopComplete, recordInteraction]);
+    }, [testResult, totalTimeSpent, onLoopComplete, recordInteraction, hasConfusionPairs, phase]);
 
     return (
         <div className={styles.container}>
@@ -598,6 +553,26 @@ export function MicroLearningLoopController({
                         concept={concept}
                         keyPoints={keyPoints}
                         onComplete={handleVerifyComplete}
+                    />
+                )}
+                {phase === 'confusion' && allConcepts && (
+                    <ConfusionPrevention
+                        key="confusion"
+                        currentConcept={concept}
+                        allConcepts={allConcepts}
+                        onDrillComplete={(res) => {
+                            // Can record drill result
+                            const outcome = testResult && verifyResultData
+                                ? determineOutcome(testResult, verifyResultData)
+                                : 'mastered';
+                            onLoopComplete(outcome, totalTimeSpent + res.timeSpent);
+                        }}
+                        onSkip={() => {
+                            const outcome = testResult && verifyResultData
+                                ? determineOutcome(testResult, verifyResultData)
+                                : 'mastered';
+                            onLoopComplete(outcome, totalTimeSpent);
+                        }}
                     />
                 )}
             </AnimatePresence>

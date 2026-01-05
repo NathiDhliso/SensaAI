@@ -19,13 +19,14 @@ import {
   BarChart3,
   ChevronDown,
   Settings,
-  Brain
+  Brain,
+  FileText
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { LifecycleNavigator } from '@/components/learning';
 import styles from './StudyLayout.module.css';
 
-export type StudyTab = 'overview' | 'learn' | 'palace' | 'sprint';
+export type StudyTab = 'overview' | 'learn' | 'palace' | 'sprint' | 'reference';
 
 interface StudyLayoutProps {
   /** Current active tab */
@@ -60,9 +61,9 @@ const TABS: TabConfig[] = [
   },
   {
     id: 'learn',
-    label: 'Learn',
-    icon: BookOpen,
-    description: 'Concept mastery',
+    label: 'Velocity',
+    icon: Zap,
+    description: 'Active Learning Engine',
     color: 'var(--color-phase-prepare)'
   },
   {
@@ -71,6 +72,13 @@ const TABS: TabConfig[] = [
     icon: Map,
     description: 'Memory anchors',
     color: 'var(--color-secondary-amber)'
+  },
+  {
+    id: 'reference',
+    label: 'Source',
+    icon: FileText,
+    description: 'Original Chart',
+    color: 'var(--color-secondary-sage)'
   },
   {
     id: 'sprint',

@@ -12,12 +12,12 @@ import { VISUAL_PALETTES, type PaletteType } from '@/lib/palace/theme-engine';
 /**
  * Enhanced learning concept with SensaAI Learning Velocity Engine metadata
  */
-export interface SensaAILearningConcept extends LearningConcept {
+export interface SensaAILearningConcept extends Omit<LearningConcept, 'confusionPairs'> {
   // Core Learning Velocity Engine Extensions
   keyPoints: string[];                    // For blank sheet test analysis
   diagnosticQuestions: DiagnosticQuestion[];  // For diagnostic assessments
   confusionPairs: ConfusionPairMetadata[];     // For prevention system
-  
+
   // Metadata for intelligent systems
   foundationLevel: boolean;               // Eligible for diagnostic inclusion
   tierLevel: 'Foundation' | 'Keystone' | 'Utility';  // For interleaving algorithm
@@ -64,23 +64,23 @@ const DEFAULT_STAGE_ICONS = ['shape:seed', 'shape:sprout', 'shape:bloom', 'shape
  */
 function extractKeyPoints(concept: ParsedConcept): string[] {
   const keyPoints: string[] = [];
-  
+
   // Extract from hook sentence and micro-metaphor
   if (concept.phase1.hookSentence) {
     keyPoints.push(concept.phase1.hookSentence);
   }
-  
+
   if (concept.phase1.microMetaphor) {
     keyPoints.push(concept.phase1.microMetaphor);
   }
-  
+
   // Extract from selection criteria (key functionality)
   concept.phase1.selection.forEach(item => {
     if (item.length > 10) { // Filter out very short items
       keyPoints.push(item);
     }
   });
-  
+
   // Extract from phase2 configuration items
   concept.phase2.forEach(item => {
     if (item.includes(':')) {
@@ -90,10 +90,10 @@ function extractKeyPoints(concept: ParsedConcept): string[] {
       }
     }
   });
-  
+
   // Extract from critical distinctions
   keyPoints.push(...concept.criticalDistinctions);
-  
+
   // Extract from SHAPE sections if available
   if (concept.shape) {
     if (concept.shape.simpleCore) {
@@ -103,7 +103,7 @@ function extractKeyPoints(concept: ParsedConcept): string[] {
       keyPoints.push(concept.shape.highStakesExample);
     }
   }
-  
+
   // Limit to 3-7 key points (cognitive load management)
   return keyPoints.slice(0, 7);
 }
@@ -114,7 +114,7 @@ function extractKeyPoints(concept: ParsedConcept): string[] {
  */
 function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion[] {
   const questions: DiagnosticQuestion[] = [];
-  
+
   // Generate from hook sentence (recognition question)
   if (concept.phase1.hookSentence) {
     questions.push({
@@ -126,7 +126,7 @@ function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion
       keyPoints: [concept.phase1.hookSentence]
     });
   }
-  
+
   // Generate from critical distinctions (true/false)
   concept.criticalDistinctions.forEach((distinction, index) => {
     if (index < 2) { // Limit to 2 to avoid cognitive overload
@@ -140,7 +140,7 @@ function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion
       });
     }
   });
-  
+
   // Generate from SHAPE pattern recognition if available
   if (concept.shape?.patternRecognition?.question) {
     questions.push({
@@ -152,12 +152,12 @@ function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion
       keyPoints: [concept.shape.patternRecognition.answer]
     });
   }
-  
+
   // Generate multiple choice from selection criteria
   if (concept.phase1.selection.length >= 3) {
     const correctOption = concept.phase1.selection[0];
     const distractors = concept.phase1.selection.slice(1, 3);
-    
+
     questions.push({
       id: `${concept.id}-selection`,
       question: `Which of the following is the primary approach for ${concept.name}?`,
@@ -168,7 +168,7 @@ function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion
       keyPoints: [correctOption]
     });
   }
-  
+
   // Limit to 3 questions per concept (cognitive load management)
   return questions.slice(0, 3);
 }
@@ -179,7 +179,7 @@ function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion
 function calculateConceptSimilarity(conceptA: ParsedConcept, conceptB: ParsedConcept): number {
   let similarity = 0;
   let factors = 0;
-  
+
   // Name similarity (basic string comparison)
   const nameA = conceptA.name.toLowerCase();
   const nameB = conceptB.name.toLowerCase();
@@ -188,19 +188,19 @@ function calculateConceptSimilarity(conceptA: ParsedConcept, conceptB: ParsedCon
     similarity += commonWords.length / Math.max(nameA.split(' ').length, nameB.split(' ').length);
     factors++;
   }
-  
+
   // Phase similarity (same lifecycle phase usage)
   const phaseAItems = [...conceptA.phase1.selection, ...conceptA.phase2];
   const phaseBItems = [...conceptB.phase1.selection, ...conceptB.phase2];
-  const commonPhaseItems = phaseAItems.filter(item => 
-    phaseBItems.some(bItem => bItem.toLowerCase().includes(item.toLowerCase()) || 
-                              item.toLowerCase().includes(bItem.toLowerCase()))
+  const commonPhaseItems = phaseAItems.filter(item =>
+    phaseBItems.some(bItem => bItem.toLowerCase().includes(item.toLowerCase()) ||
+      item.toLowerCase().includes(bItem.toLowerCase()))
   );
   if (commonPhaseItems.length > 0) {
     similarity += commonPhaseItems.length / Math.max(phaseAItems.length, phaseBItems.length);
     factors++;
   }
-  
+
   // Tool similarity (same verification tools)
   if (conceptA.phase3.tool && conceptB.phase3.tool) {
     if (conceptA.phase3.tool.toLowerCase() === conceptB.phase3.tool.toLowerCase()) {
@@ -208,7 +208,7 @@ function calculateConceptSimilarity(conceptA: ParsedConcept, conceptB: ParsedCon
     }
     factors++;
   }
-  
+
   return factors > 0 ? similarity / factors : 0;
 }
 
@@ -217,33 +217,33 @@ function calculateConceptSimilarity(conceptA: ParsedConcept, conceptB: ParsedCon
  */
 function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, ConfusionPairMetadata[]> {
   const confusionMap = new Map<string, ConfusionPairMetadata[]>();
-  
+
   for (let i = 0; i < concepts.length; i++) {
     for (let j = i + 1; j < concepts.length; j++) {
       const conceptA = concepts[i];
       const conceptB = concepts[j];
-      
+
       const similarity = calculateConceptSimilarity(conceptA, conceptB);
-      
+
       // Consider concepts confusable if similarity > 0.3
       if (similarity > 0.3) {
         // Find key differences
         const keyDifferences: string[] = [];
-        
+
         // Compare critical distinctions
-        const uniqueToA = conceptA.criticalDistinctions.filter(d => 
+        const uniqueToA = conceptA.criticalDistinctions.filter(d =>
           !conceptB.criticalDistinctions.some(bd => bd.toLowerCase().includes(d.toLowerCase()))
         );
-        const uniqueToB = conceptB.criticalDistinctions.filter(d => 
+        const uniqueToB = conceptB.criticalDistinctions.filter(d =>
           !conceptA.criticalDistinctions.some(ad => ad.toLowerCase().includes(d.toLowerCase()))
         );
-        
+
         keyDifferences.push(...uniqueToA.map(d => `${conceptA.name}: ${d}`));
         keyDifferences.push(...uniqueToB.map(d => `${conceptB.name}: ${d}`));
-        
+
         // Create mnemonic distinguisher
         const distinguisher = `${conceptA.name} vs ${conceptB.name}: ${keyDifferences[0] || 'Different use cases'}`;
-        
+
         const pairA: ConfusionPairMetadata = {
           id: `confusion-${conceptA.id}-${conceptB.id}`,
           relatedConceptId: conceptB.id,
@@ -253,7 +253,7 @@ function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, Confusio
           keyDifferences,
           mnemonicDistinguisher: distinguisher
         };
-        
+
         const pairB: ConfusionPairMetadata = {
           id: `confusion-${conceptB.id}-${conceptA.id}`,
           relatedConceptId: conceptA.id,
@@ -263,16 +263,16 @@ function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, Confusio
           keyDifferences: keyDifferences.map(d => d.replace(conceptA.name, conceptB.name).replace(conceptB.name, conceptA.name)),
           mnemonicDistinguisher: distinguisher.replace(conceptA.name, conceptB.name).replace(conceptB.name, conceptA.name)
         };
-        
+
         if (!confusionMap.has(conceptA.id)) confusionMap.set(conceptA.id, []);
         if (!confusionMap.has(conceptB.id)) confusionMap.set(conceptB.id, []);
-        
+
         confusionMap.get(conceptA.id)!.push(pairA);
         confusionMap.get(conceptB.id)!.push(pairB);
       }
     }
   }
-  
+
   return confusionMap;
 }
 
@@ -284,20 +284,20 @@ function isFoundationLevel(concept: ParsedConcept, allConcepts: ParsedConcept[])
   // 1. Have fewer prerequisites
   // 2. Are referenced by other concepts
   // 3. Have concrete rather than abstract content
-  
-  const hasMinimalPrerequisites = !concept.phase1.prerequisite || 
-                                  concept.phase1.prerequisite.toLowerCase().includes('none') ||
-                                  concept.phase1.prerequisite.length < 50;
-  
-  const isReferencedByOthers = allConcepts.some(other => 
-    other.id !== concept.id && 
+
+  const hasMinimalPrerequisites = !concept.phase1.prerequisite ||
+    concept.phase1.prerequisite.toLowerCase().includes('none') ||
+    concept.phase1.prerequisite.length < 50;
+
+  const isReferencedByOthers = allConcepts.some(other =>
+    other.id !== concept.id &&
     (other.phase1.prerequisite?.toLowerCase().includes(concept.name.toLowerCase()) ||
-     other.phase1.execution?.toLowerCase().includes(concept.name.toLowerCase()))
+      other.phase1.execution?.toLowerCase().includes(concept.name.toLowerCase()))
   );
-  
-  const hasConcreteContent = concept.phase1.microMetaphor.length > 0 || 
-                            (concept.shape?.highStakesExample?.length || 0) > 0;
-  
+
+  const hasConcreteContent = concept.phase1.microMetaphor.length > 0 ||
+    (concept.shape?.highStakesExample?.length || 0) > 0;
+
   return hasMinimalPrerequisites && (isReferencedByOthers || hasConcreteContent);
 }
 
@@ -309,17 +309,17 @@ function calculateTierLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]
   if (concept.mnemonic?.tier) {
     return concept.mnemonic.tier;
   }
-  
+
   // Calculate based on dependencies
-  const dependentCount = allConcepts.filter(other => 
-    other.id !== concept.id && 
+  const dependentCount = allConcepts.filter(other =>
+    other.id !== concept.id &&
     (other.phase1.prerequisite?.toLowerCase().includes(concept.name.toLowerCase()) ||
-     other.phase1.execution?.toLowerCase().includes(concept.name.toLowerCase()))
+      other.phase1.execution?.toLowerCase().includes(concept.name.toLowerCase()))
   ).length;
-  
-  const dependencyCount = concept.phase1.prerequisite && 
-                         !concept.phase1.prerequisite.toLowerCase().includes('none') ? 1 : 0;
-  
+
+  const dependencyCount = concept.phase1.prerequisite &&
+    !concept.phase1.prerequisite.toLowerCase().includes('none') ? 1 : 0;
+
   if (dependentCount >= 3) return 'Foundation';
   if (dependentCount >= 1 || dependencyCount > 0) return 'Keystone';
   return 'Utility';
@@ -330,19 +330,19 @@ function calculateTierLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]
  */
 function calculateComplexityScore(concept: ParsedConcept): number {
   let complexity = 1;
-  
+
   // Factor in content length
-  const totalContent = concept.phase1.execution.length + 
-                      concept.phase2.join(' ').length + 
-                      concept.phase3.thresholds.length;
+  const totalContent = concept.phase1.execution.length +
+    concept.phase2.join(' ').length +
+    concept.phase3.thresholds.length;
   complexity += Math.min(3, totalContent / 500); // Max 3 points for length
-  
+
   // Factor in number of selection criteria
   complexity += Math.min(2, concept.phase1.selection.length / 3); // Max 2 points
-  
+
   // Factor in critical distinctions (indicates complexity)
   complexity += Math.min(2, concept.criticalDistinctions.length / 2); // Max 2 points
-  
+
   // Factor in SHAPE sections (indicates comprehensive coverage)
   if (concept.shape) {
     const shapeCount = [
@@ -354,7 +354,7 @@ function calculateComplexityScore(concept: ParsedConcept): number {
     ].filter(Boolean).length;
     complexity += Math.min(2, shapeCount / 3); // Max 2 points
   }
-  
+
   return Math.min(10, Math.round(complexity));
 }
 
@@ -739,38 +739,38 @@ export function transformToSensaAIConcepts(
 ): SensaAILearningConcept[] {
   // First get the base learning concepts
   const baseConcepts = transformToLearningConcepts(parsed, stages);
-  
+
   // Identify confusion pairs across all concepts
   const confusionMap = identifyConfusionPairs(parsed.concepts);
-  
+
   // Transform to SensaAI enhanced concepts
-  const sensaAIConcepts: SensaAILearningConcept[] = baseConcepts.map((baseConcept, index) => {
+  const sensaAIConcepts: SensaAILearningConcept[] = baseConcepts.map((baseConcept) => {
     const parsedConcept = parsed.concepts.find(pc => pc.id === baseConcept.id);
     if (!parsedConcept) {
       throw new Error(`Parsed concept not found for ${baseConcept.id}`);
     }
-    
+
     // Extract SensaAI metadata
     const keyPoints = extractKeyPoints(parsedConcept);
     const diagnosticQuestions = generateDiagnosticQuestions(parsedConcept);
     const foundationLevel = isFoundationLevel(parsedConcept, parsed.concepts);
     const tierLevel = calculateTierLevel(parsedConcept, parsed.concepts);
     const complexityScore = calculateComplexityScore(parsedConcept);
-    
+
     // Calculate weights for diagnostic selection
-    const prerequisiteWeight = parsed.concepts.filter(other => 
+    const prerequisiteWeight = parsed.concepts.filter(other =>
       other.phase1.prerequisite?.toLowerCase().includes(parsedConcept.name.toLowerCase())
     ).length;
-    
+
     const frequencyWeight = parsedConcept.phase1.selection.length + parsedConcept.phase2.length;
-    
-    const abstractionLevel = parsedConcept.phase1.microMetaphor.length > 0 || 
-                            (parsedConcept.shape?.highStakesExample?.length || 0) > 0 
-                            ? 'concrete' : 'abstract';
-    
+
+    const abstractionLevel = parsedConcept.phase1.microMetaphor.length > 0 ||
+      (parsedConcept.shape?.highStakesExample?.length || 0) > 0
+      ? 'concrete' : 'abstract';
+
     // Get confusion pairs for this concept
     const conceptConfusionPairs = confusionMap.get(parsedConcept.id) || [];
-    
+
     return {
       ...baseConcept,
       keyPoints,
@@ -784,7 +784,7 @@ export function transformToSensaAIConcepts(
       abstractionLevel,
     };
   });
-  
+
   return sensaAIConcepts;
 }
 
@@ -881,14 +881,14 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
   // Calculate SensaAI metrics
   const foundationConcepts = concepts.filter(c => c.foundationLevel).length;
   const diagnosticReady = foundationConcepts >= 5; // Need at least 5 for diagnostic
-  
+
   // Calculate metadata completeness
   let completenessScore = 0;
   let totalChecks = 0;
-  
+
   concepts.forEach(concept => {
     totalChecks += 6; // 6 checks per concept
-    
+
     if (concept.keyPoints.length >= 3) completenessScore++;
     if (concept.diagnosticQuestions.length >= 1) completenessScore++;
     if (concept.foundationLevel !== undefined) completenessScore++;
@@ -896,7 +896,7 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
     if (concept.complexityScore > 0) completenessScore++;
     if (concept.confusionPairs.length >= 0) completenessScore++; // Always true, validates structure
   });
-  
+
   const metadataCompleteness = Math.round((completenessScore / totalChecks) * 100);
 
   return {
@@ -926,46 +926,45 @@ export function validateSensaAIMetadata(concepts: SensaAILearningConcept[]): {
 } {
   const issues: string[] = [];
   const recommendations: string[] = [];
-  
+
   // Check foundation concepts for diagnostics
   const foundationCount = concepts.filter(c => c.foundationLevel).length;
   if (foundationCount < 5) {
     issues.push(`Only ${foundationCount} foundation concepts found, need at least 5 for diagnostics`);
     recommendations.push('Ensure concepts have minimal prerequisites and concrete examples');
   }
-  
+
   // Check key points coverage
   const conceptsWithoutKeyPoints = concepts.filter(c => c.keyPoints.length < 3).length;
   if (conceptsWithoutKeyPoints > 0) {
     issues.push(`${conceptsWithoutKeyPoints} concepts have insufficient key points`);
     recommendations.push('Ensure concepts have hook sentences, micro-metaphors, and critical distinctions');
   }
-  
+
   // Check diagnostic questions
   const conceptsWithoutQuestions = concepts.filter(c => c.diagnosticQuestions.length === 0).length;
   if (conceptsWithoutQuestions > 0) {
     issues.push(`${conceptsWithoutQuestions} concepts lack diagnostic questions`);
     recommendations.push('Add critical distinctions and pattern recognition questions to concepts');
   }
-  
+
   // Check tier distribution
   const tierCounts = {
     Foundation: concepts.filter(c => c.tierLevel === 'Foundation').length,
     Keystone: concepts.filter(c => c.tierLevel === 'Keystone').length,
     Utility: concepts.filter(c => c.tierLevel === 'Utility').length
   };
-  
+
   const total = concepts.length;
   const foundationPercent = (tierCounts.Foundation / total) * 100;
-  const keystonePercent = (tierCounts.Keystone / total) * 100;
-  const utilityPercent = (tierCounts.Utility / total) * 100;
-  
+
+
   // Target: Foundation 40%, Keystone 35%, Utility 25%
   if (foundationPercent < 30 || foundationPercent > 50) {
     issues.push(`Foundation concepts: ${foundationPercent.toFixed(1)}% (target: 40%)`);
     recommendations.push('Adjust concept dependencies to achieve better tier balance');
   }
-  
+
   return {
     isValid: issues.length === 0,
     issues,

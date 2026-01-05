@@ -11,9 +11,9 @@
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     background: var(--overlay-white-10);
-    border: 1px solid var(--color-border-light);
+    border: 1px solid var(--border-light);
     border-radius: 999px;
-    color: var(--color-text-medium);
+    color: var(--text-secondary);
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
@@ -23,7 +23,7 @@
 
 .resetButton:hover {
     background: var(--overlay-white-15);
-    color: var(--color-text-dark);
+    color: var(--text-primary);
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
@@ -63,8 +63,8 @@
     position: absolute;
     bottom: 1rem;
     right: 1rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-light);
+    background: var(--surface-card);
+    border: 1px solid var(--border-light);
     border-radius: 12px;
     padding: 1rem;
     width: 240px;
@@ -81,7 +81,7 @@
 
 .totalLabel {
     font-size: 0.8rem;
-    color: var(--color-text-medium);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -89,7 +89,7 @@
 .totalValue {
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--color-text-dark);
+    color: var(--text-primary);
 }
 
 .barChart {
@@ -107,12 +107,12 @@
 
 .barLabel {
     font-size: 0.75rem;
-    color: var(--color-text-medium);
+    color: var(--text-secondary);
 }
 
 .barTrack {
     height: 6px;
-    background: var(--color-surface-subtle);
+    background: var(--surface-hover);
     border-radius: 999px;
     overflow: hidden;
 }
@@ -125,18 +125,18 @@
 .barValue {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--color-text-dark);
+    color: var(--text-primary);
     text-align: right;
 }
 
 .chartFooter {
     margin-top: 0.75rem;
     padding-top: 0.5rem;
-    border-top: 1px solid var(--color-border-light);
+    border-top: 1px solid var(--border-light);
     text-align: center;
 }
 
 .connectionsLabel {
     font-size: 0.75rem;
-    color: var(--color-text-muted);
+    color: var(--text-tertiary);
 }

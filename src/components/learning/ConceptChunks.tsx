@@ -10,6 +10,7 @@
 import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, Layers, Gem, Wrench, Play } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
+import { renderShapeOrIcon } from '@/components/ui';
 import styles from './ConceptChunks.module.css';
 
 export interface ConceptChunksProps {
@@ -141,26 +142,34 @@ export function ConceptChunks({
           const tierConcepts = groupedConcepts[tier.key];
           const isExpanded = expandedTiers.has(tier.key);
           const hasMore = tierConcepts.length > maxVisiblePerChunk;
-          const visibleConcepts = isExpanded 
-            ? tierConcepts 
+          const visibleConcepts = isExpanded
+            ? tierConcepts
             : tierConcepts.slice(0, maxVisiblePerChunk);
 
           if (tierConcepts.length === 0) return null;
 
           return (
-            <div 
-              key={tier.key} 
+            <div
+              key={tier.key}
               className={styles.chunk}
-              style={{ 
+              style={{
                 '--tier-color': tier.color,
                 '--tier-bg': tier.bgColor,
               } as React.CSSProperties}
             >
               {/* Chunk Header */}
-              <button 
+              <div
                 className={styles.chunkHeader}
                 onClick={() => toggleTier(tier.key)}
                 aria-expanded={isExpanded}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    toggleTier(tier.key);
+                    e.preventDefault();
+                  }
+                }}
               >
                 <div className={styles.chunkTitle}>
                   <tier.icon size={20} className={styles.tierIcon} />
@@ -185,7 +194,7 @@ export function ConceptChunks({
                     isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />
                   )}
                 </div>
-              </button>
+              </div>
 
               {/* Tier Description */}
               <p className={styles.tierDescription}>{tier.description}</p>
@@ -200,7 +209,7 @@ export function ConceptChunks({
                     title={concept.metaphor || concept.name}
                   >
                     <span className={styles.conceptIcon}>
-                      {concept.icon || '💡'}
+                      {renderShapeOrIcon(concept.icon || '💡', 'sm')}
                     </span>
                     <span className={styles.conceptName}>{concept.name}</span>
                     {concept.mnemonic?.dependsOn && concept.mnemonic.dependsOn.length > 0 && (
@@ -217,8 +226,8 @@ export function ConceptChunks({
                     className={styles.toggleButton}
                     onClick={() => toggleTier(tier.key)}
                   >
-                    {isExpanded 
-                      ? `Show less` 
+                    {isExpanded
+                      ? `Show less`
                       : `+${tierConcepts.length - maxVisiblePerChunk} more`
                     }
                   </button>

@@ -413,27 +413,119 @@ function isJsonConceptFormat(content: string): boolean {
 }
 
 /**
- * Extracts JSON data from content, handling code blocks and mixed content.
+ * Extracts JSON data from content using multiple strategies to handle
+ * varied AI output formats (markdown blocks, raw JSON, batch concatenations).
  */
 function extractJsonData(content: string): unknown | null {
-  // Try to find JSON in code blocks first
-  const jsonBlockMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
-  if (jsonBlockMatch) {
+  const allConcepts: unknown[] = [];
+  let foundAny = false;
+
+  // Strategy 1: Scan ALL code blocks (json or generic)
+  // This handles the standard output format from multi-pass generator
+  const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
+  let codeMatch;
+  while ((codeMatch = codeBlockRegex.exec(content)) !== null) {
     try {
-      return JSON.parse(jsonBlockMatch[1]);
+      const jsonStr = codeMatch[1];
+      // Quick check if it looks like it contains concepts
+      if (jsonStr.includes('"concepts"')) {
+        const parsed = JSON.parse(jsonStr);
+        if (parsed?.concepts && Array.isArray(parsed.concepts)) {
+          allConcepts.push(...parsed.concepts);
+          foundAny = true;
+        } else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.name) {
+          // Sometimes it outputs just the array
+          allConcepts.push(...parsed);
+          foundAny = true;
+        }
+      }
     } catch {
-      // Fall through
+      // Ignore invalid JSON indices
     }
   }
 
-  // Try to find raw JSON object with concepts
-  const conceptsMatch = content.match(/\{\s*"concepts"\s*:\s*\[[\s\S]*?\]\s*\}/);
-  if (conceptsMatch) {
-    try {
-      return JSON.parse(conceptsMatch[0]);
-    } catch {
-      // Fall through
+  // Strategy 2: If code blocks didn't yield enough, try loose JSON object extraction
+  // Find any "concepts": [ pattern and trace back to the nearest opening brace
+  if (!foundAny || allConcepts.length < 5) {
+    // Look for "concepts" : [  (with any whitespace)
+    const conceptsKeyRegex = /\"concepts\"\s*:\s*\[/g;
+    let keyMatch;
+
+    while ((keyMatch = conceptsKeyRegex.exec(content)) !== null) {
+      // Search backwards for the opening brace of this object
+      let openBraceIdx = -1;
+      let balance = 0;
+      // Limit backward search to ~500 chars to avoid performance hits
+      for (let i = keyMatch.index; i >= Math.max(0, keyMatch.index - 500); i--) {
+        if (content[i] === '}') balance++;
+        if (content[i] === '{') {
+          if (balance === 0) {
+            openBraceIdx = i;
+            break;
+          }
+          balance--;
+        }
+      }
+
+      if (openBraceIdx !== -1) {
+        // Now find the closing brace using the forward scanner
+        let depth = 0;
+        let endIdx = openBraceIdx;
+        let inString = false;
+        let escape = false;
+        let foundEnd = false;
+
+        for (let i = openBraceIdx; i < content.length; i++) {
+          const char = content[i];
+          if (escape) escape = false;
+          else if (char === '\\') escape = true;
+          else if (char === '\"' && !escape) inString = !inString;
+          else if (!inString) {
+            if (char === '{') depth++;
+            else if (char === '}') {
+              depth--;
+              if (depth === 0) {
+                endIdx = i + 1;
+                foundEnd = true;
+                break;
+              }
+            }
+          }
+        }
+
+        if (foundEnd) {
+          try {
+            const jsonStr = content.slice(openBraceIdx, endIdx);
+            // Avoid re-parsing the same block if it was already caught by code blocks
+            // But parsing twice is safer than missing it. Set makes implicit deduping hard without IDs.
+            // For now, relies on JSON.parse being robust.
+            const parsed = JSON.parse(jsonStr);
+            if (parsed?.concepts && Array.isArray(parsed.concepts)) {
+              // Validate concepts are objects with names (reject strings from Pass 1)
+              const validConcepts = parsed.concepts.filter((c: any) => c && typeof c === 'object' && c.name);
+
+              // Check if we already have these concepts (rough check by name)
+              const isNew = validConcepts.length > 0 &&
+                (!allConcepts.length ||
+                  //@ts-ignore
+                  validConcepts[0].name !== allConcepts[0].name);
+
+              if (isNew) {
+                allConcepts.push(...validConcepts);
+                foundAny = true;
+              }
+            }
+          } catch { }
+        }
+      }
     }
+  }
+
+  if (foundAny || allConcepts.length > 0) {
+    console.log(`[parser] Extracted ${allConcepts.length} concepts using multi-strategy parser`);
+    // Dedup concepts by name/order just in case
+    const uniqueConcepts = Array.from(new Map(allConcepts.map((c: any) => [c.name, c])).values());
+    return { concepts: uniqueConcepts };
   }
 
   return null;
@@ -765,8 +857,8 @@ function parseConfusionPairs(content: string): ParsedConfusionPair[] {
  */
 function isPL300JsonFormat(content: string): boolean {
   return content.includes('VISUAL MASTER CHART: Microsoft Learn - PL-300') ||
-         content.includes('PL-300: Microsoft Power BI Data Analyst') ||
-         (content.includes('Core Concepts Identified: 68') && content.includes('Power BI Desktop'));
+    content.includes('PL-300: Microsoft Power BI Data Analyst') ||
+    (content.includes('Core Concepts Identified: 68') && content.includes('Power BI Desktop'));
 }
 
 /**
@@ -774,14 +866,14 @@ function isPL300JsonFormat(content: string): boolean {
  */
 function parsePL300JsonContent(rawContent: string): ParseResult {
   const result = parsePL300Content(rawContent);
-  
+
   if (!result.success) {
     return {
       success: false,
       error: result.error || 'Failed to parse PL-300 content'
     };
   }
-  
+
   return {
     success: true,
     data: result.data!

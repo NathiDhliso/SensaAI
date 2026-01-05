@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { generateWithBackend } from '@/lib/generation/backend-generator';
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
+import { parseAndLoadContent } from '@/lib/content-loader';
 import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
 import type { PassStatus, Pass1Result, ValidationResult, StreamedConceptPreview } from '@/lib/types/generation';
 import styles from './Generate.module.css';
@@ -218,7 +219,7 @@ export default function Generate() {
         completeGeneration(result);
         clearCheckpoint();
 
-        // Auto-save to storage so Results page can always retrieve it
+        // Auto-save to storage so Study page can always retrieve it
         const { pass1Data, validation } = useGenerationStore.getState();
         if (pass1Data && validation) {
           const resultId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -246,8 +247,16 @@ export default function Generate() {
           // Import and use storageManager
           const { storageManager } = await import('@/lib/storage');
           await storageManager.saveResult(savedResult);
-          // Navigate directly to results - no diagnostic blocking
-          navigate(`/results/${resultId}`);
+
+          // Silver Bullet: Hydrate learning store and go straight to Study
+          const loadResult = parseAndLoadContent(result.fullDocument, resultId);
+          if (loadResult.success) {
+            navigate(`/study/${resultId}?tab=learn`);
+          } else {
+            // Fallback to results if loading fails
+            console.warn('Failed to load content into learning store:', loadResult.error);
+            navigate(`/results/${resultId}`);
+          }
         } else {
           // Fallback if validation/pass1Data not available
           navigate(`/results/${Date.now()}`);

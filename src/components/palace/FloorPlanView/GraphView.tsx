@@ -179,7 +179,7 @@ export function GraphView({
     const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
 
     // Drag offset to keep mouse relative to node center
-    const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+    // const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
     const svgRef = useRef<SVGSVGElement>(null);
 
     // Build concept map for quick lookup
@@ -290,7 +290,7 @@ export function GraphView({
     };
 
     // Drag Handlers for Nodes
-    const handleMouseDown = (e: React.MouseEvent, nodeId: string, currentX: number, currentY: number) => {
+    const handleMouseDown = (e: React.MouseEvent, nodeId: string, _currentX: number, _currentY: number) => {
         e.stopPropagation();
         setIsDragging(true);
         setDraggedNodeId(nodeId);

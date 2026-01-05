@@ -1,0 +1,119 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--color-bg-primary);
+    overflow: hidden;
+}
+
+.header {
+    padding: 1rem 2rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.content {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-content: start;
+}
+
+/* Grid layout for larger screens - minimize scrolling */
+@media (min-width: 1200px) {
+    .content {
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        padding: 2rem 3rem;
+    }
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    max-width: 400px;
+    color: var(--color-text-light);
+    margin: 0 auto;
+}
+
+.emptyIcon {
+    margin-bottom: 1.5rem;
+    color: var(--color-text-muted);
+}
+
+.emptyState h2 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.primaryButton {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--gradient-accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-glow-primary);
+}
+
+.primaryButton:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow-primary-hover);
+}
+
+.dashboardContainer {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.mainArea {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+/* Full-width grid layout for better screen utilization */
+@media (min-width: 1400px) {
+    .mainArea {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .dashboardContainer {
+        grid-column: 1 / -1;
+    }
+}
+
+.fullWidthContainer {
+    width: 100%;
+    grid-column: 1 / -1;
+}

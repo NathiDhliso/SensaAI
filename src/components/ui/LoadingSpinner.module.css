@@ -46,7 +46,7 @@
 
 .light {
     border-style: solid;
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--overlay-white-20);
     border-top-color: white;
 }
 

@@ -7,7 +7,7 @@
 
 import { getBedrockClient, invokeClaudeModel, type BedrockConfig } from './claude-client';
 import type { ConfusionPair, ConfusionQuestion, ConfusionDrillResult, ConfusionAnswer } from '@/lib/types/confusion';
-import type { LearningConcept } from '@/lib/types/learning';
+
 import type { SensaAILearningConcept, ConfusionPairMetadata } from '@/lib/content-adapter/transformer';
 
 const CONFUSION_SYSTEM_PROMPT = `You are an expert at identifying commonly confused concepts. 
@@ -30,7 +30,7 @@ export async function generateSensaAIConfusionPairs(
 ): Promise<ConfusionPairMetadata[]> {
   // Use existing confusion pairs from metadata as a starting point
   const existingPairs = new Map<string, ConfusionPairMetadata>();
-  
+
   concepts.forEach(concept => {
     concept.confusionPairs.forEach(pair => {
       const key = `${concept.id}-${pair.relatedConceptId}`;
@@ -39,18 +39,18 @@ export async function generateSensaAIConfusionPairs(
       }
     });
   });
-  
+
   // If we have enough high-quality pairs from metadata, use those
   const highQualityPairs = Array.from(existingPairs.values())
     .filter(pair => pair.similarityScore > 0.4)
     .sort((a, b) => b.similarityScore - a.similarityScore)
     .slice(0, maxPairs);
-  
+
   if (highQualityPairs.length >= Math.min(3, maxPairs)) {
     console.log(`[ConfusionGenerator] Using ${highQualityPairs.length} high-quality pairs from metadata`);
     return highQualityPairs;
   }
-  
+
   // Otherwise, generate new pairs using Claude with enhanced context
   const conceptContext = concepts
     .filter(c => c.foundationLevel || c.tierLevel === 'Keystone')
@@ -61,7 +61,7 @@ export async function generateSensaAIConfusionPairs(
       tier: c.tierLevel,
       complexity: c.complexityScore
     }));
-  
+
   const prompt = `For the subject "${subject}", identify ${maxPairs} pairs of concepts that learners commonly confuse.
 
 Available concepts with context:
@@ -118,7 +118,7 @@ Return ONLY the JSON array.`;
     }
 
     const pairs: ConfusionPair[] = JSON.parse(jsonMatch[0]);
-    
+
     // Convert to SensaAI format
     return pairs.slice(0, maxPairs).map((pair, index) => ({
       id: pair.id || `generated-conf-${index + 1}`,
@@ -129,7 +129,7 @@ Return ONLY the JSON array.`;
       keyDifferences: [pair.distinctionKey],
       mnemonicDistinguisher: (pair as any).mnemonicDistinguisher || pair.distinctionKey
     }));
-    
+
   } catch (error) {
     console.error('Failed to generate enhanced confusion pairs:', error);
     // Fallback to existing pairs
@@ -141,12 +141,12 @@ Return ONLY the JSON array.`;
  * Generate discrimination questions for a confusion pair
  */
 export async function generateConfusionQuestions(
-    pair: ConfusionPair,
-    _subject: string,  // Reserved for future use in prompt context
-    config: BedrockConfig,
-    questionCount: number = 4
+  pair: ConfusionPair,
+  _subject: string,  // Reserved for future use in prompt context
+  config: BedrockConfig,
+  questionCount: number = 4
 ): Promise<ConfusionQuestion[]> {
-    const prompt = `Create ${questionCount} discrimination questions testing the difference between:
+  const prompt = `Create ${questionCount} discrimination questions testing the difference between:
   
 A: ${pair.conceptA.name} - ${pair.conceptA.description}
 B: ${pair.conceptB.name} - ${pair.conceptB.description}
@@ -171,81 +171,81 @@ OUTPUT JSON ARRAY:
 
 Return ONLY the JSON array.`;
 
-    const client = getBedrockClient(config);
-    const messages = [{ role: 'user' as const, content: prompt }];
+  const client = getBedrockClient(config);
+  const messages = [{ role: 'user' as const, content: prompt }];
 
-    const response = await invokeClaudeModel(
-        client,
-        messages,
-        CONFUSION_SYSTEM_PROMPT,
-        2000
-    );
+  const response = await invokeClaudeModel(
+    client,
+    messages,
+    CONFUSION_SYSTEM_PROMPT,
+    2000
+  );
 
-    try {
-        const jsonMatch = response.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) {
-            throw new Error('No JSON array found in response');
-        }
-
-        const questions: ConfusionQuestion[] = JSON.parse(jsonMatch[0]);
-        return questions.map((q, idx) => ({
-            ...q,
-            id: q.id || `q${idx + 1}`,
-            pairId: pair.id,
-            correctChoice: q.correctChoice === 'A' ? 'A' : 'B',
-        }));
-    } catch (error) {
-        console.error('Failed to parse confusion questions:', error);
-        return [];
+  try {
+    const jsonMatch = response.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      throw new Error('No JSON array found in response');
     }
+
+    const questions: ConfusionQuestion[] = JSON.parse(jsonMatch[0]);
+    return questions.map((q, idx) => ({
+      ...q,
+      id: q.id || `q${idx + 1}`,
+      pairId: pair.id,
+      correctChoice: q.correctChoice === 'A' ? 'A' : 'B',
+    }));
+  } catch (error) {
+    console.error('Failed to parse confusion questions:', error);
+    return [];
+  }
 }
 
 /**
  * Calculate drill result from answers
  */
 export function calculateConfusionDrillResult(
-    pair: ConfusionPair,
-    questions: ConfusionQuestion[],
-    answers: ConfusionAnswer[]
+  pair: ConfusionPair,
+  questions: ConfusionQuestion[],
+  answers: ConfusionAnswer[]
 ): ConfusionDrillResult {
-    const correctAnswers = answers.filter(a => a.correct).length;
-    const validResponses = answers.filter(a => a.selectedChoice !== null);
-    const avgResponseTimeMs = validResponses.length > 0
-        ? Math.round(validResponses.reduce((sum, a) => sum + a.responseTimeMs, 0) / validResponses.length)
-        : 0;
+  const correctAnswers = answers.filter(a => a.correct).length;
+  const validResponses = answers.filter(a => a.selectedChoice !== null);
+  const avgResponseTimeMs = validResponses.length > 0
+    ? Math.round(validResponses.reduce((sum, a) => sum + a.responseTimeMs, 0) / validResponses.length)
+    : 0;
 
-    return {
-        pairId: pair.id,
-        conceptA: pair.conceptA.name,
-        conceptB: pair.conceptB.name,
-        correctAnswers,
-        totalQuestions: questions.length,
-        avgResponseTimeMs,
-        mastered: (correctAnswers / questions.length) >= 0.8,
-        completedAt: new Date().toISOString(),
-    };
+  return {
+    pairId: pair.id,
+    conceptA: pair.conceptA.name,
+    conceptB: pair.conceptB.name,
+    correctAnswers,
+    totalQuestions: questions.length,
+    avgResponseTimeMs,
+    mastered: (correctAnswers / questions.length) >= 0.8,
+    completedAt: new Date().toISOString(),
+  };
 }
 
 /**
  * Get pairs that need review based on past performance
  */
 export function getPairsNeedingReview(
-    allPairs: ConfusionPair[],
-    pastResults: ConfusionDrillResult[]
+  allPairs: ConfusionPair[],
+  pastResults: ConfusionDrillResult[]
 ): ConfusionPair[] {
-    const resultsByPair = new Map<string, ConfusionDrillResult>();
+  const resultsByPair = new Map<string, ConfusionDrillResult>();
 
-    // Get latest result for each pair
-    pastResults.forEach(result => {
-        const existing = resultsByPair.get(result.pairId);
-        if (!existing || result.completedAt > existing.completedAt) {
-            resultsByPair.set(result.pairId, result);
-        }
-    });
+  // Get latest result for each pair
+  pastResults.forEach(result => {
+    const existing = resultsByPair.get(result.pairId);
+    if (!existing || result.completedAt > existing.completedAt) {
+      resultsByPair.set(result.pairId, result);
+    }
+  });
 
-    // Return pairs that haven't been mastered or haven't been attempted
-    return allPairs.filter(pair => {
-        const result = resultsByPair.get(pair.id);
-        return !result || !result.mastered;
-    });
+  // Return pairs that haven't been mastered or haven't been attempted
+  return allPairs.filter(pair => {
+    const result = resultsByPair.get(pair.id);
+    return !result || !result.mastered;
+  });
 }

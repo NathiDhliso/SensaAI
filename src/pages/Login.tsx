@@ -1,14 +1,12 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
-import { LogIn, Loader2, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { LogIn, Loader2, ArrowRight, Sparkles } from 'lucide-react';
 import styles from './Login.module.css';
 
 export function Login() {
     const navigate = useNavigate();
     const location = useLocation();
     const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
-    const [mode, setMode] = useState<'login' | 'signup'>('login');
 
     // Redirect if already authenticated
     if (isAuthenticated) {
@@ -31,9 +29,7 @@ export function Login() {
                     </div>
                     <h1 className={styles.title}>Welcome to SensaPBL</h1>
                     <p className={styles.subtitle}>
-                        {mode === 'login'
-                            ? 'Sign in to continue your learning journey'
-                            : 'Create an account to get started'}
+                        Sign in to continue your learning journey
                     </p>
                 </div>
 
@@ -54,69 +50,14 @@ export function Login() {
                         ) : (
                             <LogIn size={20} />
                         )}
-                        <span>Continue with Cognito</span>
+                        <span>Sign In / Sign Up</span>
                         <ArrowRight size={16} />
                     </button>
-
-                    <div className={styles.divider}>
-                        <span>or</span>
-                    </div>
-
-                    <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
-                        <div className={styles.inputGroup}>
-                            <Mail size={18} className={styles.inputIcon} />
-                            <input
-                                type="email"
-                                placeholder="Email address"
-                                className={styles.input}
-                                disabled={isLoading}
-                            />
-                        </div>
-
-                        <div className={styles.inputGroup}>
-                            <Lock size={18} className={styles.inputIcon} />
-                            <input
-                                type="password"
-                                placeholder="Password"
-                                className={styles.input}
-                                disabled={isLoading}
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            className={styles.secondaryButton}
-                            disabled={isLoading}
-                            onClick={handleCognitoLogin}
-                        >
-                            {mode === 'login' ? 'Sign In' : 'Create Account'}
-                        </button>
-                    </form>
                 </div>
 
                 <div className={styles.footer}>
                     <p>
-                        {mode === 'login' ? (
-                            <>
-                                Don't have an account?{' '}
-                                <button
-                                    className={styles.linkButton}
-                                    onClick={() => setMode('signup')}
-                                >
-                                    Sign up
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                Already have an account?{' '}
-                                <button
-                                    className={styles.linkButton}
-                                    onClick={() => setMode('login')}
-                                >
-                                    Sign in
-                                </button>
-                            </>
-                        )}
+                        Secure authentication provided by AWS Cognito
                     </p>
                 </div>
             </div>

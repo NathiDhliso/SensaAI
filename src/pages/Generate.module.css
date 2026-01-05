@@ -360,7 +360,7 @@
   border-radius: 9999px;
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  box-shadow: 0 0 12px rgba(147, 51, 234, 0.4);
+  box-shadow: var(--shadow-glow-primary);
 }
 
 .progressGlow {
@@ -372,7 +372,7 @@
   height: 1rem;
   background: white;
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 16px rgba(147, 51, 234, 0.6);
+  box-shadow: 0 0 8px var(--overlay-white-80), var(--shadow-glow-primary-hover);
   transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }

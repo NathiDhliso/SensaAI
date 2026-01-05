@@ -34,13 +34,80 @@
   color: var(--color-text-muted);
 }
 
+.primaryButton {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--gradient-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow-primary-hover);
+}
+
 .loading {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   color: var(--color-text-light);
   font-size: 1rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REFERENCE TAB
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.referenceTab {
+  padding: 1.5rem;
+  height: 100%;
+  overflow: auto;
+}
+
+.referenceTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin-bottom: 1rem;
+}
+
+.referenceContent {
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--color-text-light);
+  overflow-x: auto;
+  max-height: calc(100vh - 200px);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -48,9 +115,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .overviewTab {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 1.5rem 3rem;
 }
 
 .statsRow {
@@ -106,6 +171,15 @@
   gap: 0.5rem;
 }
 
+.knowledgeMapContainer {
+  flex: 1;
+  border: 1px solid var(--overlay-accent-10);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  min-height: 600px;
+}
+
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -142,28 +216,6 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text-dark);
-}
-
-
-.graphContainer {
-  flex: 1;
-  border: 1px solid var(--color-accent-light);
-  border-radius: 0.75rem;
-  overflow: hidden;
-  position: relative;
-  background: var(--color-surface);
-  /* Ensure border transparency matches design if needed, using opacity on color or rgba if variable supports it.
-     Using --color-accent-light is solid. If we want opacity, we might need a specific variable or keep it solid.
-     The inline style was `rgba(139, 92, 246, 0.2)`. 
-     --overlay-accent-20 doesn't exist? --overlay-accent-15 does.
-     Let's use a border variable that represents the intended subtlety. 
-     --color-border-emphasis or overlay-accent-15 (but border usually needs color, not bg).
-     Let's stick to --color-border-emphasis or define a local scope. 
-     Actually, let's use `border-color: var(--color-accent-light); opacity: 0.3;` on the border? No.
-     Let's use `border-color: var(--overlay-accent-15);` if it works (it's rgba). 
-     Yes, --overlay-accent-15 is `rgba(139, 92, 246, 0.15)`. Close to 0.2.
-  */
-  border-color: var(--overlay-accent-15);
 }
 
 .sprintPrompt {

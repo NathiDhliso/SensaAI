@@ -214,7 +214,25 @@
   transform: none;
 }
 
+.velocityButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-secondary-sage) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-glow-amber);
+}
 
+.velocityButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow-amber-hover);
+}
 
 .saveButton {
   display: inline-flex;

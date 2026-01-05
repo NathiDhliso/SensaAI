@@ -31,17 +31,24 @@ export class CloudStorage implements StorageProvider {
 
       const credentials = () => {
         const idToken = useAuthStore.getState().tokens?.idToken;
-        if (!idToken) {
-          // Keep this silent to prevent console spam before login
-          throw new Error('Waiting for login...');
+
+        // If we have a token, use it for authenticated access
+        if (idToken) {
+          return fromCognitoIdentityPool({
+            clientConfig: { region: this.region },
+            identityPoolId,
+            logins: {
+              [`cognito-idp.${this.region}.amazonaws.com/${userPoolId}`]: idToken
+            }
+          })();
         }
 
+        // Otherwise, attempt unauthenticated (guest) access
+        // This requires "Enable access to unauthenticated identities" in Cognito Identity Pool settings
         return fromCognitoIdentityPool({
           clientConfig: { region: this.region },
           identityPoolId,
-          logins: {
-            [`cognito-idp.${this.region}.amazonaws.com/${userPoolId}`]: idToken
-          }
+          // No logins map needed for guest access
         })();
       };
 

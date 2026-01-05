@@ -13,23 +13,30 @@
  */
 
 import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
+import { usePalaceStore } from '@/store/palace-store';
+import { storageManager } from '@/lib/storage';
+import { parseAndLoadContent } from '@/lib/content-loader';
 import { StudyLayout, type StudyTab } from '@/components/layout';
 import {
-  LifecycleNavigator,
   CelebrationModal,
   CognitiveGauge,
   NeuralResetBanner,
   SessionSummary,
 } from '@/components/learning';
 import { MindPalaceContainer } from '@/components/palace/FloorPlanView/MindPalaceContainer';
-// Focus session is now merged into learning-store
+import ExteriorView from '@/components/palace/ExteriorView/ExteriorView';
+
+// ... (existing imports)
+
+
 import styles from './Study.module.css';
 
 // Lazy load heavy components
 const Sprint = lazy(() => import('./Sprint'));
+const VelocityLearning = lazy(() => import('./VelocityLearning'));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TAB CONTENT COMPONENTS
@@ -43,9 +50,10 @@ interface OverviewTabProps {
   onStartLearning: (conceptId: string) => void;
   onStartSprint: () => void;
   session: any;
+  navigate: ReturnType<typeof useNavigate>;
 }
 
-function OverviewTab({ onStartLearning, onStartSprint, session }: OverviewTabProps) {
+function OverviewTab({ onStartLearning, onStartSprint, session, navigate }: OverviewTabProps) {
   const {
     getConcepts,
     getStages,
@@ -69,35 +77,6 @@ function OverviewTab({ onStartLearning, onStartSprint, session }: OverviewTabPro
     ? Math.round(((progress?.completedConcepts?.length ?? 0) / concepts.length) * 100)
     : 0;
 
-  // Lifecycle progress calculation
-  const lifecycleProgress = useMemo(() => {
-    if (!hasContent) {
-      return {
-        phase1: { total: 0, completed: 0 },
-        phase2: { total: 0, completed: 0 },
-        phase3: { total: 0, completed: 0 },
-      };
-    }
-
-    const total = concepts.length;
-    const completed = progress?.completedConcepts?.length ?? 0;
-    const perPhase = Math.ceil(total / 3);
-
-    return {
-      phase1: {
-        total: Math.min(perPhase, total),
-        completed: Math.min(completed, perPhase),
-      },
-      phase2: {
-        total: Math.min(perPhase, Math.max(0, total - perPhase)),
-        completed: Math.max(0, Math.min(completed - perPhase, perPhase)),
-      },
-      phase3: {
-        total: Math.max(0, total - perPhase * 2),
-        completed: Math.max(0, completed - perPhase * 2),
-      },
-    };
-  }, [concepts, progress?.completedConcepts, hasContent]);
 
   if (!hasContent) {
     return (
@@ -131,38 +110,44 @@ function OverviewTab({ onStartLearning, onStartSprint, session }: OverviewTabPro
         </div>
       </div>
 
-      {/* Lifecycle Progress */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Learning Phases</h3>
-        <LifecycleNavigator
-          labels={{ phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' }}
-          progress={lifecycleProgress}
-        />
-      </section>
 
       {/* GRAPH MAP - The "Macro" View */}
       <section className={styles.section} style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
         <h3 className={styles.sectionTitle}>Knowledge Map</h3>
 
-        <div className={styles.graphContainer}>
-          <Suspense fallback={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              Loading Map...
+        <div className={styles.knowledgeMapContainer}>
+          {!currentResult?.dependencyGraph && !currentResult?.floorPlan ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>🗺️</div>
+              <h2>No Knowledge Map Available</h2>
+              <p>Create a Memory Palace to visualize your learning journey</p>
+              <button
+                className={styles.primaryButton}
+                onClick={() => navigate('/')}
+              >
+                Go to Home
+              </button>
             </div>
-          }>
-            {/* 
-                  Directly embed MindPalaceContainer in Graph Mode 
-                  This provides the interactive graph we just built
-                */}
-            <MindPalaceContainer
-              initialMode="graph"
-              concepts={concepts}
-              floorPlan={currentResult?.floorPlan}
-              dependencyGraph={currentResult?.dependencyGraph}
-              onConceptSelect={(id: string) => onStartLearning(id)}
-              disableInternalCinematic={true}
-            />
-          </Suspense>
+          ) : (
+            <Suspense fallback={
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                Loading Map...
+              </div>
+            }>
+              {/* 
+                    Directly embed MindPalaceContainer in Graph Mode 
+                    This provides the interactive graph we just built
+                  */}
+              <MindPalaceContainer
+                initialMode="graph"
+                concepts={concepts}
+                floorPlan={currentResult?.floorPlan}
+                dependencyGraph={currentResult?.dependencyGraph}
+                onConceptSelect={(id: string) => onStartLearning(id)}
+                disableInternalCinematic={true}
+              />
+            </Suspense>
+          )}
         </div>
       </section>
 
@@ -216,12 +201,18 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Study() {
   const navigate = useNavigate();
+  const { subjectId } = useParams<{ subjectId: string }>();
+  const [searchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<StudyTab>('overview');
+  // Initialize tab from URL query param or default to overview
+  const initialTab = (searchParams.get('tab') as StudyTab) || 'overview';
+  const [activeTab, setActiveTab] = useState<StudyTab>(initialTab);
   const [learningConceptId, setLearningConceptId] = useState<string | null>(null);
+  const [isHydrating, setIsHydrating] = useState(false);
 
   const {
     getSession,
+    currentSession,
     showCelebration,
     celebrationData,
     dismissCelebration,
@@ -234,6 +225,36 @@ export default function Study() {
 
   const session = getSession();
   const concepts = getConcepts();
+
+  // Hydration Effect: Load data from storage if store is empty or IDs mismatch
+  useEffect(() => {
+    const hydrateFromStorage = async () => {
+      if (!subjectId) return;
+
+      // Check if we already have the correct session loaded
+      if (currentSession?.id === subjectId || currentSession?.subjectId === subjectId) {
+        return;
+      }
+
+      // Need to hydrate from storage
+      setIsHydrating(true);
+      try {
+        const result = await storageManager.loadResult(subjectId);
+        if (result?.fullDocument) {
+          const loadResult = parseAndLoadContent(result.fullDocument, subjectId);
+          if (!loadResult.success) {
+            console.error('Failed to hydrate session:', loadResult.error);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load from storage:', error);
+      } finally {
+        setIsHydrating(false);
+      }
+    };
+
+    hydrateFromStorage();
+  }, [subjectId, currentSession?.id, currentSession?.subjectId]);
 
   // Start learning session on mount
   useEffect(() => {
@@ -284,6 +305,16 @@ export default function Study() {
 
   // Render active tab content
   const renderTabContent = () => {
+    // Show loading spinner while hydrating
+    if (isHydrating) {
+      return (
+        <div className={styles.loading}>
+          <div className={styles.spinner} />
+          <p>Loading session...</p>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'overview':
         return (
@@ -291,12 +322,61 @@ export default function Study() {
             session={session}
             onStartLearning={handleStartLearning}
             onStartSprint={() => setActiveTab('sprint')}
+            navigate={navigate}
           />
         );
 
       case 'learn':
-        // Legacy list-based learning, kept for fallback/preference
-        return <OverviewTab session={session} onStartLearning={handleStartLearning} onStartSprint={() => setActiveTab('sprint')} />; // Reusing overview for now as learn tab is redundant with graph
+        // Silver Bullet: VelocityLearning replaces legacy list view
+        return (
+          <Suspense fallback={<div className={styles.loading}>Loading Velocity Engine...</div>}>
+            <div style={{ height: '100%', minHeight: '600px' }}>
+              <VelocityLearning />
+            </div>
+          </Suspense>
+        );
+
+      case 'palace': {
+        // Check if a Memory Palace exists
+        const palaceState = usePalaceStore.getState();
+
+        if (!palaceState.currentPalace) {
+          return (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>🏰</div>
+              <h2>No Memory Palace Created</h2>
+              <p>Create a Memory Palace to visualize your learning journey with spatial mnemonics.</p>
+              <button
+                className={styles.primaryButton}
+                onClick={() => navigate('/results')}
+              >
+                Go to Home
+              </button>
+            </div>
+          );
+        }
+
+        return (
+          <div style={{ height: '100%', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+            <MindPalaceContainer
+              concepts={concepts}
+              initialMode="exterior"
+              exteriorView={<ExteriorView />}
+            />
+          </div>
+        );
+      }
+
+      case 'reference':
+        // New Reference tab: shows raw fullDocument
+        return (
+          <div className={styles.referenceTab}>
+            <h3 className={styles.referenceTitle}>Source Document</h3>
+            <pre className={styles.referenceContent}>
+              {currentSession?.metadata?.fullDocument || 'No document content available.'}
+            </pre>
+          </div>
+        );
 
       case 'sprint':
         return (

@@ -80,7 +80,25 @@ function generateFallbackGraph(concepts: LearningConcept[]): SubjectGraph {
 
     // Stats
     let foundationCount = 0, keystoneCount = 0, utilityCount = 0;
+
+    // Recalculate tiers based on node position/importance in the absence of rich data
     nodes.forEach(n => {
+        // In a linear fallback chain, early nodes are effectively foundational
+        // Use stage index or centrality to force better distribution
+        const total = nodes.length;
+        // Simple heuristic: Top 20% by connections = Foundation, Next 30% = Keystone
+        if (n.metrics.calculatedTier === 'Utility') {
+            if (n.metrics.totalConnections >= 2) n.metrics.calculatedTier = 'Keystone';
+            if (n.metrics.totalConnections >= 3) n.metrics.calculatedTier = 'Foundation';
+        }
+
+        // Force at least one foundation and keystone if we have enough nodes
+        if (nodes.length >= 3) {
+            const index = nodes.indexOf(n);
+            if (index === 0) n.metrics.calculatedTier = 'Foundation';
+            else if (index === Math.floor(total / 2)) n.metrics.calculatedTier = 'Keystone';
+        }
+
         if (n.metrics.calculatedTier === 'Foundation') foundationCount++;
         else if (n.metrics.calculatedTier === 'Keystone') keystoneCount++;
         else utilityCount++;

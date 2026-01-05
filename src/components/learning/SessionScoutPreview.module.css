@@ -1,0 +1,254 @@
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.phaseContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.header {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    padding: 1.5rem;
+    background: var(--color-surface-base);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.headerIcon {
+    padding: 1rem;
+    background: var(--color-primary-transparent);
+    color: var(--color-primary);
+    border-radius: var(--radius-md);
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: var(--color-text-primary);
+}
+
+.subtitle {
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.scoutContent,
+.previewContent {
+    background: var(--color-surface-base);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    padding: 1.5rem;
+    min-height: 400px;
+}
+
+.viewTabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1rem;
+}
+
+.tab {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.activeTab {
+    background: var(--color-surface-subtle);
+    color: var(--color-primary);
+}
+
+.conceptList {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.groupTitle {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+}
+
+.cardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.conceptCard {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--color-surface-subtle);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.conceptCard:hover {
+    border-color: var(--color-border-hover);
+    transform: translateY(-2px);
+}
+
+.conceptIcon {
+    color: var(--color-text-secondary);
+}
+
+.conceptName {
+    font-weight: 500;
+    flex: 1;
+}
+
+.conceptTier {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    background: var(--color-surface-base);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-tertiary);
+}
+
+.mapView {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background: var(--color-surface-subtle);
+    border-radius: var(--radius-md);
+}
+
+.mapPlaceholder {
+    text-align: center;
+    color: var(--color-text-tertiary);
+}
+
+.hint {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.actionFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--color-surface-base);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.hintBox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-accent-subtle);
+    border-radius: var(--radius-md);
+    color: var(--color-accent-text);
+}
+
+.primaryButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.primaryButton:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+}
+
+/* Preview Styles */
+.alertBox {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--color-warning-subtle);
+    color: var(--color-warning-text);
+    border-radius: var(--radius-md);
+    margin-bottom: 2rem;
+}
+
+.questionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.questionCard {
+    padding: 1.5rem;
+    background: var(--color-surface-subtle);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.questionHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+}
+
+.questionType {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.relatedConcept {
+    color: var(--color-text-tertiary);
+}
+
+.questionText {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.reflectionInput input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--color-surface-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+}
+
+.reflectionInput input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}

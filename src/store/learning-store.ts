@@ -10,6 +10,7 @@ import type {
   StudyGoal,
   LifecyclePhaseKey,
   EnhancedCognitiveMetrics,
+  SessionPrimer,
 } from '@/lib/types/learning';
 import type { SprintResult } from '@/lib/types/sprint';
 
@@ -30,6 +31,7 @@ export type ContentMetadata = {
   foundationConcepts?: number;        // Count of foundation-level concepts eligible for diagnostics
   diagnosticReady?: boolean;          // True if enough foundation concepts for diagnostic assessments
   metadataCompleteness?: number;      // 0-100% - completeness of learning metadata for velocity engine
+  fullDocument?: string;              // Raw generated document for reference tab
 };
 
 /**
@@ -163,6 +165,12 @@ const createStudySession = (
   breaksTaken: 0,
   isActive: true,
   goalAchieved: false,
+  // Phase 0: Prime
+  primer: null,
+  // Phase 1: Scout
+  scouted: false,
+  // Phase 1.5: Preview
+  previewed: false,
 });
 
 const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]): UserProgress => {
@@ -284,6 +292,9 @@ type LearningActions = {
 
   // Study Session Actions
   startStudySession: (goal: StudyGoal, duration: number, targetConcepts?: string[]) => void;
+  setSessionPrimer: (primer: SessionPrimer) => void;
+  markSessionScouted: () => void;
+  markSessionPreviewed: () => void;
   endStudySession: () => void;
   updateStudyMetrics: (metrics: Partial<EnhancedCognitiveMetrics>) => void;
   completeStudySessionConcept: (conceptId: string, phase?: LifecyclePhaseKey) => void;
@@ -492,6 +503,39 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const subjectId = state.currentSession?.subjectId || 'unknown';
         const session = createStudySession(subjectId, goal, duration, targetConcepts);
         set({ studySession: session, showSessionModal: false });
+      },
+
+      setSessionPrimer: (primer) => {
+        const state = get();
+        if (!state.studySession) return;
+        set({
+          studySession: {
+            ...state.studySession,
+            primer
+          }
+        });
+      },
+
+      markSessionScouted: () => {
+        const state = get();
+        if (!state.studySession) return;
+        set({
+          studySession: {
+            ...state.studySession,
+            scouted: true
+          }
+        });
+      },
+
+      markSessionPreviewed: () => {
+        const state = get();
+        if (!state.studySession) return;
+        set({
+          studySession: {
+            ...state.studySession,
+            previewed: true
+          }
+        });
       },
 
       endStudySession: () => {

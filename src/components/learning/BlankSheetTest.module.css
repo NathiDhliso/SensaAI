@@ -9,6 +9,7 @@
     justify-content: center;
     padding: var(--spacing-4);
     min-height: 400px;
+    width: 100%;
 }
 
 /* ============================================================================
@@ -16,20 +17,43 @@
    ============================================================================ */
 
 .testCard {
+    position: relative;
     background: var(--card-bg);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-xl);
     max-width: 640px;
     width: 100%;
     overflow: hidden;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(8px);
+    isolation: isolate;
+}
+
+/* Texture overlay */
+.testCard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("/assets/paper-texture.png");
+    background-size: cover;
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: -1;
+    mix-blend-mode: multiply;
+}
+
+/* Dark mode texture adjustment */
+:global(.dark) .testCard::before {
+    opacity: 0.15;
+    mix-blend-mode: overlay;
+    filter: invert(1);
 }
 
 .header {
     display: flex;
     align-items: center;
-    gap: var(--spacing-3);
-    padding: var(--spacing-5);
+    gap: var(--spacing-4);
+    padding: var(--spacing-6);
     background: var(--overlay-primary-5);
     border-bottom: 1px solid var(--border-subtle);
 }
@@ -38,18 +62,22 @@
     width: 48px;
     height: 48px;
     border-radius: var(--radius-lg);
-    background: var(--overlay-primary-10);
+    background: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
 }
 
 .title {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
     color: var(--text-primary);
     margin: 0;
+    line-height: 1.2;
 }
 
 .subtitle {
@@ -60,29 +88,35 @@
 
 .subtitle strong {
     color: var(--primary);
+    font-weight: 600;
 }
 
 .prompt {
-    padding: var(--spacing-4) var(--spacing-5);
-    background: var(--bg-secondary);
+    padding: var(--spacing-5) var(--spacing-6);
+    background: var(--overlay-primary-5);
     border-bottom: 1px solid var(--border-subtle);
 }
 
 .prompt p {
+    font-weight: 600;
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin: 0 0 var(--spacing-2);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-3);
 }
 
 .prompt ul {
     margin: 0;
     padding-left: var(--spacing-4);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-1);
 }
 
 .prompt li {
     font-size: var(--font-size-sm);
-    color: var(--text-muted);
-    padding: var(--spacing-1) 0;
+    color: var(--text-secondary);
+    list-style-type: disc;
+    padding-left: var(--spacing-1);
 }
 
 /* ============================================================================
@@ -90,47 +124,51 @@
    ============================================================================ */
 
 .textareaWrapper {
-    padding: var(--spacing-5);
+    padding: var(--spacing-6);
+    background: transparent;
 }
 
 .textarea {
     width: 100%;
-    min-height: 200px;
+    min-height: 240px;
     padding: var(--spacing-4);
-    background: var(--bg-secondary);
+    background: var(--surface);
     border: 2px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     font-size: var(--font-size-md);
     color: var(--text-primary);
-    font-family: inherit;
+    font-family: var(--font-body);
     line-height: 1.6;
     resize: vertical;
-    transition: border-color 0.2s ease;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
 }
 
 .textarea:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: var(--shadow-glow-primary-hover);
+    box-shadow: var(--shadow-glow-primary);
 }
 
 .textarea::placeholder {
     color: var(--text-muted);
+    font-style: italic;
 }
 
 .textareaFooter {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: var(--spacing-2);
+    margin-top: var(--spacing-3);
     padding: 0 var(--spacing-1);
 }
 
 .charCount {
     display: flex;
     align-items: center;
-    gap: var(--spacing-1);
+    gap: var(--spacing-2);
     font-size: var(--font-size-xs);
+    font-weight: 500;
     color: var(--warning);
 }
 
@@ -144,6 +182,7 @@
     gap: var(--spacing-2);
     font-size: var(--font-size-xs);
     color: var(--text-muted);
+    font-family: var(--font-mono);
 }
 
 /* ============================================================================
@@ -153,8 +192,8 @@
 .actions {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-2);
-    padding: 0 var(--spacing-5) var(--spacing-5);
+    gap: var(--spacing-3);
+    padding: 0 var(--spacing-6) var(--spacing-6);
 }
 
 .submitButton {
@@ -168,19 +207,22 @@
     border: none;
     border-radius: var(--radius-md);
     font-size: var(--font-size-md);
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: var(--shadow-md);
 }
 
 .submitButton:hover:not(:disabled) {
     background: var(--primary-hover);
     box-shadow: var(--shadow-glow-primary-hover);
+    transform: translateY(-1px);
 }
 
 .submitButton:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
+    box-shadow: none;
 }
 
 .skipButton {
@@ -194,7 +236,8 @@
 }
 
 .skipButton:hover {
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    text-decoration: underline;
 }
 
 /* ============================================================================
@@ -202,50 +245,49 @@
    ============================================================================ */
 
 .resultsCard {
-    background: var(--card-bg);
+    background: var(--surface);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-xl);
     max-width: 560px;
     width: 100%;
     padding: var(--spacing-6);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
 }
 
 .scoreSection {
     text-align: center;
-    margin-bottom: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
 }
 
 .scoreCircle {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 0 auto var(--spacing-3);
-    border: 4px solid;
+    margin: 0 auto var(--spacing-4);
+    border: 6px solid;
+    background: var(--bg-neutral);
 }
 
 .scoreGood {
-    background: var(--overlay-emerald-10);
+    background: var(--color-success-bg);
     border-color: var(--success);
+    color: var(--success);
 }
 
 .scoreOkay {
-    background: var(--overlay-amber-10);
+    background: var(--color-warning-bg);
     border-color: var(--warning);
+    color: var(--warning);
 }
 
 .scoreLow {
-    background: var(--overlay-red-10);
+    background: var(--color-error-bg);
     border-color: var(--error);
-}
-
-.scoreValue {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
+    color: var(--error);
 }
 
 .scoreGood .scoreValue {
@@ -260,38 +302,57 @@
     color: var(--error);
 }
 
+.scoreValue {
+    font-size: var(--font-size-4xl);
+    font-weight: 800;
+    font-family: var(--font-display);
+    line-height: 1;
+}
+
 .scoreLabel {
     font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--text-secondary);
+    margin-top: var(--spacing-1);
 }
 
 .resultsTitle {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
     color: var(--text-primary);
     margin: 0;
 }
 
 .metricsRow {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-4);
-    padding: var(--spacing-3);
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-4);
+    background: var(--bg-neutral);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-6);
 }
 
 .metricItem {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--spacing-1);
+    gap: var(--spacing-2);
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
+    text-align: center;
 }
 
 .metricItem svg {
     color: var(--primary);
+    opacity: 0.8;
+}
+
+.metricItem span {
+    font-weight: 500;
 }
 
 /* ============================================================================
@@ -299,7 +360,7 @@
    ============================================================================ */
 
 .pointsSection {
-    margin-bottom: var(--spacing-4);
+    margin-bottom: var(--spacing-5);
 }
 
 .pointsTitle {
@@ -307,9 +368,11 @@
     align-items: center;
     gap: var(--spacing-2);
     font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin: 0 0 var(--spacing-2);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-3);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
 .successIcon {
@@ -328,29 +391,32 @@
     list-style: none;
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
 }
 
 .pointsList li {
-    padding: var(--spacing-2) var(--spacing-3);
-    border-radius: var(--radius-sm);
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
-    margin-bottom: var(--spacing-1);
+    line-height: 1.5;
 }
 
 .pointSuccess {
-    background: var(--overlay-emerald-10);
-    color: var(--success);
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
     border-left: 3px solid var(--success);
 }
 
 .pointMissed {
-    background: var(--overlay-amber-10);
-    color: var(--text-primary);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
     border-left: 3px solid var(--warning);
 }
 
 .pointUncertain {
-    background: var(--bg-secondary);
+    background: var(--bg-neutral);
     color: var(--text-secondary);
     border-left: 3px solid var(--text-muted);
 }
@@ -363,13 +429,15 @@
     border: none;
     border-radius: var(--radius-md);
     font-size: var(--font-size-md);
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-top: var(--spacing-2);
+    margin-top: var(--spacing-4);
+    box-shadow: var(--shadow-md);
 }
 
 .continueButton:hover {
     background: var(--primary-hover);
-    box-shadow: var(--shadow-glow-primary-hover);
+    box-shadow: var(--shadow-glow-primary);
+    transform: translateY(-1px);
 }
