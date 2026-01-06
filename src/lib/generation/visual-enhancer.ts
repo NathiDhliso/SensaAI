@@ -1,7 +1,7 @@
 import type { BedrockConfig } from './claude-client';
 import { getBedrockClient } from './claude-client';
 import { generateTitanImage } from './image-generator';
-import { parseGeneratedContent } from '@/lib/content-adapter/parser';
+import { parseGeneratedContent } from '@/lib/content-adapter';
 
 export async function enhanceWithVisuals(
     content: string,

@@ -207,7 +207,7 @@ export default function Study() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         subjectName={subjectName}
-        showLifecycleNav={false}
+
         headerActions={
           <CognitiveGauge compact />
         }

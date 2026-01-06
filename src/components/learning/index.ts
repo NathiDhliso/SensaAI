@@ -1,4 +1,3 @@
-export { default as JourneyMap } from './JourneyMap';
 export { default as ConceptCard } from './ConceptCard';
 export { default as CelebrationModal } from './CelebrationModal';
 export { LearningToolbar, FocusTimer, ProgressAnalytics, QuickQuiz } from './LearningToolbar';
@@ -7,11 +6,6 @@ export { default as NeuralResetBanner } from './NeuralResetModal';
 export { default as ConfusionDrill } from './ConfusionDrill';
 export { UnifiedSessionBar } from './UnifiedSessionBar';
 export { SessionSummary } from './SessionSummary';
-export { LifecycleFlow, LifecyclePhaseStep } from './LifecyclePhaseStep';
-export { LifecycleNavigator } from './LifecycleNavigator';
-export type { LifecycleLabels, PhaseProgress, LifecycleNavigatorProps } from './LifecycleNavigator';
-export { ConceptChunks } from './ConceptChunks';
-export type { ConceptChunksProps } from './ConceptChunks';
 
 // SENSA Phase 3: Study - Prerequisite Gates
 export { PrerequisiteCheck, usePrerequisiteCheck } from './PrerequisiteCheck';

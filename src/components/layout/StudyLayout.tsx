@@ -8,7 +8,7 @@
  * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md
  */
 
-import { useState, useCallback, useMemo, type ReactNode } from 'react';
+import { useState, useCallback, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -23,7 +23,7 @@ import {
 import { useLearningStore } from '@/store/learning-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { getRecommendedTab } from '@/lib/learning/profile-detector';
-import { LifecycleNavigator } from '@/components/learning';
+
 import styles from './StudyLayout.module.css';
 
 export type StudyTab = 'learn' | 'reference';
@@ -37,8 +37,7 @@ interface StudyLayoutProps {
   subjectName?: string;
   /** Child content to render in main area */
   children: ReactNode;
-  /** Whether to show the lifecycle navigator */
-  showLifecycleNav?: boolean;
+
   /** Custom header actions (right side) */
   headerActions?: ReactNode;
 }
@@ -79,7 +78,7 @@ export function StudyLayout({
   onTabChange,
   subjectName,
   children,
-  showLifecycleNav = true,
+
   headerActions
 }: StudyLayoutProps) {
   const navigate = useNavigate();
@@ -87,7 +86,6 @@ export function StudyLayout({
 
   const {
     getSession,
-    getConcepts,
     getCognitiveLoadLevel
   } = useLearningStore();
 
@@ -96,48 +94,9 @@ export function StudyLayout({
   const recommendedTab = getRecommendedTab(inferredProfile);
 
   const session = getSession();
-  const concepts = getConcepts();
   const cognitiveLevel = getCognitiveLoadLevel();
-  const progress = session?.progress;
 
-  // Calculate progress for lifecycle navigator
-  const lifecycleProgress = useMemo(() => {
-    const progressData = concepts.reduce((acc, concept) => {
-      // Determine phase based on lifecycle presence
-      const hasPhase1 = !!concept.lifecycle?.phase1;
-      const hasPhase2 = !!concept.lifecycle?.phase2;
-      const hasPhase3 = !!concept.lifecycle?.phase3;
-      const isCompleted = progress?.completedConcepts.includes(concept.id) ?? false;
 
-      // Count concepts by phase (simplified - assumes all concepts have all phases)
-      if (hasPhase1) {
-        acc.phase1.total++;
-        if (isCompleted) acc.phase1.completed++;
-      }
-      if (hasPhase2) {
-        acc.phase2.total++;
-        if (isCompleted) acc.phase2.completed++;
-      }
-      if (hasPhase3) {
-        acc.phase3.total++;
-        if (isCompleted) acc.phase3.completed++;
-      }
-      return acc;
-    }, {
-      phase1: { total: 0, completed: 0 },
-      phase2: { total: 0, completed: 0 },
-      phase3: { total: 0, completed: 0 },
-    });
-
-    return progressData;
-  }, [concepts, progress?.completedConcepts]);
-
-  // Default lifecycle labels
-  const lifecycleLabels = {
-    phase1: 'PREPARE',
-    phase2: 'MODEL',
-    phase3: 'DELIVER',
-  };
 
   const displaySubject = subjectName || session?.subject || 'Study Session';
 
@@ -277,14 +236,7 @@ export function StudyLayout({
         </div>
       </header>
 
-      {/* Lifecycle Progress Bar */}
-      {showLifecycleNav && concepts.length > 0 && (
-        <LifecycleNavigator
-          labels={lifecycleLabels}
-          progress={lifecycleProgress}
-          compact={true}
-        />
-      )}
+
 
       {/* Main Content */}
       <main className={styles.main}>

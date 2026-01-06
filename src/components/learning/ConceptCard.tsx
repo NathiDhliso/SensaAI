@@ -3,7 +3,7 @@ import { Check, Lightbulb } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { renderShapeOrIcon } from '@/components/ui';
 import SpeedReaderBar from '@/components/ui/SpeedReaderBar';
-import { LifecycleFlow } from './LifecyclePhaseStep';
+
 import styles from './ConceptCard.module.css';
 
 interface ConceptCardProps {
@@ -98,9 +98,7 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
 
         {activeTab === 'how' && (
           <div className={styles.howContent}>
-            {concept.lifecycle ? (
-              <LifecycleFlow lifecycle={concept.lifecycle} />
-            ) : concept.howToUse ? (
+            {concept.howToUse ? (
               <ol className={styles.stepList}>
                 {concept.howToUse.map((step, index) => (
                   <li key={index} className={styles.stepItem}>

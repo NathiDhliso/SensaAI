@@ -26,7 +26,7 @@ interface ContentJsonFile {
     fullDocument: string;
 }
 
-type ParseResult = {
+export type ParseResult = {
     success: true;
     data: ParsedGeneratedContent;
 } | {
