@@ -148,7 +148,7 @@ Return a JSON object with concept IDs as keys:
   ]
 }`;
 
-  const client = getBedrockClient(config);
+  const client = await getBedrockClient(config);
   const messages = [{ role: 'user' as const, content: prompt }];
 
   console.log('[DiagnosticGenerator] Calling Claude API for batch generation...');

@@ -1,6 +1,5 @@
 .container {
-  height: 100vh;
-  overflow-y: auto;
+  min-height: 100vh;
   background-color: var(--color-bg-primary);
   background-image:
     radial-gradient(at 0% 0%, var(--color-bg-tertiary) 0px, transparent 50%),
@@ -8,9 +7,8 @@
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  /* Remove force centering that causes overflow cutting */
-  /* align-items: center; */
-  /* justify-content: center; */
+  align-items: center;
+  justify-content: center;
 }
 
 .wrapper {
@@ -19,27 +17,6 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  /* Safe centering: auto margins handle overflow gracefully */
-  margin: auto;
-}
-
-@media (max-height: 900px) {
-  .container {
-    padding: 1rem;
-  }
-
-  .wrapper {
-    gap: 1.5rem;
-  }
-
-  .header {
-    gap: 0.5rem;
-  }
-
-  .title {
-    font-size: 2.5rem;
-    /* Reduced from 5xl (3rem) */
-  }
 }
 
 .header {

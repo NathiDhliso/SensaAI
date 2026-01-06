@@ -14,7 +14,7 @@ export async function enhanceWithVisuals(
         return content;
     }
 
-    const client = getBedrockClient(config);
+    const client = await getBedrockClient(config);
     let enhancedContent = content;
 
     // Filter for Foundation concepts that have an anchor but NO image yet

@@ -1,15 +1,19 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   background: transparent;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .wrapper {
   max-width: 48rem;
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  margin: auto;
 }
 
 .backButton {

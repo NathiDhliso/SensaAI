@@ -199,6 +199,11 @@
     height: 100%;
     min-height: 700px;
   }
+
+  .mapContainer:has(.emptyState) {
+    min-height: auto;
+    height: auto;
+  }
 }
 
 .sectionTitle {
@@ -218,6 +223,11 @@
   overflow: hidden;
   position: relative;
   min-height: 600px;
+}
+
+.knowledgeMapContainer:has(.emptyState) {
+  min-height: auto;
+  height: auto;
 }
 
 .metricsGrid {

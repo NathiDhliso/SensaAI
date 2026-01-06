@@ -77,7 +77,7 @@ Questions should:
 
 Return ONLY the JSON array, no other text.`;
 
-    const client = getBedrockClient(config);
+    const client = await getBedrockClient(config);
     const messages = [{ role: 'user' as const, content: prompt }];
 
     console.log('Sprint Generator: Calling Bedrock API...');

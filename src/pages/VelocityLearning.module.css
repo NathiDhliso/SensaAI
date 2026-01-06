@@ -1,9 +1,8 @@
 .container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100%;
     background-color: var(--color-bg-primary);
-    overflow: hidden;
     /* Reactive Environment: Vignette based on load */
     /* As load increases, the vignette gets darker and tighter */
     transition: box-shadow 5s ease-in-out;
@@ -42,7 +41,6 @@
 .content {
     flex: 1;
     position: relative;
-    overflow-y: auto;
     padding: 2rem;
     display: grid;
     grid-template-columns: 1fr;

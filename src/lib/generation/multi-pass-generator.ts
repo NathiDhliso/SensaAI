@@ -60,7 +60,7 @@ export async function generateChartIteratively(
   onProgress: ProgressCallback,
   abortSignal?: AbortSignal
 ): Promise<GenerationResult> {
-  const bedrockClient = getBedrockClient(config);
+  const bedrockClient = await getBedrockClient(config);
 
   // Get aphantasia mode and familiar system for prompt adaptation
   const { aphantasiaMode, familiarSystem } = usePersonalizationStore.getState();

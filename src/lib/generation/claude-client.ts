@@ -27,7 +27,14 @@ export type BedrockTool = {
 let clientInstance: BedrockRuntimeClient | null = null;
 let currentRegion: string | null = null;
 
-export function getBedrockClient(config: BedrockConfig): BedrockRuntimeClient {
+export async function getBedrockClient(config: BedrockConfig): Promise<BedrockRuntimeClient> {
+  // Always try to get a fresh access token (which handles refresh if needed)
+  // We don't use the access token here directly, but calling this ensures the
+  // idToken in the store is also fresh if a refresh occurred.
+  if (config.useCognito) {
+    await useAuthStore.getState().getAccessToken();
+  }
+
   const idToken = config.useCognito ? useAuthStore.getState().tokens?.idToken : undefined;
   // Include idToken in cache key so we recreate client when token refreshes
   const configKey = JSON.stringify({ ...config, idTokenHash: idToken ? idToken.substring(idToken.length - 20) : 'none' });
@@ -39,9 +46,10 @@ export function getBedrockClient(config: BedrockConfig): BedrockRuntimeClient {
       const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID;
       const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
 
-      const idToken = useAuthStore.getState().tokens?.idToken;
+      // Re-fetch token from store after potential refresh
+      const currentIdToken = useAuthStore.getState().tokens?.idToken;
 
-      if (!identityPoolId || !userPoolId || !idToken) {
+      if (!identityPoolId || !userPoolId || !currentIdToken) {
         throw new Error('Cognito configuration missing or user not authenticated');
       }
 
@@ -49,7 +57,7 @@ export function getBedrockClient(config: BedrockConfig): BedrockRuntimeClient {
         clientConfig: { region: config.region },
         identityPoolId,
         logins: {
-          [`cognito-idp.${config.region}.amazonaws.com/${userPoolId}`]: idToken
+          [`cognito-idp.${config.region}.amazonaws.com/${userPoolId}`]: currentIdToken
         }
       });
     } else if (config.accessKeyId && config.secretAccessKey) {

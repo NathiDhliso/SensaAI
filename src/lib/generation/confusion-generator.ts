@@ -103,7 +103,7 @@ OUTPUT JSON ARRAY:
 Return ONLY the JSON array.`;
 
   try {
-    const client = getBedrockClient(config);
+    const client = await getBedrockClient(config);
     const messages = [{ role: 'user' as const, content: prompt }];
 
     const response = await invokeClaudeModel(
@@ -171,7 +171,7 @@ OUTPUT JSON ARRAY:
 
 Return ONLY the JSON array.`;
 
-  const client = getBedrockClient(config);
+  const client = await getBedrockClient(config);
   const messages = [{ role: 'user' as const, content: prompt }];
 
   const response = await invokeClaudeModel(
