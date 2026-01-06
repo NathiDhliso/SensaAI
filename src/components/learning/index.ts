@@ -29,9 +29,9 @@ export type { BlankSheetTestProps, BlankSheetResult, TypingMetrics } from './Bla
 export { VelocityDashboard } from './VelocityDashboard';
 export type { VelocityMetrics, RetentionMetrics, OptimalAction, VelocityDashboardProps } from './VelocityDashboard';
 
-// SensaAI Learning Velocity Engine: Confusion Prevention
-export { ConfusionPrevention, findConfusionPairs } from './ConfusionPrevention';
-export type { ConfusionPair, ConfusionDrillResult, ConfusionPreventionProps } from './ConfusionPrevention';
+// SensaAI Learning Velocity Engine: Confusion Prevention - DEPRECATED/REMOVED
+// export { ConfusionPrevention, findConfusionPairs } from './ConfusionPrevention';
+// export type { ConfusionPair, ConfusionDrillResult, ConfusionPreventionProps } from './ConfusionPrevention';
 
 // SensaAI Learning Velocity Engine: Session Goal Manager
 export { SessionGoalManager } from './SessionGoalManager';

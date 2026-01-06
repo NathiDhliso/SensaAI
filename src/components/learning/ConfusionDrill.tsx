@@ -12,7 +12,7 @@ import { UI_TIMINGS } from '@/constants/ui-constants';
 import { useLearningStore } from '@/store/learning-store';
 import { usePauseGlobalTimer } from '@/hooks';
 import { calculateConfusionDrillResult } from '@/lib/generation/confusion-generator';
-import type { ConfusionPair, ConfusionQuestion, ConfusionAnswer, ConfusionDrillResult } from '@/lib/types/confusion';
+import type { ConfusionPair, ConfusionQuestion, ConfusionAnswer, ConfusionDrillResult } from '@/lib/generation/confusion-generator';
 import styles from './ConfusionDrill.module.css';
 
 const TIME_PER_QUESTION_MS = UI_TIMINGS.CONFUSION_QUESTION_MS;
@@ -180,9 +180,9 @@ export default function ConfusionDrill({
 
                 {/* Concepts being compared */}
                 <div className={styles.vsSection}>
-                    <span className={styles.conceptLabel}>{pair.conceptA.name}</span>
+                    <span className={styles.conceptLabel}>{pair.concept1.name}</span>
                     <span className={styles.vsText}>vs</span>
-                    <span className={styles.conceptLabel}>{pair.conceptB.name}</span>
+                    <span className={styles.conceptLabel}>{pair.concept2.name}</span>
                 </div>
 
                 {/* Scenario */}

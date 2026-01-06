@@ -23,7 +23,9 @@ import { renderShapeOrIcon } from '@/components/ui/SensaShape';
 import { VELOCITY_CONFIG } from '@/constants/ui-constants';
 
 import BlankSheetTest from './BlankSheetTest';
-import ConfusionPrevention, { findConfusionPairs } from './ConfusionPrevention';
+import ConfusionDrill from './ConfusionDrill';
+import { findConfusionPairs, generateConfusionQuestions } from '@/lib/generation/confusion-generator';
+import type { ConfusionDrillResult, ConfusionPair } from '@/lib/generation/confusion-generator';
 import styles from './MicroLearningLoopController.module.css';
 
 // ============================================================================
@@ -592,6 +594,10 @@ export function MicroLearningLoopController({
 
     const { recordInteraction } = useLearningStore();
 
+    // State for Confusion Drill Queue
+    const [confusionQueue, setConfusionQueue] = useState<ConfusionPair[]>([]);
+    const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
+
     // Calculate adaptive loop duration based on concept complexity and user velocity
     const loopDuration = useMemo(() =>
         calculateLoopDuration(complexityScore, userVelocity),
@@ -659,8 +665,13 @@ export function MicroLearningLoopController({
         // If mastered AND has potential confusion pairs, go to confusion phase
         // This ensures we only clarify confusion for concepts the user is starting to get right
         if (hasConfusionPairs && phase !== 'confusion') {
-            setPhase('confusion');
-            return;
+            const pairs = findConfusionPairs(concept, allConcepts || []);
+            if (pairs.length > 0) {
+                setConfusionQueue(pairs);
+                setCurrentDrillIndex(0);
+                setPhase('confusion');
+                return;
+            }
         }
 
         onLoopComplete(outcome, finalTimeSpent);
@@ -730,18 +741,29 @@ export function MicroLearningLoopController({
                             onComplete={handleVerifyComplete}
                         />
                     )}
-                    {phase === 'confusion' && allConcepts && (
-                        <ConfusionPrevention
-                            key="confusion"
-                            currentConcept={concept}
-                            allConcepts={allConcepts}
-                            onDrillComplete={(res) => {
-                                const outcome = testResult && verifyResultData
-                                    ? determineOutcome(testResult, verifyResultData)
-                                    : 'mastered';
-                                onLoopComplete(outcome, totalTimeSpent + res.timeSpent);
+                    {phase === 'confusion' && confusionQueue.length > 0 && currentDrillIndex < confusionQueue.length && (
+                        <ConfusionDrill
+                            key={`drill-${confusionQueue[currentDrillIndex].concept2.id}`}
+                            pair={confusionQueue[currentDrillIndex]}
+                            questions={generateConfusionQuestions(confusionQueue[currentDrillIndex])}
+                            onComplete={(res: ConfusionDrillResult) => {
+                                // Accumulate time
+                                const newTime = totalTimeSpent + res.timeSpent;
+                                setTotalTimeSpent(newTime);
+
+                                // Advance to next drill or finish
+                                if (currentDrillIndex < confusionQueue.length - 1) {
+                                    setCurrentDrillIndex(prev => prev + 1);
+                                } else {
+                                    // All drills done
+                                    const outcome = testResult && verifyResultData
+                                        ? determineOutcome(testResult, verifyResultData)
+                                        : 'mastered';
+                                    onLoopComplete(outcome, newTime);
+                                }
                             }}
-                            onSkip={() => {
+                            onClose={() => {
+                                // Allow early exit
                                 const outcome = testResult && verifyResultData
                                     ? determineOutcome(testResult, verifyResultData)
                                     : 'mastered';

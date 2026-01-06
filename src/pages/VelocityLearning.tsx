@@ -203,7 +203,7 @@ export default function VelocityLearning() {
         );
     }
 
-    // 2. Active Learning Interface
+    // 3. Active Learning Interface
     return (
         <div className={styles.container} style={{
             // Reactive Environment: Vignette based on load
