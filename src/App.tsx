@@ -81,7 +81,7 @@ function App() {
 
           {/*
            * Unified Study Command Center
-           * Combines Overview, Learn, Palace, and Sprint into tabbed interface
+           * Combines Overview and Learning modes into tabbed interface
            * Phase 2.1 of Silver Bullet Architecture
            */}
           <Route path="/study/:subjectId" element={

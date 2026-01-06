@@ -90,6 +90,11 @@ export const UI_TIMINGS = {
   PANEL_EXIT_DELAY: 300,            // Delay for panel close animations
   ONE_SECOND: 1000,                 // Standard 1s interval
   TOUR_INTERVAL: 8000,              // 8 seconds per tour stop
+  NEXT_TICK: 100,                   // Generic next-tick delay for state transitions
+
+  // Drill timings
+  CONFUSION_QUESTION_MS: 15000,     // 15 seconds per confusion drill question
+  MASTERY_TIME_SECONDS: 600,        // 10 minutes for mastery challenge
 } as const;
 
 /**

@@ -68,8 +68,7 @@ const TABS: TabConfig[] = [
  * StudyLayout provides a consistent wrapper for all study-related pages.
  * 
  * Features:
- * - Tab navigation (Overview, Learn, Palace, Sprint)
- * - Lifecycle progress bar
+ * - Tab navigation (Overview, Velocity Learning)
  * - Session info header
  * - Cognitive load indicator
  */

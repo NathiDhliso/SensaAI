@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { FOCUS_SESSION_CONFIG } from '@/constants/ui-constants';
+import { FOCUS_SESSION_CONFIG, UI_TIMINGS } from '@/constants/ui-constants';
 import { STORAGE_KEYS } from '@/constants/storage-keys';
 import type {
   UserProgress,
@@ -1206,7 +1206,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
 
       skipToBreak: () => {
         get().endFocusSession();
-        setTimeout(() => get().startBreak(), 100);
+        setTimeout(() => get().startBreak(), UI_TIMINGS.NEXT_TICK);
       },
 
       tick: () => {

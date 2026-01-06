@@ -10,11 +10,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import { useLearningStore } from '@/store/learning-store';
+import { usePauseGlobalTimer } from '@/hooks';
 import { calculateConfusionDrillResult } from '@/lib/generation/confusion-generator';
 import type { ConfusionPair, ConfusionQuestion, ConfusionAnswer, ConfusionDrillResult } from '@/lib/types/confusion';
 import styles from './ConfusionDrill.module.css';
 
-const TIME_PER_QUESTION_MS = 15000; // 15 seconds per question
+const TIME_PER_QUESTION_MS = UI_TIMINGS.CONFUSION_QUESTION_MS;
 
 interface ConfusionDrillProps {
     pair: ConfusionPair;
@@ -31,12 +32,15 @@ export default function ConfusionDrill({
 }: ConfusionDrillProps) {
     const { recordInteraction } = useLearningStore();
 
+    // Pause global focus session timer during drill
+    usePauseGlobalTimer();
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<ConfusionAnswer[]>([]);
     const [selectedChoice, setSelectedChoice] = useState<'A' | 'B' | null>(null);
     const [showFeedback, setShowFeedback] = useState(false);
     const [isComplete, setIsComplete] = useState(false);
-    const [timeRemaining, setTimeRemaining] = useState(TIME_PER_QUESTION_MS);
+    const [timeRemaining, setTimeRemaining] = useState<number>(TIME_PER_QUESTION_MS);
     const [questionStartTime, setQuestionStartTime] = useState(Date.now());
 
     const currentQuestion = questions[currentIndex];

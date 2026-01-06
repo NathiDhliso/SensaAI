@@ -13,6 +13,9 @@ import {
     AlertTriangle
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
+import { UI_TIMINGS } from '@/constants/ui-constants';
+import { DEFAULT_MASTERY_SCENARIO } from '@/constants/learning-content';
+import { usePauseGlobalTimer } from '@/hooks';
 import styles from './MasteryChallenge.module.css';
 
 interface MasteryChallengeProps {
@@ -25,9 +28,12 @@ export default function MasteryChallenge({
     onComplete
 }: MasteryChallengeProps) {
     const [phase, setPhase] = useState<'intro' | 'challenge' | 'complete'>('intro');
-    const [timeRemaining, setTimeRemaining] = useState(600); // 10 minutes
+    const [timeRemaining, setTimeRemaining] = useState<number>(UI_TIMINGS.MASTERY_TIME_SECONDS);
     const [userResponse, setUserResponse] = useState('');
     const [selfAssessment, setSelfAssessment] = useState<'excellent' | 'good' | 'needs-work' | null>(null);
+
+    // Pause global focus session timer during challenge
+    usePauseGlobalTimer();
 
     // Timer countdown
     useEffect(() => {
@@ -53,11 +59,13 @@ export default function MasteryChallenge({
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Generate a boss battle scenario
-    const scenario = `You are consulting for a client who needs to implement a comprehensive solution using the concepts you've learned.
+    // Generate a boss battle scenario - dynamic with fallback
+    const conceptNames = concepts.slice(0, 3).map(c => c.name).join(', ');
+    const scenario = concepts.length > 0
+        ? `You are consulting for a client who needs to implement a comprehensive solution using the concepts you've learned.
 
 **Scenario:**
-Design and explain a complete system that integrates ${concepts.slice(0, 3).map(c => c.name).join(', ')}${concepts.length > 3 ? ', and more' : ''}.
+Design and explain a complete system that integrates ${conceptNames}${concepts.length > 3 ? ', and more' : ''}.
 
 **Requirements:**
 1. Explain how each concept contributes to the solution
@@ -65,7 +73,8 @@ Design and explain a complete system that integrates ${concepts.slice(0, 3).map(
 3. Identify potential challenges and how you'd address them
 4. Provide a step-by-step implementation approach
 
-**Your Response:**`;
+**Your Response:**`
+        : DEFAULT_MASTERY_SCENARIO;
 
     const handleStartChallenge = () => {
         setPhase('challenge');
