@@ -34,7 +34,7 @@ import { useThemeStore, type Theme } from '@/store/theme-store';
 import { usePersonalizationStore, type FamiliarSystem } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
-import { usePalaceStore } from '@/store/palace-store';
+
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import { getAllPersonas } from '@/lib/ai/coach';
 import type { BedrockConfig } from '@/lib/generation/claude-client';
@@ -90,8 +90,7 @@ export default function Settings() {
   // Generation
   const { bedrockConfig, setBedrockConfig, clearBedrockConfig, results, recentSubjects } = useGenerationStore();
 
-  // Palace
-  const { clearPalace } = usePalaceStore();
+
 
   // Local state
   const [showAwsConfig, setShowAwsConfig] = useState(false);
@@ -128,14 +127,10 @@ export default function Settings() {
         case 'results':
           useGenerationStore.setState({ results: [], recentSubjects: [] });
           break;
-        case 'palace':
-          clearPalace();
-          break;
         case 'all':
           resetProgress();
           clearSession();
           resetOnboarding();
-          clearPalace();
           useGenerationStore.setState({ results: [], recentSubjects: [] });
           break;
       }
@@ -459,13 +454,7 @@ export default function Settings() {
                   <Trash2 size={14} />
                   {confirmClear === 'results' ? 'Click again to confirm' : 'Clear Saved Results'}
                 </button>
-                <button
-                  onClick={() => handleClearData('palace')}
-                  className={`${styles.dangerButton} ${confirmClear === 'palace' ? styles.dangerConfirm : ''}`}
-                >
-                  <Trash2 size={14} />
-                  {confirmClear === 'palace' ? 'Click again to confirm' : 'Reset Memory Palace'}
-                </button>
+
                 <button
                   onClick={() => handleClearData('all')}
                   className={`${styles.dangerButton} ${confirmClear === 'all' ? styles.dangerConfirm : ''}`}

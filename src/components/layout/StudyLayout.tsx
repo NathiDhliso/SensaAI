@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
   BookOpen,
-  Map,
+
   Zap,
   BarChart3,
   ChevronDown,
@@ -27,7 +27,7 @@ import { getRecommendedTab } from '@/lib/learning/profile-detector';
 import { LifecycleNavigator } from '@/components/learning';
 import styles from './StudyLayout.module.css';
 
-export type StudyTab = 'overview' | 'learn' | 'palace' | 'sprint' | 'reference';
+export type StudyTab = 'overview' | 'learn' | 'reference';
 
 interface StudyLayoutProps {
   /** Current active tab */
@@ -67,21 +67,9 @@ const TABS: TabConfig[] = [
     description: 'Active Learning Engine',
     color: 'var(--color-phase-prepare)'
   },
-  {
-    id: 'palace',
-    label: 'Palace',
-    icon: Map,
-    description: 'Memory anchors',
-    color: 'var(--color-secondary-amber)'
-  },
 
-  {
-    id: 'sprint',
-    label: 'Sprint',
-    icon: Zap,
-    description: 'Exam readiness',
-    color: 'var(--color-accent-coral)'
-  },
+
+
 ];
 
 /**
@@ -200,8 +188,7 @@ export function StudyLayout({
           <div className={styles.titleGroup}>
             <h1 className={styles.title}>{displaySubject}</h1>
             <span className={styles.sessionMode}>
-              {session?.mode === 'sprint' ? 'Sprint Mode' :
-                session?.mode === 'explore' ? 'Explore Mode' : 'Learning Mode'}
+              {session?.mode === 'explore' ? 'Explore Mode' : 'Learning Mode'}
             </span>
           </div>
         </div>

@@ -16,7 +16,7 @@ import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
-import { usePalaceStore } from '@/store/palace-store';
+
 import { storageManager } from '@/lib/storage';
 import { parseAndLoadContent } from '@/lib/content-loader';
 import { StudyLayout, type StudyTab } from '@/components/layout';
@@ -26,8 +26,7 @@ import {
   NeuralResetBanner,
   SessionSummary,
 } from '@/components/learning';
-import { MindPalaceContainer } from '@/components/palace/FloorPlanView/MindPalaceContainer';
-import ExteriorView from '@/components/palace/ExteriorView/ExteriorView';
+
 
 // ... (existing imports)
 
@@ -35,7 +34,7 @@ import ExteriorView from '@/components/palace/ExteriorView/ExteriorView';
 import styles from './Study.module.css';
 
 // Lazy load heavy components
-const Sprint = lazy(() => import('./Sprint'));
+
 const VelocityLearning = lazy(() => import('./VelocityLearning'));
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -46,32 +45,23 @@ const VelocityLearning = lazy(() => import('./VelocityLearning'));
 // TAB CONTENT COMPONENTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-interface OverviewTabProps {
-  onStartLearning: (conceptId: string) => void;
-  onStartSprint: () => void;
-  session: any;
-  navigate: ReturnType<typeof useNavigate>;
-}
 
-function OverviewTab({ onStartLearning, onStartSprint, session, navigate }: OverviewTabProps) {
+
+function OverviewTab() {
   const {
     getConcepts,
     getStages,
     currentSession,
   } = useLearningStore();
 
-  const { validation, results } = useGenerationStore();
+  const { validation } = useGenerationStore();
 
   const concepts = getConcepts();
   const stages = getStages();
   const hasContent = concepts.length > 0;
   const progress = currentSession?.progress;
 
-  // Find floor plan and graph from generation results for the current subject
-  const currentResult = useMemo(() =>
-    results.find(r => r.metadata.subject === session?.subject),
-    [results, session?.subject]
-  );
+
 
   const progressPercent = hasContent
     ? Math.round(((progress?.completedConcepts?.length ?? 0) / concepts.length) * 100)
@@ -111,45 +101,7 @@ function OverviewTab({ onStartLearning, onStartSprint, session, navigate }: Over
       </div>
 
 
-      {/* GRAPH MAP - The "Macro" View */}
-      <section className={`${styles.section} ${styles.mapContainer}`}>
-        <h3 className={styles.sectionTitle}>Knowledge Map</h3>
 
-        <div className={styles.knowledgeMapContainer}>
-          {!currentResult?.dependencyGraph && !currentResult?.floorPlan ? (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🗺️</div>
-              <h2>No Knowledge Map Available</h2>
-              <p>Create a Memory Palace to visualize your learning journey</p>
-              <button
-                className={styles.primaryButton}
-                onClick={() => navigate('/')}
-              >
-                Go to Home
-              </button>
-            </div>
-          ) : (
-            <Suspense fallback={
-              <div className={styles.flexCenterFull}>
-                Loading Map...
-              </div>
-            }>
-              {/* 
-                    Directly embed MindPalaceContainer in Graph Mode 
-                    This provides the interactive graph we just built
-                  */}
-              <MindPalaceContainer
-                initialMode="graph"
-                concepts={concepts}
-                floorPlan={currentResult?.floorPlan}
-                dependencyGraph={currentResult?.dependencyGraph}
-                onConceptSelect={(id: string) => onStartLearning(id)}
-                disableInternalCinematic={true}
-              />
-            </Suspense>
-          )}
-        </div>
-      </section>
 
       {/* Quality Metrics (from validation) */}
       {validation && (
@@ -172,21 +124,7 @@ function OverviewTab({ onStartLearning, onStartSprint, session, navigate }: Over
         </section>
       )}
 
-      {/* Sprint Readiness */}
-      {progressPercent >= 50 && (
-        <div className={styles.sprintPrompt}>
-          <div className={styles.sprintPromptContent}>
-            <span className={styles.sprintPromptIcon}>⚡</span>
-            <div>
-              <strong>Ready for a Sprint?</strong>
-              <p>Test your automaticity with timed questions</p>
-            </div>
-          </div>
-          <button className={styles.sprintPromptButton} onClick={onStartSprint}>
-            Start Sprint
-          </button>
-        </div>
-      )}
+
     </div>
   );
 }
@@ -268,12 +206,7 @@ export default function Study() {
     setLearningConceptId(null); // Exit learning mode on tab change
   }, []);
 
-  // Navigate to unified learning view (The "Zoom")
-  const handleStartLearning = useCallback((conceptId: string) => {
-    setLearningConceptId(conceptId);
-    // We stay in 'overview' tab but show the overlay, or we could switch tab.
-    // Keeping 'overview' lets the graph stay mounted underneath for smoother exit.
-  }, []);
+
 
   // Handle concept completion in Micro-Loop
   const handleLoopComplete = useCallback((outcome: string, _time: number) => {
@@ -318,12 +251,7 @@ export default function Study() {
     switch (activeTab) {
       case 'overview':
         return (
-          <OverviewTab
-            session={session}
-            onStartLearning={handleStartLearning}
-            onStartSprint={() => setActiveTab('sprint')}
-            navigate={navigate}
-          />
+          <OverviewTab />
         );
 
       case 'learn':
@@ -336,36 +264,7 @@ export default function Study() {
           </Suspense>
         );
 
-      case 'palace': {
-        // Check if a Memory Palace exists
-        const palaceState = usePalaceStore.getState();
 
-        if (!palaceState.currentPalace) {
-          return (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🏰</div>
-              <h2>No Memory Palace Created</h2>
-              <p>Create a Memory Palace to visualize your learning journey with spatial mnemonics.</p>
-              <button
-                className={styles.primaryButton}
-                onClick={() => navigate('/results')}
-              >
-                Go to Home
-              </button>
-            </div>
-          );
-        }
-
-        return (
-          <div style={{ height: '100%', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
-            <MindPalaceContainer
-              concepts={concepts}
-              initialMode="exterior"
-              exteriorView={<ExteriorView />}
-            />
-          </div>
-        );
-      }
 
       case 'reference':
         // New Reference tab: shows raw fullDocument
@@ -378,14 +277,7 @@ export default function Study() {
           </div>
         );
 
-      case 'sprint':
-        return (
-          <Suspense fallback={<div className={styles.loading}>Loading Sprint...</div>}>
-            <div className={styles.embeddedPage}>
-              <Sprint />
-            </div>
-          </Suspense>
-        );
+
 
       default:
         return null;

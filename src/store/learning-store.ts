@@ -14,7 +14,7 @@ import type {
   SessionPrimer,
   ConceptMapData,
 } from '@/lib/types/learning';
-import type { SprintResult } from '@/lib/types/sprint';
+
 
 // ============================================================================
 // TYPES
@@ -86,7 +86,7 @@ export interface CurrentSession {
   id: string;
   subjectId: string;
   subject: string;
-  mode: 'learn' | 'sprint' | 'explore';
+  mode: 'learn' | 'explore';
   createdAt: string;
 
   // Content
@@ -97,8 +97,7 @@ export interface CurrentSession {
   // Progress
   progress: UserProgress;
 
-  // Sprint Results (if mode === 'sprint')
-  sprintResult?: SprintResult;
+
 
   // Cognitive Metrics
   cognitiveMetrics: CognitiveMetrics;
@@ -251,7 +250,7 @@ type LearningState = {
   celebrationData: CelebrationData | null;
   showNeuralReset: boolean;
   isExploreMode: boolean;
-  isSprintReady: boolean;
+
   sessionTimer: ReturnType<typeof setInterval> | null;
 
   // Focus Session State (merged from focus-session-store)
@@ -344,10 +343,7 @@ type LearningActions = {
   getConcepts: () => LearningConcept[];
   hasCustomContent: () => boolean;
 
-  // Sprint
-  setSprintResult: (result: SprintResult) => void;
-  clearSprintResult: () => void;
-  setSprintReady: (ready: boolean) => void;
+
 
   // Cognitive Load
   recordInteraction: (correct: boolean, responseTimeMs: number) => void;
@@ -393,7 +389,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       celebrationData: null,
       showNeuralReset: false,
       isExploreMode: false,
-      isSprintReady: false,
+
       sessionTimer: null,
 
       // Focus Session Initial State
@@ -460,7 +456,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           concepts,
           metadata: sessionData.metadata,
           progress: initialProgress,
-          sprintResult: sessionData.sprintResult,
+
           cognitiveMetrics: initialMetrics,
         };
 
@@ -580,9 +576,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const session = state.studySession;
         const elapsed = (Date.now() - new Date(session.startedAt).getTime()) / 1000 / 60;
 
-        const goalAchieved = session.goal === 'sprint'
-          ? session.confusionDrillsCompleted >= 3
-          : session.conceptsCompleted.length >= session.targetConcepts.length ||
+        const goalAchieved = session.conceptsCompleted.length >= session.targetConcepts.length ||
           elapsed >= session.targetDuration;
 
         set({
@@ -677,11 +671,9 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const session = state.studySession;
         const elapsed = (Date.now() - new Date(session.startedAt).getTime()) / 1000 / 60;
 
-        const goalProgress = session.goal === 'sprint'
-          ? (session.confusionDrillsCompleted / 10) * 100
-          : session.targetConcepts.length > 0
-            ? (session.conceptsCompleted.length / session.targetConcepts.length) * 100
-            : (elapsed / session.targetDuration) * 100;
+        const goalProgress = session.targetConcepts.length > 0
+          ? (session.conceptsCompleted.length / session.targetConcepts.length) * 100
+          : (elapsed / session.targetDuration) * 100;
 
         return {
           elapsedMinutes: Math.round(elapsed),
@@ -1005,36 +997,7 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         return get().getConceptStatus(conceptId) !== 'locked';
       },
 
-      // =====================================================================
-      // SPRINT
-      // =====================================================================
 
-      setSprintResult: (result) => {
-        const state = get();
-        if (!state.currentSession) return;
-
-        set({
-          currentSession: {
-            ...state.currentSession,
-            sprintResult: result,
-            mode: 'sprint',
-          },
-        });
-      },
-
-      clearSprintResult: () => {
-        const state = get();
-        if (!state.currentSession) return;
-
-        set({
-          currentSession: {
-            ...state.currentSession,
-            sprintResult: undefined,
-          },
-        });
-      },
-
-      setSprintReady: (ready) => set({ isSprintReady: ready }),
 
       // =====================================================================
       // COGNITIVE LOAD

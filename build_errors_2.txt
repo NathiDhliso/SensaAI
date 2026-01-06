@@ -1,0 +1,6 @@
+src/components/learning/GuidedPrimer.tsx(33,27): error TS6133: 'UI_TIMINGS' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(9,10): error TS6133: 'useRef' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(10,18): error TS6133: 'AnimatePresence' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(12,5): error TS6133: 'Activity' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(20,5): error TS6133: 'Minus' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(185,11): error TS6133: 'getOptimalAction' is declared but its value is never read.

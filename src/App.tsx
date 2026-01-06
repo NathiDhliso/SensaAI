@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-
 import { lazy, Suspense, useEffect } from 'react';
 import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
-import { loadPanoramaManifest } from './lib/panorama';
+
 import { usePersonalizationStore } from './store/personalization-store';
 import { useBionicReading } from './hooks/useBionicReading';
 
@@ -10,8 +10,8 @@ const Home = lazy(() => import('./pages/Home'));
 const Generate = lazy(() => import('./pages/Generate'));
 const Settings = lazy(() => import('./pages/Settings'));
 const SavedResults = lazy(() => import('./pages/SavedResults'));
-const Palace = lazy(() => import('./pages/Palace'));
-const Sprint = lazy(() => import('./pages/Sprint'));
+
+
 const Study = lazy(() => import('./pages/Study'));
 const VelocityLearning = lazy(() => import('./pages/VelocityLearning'));
 
@@ -37,9 +37,6 @@ function ResultsRedirect() {
 function App() {
   const bionicReading = usePersonalizationStore(state => state.bionicReading);
 
-  useEffect(() => {
-    loadPanoramaManifest();
-  }, []);
 
   // Apply bionic reading mode to document
   useEffect(() => {
@@ -91,19 +88,9 @@ function App() {
             <ProtectedRoute><Study /></ProtectedRoute>
           } />
 
-          {/* 
-           * Palace standalone - accessed from Study when entering immersive mode
-           */}
-          <Route path="/palace" element={
-            <ProtectedRoute><Palace /></ProtectedRoute>
-          } />
 
-          {/* 
-           * Sprint standalone - accessed from Study when starting a sprint
-           */}
-          <Route path="/sprint" element={
-            <ProtectedRoute><Sprint /></ProtectedRoute>
-          } />
+
+
 
           {/* 
            * Velocity Learning - SensaAI Learning Velocity Engine experience
@@ -119,8 +106,7 @@ function App() {
           {/* Redirect old /learn to unified Study page */}
           <Route path="/learn" element={<Navigate to="/study/current" replace />} />
 
-          {/* Redirect old /sprint-results to Study sprint tab */}
-          <Route path="/sprint-results" element={<Navigate to="/study/current?tab=sprint" replace />} />
+
 
           {/* Redirect old /saved to /library */}
           <Route path="/saved" element={<Navigate to="/library" replace />} />

@@ -81,7 +81,7 @@ export interface SessionPrimer {
   reward: string;
 }
 
-export type StudyGoal = 'learn-new' | 'review' | 'sprint' | 'explore';
+export type StudyGoal = 'learn-new' | 'review' | 'explore';
 export type SessionDuration = 15 | 30 | 45 | 60;
 
 export interface SessionRecommendation {

@@ -9,7 +9,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Clock, Target, BookOpen, RefreshCw, Zap, Compass,
+  Clock, Target, BookOpen, RefreshCw, Compass,
   ChevronRight, Brain, Sparkles, Heart
 } from 'lucide-react';
 import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/types/learning';
@@ -60,13 +60,7 @@ const GOAL_OPTIONS: Array<{
       icon: RefreshCw,
       color: 'var(--color-success)',
     },
-    {
-      value: 'sprint',
-      label: 'Sprint Practice',
-      description: 'Speed drills for automaticity',
-      icon: Zap,
-      color: 'var(--color-warning)',
-    },
+
     {
       value: 'explore',
       label: 'Explore Freely',

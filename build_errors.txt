@@ -1,8 +1,27 @@
-src/components/learning/ConceptMapBuilder.tsx(84,15): error TS6133: 'existingConns' is declared but its value is never read.
-src/components/learning/MicroLearningLoopController.tsx(17,5): error TS6133: 'Zap' is declared but its value is never read.
-src/components/learning/MicroLearningLoopController.tsx(24,1): error TS6133: 'CognitiveGauge' is declared but its value is never read.
-src/hooks/useVoice.ts(107,28): error TS6133: 'err' is declared but its value is never read.
-src/lib/ai/phases/build-ai.ts(246,23): error TS6133: 'from' is declared but its value is never read.
-src/lib/ai/phases/build-ai.ts(246,46): error TS6133: 'to' is declared but its value is never read.
-src/lib/ai/phases/preview-ai.ts(9,51): error TS6133: 'PhaseKey' is declared but its value is never read.
-src/lib/ai/phases/preview-ai.ts(30,35): error TS6133: 'index' is declared but its value is never read.
+src/components/learning/GuidedPrimer.tsx(33,27): error TS6133: 'UI_TIMINGS' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(9,10): error TS6133: 'useRef' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(10,18): error TS6133: 'AnimatePresence' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(12,5): error TS6133: 'Activity' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(20,5): error TS6133: 'Minus' is declared but its value is never read.
+src/components/learning/VelocityDashboard.tsx(185,11): error TS6133: 'getOptimalAction' is declared but its value is never read.
+src/lib/learning/profile-detector.ts(77,17): error TS2339: Property 'palaceEngagement' does not exist on type 'BehavioralSignals'.
+src/lib/learning/profile-detector.ts(79,24): error TS2339: Property 'palaceEngagement' does not exist on type 'BehavioralSignals'.
+src/lib/learning/profile-detector.ts(84,46): error TS2339: Property 'palaceEngagement' does not exist on type 'BehavioralSignals'.
+src/lib/learning/profile-detector.ts(89,77): error TS2339: Property 'palaceEngagement' does not exist on type 'BehavioralSignals'.
+src/lib/learning/profile-detector.ts(106,18): error TS2322: Type '"palace-optimal"' is not assignable to type 'LearningProfile'.
+src/lib/learning/profile-detector.ts(121,18): error TS2322: Type '"hybrid"' is not assignable to type 'LearningProfile'.
+src/lib/learning/profile-detector.ts(135,13): error TS2322: Type '"palace-optimal"' is not assignable to type 'LearningProfile'.
+src/lib/learning/profile-detector.ts(151,14): error TS2678: Type '"palace-optimal"' is not comparable to type 'LearningProfile'.
+src/lib/learning/profile-detector.ts(153,14): error TS2678: Type '"hybrid"' is not comparable to type 'LearningProfile'.
+src/lib/learning/profile-detector.ts(168,14): error TS2678: Type '"palace-optimal"' is not comparable to type 'LearningProfile'.
+src/lib/learning/profile-detector.ts(170,14): error TS2678: Type '"hybrid"' is not comparable to type 'LearningProfile'.
+src/pages/Results.tsx(2,79): error TS6133: 'Map' is declared but its value is never read.
+src/pages/Results.tsx(2,84): error TS6133: 'Plus' is declared but its value is never read.
+src/pages/Results.tsx(2,90): error TS6133: 'Network' is declared but its value is never read.
+src/pages/Results.tsx(353,16): error TS2304: Cannot find name 'graphData'.
+src/pages/Results.tsx(353,39): error TS2304: Cannot find name 'graphData'.
+src/pages/Results.tsx(354,18): error TS2304: Cannot find name 'ConceptChunks'.
+src/pages/Results.tsx(355,29): error TS2304: Cannot find name 'graphData'.
+src/pages/Results.tsx(357,36): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/pages/Results.tsx(358,37): error TS2304: Cannot find name 'graphData'.
+src/pages/Results.tsx(358,61): error TS7006: Parameter 'c' implicitly has an 'any' type.
