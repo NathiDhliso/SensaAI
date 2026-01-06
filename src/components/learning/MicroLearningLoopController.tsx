@@ -20,6 +20,7 @@ import {
 import type { LearningConcept } from '@/lib/types/learning';
 import { useLearningStore } from '@/store/learning-store';
 import { renderShapeOrIcon } from '@/components/ui/SensaShape';
+import { VELOCITY_CONFIG } from '@/constants/ui-constants';
 
 import BlankSheetTest from './BlankSheetTest';
 import ConfusionPrevention, { findConfusionPairs } from './ConfusionPrevention';
@@ -68,13 +69,13 @@ function calculateLoopDuration(
     userVelocity: number = 1.0
 ): number {
     // Base time: 60s for complexity 1, 180s for complexity 10
-    const baseTime = 60 + (complexityScore - 1) * (120 / 9);
+    const baseTime = VELOCITY_CONFIG.LOOP.BASE_TIME_SECONDS + (complexityScore - 1) * VELOCITY_CONFIG.LOOP.TIME_STEP_PER_COMPLEXITY;
 
     // Adjust for user velocity: faster learners get less time
     const velocityAdjusted = baseTime / userVelocity;
 
     // Clamp to 60-180 second range
-    return Math.max(60, Math.min(180, Math.round(velocityAdjusted)));
+    return Math.max(VELOCITY_CONFIG.LOOP.MIN_TIME_SECONDS, Math.min(VELOCITY_CONFIG.LOOP.MAX_TIME_SECONDS, Math.round(velocityAdjusted)));
 }
 
 /**
@@ -88,12 +89,12 @@ function determineOutcome(
     const confidenceScore = testResult.confidence / 5;
 
     // High test score + correct verify = mastered
-    if (testScore >= 0.7 && verifyResult.correct && confidenceScore >= 0.6) {
+    if (testScore >= VELOCITY_CONFIG.SCORING.MASTERY_THRESHOLD && verifyResult.correct && confidenceScore >= VELOCITY_CONFIG.SCORING.CONFIDENCE_THRESHOLD) {
         return 'mastered';
     }
 
     // Low test score = needs learning
-    if (testScore < 0.4) {
+    if (testScore < VELOCITY_CONFIG.SCORING.NEEDS_LEARNING_THRESHOLD) {
         return 'needs-learning';
     }
 

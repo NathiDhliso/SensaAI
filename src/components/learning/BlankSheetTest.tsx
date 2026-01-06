@@ -12,7 +12,6 @@ import { motion } from 'framer-motion';
 import {
     FileText,
     Clock,
-    BarChart3,
     CheckCircle2,
     AlertTriangle,
     Send,
@@ -20,10 +19,12 @@ import {
     Sparkles,
     Volume2,
     Loader2,
-    Square
+    Square,
+    Activity
 } from 'lucide-react';
 import { useVoice } from '@/hooks/useVoice';
 import type { LearningConcept } from '@/lib/types/learning';
+import { VELOCITY_CONFIG } from '@/constants/ui-constants';
 import {
     generateCoachFeedback,
     type CoachFeedback,
@@ -126,12 +127,12 @@ function analyzeResponse(
         const phraseMatchRatio = pointPhrases.length > 0 ? phraseMatches.length / pointPhrases.length : 0;
 
         // Combined confidence score
-        const confidence = (wordMatchRatio * 0.6) + (phraseMatchRatio * 0.4);
+        const confidence = (wordMatchRatio * VELOCITY_CONFIG.BLANK_SHEET.CONFIDENCE_WORD_WEIGHT) + (phraseMatchRatio * VELOCITY_CONFIG.BLANK_SHEET.CONFIDENCE_PHRASE_WEIGHT);
 
         let status: 'identified' | 'missed' | 'uncertain';
-        if (confidence >= 0.6) {
+        if (confidence >= VELOCITY_CONFIG.BLANK_SHEET.IDENTIFIED_THRESHOLD) {
             status = 'identified';
-        } else if (confidence >= 0.3) {
+        } else if (confidence >= VELOCITY_CONFIG.BLANK_SHEET.UNCERTAIN_THRESHOLD) {
             status = 'uncertain';
         } else {
             status = 'missed';
@@ -223,8 +224,8 @@ export function BlankSheetTest({
     }, [response, startTime, firstKeystrokeTime, pauseCount]);
 
     // Character count validation
-    const isValid = response.length >= 50;
-    const charactersRemaining = Math.max(0, 50 - response.length);
+    const isValid = response.length >= VELOCITY_CONFIG.BLANK_SHEET.MIN_CHARS;
+    const charactersRemaining = Math.max(0, VELOCITY_CONFIG.BLANK_SHEET.MIN_CHARS - response.length);
 
     // Handle input changes
     const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -237,7 +238,7 @@ export function BlankSheetTest({
         }
 
         // Track pauses (>3 seconds between keystrokes)
-        if (lastKeystrokeTime && (now - lastKeystrokeTime) > 3000) {
+        if (lastKeystrokeTime && (now - lastKeystrokeTime) > VELOCITY_CONFIG.BLANK_SHEET.PAUSE_THRESHOLD_MS) {
             setPauseCount(prev => prev + 1);
         }
 
@@ -358,7 +359,7 @@ export function BlankSheetTest({
                             <span>{result.metrics.wordCount} words</span>
                         </div>
                         <div className={styles.metricItem}>
-                            <BarChart3 size={16} />
+                            <Activity size={16} />
                             <span>{result.metrics.wordsPerMinute} wpm</span>
                         </div>
                     </div>

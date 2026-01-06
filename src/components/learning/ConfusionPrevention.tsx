@@ -17,6 +17,7 @@ import {
     Split
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
+import { VELOCITY_CONFIG } from '@/constants/ui-constants';
 import styles from './ConfusionPrevention.module.css';
 
 // ============================================================================
@@ -71,12 +72,12 @@ function calculateConceptSimilarity(
     const name1Words = concept1.name.toLowerCase().split(/\s+/);
     const name2Words = concept2.name.toLowerCase().split(/\s+/);
     const nameOverlap = name1Words.filter(w => name2Words.includes(w)).length;
-    score += (nameOverlap / Math.max(name1Words.length, name2Words.length)) * 0.3;
+    score += (nameOverlap / Math.max(name1Words.length, name2Words.length)) * VELOCITY_CONFIG.CONFUSION.NAME_WEIGHT;
     factors++;
 
     // Category/stage similarity
     if (concept1.stageId === concept2.stageId) {
-        score += 0.2;
+        score += VELOCITY_CONFIG.CONFUSION.CATEGORY_WEIGHT;
     }
     factors++;
 
@@ -85,7 +86,7 @@ function calculateConceptSimilarity(
         const hook1Words = concept1.hookSentence.toLowerCase().split(/\s+/).filter(w => w.length > 3);
         const hook2Words = concept2.hookSentence.toLowerCase().split(/\s+/).filter(w => w.length > 3);
         const hookOverlap = hook1Words.filter(w => hook2Words.some(hw => hw.includes(w))).length;
-        score += (hookOverlap / Math.max(hook1Words.length, hook2Words.length, 1)) * 0.2;
+        score += (hookOverlap / Math.max(hook1Words.length, hook2Words.length, 1)) * VELOCITY_CONFIG.CONFUSION.HOOK_WEIGHT;
     }
     factors++;
 
@@ -96,7 +97,7 @@ function calculateConceptSimilarity(
         const use1Words = use1.split(/\s+/).filter(w => w.length > 3);
         const use2Words = use2.split(/\s+/).filter(w => w.length > 3);
         const useOverlap = use1Words.filter(w => use2Words.some(uw => uw.includes(w))).length;
-        score += (useOverlap / Math.max(use1Words.length, use2Words.length, 1)) * 0.3;
+        score += (useOverlap / Math.max(use1Words.length, use2Words.length, 1)) * VELOCITY_CONFIG.CONFUSION.USAGE_WEIGHT;
     }
     factors++;
 
@@ -141,7 +142,7 @@ function identifyConfusingAspects(
 export function findConfusionPairs(
     concept: LearningConcept,
     allConcepts: LearningConcept[],
-    threshold: number = 0.6
+    threshold: number = VELOCITY_CONFIG.CONFUSION.SIMILARITY_THRESHOLD
 ): ConfusionPair[] {
     return allConcepts
         .filter(c => c.id !== concept.id)
@@ -163,7 +164,7 @@ export function findConfusionPairs(
 export function ConfusionPrevention({
     currentConcept,
     allConcepts,
-    threshold = 0.6,
+    threshold = VELOCITY_CONFIG.CONFUSION.SIMILARITY_THRESHOLD,
     onDrillComplete,
     onSkip,
 }: ConfusionPreventionProps) {
@@ -194,9 +195,9 @@ export function ConfusionPrevention({
             pairId: `${currentPair.concept1.id}-${currentPair.concept2.id}`,
             identified: differences.length >= 2,
             keyDifferences: differences,
-            exampleProvided: userExample.trim().length >= 20,
+            exampleProvided: userExample.trim().length >= VELOCITY_CONFIG.CONFUSION.MIN_EXAMPLE_CHARS,
             timeSpent,
-            markedResistant: differences.length >= 2 && userExample.trim().length >= 20,
+            markedResistant: differences.length >= 2 && userExample.trim().length >= VELOCITY_CONFIG.CONFUSION.MIN_EXAMPLE_CHARS,
         };
 
         if (currentPairIndex < confusionPairs.length - 1) {
@@ -214,7 +215,7 @@ export function ConfusionPrevention({
         }
     }, [currentPair, userDifferences, userExample, startTime, currentPairIndex, confusionPairs.length, onDrillComplete]);
 
-    const isValid = userDifferences.trim().length >= 20 && userExample.trim().length >= 10;
+    const isValid = userDifferences.trim().length >= VELOCITY_CONFIG.CONFUSION.MIN_DIFFERENCE_CHARS && userExample.trim().length >= VELOCITY_CONFIG.CONFUSION.MIN_EXAMPLE_CHARS;
 
     return (
         <motion.div

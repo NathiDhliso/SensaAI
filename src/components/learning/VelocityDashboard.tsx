@@ -6,23 +6,26 @@
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useRef, useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
+    Activity,
+    Brain,
+    Clock,
     Zap,
+    ChevronDown,
+    ChevronUp,
     TrendingUp,
     TrendingDown,
-    Clock,
-    Target,
-    Brain,
-    Coffee,
+    Minus,
     ArrowRight,
+    Target,
     BarChart3,
-    ChevronDown,
-    ChevronUp
+    Coffee
 } from 'lucide-react';
 import { getSpacingEngine } from '@/lib/learning/spacing-engine';
 import type { SpacingMetrics } from '@/lib/learning/spacing-engine';
+import { VELOCITY_CONFIG } from '@/constants/ui-constants';
 import styles from './VelocityDashboard.module.css';
 
 // ============================================================================
@@ -90,8 +93,8 @@ function calculateVelocityMetrics(
 
     if (previousVelocity > 0) {
         trendPercent = Math.round(((conceptsPerHour - previousVelocity) / previousVelocity) * 100);
-        if (trendPercent > 5) trend = 'up';
-        else if (trendPercent < -5) trend = 'down';
+        if (trendPercent > VELOCITY_CONFIG.SCORING.TREND_SIGNIFICANCE) trend = 'up';
+        else if (trendPercent < -VELOCITY_CONFIG.SCORING.TREND_SIGNIFICANCE) trend = 'down';
     }
 
     return {
@@ -169,7 +172,7 @@ export function VelocityDashboard({
             return { conceptsPerHour: 0, currentVelocity: 0, previousVelocity: 0, trend: 'stable' as const, trendPercent: 0 };
         }
         const minutes = (Date.now() - sessionStartTime.getTime()) / (1000 * 60);
-        return calculateVelocityMetrics(sessionConceptsCompleted, minutes, 5); // 5 as placeholder prev
+        return calculateVelocityMetrics(sessionConceptsCompleted, minutes, VELOCITY_CONFIG.SCORING.PREVIOUS_VELOCITY_PLACEHOLDER); // 5 as placeholder prev
     }, [sessionConceptsCompleted, sessionStartTime]);
 
     // Determine optimal action
@@ -178,7 +181,12 @@ export function VelocityDashboard({
         return determineOptimalAction(spacingMetrics, cognitiveLoad);
     }, [spacingMetrics, cognitiveLoad]);
 
-    // Minimized pill view - click to expand
+    // Determine optimal action
+    const getOptimalAction = () => {
+        if (cognitiveLoad > VELOCITY_CONFIG.SCORING.HIGH_COGNITIVE_LOAD) return { icon: Coffee, text: 'Take a break', color: 'var(--color-warning)' };
+        if (cognitiveLoad > VELOCITY_CONFIG.SCORING.MODERATE_COGNITIVE_LOAD) return { icon: Brain, text: 'Switch topics', color: 'var(--color-info)' };
+        return { icon: Zap, text: 'Push forward', color: 'var(--color-success)' };
+    };
     if (!isExpanded) {
         return (
             <motion.button

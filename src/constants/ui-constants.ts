@@ -149,3 +149,68 @@ export const FOCUS_SESSION_CONFIG = {
 export const CELEBRATION_CONFIG = {
   AUTO_DISMISS_MS: 4000,  // Auto-dismiss celebration after 4 seconds
 } as const;
+
+/**
+ * Velocity Learning Engine configuration
+ * Centralizes all magic numbers for the Velocity feature.
+ */
+export const VELOCITY_CONFIG = {
+  // Loop Duration (MicroLearningLoopController)
+  LOOP: {
+    BASE_TIME_SECONDS: 60,
+    MIN_TIME_SECONDS: 60,
+    MAX_TIME_SECONDS: 180,
+    TIME_STEP_PER_COMPLEXITY: 120 / 9, // ~13.33s per complexity point
+  },
+
+  // Scoring Thresholds (MicroLearningLoopController & VelocityDashboard)
+  SCORING: {
+    MASTERY_THRESHOLD: 0.7,      // 70% to master
+    NEEDS_LEARNING_THRESHOLD: 0.4, // Below 40% needs relearning
+    CONFIDENCE_THRESHOLD: 0.6,     // 60% confidence required
+    HIGH_COGNITIVE_LOAD: 0.8,    // 80% load triggers break recommendation
+    MODERATE_COGNITIVE_LOAD: 0.4, // 40% load is moderate
+    TREND_SIGNIFICANCE: 5,        // 5% change is significant
+    PREVIOUS_VELOCITY_PLACEHOLDER: 5, // Placeholder for previous velocity
+  },
+
+  // Blank Sheet Test
+  BLANK_SHEET: {
+    MIN_CHARS: 50,
+    MIN_WORD_LENGTH: 3,
+    PHRASE_LENGTH_MIN: 2,
+    PHRASE_LENGTH_MAX: 3,
+    CONFIDENCE_WORD_WEIGHT: 0.6,
+    CONFIDENCE_PHRASE_WEIGHT: 0.4,
+    IDENTIFIED_THRESHOLD: 0.6,
+    UNCERTAIN_THRESHOLD: 0.3,
+    PAUSE_THRESHOLD_MS: 3000,
+  },
+
+  // Confusion Prevention
+  CONFUSION: {
+    SIMILARITY_THRESHOLD: 0.6,    // 60% similarity triggers drill
+    NAME_WEIGHT: 0.3,
+    CATEGORY_WEIGHT: 0.2,
+    HOOK_WEIGHT: 0.2,
+    USAGE_WEIGHT: 0.3,
+    MIN_DIFFERENCE_CHARS: 20,
+    MIN_EXAMPLE_CHARS: 10,
+  },
+
+  // Guided Primer
+  PRIMER: {
+    BREATHE_STEP_DURATION_MS: 5000,
+    TRANSITION_DELAY_MS: 600,
+    AUDIO_DELAY_MS: 300,
+  },
+
+  // Diagnostic Launch System
+  DIAGNOSTIC: {
+    FOUNDATION_CONCEPTS_MIN: 5,
+    PASS_THRESHOLD: 0.7,
+    CONCEPTS_TO_TEST: 7,
+    QUESTIONS_PER_CONCEPT: 2,
+    MIN_ANSWER_CHARS: 10,
+  }
+} as const;

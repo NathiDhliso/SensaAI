@@ -30,6 +30,7 @@ import {
     type Mood
 } from '@/lib/ai/coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { VELOCITY_CONFIG, UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './GuidedPrimer.module.css';
 
 interface GuidedPrimerProps {
@@ -104,7 +105,7 @@ export default function GuidedPrimer({
             if (musicEnabled) {
                 audioManager.playBackgroundMusic('ambientStudy');
             }
-        }, 500);
+        }, VELOCITY_CONFIG.PRIMER.AUDIO_DELAY_MS + 200);
 
         // Cleanup on unmount
         return () => {
@@ -123,7 +124,7 @@ export default function GuidedPrimer({
             if (narrationEnabled && currentStep === 'breathe') {
                 const timer = setTimeout(() => {
                     audioManager.playNarration('breathe');
-                }, 300);
+                }, VELOCITY_CONFIG.PRIMER.AUDIO_DELAY_MS);
                 return () => clearTimeout(timer);
             }
             return;
@@ -142,7 +143,7 @@ export default function GuidedPrimer({
                 // Small delay to let the UI transition complete
                 const timer = setTimeout(() => {
                     audioManager.playNarration(narrationKey);
-                }, 400);
+                }, VELOCITY_CONFIG.PRIMER.AUDIO_DELAY_MS + 100);
                 return () => clearTimeout(timer);
             }
         }
@@ -153,7 +154,7 @@ export default function GuidedPrimer({
         if (currentStep === 'breathe') {
             const timer = setTimeout(() => {
                 setCurrentStep('reason');
-            }, 5000);
+            }, VELOCITY_CONFIG.PRIMER.BREATHE_STEP_DURATION_MS);
             return () => clearTimeout(timer);
         }
     }, [currentStep]);
@@ -187,7 +188,7 @@ export default function GuidedPrimer({
         setTimeout(() => {
             setIsTransitioning(false);
             handleNext();
-        }, 600);
+        }, VELOCITY_CONFIG.PRIMER.TRANSITION_DELAY_MS);
     };
 
     const handleComplete = () => {

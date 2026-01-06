@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, CheckCircle2, Clock, Play, Target, Zap, ChevronRight, RotateCcw } from 'lucide-react';
 import type { SensaAILearningConcept, DiagnosticQuestion } from '@/lib/content-adapter/transformer';
 import { getFoundationConcepts } from '@/lib/content-adapter/sensa-ai-integration';
-import { UI_TIMINGS } from '@/constants/ui-constants';
+import { UI_TIMINGS, VELOCITY_CONFIG } from '@/constants/ui-constants';
 import styles from './DiagnosticLaunchSystem.module.css';
 
 // ============================================================================
@@ -63,7 +63,7 @@ interface QuestionWithMeta {
  */
 function selectDiagnosticConcepts(
     concepts: SensaAILearningConcept[],
-    maxConcepts: number = 7
+    maxConcepts: number = VELOCITY_CONFIG.DIAGNOSTIC.CONCEPTS_TO_TEST
 ): SensaAILearningConcept[] {
     // Use the integration utility which implements the ranking logic
     return getFoundationConcepts(concepts).slice(0, maxConcepts);
@@ -80,7 +80,7 @@ function buildAssessmentQuestions(
 
     for (const concept of selectedConcepts) {
         // Take up to 2 questions per concept
-        const conceptQuestions = concept.diagnosticQuestions.slice(0, 2);
+        const conceptQuestions = concept.diagnosticQuestions.slice(0, VELOCITY_CONFIG.DIAGNOSTIC.QUESTIONS_PER_CONCEPT);
 
         for (const question of conceptQuestions) {
             questions.push({
@@ -147,7 +147,7 @@ function QuickKnowledgeCheck({
 
     const canSubmit = useMemo(() => {
         if (question.question.type === 'short-answer') {
-            return textAnswer.trim().length >= 10; // Minimum 10 characters
+            return textAnswer.trim().length >= VELOCITY_CONFIG.DIAGNOSTIC.MIN_ANSWER_CHARS; // Minimum 10 characters
         }
         return selectedOption !== null;
     }, [question.question.type, textAnswer, selectedOption]);
@@ -371,7 +371,7 @@ export function DiagnosticLaunchSystem({
                 knowledgeGaps,
                 totalTimeSeconds,
                 confidenceScores,
-                canSkipFoundation: knownConcepts.length >= selectedConcepts.length * 0.7, // 70% threshold
+                canSkipFoundation: knownConcepts.length >= selectedConcepts.length * VELOCITY_CONFIG.DIAGNOSTIC.PASS_THRESHOLD, // 70% threshold
             };
 
             setPhase('results');
