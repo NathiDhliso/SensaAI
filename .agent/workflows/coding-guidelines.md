@@ -252,6 +252,33 @@ Avoid magic numbers by using these configuration objects from `ui-constants.ts`:
 
 **Scope them:** Apply strictly to content classes (`.prose`, `.learning-card`, `.bionic-content`) only. Global shifts cause UI jitter.
 
+### No Unnecessary Scrolling - MANDATORY
+**NEVER** create scrollable containers when content can fit snugly within the viewport.
+
+**Rules:**
+- Modals, dialogs, and full-page layouts MUST be designed to fit content without scrollbars when possible
+- Use `overflow: auto` ONLY when content genuinely exceeds viewport height
+- Prefer `align-items: center` over `flex-start` for modal overlays to vertically center content
+- Avoid excessive padding that pushes content beyond the viewport
+- Test on standard viewport sizes (1080p, 1440p) to ensure content fits
+
+```css
+/* ✅ CORRECT - Center content, no forced scroll */
+.overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* ❌ WRONG - Forces scrolling when content could fit */
+.overlay {
+  align-items: flex-start;
+  overflow-y: auto;
+  padding: 2rem;
+}
+```
+
 ---
 
 ## 🧭 Navigation Patterns

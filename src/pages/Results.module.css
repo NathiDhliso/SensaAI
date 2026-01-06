@@ -612,3 +612,70 @@
   text-align: center;
   font-style: italic;
 }
+
+/* Laptop/Compact Mode Optimization - Aggressive No-Scroll */
+@media (max-height: 900px) {
+  .header {
+    padding: 0.75rem 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .mainLayout {
+    grid-template-columns: minmax(260px, 320px) 1fr;
+  }
+
+  .sidebar {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .contentPanel {
+    padding: 1rem;
+  }
+
+  .metricsGrid {
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+
+  .metricItem {
+    padding: 0.75rem;
+  }
+
+  .metricValue {
+    font-size: 1.25rem;
+  }
+
+  .contentCard {
+    padding: 1rem;
+  }
+
+  .contentPre {
+    padding: 1rem;
+    max-height: 45vh;
+  }
+
+  .graphContainer {
+    min-height: 250px;
+  }
+
+  .graphPreviewCard {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .conceptOverview {
+    padding: 0.75rem;
+  }
+
+  .quickStat {
+    padding: 0.5rem;
+  }
+
+  .quickStatValue {
+    font-size: 1.25rem;
+  }
+}

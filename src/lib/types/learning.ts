@@ -203,18 +203,18 @@ export interface StudySession {
   isActive: boolean;
   goalAchieved: boolean;
 
-  // Phase 0: Prime
+  // SENSA Phase 0: See
   primer: SessionPrimer | null;
-  // Phase 1: Scout
+  // SENSA Phase 1: Explore
   scouted: boolean;
-  // Phase 1.5: Preview
+  // SENSA Explore+
   previewed: boolean;
-  // Phase 2: Build the Web
+  // SENSA Phase 2: Note
   mapBuilt: boolean;
   conceptMap?: ConceptMapData | null;
-  // Phase 3: Keep It Strong (Reconstruction)
+  // SENSA Phase 3: Study
   mapReconstructed: boolean;
-  // Phase 3.5: Prove Mastery
+  // SENSA Phase 4: Apply
   mastered: boolean;
 }
 

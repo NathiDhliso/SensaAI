@@ -1,8 +1,8 @@
 /**
  * SessionScoutPreview Component
  * 
- * Implements Phase 1 (Scout the Territory) and Phase 1.5 (The Problem Preview)
- * of the Silver Bullet Study System.
+ * Implements SENSA Phase 1 (Explore) and Phase 1.5 (Explore+)
+ * of The SENSA Method™ - See. Explore. Note. Study. Apply.
  */
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,7 +11,6 @@ import {
     HelpCircle,
     ChevronRight,
     ArrowRight,
-    TrendingUp,
     AlertCircle,
     BookOpen,
     Eye,
@@ -181,15 +180,21 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                         className={styles.phaseContainer}
                     >
                         <div className={styles.header}>
-                            <div className={styles.headerIcon}>
-                                <MapIcon size={32} />
+                            <div className={styles.headerLeft}>
+                                <div className={styles.headerIcon}>
+                                    <MapIcon size={32} />
+                                </div>
+                                <div>
+                                    <h2 className={styles.title}>SENSA Phase 1: Explore</h2>
+                                    <p className={styles.subtitle}>
+                                        Building a mental skeleton. Step {scoutStep} of 4.
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className={styles.title}>Phase 1: Scout the Territory</h2>
-                                <p className={styles.subtitle}>
-                                    Building a mental skeleton. Step {scoutStep} of 4.
-                                </p>
-                            </div>
+                            <button className={styles.headerNextButton} onClick={handleNextScoutStep}>
+                                {scoutStep === 4 ? 'To Preview' : 'Next'}
+                                <ChevronRight size={18} />
+                            </button>
                         </div>
 
                         <div className={styles.progressBar}>
@@ -209,13 +214,6 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                 </motion.div>
                             </AnimatePresence>
                         </div>
-
-                        <div className={styles.actionFooter}>
-                            <button className={styles.primaryButton} onClick={handleNextScoutStep}>
-                                {scoutStep === 4 ? 'Go to Phase 1.5: Problem Preview' : 'Next Step'}
-                                <ChevronRight size={20} />
-                            </button>
-                        </div>
                     </motion.div>
                 ) : (
                     <motion.div
@@ -226,15 +224,21 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                         className={styles.phaseContainer}
                     >
                         <div className={styles.header}>
-                            <div className={styles.headerIcon}>
-                                <HelpCircle size={32} />
+                            <div className={styles.headerLeft}>
+                                <div className={styles.headerIcon}>
+                                    <HelpCircle size={32} />
+                                </div>
+                                <div>
+                                    <h2 className={styles.title}>SENSA Explore+</h2>
+                                    <p className={styles.subtitle}>
+                                        See what "done" looks like.
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className={styles.title}>Phase 1.5: The Problem Preview</h2>
-                                <p className={styles.subtitle}>
-                                    See what "done" looks like.
-                                </p>
-                            </div>
+                            <button className={styles.headerNextButton} onClick={onComplete}>
+                                Start Phase 2
+                                <ArrowRight size={18} />
+                            </button>
                         </div>
 
                         <div className={styles.previewContent}>
@@ -290,17 +294,6 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                     );
                                 })}
                             </div>
-                        </div>
-
-                        <div className={styles.actionFooter}>
-                            <div className={styles.hintBox}>
-                                <TrendingUp size={18} />
-                                <span>You are now active hunting for knowledge.</span>
-                            </div>
-                            <button className={styles.primaryButton} onClick={onComplete}>
-                                Start Phase 2: Build the Web
-                                <ArrowRight size={20} />
-                            </button>
                         </div>
                     </motion.div>
                 )}

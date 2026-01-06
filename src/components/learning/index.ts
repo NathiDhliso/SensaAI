@@ -13,7 +13,7 @@ export type { LifecycleLabels, PhaseProgress, LifecycleNavigatorProps } from './
 export { ConceptChunks } from './ConceptChunks';
 export type { ConceptChunksProps } from './ConceptChunks';
 
-// Phase 3: Prerequisite Gates
+// SENSA Phase 3: Study - Prerequisite Gates
 export { PrerequisiteCheck, usePrerequisiteCheck } from './PrerequisiteCheck';
 
 // Phase 5: Session Start Modal

@@ -1,7 +1,7 @@
 /**
  * PrerequisiteCheck Component
  * 
- * Phase 3: Cognitive Load Mitigations - Prerequisite Gates
+ * SENSA Phase 3: Study - Prerequisite Gates
  * Prevents out-of-order learning by showing missing prerequisites.
  * 
  * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Phase 3.B
@@ -41,15 +41,15 @@ function resolvePrerequisites(
 ): PrerequisiteConcept[] {
   return prerequisites.map(prereq => {
     // Try to find by name first (prerequisites are stored as names)
-    const concept = allConcepts.find(c => 
+    const concept = allConcepts.find(c =>
       c.name.toLowerCase() === prereq.toLowerCase() ||
       c.id === prereq
     );
-    
+
     return {
       id: concept?.id || prereq,
       name: concept?.name || prereq,
-      completed: concept 
+      completed: concept
         ? completedConcepts.includes(concept.id)
         : false,
     };
@@ -70,18 +70,18 @@ export function PrerequisiteCheck({
     allConcepts,
     completedConcepts
   );
-  
+
   // Check which prerequisites are missing
   const missingPrereqs = resolvedPrereqs.filter(p => !p.completed);
   const completedPrereqs = resolvedPrereqs.filter(p => p.completed);
-  
+
   // If all prerequisites are met, don't show anything
   if (missingPrereqs.length === 0) {
     return null;
   }
-  
+
   const isBlocked = mode === 'block';
-  
+
   return (
     <div className={`${styles.container} ${isBlocked ? styles.blocked : styles.warning}`}>
       <div className={styles.header}>
@@ -90,9 +90,9 @@ export function PrerequisiteCheck({
           {isBlocked ? 'Prerequisites Required' : 'Recommended Prerequisites'}
         </span>
       </div>
-      
+
       <p className={styles.message}>{warningMessage}</p>
-      
+
       <div className={styles.prereqList}>
         {/* Missing prerequisites */}
         {missingPrereqs.map(prereq => (
@@ -107,7 +107,7 @@ export function PrerequisiteCheck({
             <ChevronRight size={14} className={styles.chevron} />
           </button>
         ))}
-        
+
         {/* Completed prerequisites (if any) */}
         {completedPrereqs.length > 0 && (
           <div className={styles.completedSection}>
@@ -121,7 +121,7 @@ export function PrerequisiteCheck({
           </div>
         )}
       </div>
-      
+
       {isBlocked && (
         <div className={styles.blockedOverlay}>
           <Lock size={32} />
@@ -139,23 +139,23 @@ export function usePrerequisiteCheck(
   concept: LearningConcept | null,
   allConcepts: LearningConcept[],
   completedConcepts: string[]
-): { 
-  isReady: boolean; 
-  missingCount: number; 
+): {
+  isReady: boolean;
+  missingCount: number;
   missingNames: string[];
 } {
   if (!concept || !concept.prerequisites || concept.prerequisites.length === 0) {
     return { isReady: true, missingCount: 0, missingNames: [] };
   }
-  
+
   const resolved = resolvePrerequisites(
     concept.prerequisites,
     allConcepts,
     completedConcepts
   );
-  
+
   const missing = resolved.filter(p => !p.completed);
-  
+
   return {
     isReady: missing.length === 0,
     missingCount: missing.length,

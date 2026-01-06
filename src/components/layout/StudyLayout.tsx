@@ -19,10 +19,11 @@ import {
   BarChart3,
   ChevronDown,
   Settings,
-  Brain,
-  FileText
+  Brain
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
+import { usePersonalizationStore } from '@/store/personalization-store';
+import { getRecommendedTab } from '@/lib/learning/profile-detector';
 import { LifecycleNavigator } from '@/components/learning';
 import styles from './StudyLayout.module.css';
 
@@ -73,13 +74,7 @@ const TABS: TabConfig[] = [
     description: 'Memory anchors',
     color: 'var(--color-secondary-amber)'
   },
-  {
-    id: 'reference',
-    label: 'Source',
-    icon: FileText,
-    description: 'Original Chart',
-    color: 'var(--color-secondary-sage)'
-  },
+
   {
     id: 'sprint',
     label: 'Sprint',
@@ -114,6 +109,10 @@ export function StudyLayout({
     getConcepts,
     getCognitiveLoadLevel
   } = useLearningStore();
+
+  // Get inferred learning profile for personalized tab recommendations
+  const inferredProfile = usePersonalizationStore(s => s.inferredProfile);
+  const recommendedTab = getRecommendedTab(inferredProfile);
 
   const session = getSession();
   const concepts = getConcepts();
@@ -213,6 +212,7 @@ export function StudyLayout({
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
+              const isRecommended = recommendedTab === tab.id && !isActive;
 
               return (
                 <button
@@ -220,11 +220,13 @@ export function StudyLayout({
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`${styles.tabButton} ${isActive ? styles.tabActive : ''}`}
+                  className={`${styles.tabButton} ${isActive ? styles.tabActive : ''} ${isRecommended ? styles.tabRecommended : ''}`}
                   style={{ '--tab-color': tab.color } as React.CSSProperties}
+                  title={isRecommended ? 'Recommended for you' : undefined}
                 >
                   <Icon size={16} />
                   <span>{tab.label}</span>
+                  {isRecommended && <span className={styles.recommendedBadge}>★</span>}
                 </button>
               );
             })}

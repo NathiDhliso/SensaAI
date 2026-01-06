@@ -6,6 +6,18 @@ import type { Mood } from '@/lib/ai/coach';
 export type UserRole = 'architect' | 'operator' | 'specialist' | 'learner';
 export type FamiliarSystem = 'construction' | 'cooking' | 'travel' | 'healthcare' | 'sports' | 'nature';
 
+// Learning Profile System - Predictive Detection
+export type LearningProfile = 'velocity-optimal' | 'palace-optimal' | 'hybrid' | 'undetermined';
+
+export type BehavioralSignals = {
+  avgTimePerConcept: number;  // seconds
+  conceptRevisits: number;    // count of times user revisited concepts
+  consecutiveErrors: number;  // errors in a row
+  palaceEngagement: number;   // 0-1 scale
+  velocityEngagement: number; // 0-1 scale
+  totalConceptsViewed: number;
+};
+
 type PersonalizationState = {
   onboardingComplete: boolean;
   chosenRole: UserRole | null;
@@ -13,6 +25,11 @@ type PersonalizationState = {
   preferredLearningStyle: 'visual' | 'practical' | 'theoretical' | null;
   aphantasiaMode: boolean;
   bionicReading: boolean;
+
+  // Inferred Learning Profile (Zero Administration)
+  inferredProfile: LearningProfile;
+  profileConfidence: number; // 0-100%
+  behavioralSignals: BehavioralSignals;
 
   // AI Coach Settings
   selectedPersona: PersonaId;
@@ -22,6 +39,16 @@ type PersonalizationState = {
   elevenLabsApiKey: string | null;
 };
 
+// Default behavioral signals
+const DEFAULT_BEHAVIORAL_SIGNALS: BehavioralSignals = {
+  avgTimePerConcept: 0,
+  conceptRevisits: 0,
+  consecutiveErrors: 0,
+  palaceEngagement: 0,
+  velocityEngagement: 0,
+  totalConceptsViewed: 0,
+};
+
 type PersonalizationActions = {
   completeOnboarding: (role: UserRole, system: FamiliarSystem, style: 'visual' | 'practical' | 'theoretical') => void;
   resetOnboarding: () => void;
@@ -29,6 +56,10 @@ type PersonalizationActions = {
   updateFamiliarSystem: (system: FamiliarSystem) => void;
   setAphantasiaMode: (enabled: boolean) => void;
   setBionicReading: (enabled: boolean) => void;
+
+  // Learning Profile Actions
+  updateBehavioralSignals: (signals: Partial<BehavioralSignals>) => void;
+  setInferredProfile: (profile: LearningProfile, confidence: number) => void;
 
   // AI Coach Actions
   setSelectedPersona: (persona: PersonaId) => void;
@@ -47,6 +78,11 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
       preferredLearningStyle: null,
       aphantasiaMode: false,
       bionicReading: false,
+
+      // Learning Profile Defaults (Zero Administration)
+      inferredProfile: 'undetermined',
+      profileConfidence: 0,
+      behavioralSignals: DEFAULT_BEHAVIORAL_SIGNALS,
 
       // AI Coach Defaults
       selectedPersona: 'buddy',
@@ -87,6 +123,17 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
 
       setBionicReading: (enabled) => {
         set({ bionicReading: enabled });
+      },
+
+      // Learning Profile Actions
+      updateBehavioralSignals: (signals) => {
+        set((state) => ({
+          behavioralSignals: { ...state.behavioralSignals, ...signals },
+        }));
+      },
+
+      setInferredProfile: (profile, confidence) => {
+        set({ inferredProfile: profile, profileConfidence: confidence });
       },
 
       // AI Coach Actions

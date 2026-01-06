@@ -420,10 +420,39 @@
   box-sizing: border-box;
 }
 
-body {
+:root {
   min-height: 100vh;
+  /* Move background here to fill space during zoom */
   background: var(--gradient-paper);
+}
+
+body {
+  height: 100vh;
+  /* Fixed height for Flexible Shell */
+  min-height: 100vh;
+  overflow: hidden;
+  /* Prevent body scroll, delegate to inner containers */
+  background: transparent;
+  /* Rely on root background */
   position: relative;
+}
+
+/* ============================================
+   SILVER BULLET: LAPTOP ZOOM
+   Aggressively reclaim vertical space on short screens
+   ============================================ */
+@media (max-height: 900px) {
+  body {
+    zoom: 0.92;
+    /* 8% gain */
+  }
+}
+
+@media (max-height: 768px) {
+  body {
+    zoom: 0.85;
+    /* 15% gain */
+  }
 }
 
 body::before {
@@ -451,10 +480,27 @@ body::before {
 }
 
 .root {
-  min-height: 100vh;
+  height: 100vh;
+  /* Full viewport height */
+  display: flex;
+  flex-direction: column;
   position: relative;
   z-index: 1;
   isolation: isolate;
+  overflow: hidden;
+  /* Ensure no accidental root scroll */
+}
+
+/* SILVER BULLET: UTILITY FOR SCROLLABLE AREAS */
+.sensa-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Smooth scroll behavior */
+  scroll-behavior: smooth;
+  /* Custom Scrollbar Styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-emphasis) transparent;
 }
 
 /* ============================================

@@ -13,7 +13,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Brain,
-    Rocket,
     AlertCircle
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
@@ -21,6 +20,7 @@ import VelocityDashboard from '@/components/learning/VelocityDashboard';
 import MicroLearningLoopController from '@/components/learning/MicroLearningLoopController';
 import DiagnosticLaunchSystem from '@/components/learning/DiagnosticLaunchSystem';
 import SessionStartModal from '@/components/learning/SessionStartModal';
+import VelocityLockInGate from '@/components/learning/VelocityLockInGate';
 import type { SensaAILearningConcept } from '@/lib/content-adapter/transformer';
 import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
 import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
@@ -28,7 +28,7 @@ import MapReconstructionTest from '@/components/learning/MapReconstructionTest';
 import MasteryChallenge from '@/components/learning/MasteryChallenge';
 import styles from './VelocityLearning.module.css';
 
-import { COLORS } from '@/constants/theme-colors';
+
 
 export default function VelocityLearning() {
     const {
@@ -48,6 +48,7 @@ export default function VelocityLearning() {
     } = useLearningStore();
 
     const [showStartModal, setShowStartModal] = useState(false);
+    const [lockedIn, setLockedIn] = useState(false);
 
     // Initialize session timer on mount if session exists and not started
     useEffect(() => {
@@ -109,13 +110,13 @@ export default function VelocityLearning() {
         }
     }, [showDiagnostic, diagnosticSession, startDiagnostic]);
 
-    // Effect: Enforce Phase 0 (Prime) if missing
+    // Effect: Enforce Phase 0 (Prime) if missing - but only AFTER lock-in confirmation
     useEffect(() => {
-        // Show modal if: 1) No study session exists, OR 2) Active session without primer
-        if (currentSession && (!studySession || (studySession.isActive && !studySession.primer)) && !showStartModal) {
+        // Show modal if: LOCKED IN AND (1) No study session exists, OR 2) Active session without primer)
+        if (lockedIn && currentSession && (!studySession || (studySession.isActive && !studySession.primer)) && !showStartModal) {
             setShowStartModal(true);
         }
-    }, [currentSession, studySession?.isActive, studySession?.primer, showStartModal]);
+    }, [lockedIn, currentSession, studySession?.isActive, studySession?.primer, showStartModal]);
 
 
     // Handlers
@@ -182,6 +183,18 @@ export default function VelocityLearning() {
         );
     }
 
+    // 2. Lock-In Gate - Show confirmation before allowing session setup
+    // Show if: Session exists BUT not locked in AND needs primer setup
+    const needsPrimer = !studySession || (studySession.isActive && !studySession.primer);
+    if (!lockedIn && needsPrimer) {
+        return (
+            <VelocityLockInGate
+                subjectName={currentSession.subject}
+                onConfirm={() => setLockedIn(true)}
+            />
+        );
+    }
+
     // 2. Active Learning Interface
     return (
         <div className={styles.container} style={{
@@ -189,15 +202,7 @@ export default function VelocityLearning() {
             '--cognitive-load': cognitiveLoad
         } as React.CSSProperties}>
 
-            {/* HIDE Header during active loop for immersion */}
-            {(!activeConcept || !studySession?.primer) && (
-                <header className={styles.header}>
-                    <div className={styles.title}>
-                        <Rocket size={24} color={COLORS.info} />
-                        <span>Velocity Learning</span>
-                    </div>
-                </header>
-            )}
+
 
             <main className={styles.content}>
                 <div className={styles.mainArea}>
@@ -321,7 +326,7 @@ export default function VelocityLearning() {
                 </div>
             </main>
 
-            {/* Start Modal */}
+            {/* Start Modal - Now a full-page experience */}
             <AnimatePresence>
                 {showStartModal && (
                     <SessionStartModal
@@ -329,7 +334,6 @@ export default function VelocityLearning() {
                         totalConcepts={currentSession.concepts.length}
                         completedConcepts={currentSession.progress.completedConcepts.length}
                         onStart={handleStartSession}
-                        onClose={() => setShowStartModal(false)}
                     />
                 )}
             </AnimatePresence>

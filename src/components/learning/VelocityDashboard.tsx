@@ -17,7 +17,9 @@ import {
     Brain,
     Coffee,
     ArrowRight,
-    BarChart3
+    BarChart3,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import { getSpacingEngine } from '@/lib/learning/spacing-engine';
 import type { SpacingMetrics } from '@/lib/learning/spacing-engine';
@@ -153,6 +155,7 @@ export function VelocityDashboard({
     onActionSelect,
 }: VelocityDashboardProps) {
     const [spacingMetrics, setSpacingMetrics] = useState<SpacingMetrics | null>(null);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     // Load spacing metrics
     useEffect(() => {
@@ -175,12 +178,44 @@ export function VelocityDashboard({
         return determineOptimalAction(spacingMetrics, cognitiveLoad);
     }, [spacingMetrics, cognitiveLoad]);
 
+    // Minimized pill view - click to expand
+    if (!isExpanded) {
+        return (
+            <motion.button
+                className={styles.minimizedPill}
+                onClick={() => setIsExpanded(true)}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.02 }}
+                title="Click to expand dashboard"
+            >
+                <Zap size={14} className={styles.pillIcon} />
+                <span className={styles.pillValue}>{velocity.conceptsPerHour}</span>
+                <span className={styles.pillLabel}>/hr</span>
+                {spacingMetrics && spacingMetrics.dueToday > 0 && (
+                    <span className={styles.pillBadge}>{spacingMetrics.dueToday}</span>
+                )}
+                <ChevronDown size={14} className={styles.pillExpand} />
+            </motion.button>
+        );
+    }
+
+    // Expanded view
     return (
         <motion.div
             className={styles.dashboard}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
         >
+            {/* Collapse button */}
+            <button
+                className={styles.collapseButton}
+                onClick={() => setIsExpanded(false)}
+                title="Minimize dashboard"
+            >
+                <ChevronUp size={16} />
+            </button>
+
             {/* Velocity section */}
             <div className={styles.velocitySection}>
                 <div className={styles.velocityMain}>

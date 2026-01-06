@@ -1,18 +1,28 @@
 /**
  * ConceptMapBuilder Component
  * 
- * Implements Phase 2: Build the Web.
+ * Implements SENSA Phase 2: Note.
  * Allows users to create a concept map by dragging concepts and connecting them.
+ * 
+ * UX Features:
+ * - Undo/Redo with history stack (Ctrl+Z, Ctrl+Y)
+ * - Node & Connection deletion (hover X, Delete key)
+ * - Inline label editor with presets (no browser prompt())
+ * - Label length validation (max 25 chars)
+ * - Keyboard shortcuts
  */
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowRight,
     Move,
     Check,
     Sparkles,
     Lightbulb,
-    AlertTriangle
+    AlertTriangle,
+    Undo2,
+    Redo2,
+    X
 } from 'lucide-react';
 import type { LearningConcept, ConceptMapData } from '@/lib/types/learning';
 import {
@@ -24,6 +34,20 @@ import {
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './ConceptMapBuilder.module.css';
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MAX_LABEL_LENGTH = 25;
+const LABEL_PRESETS = [
+    'causes', 'enables', 'requires', 'is part of',
+    'leads to', 'depends on', 'contains', 'example of'
+];
+
+// ============================================================================
+// TYPES
+// ============================================================================
 
 interface ConceptMapBuilderProps {
     concepts: LearningConcept[];
@@ -46,27 +70,48 @@ interface Connection {
     label: string;
 }
 
+interface HistoryEntry {
+    nodes: MapNode[];
+    connections: Connection[];
+    addedConceptIds: string[];
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
 export default function ConceptMapBuilder({
     concepts,
     onComplete,
     initialData,
     readOnly = false
 }: ConceptMapBuilderProps) {
+    // Core State
     const [nodes, setNodes] = useState<MapNode[]>(initialData?.nodes || []);
     const [connections, setConnections] = useState<Connection[]>(initialData?.connections || []);
     const [addedConceptIds, setAddedConceptIds] = useState<Set<string>>(
         new Set(initialData?.nodes.map(n => n.conceptId) || [])
     );
 
+    // History for Undo/Redo
+    const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+
     // Tools: 'select' (drag nodes), 'connect' (draw lines)
     const [activeTool, setActiveTool] = useState<'select' | 'connect'>('select');
 
     // Interaction State
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+    const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
     const [connectingFromId, setConnectingFromId] = useState<string | null>(null);
     const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
 
-    // Refs for drag math
+    // Inline Label Editor State
+    const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
+    const [labelInput, setLabelInput] = useState('');
+    const labelInputRef = useRef<HTMLInputElement>(null);
+
+    // Refs
     const canvasRef = useRef<HTMLDivElement>(null);
 
     // AI State
@@ -75,18 +120,127 @@ export default function ConceptMapBuilder({
     const [detectedGaps, setDetectedGaps] = useState<GapDetection[]>([]);
     const [showAiPanel, setShowAiPanel] = useState(true);
 
-    // Run AI analysis when map changes (debounced could be better, but simple for now)
-    // In a real app, wrap in useEffect withdebounce
-    const analyzeMap = () => {
+    // =========================================================================
+    // HISTORY MANAGEMENT (Undo/Redo)
+    // =========================================================================
+
+    const pushHistory = useCallback(() => {
+        const entry: HistoryEntry = {
+            nodes: JSON.parse(JSON.stringify(nodes)),
+            connections: JSON.parse(JSON.stringify(connections)),
+            addedConceptIds: Array.from(addedConceptIds)
+        };
+        setHistory(prev => [...prev.slice(0, historyIndex + 1), entry]);
+        setHistoryIndex(prev => prev + 1);
+    }, [nodes, connections, addedConceptIds, historyIndex]);
+
+    const undo = useCallback(() => {
+        if (historyIndex < 0) return;
+
+        const entry = history[historyIndex];
+        if (entry) {
+            setNodes(entry.nodes);
+            setConnections(entry.connections);
+            setAddedConceptIds(new Set(entry.addedConceptIds));
+            setHistoryIndex(prev => prev - 1);
+        }
+    }, [history, historyIndex]);
+
+    const redo = useCallback(() => {
+        if (historyIndex >= history.length - 1) return;
+
+        const entry = history[historyIndex + 2];
+        if (entry) {
+            setNodes(entry.nodes);
+            setConnections(entry.connections);
+            setAddedConceptIds(new Set(entry.addedConceptIds));
+            setHistoryIndex(prev => prev + 1);
+        }
+    }, [history, historyIndex]);
+
+    const canUndo = historyIndex >= 0;
+    const canRedo = historyIndex < history.length - 1;
+
+    // =========================================================================
+    // KEYBOARD SHORTCUTS
+    // =========================================================================
+
+    useEffect(() => {
+        if (readOnly) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Undo: Ctrl+Z
+            if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+            }
+            // Redo: Ctrl+Y or Ctrl+Shift+Z
+            if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+                e.preventDefault();
+                redo();
+            }
+            // Delete selected node or connection
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !editingConnectionId) {
+                if (selectedNodeId) {
+                    e.preventDefault();
+                    removeNode(selectedNodeId);
+                } else if (selectedConnectionId) {
+                    e.preventDefault();
+                    removeConnection(selectedConnectionId);
+                }
+            }
+            // Escape: cancel connection mode or close editor
+            if (e.key === 'Escape') {
+                setConnectingFromId(null);
+                setEditingConnectionId(null);
+                setSelectedNodeId(null);
+                setSelectedConnectionId(null);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [readOnly, undo, redo, selectedNodeId, selectedConnectionId, editingConnectionId]);
+
+    // =========================================================================
+    // NODE & CONNECTION DELETION
+    // =========================================================================
+
+    const removeNode = useCallback((nodeId: string) => {
+        if (readOnly) return;
+        pushHistory();
+
+        setNodes(prev => {
+            const node = prev.find(n => n.id === nodeId);
+            if (node) {
+                setAddedConceptIds(ids => {
+                    const next = new Set(ids);
+                    next.delete(node.conceptId);
+                    return next;
+                });
+            }
+            return prev.filter(n => n.id !== nodeId);
+        });
+        // Remove any connections to/from this node
+        setConnections(prev => prev.filter(c => c.fromId !== nodeId && c.toId !== nodeId));
+        setSelectedNodeId(null);
+    }, [readOnly, pushHistory]);
+
+    const removeConnection = useCallback((connId: string) => {
+        if (readOnly) return;
+        pushHistory();
+        setConnections(prev => prev.filter(c => c.id !== connId));
+        setSelectedConnectionId(null);
+    }, [readOnly, pushHistory]);
+
+    // =========================================================================
+    // AI ANALYSIS
+    // =========================================================================
+
+    const analyzeMap = useCallback(() => {
         if (nodes.length < 2) return;
 
-        // generated suggestions
-        // const existingConns = connections.map(c => ({ fromId: c.fromId, toId: c.toId }));
-
-        // Note: AI needs concept IDs, but nodes manage positions. Map nodes lack direct concept ref mapping easily available?
-        // nodes has conceptId. 
-
-        // Filter concepts currently on the map
         const mapConceptIds = new Set(nodes.map(n => n.conceptId));
         const mapConcepts = concepts.filter(c => mapConceptIds.has(c.id));
 
@@ -101,7 +255,7 @@ export default function ConceptMapBuilder({
                 };
             })
         );
-        setSuggestions(newSuggestions.slice(0, 3)); // Top 3
+        setSuggestions(newSuggestions.slice(0, 3));
 
         // 2. Detect Gaps
         const gaps = detectGaps(concepts,
@@ -116,20 +270,23 @@ export default function ConceptMapBuilder({
             })
         );
         setDetectedGaps(gaps);
-    };
+    }, [nodes, connections, concepts]);
 
-    // Trigger analysis on changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        const timer = setTimeout(analyzeMap, UI_TIMINGS.MAP_LOAD_DELAY); // 500ms debounce
+        const timer = setTimeout(analyzeMap, UI_TIMINGS.MAP_LOAD_DELAY);
         return () => clearTimeout(timer);
-    }, [nodes, connections]);
+    }, [analyzeMap]);
+
+    // =========================================================================
+    // CONNECTION & NODE HANDLERS
+    // =========================================================================
 
     const acceptSuggestion = (suggestion: ConnectionSuggestion) => {
         const fromNode = nodes.find(n => n.conceptId === suggestion.fromConceptId);
         const toNode = nodes.find(n => n.conceptId === suggestion.toConceptId);
 
         if (fromNode && toNode) {
+            pushHistory();
             const newConnection: Connection = {
                 id: `conn-${Date.now()}`,
                 fromId: fromNode.id,
@@ -137,8 +294,6 @@ export default function ConceptMapBuilder({
                 label: suggestion.suggestedLabel
             };
             setConnections(prev => [...prev, newConnection]);
-
-            // Remove this suggestion
             setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
         }
     };
@@ -146,11 +301,12 @@ export default function ConceptMapBuilder({
     const handleAddConcept = (concept: LearningConcept) => {
         if (readOnly || addedConceptIds.has(concept.id)) return;
 
+        pushHistory();
         const newNode: MapNode = {
             id: `node-${Date.now()}`,
             conceptId: concept.id,
-            x: 100 + Math.random() * 50,
-            y: 100 + Math.random() * 50
+            x: 150 + Math.random() * 100,
+            y: 150 + Math.random() * 100
         };
 
         setNodes(prev => [...prev, newNode]);
@@ -160,21 +316,17 @@ export default function ConceptMapBuilder({
     const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
         e.stopPropagation();
 
-        // Still allow selecting in readOnly, but not dragging if rigid? 
-        // Let's allow dragging to rearrange view even in readOnly, but NO connecting.
-
         if (activeTool === 'connect' && !readOnly) {
             if (connectingFromId === null) {
                 setConnectingFromId(nodeId);
             } else if (connectingFromId !== nodeId) {
-                // Complete connection
                 finishConnection(connectingFromId, nodeId);
             }
             return;
         }
 
-        // Select tool (always allowed to move nodes for visibility)
         setSelectedNodeId(nodeId);
+        setSelectedConnectionId(null);
         setDraggingNodeId(nodeId);
     };
 
@@ -194,86 +346,111 @@ export default function ConceptMapBuilder({
         setDraggingNodeId(null);
     };
 
+    const handleCanvasClick = () => {
+        setSelectedNodeId(null);
+        setSelectedConnectionId(null);
+    };
+
     const finishConnection = (fromId: string, toId: string) => {
         if (readOnly) return;
 
-        // Prevent duplicate connections
         const exists = connections.some(c => c.fromId === fromId && c.toId === toId);
         if (exists) {
             setConnectingFromId(null);
             return;
         }
 
+        pushHistory();
         const newConnection: Connection = {
             id: `conn-${Date.now()}`,
             fromId,
             toId,
-            label: '?' // Default label, user should edit
+            label: ''
         };
 
         setConnections(prev => [...prev, newConnection]);
         setConnectingFromId(null);
 
-        // Prompt for label immediately
-        const label = prompt("Why do these connect? (e.g., 'causes', 'is part of')", "connects to");
-        if (label) {
-            updateConnectionLabel(newConnection.id, label);
-        }
+        // Open inline editor instead of prompt()
+        setEditingConnectionId(newConnection.id);
+        setLabelInput('');
     };
 
-    const updateConnectionLabel = (connId: string, newLabel: string) => {
-        setConnections(prev => prev.map(c =>
-            c.id === connId ? { ...c, label: newLabel } : c
-        ));
+    // =========================================================================
+    // INLINE LABEL EDITOR
+    // =========================================================================
+
+    const saveLabel = () => {
+        if (editingConnectionId) {
+            const trimmedLabel = labelInput.trim().slice(0, MAX_LABEL_LENGTH);
+            setConnections(prev => prev.map(c =>
+                c.id === editingConnectionId ? { ...c, label: trimmedLabel || '?' } : c
+            ));
+        }
+        setEditingConnectionId(null);
+        setLabelInput('');
     };
+
+    const openLabelEditor = (connId: string, currentLabel: string) => {
+        if (readOnly) return;
+        setEditingConnectionId(connId);
+        setLabelInput(currentLabel === '?' ? '' : currentLabel);
+        setSelectedConnectionId(connId);
+    };
+
+    // Focus input when editor opens
+    useEffect(() => {
+        if (editingConnectionId && labelInputRef.current) {
+            labelInputRef.current.focus();
+        }
+    }, [editingConnectionId]);
+
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
 
     const getConceptName = (conceptId: string) => {
         return concepts.find(c => c.id === conceptId)?.name || 'Unknown';
     };
 
-    // Helper to draw SVG lines
+    // =========================================================================
+    // RENDER FUNCTIONS
+    // =========================================================================
+
     const renderConnections = () => {
         return connections.map(conn => {
             const startNode = nodes.find(n => n.id === conn.fromId);
             const endNode = nodes.find(n => n.id === conn.toId);
             if (!startNode || !endNode) return null;
 
-            // Simple center-to-center for now
-            // In a pro version, calculate intersection with node boundary
+            const isSelected = selectedConnectionId === conn.id;
 
             return (
-                <g key={conn.id} onClick={() => {
-                    if (readOnly) return;
-                    const label = prompt("Update label:", conn.label);
-                    if (label) updateConnectionLabel(conn.id, label);
-                }}>
+                <g
+                    key={conn.id}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (!readOnly) {
+                            setSelectedConnectionId(conn.id);
+                            setSelectedNodeId(null);
+                        }
+                    }}
+                    style={{ cursor: readOnly ? 'default' : 'pointer' }}
+                >
                     <line
                         x1={startNode.x}
                         y1={startNode.y}
                         x2={endNode.x}
                         y2={endNode.y}
-                        stroke="var(--color-primary)"
-                        strokeWidth="2"
+                        stroke={isSelected ? 'var(--color-accent-alt)' : 'var(--color-accent-light)'}
+                        strokeWidth={isSelected ? 3 : 2}
                         markerEnd="url(#arrowhead)"
-                        style={{ cursor: readOnly ? 'default' : 'pointer' }}
                     />
-                    <circle cx={(startNode.x + endNode.x) / 2} cy={(startNode.y + endNode.y) / 2} r="10" fill="var(--color-surface-base)" stroke="var(--color-border)" />
-                    <text
-                        x={(startNode.x + endNode.x) / 2}
-                        y={(startNode.y + endNode.y) / 2}
-                        dy=".3em"
-                        textAnchor="middle"
-                        fontSize="12"
-                        className={styles.svgLabel}
-                    >
-                        ?
-                    </text>
                 </g>
             );
         });
     };
 
-    // Render connection HTML labels for better editing/visibility
     const renderConnectionLabels = () => {
         return connections.map(conn => {
             const startNode = nodes.find(n => n.id === conn.fromId);
@@ -282,26 +459,79 @@ export default function ConceptMapBuilder({
 
             const midX = (startNode.x + endNode.x) / 2;
             const midY = (startNode.y + endNode.y) / 2;
+            const isEditing = editingConnectionId === conn.id;
+            const isSelected = selectedConnectionId === conn.id;
 
             return (
                 <div
                     key={`label-${conn.id}`}
-                    className={styles.connectionLabel}
+                    className={`${styles.connectionLabel} ${isSelected ? styles.selectedConnection : ''}`}
                     style={{ left: midX, top: midY }}
                     onClick={(e) => {
                         e.stopPropagation();
-                        if (readOnly) return;
-                        const label = prompt("Why do these connect?", conn.label);
-                        if (label) updateConnectionLabel(conn.id, label);
+                        if (!isEditing) {
+                            openLabelEditor(conn.id, conn.label);
+                        }
                     }}
                 >
-                    {conn.label || '?'}
+                    {isEditing ? (
+                        <div className={styles.labelEditor} onClick={e => e.stopPropagation()}>
+                            <input
+                                ref={labelInputRef}
+                                value={labelInput}
+                                onChange={e => setLabelInput(e.target.value.slice(0, MAX_LABEL_LENGTH))}
+                                maxLength={MAX_LABEL_LENGTH}
+                                placeholder="e.g., causes"
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') saveLabel();
+                                    if (e.key === 'Escape') setEditingConnectionId(null);
+                                }}
+                            />
+                            <div className={styles.labelEditorActions}>
+                                <button onClick={saveLabel} className={styles.saveButton}>
+                                    <Check size={14} />
+                                </button>
+                                <button onClick={() => setEditingConnectionId(null)} className={styles.cancelButton}>
+                                    <X size={14} />
+                                </button>
+                            </div>
+                            <div className={styles.charCounter}>
+                                {labelInput.length}/{MAX_LABEL_LENGTH}
+                            </div>
+                            <div className={styles.presetChips}>
+                                {LABEL_PRESETS.map(preset => (
+                                    <button
+                                        key={preset}
+                                        className={styles.presetChip}
+                                        onClick={() => setLabelInput(preset)}
+                                    >
+                                        {preset}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <span>{conn.label || '?'}</span>
+                            {!readOnly && (
+                                <button
+                                    className={styles.deleteConnectionButton}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeConnection(conn.id);
+                                    }}
+                                    title="Delete connection"
+                                >
+                                    <X size={12} />
+                                </button>
+                            )}
+                        </>
+                    )}
                 </div>
             );
         });
     };
 
-    // Render AI Panel
     const renderAiPanel = () => {
         if (!showAiPanel || (suggestions.length === 0 && detectedGaps.length === 0)) return null;
 
@@ -312,7 +542,7 @@ export default function ConceptMapBuilder({
                     <span>Coach {selectedPersona === 'goggins' ? 'Insights' : 'Suggestions'}</span>
                     <button
                         onClick={() => setShowAiPanel(false)}
-                        style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'currentColor' }}
+                        className={styles.aiPanelClose}
                     >
                         ×
                     </button>
@@ -353,14 +583,18 @@ export default function ConceptMapBuilder({
         );
     };
 
+    // =========================================================================
+    // MAIN RENDER
+    // =========================================================================
+
     return (
         <div className={styles.container}>
-            {/* Sidebar - Hide in readOnly to focus on map */}
+            {/* Sidebar */}
             {!readOnly && (
                 <div className={styles.sidebar}>
                     <div className={styles.sidebarHeader}>
                         <h3 className={styles.sidebarTitle}>Concepts</h3>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>Drag to canvas</p>
+                        <p className={styles.sidebarHint}>Click to add to canvas</p>
                     </div>
                     <div className={styles.conceptList}>
                         {concepts.map(c => (
@@ -370,7 +604,7 @@ export default function ConceptMapBuilder({
                                 onClick={() => handleAddConcept(c)}
                             >
                                 {c.name}
-                                {addedConceptIds.has(c.id) && <Check size={14} style={{ float: 'right', color: 'var(--color-success)' }} />}
+                                {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
                             </div>
                         ))}
                     </div>
@@ -385,6 +619,7 @@ export default function ConceptMapBuilder({
                 onMouseMove={handleCanvasMouseMove}
                 onMouseUp={handleCanvasMouseUp}
                 onMouseLeave={handleCanvasMouseUp}
+                onClick={handleCanvasClick}
             >
                 {/* Toolbar */}
                 {!readOnly && (
@@ -392,25 +627,50 @@ export default function ConceptMapBuilder({
                         <button
                             className={`${styles.toolButton} ${activeTool === 'select' ? styles.active : ''}`}
                             onClick={() => setActiveTool('select')}
-                            title="Move Mode"
+                            title="Move Mode (drag nodes)"
                         >
                             <Move size={20} />
                         </button>
                         <button
                             className={`${styles.toolButton} ${activeTool === 'connect' ? styles.active : ''}`}
                             onClick={() => setActiveTool('connect')}
-                            title="Connect Mode"
+                            title="Connect Mode (draw lines)"
                         >
                             <ArrowRight size={20} />
+                        </button>
+                        <div className={styles.toolbarDivider} />
+                        <button
+                            className={`${styles.toolButton} ${!canUndo ? styles.disabled : ''}`}
+                            onClick={undo}
+                            disabled={!canUndo}
+                            title="Undo (Ctrl+Z)"
+                        >
+                            <Undo2 size={20} />
+                        </button>
+                        <button
+                            className={`${styles.toolButton} ${!canRedo ? styles.disabled : ''}`}
+                            onClick={redo}
+                            disabled={!canRedo}
+                            title="Redo (Ctrl+Y)"
+                        >
+                            <Redo2 size={20} />
                         </button>
                     </div>
                 )}
 
-                {activeTool === 'connect' && !readOnly && (
-                    <div className={styles.connectModeHint}>
-                        {connectingFromId ? 'Select target node' : 'Select starting node'}
-                    </div>
-                )}
+                {/* Connect Mode Hint */}
+                <AnimatePresence>
+                    {activeTool === 'connect' && !readOnly && (
+                        <motion.div
+                            className={styles.connectModeHint}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                        >
+                            {connectingFromId ? '👆 Click target node' : '👆 Click starting node'}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Nodes */}
                 {nodes.map(node => (
@@ -421,6 +681,18 @@ export default function ConceptMapBuilder({
                         onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                     >
                         {getConceptName(node.conceptId)}
+                        {!readOnly && (
+                            <button
+                                className={styles.deleteNodeButton}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeNode(node.id);
+                                }}
+                                title="Delete node (Delete key)"
+                            >
+                                <X size={12} />
+                            </button>
+                        )}
                     </div>
                 ))}
 
@@ -428,16 +700,10 @@ export default function ConceptMapBuilder({
                 <svg className={styles.svgLayer}>
                     <defs>
                         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-primary)" />
+                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-accent-light)" />
                         </marker>
                     </defs>
                     {renderConnections()}
-                    {/* Dragging line */}
-                    {activeTool === 'connect' && connectingFromId && draggingNodeId === null && (
-                        // If we wanted to draw a line to cursor, we'd need cursor pos in state. 
-                        // Skipping for simplicity, just highlighting origin.
-                        null
-                    )}
                 </svg>
 
                 {/* HTML Labels */}
@@ -446,6 +712,7 @@ export default function ConceptMapBuilder({
                 {/* AI Panel */}
                 {!readOnly && renderAiPanel()}
 
+                {/* Complete Button */}
                 {!readOnly && nodes.length >= 2 && connections.length >= 1 && onComplete && (
                     <motion.button
                         className={styles.completeButton}

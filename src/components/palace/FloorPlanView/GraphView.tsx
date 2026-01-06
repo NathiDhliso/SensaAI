@@ -9,7 +9,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { SubjectGraph, DependencyEdge, DependencyMetrics } from '@/lib/types/learning';
 import type { LearningConcept } from '@/lib/types/learning';
-import { GRAPH_COLORS } from '@/constants/theme-colors';
+import { GRAPH_COLORS, TEXT_STROKE } from '@/constants/theme-colors';
 import styles from './GraphView.module.css';
 
 // Ensure surface/text colors are available on GRAPH_COLORS or define local fallback
@@ -550,6 +550,9 @@ export function GraphView({
                                                 fontSize="10"
                                                 fontWeight="bold"
                                                 dy="1"
+                                                stroke={TEXT_STROKE.dark}
+                                                strokeWidth="3"
+                                                paintOrder="stroke"
                                             >
                                                 {labelText}
                                             </text>
@@ -615,7 +618,7 @@ export function GraphView({
                                     }}
                                     style={{
                                         cursor: isDraggingNode ? 'grabbing' : 'grab',
-                                        pointerEvents: isConnected ? 'auto' : 'none',
+                                        pointerEvents: 'auto', // Always allow clicking visible nodes
                                     }}
                                     onMouseEnter={() => handleNodeHover(node.id)}
                                     onMouseLeave={() => handleNodeHover(null)}
@@ -650,6 +653,9 @@ export function GraphView({
                                                 fontSize="11"
                                                 fontWeight="500"
                                                 style={{ pointerEvents: 'none' }}
+                                                stroke={TEXT_STROKE.dark}
+                                                strokeWidth="3"
+                                                paintOrder="stroke"
                                             >
                                                 {node.name.length > 20 ? node.name.slice(0, 20) + '...' : node.name}
                                             </text>

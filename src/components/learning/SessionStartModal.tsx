@@ -9,7 +9,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, Clock, Target, BookOpen, RefreshCw, Zap, Compass,
+  Clock, Target, BookOpen, RefreshCw, Zap, Compass,
   ChevronRight, Brain, Sparkles, Heart
 } from 'lucide-react';
 import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/types/learning';
@@ -29,8 +29,7 @@ interface SessionStartModalProps {
   recommendation?: SessionRecommendation;
   /** Called when session is started */
   onStart: (goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => void;
-  /** Called when modal is closed */
-  onClose: () => void;
+  // Note: onClose is no longer needed - this is a required step after lock-in
 }
 
 const DURATION_OPTIONS: Array<{ value: SessionDuration; label: string; minutes: number }> = [
@@ -83,7 +82,6 @@ export function SessionStartModal({
   completedConcepts,
   recommendation,
   onStart,
-  onClose,
 }: SessionStartModalProps) {
   const [step, setStep] = useState<'setup' | 'prime'>('setup');
   const [selectedGoal, setSelectedGoal] = useState<StudyGoal>('learn-new');
@@ -111,26 +109,23 @@ export function SessionStartModal({
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay}>
       <motion.div
         className={styles.modal}
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <Brain className={styles.headerIcon} size={28} />
             <div>
-              <h2>{step === 'setup' ? 'Start Study Session' : 'Phase 0: Prime the Engine'}</h2>
+              <h2>{step === 'setup' ? 'Start Study Session' : 'SENSA Phase 0: See'}</h2>
               <p className={styles.subjectName}>{subjectName}</p>
             </div>
           </div>
-          <button className={styles.closeButton} onClick={onClose}>
-            <X size={20} />
-          </button>
+          {/* Close button hidden - this is a required step after lock-in */}
         </div>
 
         <AnimatePresence mode="wait">

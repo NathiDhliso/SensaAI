@@ -1,7 +1,7 @@
 /**
  * MapReconstructionTest Component
  * 
- * Implements Phase 3: Keep It Strong (Map Reconstruction Mode).
+ * Implements SENSA Phase 3: Study (Map Reconstruction Mode).
  * Users must rebuild their concept map from memory and compare it with the original.
  */
 import { useState, useMemo } from 'react';

@@ -6,6 +6,7 @@
  */
 
 .dashboard {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -13,6 +14,95 @@
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 0.75rem;
+}
+
+/* ============================================================================
+   MINIMIZED PILL - Unobtrusive collapsed view
+   ============================================================================ */
+
+.minimizedPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.minimizedPill:hover {
+    background: var(--overlay-primary-5);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-glow-primary);
+}
+
+.pillIcon {
+    color: var(--color-accent);
+}
+
+.pillValue {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+}
+
+.pillLabel {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.pillBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 0.375rem;
+    background: var(--color-warning);
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 999px;
+    margin-left: 0.25rem;
+}
+
+.pillExpand {
+    color: var(--color-text-muted);
+    margin-left: 0.125rem;
+    transition: transform 0.2s ease;
+}
+
+.minimizedPill:hover .pillExpand {
+    color: var(--color-primary);
+}
+
+/* ============================================================================
+   COLLAPSE BUTTON
+   ============================================================================ */
+
+.collapseButton {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.collapseButton:hover {
+    background: var(--overlay-primary-10);
+    color: var(--color-primary);
 }
 
 /* ============================================================================

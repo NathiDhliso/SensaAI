@@ -132,6 +132,14 @@ export const GRAPH_COLORS = {
 } as const;
 
 // ============================================
+// TEXT STROKE COLORS (for graph labels with outlines)
+// ============================================
+export const TEXT_STROKE = {
+    dark: 'rgba(0, 0, 0, 0.8)',  // Dark stroke for white text on dark backgrounds
+    light: 'rgba(255, 255, 255, 0.8)',  // Light stroke for dark text on light backgrounds
+} as const;
+
+// ============================================
 // HELPER: Get CSS variable value at runtime
 // ============================================
 export function getCSSVariable(name: string): string {
