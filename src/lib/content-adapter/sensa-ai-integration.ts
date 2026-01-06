@@ -7,10 +7,10 @@
 
 import { parseGeneratedContent, transformToSensaAIContent, validateSensaAIMetadata } from './index';
 import type { SensaAILearningConcept } from './transformer';
-import { 
-  generateEnhancedDiagnosticQuestions, 
-  createDiagnosticAssessment, 
-  validateDiagnosticAssessment 
+import {
+  generateEnhancedDiagnosticQuestions,
+  createDiagnosticAssessment,
+  validateDiagnosticAssessment
 } from '@/lib/generation/diagnostic-generator';
 import { generateSensaAIConfusionPairs } from '@/lib/generation/confusion-generator';
 import type { BedrockConfig } from '@/lib/generation/claude-client';
@@ -20,7 +20,7 @@ import type { BedrockConfig } from '@/lib/generation/claude-client';
  * and optional assessment material generation
  */
 export async function loadSensaAIContent(
-  rawContent: string, 
+  rawContent: string,
   subjectId?: string,
   config?: BedrockConfig,
   generateAssessments: boolean = false
@@ -28,7 +28,7 @@ export async function loadSensaAIContent(
   try {
     // Step 1: Parse the raw generated content
     const parseResult = parseGeneratedContent(rawContent);
-    
+
     if (!parseResult.success) {
       return {
         success: false,
@@ -38,19 +38,19 @@ export async function loadSensaAIContent(
 
     // Step 2: Transform to SensaAI enhanced format
     const transformed = transformToSensaAIContent(parseResult.data, subjectId);
-    
+
     // Step 3: Validate metadata completeness
     const validation = validateSensaAIMetadata(transformed.concepts);
-    
+
     // Step 4: Generate enhanced assessment materials if requested
     let enhancedDiagnostics;
     let enhancedConfusionPairs;
     let diagnosticAssessment;
-    
+
     if (generateAssessments && config && transformed.metadata.diagnosticReady) {
       try {
         console.log('[SensaAI] Generating enhanced assessment materials...');
-        
+
         // Generate enhanced diagnostic questions
         enhancedDiagnostics = await generateEnhancedDiagnosticQuestions(
           transformed.concepts,
@@ -58,7 +58,7 @@ export async function loadSensaAIContent(
           config,
           2 // 2 questions per concept
         );
-        
+
         // Generate enhanced confusion pairs
         enhancedConfusionPairs = await generateSensaAIConfusionPairs(
           transformed.concepts,
@@ -66,18 +66,18 @@ export async function loadSensaAIContent(
           config,
           5 // Up to 5 confusion pairs
         );
-        
+
         // Create diagnostic assessment
         diagnosticAssessment = createDiagnosticAssessment(transformed.concepts, enhancedDiagnostics);
-        
+
         console.log('[SensaAI] Enhanced assessments generated successfully');
-        
+
       } catch (error) {
         console.warn('[SensaAI] Failed to generate enhanced assessments:', error);
         // Continue with built-in assessments
       }
     }
-    
+
     // Step 5: Log diagnostics for debugging
     console.log('[SensaAI] Content loaded:', {
       totalConcepts: transformed.concepts.length,
@@ -87,7 +87,7 @@ export async function loadSensaAIContent(
       validationIssues: validation.issues.length,
       enhancedAssessments: !!enhancedDiagnostics
     });
-    
+
     if (validation.issues.length > 0) {
       console.warn('[SensaAI] Validation issues:', validation.issues);
       console.log('[SensaAI] Recommendations:', validation.recommendations);
@@ -99,7 +99,7 @@ export async function loadSensaAIContent(
         stages: transformed.stages,
         concepts: transformed.concepts,
         dependencyGraph: transformed.dependencyGraph,
-        floorPlan: transformed.floorPlan,
+
         metadata: transformed.metadata,
         validation,
         assessments: {
@@ -159,9 +159,9 @@ export function getTierDistribution(concepts: SensaAILearningConcept[]): {
   const foundation = concepts.filter(c => c.tierLevel === 'Foundation');
   const keystone = concepts.filter(c => c.tierLevel === 'Keystone');
   const utility = concepts.filter(c => c.tierLevel === 'Utility');
-  
+
   const total = concepts.length;
-  
+
   return {
     foundation,
     keystone,
@@ -187,7 +187,7 @@ export function createReadyDiagnosticAssessment(
 } {
   const assessment = createDiagnosticAssessment(concepts, enhancedQuestions);
   const validation = validateDiagnosticAssessment(assessment);
-  
+
   return {
     assessment,
     validation,
@@ -211,28 +211,28 @@ export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
   const totalQuestions = concepts.reduce((sum, c) => sum + c.diagnosticQuestions.length, 0);
   const totalConfusionPairs = concepts.reduce((sum, c) => sum + c.confusionPairs.length, 0);
   const avgComplexity = concepts.reduce((sum, c) => sum + c.complexityScore, 0) / concepts.length;
-  
+
   const tierDistribution = concepts.reduce((dist, c) => {
     dist[c.tierLevel] = (dist[c.tierLevel] || 0) + 1;
     return dist;
   }, {} as Record<string, number>);
-  
+
   // Calculate readiness score (0-100)
   let readinessScore = 0;
-  
+
   // Foundation concepts (40 points max)
   readinessScore += Math.min(40, (foundationConcepts.length / 7) * 40);
-  
+
   // Diagnostic questions (30 points max)
   readinessScore += Math.min(30, (totalQuestions / (concepts.length * 2)) * 30);
-  
+
   // Confusion pairs (20 points max)
   readinessScore += Math.min(20, (totalConfusionPairs / concepts.length) * 20);
-  
+
   // Tier balance (10 points max)
   const tierCount = Object.keys(tierDistribution).length;
   readinessScore += Math.min(10, (tierCount / 3) * 10);
-  
+
   return {
     totalConcepts: concepts.length,
     foundationConcepts: foundationConcepts.length,

@@ -6,10 +6,9 @@
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
  */
 
-import { useRef, useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import {
-    Activity,
     Brain,
     Clock,
     Zap,
@@ -17,7 +16,6 @@ import {
     ChevronUp,
     TrendingUp,
     TrendingDown,
-    Minus,
     ArrowRight,
     Target,
     BarChart3,
@@ -181,12 +179,7 @@ export function VelocityDashboard({
         return determineOptimalAction(spacingMetrics, cognitiveLoad);
     }, [spacingMetrics, cognitiveLoad]);
 
-    // Determine optimal action
-    const getOptimalAction = () => {
-        if (cognitiveLoad > VELOCITY_CONFIG.SCORING.HIGH_COGNITIVE_LOAD) return { icon: Coffee, text: 'Take a break', color: 'var(--color-warning)' };
-        if (cognitiveLoad > VELOCITY_CONFIG.SCORING.MODERATE_COGNITIVE_LOAD) return { icon: Brain, text: 'Switch topics', color: 'var(--color-info)' };
-        return { icon: Zap, text: 'Push forward', color: 'var(--color-success)' };
-    };
+
     if (!isExpanded) {
         return (
             <motion.button

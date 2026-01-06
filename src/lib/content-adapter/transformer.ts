@@ -1,8 +1,7 @@
 import type { ParsedGeneratedContent, ParsedConcept, ParsedMentalAnchor } from './types';
 import type { LearningStage, LearningConcept, ConceptLifecycle, SubjectGraph, MnemonicContext } from '@/lib/types/learning';
 import { buildSubjectGraph } from '@/lib/generation/dependency-parser';
-import { generateFloorPlan, buildTreemapInput, buildTreemapStages, type FloorPlanLayout } from '@/lib/generation/floor-plan-generator';
-import { VISUAL_PALETTES, type PaletteType } from '@/lib/palace/theme-engine';
+
 
 // ============================================================================
 // SENSAAI LEARNING VELOCITY ENGINE EXTENSIONS
@@ -362,30 +361,9 @@ function calculateComplexityScore(concept: ParsedConcept): number {
 // EXISTING TRANSFORMER FUNCTIONS
 // ============================================================================
 
-function getPaletteForDomain(domain: string): PaletteType {
-  const d = domain.toLowerCase();
 
-  // Tech / Engineering / Crypto
-  if (d.includes('computer') || d.includes('tech') || d.includes('data') || d.includes('cyber') || d.includes('code') || d.includes('engineer')) {
-    return 'Tech';
-  }
-  // Nature / Biology / Health
-  if (d.includes('biology') || d.includes('health') || d.includes('environment') || d.includes('nature') || d.includes('agriculture')) {
-    return 'Nature';
-  }
-  // Abstract / Philosophy / History / Arts
-  if (d.includes('philosophy') || d.includes('history') || d.includes('art') || d.includes('literature') || d.includes('music')) {
-    return 'Abstract';
-  }
-  // Structural / Architecture / Business / Law
-  if (d.includes('architecture') || d.includes('business') || d.includes('law') || d.includes('finance') || d.includes('construct')) {
-    return 'Structural';
-  }
 
-  return 'Default';
-}
-
-function extractIconFromMetaphor(metaphor: string, domain: string = 'General'): string {
+function extractIconFromMetaphor(metaphor: string, _domain: string = 'General'): string {
   // 1. GLOBAL KEYWORDS (Strong matches independent of domain)
   // These are universally recognized metaphors
   const globalIcons: Record<string, string> = {
@@ -405,21 +383,9 @@ function extractIconFromMetaphor(metaphor: string, domain: string = 'General'): 
     }
   }
 
-  // 2. DOMAIN CONTEXT PALETTE (The Silver Bullet)
-  // If no strong global keyword, we look at the specific palette for this domain
-  const paletteName = getPaletteForDomain(domain);
-  const palette = VISUAL_PALETTES[paletteName];
-
-  // 3. DETERMINISTIC HASH FALLBACK WITHIN PALETTE
-  // We use the hash to pick *from the curated palette* instead of a random shape
-  // This ensures "Data Science" (Tech) gets Tech shapes, "Botany" gets Nature shapes
-  let hash = 0;
-  for (let i = 0; i < metaphor.length; i++) {
-    hash = ((hash << 5) - hash) + metaphor.charCodeAt(i);
-    hash |= 0;
-  }
-
-  return palette[Math.abs(hash) % palette.length];
+  // 2. DOMAIN CONTEXT PALETTE (Fallback)
+  // Use a default icon if no matches
+  return 'shape:seed';
 }
 
 function findMetaphorForConcept(conceptName: string, mentalAnchors: ParsedMentalAnchor[]): string {
@@ -797,7 +763,6 @@ export function transformGeneratedContent(parsed: ParsedGeneratedContent, subjec
   stages: LearningStage[];
   concepts: LearningConcept[];
   dependencyGraph: SubjectGraph;
-  floorPlan: FloorPlanLayout;
   metadata: {
     domain: string;
     role: string;
@@ -815,29 +780,10 @@ export function transformGeneratedContent(parsed: ParsedGeneratedContent, subjec
     parsed.concepts
   );
 
-  // Build floor plan layout (treemap positions)
-  // This is the "Freeze & Bake" visual layer - positions saved forever
-  const treemapConcepts = buildTreemapInput(
-    concepts.map(c => ({
-      id: c.id,
-      name: c.name,
-      stageId: c.stageId,
-      mnemonic: c.mnemonic,
-      dependencyMetrics: dependencyGraph.nodes.find(n => n.id === c.id)?.metrics,
-    }))
-  );
-  const treemapStages = buildTreemapStages(stages.map((s, i) => ({
-    id: s.id,
-    name: s.name || s.title,
-    order: s.order ?? i + 1,
-  })));
-  const floorPlan = generateFloorPlan(treemapConcepts, treemapStages);
-
   return {
     stages,
     concepts,
     dependencyGraph,
-    floorPlan,
     metadata: {
       domain: parsed.domainAnalysis.domain,
       role: parsed.domainAnalysis.professionalRole,
@@ -854,7 +800,6 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
   stages: LearningStage[];
   concepts: SensaAILearningConcept[];
   dependencyGraph: SubjectGraph;
-  floorPlan: FloorPlanLayout;
   metadata: {
     domain: string;
     role: string;
@@ -873,23 +818,6 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
     subjectId || `subject-${Date.now()}`,
     parsed.concepts
   );
-
-  // Build floor plan layout (treemap positions)
-  const treemapConcepts = buildTreemapInput(
-    concepts.map(c => ({
-      id: c.id,
-      name: c.name,
-      stageId: c.stageId,
-      mnemonic: c.mnemonic,
-      dependencyMetrics: dependencyGraph.nodes.find(n => n.id === c.id)?.metrics,
-    }))
-  );
-  const treemapStages = buildTreemapStages(stages.map((s, i) => ({
-    id: s.id,
-    name: s.name || s.title,
-    order: s.order ?? i + 1,
-  })));
-  const floorPlan = generateFloorPlan(treemapConcepts, treemapStages);
 
   // Calculate SensaAI metrics
   const foundationConcepts = concepts.filter(c => c.foundationLevel).length;
@@ -916,7 +844,6 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
     stages,
     concepts,
     dependencyGraph,
-    floorPlan,
     metadata: {
       domain: parsed.domainAnalysis.domain,
       role: parsed.domainAnalysis.professionalRole,

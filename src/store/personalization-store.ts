@@ -7,13 +7,13 @@ export type UserRole = 'architect' | 'operator' | 'specialist' | 'learner';
 export type FamiliarSystem = 'construction' | 'cooking' | 'travel' | 'healthcare' | 'sports' | 'nature';
 
 // Learning Profile System - Predictive Detection
-export type LearningProfile = 'velocity-optimal' | 'palace-optimal' | 'hybrid' | 'undetermined';
+export type LearningProfile = 'velocity-optimal' | 'undetermined';
 
 export type BehavioralSignals = {
   avgTimePerConcept: number;  // seconds
   conceptRevisits: number;    // count of times user revisited concepts
   consecutiveErrors: number;  // errors in a row
-  palaceEngagement: number;   // 0-1 scale
+
   velocityEngagement: number; // 0-1 scale
   totalConceptsViewed: number;
 };
@@ -44,7 +44,7 @@ const DEFAULT_BEHAVIORAL_SIGNALS: BehavioralSignals = {
   avgTimePerConcept: 0,
   conceptRevisits: 0,
   consecutiveErrors: 0,
-  palaceEngagement: 0,
+
   velocityEngagement: 0,
   totalConceptsViewed: 0,
 };

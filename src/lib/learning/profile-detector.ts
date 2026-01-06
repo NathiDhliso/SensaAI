@@ -21,9 +21,7 @@ const THRESHOLDS = {
     HIGH_REVISIT_COUNT: 3,           // Revisiting concepts frequently
     HIGH_ERROR_STREAK: 3,            // Multiple consecutive errors
 
-    // Engagement thresholds
     LOW_ENGAGEMENT: 0.2,             // Below 20% engagement
-    HIGH_ENGAGEMENT: 0.6,            // Above 60% engagement
 
     // Confidence thresholds
     MIN_CONCEPTS_FOR_INFERENCE: 5,   // Need at least 5 concepts viewed
@@ -66,32 +64,7 @@ function calculateOverloadRisk(signals: BehavioralSignals): number {
     return Math.min(100, score);
 }
 
-/**
- * Calculates visualization difficulty score (0-100)
- * Higher score = more likely to benefit from Palace with non-visual anchors
- */
-function calculateVisualizationDifficulty(signals: BehavioralSignals): number {
-    let score = 0;
 
-    // Factor 1: Low palace engagement may indicate avoidance of visual content
-    if (signals.palaceEngagement < THRESHOLDS.LOW_ENGAGEMENT && signals.totalConceptsViewed > 3) {
-        score += 40;
-    } else if (signals.palaceEngagement < THRESHOLDS.HIGH_ENGAGEMENT) {
-        score += 20;
-    }
-
-    // Factor 2: High velocity preference over palace
-    if (signals.velocityEngagement > signals.palaceEngagement * 2) {
-        score += 30;
-    }
-
-    // Factor 3: If revisiting concepts often in palace, may be struggling with imagery
-    if (signals.conceptRevisits >= THRESHOLDS.HIGH_REVISIT_COUNT && signals.palaceEngagement > 0) {
-        score += 20;
-    }
-
-    return Math.min(100, score);
-}
 
 /**
  * Infers the optimal learning profile based on behavioral signals.
@@ -99,27 +72,14 @@ function calculateVisualizationDifficulty(signals: BehavioralSignals): number {
  */
 export function inferLearningProfile(
     signals: BehavioralSignals,
-    aphantasiaModeEnabled: boolean = false
+    _aphantasiaModeEnabled: boolean = false
 ): { profile: LearningProfile; confidence: number } {
-    // If aphantasia mode is already ON, trust user's explicit preference
-    if (aphantasiaModeEnabled) {
-        return { profile: 'palace-optimal', confidence: 100 };
-    }
-
     // Not enough data yet
     if (signals.totalConceptsViewed < THRESHOLDS.MIN_CONCEPTS_FOR_INFERENCE) {
         return { profile: 'undetermined', confidence: 0 };
     }
 
     const overloadScore = calculateOverloadRisk(signals);
-    const visualizationScore = calculateVisualizationDifficulty(signals);
-
-    // Determine profile based on scores
-    if (overloadScore >= 60 && visualizationScore >= 60) {
-        // Both struggles detected
-        const confidence = Math.min(100, Math.round((overloadScore + visualizationScore) / 2));
-        return { profile: 'hybrid', confidence };
-    }
 
     if (overloadScore >= 50) {
         // Cognitive overload detected - recommend velocity's chunked approach
@@ -129,15 +89,7 @@ export function inferLearningProfile(
         };
     }
 
-    if (visualizationScore >= 50) {
-        // Visualization difficulty detected - recommend palace with text sequences
-        return {
-            profile: 'palace-optimal',
-            confidence: Math.min(100, visualizationScore)
-        };
-    }
-
-    // Student seems to handle both well
+    // Student seems to handle content well
     return { profile: 'undetermined', confidence: 30 };
 }
 
@@ -148,27 +100,19 @@ export function getProfileRecommendation(profile: LearningProfile): string {
     switch (profile) {
         case 'velocity-optimal':
             return 'Velocity mode breaks content into bite-sized chunks to reduce cognitive load.';
-        case 'palace-optimal':
-            return 'Palace mode uses sequential anchors and logical connections for memory.';
-        case 'hybrid':
-            return 'Start with Velocity for structure, then use Palace for retention.';
         case 'undetermined':
         default:
-            return 'Explore both modes to find what works best for you.';
+            return 'Explore content to find what works best for you.';
     }
 }
 
 /**
  * Returns the recommended tab ID based on profile
  */
-export function getRecommendedTab(profile: LearningProfile): 'learn' | 'palace' | null {
+export function getRecommendedTab(profile: LearningProfile): 'learn' | null {
     switch (profile) {
         case 'velocity-optimal':
             return 'learn';
-        case 'palace-optimal':
-            return 'palace';
-        case 'hybrid':
-            return 'learn'; // Start with velocity, will suggest palace later
         case 'undetermined':
         default:
             return null;

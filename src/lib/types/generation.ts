@@ -5,7 +5,7 @@
  * and the lifecycle learning framework.
  */
 
-import type { FloorPlanLayout } from '@/lib/generation/floor-plan-generator';
+
 import type { SubjectGraph } from './learning';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -102,7 +102,7 @@ export type GenerationResult = {
   pass3: string;
   validation: ValidationResult;
   fullDocument: string;
-  floorPlan?: FloorPlanLayout;
+
   dependencyGraph?: SubjectGraph;
   metadata: {
     subject: string;

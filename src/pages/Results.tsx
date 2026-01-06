@@ -1,17 +1,11 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, Copy, CheckCircle2, BookOpen, Save, FolderDown, Map, Plus, Network, AlertTriangle, Zap } from 'lucide-react';
+import { ArrowLeft, Download, Copy, CheckCircle2, BookOpen, Save, FolderDown, AlertTriangle, Zap } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useGenerationStore } from '@/store/generation-store';
-import { usePalaceStore } from '@/store/palace-store';
-import { parseGeneratedContent } from '@/lib/content-adapter';
-import { transformGeneratedContent } from '@/lib/content-adapter/transformer';
+import { LifecycleNavigator } from '@/components/learning';
+import { storageManager, type SavedResult } from '@/lib/storage';
 import { useParseAndLoadContent } from '@/lib/content-loader';
-import { storageManager } from '@/lib/storage';
-import type { SavedResult } from '@/lib/storage';
 import { QUALITY_THRESHOLDS, UI_TIMINGS } from '@/constants/ui-constants';
-import { RouteBuilder, GraphView, IntegratedLegend, ConceptInspector } from '@/components/palace';
-import { LifecycleNavigator, ConceptChunks } from '@/components/learning';
-import type { RouteBuilding } from '@/lib/types/palace';
 import styles from './Results.module.css';
 
 export default function Results() {
@@ -21,8 +15,7 @@ export default function Results() {
   const [loadingLearn, setLoadingLearn] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [showRouteBuilder, setShowRouteBuilder] = useState(false);
-  const [selectedConceptId, setSelectedConceptId] = useState<string | null>(null);
+
   const [loadedResult, setLoadedResult] = useState<SavedResult | null>(null);
   const [isLoadingResult, setIsLoadingResult] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,27 +51,7 @@ export default function Results() {
   const parseAndLoad = useParseAndLoadContent();
 
   // Compute dependency graph for preview (memoized)
-  const graphData = useMemo(() => {
-    if (!displayDocument || !displayPass1Data) return null;
 
-    try {
-      const parseResult = parseGeneratedContent(displayDocument);
-      if (!parseResult.success) return null;
-
-      const transformed = transformGeneratedContent(parseResult.data, displayPass1Data.domain);
-
-      // Only return if we have valid graph data
-      if (transformed.dependencyGraph && transformed.concepts.length > 0) {
-        return {
-          graph: transformed.dependencyGraph,
-          concepts: transformed.concepts,
-        };
-      }
-    } catch (e) {
-      console.warn('Failed to compute graph preview:', e);
-    }
-    return null;
-  }, [displayDocument, displayPass1Data]);
 
   const handleCopy = async () => {
     if (displayDocument) {
@@ -164,116 +137,7 @@ export default function Results() {
     return value >= threshold ? 'good' : 'warning';
   };
 
-  const { createPalace, createCustomPalace } = usePalaceStore();
 
-  const handleCreatePalace = () => {
-    if (!displayDocument || !displayPass1Data) return;
-
-    // Use transformer to generate layouts (Freeze & Bake)
-    const parseResult = parseGeneratedContent(displayDocument);
-    if (!parseResult.success) {
-      setError(`Failed to parse content: ${parseResult.error}`);
-      setTimeout(() => setError(null), UI_TIMINGS.TOAST_LONG);
-      return;
-    }
-
-    // Generate Graph & Layout
-    const transformed = transformGeneratedContent(parseResult.data, displayPass1Data.domain);
-    const { stages, floorPlan, dependencyGraph } = transformed;
-
-    if (!stages || stages.length === 0) {
-      setError('No stages generated in content. Cannot create palace.');
-      setTimeout(() => setError(null), UI_TIMINGS.TOAST_LONG);
-      return;
-    }
-
-    // Helper to map transformed concepts to palace structure
-    const mappedStages = stages.map(stage => ({
-      id: stage.id,
-      name: stage.name || stage.title,
-      concepts: transformed.concepts.filter(c => c.stageId === stage.id).map(c => ({
-        id: c.id,
-        name: c.name,
-        lifecycle: c.lifecycle ? {
-          phase1: c.lifecycle.phase1.steps,
-          phase2: c.lifecycle.phase2.steps,
-          phase3: c.lifecycle.phase3.steps
-        } : { phase1: [], phase2: [], phase3: [] },
-        mnemonic: c.mnemonic
-      }))
-    }));
-
-    // Pass lifecycle labels from the generation results
-    const lifecycleLabels = displayPass1Data.lifecycle ? {
-      phase1: displayPass1Data.lifecycle.phase1,
-      phase2: displayPass1Data.lifecycle.phase2,
-      phase3: displayPass1Data.lifecycle.phase3,
-    } : undefined;
-
-    // Pass floorPlan and dependencyGraph to bake them into the palace
-    createPalace(displaySubject || 'study', 'tech-campus', mappedStages, lifecycleLabels, floorPlan, dependencyGraph);
-    navigate('/study/current?tab=palace');
-  };
-
-  const getPalaceStages = () => {
-    if (!displayDocument || !displayPass1Data) return null;
-    const parseResult = parseGeneratedContent(displayDocument);
-    if (!parseResult.success) return null;
-
-    const { learningPath, concepts } = parseResult.data;
-    if (concepts.length === 0) return null;
-
-    const numBuildings = Math.min(7, Math.max(learningPath.stages.length, 1));
-    const conceptsPerBuilding = Math.ceil(concepts.length / numBuildings);
-
-    return Array.from({ length: numBuildings }, (_, idx) => {
-      const stageName = learningPath.stages[idx]?.name || `Stage ${idx + 1}`;
-      const stageOrder = learningPath.stages[idx]?.order || idx + 1;
-
-      const startIdx = idx * conceptsPerBuilding;
-      const endIdx = Math.min(startIdx + conceptsPerBuilding, concepts.length);
-      const buildingConcepts = concepts.slice(startIdx, endIdx);
-
-      return {
-        id: `stage-${stageOrder}`,
-        name: stageName,
-        concepts: buildingConcepts.map(concept => ({
-          id: concept.id,
-          name: concept.name,
-          lifecycle: {
-            phase1: [
-              concept.phase1.prerequisite,
-              ...concept.phase1.selection,
-              concept.phase1.execution,
-            ].filter(Boolean),
-            phase2: concept.phase2 || [],
-            phase3: [
-              concept.phase3.tool,
-              ...concept.phase3.metrics,
-              concept.phase3.thresholds,
-            ].filter(Boolean),
-          },
-          // Include mnemonic data for Memory Palace scavenger hunt experience
-          mnemonic: concept.mnemonic ? {
-            anchor: concept.mnemonic.anchor,
-            story: concept.mnemonic.story,
-            tier: concept.mnemonic.tier,
-            parentName: concept.mnemonic.parentName,
-            parentId: concept.mnemonic.parentId,
-          } : undefined,
-        })),
-      };
-    });
-  };
-
-  const handleCreateCustomPalace = (routeName: string, buildings: RouteBuilding[]) => {
-    const stages = getPalaceStages();
-    if (!stages) return;
-
-    createCustomPalace(displaySubject || 'study', routeName, buildings, stages);
-    setShowRouteBuilder(false);
-    navigate('/study/current?tab=palace');
-  };
 
   // Show loading state when fetching from storage
   if (isLoadingResult) {
@@ -367,23 +231,7 @@ export default function Results() {
               Velocity Learning
             </button>
 
-            {/* Memory Palace Actions - consolidated from 3 buttons to 2 */}
-            <div className={styles.palaceActionGroup}>
-              <button
-                onClick={handleCreatePalace}
-                className={styles.palaceButton}
-              >
-                <Map className={styles.buttonIcon} />
-                Enter Memory Palace
-              </button>
-              <button
-                onClick={() => setShowRouteBuilder(true)}
-                className={styles.customPalaceButton}
-              >
-                <Plus className={styles.buttonIcon} />
-                Build Custom Route
-              </button>
-            </div>
+
             <button
               onClick={handleSaveResult}
               className={styles.saveButton}
@@ -501,38 +349,20 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* Smart Concept Chunking - Miller's Law (7±2 items) */}
-              {graphData?.concepts && graphData.concepts.length > 0 ? (
-                <ConceptChunks
-                  concepts={graphData.concepts}
-                  maxVisiblePerChunk={5}
-                  onConceptClick={(id) => {
-                    const concept = graphData.concepts.find(c => c.id === id);
-                    if (concept) {
-                      // console.log('Selected concept:', concept.name);
-                    }
-                  }}
-                  onStartChunk={() => {
-                    // console.log(`Start learning ${tier}:`, conceptIds);
-                    handleStartLearning();
-                  }}
-                />
-              ) : (
-                // Fallback to flat tags if no parsed concepts
-                <div className={styles.conceptsList}>
-                  {displayPass1Data.concepts.slice(0, 8).map((concept, idx) => (
-                    <span key={idx} className={styles.conceptTag}>
-                      <span className={styles.conceptTagIcon}>💡</span>
-                      {concept}
-                    </span>
-                  ))}
-                  {displayPass1Data.concepts.length > 8 && (
-                    <span className={styles.conceptTag}>
-                      +{displayPass1Data.concepts.length - 8} more
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* Concepts List */}
+              <div className={styles.conceptsList}>
+                {displayPass1Data.concepts.slice(0, 8).map((concept, idx) => (
+                  <span key={idx} className={styles.conceptTag}>
+                    <span className={styles.conceptTagIcon}>💡</span>
+                    {concept}
+                  </span>
+                ))}
+                {displayPass1Data.concepts.length > 8 && (
+                  <span className={styles.conceptTag}>
+                    +{displayPass1Data.concepts.length - 8} more
+                  </span>
+                )}
+              </div>
 
               <div className={styles.lifecycleFlow}>
                 <span className={styles.lifecycleStep}>
@@ -550,59 +380,7 @@ export default function Results() {
             </div>
           )}
 
-          {/* Dependency Graph Preview - Visual understanding of concept relationships */}
-          {graphData && (
-            <div className={styles.graphPreviewCard}>
-              <div className={styles.graphHeader}>
-                <div className={styles.graphTitle}>
-                  <Network size={20} />
-                  <span>Concept Network</span>
-                </div>
-                <div className="px-6 mb-4">
-                  <IntegratedLegend lifecycle={displayPass1Data?.lifecycle ? {
-                    phase1: displayPass1Data.lifecycle.phase1,
-                    phase2: displayPass1Data.lifecycle.phase2,
-                    phase3: displayPass1Data.lifecycle.phase3
-                  } : undefined} />
-                </div>
-              </div>
 
-              <div className={styles.graphContainer}>
-                <GraphView
-                  graph={graphData.graph}
-                  concepts={graphData.concepts}
-                  width={600}
-                  height={350}
-                  onNodeClick={(id) => {
-                    setSelectedConceptId(id);
-                  }}
-                  selectedConceptId={selectedConceptId || undefined}
-                />
-              </div>
-              <p className={styles.graphHint}>
-                Select any node to reveal its Universal Lifecycle.
-              </p>
-            </div>
-          )}
-
-          {/* Concept Inspector - The "Silver Bullet" integration point */}
-          {selectedConceptId && graphData && (() => {
-            const concept = graphData.concepts.find(c => c.id === selectedConceptId);
-            const node = graphData.graph.nodes.find(n => n.id === selectedConceptId);
-
-            if (concept && node) {
-              return (
-                <div className="mb-6 animate-in slide-in-from-top-4 duration-300">
-                  <ConceptInspector
-                    concept={concept}
-                    tier={node.metrics.calculatedTier}
-                    onClose={() => setSelectedConceptId(null)}
-                  />
-                </div>
-              );
-            }
-            return null;
-          })()}
 
           <div className={styles.contentCard}>
             <h2 className={styles.sectionTitle}>Generated Content</h2>
@@ -611,12 +389,7 @@ export default function Results() {
         </main>
       </div>
 
-      {/* Route Builder Modal */}
-      <RouteBuilder
-        isOpen={showRouteBuilder}
-        onClose={() => setShowRouteBuilder(false)}
-        onSave={handleCreateCustomPalace}
-      />
+
     </div>
   );
 }

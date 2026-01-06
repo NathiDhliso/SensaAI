@@ -30,7 +30,7 @@ import {
     type Mood
 } from '@/lib/ai/coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { VELOCITY_CONFIG, UI_TIMINGS } from '@/constants/ui-constants';
+import { VELOCITY_CONFIG } from '@/constants/ui-constants';
 import styles from './GuidedPrimer.module.css';
 
 interface GuidedPrimerProps {
