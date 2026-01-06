@@ -424,6 +424,7 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
 
 interface VerifyPhaseProps {
     concept: LearningConcept;
+    allConcepts?: LearningConcept[];
     keyPoints: string[];
     onComplete: (correct: boolean, timeSpent: number) => void;
 }
@@ -431,31 +432,76 @@ interface VerifyPhaseProps {
 /**
  * Verify Phase: Quick check question
  */
-function VerifyPhase({ concept, keyPoints, onComplete }: VerifyPhaseProps) {
+function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhaseProps) {
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+    const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
     const [startTime] = useState(Date.now());
 
-    // Generate a simple verification question
+    // Generate a smart verification question
     const question = useMemo(() => {
         const randomPoint = keyPoints[Math.floor(Math.random() * keyPoints.length)];
+
+        // Smart Distractors: Pick key points from OTHER concepts to make real-looking options
+        const otherConcepts = allConcepts?.filter(c => c.id !== concept.id) || [];
+        const distractors: string[] = [];
+
+        // Try to get 3 distractors from other concepts
+        if (otherConcepts.length >= 3) {
+            // Shuffle other concepts
+            const shuffled = [...otherConcepts].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < 3; i++) {
+                const c = shuffled[i];
+                // Try to get a hook sentence or a key point
+                const distractorText = c.hookSentence || (c.howToUse && c.howToUse[0]) || `Related to ${c.name}`;
+                distractors.push(distractorText);
+            }
+        } else {
+            // Fallback to generic distractors if not enough concepts
+            distractors.push(
+                `The process of reversing ${concept.name}`,
+                `An alternative to ${concept.name}`,
+                `A deprecated version of ${concept.name}`
+            );
+        }
+
+        // Ensure we have 3 distractors (fill with generic if needed/mixed)
+        while (distractors.length < 3) {
+            distractors.push(`An unrelated concept in ${concept.name}`);
+        }
+
         return {
-            question: `Which statement best describes a key aspect of ${concept.name}?`,
+            question: `Which of the following applies to "${concept.name}"?`,
             correct: randomPoint,
             options: [
                 randomPoint,
-                `The process of reversing ${concept.name}`,
-                `An alternative to ${concept.name}`,
-                `A deprecated version of ${concept.name}`,
+                ...distractors.slice(0, 3)
             ].sort(() => Math.random() - 0.5),
         };
-    }, [concept.name, keyPoints]);
+    }, [concept, keyPoints, allConcepts]);
 
     const correctIndex = question.options.indexOf(question.correct);
 
     const handleSubmit = () => {
+        if (selectedAnswer === null) return;
+
         const timeSpent = (Date.now() - startTime) / 1000;
         const isCorrect = selectedAnswer === correctIndex;
-        onComplete(isCorrect, timeSpent);
+
+        // Show feedback
+        setFeedback(isCorrect ? 'correct' : 'incorrect');
+
+        // Audio feedback
+        if (isCorrect) {
+            const audio = new Audio('/audio/voice/sage_master_success.mp3'); // Reuse existing sound or generic beep
+            audio.volume = 0.2;
+            audio.play().catch(() => { });
+        }
+
+        // Delay for user to see result
+        setTimeout(() => {
+            onComplete(isCorrect, timeSpent);
+        }, 1500);
     };
 
     return (
@@ -479,28 +525,49 @@ function VerifyPhase({ concept, keyPoints, onComplete }: VerifyPhaseProps) {
                 <p className={styles.verifyQuestion}>{question.question}</p>
 
                 <div className={styles.optionsList}>
-                    {question.options.map((option, idx) => (
-                        <button
-                            key={idx}
-                            className={`${styles.optionButton} ${selectedAnswer === idx ? styles.selected : ''}`}
-                            onClick={() => setSelectedAnswer(idx)}
-                        >
-                            <span className={styles.optionLetter}>
-                                {String.fromCharCode(65 + idx)}
-                            </span>
-                            <span className={styles.optionText}>{option}</span>
-                        </button>
-                    ))}
+                    {question.options.map((option, idx) => {
+                        // Determine style based on feedback state
+                        let optionClass = styles.optionButton;
+                        if (feedback) {
+                            if (idx === correctIndex) optionClass += ` ${styles.correct}`;
+                            else if (idx === selectedAnswer) optionClass += ` ${styles.incorrect}`;
+                            else optionClass += ` ${styles.disabled}`;
+                        } else if (selectedAnswer === idx) {
+                            optionClass += ` ${styles.selected}`;
+                        }
+
+                        return (
+                            <button
+                                key={idx}
+                                className={optionClass}
+                                onClick={() => !feedback && setSelectedAnswer(idx)}
+                                disabled={!!feedback}
+                            >
+                                <span className={styles.optionLetter}>
+                                    {String.fromCharCode(65 + idx)}
+                                </span>
+                                <span className={styles.optionText}>{option}</span>
+                                {feedback && idx === correctIndex && <CheckCircle2 size={16} className={styles.resultIcon} />}
+                            </button>
+                        );
+                    })}
                 </div>
 
-                <button
-                    className={styles.submitButton}
-                    onClick={handleSubmit}
-                    disabled={selectedAnswer === null}
-                >
-                    <span>Verify Answer</span>
-                    <ChevronRight size={20} />
-                </button>
+                {!feedback && (
+                    <button
+                        className={styles.submitButton}
+                        onClick={handleSubmit}
+                        disabled={selectedAnswer === null}
+                    >
+                        <span>Verify Answer</span>
+                        <ChevronRight size={20} />
+                    </button>
+                )}
+                {feedback && (
+                    <div className={styles.feedbackMessage}>
+                        {feedback === 'correct' ? 'Correct!' : 'Not quite...'}
+                    </div>
+                )}
             </div>
         </motion.div>
     );
@@ -579,20 +646,24 @@ export function MicroLearningLoopController({
         // Record the interaction for cognitive metrics
         recordInteraction(correct, timeSpent * 1000);
 
-        if (testResult) {
-            const outcome = determineOutcome(testResult, { correct, timeSpent });
+        // Fallback: If testResult is missing (e.g. lost during HMR or dev), simulate one
+        const currentTestResult = testResult || {
+            recalledPoints: correct ? 10 : 5,
+            totalPoints: 10,
+            confidence: 5,
+            timeSpent: 0
+        };
 
-            // If mastered AND has potential confusion pairs, go to confusion phase
-            // This ensures we only clarify confusion for concepts the user is starting to get right,
-            // or maybe we should do it even if they fail?
-            // "Prevention" implies doing it early. But let's do it after they verify basic understanding.
-            if (hasConfusionPairs && phase !== 'confusion') {
-                setPhase('confusion');
-                return;
-            }
+        const outcome = determineOutcome(currentTestResult, { correct, timeSpent });
 
-            onLoopComplete(outcome, finalTimeSpent);
+        // If mastered AND has potential confusion pairs, go to confusion phase
+        // This ensures we only clarify confusion for concepts the user is starting to get right
+        if (hasConfusionPairs && phase !== 'confusion') {
+            setPhase('confusion');
+            return;
         }
+
+        onLoopComplete(outcome, finalTimeSpent);
     }, [testResult, totalTimeSpent, onLoopComplete, recordInteraction, hasConfusionPairs, phase]);
 
     return (
@@ -654,6 +725,7 @@ export function MicroLearningLoopController({
                         <VerifyPhase
                             key="verify"
                             concept={concept}
+                            allConcepts={allConcepts}
                             keyPoints={keyPoints}
                             onComplete={handleVerifyComplete}
                         />

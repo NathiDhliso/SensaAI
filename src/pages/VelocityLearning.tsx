@@ -60,7 +60,15 @@ export default function VelocityLearning() {
     // Derived state: Active Concept
     const activeConcept = useMemo(() => {
         if (!currentSession) return null;
-        return currentSession.concepts.find(c => c.id === currentSession.progress.currentConceptId) || currentSession.concepts[0];
+        const concept = currentSession.concepts.find(c => c.id === currentSession.progress.currentConceptId) || currentSession.concepts[0];
+
+        // Fix: If the identified concept is already completed, do not treat it as active.
+        // This allows the UI to fall through to the "All Caught Up" or next phase (Reconstruction) state.
+        if (concept && currentSession.progress.completedConcepts.includes(concept.id)) {
+            return null;
+        }
+
+        return concept;
     }, [currentSession]);
 
     // Derived state: Should show Scout/Preview?
