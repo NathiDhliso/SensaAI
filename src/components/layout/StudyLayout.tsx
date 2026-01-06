@@ -16,7 +16,6 @@ import {
   BookOpen,
 
   Zap,
-  BarChart3,
   ChevronDown,
   Settings,
   Brain
@@ -27,7 +26,7 @@ import { getRecommendedTab } from '@/lib/learning/profile-detector';
 import { LifecycleNavigator } from '@/components/learning';
 import styles from './StudyLayout.module.css';
 
-export type StudyTab = 'overview' | 'learn' | 'reference';
+export type StudyTab = 'learn' | 'reference';
 
 interface StudyLayoutProps {
   /** Current active tab */
@@ -53,13 +52,7 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  {
-    id: 'overview',
-    label: 'Overview',
-    icon: BarChart3,
-    description: 'Progress & insights',
-    color: 'var(--color-primary-amethyst)'
-  },
+
   {
     id: 'learn',
     label: 'Velocity',

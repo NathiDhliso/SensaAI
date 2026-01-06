@@ -47,87 +47,7 @@ const VelocityLearning = lazy(() => import('./VelocityLearning'));
 
 
 
-function OverviewTab() {
-  const {
-    getConcepts,
-    getStages,
-    currentSession,
-  } = useLearningStore();
 
-  const { validation } = useGenerationStore();
-
-  const concepts = getConcepts();
-  const stages = getStages();
-  const hasContent = concepts.length > 0;
-  const progress = currentSession?.progress;
-
-
-
-  const progressPercent = hasContent
-    ? Math.round(((progress?.completedConcepts?.length ?? 0) / concepts.length) * 100)
-    : 0;
-
-
-  if (!hasContent) {
-    return (
-      <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>📚</div>
-        <h2>No Content Loaded</h2>
-        <p>Generate learning content to start your journey</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.overviewTab}>
-      {/* Quick Stats Row */}
-      <div className={styles.statsRow}>
-        <div className={styles.statCard}>
-          <span className={styles.statValue}>{concepts.length}</span>
-          <span className={styles.statLabel}>Concepts</span>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statValue}>{progress?.completedConcepts?.length ?? 0}</span>
-          <span className={styles.statLabel}>Mastered</span>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statValue}>{progressPercent}%</span>
-          <span className={styles.statLabel}>Progress</span>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statValue}>{stages.length}</span>
-          <span className={styles.statLabel}>Stages</span>
-        </div>
-      </div>
-
-
-
-
-      {/* Quality Metrics (from validation) */}
-      {validation && (
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Content Quality</h3>
-          <div className={styles.metricsGrid}>
-            <div className={`${styles.metricItem} ${validation.lifecycleConsistency >= 80 ? styles.metricGood : styles.metricWarning}`}>
-              <span className={styles.metricLabel}>Lifecycle</span>
-              <span className={styles.metricValue}>{validation.lifecycleConsistency}%</span>
-            </div>
-            <div className={`${styles.metricItem} ${validation.positiveFraming >= 80 ? styles.metricGood : styles.metricWarning}`}>
-              <span className={styles.metricLabel}>Framing</span>
-              <span className={styles.metricValue}>{validation.positiveFraming}%</span>
-            </div>
-            <div className={`${styles.metricItem} ${validation.formatConsistency >= 80 ? styles.metricGood : styles.metricWarning}`}>
-              <span className={styles.metricLabel}>Format</span>
-              <span className={styles.metricValue}>{validation.formatConsistency}%</span>
-            </div>
-          </div>
-        </section>
-      )}
-
-
-    </div>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MAIN STUDY PAGE
@@ -143,7 +63,7 @@ export default function Study() {
   const [searchParams] = useSearchParams();
 
   // Initialize tab from URL query param or default to overview
-  const initialTab = (searchParams.get('tab') as StudyTab) || 'overview';
+  const initialTab = (searchParams.get('tab') as StudyTab) || 'learn';
   const [activeTab, setActiveTab] = useState<StudyTab>(initialTab);
   const [learningConceptId, setLearningConceptId] = useState<string | null>(null);
   const [isHydrating, setIsHydrating] = useState(false);
@@ -249,10 +169,7 @@ export default function Study() {
     }
 
     switch (activeTab) {
-      case 'overview':
-        return (
-          <OverviewTab />
-        );
+
 
       case 'learn':
         // Silver Bullet: VelocityLearning replaces legacy list view
@@ -290,7 +207,7 @@ export default function Study() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         subjectName={subjectName}
-        showLifecycleNav={activeTab === 'overview'}
+        showLifecycleNav={false}
         headerActions={
           <CognitiveGauge compact />
         }
