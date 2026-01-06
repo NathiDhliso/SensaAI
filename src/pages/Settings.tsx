@@ -27,7 +27,8 @@ import {
   Leaf,
   EyeOff,
   BookOpenCheck
-  , Volume2, VolumeX, Bot
+  , Volume2, VolumeX, Bot,
+  Edit2
 } from 'lucide-react';
 import { SensaIcon } from '@/components/ui';
 import { useThemeStore, type Theme } from '@/store/theme-store';
@@ -81,6 +82,7 @@ export default function Settings() {
   const updateLearningStyle = usePersonalizationStore(s => s.completeOnboarding);
   const updateFamiliarSystem = usePersonalizationStore(s => s.updateFamiliarSystem);
   const personas = getAllPersonas();
+  const activePersona = personas.find(p => p.id === selectedPersona) || personas[0];
 
   // Learning
   const { resetProgress, clearSession, currentSession, getSession } = useLearningStore();
@@ -90,10 +92,12 @@ export default function Settings() {
   // Generation
   const { bedrockConfig, setBedrockConfig, clearBedrockConfig, results, recentSubjects } = useGenerationStore();
 
-
-
   // Local state
+  const [showPersonas, setShowPersonas] = useState(false);
+  const [showPersonalizationDetails, setShowPersonalizationDetails] = useState(false);
   const [showAwsConfig, setShowAwsConfig] = useState(false);
+  const [showDangerZone, setShowDangerZone] = useState(false);
+
   const [region, setRegion] = useState(bedrockConfig?.region || 'us-east-1');
   const [accessKeyId, setAccessKeyId] = useState(bedrockConfig?.accessKeyId || '');
   const [secretAccessKey, setSecretAccessKey] = useState(bedrockConfig?.secretAccessKey || '');
@@ -195,25 +199,18 @@ export default function Settings() {
               <Palette className={styles.sectionIcon} />
               <h2 className={styles.sectionTitle}>Appearance</h2>
             </div>
-
-            <div className={styles.settingRow}>
-              <div className={styles.settingInfo}>
-                <span className={styles.settingLabel}>Theme</span>
-                <span className={styles.settingDesc}>Choose your preferred color scheme</span>
-              </div>
-              <div className={styles.themeToggle}>
-                {themeOptions.map(({ value, icon: Icon, label }) => (
-                  <button
-                    key={value}
-                    onClick={() => setTheme(value)}
-                    className={`${styles.themeOption} ${theme === value ? styles.themeOptionActive : ''}`}
-                    title={label}
-                  >
-                    <Icon size={18} />
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
+            <div className={styles.themeToggle}>
+              {themeOptions.map(({ value, icon: Icon, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setTheme(value)}
+                  className={`${styles.themeOption} ${theme === value ? styles.themeOptionActive : ''}`}
+                  title={label}
+                >
+                  <Icon size={18} />
+                  <span>{label}</span>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -224,99 +221,93 @@ export default function Settings() {
               <h2 className={styles.sectionTitle}>Learning Preferences</h2>
             </div>
 
-            <div className={styles.settingRow}>
-              <div className={styles.settingInfo}>
-                <span className={styles.settingLabel}>Learning Style</span>
-                <span className={styles.settingDesc}>How you prefer to learn new concepts</span>
-              </div>
-              <div className={styles.optionGrid}>
-                {LEARNING_STYLES.map(({ value, label, icon }) => (
-                  <button
-                    key={value}
-                    onClick={() => {
-                      if (onboardingComplete && familiarSystem) {
-                        updateLearningStyle(
-                          usePersonalizationStore.getState().chosenRole || 'learner',
-                          familiarSystem,
-                          value
-                        );
-                      }
-                    }}
-                    className={`${styles.optionButton} ${preferredLearningStyle === value ? styles.optionActive : ''}`}
-                  >
-                    <span>{icon}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.settingRow}>
-              <div className={styles.settingInfo}>
-                <span className={styles.settingLabel}>Familiar System</span>
-                <span className={styles.settingDesc}>Metaphors used to explain concepts</span>
-              </div>
-              <div className={styles.optionGrid}>
-                {FAMILIAR_SYSTEMS.map(({ value, label, icon }) => (
-                  <button
-                    key={value}
-                    onClick={() => updateFamiliarSystem(value as FamiliarSystem)}
-                    className={`${styles.optionButton} ${familiarSystem === value ? styles.optionActive : ''}`}
-                  >
-                    <span>{icon}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Aphantasia Mode Toggle */}
-            <div className={styles.settingRow}>
-              <div className={styles.settingInfo}>
-                <span className={styles.settingLabel}>Aphantasia Mode</span>
-                <span className={styles.settingDesc}>
-                  Replaces "Picture..." prompts with sequential/logical descriptions for those who can't visualize mentally
-                </span>
-              </div>
+            {/* Core Toggles */}
+            <div className={styles.togglesGrid}>
               <button
                 onClick={() => setAphantasiaMode(!aphantasiaMode)}
                 className={`${styles.toggleButton} ${aphantasiaMode ? styles.toggleActive : ''}`}
                 aria-pressed={aphantasiaMode}
               >
                 {aphantasiaMode ? <Eye size={16} /> : <EyeOff size={16} />}
-                <span>{aphantasiaMode ? 'Enabled' : 'Disabled'}</span>
+                <span>Aphantasia Mode</span>
               </button>
-            </div>
-
-            {/* Bionic Reading Toggle */}
-            <div className={styles.settingRow}>
-              <div className={styles.settingInfo}>
-                <span className={styles.settingLabel}>Bionic Reading</span>
-                <span className={styles.settingDesc}>
-                  Bolds the first half of each word to guide the eye and improve reading speed. Helps with dyslexia and ADHD.
-                </span>
-              </div>
               <button
                 onClick={() => setBionicReading(!bionicReading)}
                 className={`${styles.toggleButton} ${bionicReading ? styles.toggleActive : ''}`}
                 aria-pressed={bionicReading}
               >
                 <BookOpenCheck size={16} />
-                <span>{bionicReading ? 'Enabled' : 'Disabled'}</span>
+                <span>Bionic Reading</span>
               </button>
             </div>
 
-            {onboardingComplete && (
-              <button
-                onClick={() => {
-                  resetOnboarding();
-                  navigate('/study/current');
-                }}
-                className={styles.linkButton}
-              >
-                <RefreshCw size={14} />
-                Retake onboarding quiz
-              </button>
+            {/* Collapsible Details */}
+            <button
+              className={styles.collapsibleHeaderSimple}
+              onClick={() => setShowPersonalizationDetails(!showPersonalizationDetails)}
+            >
+              <span>Personalization Details (Style & Metaphors)</span>
+              {showPersonalizationDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showPersonalizationDetails && (
+              <div className={styles.collapsibleContent}>
+                <div className={styles.settingRow}>
+                  <div className={styles.settingInfo}>
+                    <span className={styles.settingLabel}>Learning Style</span>
+                  </div>
+                  <div className={styles.optionGrid}>
+                    {LEARNING_STYLES.map(({ value, label, icon }) => (
+                      <button
+                        key={value}
+                        onClick={() => {
+                          if (onboardingComplete && familiarSystem) {
+                            updateLearningStyle(
+                              usePersonalizationStore.getState().chosenRole || 'learner',
+                              familiarSystem,
+                              value
+                            );
+                          }
+                        }}
+                        className={`${styles.optionButton} ${preferredLearningStyle === value ? styles.optionActive : ''}`}
+                      >
+                        <span>{icon}</span>
+                        <span>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.settingRow}>
+                  <div className={styles.settingInfo}>
+                    <span className={styles.settingLabel}>Familiar System</span>
+                  </div>
+                  <div className={styles.optionGrid}>
+                    {FAMILIAR_SYSTEMS.map(({ value, label, icon }) => (
+                      <button
+                        key={value}
+                        onClick={() => updateFamiliarSystem(value as FamiliarSystem)}
+                        className={`${styles.optionButton} ${familiarSystem === value ? styles.optionActive : ''}`}
+                      >
+                        <span>{icon}</span>
+                        <span>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {onboardingComplete && (
+                  <button
+                    onClick={() => {
+                      resetOnboarding();
+                      navigate('/study/current');
+                    }}
+                    className={styles.linkButton}
+                  >
+                    <RefreshCw size={14} />
+                    Retake onboarding quiz
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -327,69 +318,48 @@ export default function Settings() {
               <h2 className={styles.sectionTitle}>AI Companion</h2>
             </div>
 
+            {/* Compact Persona Selector */}
             <div className={styles.settingRow}>
-              <div className={styles.settingInfo}>
-                <span className={styles.settingLabel}>Select Your Coach</span>
-                <span className={styles.settingDesc}>Choose a persona that matches your learning style</span>
-              </div>
-              <div className={styles.personaGrid}>
-                {personas.map((persona) => (
-                  <button
-                    key={persona.id}
-                    onClick={() => setSelectedPersona(persona.id)}
-                    className={`${styles.personaCard} ${selectedPersona === persona.id ? styles.personaCardActive : ''}`}
-                  >
-                    <span className={styles.personaEmoji}>{persona.emoji}</span>
-                    <div className={styles.personaInfo}>
-                      <span className={styles.personaName}>{persona.name}</span>
-                      <span className={styles.personaTagline}>{persona.tagline}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.settingRow}>
-              <div className={styles.intensityRow}>
-                <span className={styles.intensityLabel}>Intensity</span>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  value={coachIntensity}
-                  onChange={(e) => setCoachIntensity(Number(e.target.value))}
-                  className={styles.intensitySlider}
-                />
-                <span className={styles.intensityValue}>{coachIntensity}</span>
-              </div>
-            </div>
-
-            <div className={styles.settingRow}>
-              <div className={styles.voiceRow}>
-                <div className={styles.voiceInfo}>
-                  <span className={styles.voiceLabel}>Coach Voice</span>
-                  <span className={styles.voiceDesc}>
-                    Hear your coach speak using ElevenLabs AI.
-                  </span>
-
-                  {/* ElevenLabs API Key Input */}
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <input
-                      type="password"
-                      placeholder="ElevenLabs API Key"
-                      value={usePersonalizationStore.getState().elevenLabsApiKey || ''}
-                      onChange={(e) => usePersonalizationStore.getState().setElevenLabsApiKey(e.target.value)}
-                      className={styles.input}
-                      style={{ fontSize: '0.85rem', padding: '0.5rem', width: '100%' }}
-                    />
-                    {!usePersonalizationStore.getState().elevenLabsApiKey && (
-                      <span className={styles.voiceDisabled} style={{ display: 'block', marginTop: '0.25rem' }}>
-                        API Key required
-                      </span>
-                    )}
+              <div className={styles.compactPersonaRow}>
+                <div className={styles.personaPreview}>
+                  <span className={styles.personaEmoji}>{activePersona.emoji}</span>
+                  <div>
+                    <span className={styles.personaName}>{activePersona.name}</span>
+                    <span className={styles.personaTagline}>{activePersona.tagline}</span>
                   </div>
                 </div>
+                <button
+                  className={styles.editButton}
+                  onClick={() => setShowPersonas(!showPersonas)}
+                >
+                  <Edit2 size={14} />
+                  {showPersonas ? 'Close' : 'Change Coach'}
+                </button>
+              </div>
 
+              {showPersonas && (
+                <div className={styles.personaGrid}>
+                  {personas.map((persona) => (
+                    <button
+                      key={persona.id}
+                      onClick={() => {
+                        setSelectedPersona(persona.id);
+                        setShowPersonas(false);
+                      }}
+                      className={`${styles.personaCard} ${selectedPersona === persona.id ? styles.personaCardActive : ''}`}
+                    >
+                      <span className={styles.personaEmoji}>{persona.emoji}</span>
+                      <div className={styles.personaInfo}>
+                        <span className={styles.personaName}>{persona.name}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.settingRow}>
+              <div className={styles.flexRow}>
                 <div className={styles.voiceControls}>
                   <button
                     onClick={() => setCoachVoiceEnabled(!coachVoiceEnabled)}
@@ -398,9 +368,33 @@ export default function Settings() {
                     disabled={!usePersonalizationStore.getState().elevenLabsApiKey}
                   >
                     {coachVoiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                    <span>{coachVoiceEnabled ? 'Enabled' : 'Disabled'}</span>
+                    <span>Voice</span>
                   </button>
                 </div>
+                <div className={styles.intensityRow}>
+                  <span className={styles.intensityLabel}>Intensity</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={coachIntensity}
+                    onChange={(e) => setCoachIntensity(Number(e.target.value))}
+                    className={styles.intensitySlider}
+                  />
+                  <span className={styles.intensityValue}>{coachIntensity}</span>
+                </div>
+              </div>
+
+              {/* ElevenLabs API Key Input (Hidden by default unless empty) */}
+              <div style={{ marginTop: '0.5rem' }}>
+                <input
+                  type="password"
+                  placeholder="ElevenLabs API Key"
+                  value={usePersonalizationStore.getState().elevenLabsApiKey || ''}
+                  onChange={(e) => usePersonalizationStore.getState().setElevenLabsApiKey(e.target.value)}
+                  className={styles.input}
+                  style={{ fontSize: '0.85rem', padding: '0.5rem', width: '100%' }}
+                />
               </div>
             </div>
           </div>
@@ -412,47 +406,49 @@ export default function Settings() {
               <h2 className={styles.sectionTitle}>Data Management</h2>
             </div>
 
-            <div className={styles.dataStats}>
-              <div className={styles.dataStat}>
-                <span className={styles.dataValue}>{progress?.completedConcepts.length ?? 0}</span>
-                <span className={styles.dataLabel}>Concepts Learned</span>
+            <div className={styles.dataStatsCompact}>
+              <div className={styles.statItem}>
+                <strong>{progress?.completedConcepts.length ?? 0}</strong> Concepts
               </div>
-              <div className={styles.dataStat}>
-                <span className={styles.dataValue}>{results.length}</span>
-                <span className={styles.dataLabel}>Saved Results</span>
+              <div className={styles.statSeparator}>•</div>
+              <div className={styles.statItem}>
+                <strong>{results.length}</strong> Results
               </div>
-              <div className={styles.dataStat}>
-                <span className={styles.dataValue}>{progress?.totalTimeSpentMinutes ?? 0}</span>
-                <span className={styles.dataLabel}>Minutes Studied</span>
+              <div className={styles.statSeparator}>•</div>
+              <div className={styles.statItem}>
+                <strong>{progress?.totalTimeSpentMinutes ?? 0}m</strong> Studied
               </div>
-            </div>
-
-            <div className={styles.dataActions}>
-              <button onClick={handleExportData} className={styles.actionButton}>
+              <button onClick={handleExportData} className={styles.iconButton} title="Export Data">
                 <Download size={16} />
-                Export Data
               </button>
             </div>
 
-            <div className={styles.dangerZone}>
-              <h3 className={styles.dangerTitle}>
-                <AlertTriangle size={16} />
-                Danger Zone
-              </h3>
+            <button
+              className={styles.dangerZoneHeader}
+              onClick={() => setShowDangerZone(!showDangerZone)}
+            >
+              <div className={styles.flexCenter}>
+                <AlertTriangle size={16} className={styles.dangerIcon} />
+                <span>Danger Zone</span>
+              </div>
+              {showDangerZone ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showDangerZone && (
               <div className={styles.dangerActions}>
                 <button
                   onClick={() => handleClearData('progress')}
                   className={`${styles.dangerButton} ${confirmClear === 'progress' ? styles.dangerConfirm : ''}`}
                 >
                   <Trash2 size={14} />
-                  {confirmClear === 'progress' ? 'Click again to confirm' : 'Clear Learning Progress'}
+                  {confirmClear === 'progress' ? 'Confirm Clear Progress' : 'Clear Progress'}
                 </button>
                 <button
                   onClick={() => handleClearData('results')}
                   className={`${styles.dangerButton} ${confirmClear === 'results' ? styles.dangerConfirm : ''}`}
                 >
                   <Trash2 size={14} />
-                  {confirmClear === 'results' ? 'Click again to confirm' : 'Clear Saved Results'}
+                  {confirmClear === 'results' ? 'Confirm Clear Results' : 'Clear Results'}
                 </button>
 
                 <button
@@ -460,10 +456,10 @@ export default function Settings() {
                   className={`${styles.dangerButton} ${confirmClear === 'all' ? styles.dangerConfirm : ''}`}
                 >
                   <Trash2 size={14} />
-                  {confirmClear === 'all' ? 'Click again to confirm' : 'Reset All Data'}
+                  {confirmClear === 'all' ? 'Confirm Reset All' : 'Reset All Data'}
                 </button>
               </div>
-            </div>
+            )}
           </div>
 
           {/* AWS Configuration Section */}
@@ -568,19 +564,6 @@ export default function Settings() {
                 )}
               </div>
             )}
-          </div>
-
-          {/* About Section */}
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <BookOpen className={styles.sectionIcon} />
-              <h2 className={styles.sectionTitle}>About</h2>
-            </div>
-            <p className={styles.aboutText}>
-              <strong>SensaPBL</strong> uses AI to create structured learning materials with zero cognitive overhead.
-              The multi-pass generation system ensures accuracy through domain analysis, dependency mapping, and quality validation.
-            </p>
-            <div className={styles.version}>Version 1.0.0</div>
           </div>
         </div>
       </div>
