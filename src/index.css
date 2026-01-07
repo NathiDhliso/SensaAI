@@ -285,6 +285,34 @@
   --color-accent-subtle: var(--overlay-accent-10);
   --color-accent-text: var(--color-accent);
   --color-primary-subtle: var(--overlay-primary-10);
+  --color-primary-hover: #553C9A;
+  /* Darker amethyst for hover */
+  --color-primary-transparent: var(--overlay-primary-10);
+
+  /* Button text colors - for text on accent backgrounds */
+  --color-text-on-accent: #ffffff;
+  --color-text-on-success: #ffffff;
+
+  /* Success variants */
+  --color-success-subtle: var(--color-success-bg);
+  --color-success-text-dark: var(--color-success-text);
+
+  /* Warning variants */
+  --color-warning-subtle: var(--color-warning-bg);
+  --color-warning-text-dark: var(--color-warning-text);
+
+  /* Border variants */
+  --color-border-hover: var(--color-border-emphasis);
+
+  /* Z-index system */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
 }
 
 
@@ -354,6 +382,17 @@
   --color-info-bg: rgba(59, 130, 246, 0.15);
   --color-info-border: rgba(59, 130, 246, 0.3);
   --color-info-text: #93c5fd;
+
+  /* Dark Mode Button/Text additions */
+  --color-primary-hover: #a78bfa;
+  /* Lighter for dark mode */
+  --color-primary-transparent: rgba(139, 92, 246, 0.15);
+  --color-text-on-accent: #1a0b2e;
+  /* Dark text on light accent */
+  --color-text-on-success: #1a0b2e;
+  --color-success-subtle: var(--color-success-bg);
+  --color-warning-subtle: var(--color-warning-bg);
+  --color-border-hover: var(--color-border-emphasis);
 }
 
 /* Also support prefers-color-scheme for automatic dark mode */

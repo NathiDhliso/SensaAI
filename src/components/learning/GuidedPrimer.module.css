@@ -169,7 +169,7 @@
 .chip:hover {
     border-color: var(--color-primary);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(107, 70, 193, 0.15);
+    box-shadow: var(--shadow-glow-primary);
 }
 
 .chipSelected {
@@ -315,15 +315,15 @@
     border-radius: 12px;
     font-size: 1.125rem;
     font-weight: 600;
-    color: white;
+    color: var(--color-text-on-accent);
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 16px rgba(107, 70, 193, 0.3);
+    box-shadow: var(--shadow-glow-primary);
 }
 
 .startButton:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(107, 70, 193, 0.4);
+    box-shadow: var(--shadow-glow-primary-hover);
 }
 
 /* Skip Button */
@@ -352,7 +352,7 @@
 .dialogOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-black-60);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
@@ -431,7 +431,7 @@
     border-radius: 10px;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: white;
+    color: var(--color-text-on-accent);
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: var(--shadow-glow-primary);
