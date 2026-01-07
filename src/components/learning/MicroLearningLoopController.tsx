@@ -160,7 +160,7 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
             exit={{ opacity: 0, x: -50 }}
         >
             <div className={styles.phaseHeader}>
-                <div className={styles.phaseIcon} style={{ background: 'var(--color-bg-secondary)', color: 'var(--color-accent-alt)' }}>
+                <div className={`${styles.phaseIcon} ${styles.phaseIconExample}`}>
                     <Lightbulb size={24} />
                 </div>
                 <div>

@@ -50,6 +50,10 @@ export default function VelocityLearning() {
     const [showStartModal, setShowStartModal] = useState(false);
     const [lockedIn, setLockedIn] = useState(false);
 
+    const handleActionSelect = (_action: any) => {
+        // TODO: Implement VelocityDashboard actions (Pause, Settings, etc.)
+    };
+
     // Initialize session timer on mount if session exists and not started
     useEffect(() => {
         if (currentSession && !currentSession.progress.sessionStartTime) {
@@ -222,7 +226,7 @@ export default function VelocityLearning() {
                                     sessionConceptsCompleted={currentSession.progress.conceptsLearnedToday}
                                     sessionStartTime={currentSession.progress.sessionStartTime ? new Date(currentSession.progress.sessionStartTime) : undefined}
                                     cognitiveLoad={cognitiveLoad}
-                                    onActionSelect={(action) => console.log('Action selected:', action)}
+                                    onActionSelect={(action) => handleActionSelect(action)}
                                 />
                             </motion.div>
                         )}

@@ -386,14 +386,13 @@ export default function Settings() {
               </div>
 
               {/* ElevenLabs API Key Input (Hidden by default unless empty) */}
-              <div style={{ marginTop: '0.5rem' }}>
+              <div className={styles.mT05}>
                 <input
                   type="password"
                   placeholder="ElevenLabs API Key"
                   value={usePersonalizationStore.getState().elevenLabsApiKey || ''}
                   onChange={(e) => usePersonalizationStore.getState().setElevenLabsApiKey(e.target.value)}
-                  className={styles.input}
-                  style={{ fontSize: '0.85rem', padding: '0.5rem', width: '100%' }}
+                  className={`${styles.input} ${styles.apiKeyInput}`}
                 />
               </div>
             </div>

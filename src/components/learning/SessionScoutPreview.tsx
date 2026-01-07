@@ -156,7 +156,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                     type="button"
                                 >
                                     +{concepts.length - 6} more headings...
-                                    <br /><span style={{ fontSize: '0.8rem', textDecoration: 'underline' }}>Show all</span>
+                                    <br /><span className={styles.showAllLink}>Show all</span>
                                 </button>
                             )}
                         </div>
@@ -177,10 +177,10 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                 <motion.div key={c.id} className={styles.visualCard} layoutId={`learning-focus-container`}>
                                     <div className={styles.visualPlaceholder}>
                                         {/* Simple node-link visualization simulation */}
-                                        <div style={{ position: 'relative', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div className={styles.visualNodeContainer}>
                                             {renderShapeOrIcon(c.icon, 'md')}
-                                            <div style={{ position: 'absolute', top: 0, right: 0, width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-primary-light)', opacity: 0.5 }} />
-                                            <div style={{ position: 'absolute', bottom: 10, left: -10, width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-secondary)', opacity: 0.5 }} />
+                                            <div className={styles.visualDotPrimary} />
+                                            <div className={styles.visualDotSecondary} />
                                         </div>
                                     </div>
                                     <span className={styles.visualLabel}>Structure: {c.name}</span>
@@ -199,7 +199,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                 return (
                     <div className={styles.stepContent}>
                         <div className={styles.instructionBox}>
-                            <Lightbulb size={20} className={styles.instructionIcon} style={{ color: 'var(--color-warning)' }} />
+                            <Lightbulb size={20} className={`${styles.instructionIcon} ${styles.iconWarning}`} />
                             <div>
                                 <h3>Step 4: Make a Hypothesis</h3>
                                 <p>Don't just read—predict. How might {concepts[0]?.name} lead to {concepts[1]?.name}?</p>
@@ -232,7 +232,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                         className={styles.primaryButton}
                                         onClick={handlePredictionSubmit}
                                         disabled={!prediction.trim()}
-                                        style={{ width: '100%', justifyContent: 'center' }}
+                                        className={`${styles.primaryButton} ${styles.widthFull}`}
                                     >
                                         Lock in Prediction
                                     </button>
@@ -350,7 +350,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                             onClick={() => toggle(aiPreview.coachMessage)}
                                             disabled={isVoiceLoading}
                                             title={isVoicePlaying ? "Stop" : "Hear coach"}
-                                            style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)' }}
+                                            className={styles.voicePlayButtonInline}
                                         >
                                             {isVoiceLoading ? <Loader2 size={14} className={styles.spin} /> :
                                                 isVoicePlaying ? <Square size={14} fill="currentColor" /> : <Volume2 size={14} />}
@@ -372,7 +372,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                     return (
                                         <div key={idx} className={styles.questionCard}>
                                             <div className={styles.questionHeader}>
-                                                <span className={styles.questionType} style={{ textTransform: 'capitalize' }}>
+                                                <span className={`${styles.questionType} ${styles.capitalize}`}>
                                                     {q.difficulty}
                                                 </span>
                                                 <span className={styles.relatedConcept}>{conceptName}</span>

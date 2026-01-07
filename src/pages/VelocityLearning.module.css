@@ -6,7 +6,7 @@
     /* Reactive Environment: Vignette based on load */
     /* As load increases, the vignette gets darker and tighter */
     transition: box-shadow 5s ease-in-out;
-    box-shadow: inset 0 0 calc(var(--cognitive-load, 0) * 100px) rgba(0, 0, 0, var(--cognitive-load, 0));
+    box-shadow: inset 0 0 calc(var(--cognitive-load, 0) * 100px) var(--overlay-black-40);
 }
 
 .immersiveContainer {
@@ -16,7 +16,7 @@
     flex-direction: column;
     justify-content: center;
     /* Visual reinforce that "We are diving INTO this" */
-    filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.1));
+    filter: drop-shadow(0 0 20px var(--shadow-sm));
 }
 
 .header {

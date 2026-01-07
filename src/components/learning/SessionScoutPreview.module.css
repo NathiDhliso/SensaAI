@@ -948,3 +948,64 @@
         font-size: 0.875rem;
     }
 }
+
+/* Refactored Inline Styles */
+.showAllLink {
+    font-size: 0.8rem;
+    text-decoration: underline;
+}
+
+.visualNodeContainer {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visualDotPrimary {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-primary-light);
+    opacity: 0.5;
+}
+
+.visualDotSecondary {
+    position: absolute;
+    bottom: 10px;
+    left: -10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    opacity: 0.5;
+}
+
+.iconWarning {
+    color: var(--color-warning);
+}
+
+.widthFull {
+    width: 100%;
+    justify-content: center;
+}
+
+.voicePlayButtonInline {
+    margin-left: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-primary);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}

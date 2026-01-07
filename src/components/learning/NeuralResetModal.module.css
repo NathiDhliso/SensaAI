@@ -11,7 +11,7 @@
     background: linear-gradient(135deg, var(--color-secondary-amber) 0%, var(--color-warning) 100%);
     border-radius: 1rem;
     box-shadow: var(--shadow-lg);
-    z-index: 1000;
+    z-index: var(--z-overlay);
     max-width: calc(100% - 2rem);
 }
 
@@ -42,7 +42,7 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--overlay-white-20);
     border: none;
     border-radius: 0.5rem;
     color: var(--color-text-on-accent);
@@ -52,5 +52,5 @@
 }
 
 .bannerDismiss:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--overlay-white-30);
 }

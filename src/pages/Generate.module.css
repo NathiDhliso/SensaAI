@@ -259,7 +259,7 @@
   height: 1.5rem;
   color: var(--color-text-on-accent);
   animation: spin 1s linear infinite;
-  z-index: 1;
+  z-index: var(--z-base);
 }
 
 .activityInfo {
@@ -372,7 +372,7 @@
   transform: translate(50%, -50%);
   width: 1rem;
   height: 1rem;
-  background: white;
+  background: var(--color-surface);
   border-radius: 50%;
   box-shadow: 0 0 8px var(--overlay-white-80), var(--shadow-glow-primary-hover);
   transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -608,7 +608,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: var(--z-modal-backdrop);
 }
 
 .confirmDialog {

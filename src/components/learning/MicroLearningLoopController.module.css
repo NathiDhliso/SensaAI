@@ -720,3 +720,9 @@
         }
     }
 }
+
+/* Refactored Inline Styles */
+.phaseIconExample {
+    background: var(--color-surface-subtle);
+    color: var(--color-accent);
+}

@@ -14,7 +14,7 @@
     background: var(--bg-secondary);
     border-radius: 1.5rem;
     padding: 2.5rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-xl);
     border: 1px solid var(--border-color);
 }
 
@@ -48,8 +48,8 @@
 }
 
 .error {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: var(--color-error-bg);
+    border: 1px solid var(--color-error-border);
     color: var(--color-error);
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
@@ -82,7 +82,7 @@
 
 .primaryButton:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+    box-shadow: var(--shadow-glow-accent);
 }
 
 .primaryButton:disabled {
@@ -109,4 +109,17 @@
     text-align: center;
     color: var(--text-secondary);
     font-size: 0.875rem;
+}
+
+.loadingContainer {
+    text-align: center;
+    padding: 2rem;
+}
+
+.loadingSpinnerMargin {
+    margin: 0 auto 1rem;
+}
+
+.loadingText {
+    color: var(--color-text-secondary);
 }

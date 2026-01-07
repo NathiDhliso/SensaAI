@@ -379,7 +379,7 @@
     align-items: center;
     justify-content: center;
     gap: var(--spacing-3);
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--color-surface);
     font-size: var(--font-size-xl);
     font-weight: 600;
     z-index: 10;
@@ -486,5 +486,5 @@
    ============================================================================ */
 
 :root[data-theme="dark"] .feedbackOverlay {
-    background: rgba(30, 30, 30, 0.95);
+    background: var(--color-surface-elevated);
 }

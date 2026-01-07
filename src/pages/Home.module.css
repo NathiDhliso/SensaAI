@@ -23,7 +23,7 @@
   flex-direction: column;
   gap: 3rem;
   position: relative;
-  z-index: 10;
+  z-index: var(--z-base);
 }
 
 /* Glass Card - The Container */
@@ -136,7 +136,7 @@
   border: 1px solid var(--color-border);
   border-radius: 1.25rem;
   box-shadow: var(--shadow-xl);
-  z-index: 100;
+  z-index: var(--z-dropdown);
   overflow: hidden;
   padding: 0.5rem;
 }
@@ -309,7 +309,7 @@
 
 /* Progress Card - Floating Glass Alert */
 .progressCard {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--overlay-white-80);
   backdrop-filter: blur(16px);
   border: 1px solid var(--overlay-accent-20);
   border-radius: 1rem;
@@ -318,7 +318,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   animation: floatIn 0.5s ease-out;
 }
 
@@ -358,7 +358,7 @@
 
 .continueButton:hover {
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-text-on-accent);
 }
 
 @keyframes floatIn {

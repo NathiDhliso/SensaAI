@@ -8,7 +8,20 @@ These guidelines ensure consistency across the codebase. AI coding tools MUST fo
 
 ---
 
-## 🎨 Colors - MANDATORY RULES
+## 🏗️ Architecture: Silver Bullet Learning Flow
+The app follows a 7-step "Baking Analogy" flow. Components map to these steps:
+
+| Step | Goal | Component | Analogy |
+|---|---|---|---|
+| **1. See** | Intent | `SessionStartModal` | Determining value |
+| **2. Explore** | Survey | `SessionScoutPreview` | Skimming ingredients |
+| **3. Explore+** | Prime | `SessionScoutPreview` (Step 3) | Guessing chemistry |
+| **4. Note** | Connect | `ConceptMapBuilder` | Mapping process |
+| **5. Study** | Memory | `MapReconstructionTest` | Recalling memory |
+| **6. Prove** | Mastery | `MasteryChallenge` | Baking solo |
+| **7. Apply** | Fluency | `VelocityLearning` | Improvising |
+
+---
 
 ### In TypeScript/TSX Files
 **NEVER** hardcode hex colors like `#3b82f6` or `#22c55e` directly in code.
@@ -279,6 +292,24 @@ Avoid magic numbers by using these configuration objects from `ui-constants.ts`:
 }
 ```
 
+## 🥞 Z-index System - MANDATORY
+**NEVER** use magic numbers (e.g., `z-index: 100`, `z-index: 9999`).
+**ALWAYS** use the variables from `index.css`.
+
+| Variable | Value | Usage |
+|---|---|---|
+| `--z-base` | 1 | Standard stacking context |
+| `--z-dropdown` | 100 | Dropdowns, floating menus |
+| `--z-sticky` | 200 | Sticky headers |
+| `--z-fixed` | 300 | Fixed indicators |
+| `--z-modal-backdrop` | 400 | Dark overlays behind modals |
+| `--z-modal` | 500 | Standard dialogs/modals |
+| `--z-popover` | 600 | Popovers above modals |
+| `--z-tooltip` | 700 | Tooltips |
+| `--z-overlay` | 1000 | Critical overlays (Help, Confetti) |
+| `--z-toast` | 2000 | Toast notifications (Topmost) |
+| `--z-max` | 9999 | Debugging/Critical system overlays |
+
 ---
 
 ## 🧭 Navigation Patterns
@@ -508,17 +539,19 @@ import { PASS_NAMES } from '@/constants/ui-constants';
 
 ```
 src/
-├── constants/
-│   ├── theme-colors.ts     # Color constants for JS/TSX
-│   ├── ui-constants.ts     # UI timings, thresholds
-│   ├── palace-routes.ts    # Route definitions
-│   └── learning-content.ts # Content constants
+├── constants/           # theme-colors, ui-constants
+├── contexts/            # React Contexts (e.g. ContentContext)
+├── hooks/               # Custom hooks
 ├── lib/
-│   ├── content-loader.ts   # Shared parsing utilities
-│   └── content-adapter/    # Content transformation
-├── store/                   # Zustand stores
-├── pages/                   # Route components
-└── components/              # Reusable components
+│   ├── ai/              # AI Generation logic
+│   ├── content-adapter/ # Content transformation
+│   └── storage/         # Cloud/Local storage
+├── store/               # Zustand stores
+├── pages/               # Route components
+└── components/          # Reusable components
+    ├── learning/        # Silver Bullet components
+    ├── layout/          # Layout wrappers
+    └── ui/              # Generic UI primitives
 ```
 
 ---

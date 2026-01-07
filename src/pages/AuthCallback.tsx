@@ -44,9 +44,9 @@ export function AuthCallback() {
     return (
         <div className={styles.container}>
             <div className={styles.card}>
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <Loader2 size={48} className={styles.spinner} style={{ margin: '0 auto 1rem' }} />
-                    <p style={{ color: 'var(--text-secondary)' }}>
+                <div className={styles.loadingContainer}>
+                    <Loader2 size={48} className={`${styles.spinner} ${styles.loadingSpinnerMargin}`} />
+                    <p className={styles.loadingText}>
                         Completing authentication...
                     </p>
                 </div>

@@ -27,7 +27,7 @@ export class CloudStorage implements StorageProvider {
     const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
 
     if (identityPoolId && userPoolId) {
-      console.log('🔐 CloudStorage: Using Cognito Identity Pool');
+
 
       const credentials = () => {
         const idToken = useAuthStore.getState().tokens?.idToken;
@@ -63,7 +63,7 @@ export class CloudStorage implements StorageProvider {
     const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
 
     if (accessKeyId && secretAccessKey) {
-      console.log('🔧 CloudStorage: Using .env Keys (Dev Mode)');
+
       const credentials = { accessKeyId, secretAccessKey };
 
       this.s3Client = new S3Client({ region: this.region, credentials });

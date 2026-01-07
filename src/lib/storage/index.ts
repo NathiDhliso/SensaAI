@@ -57,7 +57,7 @@ export class StorageManager {
         return;
       }
 
-      console.log(`Migrating ${legacyResults.length} results from localStorage to IndexedDB...`);
+
 
       // Migrate each result to IndexedDB
       for (const result of legacyResults) {
@@ -67,7 +67,7 @@ export class StorageManager {
       // Mark migration complete but keep localStorage data as backup
       localStorage.setItem(MIGRATION_FLAG, 'true');
       this.migrationComplete = true;
-      console.log('Migration complete!');
+
     } catch (error) {
       console.error('Migration failed:', error);
       // Don't set migration flag so it tries again next time
@@ -196,7 +196,7 @@ export class StorageManager {
         if (stored) {
           const localResults: SavedResult[] = JSON.parse(stored);
           if (localResults.length > 0) {
-            console.log('Recovering results from localStorage backup...');
+
             // Restore to primary storage
             for (const result of localResults) {
               await this.primaryProvider.saveResult(result);
@@ -285,7 +285,7 @@ export class StorageManager {
     if (pending.length === 0) return 0;
 
     let syncedCount = 0;
-    console.log(`Found ${pending.length} pending items to sync...`);
+
 
     for (const result of pending) {
       try {

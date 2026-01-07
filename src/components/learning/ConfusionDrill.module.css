@@ -6,7 +6,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: var(--z-overlay);
     animation: fadeIn 0.3s ease-out;
 }
 
@@ -180,7 +180,7 @@
 
 .choiceButton.incorrect {
     border-color: var(--color-error);
-    background: rgba(239, 68, 68, 0.05);
+    background: var(--color-error-bg);
 }
 
 .choiceButton.incorrect .choiceLetter {

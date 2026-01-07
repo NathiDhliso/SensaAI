@@ -312,7 +312,11 @@
   --z-modal-backdrop: 400;
   --z-modal: 500;
   --z-popover: 600;
+  --z-popover: 600;
   --z-tooltip: 700;
+  --z-overlay: 1000;
+  --z-toast: 2000;
+  --z-max: 9999;
 }
 
 

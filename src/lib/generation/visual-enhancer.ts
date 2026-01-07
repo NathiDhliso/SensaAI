@@ -24,7 +24,7 @@ export async function enhanceWithVisuals(
             !c.mnemonic.imageUrl
     );
 
-    console.log(`Found ${foundationConcepts.length} Foundation concepts for visualization`);
+
 
     for (const concept of foundationConcepts) {
         if (!concept.mnemonic) continue;
@@ -61,10 +61,10 @@ export async function enhanceWithVisuals(
             if (enhancedContent.match(anchorRegex)) {
                 const replacement = `"imageUrl": "${imageUrl}",\n    "anchor": "${concept.mnemonic.anchor}"`;
                 enhancedContent = enhancedContent.replace(anchorRegex, replacement);
-                console.log(`Successfully injected image for ${concept.name}`);
+
             } else {
                 console.warn(`Could not find anchor string for ${concept.name} to inject image. searched for regex:`, anchorRegex);
-                console.log('Partial content preview:', enhancedContent.substring(0, 500));
+
             }
 
         } catch (error) {

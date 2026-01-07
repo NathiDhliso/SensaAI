@@ -195,7 +195,7 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
                 <div className={styles.modalFooter}>
                     {isComplete ? (
                         <>
-                            <span style={{ marginRight: 'auto', color: 'var(--color-text-medium)' }}>
+                            <span className={styles.scoreText}>
                                 Score: {correctCount}/{questions.length}
                             </span>
                             <button className={styles.primaryButton} onClick={onClose}>
