@@ -62,6 +62,7 @@ interface ConceptMapBuilderProps {
 interface MapNode {
     id: string;
     conceptId: string;
+    conceptName: string;
     x: number;
     y: number;
 }
@@ -90,8 +91,14 @@ export default function ConceptMapBuilder({
     readOnly = false,
     onBack
 }: ConceptMapBuilderProps) {
-    // Core State
-    const [nodes, setNodes] = useState<MapNode[]>(initialData?.nodes || []);
+    // Core State - initialize nodes with conceptName fallback for backward compatibility
+    const [nodes, setNodes] = useState<MapNode[]>(() => {
+        if (!initialData?.nodes) return [];
+        return initialData.nodes.map(n => ({
+            ...n,
+            conceptName: n.conceptName || concepts.find(c => c.id === n.conceptId)?.name || 'Unknown'
+        }));
+    });
     const [connections, setConnections] = useState<Connection[]>(initialData?.connections || []);
     const [addedConceptIds, setAddedConceptIds] = useState<Set<string>>(
         new Set(initialData?.nodes.map(n => n.conceptId) || [])
@@ -309,6 +316,7 @@ export default function ConceptMapBuilder({
         const newNode: MapNode = {
             id: `node-${Date.now()}`,
             conceptId: concept.id,
+            conceptName: concept.name,
             x: 150 + Math.random() * 100,
             y: 150 + Math.random() * 100
         };
@@ -414,7 +422,12 @@ export default function ConceptMapBuilder({
     // =========================================================================
 
     const getConceptName = (conceptId: string) => {
-        return concepts.find(c => c.id === conceptId)?.name || 'Unknown';
+        // First try to find the concept in the passed array
+        const concept = concepts.find(c => c.id === conceptId);
+        if (concept) return concept.name;
+        // Fallback: check if the node itself has the stored name
+        const node = nodes.find(n => n.conceptId === conceptId);
+        return node?.conceptName || 'Unknown';
     };
 
     // =========================================================================

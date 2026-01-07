@@ -221,6 +221,6 @@ export interface StudySession {
 }
 
 export interface ConceptMapData {
-  nodes: { id: string; conceptId: string; x: number; y: number }[];
+  nodes: { id: string; conceptId: string; conceptName: string; x: number; y: number }[];
   connections: { id: string; fromId: string; toId: string; label: string }[];
 }
