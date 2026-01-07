@@ -19,7 +19,8 @@ import {
     VolumeX,
     Music,
     Loader2,
-    Square
+    Square,
+    SkipForward
 } from 'lucide-react';
 import { useVoice } from '@/hooks/useVoice';
 import { audioManager } from '@/lib/audio';
@@ -87,6 +88,7 @@ export default function GuidedPrimer({
     const isFirstRender = useRef(true);
     const { selectedPersona } = usePersonalizationStore();
     const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
+    const [showSkipConfirm, setShowSkipConfirm] = useState(false);
 
 
     // Get coach intro and breathing based on mood
@@ -194,6 +196,16 @@ export default function GuidedPrimer({
     const handleComplete = () => {
         audioManager.fadeOutBackgroundMusic(1500);
         onComplete({ reason, action, reward });
+    };
+
+    const handleSkipConfirm = () => {
+        audioManager.fadeOutBackgroundMusic(500);
+        // Use sensible defaults for skipped priming
+        onComplete({
+            reason: 'Quick start',
+            action: 'Learn something new',
+            reward: 'Personal satisfaction'
+        });
     };
 
     const toggleMusic = () => {
@@ -512,6 +524,17 @@ export default function GuidedPrimer({
                     </button>
                 )}
 
+                {/* Skip button - visible on all steps except ready */}
+                {currentStep !== 'ready' && currentStep !== 'breathe' && (
+                    <button
+                        className={styles.skipButton}
+                        onClick={() => setShowSkipConfirm(true)}
+                    >
+                        <SkipForward size={16} />
+                        Skip
+                    </button>
+                )}
+
                 {/* Continue button only shows when using custom input */}
                 {currentStep !== 'breathe' && currentStep !== 'ready' && customInput && (
                     <button
@@ -534,6 +557,48 @@ export default function GuidedPrimer({
                     </button>
                 )}
             </div>
+
+            {/* Skip Confirmation Dialog */}
+            <AnimatePresence>
+                {showSkipConfirm && (
+                    <motion.div
+                        className={styles.dialogOverlay}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            className={styles.dialogCard}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                        >
+                            <div className={styles.dialogIcon}>
+                                <Sparkles size={32} />
+                            </div>
+                            <h3 className={styles.dialogTitle}>Ready to dive in?</h3>
+                            <p className={styles.dialogMessage}>
+                                Great stuff! You can always revisit your goals later. Let's start learning!
+                            </p>
+                            <div className={styles.dialogActions}>
+                                <button
+                                    className={styles.dialogCancelButton}
+                                    onClick={() => setShowSkipConfirm(false)}
+                                >
+                                    Go back
+                                </button>
+                                <button
+                                    className={styles.dialogConfirmButton}
+                                    onClick={handleSkipConfirm}
+                                >
+                                    Start Learning
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

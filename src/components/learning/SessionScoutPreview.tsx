@@ -1,7 +1,7 @@
 /**
  * SessionScoutPreview Component
  * 
- * Implements SENSA Phase 1 (Explore) and Phase 1.5 (Explore+)
+ * Implements Step 2: The What (Surveying) and Step 3: The Guess (Priming)
  * of The SENSA Method™ - See. Explore. Note. Study. Apply.
  */
 import { useState, useMemo } from 'react';
@@ -28,6 +28,7 @@ import { useVoice } from '@/hooks/useVoice';
 import type { LearningConcept } from '@/lib/types/learning';
 import { generatePreviewAnalysis } from '@/lib/ai/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { useLearningStore } from '@/store/learning-store';
 import { renderShapeOrIcon } from '@/components/ui/SensaShape';
 import styles from './SessionScoutPreview.module.css';
 
@@ -49,6 +50,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
     // Phase 1.5 State
     const [conceptsNeeded, setConceptsNeeded] = useState<Record<string, string>>({});
     const { selectedPersona } = usePersonalizationStore();
+    const { savePrediction } = useLearningStore();
     const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
     const navigate = useNavigate();
 
@@ -83,6 +85,8 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
 
     const handleConceptNeededChange = (id: string, value: string) => {
         setConceptsNeeded(prev => ({ ...prev, [id]: value }));
+        // Persist the prediction/gap acknowledgment to store
+        savePrediction(id, value);
     };
 
     // Render logic for Scout Steps
@@ -279,7 +283,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                 <MapIcon size={32} />
                             </div>
                             <div>
-                                <h2 className={styles.title}>SENSA Phase 1: Explore</h2>
+                                <h2 className={styles.title}>Step 2: The What (Surveying)</h2>
                                 <p className={styles.subtitle}>
                                     Building a mental skeleton. Step {scoutStep} of 4.
                                 </p>
@@ -327,7 +331,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                 <HelpCircle size={32} />
                             </div>
                             <div>
-                                <h2 className={styles.title}>SENSA Explore+</h2>
+                                <h2 className={styles.title}>Step 3: The Guess (Priming)</h2>
                                 <p className={styles.subtitle}>
                                     See what "done" looks like.
                                 </p>
@@ -408,7 +412,7 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                                 <span>You are now active hunting for knowledge.</span>
                             </div>
                             <button className={styles.primaryButton} onClick={onComplete}>
-                                Start SENSA Phase 2: Note
+                                Start Step 4: The Map
                                 <ArrowRight size={20} />
                             </button>
                         </div>

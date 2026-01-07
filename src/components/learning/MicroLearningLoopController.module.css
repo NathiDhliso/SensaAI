@@ -218,6 +218,25 @@
    TEST PHASE
    ============================================================================ */
 
+.recallContext {
+    background: var(--overlay-sage-10);
+    border-left: 4px solid var(--color-success);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9375rem;
+    color: var(--color-text-dark);
+}
+
+.recallContext p {
+    margin: 0.25rem 0;
+    line-height: 1.5;
+}
+
+.recallContext strong {
+    color: var(--color-success);
+}
+
 .recallInput {
     width: 100%;
     padding: 1rem;

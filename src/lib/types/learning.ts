@@ -216,6 +216,8 @@ export interface StudySession {
   mapReconstructed: boolean;
   // SENSA Phase 4: Apply
   mastered: boolean;
+  // Step 3: The Guess (Priming) - User predictions per concept
+  predictions: Record<string, string>;
 }
 
 export interface ConceptMapData {

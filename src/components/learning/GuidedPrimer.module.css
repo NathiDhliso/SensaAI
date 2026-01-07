@@ -326,6 +326,122 @@
     box-shadow: 0 6px 20px rgba(107, 70, 193, 0.4);
 }
 
+/* Skip Button */
+.skipButton {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.625rem 1rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: auto;
+}
+
+.skipButton:hover {
+    border-color: var(--color-text-secondary);
+    color: var(--color-text-secondary);
+}
+
+/* Skip Confirmation Dialog */
+.dialogOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    padding: 1rem;
+}
+
+.dialogCard {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+}
+
+.dialogIcon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--overlay-sage-10);
+    color: var(--color-success);
+    border-radius: 50%;
+    margin: 0 auto 1.25rem auto;
+}
+
+.dialogTitle {
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 0.75rem 0;
+}
+
+.dialogMessage {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0 0 1.5rem 0;
+}
+
+.dialogActions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.dialogCancelButton {
+    padding: 0.75rem 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dialogCancelButton:hover {
+    border-color: var(--color-border-emphasis);
+    color: var(--color-text-primary);
+}
+
+.dialogConfirmButton {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--gradient-accent);
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-glow-primary);
+}
+
+.dialogConfirmButton:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow-primary-hover);
+}
+
 /* Responsive */
 @media (max-width: 480px) {
     .container {

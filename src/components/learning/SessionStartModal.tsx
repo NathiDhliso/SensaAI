@@ -1,10 +1,10 @@
 /**
  * SessionStartModal Component
  * 
- * Phase 5: Single-Page Learning Experience
+ * Step 1: The Why (Establish Intent)
  * Modal for starting a study session with goal and time selection.
  * 
- * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Phase 5
+ * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Step 1
  */
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -122,7 +122,7 @@ export function SessionStartModal({
           <div className={styles.headerContent}>
             <Brain className={styles.headerIcon} size={28} />
             <div>
-              <h2>{step === 'setup' ? 'Start Study Session' : 'SENSA Phase 0: See'}</h2>
+              <h2>{step === 'setup' ? 'Start Study Session' : 'Step 1: The Why'}</h2>
               <p className={styles.subjectName}>{subjectName}</p>
             </div>
           </div>

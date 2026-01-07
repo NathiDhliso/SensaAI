@@ -179,6 +179,8 @@ const createStudySession = (
   conceptMap: null,
   mapReconstructed: false,
   mastered: false,
+  // Step 3: The Guess (Priming)
+  predictions: {},
 });
 
 const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]): UserProgress => {
@@ -306,6 +308,7 @@ type LearningActions = {
   markSessionMapBuilt: (data?: ConceptMapData) => void;
   markSessionMapReconstructed: (passed: boolean) => void;
   markSessionMastered: () => void;
+  savePrediction: (conceptId: string, prediction: string) => void;
 
   // Progress
   completeConcept: (conceptId: string) => void;
@@ -561,6 +564,20 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         set((state) => ({
           studySession: state.studySession
             ? { ...state.studySession, mastered: true }
+            : null
+        }));
+      },
+
+      savePrediction: (conceptId: string, prediction: string) => {
+        set((state) => ({
+          studySession: state.studySession
+            ? {
+              ...state.studySession,
+              predictions: {
+                ...state.studySession.predictions,
+                [conceptId]: prediction
+              }
+            }
             : null
         }));
       },

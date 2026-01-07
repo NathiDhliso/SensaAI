@@ -111,13 +111,18 @@ function determineOutcome(
 interface WorkedExamplePhaseProps {
     concept: LearningConcept;
     onComplete: (timeSpent: number) => void;
+    /** Session context: User's Intent (Step 1) and Prediction (Step 3) */
+    sessionContext?: {
+        intent?: string;
+        prediction?: string;
+    };
 }
 
 /**
  * Worked Example Phase: Make It Real
  * Show problem -> Hide Solution -> User Solves (Mental) -> Reveal Solution
  */
-function WorkedExamplePhase({ concept, onComplete }: WorkedExamplePhaseProps) {
+function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamplePhaseProps) {
     const [isSolutionRevealed, setIsSolutionRevealed] = useState(false);
     const [revealStep, setRevealStep] = useState(0);
     const [startTime] = useState(Date.now());
@@ -165,6 +170,17 @@ function WorkedExamplePhase({ concept, onComplete }: WorkedExamplePhaseProps) {
             </div>
 
             <div className={styles.phaseContent}>
+                {/* Recall Context: Show Intent and Prediction if available */}
+                {(sessionContext?.intent || sessionContext?.prediction) && (
+                    <div className={styles.recallContext}>
+                        {sessionContext.intent && (
+                            <p><strong>Your Intent:</strong> "{sessionContext.intent}"</p>
+                        )}
+                        {sessionContext.prediction && (
+                            <p><strong>You predicted:</strong> You'd need to master this concept. Let's verify.</p>
+                        )}
+                    </div>
+                )}
                 <div className={styles.learningSection}>
                     <h5 className={styles.sectionTitle}>The Problem</h5>
                     <p>{example.problem}</p>
@@ -592,7 +608,7 @@ export function MicroLearningLoopController({
     const [testResult, setTestResult] = useState<TestPhaseResult | null>(null);
     const [totalTimeSpent, setTotalTimeSpent] = useState(0);
 
-    const { recordInteraction } = useLearningStore();
+    const { recordInteraction, studySession } = useLearningStore();
 
     // State for Confusion Drill Queue
     const [confusionQueue, setConfusionQueue] = useState<ConfusionPair[]>([]);
@@ -713,6 +729,10 @@ export function MicroLearningLoopController({
                             key="worked-example"
                             concept={concept}
                             onComplete={handleWorkedExampleComplete}
+                            sessionContext={{
+                                intent: studySession?.primer?.reason,
+                                prediction: studySession?.predictions?.[concept.id]
+                            }}
                         />
                     )}
                     {phase === 'test' && (
