@@ -48,7 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-on-accent);
   flex-shrink: 0;
 }
 
@@ -171,7 +171,7 @@
   width: 1.5rem;
   height: 1.5rem;
   background: var(--gradient-accent);
-  color: white;
+  color: var(--color-text-on-accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -234,7 +234,7 @@
   width: 1.5rem;
   height: 1.5rem;
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-on-accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -296,7 +296,7 @@
   width: 100%;
   padding: 0.875rem 1.5rem;
   background: var(--gradient-accent);
-  color: white;
+  color: var(--color-text-on-accent);
   border: none;
   border-radius: 0.5rem;
   font-size: 0.9375rem;
@@ -319,7 +319,7 @@
   width: 100%;
   padding: 0.875rem 1.5rem;
   background: var(--gradient-sage);
-  color: white;
+  color: var(--color-text-on-accent);
   border-radius: 0.5rem;
   font-size: 0.9375rem;
   font-weight: 600;

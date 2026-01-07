@@ -149,7 +149,7 @@
     background: var(--color-secondary-amber);
     border: none;
     border-radius: var(--radius-md);
-    color: white;
+    color: var(--color-text-on-accent);
     font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -216,7 +216,7 @@
     background: var(--color-success);
     border: none;
     border-radius: var(--radius-md);
-    color: white;
+    color: var(--color-text-on-accent);
     font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -303,7 +303,7 @@
 
 .assessmentButton.excellent:hover {
     background: var(--color-success);
-    color: white;
+    color: var(--color-text-on-accent);
     box-shadow: var(--shadow-glow-sage);
 }
 
@@ -315,7 +315,7 @@
 
 .assessmentButton.good:hover {
     background: var(--color-accent);
-    color: white;
+    color: var(--color-text-on-accent);
     box-shadow: var(--shadow-glow-primary);
 }
 
@@ -327,7 +327,7 @@
 
 .assessmentButton.needsWork:hover {
     background: var(--color-warning);
-    color: white;
+    color: var(--color-text-on-accent);
     box-shadow: var(--shadow-glow-amber);
 }
 

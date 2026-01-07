@@ -331,7 +331,7 @@
 
     background: var(--gradient-primary);
     /* New Gradient */
-    color: white;
+    color: var(--color-text-on-accent);
     border: none;
     border-radius: var(--radius-xl);
 
@@ -546,7 +546,7 @@
 
 .coachAudioButton:hover {
     background: var(--color-primary);
-    color: white;
+    color: var(--color-text-on-accent);
     border-color: var(--color-primary);
 }
 
@@ -633,7 +633,7 @@
     width: 100%;
     padding: var(--spacing-4);
     background: var(--color-accent);
-    color: white;
+    color: var(--color-text-on-accent);
     border: none;
     border-radius: var(--radius-xl);
     font-size: var(--font-size-md);

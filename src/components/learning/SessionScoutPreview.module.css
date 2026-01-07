@@ -707,7 +707,7 @@
     align-items: center;
     justify-content: center;
     background: var(--color-primary);
-    color: white;
+    color: var(--color-text-on-accent);
     border-radius: var(--radius-full);
     font-weight: bold;
     font-size: 1.5rem;

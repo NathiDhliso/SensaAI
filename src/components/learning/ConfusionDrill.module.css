@@ -175,7 +175,7 @@
 
 .choiceButton.correct .choiceLetter {
     background: var(--color-success);
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .choiceButton.incorrect {
@@ -185,7 +185,7 @@
 
 .choiceButton.incorrect .choiceLetter {
     background: var(--color-error);
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 /* Feedback */
@@ -252,7 +252,7 @@
     gap: 0.5rem;
     padding: 0.875rem 1.5rem;
     background: var(--gradient-primary);
-    color: white;
+    color: var(--color-text-on-accent);
     border: none;
     border-radius: 0.75rem;
     font-size: 1rem;

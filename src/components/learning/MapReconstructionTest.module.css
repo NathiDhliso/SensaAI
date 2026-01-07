@@ -90,7 +90,7 @@
     background: var(--color-success);
     border: none;
     border-radius: var(--radius-md);
-    color: white;
+    color: var(--color-text-on-accent);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
     cursor: pointer;

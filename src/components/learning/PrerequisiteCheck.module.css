@@ -135,7 +135,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  color: white;
+  color: var(--color-text-on-accent);
   z-index: 10;
 }
 

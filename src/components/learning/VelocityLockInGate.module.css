@@ -185,7 +185,7 @@
             var(--color-accent) 100%);
     border: none;
     border-radius: 12px;
-    color: white;
+    color: var(--color-text-on-accent);
     font-size: 0.9375rem;
     font-weight: 600;
     cursor: pointer;

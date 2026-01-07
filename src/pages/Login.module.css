@@ -32,7 +32,7 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 1.5rem;
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .title {
@@ -67,7 +67,7 @@
     width: 100%;
     padding: 0.875rem 1.5rem;
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    color: white;
+    color: var(--color-text-on-accent);
     border: none;
     border-radius: 0.75rem;
     font-size: 1rem;

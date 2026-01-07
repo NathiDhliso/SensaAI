@@ -62,7 +62,7 @@
     height: 18px;
     padding: 0 0.375rem;
     background: var(--color-warning);
-    color: white;
+    color: var(--color-text-on-accent);
     font-size: 0.6875rem;
     font-weight: 600;
     border-radius: 999px;
@@ -260,7 +260,7 @@
 
 .priorityHigh:hover {
     background: var(--color-accent);
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .priorityMedium {
@@ -270,7 +270,7 @@
 
 .priorityMedium:hover {
     background: var(--color-warning);
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .priorityLow {

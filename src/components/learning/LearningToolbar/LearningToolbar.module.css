@@ -42,7 +42,7 @@
 .toolbarButton.active {
     background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary-plum) 100%);
     border-color: var(--color-accent);
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .toolbarButton.warning {
@@ -124,7 +124,7 @@
     border-radius: 8px;
     font-size: 0.625rem;
     font-weight: 700;
-    color: white;
+    color: var(--color-text-on-accent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -235,7 +235,7 @@
     background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary-plum) 100%);
     border: none;
     border-radius: 0.5rem;
-    color: white;
+    color: var(--color-text-on-accent);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
@@ -352,7 +352,7 @@
     height: 4rem;
     background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary-plum) 100%);
     border: none;
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .timerControlButton.primary:hover {
@@ -600,19 +600,19 @@
 .quizOption.selected .quizOptionLetter {
     background: var(--color-accent);
     border-color: var(--color-accent);
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .quizOption.correct .quizOptionLetter {
     background: var(--color-success);
     border-color: var(--color-success);
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .quizOption.incorrect .quizOptionLetter {
     background: var(--color-error);
     border-color: var(--color-error);
-    color: white;
+    color: var(--color-text-on-accent);
 }
 
 .quizOptionText {
@@ -875,7 +875,7 @@
     border-radius: 0.5rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: white;
+    color: var(--color-text-on-accent);
     cursor: pointer;
     transition: all 0.2s;
 }

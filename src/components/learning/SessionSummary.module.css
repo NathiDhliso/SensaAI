@@ -248,7 +248,7 @@
     background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary-plum) 100%);
     border: none;
     border-radius: 0.5rem;
-    color: white;
+    color: var(--color-text-on-accent);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
