@@ -5,12 +5,14 @@
  * of The SENSA Method™ - See. Explore. Note. Study. Apply.
  */
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Map as MapIcon,
     HelpCircle,
     ChevronRight,
     ArrowRight,
+    ArrowLeft,
     TrendingUp,
     AlertCircle,
     BookOpen,
@@ -48,6 +50,11 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
     const [conceptsNeeded, setConceptsNeeded] = useState<Record<string, string>>({});
     const { selectedPersona } = usePersonalizationStore();
     const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
+    const navigate = useNavigate();
+
+    const handleBack = () => {
+        navigate(-1);
+    };
 
 
     // Group concepts by phase for "Logical Flow"
@@ -265,6 +272,9 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                         className={styles.phaseContainer}
                     >
                         <div className={styles.header}>
+                            <button className={styles.backButton} onClick={handleBack} title="Go back">
+                                <ArrowLeft size={20} />
+                            </button>
                             <div className={styles.headerIcon}>
                                 <MapIcon size={32} />
                             </div>
@@ -310,6 +320,9 @@ export function SessionScoutPreview({ concepts, initialPhase = 'scout', onComple
                         className={styles.phaseContainer}
                     >
                         <div className={styles.header}>
+                            <button className={styles.backButton} onClick={handleBack} title="Go back">
+                                <ArrowLeft size={20} />
+                            </button>
                             <div className={styles.headerIcon}>
                                 <HelpCircle size={32} />
                             </div>

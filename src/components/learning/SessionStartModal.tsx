@@ -10,7 +10,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Clock, Target, BookOpen, RefreshCw, Compass,
-  ChevronRight, Brain, Sparkles, Heart
+  ChevronRight, Brain, Sparkles, Heart, ArrowLeft
 } from 'lucide-react';
 import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/types/learning';
 import { MOOD_OPTIONS, type Mood } from '@/lib/ai/coach';
@@ -29,7 +29,8 @@ interface SessionStartModalProps {
   recommendation?: SessionRecommendation;
   /** Called when session is started */
   onStart: (goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => void;
-  // Note: onClose is no longer needed - this is a required step after lock-in
+  /** Optional callback to exit/go back */
+  onBack?: () => void;
 }
 
 const DURATION_OPTIONS: Array<{ value: SessionDuration; label: string; minutes: number }> = [
@@ -76,6 +77,7 @@ export function SessionStartModal({
   completedConcepts,
   recommendation,
   onStart,
+  onBack,
 }: SessionStartModalProps) {
   const [step, setStep] = useState<'setup' | 'prime'>('setup');
   const [selectedGoal, setSelectedGoal] = useState<StudyGoal>('learn-new');
@@ -112,6 +114,11 @@ export function SessionStartModal({
       >
         {/* Header */}
         <div className={styles.header}>
+          {onBack && (
+            <button className={styles.backButton} onClick={onBack} title="Go back">
+              <ArrowLeft size={20} />
+            </button>
+          )}
           <div className={styles.headerContent}>
             <Brain className={styles.headerIcon} size={28} />
             <div>
@@ -119,7 +126,6 @@ export function SessionStartModal({
               <p className={styles.subjectName}>{subjectName}</p>
             </div>
           </div>
-          {/* Close button hidden - this is a required step after lock-in */}
         </div>
 
         <AnimatePresence mode="wait">

@@ -9,7 +9,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, CheckCircle2, Clock, Play, Target, Zap, ChevronRight, RotateCcw } from 'lucide-react';
+import { Brain, CheckCircle2, Clock, Play, Target, Zap, ChevronRight, RotateCcw, ArrowLeft } from 'lucide-react';
 import type { SensaAILearningConcept, DiagnosticQuestion } from '@/lib/content-adapter/transformer';
 import { getFoundationConcepts } from '@/lib/content-adapter/sensa-ai-integration';
 import { UI_TIMINGS, VELOCITY_CONFIG } from '@/constants/ui-constants';
@@ -30,6 +30,8 @@ export interface DiagnosticLaunchSystemProps {
     onStartLearning: () => void;
     /** Callback when diagnostic assessment completes */
     onDiagnosticComplete: (results: DiagnosticResults) => void;
+    /** Optional callback to exit/go back */
+    onBack?: () => void;
 }
 
 export interface DiagnosticResults {
@@ -300,6 +302,7 @@ export function DiagnosticLaunchSystem({
     diagnosticReady,
     onStartLearning,
     onDiagnosticComplete,
+    onBack,
 }: DiagnosticLaunchSystemProps) {
     const [phase, setPhase] = useState<DiagnosticPhase>('intro');
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -388,6 +391,11 @@ export function DiagnosticLaunchSystem({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
+                    {onBack && (
+                        <button className={styles.backButton} onClick={onBack} title="Go back">
+                            <ArrowLeft size={20} />
+                        </button>
+                    )}
                     <div className={styles.iconContainer}>
                         <Brain size={48} />
                     </div>

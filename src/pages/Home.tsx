@@ -139,10 +139,7 @@ export default function Home() {
     <div className={styles.container}>
       <div className={styles.wrapper}>
         <div className={styles.header}>
-          <h1 className={styles.title}>SensaAI</h1>
-          <p className={styles.subtitle}>
-            Turn any subject into a structured learning system
-          </p>
+          {/* Header Removed */}
         </div>
 
         {hasProgress && (

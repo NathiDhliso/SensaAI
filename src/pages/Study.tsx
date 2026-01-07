@@ -54,6 +54,7 @@ const VelocityLearning = lazy(() => import('./VelocityLearning'));
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Import Velocity Engine components locally to avoid circular deps if any
+import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
 import { MicroLearningLoopController } from '@/components/learning';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -170,6 +171,17 @@ export default function Study() {
 
     switch (activeTab) {
 
+
+      case 'overview':
+        return (
+          <div style={{ height: '100%', minHeight: '600px' }}>
+            <SessionScoutPreview
+              concepts={concepts}
+              initialPhase="scout"
+              onComplete={() => setActiveTab('learn')}
+            />
+          </div>
+        );
 
       case 'learn':
         // Silver Bullet: VelocityLearning replaces legacy list view

@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, Download, BookOpen, Cloud, HardDrive, Upload, Search, Eye, X, Sparkles, Target, GraduationCap, FileJson } from 'lucide-react';
+import { ArrowLeft, Trash2, Download, BookOpen, Cloud, HardDrive, Upload, Search, Eye, FileJson } from 'lucide-react';
 import { storageManager, importFromFile } from '@/lib/storage';
 import { localFileStorage } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
-import { useParseAndLoadContent } from '@/lib/content-loader';
+
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './SavedResults.module.css';
 
@@ -17,9 +17,8 @@ export default function SavedResults() {
   const [importError, setImportError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'subject' | 'quality'>('date');
-  const [previewResult, setPreviewResult] = useState<SavedResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const parseAndLoad = useParseAndLoadContent();
+
 
   useEffect(() => {
     loadResults();
@@ -59,24 +58,7 @@ export default function SavedResults() {
     localFileStorage.downloadAsJSON(result);
   };
 
-  const handlePreviewLearning = (result: SavedResult) => {
-    setPreviewResult(result);
-  };
 
-  const handleConfirmLearning = () => {
-    if (!previewResult) return;
-
-    const parseResult = parseAndLoad(previewResult.fullDocument);
-
-    if (!parseResult.success) {
-      alert(`Failed to load content: ${parseResult.error}`);
-      setPreviewResult(null);
-      return;
-    }
-
-    setPreviewResult(null);
-    navigate('/study/current');
-  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -342,7 +324,7 @@ export default function SavedResults() {
 
                 <div className={styles.cardActions}>
                   <button
-                    onClick={() => navigate(`/results/${result.id}`)}
+                    onClick={() => navigate(`/study/${result.id}?tab=overview`)}
                     className={styles.viewButton}
                     title="View full result"
                   >
@@ -350,7 +332,7 @@ export default function SavedResults() {
                     View
                   </button>
                   <button
-                    onClick={() => handlePreviewLearning(result)}
+                    onClick={() => navigate(`/study/${result.id}?tab=learn`)}
                     className={styles.learnButton}
                     title="Start learning"
                   >
@@ -385,68 +367,7 @@ export default function SavedResults() {
           </div>
         )}
 
-        {/* Learning Preview Modal */}
-        {previewResult && (
-          <div className={styles.previewOverlay} onClick={() => setPreviewResult(null)}>
-            <div className={styles.previewModal} onClick={e => e.stopPropagation()}>
-              <button
-                className={styles.previewCloseButton}
-                onClick={() => setPreviewResult(null)}
-              >
-                <X size={20} />
-              </button>
 
-              <div className={styles.previewHeader}>
-                <Sparkles className={styles.previewIcon} />
-                <h2>{previewResult.subject}</h2>
-                <p className={styles.previewDomain}>{previewResult.pass1Data.domain}</p>
-              </div>
-
-              <div className={styles.previewStats}>
-                <div className={styles.previewStat}>
-                  <Target className={styles.previewStatIcon} />
-                  <span className={styles.previewStatValue}>{previewResult.pass1Data.concepts.length}</span>
-                  <span className={styles.previewStatLabel}>Concepts</span>
-                </div>
-                <div className={styles.previewStat}>
-                  <GraduationCap className={styles.previewStatIcon} />
-                  <span className={styles.previewStatValue}>~{Math.ceil(previewResult.pass1Data.concepts.length * 3)}</span>
-                  <span className={styles.previewStatLabel}>Min Est.</span>
-                </div>
-              </div>
-
-              <div className={styles.previewConceptList}>
-                <h4>Concepts you'll learn:</h4>
-                <ul>
-                  {previewResult.pass1Data.concepts.slice(0, 5).map((concept, i) => (
-                    <li key={i}>{concept}</li>
-                  ))}
-                  {previewResult.pass1Data.concepts.length > 5 && (
-                    <li className={styles.previewMore}>
-                      +{previewResult.pass1Data.concepts.length - 5} more
-                    </li>
-                  )}
-                </ul>
-              </div>
-
-              <div className={styles.previewActions}>
-                <button
-                  className={styles.previewCancelButton}
-                  onClick={() => setPreviewResult(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className={styles.previewStartButton}
-                  onClick={handleConfirmLearning}
-                >
-                  <BookOpen size={18} />
-                  Start Learning
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

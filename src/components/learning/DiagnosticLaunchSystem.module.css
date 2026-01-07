@@ -26,6 +26,29 @@
     width: 100%;
     text-align: center;
     box-shadow: var(--shadow-lg);
+    position: relative;
+}
+
+.backButton {
+    position: absolute;
+    top: var(--spacing-4);
+    left: var(--spacing-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--overlay-primary-10);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.backButton:hover {
+    background: var(--overlay-primary-20);
+    color: var(--primary);
 }
 
 .iconContainer {

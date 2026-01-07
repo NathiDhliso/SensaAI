@@ -15,6 +15,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowRight,
+    ArrowLeft,
     Move,
     Check,
     Sparkles,
@@ -54,6 +55,8 @@ interface ConceptMapBuilderProps {
     onComplete?: (data: ConceptMapData) => void;
     initialData?: ConceptMapData | null;
     readOnly?: boolean;
+    /** Optional callback to exit/go back */
+    onBack?: () => void;
 }
 
 interface MapNode {
@@ -84,7 +87,8 @@ export default function ConceptMapBuilder({
     concepts,
     onComplete,
     initialData,
-    readOnly = false
+    readOnly = false,
+    onBack
 }: ConceptMapBuilderProps) {
     // Core State
     const [nodes, setNodes] = useState<MapNode[]>(initialData?.nodes || []);
@@ -624,6 +628,16 @@ export default function ConceptMapBuilder({
                 {/* Toolbar */}
                 {!readOnly && (
                     <div className={styles.toolbar}>
+                        {onBack && (
+                            <button
+                                className={styles.toolButton}
+                                onClick={onBack}
+                                title="Go back / Exit"
+                            >
+                                <ArrowLeft size={20} />
+                            </button>
+                        )}
+                        {onBack && <div className={styles.toolbarDivider} />}
                         <button
                             className={`${styles.toolButton} ${activeTool === 'select' ? styles.active : ''}`}
                             onClick={() => setActiveTool('select')}

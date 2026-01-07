@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
   BookOpen,
-
+  LayoutDashboard,
   Zap,
   ChevronDown,
   Settings,
@@ -26,7 +26,7 @@ import { getRecommendedTab } from '@/lib/learning/profile-detector';
 
 import styles from './StudyLayout.module.css';
 
-export type StudyTab = 'learn' | 'reference';
+export type StudyTab = 'overview' | 'learn' | 'reference';
 
 interface StudyLayoutProps {
   /** Current active tab */
@@ -51,7 +51,13 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: LayoutDashboard,
+    description: 'Structure & Progress',
+    color: 'var(--color-phase-explore)'
+  },
   {
     id: 'learn',
     label: 'Velocity',
