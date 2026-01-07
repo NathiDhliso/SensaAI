@@ -1,0 +1,278 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-black-60);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+    background: var(--color-surface);
+    border-radius: var(--radius-2xl);
+    width: min(600px, 100%);
+    height: min(700px, 85vh);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-xl);
+    animation: scaleIn 0.2s ease-out;
+    border: 1px solid var(--color-border);
+}
+
+.header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.headerTitle {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.headerIcon {
+    color: var(--color-accent-light);
+    padding: 0.5rem;
+    width: 3rem;
+    height: 3rem;
+    background: var(--overlay-accent-10);
+    border-radius: var(--radius-lg);
+}
+
+.header h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--color-text-dark);
+    margin: 0 0 0.25rem 0;
+}
+
+.header p {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.closeButton:hover {
+    background: var(--color-surface-subtle);
+    color: var(--color-text-dark);
+}
+
+.toolbar {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.searchBox {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.searchInput {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    background: var(--color-surface);
+    color: var(--color-text-dark);
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: var(--color-accent-light);
+    box-shadow: 0 0 0 2px var(--overlay-accent-10);
+}
+
+.stats {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.divider {
+    color: var(--color-border);
+}
+
+.listContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+}
+
+.listItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+    transition: background-color 0.2s;
+}
+
+.listItem:hover {
+    background: var(--color-surface-subtle);
+}
+
+.itemInfo h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-text-dark);
+}
+
+.itemMeta {
+    display: flex;
+    gap: 0.5rem;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+}
+
+.itemActions {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.statusBadge {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+
+.syncedText {
+    color: var(--color-accent-light);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.localText {
+    color: var(--color-text-muted);
+}
+
+.downloadButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-surface);
+    color: var(--color-accent-light);
+    border: 1px solid var(--color-accent-light);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.downloadButton:hover:not(:disabled) {
+    background: var(--overlay-accent-10);
+    transform: translateY(-1px);
+}
+
+.downloadButton:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.statusBadge {
+    /* Ensure badge aligns nicely */
+    display: flex;
+    align-items: center;
+}
+
+.spinnerSmall {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--color-accent-light);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* States */
+.loadingState,
+.emptyState {
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: var(--color-text-light);
+}
+
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-accent-light);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

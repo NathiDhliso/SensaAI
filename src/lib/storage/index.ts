@@ -176,9 +176,11 @@ export class StorageManager {
       // Ignore localStorage errors
     }
 
-    if (this.useCloud) {
-      await this.cloudProvider.deleteResult(id);
-    }
+    // Cloud deletion is restricted to admin/manual operations only
+    // User local deletion should NOT remove from cloud
+    // if (this.useCloud) {
+    //   await this.cloudProvider.deleteResult(id);
+    // }
 
     return primaryDeleted;
   }
@@ -211,8 +213,24 @@ export class StorageManager {
       const cloudResults = await this.cloudProvider.listResults();
       const mergedMap = new Map<string, SavedResult>();
 
-      [...results, ...cloudResults].forEach(result => {
-        mergedMap.set(result.id, result);
+      // 1. Add all local results first
+      results.forEach(result => {
+        mergedMap.set(result.id, { ...result, savedLocally: true });
+      });
+
+      // 2. Merge cloud results
+      cloudResults.forEach(cloudResult => {
+        const existing = mergedMap.get(cloudResult.id);
+        if (existing) {
+          // If it exists locally, keep local version but ensure savedToCloud is true
+          // (Local version is usually more up-to-date for things like last viewed, etc.)
+          mergedMap.set(cloudResult.id, { ...existing, savedToCloud: true });
+        } else {
+          // If it's only in cloud, it is NOT saved locally
+          // We must explicitly set savedLocally to false because the cloud object 
+          // might have a stale "savedLocally: true" from when it was originally uploaded
+          mergedMap.set(cloudResult.id, { ...cloudResult, savedLocally: false, savedToCloud: true });
+        }
       });
 
       return Array.from(mergedMap.values()).sort(
@@ -229,6 +247,83 @@ export class StorageManager {
 
   isMigrationComplete(): boolean {
     return this.migrationComplete;
+  }
+  async syncToCloud(id: string): Promise<boolean> {
+    if (!this.useCloud) return false;
+
+    const result = await this.primaryProvider.loadResult(id);
+    if (!result) return false;
+
+    try {
+      const cloudResult = await this.cloudProvider.saveResult({
+        ...result,
+        savedToCloud: true,
+      });
+
+      if (cloudResult.success) {
+        const updatedResult = {
+          ...result,
+          savedToCloud: true,
+          cloudUrl: cloudResult.path
+        };
+        await this.primaryProvider.saveResult(updatedResult);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Manual sync failed:', error);
+      return false;
+    }
+  }
+
+  async syncAllPendingItems(): Promise<number> {
+    if (!this.useCloud) return 0;
+
+    const results = await this.primaryProvider.listResults();
+    const pending = results.filter(r => !r.savedToCloud);
+
+    if (pending.length === 0) return 0;
+
+    let syncedCount = 0;
+    console.log(`Found ${pending.length} pending items to sync...`);
+
+    for (const result of pending) {
+      try {
+        const success = await this.syncToCloud(result.id);
+        if (success) syncedCount++;
+      } catch (err) {
+        console.error(`Failed to auto-sync result ${result.id}`, err);
+      }
+    }
+
+    return syncedCount;
+  }
+
+  async removeFromCloud(id: string): Promise<boolean> {
+    if (!this.useCloud) return false;
+
+    try {
+      // 1. Delete from cloud provider
+      const success = await this.cloudProvider.deleteResult(id);
+
+      if (success) {
+        // 2. Update local record to reflect un-sync
+        const result = await this.primaryProvider.loadResult(id);
+        if (result) {
+          const updatedResult = {
+            ...result,
+            savedToCloud: false,
+            cloudUrl: undefined
+          };
+          await this.primaryProvider.saveResult(updatedResult);
+        }
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Remove from cloud failed:', error);
+      return false;
+    }
   }
 }
 

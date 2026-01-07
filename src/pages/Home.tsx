@@ -88,7 +88,6 @@ const DIFFICULTY_LEVELS = {
 
 export default function Home() {
   const [subject, setSubject] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
   const { recentSubjects } = useGenerationStore();
@@ -131,10 +130,6 @@ export default function Home() {
     setShowSuggestions(false);
   };
 
-  const selectedCategoryData = selectedCategory
-    ? SUBJECT_CATEGORIES.find(c => c.id === selectedCategory)
-    : null;
-
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
@@ -172,7 +167,6 @@ export default function Home() {
 
         <div className={styles.card}>
           <div className={styles.inputSection}>
-            <label className={styles.label}>What do you want to master?</label>
             <div className={styles.inputWrapper}>
               <Search className={styles.searchIcon} />
               <input
@@ -244,81 +238,7 @@ export default function Home() {
 
 
 
-          <div className={styles.categoriesSection}>
-            <p className={styles.categoriesLabel}>Or explore by category:</p>
-            <div className={styles.categoryTabs}>
-              {SUBJECT_CATEGORIES.map(cat => (
-                <button
-                  key={cat.id}
-                  className={`${styles.categoryTab} ${selectedCategory === cat.id ? styles.categoryTabActive : ''} `}
-                  onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                  style={{ '--cat-color': cat.color } as React.CSSProperties}
-                >
-                  <SensaShape type={cat.shapeType} size="md" />
-                  <span>{cat.name}</span>
-                </button>
-              ))}
-            </div>
-
-            <AnimatePresence>
-              {selectedCategoryData && (
-                <motion.div
-                  className={styles.categorySubjects}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
-                  {selectedCategoryData.subjects.map((s, idx) => (
-                    <button
-                      key={idx}
-                      className={styles.subjectCard}
-                      onClick={() => {
-                        setSubject(s.name);
-                        setSelectedCategory(null);
-                      }}
-                    >
-                      <div className={styles.subjectName}>{s.name}</div>
-                      <div className={styles.subjectMeta}>
-                        <span
-                          className={styles.difficultyBadge}
-                          style={{
-                            background: DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.color + '20',
-                            color: DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.color
-                          }}
-                        >
-                          <SensaShape
-                            type={DIFFICULTY_LEVELS[s.difficulty as keyof typeof DIFFICULTY_LEVELS]?.shapeType}
-                            size="sm"
-                            animate={false}
-                          />
-                          {s.difficulty}
-                        </span>
-                        <span className={styles.hoursBadge}>
-                          <Clock size={12} /> ~{s.hours} hrs
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Difficulty Legend */}
-          <div className={styles.legend}>
-            <div className={styles.legendTitle}>Difficulty Levels</div>
-            <div className={styles.legendGrid}>
-              {Object.entries(DIFFICULTY_LEVELS).map(([level, config]) => (
-                <div key={level} className={styles.legendItem}>
-                  <span className={styles.legendIcon} style={{ color: config.color }}>
-                    <SensaShape type={config.shapeType} size="sm" />
-                  </span>
-                  <span className={styles.legendLabel}>{level}</span>
-                  <span className={styles.legendHours}>{config.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Redundant categories and difficulty legend removed for silver bullet UI */}
 
           {recentSubjects.length > 0 && (
             <div className={styles.recentSection}>

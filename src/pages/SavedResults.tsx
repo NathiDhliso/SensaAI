@@ -6,6 +6,7 @@ import { localFileStorage } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
 
 import { UI_TIMINGS } from '@/constants/ui-constants';
+import { CloudLibraryModal } from '@/components/storage/CloudLibraryModal';
 import styles from './SavedResults.module.css';
 
 export default function SavedResults() {
@@ -19,6 +20,8 @@ export default function SavedResults() {
   const [sortBy, setSortBy] = useState<'date' | 'subject' | 'quality'>('date');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [showCloudSetup, setShowCloudSetup] = useState(false);
+  const [showCloudLibrary, setShowCloudLibrary] = useState(false);
 
   useEffect(() => {
     loadResults();
@@ -27,8 +30,10 @@ export default function SavedResults() {
   const loadResults = async () => {
     setLoading(true);
     try {
-      const savedResults = await storageManager.listResults();
-      setResults(savedResults);
+      const allResults = await storageManager.listResults();
+      // Only show locally saved results in the main view
+      // Cloud-only results are accessible via the Cloud Library modal
+      setResults(allResults.filter(r => r.savedLocally));
     } catch (error) {
       console.error('Failed to load results:', error);
     } finally {
@@ -58,39 +63,8 @@ export default function SavedResults() {
     localFileStorage.downloadAsJSON(result);
   };
 
-
-
   const handleImportClick = () => {
     fileInputRef.current?.click();
-  };
-
-  const handleOpenDownloads = () => {
-    // Create a temporary link to trigger the browser's download folder opening
-    // This works by creating a download that the user can then "Show in folder"
-    // Note: Direct folder opening is not possible in browsers for security reasons
-    // Instead, we'll show a helpful message
-    const isWindows = navigator.userAgent.includes('Windows');
-    const isMac = navigator.userAgent.includes('Mac');
-
-    let message = 'Files are saved to your browser\'s default Downloads folder.\n\n';
-
-    if (isWindows) {
-      message += 'To open Downloads folder:\n';
-      message += '• Press Win + E to open File Explorer\n';
-      message += '• Click "Downloads" in the left sidebar\n';
-      message += '• Or type "downloads" in the Windows search bar';
-    } else if (isMac) {
-      message += 'To open Downloads folder:\n';
-      message += '• Press Cmd + Option + L in Finder\n';
-      message += '• Or press Cmd + Shift + J in Chrome/Edge\n';
-      message += '• Or click Downloads in Finder sidebar';
-    } else {
-      message += 'To open Downloads folder:\n';
-      message += '• Press Ctrl + J in most browsers to see downloads\n';
-      message += '• Or check your file manager\'s Downloads folder';
-    }
-
-    alert(message);
   };
 
   const filteredResults = useMemo(() => {
@@ -191,21 +165,6 @@ export default function SavedResults() {
               <Upload size={16} />
               {importing ? 'Importing...' : 'Import File'}
             </button>
-            {storageManager.isCloudEnabled() ? (
-              <div className={styles.cloudBadge}>
-                <Cloud size={16} />
-                Cloud Sync Enabled
-              </div>
-            ) : (
-              <button
-                onClick={handleOpenDownloads}
-                className={styles.localHint}
-                title="Click for info on opening Downloads folder"
-              >
-                <HardDrive size={14} />
-                Files saved to Downloads folder
-              </button>
-            )}
           </div>
         </div>
 
@@ -234,12 +193,32 @@ export default function SavedResults() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={styles.searchInput}
               />
+              {storageManager.isCloudEnabled() ? (
+                <button
+                  onClick={() => setShowCloudLibrary(true)}
+                  className={styles.cloudLibraryButton}
+                  title="Manage Cloud Library"
+                >
+                  <Cloud size={16} />
+                  Cloud Library
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowCloudSetup(true)}
+                  className={styles.enableCloudButton}
+                  title="Click to learn how to enable cloud sync"
+                >
+                  <Cloud size={14} />
+                  Enable Cloud Sync
+                </button>
+              )}
             </div>
 
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'date' | 'subject' | 'quality')}
               className={styles.sortSelect}
+              title="Sort results"
             >
               <option value="date">Sort by Date</option>
               <option value="subject">Sort by Subject</option>
@@ -279,18 +258,6 @@ export default function SavedResults() {
                   <div>
                     <h3 className={styles.cardTitle}>{result.subject}</h3>
                     <p className={styles.cardDate}>{formatDate(result.generatedAt)}</p>
-                  </div>
-                  <div className={styles.storageBadges}>
-                    {result.savedLocally && (
-                      <span className={styles.localBadge} title="Saved locally">
-                        <HardDrive size={14} />
-                      </span>
-                    )}
-                    {result.savedToCloud && (
-                      <span className={styles.cloudBadge} title="Saved to cloud">
-                        <Cloud size={14} />
-                      </span>
-                    )}
                   </div>
                 </div>
 
@@ -367,7 +334,57 @@ export default function SavedResults() {
           </div>
         )}
 
+        {showCloudSetup && (
+          <div className={styles.modalOverlay} onClick={() => setShowCloudSetup(false)}>
+            <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <h2>Enable Cloud Sync</h2>
+                <button
+                  onClick={() => setShowCloudSetup(false)}
+                  className={styles.closeButton}
+                >
+                  ×
+                </button>
+              </div>
+              <div className={styles.modalBody}>
+                <p className={styles.modalText}>
+                  To enable cloud synchronization, you need to configure your environment variables.
+                </p>
+                <div className={styles.stepsList}>
+                  <div className={styles.stepItem}>
+                    <span className={styles.stepNumber}>1</span>
+                    <span>Open your <code>.env</code> file in the project root</span>
+                  </div>
+                  <div className={styles.stepItem}>
+                    <span className={styles.stepNumber}>2</span>
+                    <span>Copy the values from <code>.env.example</code></span>
+                  </div>
+                  <div className={styles.stepItem}>
+                    <span className={styles.stepNumber}>3</span>
+                    <span>Restart the dev server (<code>npm run dev</code>)</span>
+                  </div>
+                </div>
+                <div className={styles.modalNote}>
+                  Values starting with <code>VITE_</code> are required.
+                </div>
+              </div>
+              <div className={styles.modalFooter}>
+                <button
+                  onClick={() => setShowCloudSetup(false)}
+                  className={styles.secondaryButton}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
+        <CloudLibraryModal
+          isOpen={showCloudLibrary}
+          onClose={() => setShowCloudLibrary(false)}
+          onUpdate={loadResults}
+        />
       </div>
     </div>
   );

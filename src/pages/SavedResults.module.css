@@ -317,27 +317,7 @@
   color: var(--color-text-muted);
 }
 
-.storageBadges {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.localBadge,
-.cloudBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.375rem;
-  background: var(--color-bg-neutral-alt);
-  color: var(--color-text-light);
-}
-
-.cloudBadge {
-  background: var(--overlay-accent-15);
-  color: var(--color-accent-light);
-}
+/* Badges removed as part of cleanup */
 
 .cardContent {
   display: flex;
@@ -416,6 +396,8 @@
 
 .cardActions {
   display: flex;
+  flex-wrap: wrap;
+  /* Fix button spillover */
   gap: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--color-border-light);
@@ -444,6 +426,8 @@
 
 .learnButton {
   flex: 1;
+  min-width: 100px;
+  /* Ensure it doesn't get too small */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -474,7 +458,7 @@
   height: 2.5rem;
   background: var(--color-bg-neutral-alt);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   color: var(--color-text-light);
   cursor: pointer;
   transition: all 0.2s;
@@ -500,7 +484,129 @@
   cursor: not-allowed;
 }
 
-/* Preview Modal */
+.cloudLibraryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-surface);
+  color: var(--color-accent-light);
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cloudLibraryButton:hover {
+  background: var(--overlay-accent-10);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-black-60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  width: min(500px, 100%);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn 0.2s ease-out;
+  border: 1px solid var(--color-border);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modalHeader h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin: 0;
+}
+
+/* ... */
+
+.modalText {
+  color: var(--color-text-medium);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+/* ... */
+
+.stepItem {
+  /* ... */
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+}
+
+.stepNumber {
+  /* ... */
+  font-size: var(--font-size-sm);
+  /* ... */
+}
+
+.modalNote {
+  font-size: var(--font-size-sm);
+  /* ... */
+  border-radius: var(--radius-lg);
+  /* ... */
+}
+
+.secondaryButton {
+  /* ... */
+  border-radius: var(--radius-lg);
+  /* ... */
+}
+
+.secondaryButton:hover {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border-emphasis);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Reuse existing preview styles for preview modal if needed, or keep separate */
 .previewOverlay {
   position: fixed;
   inset: 0;
