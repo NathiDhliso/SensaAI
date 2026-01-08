@@ -36,6 +36,7 @@ interface AuthActions {
     handleCallback: (code: string) => Promise<void>;
     refreshTokens: () => Promise<void>;
     getAccessToken: () => Promise<string | null>;
+    isSessionValid: () => boolean;
     clearError: () => void;
 }
 
@@ -240,6 +241,12 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 return get().tokens?.accessToken || null;
             },
 
+            isSessionValid: () => {
+                const { tokens, isAuthenticated } = get();
+                if (!isAuthenticated || !tokens) return false;
+                return Date.now() < tokens.expiresAt;
+            },
+
             clearError: () => set({ error: null }),
         }),
         {
@@ -262,8 +269,14 @@ if (typeof window !== 'undefined') {
 
     const tokens = useAuthStore.getState().tokens;
     if (tokens) {
-        apiClient.configure({
-            getToken: () => useAuthStore.getState().getAccessToken(),
-        });
+        // Check if tokens are expired - if so, clear auth state
+        if (Date.now() >= tokens.expiresAt) {
+            console.warn('[Auth] Session expired, clearing auth state');
+            useAuthStore.setState({ user: null, tokens: null, isAuthenticated: false });
+        } else {
+            apiClient.configure({
+                getToken: () => useAuthStore.getState().getAccessToken(),
+            });
+        }
     }
 }

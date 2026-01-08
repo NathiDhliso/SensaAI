@@ -28,9 +28,6 @@ export function Login() {
                         <Sparkles size={32} />
                     </div>
                     <h1 className={styles.title}>Welcome to SensaPBL</h1>
-                    <p className={styles.subtitle}>
-                        Sign in to continue your learning journey
-                    </p>
                 </div>
 
                 {error && (
@@ -53,12 +50,6 @@ export function Login() {
                         <span>Sign In / Sign Up</span>
                         <ArrowRight size={16} />
                     </button>
-                </div>
-
-                <div className={styles.footer}>
-                    <p>
-                        Secure authentication provided by AWS Cognito
-                    </p>
                 </div>
             </div>
         </div>

@@ -107,8 +107,7 @@ export default function VelocityLockInGate({
                     <div className={styles.warningContent}>
                         <span className={styles.warningTitle}>Point of No Return</span>
                         <p className={styles.warningText}>
-                            Once you enter Velocity Learning, you'll complete the full session setup.
-                            Your learning journey will be locked in until the session ends.
+                            Session locked until complete.
                         </p>
                     </div>
                 </motion.div>

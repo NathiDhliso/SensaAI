@@ -10,7 +10,19 @@ import { parseAndLoadContent } from '@/lib/content-loader';
 import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
 import styles from './Generate.module.css';
 
-import type { PassStatus, Pass1Result, ValidationResult, GenerationResult, ProgressData } from '@/lib/types/generation';
+import type { PassStatus, Pass1Result, ValidationResult, LifecyclePhases, StreamedConceptPreview } from '@/lib/types/generation';
+
+// Local type for progress callback data, matching ProgressCallback's data parameter
+type ProgressData = {
+  message?: string;
+  partial?: string;
+  progress?: number;
+  content?: string;
+  lifecycle?: LifecyclePhases;
+  roleScope?: string;
+  streamedConcepts?: StreamedConceptPreview[];
+} & Partial<Pass1Result> & Partial<ValidationResult>;
+
 export default function Generate() {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
@@ -98,7 +110,7 @@ export default function Generate() {
 
   // Throttle ref for progress updates
   const lastProgressUpdateRef = useRef<number>(0);
-  const PROGRESS_THROTTLE_MS = 100;
+  const PROGRESS_THROTTLE_MS = 250;
 
   // Shared callback function to handle progress updates
   const createProgressCallback = useCallback(() => {

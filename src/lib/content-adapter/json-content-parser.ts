@@ -173,11 +173,12 @@ function parseConcepts(content: string): ParsedConcept[] {
         try {
             // Unescape the JSON content
             let jsonStr = match[1];
-            jsonStr = jsonStr.replace(/\\\\/g, '\\')
-                .replace(/\\n/g, '\n')
-                .replace(/\\r/g, '\r')
-                .replace(/\\"/g, '"')
-                .replace(/\\t/g, '\t');
+
+            // Remove any trailing commas in arrays/objects (common LLM error)
+            jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
+
+            // Sanitize control characters that aren't valid in JSON strings
+            jsonStr = jsonStr.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
 
             const parsed = JSON.parse(jsonStr);
             if (parsed.concepts && Array.isArray(parsed.concepts)) {

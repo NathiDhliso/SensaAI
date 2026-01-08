@@ -14,6 +14,7 @@ const SavedResults = lazy(() => import('./pages/SavedResults'));
 
 const Study = lazy(() => import('./pages/Study'));
 const VelocityLearning = lazy(() => import('./pages/VelocityLearning'));
+const ContentLaunchpad = lazy(() => import('./components/learning/launchpad/ContentLaunchpad'));
 
 
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
@@ -92,11 +93,20 @@ function App() {
 
 
 
+
           {/* 
            * Velocity Learning - SensaAI Learning Velocity Engine experience
            */}
           <Route path="/velocity/:subjectId" element={
             <ProtectedRoute><VelocityLearning /></ProtectedRoute>
+          } />
+
+          {/* 
+           * Content Launchpad - Analytics and Readiness Dashboard
+           * The entry point for all saved content "View" actions
+           */}
+          <Route path="/launchpad/:subjectId" element={
+            <ProtectedRoute><ContentLaunchpad /></ProtectedRoute>
           } />
 
           {/* ═══════════════════════════════════════════════════════════════

@@ -140,9 +140,7 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
 
                         <div className={styles.warningCard}>
                             <AlertTriangle size={20} />
-                            <p>
-                                This is your final test. Take your time, think deeply, and show what you've learned.
-                            </p>
+                            <p>Final test</p>
                         </div>
 
                         <button

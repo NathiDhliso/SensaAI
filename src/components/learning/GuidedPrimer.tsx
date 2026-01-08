@@ -577,9 +577,6 @@ export default function GuidedPrimer({
                                 <Sparkles size={32} />
                             </div>
                             <h3 className={styles.dialogTitle}>Ready to dive in?</h3>
-                            <p className={styles.dialogMessage}>
-                                Great stuff! You can always revisit your goals later. Let's start learning!
-                            </p>
                             <div className={styles.dialogActions}>
                                 <button
                                     className={styles.dialogCancelButton}

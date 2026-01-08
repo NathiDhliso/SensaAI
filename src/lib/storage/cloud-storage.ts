@@ -73,7 +73,16 @@ export class CloudStorage implements StorageProvider {
   }
 
   isConfigured(): boolean {
-    return !!(this.s3Client && this.ddbClient && this.bucketName && this.tableName);
+    const configured = !!(this.s3Client && this.ddbClient && this.bucketName && this.tableName);
+    if (!configured) {
+      console.warn('[CloudStorage] Not configured. Check:', {
+        hasS3Client: !!this.s3Client,
+        hasDdbClient: !!this.ddbClient,
+        bucketName: this.bucketName || 'MISSING',
+        tableName: this.tableName || 'MISSING',
+      });
+    }
+    return configured;
   }
 
   async saveResult(result: SavedResult): Promise<{ success: boolean; path?: string; error?: string }> {

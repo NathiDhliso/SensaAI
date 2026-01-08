@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, Download, BookOpen, Upload, Search, Eye, FileJson, Cloud } from 'lucide-react';
+import { ArrowLeft, Trash2, BookOpen, Upload, Search, Eye, FileJson, Cloud } from 'lucide-react';
 import { storageManager, importFromFile } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
 
@@ -46,17 +46,6 @@ export default function SavedResults() {
     } finally {
       setDeletingId(null);
     }
-  };
-
-  const handleDownloadText = (result: SavedResult) => {
-    // Create ephemeral download link since localFileStorage is gone
-    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${result.subject.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_sensa.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const handleDownloadBackup = (result: SavedResult) => {
@@ -284,9 +273,9 @@ export default function SavedResults() {
 
                 <div className={styles.cardActions}>
                   <button
-                    onClick={() => navigate(`/study/${result.id}?tab=overview`)}
+                    onClick={() => navigate(`/launchpad/${result.id}`)}
                     className={styles.viewButton}
-                    title="View full result"
+                    title="View analytics & readiness"
                   >
                     <Eye size={16} />
                     View
@@ -298,13 +287,6 @@ export default function SavedResults() {
                   >
                     <BookOpen size={16} />
                     Learn
-                  </button>
-                  <button
-                    onClick={() => handleDownloadText(result)}
-                    className={styles.downloadButton}
-                    title="Download as text file"
-                  >
-                    <Download size={16} />
                   </button>
                   <button
                     onClick={() => handleDownloadBackup(result)}

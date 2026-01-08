@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, BookOpen, Zap } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGenerationStore } from '@/store/generation-store';
 import { useUIStore } from '@/store/ui-store';
+import { CloudLibraryModal } from '@/components/storage/CloudLibraryModal';
 import { CATEGORY_COLORS, DIFFICULTY_COLORS } from '@/constants/theme-colors';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './Home.module.css';
@@ -89,6 +90,7 @@ export default function Home() {
   const [subject, setSubject] = useState('');
   const [context, setContext] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showCloudLibrary, setShowCloudLibrary] = useState(false);
   const navigate = useNavigate();
 
   /* Hooks & Store */
@@ -130,10 +132,6 @@ export default function Home() {
       <div className={styles.heroWrapper}>
         <div className={styles.heroContent}>
           <SensaShape type="nebula" size="xl" className={styles.heroIcon} />
-          <h1 className={styles.title}>What do you want to learn?</h1>
-          <p className={styles.subtitle}>
-            From zero to mastery. Enter any topic or exam.
-          </p>
 
           <div className={styles.inputSection}>
             <div className={styles.inputWrapper}>
@@ -235,9 +233,9 @@ export default function Home() {
         </div>
 
         <div className={styles.actionButtons}>
-          <button onClick={() => navigate('/study/current')} className={styles.learnButton}>
-            <BookOpen size={18} />
-            Learning Journey
+          <button onClick={() => setShowCloudLibrary(true)} className={styles.cloudLibraryButton}>
+            <Cloud size={18} />
+            Cloud Library
           </button>
           <button onClick={() => navigate('/library')} className={styles.savedButton}>
             <Archive size={18} />
@@ -247,6 +245,13 @@ export default function Home() {
             Settings
           </button>
         </div>
+
+        {/* Cloud Library Modal */}
+        <CloudLibraryModal
+          isOpen={showCloudLibrary}
+          onClose={() => setShowCloudLibrary(false)}
+          onUpdate={() => {}}
+        />
       </div>
     </div>
   );

@@ -402,7 +402,7 @@ export function DiagnosticLaunchSystem({
 
                     <h2 className={styles.title}>Quick Knowledge Check</h2>
                     <p className={styles.subtitle}>
-                        Let's see what you already know about {domain}
+                        {domain}
                     </p>
 
                     {diagnosticReady ? (
@@ -422,10 +422,7 @@ export function DiagnosticLaunchSystem({
                                 </div>
                             </div>
 
-                            <p className={styles.description}>
-                                This quick diagnostic helps personalize your learning path.
-                                We'll identify what you already know and focus on filling the gaps.
-                            </p>
+
 
                             <div className={styles.buttonGroup}>
                                 <button

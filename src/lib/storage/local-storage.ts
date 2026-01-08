@@ -71,20 +71,6 @@ export class LocalFileStorage implements StorageProvider {
     URL.revokeObjectURL(url);
   }
 
-  /**
-   * Download result as plain text file - called explicitly by user
-   */
-  downloadTextFile(result: SavedResult): void {
-    const blob = new Blob([result.fullDocument], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${result.subject.replace(/[^a-z0-9]/gi, '_')}_${result.id}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
 }
 
 export const localFileStorage = new LocalFileStorage();

@@ -142,6 +142,20 @@
   font-weight: 500;
 }
 
+.cloudIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-left: 0.5rem;
+}
+
 .localHint {
   display: inline-flex;
   align-items: center;
@@ -448,7 +462,6 @@
   box-shadow: var(--shadow-glow-primary);
 }
 
-.downloadButton,
 .backupButton,
 .deleteButton {
   display: inline-flex;
@@ -462,11 +475,6 @@
   color: var(--color-text-light);
   cursor: pointer;
   transition: all 0.2s;
-}
-
-.downloadButton:hover {
-  background: var(--color-border);
-  color: var(--color-accent-light);
 }
 
 .backupButton:hover {

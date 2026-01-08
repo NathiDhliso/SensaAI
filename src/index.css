@@ -463,6 +463,33 @@
   box-sizing: border-box;
 }
 
+/* Fluid root font size - scales UI for different screen sizes */
+html {
+  /* Base: 16px at 1920px, scales down to ~13px at 1280px */
+  font-size: clamp(13px, 0.833vw, 16px);
+}
+
+/* Laptop screens (1280px - 1536px) */
+@media (max-width: 1536px) {
+  html {
+    font-size: clamp(12px, 0.9vw, 15px);
+  }
+}
+
+/* Smaller laptops (1280px and below) */
+@media (max-width: 1366px) {
+  html {
+    font-size: clamp(11px, 0.85vw, 14px);
+  }
+}
+
+/* Tablets and below - use fixed size */
+@media (max-width: 1024px) {
+  html {
+    font-size: 14px;
+  }
+}
+
 body {
   min-height: 100vh;
   background: var(--gradient-paper);

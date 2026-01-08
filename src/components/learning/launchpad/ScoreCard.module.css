@@ -1,0 +1,121 @@
+/* ============================================================================
+   SCORECARD - Tranquil & Trustworthy Design
+   ============================================================================
+   Soft, organic cards that feel welcoming and informative without overwhelm.
+   ============================================================================ */
+
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    min-height: 140px;
+    box-shadow: var(--shadow-sm);
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-border-hover);
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+    z-index: 2;
+}
+
+.iconWrapper {
+    background: color-mix(in srgb, var(--status-color), var(--color-surface) 85%);
+    min-width: 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid color-mix(in srgb, var(--status-color), transparent 80%);
+}
+
+.title {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin-top: 0.25rem;
+    line-height: 1.4;
+    max-width: 75%;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    z-index: 2;
+}
+
+.valueGroup {
+    display: flex;
+    align-items: baseline;
+    gap: 0.375rem;
+}
+
+.value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.unit {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+/* Subtle accent glow - much softer */
+.glow {
+    position: absolute;
+    top: -30%;
+    right: -30%;
+    width: 150%;
+    height: 150%;
+    background: radial-gradient(
+        circle at 70% 30%,
+        color-mix(in srgb, var(--status-color), transparent 95%) 0%,
+        transparent 50%
+    );
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.6;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+    .card {
+        min-height: 120px;
+        padding: 1.25rem;
+    }
+
+    .value {
+        font-size: 2rem;
+    }
+
+    .iconWrapper {
+        width: 2.5rem;
+        height: 2.5rem;
+        min-width: 2.5rem;
+    }
+}

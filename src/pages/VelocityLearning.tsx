@@ -111,8 +111,26 @@ export default function VelocityLearning() {
 
     // 6. Rendering Logic
 
-    // IDLE State
+    // Hydration grace period: Wait briefly for parent Study.tsx to hydrate before showing empty state
+    const [isInitializing, setIsInitializing] = useState(true);
+    useEffect(() => {
+        const timer = setTimeout(() => setIsInitializing(false), 500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // IDLE State or waiting for hydration
     if (currentPhase === 'IDLE' || !currentSession) {
+        // During first 500ms, show loading instead of empty state
+        if (isInitializing) {
+            return (
+                <div className={styles.container}>
+                    <div className={styles.emptyState}>
+                        <Brain size={48} className={styles.emptyIcon} style={{ animation: 'pulse 1.5s ease-in-out infinite' }} />
+                        <p>Loading session...</p>
+                    </div>
+                </div>
+            );
+        }
         return (
             <div className={styles.container}>
                 <div className={styles.emptyState}>

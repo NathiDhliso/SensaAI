@@ -633,4 +633,63 @@ localStorage.setItem('sensa-result-v1', ...);
 9.  **No explicit `any`** - strictly typed interfaces
 10. **Keys centralized** - No magic strings for localStorage
 11. **TypeScript compiles** - Run `npx tsc --noEmit`
-12. **No console.log** - Remove debugging statements
+
+## 🚫 NO Mock Data - STRICT ZERO TOLERANCE
+
+
+## 📊 Dashboard & Analytics Views
+
+### Layout Architecture
+- **Grid First**: ALWAYS use **CSS Grid** for dashboard layouts.
+    - **12-Column Grid**: Standard for responsive dashboards.
+    - `display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem;`
+- **Container**: Dashboards must be constrained and centered.
+    - `max-width: 1400px; margin: 0 auto; padding: 2rem;`
+
+### Card Metaphor
+- **Group Related Data**: All metrics and charts MUST be contained within clear cards.
+- **Styling**:
+    - Background: `var(--color-surface)`
+    - Border: `1px solid var(--color-border)`
+    - Radius: `var(--radius-xl)`
+    - Padding: `1.5rem`
+- **Visual Hierarchy**:
+    - **KPIs (Key Performance Indicators)**: Top row, high visibility.
+    - **Primary Viz**: Main focal point (e.g., Treemap), typically spans 8-12 columns.
+    - **Secondary/Sidebar**: Recommendations or lists, spans 4 columns.
+
+### Typography & Spacing
+- **Titles**: Uppercase titles should be reserved for small eyebrow text, not main headers.
+- **Whitespace**: Use generous whitespace (`gap: 1.5rem+`) to separate logical groups.
+- **Contrast**: Ensure text on colored backgrounds (like treemaps) has sufficient contrast (use white or black helper functions).
+
+---
+
+
+**Rules:**
+1.  **Real Data Only**: If the data doesn't exist, create a proper interface and use empty states (null/undefined) or implement the actual data source.
+2.  **Schema First**: Define the TypeScript interface for the real data structure first.
+3.  **Loading States**: While fetching real data, use skeleton loaders or spinners, not fake numbers.
+4.  **Transformation**: If the API response isn't ready, write the *transformer* logic that will handle the future API response, rather than hardcoding values.
+
+---
+
+## 🚀 Content Launchpad - Specific Rules
+
+### Color Usage
+- Treemap cells MUST use `FEEDBACK_COLORS` or `LIFECYCLE_COLORS`.
+- Scorecards MUST use `--color-accent` for positive scores, `--color-primary-coral` for warning/low scores.
+
+### Layout & Responsiveness
+- **Viewport Fit**: The dashboard MUST fit in the viewport without scrolling on standard desktop (use `max-height: 100vh`).
+- **Mobile First**: Treemap serves as a list on mobile; scorecards stack vertically.
+- **Spacing**: Use `gap: var(--spacing-md)` between cards.
+
+### Animation
+- Use `UI_TIMINGS.MARKER_UPDATE_FAST` (100ms) for scorecard number counters.
+- Use Framer Motion `staggerChildren: 0.1` for recommendation lists.
+
+### Data Integrity
+- **Pass Rate**: Must be calculated via `analyzeContentQuality()` utility based on real content metrics.
+- **Zero Mock Data**: If analysis is unavailable, show "Analysis Pending" or dashes (`--`), never fake scores.
+

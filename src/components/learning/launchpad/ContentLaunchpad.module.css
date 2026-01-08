@@ -1,0 +1,327 @@
+/* ============================================================================
+   CONTENT LAUNCHPAD - Tranquil & Trustworthy Design
+   ============================================================================
+   Design Philosophy:
+   - Soft, warm neutrals instead of harsh dark mode
+   - Organic curves and generous whitespace
+   - Gentle shadows for depth without harshness
+   - Nature-inspired accent colors (sage, warm sand)
+   ============================================================================ */
+
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 3rem;
+    gap: 1.5rem;
+
+    /* Uses centralized gradient - adapts to dark mode */
+    background: var(--gradient-paper);
+
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    color: var(--color-text-primary);
+    overflow: hidden;
+}
+
+/* HEADER - Clean, welcoming */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.backButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-text-medium);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 0;
+    transition: color 0.2s ease;
+    text-decoration: none;
+}
+
+.backButton:hover {
+    color: var(--color-secondary-sage);
+}
+
+.backButton svg {
+    transition: transform 0.2s ease;
+}
+
+.backButton:hover svg {
+    transform: translateX(-3px);
+}
+
+.titleGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.titleGroup h1 {
+    font-size: 1.75rem;
+    margin: 0;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.titleGroup span {
+    color: var(--color-secondary-sage);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* METRICS GRID - 3 Cards */
+.scoreRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    flex-shrink: 0;
+}
+
+/* MAIN CONTENT GRID */
+.mainGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Section Title - Shared */
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sectionTitle svg {
+    color: var(--color-secondary-sage);
+    opacity: 0.7;
+}
+
+/* Card Base - Soft, organic feel */
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Treemap Section */
+.treemapSection {
+    grid-column: 1;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Recommendations Section */
+.recommendationsSection {
+    grid-column: 2;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* RECOMMENDATIONS LIST */
+.recList {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.recItem {
+    padding: 1rem 1.25rem;
+    background: var(--overlay-sage-5);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    position: relative;
+    padding-left: 2.5rem;
+}
+
+.recItem::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 1.25rem;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-secondary-sage);
+}
+
+/* FOOTER */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0 0;
+    flex-shrink: 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.footerStats {
+    display: flex;
+    gap: 2.5rem;
+}
+
+.footerStat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.statValue {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+/* Primary CTA - Calm, inviting */
+.startButton {
+    background: var(--gradient-sage);
+    color: var(--color-text-on-accent);
+    padding: 1rem 2.5rem;
+    border-radius: var(--radius-full);
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-glow-sage);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.startButton:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow-sage-hover);
+}
+
+.startButton:active {
+    transform: translateY(0);
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 1024px) {
+    .container {
+        padding: 1.5rem;
+        height: auto;
+        min-height: 100vh;
+        overflow: auto;
+    }
+
+    .mainGrid {
+        grid-template-columns: 1fr;
+        overflow: visible;
+    }
+
+    .treemapSection,
+    .recommendationsSection {
+        grid-column: 1;
+        min-height: auto;
+    }
+
+    .treemapSection {
+        min-height: 300px;
+    }
+
+    .scoreRow {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .footer {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .footerStats {
+        justify-content: center;
+    }
+
+    .startButton {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .titleGroup h1 {
+        font-size: 1.375rem;
+    }
+}
+
+/* Loading & Empty States */
+.loadingIcon {
+    color: var(--color-secondary-sage);
+}
+
+.emptyState {
+    padding: 1.5rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    font-size: 0.9rem;
+}

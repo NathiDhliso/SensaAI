@@ -155,10 +155,6 @@ export function LearningToolbar() {
                             <RotateCcw size={32} />
                         </div>
                         <h3>Reset Learning Progress?</h3>
-                        <p>
-                            This will reset your progress for the current document. 
-                            All completed concepts will be unmarked.
-                        </p>
                         <div className={styles.resetActions}>
                             <button 
                                 className={styles.resetCancelButton}

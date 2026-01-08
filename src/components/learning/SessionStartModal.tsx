@@ -10,7 +10,8 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Clock, Target, BookOpen, RefreshCw, Compass,
-  ChevronRight, Brain, Sparkles, Heart, ArrowLeft
+  ChevronRight, Brain, Sparkles, Heart, ArrowLeft,
+  Zap, BatteryLow, Activity, AlertCircle
 } from 'lucide-react';
 import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/types/learning';
 import { MOOD_OPTIONS, type Mood } from '@/lib/ai/coach';
@@ -156,17 +157,37 @@ export function SessionStartModal({
                   <h3>How are you feeling right now?</h3>
                 </div>
                 <div className={styles.moodGrid}>
-                  {MOOD_OPTIONS.map(mood => (
-                    <button
-                      key={mood.id}
-                      className={`${styles.moodCard} ${selectedMood === mood.id ? styles.moodCardActive : ''}`}
-                      onClick={() => setSelectedMood(mood.id)}
-                      title={mood.description}
-                    >
-                      <span className={styles.moodEmoji}>{mood.emoji}</span>
-                      <span className={styles.moodLabel}>{mood.label}</span>
-                    </button>
-                  ))}
+                  {MOOD_OPTIONS.map(mood => {
+                    // Map mood to icon
+                    const MoodIcon = {
+                      energized: Zap,
+                      neutral: Activity,
+                      tired: BatteryLow,
+                      stressed: AlertCircle
+                    }[mood.id] || Activity;
+
+                    // Map mood to specific color
+                    const moodColor = {
+                      energized: '#F59E0B', // Amber
+                      neutral: '#60A5FA',   // Blue
+                      tired: '#94A3B8',     // Slate
+                      stressed: '#EF4444'   // Red
+                    }[mood.id] || 'currentColor';
+
+                    return (
+                      <button
+                        key={mood.id}
+                        className={`${styles.moodCard} ${selectedMood === mood.id ? styles.moodCardActive : ''}`}
+                        onClick={() => setSelectedMood(mood.id)}
+                        title={mood.description}
+                      >
+                        <div className={styles.moodIconWrapper} style={{ color: moodColor }}>
+                          <MoodIcon size={24} />
+                        </div>
+                        <span className={styles.moodLabel}>{mood.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

@@ -539,9 +539,21 @@
   background: var(--overlay-sage-10);
 }
 
-.moodEmoji {
-  font-size: 1.5rem;
-  line-height: 1;
+.moodIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--color-surface-secondary);
+  transition: all 0.2s ease;
+}
+
+.moodCard:hover .moodIconWrapper {
+  background: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .moodLabel {
