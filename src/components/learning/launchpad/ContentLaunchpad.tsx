@@ -9,7 +9,10 @@ import {
     Play,
     AlertCircle,
     Sparkles,
-    LayoutGrid
+    LayoutGrid,
+    Layers,
+    HeartPulse,
+    GitBranch
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -19,6 +22,9 @@ import type { SavedResult } from '@/lib/storage/types';
 
 import { ScoreCard } from './ScoreCard';
 import { CoverageTreemap } from './CoverageTreemap';
+import { TierDistributionChart } from './TierDistributionChart';
+import { ContentHealthIndicators } from './ContentHealthIndicators';
+import { LifecyclePhaseDisplay } from './LifecyclePhaseDisplay';
 import styles from './ContentLaunchpad.module.css';
 
 export default function ContentLaunchpad() {
@@ -110,7 +116,7 @@ export default function ContentLaunchpad() {
         );
     }
 
-    const { metrics, coverageMap, recommendations } = analytics;
+    const { metrics, systemPromptMetrics, coverageMap, recommendations } = analytics;
 
     return (
         <div className={styles.container}>
@@ -121,6 +127,13 @@ export default function ContentLaunchpad() {
                         <ArrowLeft size={16} /> Library
                     </button>
                     <h1>{result.subject}</h1>
+                    {/* Lifecycle Phases - STEP 2 from System Prompt */}
+                    {systemPromptMetrics.lifecyclePhases && (
+                        <LifecyclePhaseDisplay
+                            phases={systemPromptMetrics.lifecyclePhases}
+                            delay={0.05}
+                        />
+                    )}
                 </div>
             </header>
 
@@ -150,54 +163,130 @@ export default function ContentLaunchpad() {
                 />
             </div>
 
-            {/* MAIN GRID */}
+            {/* MAIN GRID - Extended with new sections */}
             <div className={styles.mainGrid}>
-                {/* TREEMAP */}
-                <motion.div
-                    className={styles.treemapSection}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25, duration: 0.4 }}
-                >
-                    <div className={styles.sectionTitle}>
-                        <span>Content Coverage</span>
-                        <LayoutGrid size={18} />
-                    </div>
-                    <div style={{ flexGrow: 1, minHeight: 0 }}>
-                        <CoverageTreemap data={coverageMap} />
-                    </div>
-                </motion.div>
+                {/* LEFT COLUMN */}
+                <div className={styles.leftColumn}>
+                    {/* TREEMAP */}
+                    <motion.div
+                        className={styles.treemapSection}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25, duration: 0.4 }}
+                    >
+                        <div className={styles.sectionTitle}>
+                            <span>Content Coverage</span>
+                            <LayoutGrid size={18} />
+                        </div>
+                        <div style={{ flexGrow: 1, minHeight: 0 }}>
+                            <CoverageTreemap data={coverageMap} />
+                        </div>
+                    </motion.div>
 
-                {/* RECOMMENDATIONS */}
-                <motion.div
-                    className={styles.recommendationsSection}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.4 }}
-                >
-                    <div className={styles.sectionTitle}>
-                        <span>Insights</span>
-                        <Sparkles size={18} />
-                    </div>
+                    {/* TIER DISTRIBUTION - STEP 3.7 from System Prompt */}
+                    <motion.div
+                        className={styles.tierSection}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35, duration: 0.4 }}
+                    >
+                        <div className={styles.sectionTitle}>
+                            <span>Dependency Tiers</span>
+                            <Layers size={18} />
+                        </div>
+                        <TierDistributionChart
+                            data={systemPromptMetrics.tierDistribution}
+                            delay={0.4}
+                        />
+                    </motion.div>
+                </div>
 
-                    <div className={styles.recList}>
-                        {recommendations.length > 0 ? recommendations.map((rec, i) => (
-                            <motion.div
-                                key={i}
-                                className={styles.recItem}
-                                initial={{ opacity: 0, x: 8 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.35 + (i * 0.08) }}
-                            >
-                                {rec}
-                            </motion.div>
-                        )) : (
-                            <div className={styles.emptyState}>
-                                Looking good! No recommendations at this time.
+                {/* RIGHT COLUMN */}
+                <div className={styles.rightColumn}>
+                    {/* CONTENT HEALTH - System Prompt Elements */}
+                    <motion.div
+                        className={styles.healthSection}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.4 }}
+                    >
+                        <div className={styles.sectionTitle}>
+                            <span>Content Health</span>
+                            <HeartPulse size={18} />
+                        </div>
+                        <ContentHealthIndicators
+                            shapeCoverage={systemPromptMetrics.shapeCoverage}
+                            mnemonicCoverage={systemPromptMetrics.mnemonicCoverage}
+                            confusionPairsCount={systemPromptMetrics.confusionPairs.length}
+                            hasDecisionTrees={systemPromptMetrics.decisionFrameworks.available}
+                            delay={0.35}
+                        />
+                    </motion.div>
+
+                    {/* RECOMMENDATIONS / INSIGHTS */}
+                    <motion.div
+                        className={styles.recommendationsSection}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4, duration: 0.4 }}
+                    >
+                        <div className={styles.sectionTitle}>
+                            <span>Insights</span>
+                            <Sparkles size={18} />
+                        </div>
+
+                        <div className={styles.recList}>
+                            {recommendations.length > 0 ? recommendations.map((rec, i) => (
+                                <motion.div
+                                    key={i}
+                                    className={styles.recItem}
+                                    initial={{ opacity: 0, x: 8 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.45 + (i * 0.08) }}
+                                >
+                                    {rec}
+                                </motion.div>
+                            )) : (
+                                <div className={styles.emptyState}>
+                                    Looking good! No recommendations at this time.
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+
+                    {/* CONFUSION PAIRS PREVIEW - STEP 5.5 */}
+                    {systemPromptMetrics.confusionPairs.length > 0 && (
+                        <motion.div
+                            className={styles.confusionSection}
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.4 }}
+                        >
+                            <div className={styles.sectionTitle}>
+                                <span>Confusion Pairs</span>
+                                <GitBranch size={18} />
                             </div>
-                        )}
-                    </div>
-                </motion.div>
+                            <div className={styles.confusionList}>
+                                {systemPromptMetrics.confusionPairs.slice(0, 3).map((pair, i) => (
+                                    <motion.div
+                                        key={pair.id}
+                                        className={styles.confusionPair}
+                                        initial={{ opacity: 0, x: 8 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.55 + (i * 0.08) }}
+                                    >
+                                        <div className={styles.pairConcepts}>
+                                            <span className={styles.conceptA}>{pair.conceptA}</span>
+                                            <span className={styles.vsLabel}>vs</span>
+                                            <span className={styles.conceptB}>{pair.conceptB}</span>
+                                        </div>
+                                        <p className={styles.distinctionKey}>{pair.distinctionKey}</p>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+                </div>
             </div>
 
             {/* FOOTER */}

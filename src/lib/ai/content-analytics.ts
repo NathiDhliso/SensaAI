@@ -1,7 +1,36 @@
 
 import { parseGeneratedContent } from '@/lib/content-adapter';
-import type { ParsedGeneratedContent } from '@/lib/content-adapter/types';
+import type { ParsedGeneratedContent, ParsedConfusionPair } from '@/lib/content-adapter/types';
 import type { SavedResult } from '@/lib/storage/types';
+
+/** Tier distribution from system prompt STEP 3.7 */
+export interface TierDistribution {
+    foundation: number;
+    keystone: number;
+    utility: number;
+    total: number;
+}
+
+/** SHAPE micro-learning coverage from STEP 3.5 */
+export interface ShapeCoverage {
+    complete: number;      // Concepts with all 5 SHAPE sections
+    partial: number;       // Concepts with some SHAPE sections
+    missing: number;       // Concepts without SHAPE
+    percentage: number;    // Completion percentage
+}
+
+/** Mnemonic anchor coverage from STEP 3.7 */
+export interface MnemonicCoverage {
+    withAnchors: number;   // Concepts with memory palace anchors
+    withStories: number;   // Concepts with bizarre stories
+    percentage: number;    // Coverage percentage
+}
+
+/** Decision framework info from STEP 3.6 */
+export interface DecisionFramework {
+    available: boolean;
+    treeCount: number;
+}
 
 export interface ContentMetrics {
     qualityScore: number;       // 0-100
@@ -13,16 +42,32 @@ export interface ContentMetrics {
     gaps: string[];             // Areas needing improvement
 }
 
+/** Extended metrics from system prompt elements */
+export interface SystemPromptMetrics {
+    tierDistribution: TierDistribution;
+    shapeCoverage: ShapeCoverage;
+    mnemonicCoverage: MnemonicCoverage;
+    confusionPairs: ParsedConfusionPair[];
+    decisionFrameworks: DecisionFramework;
+    lifecyclePhases: {
+        phase1: string;
+        phase2: string;
+        phase3: string;
+    } | null;
+}
+
 export interface TreePacket {
     name: string;
     size: number;   // Represents density/word count
     score: number;  // Represents quality/coverage (0-100)
+    tier?: 'Foundation' | 'Keystone' | 'Utility';
     children?: TreePacket[];
     [key: string]: any; // Index signature for Recharts
 }
 
 export interface ContentAnalytics {
     metrics: ContentMetrics;
+    systemPromptMetrics: SystemPromptMetrics;
     coverageMap: TreePacket[];
     recommendations: string[];
 }
@@ -77,7 +122,12 @@ export function analyzeContentQuality(result: SavedResult): ContentAnalytics {
 
     predictedPassRate = Math.min(99, Math.round(predictedPassRate));
 
-    // 6. Generate Recommendations (Real, data-driven)
+    // =====================================================
+    // 6. SYSTEM PROMPT METRICS - Deep content analysis
+    // =====================================================
+    const systemPromptMetrics = analyzeSystemPromptElements(parsedData, result);
+
+    // 7. Generate Recommendations (Real, data-driven)
     const recommendations: string[] = [];
 
     if (totalConcepts < 15) {
@@ -92,43 +142,27 @@ export function analyzeContentQuality(result: SavedResult): ContentAnalytics {
     if (cognitiveLoadScore > 8) {
         recommendations.push("Reduce density: Concepts are packed too tightly. Breaks needed.");
     }
+    
+    // System prompt-specific recommendations
+    if (systemPromptMetrics.shapeCoverage.percentage < 50) {
+        recommendations.push("Add SHAPE sections: Micro-learning content is incomplete.");
+    }
+    if (systemPromptMetrics.mnemonicCoverage.percentage < 50) {
+        recommendations.push("Add memory anchors: Mnemonic content aids retention.");
+    }
+    if (systemPromptMetrics.confusionPairs.length < 3) {
+        recommendations.push("Add confusion pairs: Discrimination practice improves recall.");
+    }
+    if (!systemPromptMetrics.decisionFrameworks.available) {
+        recommendations.push("Add decision trees: 'When X vs Y?' frameworks aid application.");
+    }
+    
     if (recommendations.length === 0) {
         recommendations.push("Ready to learn! Content looks healthy.");
     }
 
-    // 7. Build Coverage Map (Treemap)
-    // Structure: Subject -> Stages (Phases) -> Concepts
-    const coverageMap: TreePacket[] = [];
-
-    if (parsedData && parsedData.learningPath && parsedData.learningPath.stages) {
-        // We use the 'stages' from the parsed content
-        parsedData.learningPath.stages.forEach(stage => {
-            const stageConcepts = stage.concepts; // string[] of concept names
-
-            coverageMap.push({
-                name: stage.name,
-                size: stageConcepts.length * 100, // Size by concept volume
-                score: 85, // Placeholder for stage-specific score if we had it, defaulting to high for now
-                children: stageConcepts.map(cName => ({
-                    name: cName,
-                    size: 50, // Uniform size for concepts
-                    score: 90
-                }))
-            });
-        });
-    } else {
-        // Fallback if parsing fails - Flat map from pass1Data
-        coverageMap.push({
-            name: "Generated Content",
-            size: 100,
-            score: Math.round(baseQuality),
-            children: result.pass1Data.concepts.map(c => ({
-                name: c,
-                size: 50,
-                score: 80
-            }))
-        });
-    }
+    // 8. Build Coverage Map (Treemap) - Enhanced with tier information
+    const coverageMap: TreePacket[] = buildCoverageMap(parsedData, result, baseQuality);
 
     return {
         metrics: {
@@ -140,9 +174,245 @@ export function analyzeContentQuality(result: SavedResult): ContentAnalytics {
             wordCount,
             gaps: []
         },
+        systemPromptMetrics,
         coverageMap,
         recommendations
     };
+}
+
+/**
+ * Analyze elements from the system prompt structure
+ */
+function analyzeSystemPromptElements(
+    parsedData: ParsedGeneratedContent | null,
+    result: SavedResult
+): SystemPromptMetrics {
+    // Tier Distribution (STEP 3.7)
+    const tierDistribution: TierDistribution = {
+        foundation: 0,
+        keystone: 0,
+        utility: 0,
+        total: 0
+    };
+
+    // SHAPE Coverage (STEP 3.5)
+    let shapeComplete = 0;
+    let shapePartial = 0;
+    let shapeMissing = 0;
+
+    // Mnemonic Coverage (STEP 3.7)
+    let withAnchors = 0;
+    let withStories = 0;
+
+    if (parsedData?.concepts) {
+        tierDistribution.total = parsedData.concepts.length;
+
+        parsedData.concepts.forEach(concept => {
+            // Count tiers
+            if (concept.mnemonic?.tier) {
+                switch (concept.mnemonic.tier) {
+                    case 'Foundation':
+                        tierDistribution.foundation++;
+                        break;
+                    case 'Keystone':
+                        tierDistribution.keystone++;
+                        break;
+                    case 'Utility':
+                        tierDistribution.utility++;
+                        break;
+                }
+            }
+
+            // Count SHAPE sections
+            if (concept.shape) {
+                const shapeFields = [
+                    concept.shape.simpleCore,
+                    concept.shape.highStakesExample,
+                    concept.shape.analogicalModel,
+                    concept.shape.patternRecognition?.question,
+                    concept.shape.eliminationLogic
+                ];
+                const filledFields = shapeFields.filter(Boolean).length;
+                
+                if (filledFields === 5) {
+                    shapeComplete++;
+                } else if (filledFields > 0) {
+                    shapePartial++;
+                } else {
+                    shapeMissing++;
+                }
+            } else {
+                shapeMissing++;
+            }
+
+            // Count mnemonic coverage
+            if (concept.mnemonic?.anchor) {
+                withAnchors++;
+            }
+            if (concept.mnemonic?.story) {
+                withStories++;
+            }
+        });
+    }
+
+    const totalConcepts = parsedData?.concepts.length || result.pass1Data.concepts.length;
+
+    // Confusion Pairs (STEP 5.5)
+    const confusionPairs = parsedData?.confusionPairs || [];
+
+    // Decision Frameworks (STEP 3.6) - Check if mental anchors have binary decision rules
+    const hasDecisionTrees = parsedData?.mentalAnchors?.some(a => a.binaryDecisionRule) || false;
+    const treeCount = parsedData?.mentalAnchors?.filter(a => a.binaryDecisionRule).length || 0;
+
+    // Lifecycle phases (STEP 2)
+    const lifecyclePhases = parsedData?.domainAnalysis?.lifecycle || null;
+
+    return {
+        tierDistribution,
+        shapeCoverage: {
+            complete: shapeComplete,
+            partial: shapePartial,
+            missing: shapeMissing,
+            percentage: totalConcepts > 0 ? Math.round((shapeComplete / totalConcepts) * 100) : 0
+        },
+        mnemonicCoverage: {
+            withAnchors,
+            withStories,
+            percentage: totalConcepts > 0 ? Math.round((withAnchors / totalConcepts) * 100) : 0
+        },
+        confusionPairs,
+        decisionFrameworks: {
+            available: hasDecisionTrees,
+            treeCount
+        },
+        lifecyclePhases
+    };
+}
+
+/**
+ * Build coverage map with tier information
+ * Groups ALL concepts from pass1Data, using parsed stages when available
+ */
+function buildCoverageMap(
+    parsedData: ParsedGeneratedContent | null,
+    result: SavedResult,
+    baseQuality: number
+): TreePacket[] {
+    const coverageMap: TreePacket[] = [];
+    const allConcepts = result.pass1Data.concepts; // Always use the full concept list
+    
+    // Create a map of concept name to parsed data for tier info
+    const conceptDataMap = new Map<string, { tier?: string }>();
+    if (parsedData?.concepts) {
+        parsedData.concepts.forEach(c => {
+            conceptDataMap.set(c.name, { tier: c.mnemonic?.tier });
+        });
+    }
+
+    // Try to use learning path stages if they cover most concepts
+    if (parsedData?.learningPath?.stages && parsedData.learningPath.stages.length > 0) {
+        // Collect all concepts mentioned in stages
+        const stagedConcepts = new Set<string>();
+        parsedData.learningPath.stages.forEach(stage => {
+            stage.concepts.forEach(c => stagedConcepts.add(c));
+        });
+
+        // If stages cover at least 50% of concepts, use them
+        if (stagedConcepts.size >= allConcepts.length * 0.5) {
+            parsedData.learningPath.stages.forEach(stage => {
+                const conceptChildren = stage.concepts.map(cName => ({
+                    name: cName,
+                    size: 50,
+                    score: 90,
+                    tier: conceptDataMap.get(cName)?.tier
+                }));
+
+                coverageMap.push({
+                    name: stage.name,
+                    size: stage.concepts.length * 100,
+                    score: 85,
+                    children: conceptChildren
+                });
+            });
+
+            // Add any unstaged concepts
+            const unstagedConcepts = allConcepts.filter(c => !stagedConcepts.has(c));
+            if (unstagedConcepts.length > 0) {
+                coverageMap.push({
+                    name: "Other Concepts",
+                    size: unstagedConcepts.length * 100,
+                    score: 75,
+                    children: unstagedConcepts.map(c => ({
+                        name: c,
+                        size: 50,
+                        score: 80,
+                        tier: conceptDataMap.get(c)?.tier
+                    }))
+                });
+            }
+            return coverageMap;
+        }
+    }
+
+    // Fallback: Group by tiers if we have tier data
+    const tierGroups: Record<string, string[]> = {
+        'Foundation': [],
+        'Keystone': [],
+        'Utility': [],
+        'Uncategorized': []
+    };
+
+    allConcepts.forEach(conceptName => {
+        const tier = conceptDataMap.get(conceptName)?.tier;
+        if (tier && tierGroups[tier]) {
+            tierGroups[tier].push(conceptName);
+        } else {
+            tierGroups['Uncategorized'].push(conceptName);
+        }
+    });
+
+    // If we have meaningful tier distribution, use it
+    const hasTierData = tierGroups['Foundation'].length > 0 || 
+                        tierGroups['Keystone'].length > 0 || 
+                        tierGroups['Utility'].length > 0;
+
+    if (hasTierData) {
+        const tierColors = {
+            'Foundation': 85,
+            'Keystone': 90,
+            'Utility': 80,
+            'Uncategorized': 70
+        };
+
+        Object.entries(tierGroups).forEach(([tierName, concepts]) => {
+            if (concepts.length > 0) {
+                coverageMap.push({
+                    name: `${tierName} (${concepts.length})`,
+                    size: concepts.length * 100,
+                    score: tierColors[tierName as keyof typeof tierColors] || 75,
+                    children: concepts.map(c => ({
+                        name: c,
+                        size: 50,
+                        score: 85
+                    }))
+                });
+            }
+        });
+    } else {
+        // Ultimate fallback: single group with all concepts
+        coverageMap.push({
+            name: `All Concepts (${allConcepts.length})`,
+            size: allConcepts.length * 100,
+            score: Math.round(baseQuality),
+            children: allConcepts.map(c => ({
+                name: c,
+                size: 50,
+                score: 80
+            }))
+        });
+    }
+
+    return coverageMap;
 }
 
 // Simple heuristic for readability (avg words per sentence)

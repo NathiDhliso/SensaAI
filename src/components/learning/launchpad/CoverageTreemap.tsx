@@ -16,7 +16,7 @@ const TREEMAP_COLORS = {
 };
 
 const CustomizedContent = (props: any) => {
-    const { depth, x, y, width, height, name, size } = props;
+    const { depth, x, y, width, height, name, size, children } = props;
 
     // Softer, more trustworthy color scheme
     // Based on content density: higher = healthier (green), lower = needs attention (amber)
@@ -31,6 +31,9 @@ const CustomizedContent = (props: any) => {
     // Text colors that work on the colored backgrounds
     const textColor = '#ffffff';
     const subTextColor = 'rgba(255, 255, 255, 0.85)';
+    
+    // Calculate concept count from size (size = conceptCount * 100)
+    const conceptCount = Math.round(size / 100);
 
     return (
         <g>
@@ -54,21 +57,21 @@ const CustomizedContent = (props: any) => {
                         y={y + height / 2}
                         textAnchor="middle"
                         fill={textColor}
-                        fontSize={12}
+                        fontSize={Math.min(12, width / 10)}
                         fontWeight={600}
                         style={{ pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
                     >
-                        {name}
+                        {name.length > 20 ? name.substring(0, 18) + '...' : name}
                     </text>
                     <text
                         x={x + width / 2}
-                        y={y + height / 2 + 16}
+                        y={y + height / 2 + 14}
                         textAnchor="middle"
                         fill={subTextColor}
-                        fontSize={10}
+                        fontSize={9}
                         style={{ pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
                     >
-                        {(size / 100).toFixed(0)} Concepts
+                        {conceptCount} Concepts
                     </text>
                 </>
             ) : null}
