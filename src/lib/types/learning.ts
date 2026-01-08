@@ -114,6 +114,17 @@ export interface WorkedExample {
 // Learning Concept Types
 // ============================================================================
 
+export interface ShapeContent {
+  simpleCore: string;
+  highStakesExample: string;
+  analogicalModel: string;
+  patternRecognition: {
+    question: string;
+    answer: string;
+  };
+  eliminationLogic: string;
+}
+
 export interface LearningConcept {
   id: string;
   name: string;
@@ -137,6 +148,9 @@ export interface LearningConcept {
   mnemonic?: MnemonicContext;
 
   lifecycle?: ConceptLifecycle;
+
+  // SHAPE Content (SensaAI Generated)
+  shape?: ShapeContent;
 
   prerequisites?: string[];
   keyPoints?: string[];

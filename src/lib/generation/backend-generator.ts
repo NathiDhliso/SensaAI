@@ -12,7 +12,8 @@ const isDev = import.meta.env.DEV;
 export async function generateWithBackend(
     subject: string,
     onProgress: ProgressCallback,
-    abortSignal?: AbortSignal
+    abortSignal?: AbortSignal,
+    context?: string
 ): Promise<GenerationResult> {
 
     // DEV MODE: Use direct AWS SDK with .env credentials
@@ -24,7 +25,7 @@ export async function generateWithBackend(
             throw new Error('AWS credentials not configured. Please add VITE_AWS_* variables to .env file.');
         }
 
-        return generateDirect(subject, bedrockConfig, onProgress, abortSignal);
+        return generateDirect(subject, bedrockConfig, onProgress, abortSignal, context);
     }
 
     // PRODUCTION MODE: Use backend API

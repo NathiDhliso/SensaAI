@@ -15,22 +15,22 @@
   overflow: hidden;
 }
 
-.wrapper {
-  max-width: 48rem;
-  /* Tighter focus for minimalism */
+.heroWrapper {
+  max-width: 42rem;
+  /* Tighter focus */
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 3.5rem;
+  /* Increased breathing room */
   position: relative;
   z-index: var(--z-base);
 }
 
 /* Glass Card - The Container */
-.card {
+.heroContent {
   /* Adaptive Glass: White in light mode, Dark in dark mode */
   background: color-mix(in srgb, var(--color-surface), transparent 40%);
-  /* High transparency */
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid color-mix(in srgb, var(--color-border), transparent 60%);
@@ -43,41 +43,57 @@
     var(--shadow-xl),
     0 0 0 1px color-mix(in srgb, var(--color-surface), transparent 70%) inset;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  align-items: center;
+  /* Center content */
 }
 
-.card:hover {
+.heroContent:hover {
   box-shadow:
     var(--shadow-2xl),
     0 0 0 1px color-mix(in srgb, var(--color-surface), transparent 60%) inset;
 }
 
-/* Typographic Hero */
-.inputSection {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  text-align: center;
+.heroIcon {
+  filter: drop-shadow(0 0 15px var(--color-accent));
+  margin-bottom: 0.5rem;
 }
 
-.label {
+.title {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, var(--color-text-dark) 0%, var(--color-text-medium) 100%);
+  font-size: 2.225rem;
+  font-weight: 700;
+  text-align: center;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  /* High contrast for dark mode */
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
 }
 
-/* Hero Input */
+.subtitle {
+  font-size: 1.125rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: -1rem 0 0.5rem 0;
+}
+
+/* Input Section */
+.inputSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .inputWrapper {
   position: relative;
   transition: transform 0.2s ease;
+  width: 100%;
 }
 
 .inputWrapper:focus-within {
-  /* ... */
   transform: scale(1.02);
 }
 
@@ -102,30 +118,53 @@
   padding: 1.25rem 1.5rem 1.25rem 4rem;
   border-radius: 1.5rem;
   border: 2px solid transparent;
-  /* Gradient border trick preparedness */
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
-  /* Subtle outlines */
   font-size: 1.125rem;
-  color: var(--color-text-dark);
+  color: var(--color-text-primary);
+  /* Ensure explicit primary color */
   transition: all 0.2s ease;
 }
 
 .input:focus {
   outline: none;
   background: var(--color-surface);
-  box-shadow:
-    var(--shadow-glow-primary),
-    /* Accent glow shadow */
-    0 0 0 2px var(--color-accent-light);
-  /* Focus ring */
+  box-shadow: var(--shadow-glow-primary);
+  border-color: var(--color-accent-light);
 }
 
 .input::placeholder {
-  color: var(--color-text-light);
+  color: var(--color-text-muted);
 }
 
-/* Floating Suggestions */
+/* Context Input */
+.contextInputWrapper {
+  width: 100%;
+}
+
+.contextInput {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface), transparent 50%);
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.contextInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background: var(--color-surface);
+}
+
+.contextInput::placeholder {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Suggestions Dropdown */
 .suggestionsDropdown {
   position: absolute;
   top: calc(100% + 0.75rem);
@@ -160,11 +199,38 @@
 }
 
 .suggestionMain {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   font-weight: 500;
-  color: var(--color-text-dark);
+  color: var(--color-text-primary);
 }
 
-/* Generate Button - Futuristic Gradient */
+.suggestionMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.difficultyBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.hoursBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Generate Button */
 .generateButton {
   display: flex;
   align-items: center;
@@ -185,22 +251,9 @@
   overflow: hidden;
 }
 
-.generateButton::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, transparent, var(--overlay-white-20), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.5s ease;
-}
-
 .generateButton:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: var(--shadow-glow-primary-hover);
-}
-
-.generateButton:hover::after {
-  transform: translateX(100%);
 }
 
 .generateButton:disabled {
@@ -208,15 +261,16 @@
   color: var(--color-text-muted);
   box-shadow: none;
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
-/* Recent Chips - Glass Pills */
+/* Recent Section */
 .recentSection {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  text-align: center;
+  width: 100%;
 }
 
 .recentTags {
@@ -227,11 +281,8 @@
 }
 
 .recentLabel {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-text-muted);
-  font-weight: 600;
+  display: none;
+  /* Hide label for cleaner look, or style it better */
 }
 
 .recentTag {
@@ -240,7 +291,7 @@
   border: 1px solid var(--color-border-light);
   border-radius: 2rem;
   font-size: 0.875rem;
-  color: var(--color-text-medium);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.2s;
   backdrop-filter: blur(4px);
@@ -254,28 +305,30 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Modern Action Dock */
+/* Action Buttons */
 .actionButtons {
   display: flex;
   justify-content: center;
   gap: 1.5rem;
+  width: 100%;
+  padding: 0 1rem;
+  /* Ensure padding on small screens */
 }
 
 .learnButton,
 .savedButton,
 .settingsButton {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
   background: color-mix(in srgb, var(--color-surface), transparent 60%);
-  /* Glass tiles */
   border: 1px solid color-mix(in srgb, var(--color-surface), transparent 70%);
   border-radius: 1.25rem;
   min-width: 100px;
-  color: var(--color-text-medium);
+  color: var(--color-text-muted);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -290,97 +343,22 @@
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
   color: var(--color-accent);
-}
-
-.learnButton svg,
-.savedButton svg,
-.settingsButton svg {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-bottom: 0.25rem;
-  transition: transform 0.2s;
-}
-
-.learnButton:hover svg,
-.savedButton:hover svg,
-.settingsButton:hover svg {
-  transform: scale(1.1);
-}
-
-/* Progress Card - Floating Glass Alert */
-.progressCard {
-  background: var(--overlay-white-80);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--overlay-accent-20);
-  border-radius: 1rem;
-  padding: 1rem 1.5rem;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: var(--shadow-sm);
-  animation: floatIn 0.5s ease-out;
-}
-
-.progressInfo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
-}
-
-.progressBar {
-  width: 100%;
-  height: 6px;
-  background: var(--color-surface-subtle);
-  border-radius: 3px;
-  margin-top: 0.5rem;
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  background: var(--gradient-accent);
-  border-radius: 3px;
-}
-
-.continueButton {
-  padding: 0.5rem 1rem;
-  background: var(--color-surface-subtle);
-  color: var(--color-accent);
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.continueButton:hover {
-  background: var(--color-accent);
-  color: var(--color-text-on-accent);
-}
-
-@keyframes floatIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  border-color: var(--color-accent-light);
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 640px) {
-  .wrapper {
+  .heroWrapper {
     gap: 2rem;
   }
 
-  .card {
+  .heroContent {
     padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
   }
 
   .actionButtons {
@@ -393,5 +371,6 @@
     padding: 0.75rem;
     min-width: auto;
     flex: 1;
+    font-size: 0.75rem;
   }
 }

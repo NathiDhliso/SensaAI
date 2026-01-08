@@ -1,12 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, BookOpen, TrendingUp, ChevronRight, Zap } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, BookOpen, Zap } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGenerationStore } from '@/store/generation-store';
 import { useUIStore } from '@/store/ui-store';
-import { useLearningStore } from '@/store/learning-store';
 import { CATEGORY_COLORS, DIFFICULTY_COLORS } from '@/constants/theme-colors';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './Home.module.css';
@@ -88,84 +87,54 @@ const DIFFICULTY_LEVELS = {
 
 export default function Home() {
   const [subject, setSubject] = useState('');
+  const [context, setContext] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
-  const { recentSubjects } = useGenerationStore();
-  const { openSettingsPanel } = useUIStore();
-  const { currentSession, getConcepts } = useLearningStore();
 
-  const concepts = getConcepts();
-  const progress = currentSession?.progress;
-  const hasProgress = concepts.length > 0 && (progress?.completedConcepts?.length ?? 0) > 0;
-  const progressPercent = concepts.length > 0
-    ? Math.round(((progress?.completedConcepts?.length ?? 0) / concepts.length) * 100)
-    : 0;
+  /* Hooks & Store */
+  const { openSettingsPanel } = useUIStore();
+  // Using explicit cast to avoid type inference issues with store intersection types
+  const { recentSubjects } = useGenerationStore() as any;
+
+  /* Derived State */
+  const allSubjects = useMemo(() => {
+    return SUBJECT_CATEGORIES.flatMap(cat => cat.subjects.map(sub => ({
+      ...sub,
+      category: cat.name
+    })));
+  }, []);
 
   const filteredSuggestions = useMemo(() => {
     if (!subject.trim()) return [];
-    const query = subject.toLowerCase();
-    const matches: Array<{ name: string; difficulty: string; hours: number; category: string }> = [];
-
-    SUBJECT_CATEGORIES.forEach(cat => {
-      cat.subjects.forEach(s => {
-        if (s.name.toLowerCase().includes(query)) {
-          matches.push({ ...s, category: cat.name });
-        }
-      });
-    });
-
-    return matches.slice(0, 5);
-  }, [subject]);
-
-  const handleGenerate = () => {
-    if (subject.trim()) {
-      setShowSuggestions(false);
-      // Navigate directly to Generate page - we trust the backend/store setup
-      navigate(`/generate/${encodeURIComponent(subject)}`);
-    }
-  };
+    return allSubjects.filter(s =>
+      s.name.toLowerCase().includes(subject.toLowerCase())
+    ).slice(0, 5);
+  }, [subject, allSubjects]);
 
   const handleSelectSuggestion = (name: string) => {
     setSubject(name);
     setShowSuggestions(false);
   };
 
+  const handleGenerate = () => {
+    if (subject.trim()) {
+      setShowSuggestions(false);
+      // Navigate directly to Generate page with optional context
+      const queryParams = context.trim() ? `?context=${encodeURIComponent(context.trim())}` : '';
+      navigate(`/generate/${encodeURIComponent(subject)}${queryParams}`);
+    }
+  };
+
   return (
     <div className={styles.container}>
-      <div className={styles.wrapper}>
-        <div className={styles.header}>
-          {/* Header Removed */}
-        </div>
+      <div className={styles.heroWrapper}>
+        <div className={styles.heroContent}>
+          <SensaShape type="nebula" size="xl" className={styles.heroIcon} />
+          <h1 className={styles.title}>What do you want to learn?</h1>
+          <p className={styles.subtitle}>
+            From zero to mastery. Enter any topic or exam.
+          </p>
 
-        {hasProgress && (
-          <motion.div
-            className={styles.progressCard}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className={styles.progressInfo}>
-              <TrendingUp size={20} />
-              <div>
-                <strong>Continue Learning</strong>
-                <p>{progress?.completedConcepts?.length ?? 0} of {concepts.length} concepts mastered</p>
-              </div>
-            </div>
-            <div className={styles.progressBar}>
-              <div
-                className={styles.progressFill}
-                style={{ width: `${progressPercent}% ` }}
-              />
-            </div>
-            <button
-              className={styles.continueButton}
-              onClick={() => navigate('/study/current')}
-            >
-              Continue <ChevronRight size={16} />
-            </button>
-          </motion.div>
-        )}
-
-        <div className={styles.card}>
           <div className={styles.inputSection}>
             <div className={styles.inputWrapper}>
               <Search className={styles.searchIcon} />
@@ -225,6 +194,17 @@ export default function Home() {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* [NEW] Context Input */}
+            <div className={styles.contextInputWrapper}>
+              <input
+                type="text"
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                placeholder="Target Exam / Context (Optional) - e.g. AZ-104, NCLEX, High School AP"
+                className={styles.contextInput}
+              />
+            </div>
           </div>
 
           <button
@@ -236,15 +216,11 @@ export default function Home() {
             Generate Learning System
           </button>
 
-
-
-          {/* Redundant categories and difficulty legend removed for silver bullet UI */}
-
-          {recentSubjects.length > 0 && (
+          {recentSubjects && recentSubjects.length > 0 && (
             <div className={styles.recentSection}>
               <div className={styles.recentTags}>
                 <span className={styles.recentLabel}>Recent:</span>
-                {recentSubjects.map((item) => (
+                {recentSubjects.map((item: string) => (
                   <button
                     key={item}
                     onClick={() => setSubject(item)}

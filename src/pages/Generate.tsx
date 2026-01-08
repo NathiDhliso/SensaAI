@@ -1,28 +1,25 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, Circle, Loader2, ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateWithBackend } from '@/lib/generation/backend-generator';
+
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
+import { generateWithBackend } from '@/lib/generation/backend-generator';
 import { parseAndLoadContent } from '@/lib/content-loader';
 import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
-import type { PassStatus, Pass1Result, ValidationResult, StreamedConceptPreview } from '@/lib/types/generation';
 import styles from './Generate.module.css';
 
-type ProgressData = {
-  message?: string;
-  partial?: string;
-  progress?: number;
-  content?: string;
-  domain?: string;
-  streamedConcepts?: StreamedConceptPreview[];
-} & Partial<Pass1Result> & Partial<ValidationResult>;
-
+import type { PassStatus, Pass1Result, ValidationResult, GenerationResult, ProgressData } from '@/lib/types/generation';
 export default function Generate() {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
+  const location = useLocation(); // [NEW] Get location
+  const searchParams = new URLSearchParams(location.search);
+  const context = searchParams.get('context'); // [NEW] Parse context
+
   const {
+    // ...
     bedrockConfig,
     passes,
     currentActivity,
@@ -208,13 +205,13 @@ export default function Generate() {
       });
     } else {
       // Fresh start
-      startGeneration(decodedSubject);
+      startGeneration(decodedSubject, context || undefined);
       addRecentSubject(decodedSubject);
     }
 
     const progressCallback = createProgressCallback();
 
-    generateWithBackend(decodedSubject, progressCallback, controller.signal)
+    generateWithBackend(decodedSubject, progressCallback, controller.signal, context || undefined)
       .then(async (result) => {
         completeGeneration(result);
         clearCheckpoint();
@@ -340,7 +337,7 @@ export default function Generate() {
     hasStartedRef.current = true;
     startGenerationProcess(decodedSubject);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subject, bedrockConfig]);
+  }, [subject, bedrockConfig, context]);
 
   // Don't abort on unmount - only abort when user explicitly cancels
   // React Strict Mode and HMR cause re-mounts that would incorrectly abort

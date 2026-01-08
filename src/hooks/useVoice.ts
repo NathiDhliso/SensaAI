@@ -7,7 +7,6 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { voiceService } from '@/lib/voice/elevenlabs';
 import { STATIC_VOICE_LINES } from '@/lib/voice/static-lines';
 import type { PersonaId } from '@/lib/ai/coach';
 
@@ -22,7 +21,7 @@ interface UseVoiceResult {
 }
 
 export function useVoice(): UseVoiceResult {
-    const { coachVoiceEnabled, elevenLabsApiKey, selectedPersona } = usePersonalizationStore();
+    const { coachVoiceEnabled } = usePersonalizationStore(); // API key removed
 
     // Local state
     const [isPlaying, setIsPlaying] = useState(false);
@@ -32,13 +31,6 @@ export function useVoice(): UseVoiceResult {
 
     // Audio reference
     const audioRef = useRef<HTMLAudioElement | null>(null);
-
-    // Update service key if store changes
-    useEffect(() => {
-        if (elevenLabsApiKey) {
-            voiceService.setApiKey(elevenLabsApiKey);
-        }
-    }, [elevenLabsApiKey]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -58,13 +50,9 @@ export function useVoice(): UseVoiceResult {
         setIsPlaying(false);
     }, []);
 
-    const play = useCallback(async (text: string, overridePersonaId?: PersonaId) => {
+    const play = useCallback(async (text: string, _overridePersonaId?: PersonaId) => {
         // Validation
         if (!coachVoiceEnabled) return;
-        if (!elevenLabsApiKey) {
-            setError('API Key missing');
-            return;
-        }
 
         // Stop existing
         stop();
@@ -72,12 +60,10 @@ export function useVoice(): UseVoiceResult {
         setIsLoading(true);
         setError(null);
 
-        const targetPersona = overridePersonaId || selectedPersona;
-
-        // Check for local static file first
+        // CHECK FOR LOCAL STATIC FILE ONLY
+        // We strictly only play pre-recorded assets. No generation.
         if (STATIC_VOICE_LINES[text]) {
             const localUrl = `/audio/voice/${STATIC_VOICE_LINES[text]}`;
-            // console.log('Using local voice asset:', localUrl); // Reduced noise
             setAudioUrl(localUrl);
 
             const audio = new Audio(localUrl);
@@ -85,86 +71,28 @@ export function useVoice(): UseVoiceResult {
 
             audio.onended = () => setIsPlaying(false);
             audio.onerror = () => {
-                // If local fails (e.g. file missing), fallback to API
-                console.warn('Local asset missing, falling back to API');
-
-                // --- INTENSITY LOGIC (Fallback) ---
-                const { coachIntensity } = usePersonalizationStore.getState();
-                let intensityMod = 0;
-                let styleMod = 0;
-
-                if (coachIntensity === 1) intensityMod = 0.2; // Calmer
-                if (coachIntensity === 2) intensityMod = 0.1;
-                if (coachIntensity === 4) { intensityMod = -0.1; styleMod = 0.1; }
-                if (coachIntensity === 5) { intensityMod = -0.2; styleMod = 0.2; } // Intense
-
-                voiceService.speak(text, targetPersona, { stability: 0.5 + intensityMod, style: styleMod }) // Estimate base stability if not accessible here, or just pass clean overrides
-                    .then(url => {
-                        setAudioUrl(url);
-                        audio.src = url;
-                        audio.play();
-                    })
-                    .catch(() => {
-                        setError('Voice playback failed');
-                        setIsPlaying(false);
-                    });
-            };
-
-            await audio.play();
-            setIsPlaying(true);
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            // --- INTENSITY LOGIC (Primary) ---
-            const { coachIntensity } = usePersonalizationStore.getState();
-
-            // Get base config from persona map directly to be accurate
-            const { PERSONAS } = await import('@/lib/ai/coach/personas');
-            const personaConfig = PERSONAS[targetPersona]?.voiceConfig;
-            const baseStability = personaConfig?.stability || 0.5;
-            const baseStyle = personaConfig?.style || 0.0;
-
-            let intensityMod = 0;
-            let styleMod = 0;
-
-            if (coachIntensity === 1) intensityMod = 0.2;
-            if (coachIntensity === 2) intensityMod = 0.1;
-            if (coachIntensity === 4) { intensityMod = -0.1; styleMod = 0.1; }
-            if (coachIntensity === 5) { intensityMod = -0.2; styleMod = 0.2; }
-
-            // Clamp stability 0-1
-            const targetStability = Math.max(0.1, Math.min(1.0, baseStability + intensityMod));
-            const targetStyle = Math.max(0.0, Math.min(1.0, baseStyle + styleMod));
-
-            // Generate audio via API
-            const url = await voiceService.speak(text, targetPersona, {
-                stability: targetStability,
-                style: targetStyle
-            });
-
-            setAudioUrl(url);
-
-            // Play
-            const audio = new Audio(url);
-            audioRef.current = audio;
-
-            audio.onended = () => setIsPlaying(false);
-            audio.onerror = () => {
-                setError('Playback error');
+                // Silent failure is preferred over crashing or weird states
+                console.warn(`[Voice] Asset missing for: "${text}" (${localUrl})`);
+                setError('Voice asset not found');
                 setIsPlaying(false);
             };
 
-            await audio.play();
-            setIsPlaying(true);
-        } catch (err: any) {
-            console.error('Voice playback failed:', err);
-            setError(err.message || 'Failed to play voice');
-        } finally {
-            setIsLoading(false);
+            try {
+                await audio.play();
+                setIsPlaying(true);
+            } catch (err) {
+                console.warn('[Voice] Playback failed/blocked', err);
+                setIsPlaying(false);
+            }
+        } else {
+            // No static line found - Silent fallback
+            // In "Studio Quality Only" mode, dynamic text is intentionally silent.
+            // We do not error here, we just don't play.
+            console.log('[Voice] No studio recording exists for this text. Skipping playback.');
         }
-    }, [coachVoiceEnabled, elevenLabsApiKey, selectedPersona, stop]);
+
+        setIsLoading(false);
+    }, [coachVoiceEnabled, stop]);
 
     const toggle = useCallback(async (text: string, overridePersonaId?: PersonaId) => {
         if (isPlaying) {

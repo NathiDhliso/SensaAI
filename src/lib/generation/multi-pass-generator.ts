@@ -1,5 +1,5 @@
 import { getSystemPrompt } from '@/lib/system-prompt';
-import { usePersonalizationStore } from '@/store/personalization-store';
+import { useLearningStore } from '@/store/learning-store';
 import {
   getBedrockClient,
   invokeClaudeModel,
@@ -58,12 +58,18 @@ export async function generateChartIteratively(
   subject: string,
   config: BedrockConfig,
   onProgress: ProgressCallback,
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
+  context?: string
 ): Promise<GenerationResult> {
   const bedrockClient = await getBedrockClient(config);
 
-  // Get aphantasia mode and familiar system for prompt adaptation
-  const { aphantasiaMode, familiarSystem } = usePersonalizationStore.getState();
+  // Get profile settings (Stop Guessing)
+  const { learningProfile } = useLearningStore.getState();
+  const aphantasiaMode = learningProfile.style === 'text'; // 'text' style maps to aphantasia optimizations
+
+  // We no longer guess familiar systems. Default to null for neutral, or could add to profile later.
+  const familiarSystem = null;
+
   const systemPrompt = getSystemPrompt(aphantasiaMode, familiarSystem);
 
   if (abortSignal?.aborted) {
@@ -103,6 +109,7 @@ PASS 1 TASK: Execute ONLY STEP 1 (Live Verification) and Concept Extraction
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Subject: "${subject}"
+${context ? `Target Exam/Context: "${context}" (CRITICAL ANCHOR)` : ''}
 
 PRE-DETERMINED LIFECYCLE (USE EXACTLY):
 Domain: ${dynamicLifecycle.domain}
@@ -112,10 +119,10 @@ Phase 2: ${dynamicLifecycle.phase2} - ${dynamicLifecycle.phase2Description}
 Phase 3: ${dynamicLifecycle.phase3} - ${dynamicLifecycle.phase3Description}
 
 INSTRUCTIONS:
-1. Browse the web for the most recent official syllabus/standard
+1. Browse the web for the most recent official syllabus/standard${context ? ` for "${context}"` : ''}
 2. Extract 3 specific recent updates (last 12 months)
 3. Identify numerical limits/thresholds
-4. Extract ALL core concepts from the official syllabus
+4. Extract ALL core concepts${context ? ` specifically from the "${context}" syllabus` : ' from the official syllabus'}
 
 OUTPUT FORMAT (JSON ONLY):
 {

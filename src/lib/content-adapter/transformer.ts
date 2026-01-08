@@ -694,6 +694,7 @@ export function transformToLearningConcepts(
       lifecycle,
       logicalConnection: parsedConcept.logicalConnection,
       mnemonic,
+      shape: parsedConcept.shape,
     });
   }
 

@@ -36,7 +36,6 @@ type PersonalizationState = {
   coachVoiceEnabled: boolean;
   coachIntensity: number; // 1-5 scale
   lastSessionMood: Mood | null;
-  elevenLabsApiKey: string | null;
 };
 
 // Default behavioral signals
@@ -66,7 +65,6 @@ type PersonalizationActions = {
   setCoachVoiceEnabled: (enabled: boolean) => void;
   setCoachIntensity: (intensity: number) => void;
   setLastSessionMood: (mood: Mood) => void;
-  setElevenLabsApiKey: (key: string | null) => void;
 };
 
 export const usePersonalizationStore = create<PersonalizationState & PersonalizationActions>()(
@@ -89,7 +87,6 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
       coachVoiceEnabled: true,
       coachIntensity: 3,
       lastSessionMood: null,
-      elevenLabsApiKey: null,
 
       completeOnboarding: (role, system, style) => {
         set({
@@ -151,10 +148,6 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
 
       setLastSessionMood: (mood) => {
         set({ lastSessionMood: mood });
-      },
-
-      setElevenLabsApiKey: (key) => {
-        set({ elevenLabsApiKey: key });
       },
     }),
     {

@@ -457,6 +457,34 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
 
     // Generate a smart verification question
     const question = useMemo(() => {
+        // 1. Precise Pattern Recognition (The "Golden Question")
+        if (concept.shape?.patternRecognition?.question && concept.shape?.patternRecognition?.answer) {
+            const correctAnswer = concept.shape.patternRecognition.answer;
+
+            // Generate distractors from other concepts
+            const otherConcepts = allConcepts?.filter(c => c.id !== concept.id) || [];
+            const distractors: string[] = [];
+
+            if (otherConcepts.length >= 3) {
+                const shuffled = [...otherConcepts].sort(() => Math.random() - 0.5);
+                for (let i = 0; i < 3; i++) {
+                    const c = shuffled[i];
+                    // Try to get a hook sentence or a key point
+                    const distractorText = c.hookSentence || (c.howToUse && c.howToUse[0]) || `Related to ${c.name}`;
+                    distractors.push(distractorText);
+                }
+            } else {
+                distractors.push("Incorrect Option A", "Incorrect Option B", "Incorrect Option C");
+            }
+
+            return {
+                question: concept.shape.patternRecognition.question,
+                correct: correctAnswer,
+                options: [correctAnswer, ...distractors.slice(0, 3)].sort(() => Math.random() - 0.5),
+            };
+        }
+
+        // 2. Fallback: Generate from key points
         const randomPoint = keyPoints[Math.floor(Math.random() * keyPoints.length)];
 
         // Smart Distractors: Pick key points from OTHER concepts to make real-looking options
@@ -623,13 +651,23 @@ export function MicroLearningLoopController({
     // Extract key points from concept
     const keyPoints = useMemo(() => {
         const points: string[] = [];
+
+        // Priority 1: SHAPE Content (High value)
+        if (concept.shape?.simpleCore) points.push(concept.shape.simpleCore);
+        if (concept.shape?.eliminationLogic) points.push(concept.shape.eliminationLogic);
+
+        // Priority 2: Standard fields
         if (concept.hookSentence) points.push(concept.hookSentence);
         if (concept.whyYouNeed) points.push(concept.whyYouNeed);
         if (concept.howToUse && concept.howToUse.length > 0) {
             points.push(...concept.howToUse.slice(0, 2));
         }
         if (concept.technicalDetails) points.push(concept.technicalDetails);
-        return points.slice(0, 5); // Max 5 key points
+
+        // Filter duplicates and empty strings
+        const uniquePoints = Array.from(new Set(points.filter(p => p && p.length > 5)));
+
+        return uniquePoints.slice(0, 7); // Max 7 key points
     }, [concept]);
 
     // Check if confusion prevention is needed

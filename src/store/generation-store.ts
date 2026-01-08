@@ -1,14 +1,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Pass1Result, PassStatus, ValidationResult, GenerationResult } from '@/lib/types/generation';
-import type { BedrockConfig } from '@/lib/generation/claude-client';
 import type { ParsedConcept } from '@/lib/content-adapter/types';
+
+export type BedrockConfig = {
+  region: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  useCognito?: boolean;
+};
 
 // Construction phases for optimistic UI
 export type ConstructionPhase = 'idle' | 'foundation' | 'framing' | 'detailing' | 'complete';
 
 type GenerationCheckpoint = {
   subject: string;
+  context?: string | null;
   pass1Data: Pass1Result | null;
   pass2Content: string | null;
   pass3Content: string | null;
@@ -19,6 +26,7 @@ type GenerationCheckpoint = {
 type GenerationState = {
   bedrockConfig: BedrockConfig | null;
   currentSubject: string | null;
+  currentContext: string | null;
   passes: Record<number, PassStatus>;
   currentActivity: string;
   progress: number;
@@ -32,7 +40,7 @@ type GenerationState = {
   isGenerating: boolean;
   error: string | null;
   checkpoint: GenerationCheckpoint | null;
-  // Progressive rendering state for optimistic UI
+  // Progressive rendering state
   streamedConcepts: ParsedConcept[];
   constructionPhase: ConstructionPhase;
   expectedConceptCount: number;
@@ -52,7 +60,7 @@ type GenerationProgressUpdate = {
 type GenerationActions = {
   setBedrockConfig: (config: BedrockConfig) => void;
   clearBedrockConfig: () => void;
-  startGeneration: (subject: string) => void;
+  startGeneration: (subject: string, context?: string) => void;
   updatePassStatus: (pass: number, status: PassStatus) => void;
   setCurrentActivity: (activity: string) => void;
   setProgress: (progress: number) => void;
@@ -80,7 +88,6 @@ const getEnvBedrockConfig = (): BedrockConfig | null => {
   const region = import.meta.env.VITE_AWS_REGION || 'us-east-1';
 
   // Strategy 1: Direct Keys (Dev preference)
-  // Check for direct keys first so dev mode works without login if keys are present
   const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
   const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
 
@@ -102,6 +109,7 @@ const getEnvBedrockConfig = (): BedrockConfig | null => {
 const initialState: GenerationState = {
   bedrockConfig: getEnvBedrockConfig(),
   currentSubject: null,
+  currentContext: null,
   passes: {
     1: 'queued',
     2: 'queued',
@@ -120,7 +128,6 @@ const initialState: GenerationState = {
   isGenerating: false,
   error: null,
   checkpoint: null,
-  // Progressive rendering initial state
   streamedConcepts: [],
   constructionPhase: 'idle',
   expectedConceptCount: 0,
@@ -135,9 +142,10 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
 
       clearBedrockConfig: () => set({ bedrockConfig: null }),
 
-      startGeneration: (subject) =>
+      startGeneration: (subject, context) =>
         set({
           currentSubject: subject,
+          currentContext: context || null,
           isGenerating: true,
           error: null,
           passes: {
@@ -153,7 +161,6 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
           pass3Content: null,
           validation: null,
           fullDocument: null,
-          // Reset progressive rendering state
           streamedConcepts: [],
           constructionPhase: 'foundation',
           expectedConceptCount: 0,
@@ -235,6 +242,7 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
         set({
           checkpoint: {
             subject: state.currentSubject!,
+            context: state.currentContext,
             pass1Data: state.pass1Data,
             pass2Content: state.pass2Content,
             pass3Content: state.pass3Content,
@@ -269,7 +277,6 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
 
       clearCheckpoint: () => set({ checkpoint: null }),
 
-      // Progressive rendering actions
       addStreamedConcept: (concept) =>
         set((state) => ({
           streamedConcepts: [...state.streamedConcepts, concept],
@@ -284,7 +291,6 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
     {
       name: 'chart-generator-storage',
       partialize: (state) => ({
-        // Don't persist bedrockConfig - always use env vars or manual entry
         recentSubjects: state.recentSubjects,
         results: state.results,
         checkpoint: state.checkpoint,

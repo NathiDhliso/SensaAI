@@ -132,6 +132,13 @@ export interface DiagnosticSession {
 // HELPER FUNCTIONS
 // ============================================================================
 
+// [NEW] SensaAI Learning Profile (Stop Guessing)
+export type LearningProfile = {
+  style: 'visual' | 'text'; // Palace vs Velocity
+  mode: 'burst' | 'deep';   // Quick vs Thorough
+  onboardingCompleted: boolean;
+};
+
 const getDefaultEnhancedMetrics = (): EnhancedCognitiveMetrics => ({
   currentLoad: 30,
   consecutiveCorrect: 0,
@@ -252,6 +259,7 @@ type LearningState = {
   celebrationData: CelebrationData | null;
   showNeuralReset: boolean;
   isExploreMode: boolean;
+  learningProfile: LearningProfile;
 
   sessionTimer: ReturnType<typeof setInterval> | null;
 
@@ -374,6 +382,9 @@ type LearningActions = {
   getConceptsThisSession: () => number;
   getAvgPaceThisSession: () => number;
   getPaceRating: (avgSeconds: number) => PaceRating;
+
+  // Learning Profile Actions
+  setLearningProfile: (profile: Partial<LearningProfile>) => void;
 };
 
 // ============================================================================
@@ -392,6 +403,14 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       celebrationData: null,
       showNeuralReset: false,
       isExploreMode: false,
+
+
+      // Initial Profile State (Default to Visual/Deep)
+      learningProfile: {
+        style: 'visual',
+        mode: 'deep',
+        onboardingCompleted: false
+      },
 
       sessionTimer: null,
 
@@ -1383,6 +1402,15 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         if (ratio <= FOCUS_SESSION_CONFIG.PACE_THRESHOLDS.good) return 'good';
         if (ratio <= FOCUS_SESSION_CONFIG.PACE_THRESHOLDS.warning) return 'warning';
         return 'overtime';
+      },
+
+      setLearningProfile: (profileUpdate) => {
+        set((state) => ({
+          learningProfile: {
+            ...state.learningProfile,
+            ...profileUpdate
+          }
+        }));
       },
     }),
     {

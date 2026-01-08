@@ -21,8 +21,6 @@ import {
   Brain
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
-import { usePersonalizationStore } from '@/store/personalization-store';
-import { getRecommendedTab } from '@/lib/learning/profile-detector';
 
 import styles from './StudyLayout.module.css';
 
@@ -91,12 +89,12 @@ export function StudyLayout({
 
   const {
     getSession,
-    getCognitiveLoadLevel
+    getCognitiveLoadLevel,
+    learningProfile
   } = useLearningStore();
 
-  // Get inferred learning profile for personalized tab recommendations
-  const inferredProfile = usePersonalizationStore(s => s.inferredProfile);
-  const recommendedTab = getRecommendedTab(inferredProfile);
+  // Simple recommendation based on explicit profile
+  const recommendedTab = learningProfile.style === 'visual' ? 'overview' : 'learn';
 
   const session = getSession();
   const cognitiveLevel = getCognitiveLoadLevel();

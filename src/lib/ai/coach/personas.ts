@@ -24,7 +24,6 @@ export interface Persona {
         humor: number;          // 1-5: Playful vs serious
     };
     voiceConfig?: {
-        elevenLabsId: string;
         stability: number;
         similarityBoost: number;
         style?: number;
@@ -47,7 +46,6 @@ export const PERSONAS: Record<PersonaId, Persona> = {
             humor: 1,
         },
         voiceConfig: {
-            elevenLabsId: 'pNInz6obpgDQGcFmaJgB', // Adam (Deep/Authoritative)
             stability: 0.35, // More expressive/varied
             similarityBoost: 0.8,
             style: 0.5
@@ -68,7 +66,6 @@ export const PERSONAS: Record<PersonaId, Persona> = {
             humor: 2,
         },
         voiceConfig: {
-            elevenLabsId: 'EXAVITQu4vr4xnSDxMaL', // Bella (Calm/Soothing)
             stability: 0.85,
             similarityBoost: 0.75
         }
@@ -88,7 +85,6 @@ export const PERSONAS: Record<PersonaId, Persona> = {
             humor: 2,
         },
         voiceConfig: {
-            elevenLabsId: 'ErXwobaYiN019PkySvjV', // Antoni (Balanced/Intellectual)
             stability: 0.5,
             similarityBoost: 0.75
         }
@@ -108,7 +104,6 @@ export const PERSONAS: Record<PersonaId, Persona> = {
             humor: 4,
         },
         voiceConfig: {
-            elevenLabsId: '21m00Tcm4TlvDq8ikWAM', // Rachel (Clear/Standard)
             stability: 0.5,
             similarityBoost: 0.75
         }
@@ -128,7 +123,6 @@ export const PERSONAS: Record<PersonaId, Persona> = {
             humor: 4,
         },
         voiceConfig: {
-            elevenLabsId: 'yoZ06aMxZJJ28mfd3POQ', // Sam (Friendly/Casual)
             stability: 0.6,
             similarityBoost: 0.6
         }

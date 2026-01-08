@@ -1,12 +1,10 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, Download, BookOpen, Cloud, HardDrive, Upload, Search, Eye, FileJson } from 'lucide-react';
+import { ArrowLeft, Trash2, Download, BookOpen, Upload, Search, Eye, FileJson, Cloud } from 'lucide-react';
 import { storageManager, importFromFile } from '@/lib/storage';
-import { localFileStorage } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage';
 
 import { UI_TIMINGS } from '@/constants/ui-constants';
-import { CloudLibraryModal } from '@/components/storage/CloudLibraryModal';
 import styles from './SavedResults.module.css';
 
 export default function SavedResults() {
@@ -20,9 +18,6 @@ export default function SavedResults() {
   const [sortBy, setSortBy] = useState<'date' | 'subject' | 'quality'>('date');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [showCloudSetup, setShowCloudSetup] = useState(false);
-  const [showCloudLibrary, setShowCloudLibrary] = useState(false);
-
   useEffect(() => {
     loadResults();
   }, []);
@@ -31,9 +26,7 @@ export default function SavedResults() {
     setLoading(true);
     try {
       const allResults = await storageManager.listResults();
-      // Only show locally saved results in the main view
-      // Cloud-only results are accessible via the Cloud Library modal
-      setResults(allResults.filter(r => r.savedLocally));
+      setResults(allResults);
     } catch (error) {
       console.error('Failed to load results:', error);
     } finally {
@@ -42,7 +35,7 @@ export default function SavedResults() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this result?')) return;
+    if (!confirm('Are you sure you want to delete this result? This cannot be undone.')) return;
 
     setDeletingId(id);
     try {
@@ -56,11 +49,25 @@ export default function SavedResults() {
   };
 
   const handleDownloadText = (result: SavedResult) => {
-    localFileStorage.downloadTextFile(result);
+    // Create ephemeral download link since localFileStorage is gone
+    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${result.subject.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_sensa.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleDownloadBackup = (result: SavedResult) => {
-    localFileStorage.downloadAsJSON(result);
+    // Create ephemeral download link
+    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${result.subject.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_backup.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleImportClick = () => {
@@ -193,25 +200,11 @@ export default function SavedResults() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={styles.searchInput}
               />
-              {storageManager.isCloudEnabled() ? (
-                <button
-                  onClick={() => setShowCloudLibrary(true)}
-                  className={styles.cloudLibraryButton}
-                  title="Manage Cloud Library"
-                >
-                  <Cloud size={16} />
-                  Cloud Library
-                </button>
-              ) : (
-                <button
-                  onClick={() => setShowCloudSetup(true)}
-                  className={styles.enableCloudButton}
-                  title="Click to learn how to enable cloud sync"
-                >
-                  <Cloud size={14} />
-                  Enable Cloud Sync
-                </button>
-              )}
+              {/* Cloud Status Indicator */}
+              <div className={styles.cloudIndicator} title="Cloud Sync Active">
+                <Cloud size={14} style={{ color: 'var(--color-success)' }} />
+                <span>Cloud Active</span>
+              </div>
             </div>
 
             <select
@@ -234,7 +227,7 @@ export default function SavedResults() {
           </div>
         ) : results.length === 0 ? (
           <div className={styles.emptyState}>
-            <HardDrive size={48} className={styles.emptyIcon} />
+            <Cloud size={48} className={styles.emptyIcon} />
             <h2>No saved results yet</h2>
             <p>Generate and save your first chart to see it here</p>
             <button onClick={() => navigate('/')} className={styles.primaryButton}>
@@ -334,57 +327,7 @@ export default function SavedResults() {
           </div>
         )}
 
-        {showCloudSetup && (
-          <div className={styles.modalOverlay} onClick={() => setShowCloudSetup(false)}>
-            <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-              <div className={styles.modalHeader}>
-                <h2>Enable Cloud Sync</h2>
-                <button
-                  onClick={() => setShowCloudSetup(false)}
-                  className={styles.closeButton}
-                >
-                  ×
-                </button>
-              </div>
-              <div className={styles.modalBody}>
-                <p className={styles.modalText}>
-                  To enable cloud synchronization, you need to configure your environment variables.
-                </p>
-                <div className={styles.stepsList}>
-                  <div className={styles.stepItem}>
-                    <span className={styles.stepNumber}>1</span>
-                    <span>Open your <code>.env</code> file in the project root</span>
-                  </div>
-                  <div className={styles.stepItem}>
-                    <span className={styles.stepNumber}>2</span>
-                    <span>Copy the values from <code>.env.example</code></span>
-                  </div>
-                  <div className={styles.stepItem}>
-                    <span className={styles.stepNumber}>3</span>
-                    <span>Restart the dev server (<code>npm run dev</code>)</span>
-                  </div>
-                </div>
-                <div className={styles.modalNote}>
-                  Values starting with <code>VITE_</code> are required.
-                </div>
-              </div>
-              <div className={styles.modalFooter}>
-                <button
-                  onClick={() => setShowCloudSetup(false)}
-                  className={styles.secondaryButton}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
-        <CloudLibraryModal
-          isOpen={showCloudLibrary}
-          onClose={() => setShowCloudLibrary(false)}
-          onUpdate={loadResults}
-        />
       </div>
     </div>
   );
