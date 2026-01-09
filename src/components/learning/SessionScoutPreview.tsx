@@ -69,11 +69,17 @@ export function SessionScoutPreview({
     const navigate = useNavigate();
 
     // Group concepts by tier
-    const conceptsByTier = useMemo(() => ({
-        foundation: concepts.filter(c => c.tier === 'foundation'),
-        keystone: concepts.filter(c => c.tier === 'keystone'),
-        utility: concepts.filter(c => c.tier === 'utility'),
-    }), [concepts]);
+    const conceptsByTier = useMemo(() => {
+        const foundation = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation');
+        const keystone = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone');
+        // Everything else is utility
+        const utility = concepts.filter(c => {
+            const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
+            return t !== 'foundation' && t !== 'keystone';
+        });
+
+        return { foundation, keystone, utility };
+    }, [concepts]);
 
     // Generate AI Preview Analysis for priming step
     const aiPreview = useMemo(() => {

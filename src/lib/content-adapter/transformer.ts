@@ -606,9 +606,34 @@ function distributeConceptsToStages(
   return conceptToStage;
 }
 
+function safeSlugify(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+}
+
+function determineTierFallback(order: number, name: string): 'foundation' | 'keystone' | 'utility' {
+  const foundationKeywords = ['workspace', 'environment', 'schema', 'security', 'dashboard', 'apps', 'account', 'network', 'vnet', 'identity', 'policy'];
+  const keystoneKeywords = ['query', 'relationship', 'dax', 'filter', 'refresh', 'gateway', 'storage', 'vm', 'function'];
+
+  const nameLower = name.toLowerCase();
+
+  for (const keyword of foundationKeywords) {
+    if (nameLower.includes(keyword)) return 'foundation';
+  }
+
+  for (const keyword of keystoneKeywords) {
+    if (nameLower.includes(keyword)) return 'keystone';
+  }
+
+  // Fallback based on order
+  if (order <= 5) return 'foundation';
+  if (order <= 15) return 'keystone';
+  return 'utility';
+}
+
 export function transformToLearningConcepts(
   parsed: ParsedGeneratedContent,
-  stages: LearningStage[]
+  stages: LearningStage[],
+  fallbackConcepts: string[] = []
 ): LearningConcept[] {
   const concepts: LearningConcept[] = [];
 
@@ -715,6 +740,47 @@ export function transformToLearningConcepts(
     });
   }
 
+
+
+  // RECOVERY: Inject skeleton concepts for any missing names in fallbackConcepts
+  if (fallbackConcepts.length > 0) {
+    const existingNames = new Set(concepts.map(c => c.name.toLowerCase()));
+
+    fallbackConcepts.forEach((name, idx) => {
+      if (!existingNames.has(name.toLowerCase())) {
+        const skeletonId = `skeleton-${safeSlugify(name)}`;
+        const tier = determineTierFallback(concepts.length + idx + 1, name);
+
+        concepts.push({
+          id: skeletonId,
+          stageId: stages[0]?.id || 'stage-1-foundation',
+          order: concepts.length + 1,
+          name: name,
+          icon: 'shape:seed',
+          metaphor: `A fundamental unit of ${parsed.domainAnalysis.domain}`,
+          hookSentence: `${name} is a key component of the system.`,
+          whyYouNeed: 'Understanding this concept fills a gap in your knowledge.',
+          realWorldExample: `Like a missing puzzle piece, ${name} completes the picture.`,
+          howToUse: ['Identify the concept', 'Relate it to others', 'Apply in context'],
+          technicalDetails: 'Recovered concept from domain analysis.',
+          prerequisites: [],
+          visualElement: safeSlugify(name),
+          actionButtonText: `Explore ${name}`,
+          lifecycle: {
+            phase1: { title: 'FOUNDATION', steps: ['Identify'] },
+            phase2: { title: 'ACTION', steps: ['Apply'] },
+            phase3: { title: 'VERIFICATION', steps: ['Validate'] }
+          },
+          logicalConnection: 'Part of the domain ecosystem.',
+          shape: undefined,
+          tier: tier,
+          dependencies: [],
+          outdegree: 0
+        });
+      }
+    });
+  }
+
   return concepts;
 }
 
@@ -724,10 +790,11 @@ export function transformToLearningConcepts(
  */
 export function transformToSensaAIConcepts(
   parsed: ParsedGeneratedContent,
-  stages: LearningStage[]
+  stages: LearningStage[],
+  fallbackConcepts: string[] = []
 ): SensaAILearningConcept[] {
-  // First get the base learning concepts
-  const baseConcepts = transformToLearningConcepts(parsed, stages);
+  // First get the base learning concepts (including skeletons)
+  const baseConcepts = transformToLearningConcepts(parsed, stages, fallbackConcepts);
 
   // Identify confusion pairs across all concepts
   const confusionMap = identifyConfusionPairs(parsed.concepts);
@@ -735,8 +802,22 @@ export function transformToSensaAIConcepts(
   // Transform to SensaAI enhanced concepts
   const sensaAIConcepts: SensaAILearningConcept[] = baseConcepts.map((baseConcept) => {
     const parsedConcept = parsed.concepts.find(pc => pc.id === baseConcept.id);
+
+    // Handle Skeleton Concepts (Recovered)
     if (!parsedConcept) {
-      throw new Error(`Parsed concept not found for ${baseConcept.id}`);
+      // Return skeleton SensaAI concept
+      return {
+        ...baseConcept,
+        keyPoints: ['Core domain concept', 'Essential for completeness', 'Recovered during analysis'],
+        diagnosticQuestions: [],
+        confusionPairs: [],
+        foundationLevel: (baseConcept.tier === 'foundation'),
+        tier: (baseConcept.tier as 'foundation' | 'keystone' | 'utility') || 'utility',
+        complexityScore: 3,
+        prerequisiteWeight: 0,
+        frequencyWeight: 1,
+        abstractionLevel: 'concrete'
+      };
     }
 
     // Extract SensaAI metadata
@@ -777,7 +858,11 @@ export function transformToSensaAIConcepts(
   return sensaAIConcepts;
 }
 
-export function transformGeneratedContent(parsed: ParsedGeneratedContent, subjectId?: string): {
+export function transformGeneratedContent(
+  parsed: ParsedGeneratedContent,
+  subjectId?: string,
+  fallbackConcepts: string[] = []
+): {
   stages: LearningStage[];
   concepts: LearningConcept[];
   dependencyGraph: SubjectGraph;
@@ -789,7 +874,8 @@ export function transformGeneratedContent(parsed: ParsedGeneratedContent, subjec
   };
 } {
   const stages = transformToLearningStages(parsed);
-  const concepts = transformToLearningConcepts(parsed, stages);
+  // Pass fallback concepts to SensaAI transformer
+  const concepts = transformToSensaAIConcepts(parsed, stages, fallbackConcepts);
 
   // Build the dependency graph from parsed concepts
   // This is the "Freeze & Bake" foundation - calculated once at generation time

@@ -18,6 +18,7 @@ import {
   createLifecycleScopePrompt,
   getDefaultLifecycle,
 } from './dynamic-lifecycle';
+import { mergeJsonConceptBlocks, validateMergedContent } from './json-merger';
 
 import { extractPartialConcepts } from '@/lib/types/concept-schema';
 import type { Pass1Result, ProgressCallback, GenerationResult, ValidationResult, DynamicLifecycle } from '@/lib/types/generation';
@@ -448,10 +449,24 @@ CRITICAL: Output ONLY valid JSON. Generate ALL ${batchConcepts.length} concepts.
       await delay(2000);
     }
   }
-  const allConceptsContent = batchResults
+
+  // Collect raw batch content
+  const rawBatchContent = batchResults
     .sort((a, b) => a.order - b.order)
     .map(r => r.content)
-    .join('\n\n') + '\n\n';
+    .join('\n\n');
+
+  // CRITICAL: Merge all JSON concept blocks into single unified block
+  // This fixes the truncation bug where only the first batch was parsed
+  const allConceptsContent = mergeJsonConceptBlocks(rawBatchContent) + '\n\n';
+
+  // Validate the merge was successful
+  const mergeValidation = validateMergedContent(allConceptsContent, pass1Data.concepts.length);
+  if (!mergeValidation.valid) {
+    console.warn(`[multi-pass] ${mergeValidation.message}`);
+  } else {
+    console.log(`[multi-pass] ${mergeValidation.message}`);
+  }
 
   onProgress(3, 'in-progress', { message: 'Generating mental anchors and learning path...' });
 

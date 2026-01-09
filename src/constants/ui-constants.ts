@@ -163,7 +163,7 @@ export const VELOCITY_CONFIG = {
 
   // Blank Sheet Test
   BLANK_SHEET: {
-    MIN_CHARS: 50,
+    MIN_CHARS: 15,
     MIN_WORD_LENGTH: 3,
     PHRASE_LENGTH_MIN: 2,
     PHRASE_LENGTH_MAX: 3,

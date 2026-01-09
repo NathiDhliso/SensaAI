@@ -100,7 +100,9 @@ export default function Study() {
       try {
         const result = await storageManager.loadResult(subjectId);
         if (result?.fullDocument) {
-          const loadResult = parseAndLoadContent(result.fullDocument, subjectId);
+          // Pass fallback concepts from pass1Data to ensure full coverage
+          const fallbackConcepts = result.pass1Data?.concepts || [];
+          const loadResult = parseAndLoadContent(result.fullDocument, subjectId, fallbackConcepts);
           if (!loadResult.success) {
             console.error('Failed to hydrate session:', loadResult.error);
           }

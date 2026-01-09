@@ -164,12 +164,15 @@ function extractListItems(content: string, marker: string): string[] {
 
 function parseConcepts(content: string): ParsedConcept[] {
     const concepts: ParsedConcept[] = [];
+    const seenIds = new Set<string>(); // Prevent duplicates from merged blocks
 
     // Find JSON blocks containing concepts array
     const jsonBlockRegex = /```json\s*(\{[\s\S]*?"concepts"[\s\S]*?\})\s*```/g;
     let match;
+    let blockCount = 0;
 
     while ((match = jsonBlockRegex.exec(content)) !== null) {
+        blockCount++;
         try {
             // Unescape the JSON content
             let jsonStr = match[1];
@@ -214,16 +217,24 @@ function parseConcepts(content: string): ParsedConcept[] {
             if (parsed.concepts && Array.isArray(parsed.concepts)) {
                 for (const concept of parsed.concepts) {
                     const parsedConcept = convertJsonConcept(concept);
-                    if (parsedConcept) {
+                    // Deduplicate by ID to handle merged content
+                    if (parsedConcept && !seenIds.has(parsedConcept.id)) {
+                        seenIds.add(parsedConcept.id);
                         concepts.push(parsedConcept);
                     }
                 }
             }
         } catch (e) {
-            // Silently continue - fallback to markdown parsing will handle it
-            console.debug('[ContentParser] JSON block parse failed, will try markdown fallback:', e);
+            // Log warning but continue processing other blocks
+            console.warn(`[ContentParser] JSON block ${blockCount} parse error (continuing):`, e);
         }
     }
+
+    // Log extraction summary
+    if (blockCount > 0) {
+        console.log(`[ContentParser] Extracted ${concepts.length} concepts from ${blockCount} JSON block(s)`);
+    }
+
 
     // Fallback: Try to find raw JSON object start if no blocks found
     if (concepts.length === 0) {
@@ -397,7 +408,7 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
                 eliminationLogic: '',
             },
             mnemonic: {
-                tier: determineTier(current.order, current.name) as 'Foundation' | 'Keystone' | 'Utility',
+                tier: determineTier(current.order, current.name),
                 anchor: `${current.name}`,
                 story: criticalMatch?.[1]?.trim() || '',
             },
@@ -444,8 +455,9 @@ function extractFirstSentence(text: string): string {
 
 /**
  * Determine tier based on concept order and name
+ * Returns lowercase tier values: 'foundation', 'keystone', 'utility'
  */
-function determineTier(order: number, name: string): string {
+function determineTier(order: number, name: string): 'foundation' | 'keystone' | 'utility' {
     // Foundation concepts (first in each stage, or core infrastructure)
     const foundationKeywords = ['workspace', 'environment', 'schema', 'security', 'dashboard', 'apps'];
     const keystoneKeywords = ['query', 'relationship', 'dax', 'filter', 'refresh', 'gateway'];
@@ -453,18 +465,19 @@ function determineTier(order: number, name: string): string {
     const nameLower = name.toLowerCase();
 
     for (const keyword of foundationKeywords) {
-        if (nameLower.includes(keyword)) return 'Foundation';
+        if (nameLower.includes(keyword)) return 'foundation';
     }
 
     for (const keyword of keystoneKeywords) {
-        if (nameLower.includes(keyword)) return 'Keystone';
+        if (nameLower.includes(keyword)) return 'keystone';
     }
 
     // Fallback based on order
-    if (order <= 5 || order % 10 === 1) return 'Foundation';
-    if (order <= 30) return 'Keystone';
-    return 'Utility';
+    if (order <= 5 || order % 10 === 1) return 'foundation';
+    if (order <= 30) return 'keystone';
+    return 'utility';
 }
+
 
 function parseConceptsFromEscapedContent(content: string): ParsedConcept[] {
     const concepts: ParsedConcept[] = [];
@@ -545,7 +558,7 @@ function extractMnemonic(content: string, conceptName: string): ParsedMnemonic |
     const storyMatch = match[1].match(/\\"story\\":\s*\\"([^"]{0,500})/);
 
     return {
-        tier: (tierMatch?.[1] as 'Foundation' | 'Keystone' | 'Utility') || 'Foundation',
+        tier: (tierMatch?.[1]?.toLowerCase() as 'foundation' | 'keystone' | 'utility') || 'foundation',
         anchor: anchorMatch?.[1]?.replace(/\\"/g, '"') || '',
         story: storyMatch?.[1]?.replace(/\\"/g, '"') || '',
     };
@@ -615,14 +628,14 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
 
     // Extract mnemonic
     // Extract mnemonic and Tier (checking root level first for Sensa v2.0 compliance)
-    let tier: 'Foundation' | 'Keystone' | 'Utility' | undefined;
+    let tier: 'foundation' | 'keystone' | 'utility' | undefined;
 
     // Check root level tier (preferred in new prompt)
     if (typeof c.tier === 'string') {
         const t = c.tier.toLowerCase();
-        if (t === 'foundation') tier = 'Foundation';
-        else if (t === 'keystone') tier = 'Keystone';
-        else if (t === 'utility') tier = 'Utility';
+        if (t === 'foundation') tier = 'foundation';
+        else if (t === 'keystone') tier = 'keystone';
+        else if (t === 'utility') tier = 'utility';
     }
 
     let mnemonic: ParsedMnemonic | undefined;
@@ -632,13 +645,13 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
         // If not found at root, check inside mnemonic
         if (!tier && typeof m.tier === 'string') {
             const t = m.tier.toLowerCase();
-            if (t === 'foundation') tier = 'Foundation';
-            else if (t === 'keystone') tier = 'Keystone';
-            else if (t === 'utility') tier = 'Utility';
+            if (t === 'foundation') tier = 'foundation';
+            else if (t === 'keystone') tier = 'keystone';
+            else if (t === 'utility') tier = 'utility';
         }
 
         mnemonic = {
-            tier: tier || 'Foundation', // Default to Foundation if still missing
+            tier: tier || 'foundation', // Default to foundation if still missing
             anchor: typeof m.anchor === 'string' ? m.anchor : '',
             story: typeof m.story === 'string' ? m.story : '',
             parentName: typeof m.parentConcept === 'string' ? m.parentConcept : undefined,

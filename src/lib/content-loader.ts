@@ -21,7 +21,7 @@ export interface ParseAndLoadResult {
  * @param subjectId - Optional subject ID (defaults to generated ID)
  * @returns Result object indicating success or containing error message
  */
-export function parseAndLoadContent(rawContent: string, subjectId?: string): ParseAndLoadResult {
+export function parseAndLoadContent(rawContent: string, subjectId?: string, fallbackConcepts: string[] = []): ParseAndLoadResult {
     try {
         const parseResult = parseGeneratedContent(rawContent);
 
@@ -32,7 +32,7 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string): Par
             };
         }
 
-        const transformed = transformGeneratedContent(parseResult.data, subjectId);
+        const transformed = transformGeneratedContent(parseResult.data, subjectId, fallbackConcepts);
 
         // Add required session fields, including raw document for reference tab
         useLearningStore.getState().loadSession({
@@ -63,7 +63,7 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string): Par
 export function useParseAndLoadContent() {
     const loadSession = useLearningStore((state) => state.loadSession);
 
-    return (rawContent: string, subjectId?: string): ParseAndLoadResult => {
+    return (rawContent: string, subjectId?: string, fallbackConcepts: string[] = []): ParseAndLoadResult => {
         try {
             const parseResult = parseGeneratedContent(rawContent);
 
@@ -74,7 +74,7 @@ export function useParseAndLoadContent() {
                 };
             }
 
-            const transformed = transformGeneratedContent(parseResult.data, subjectId);
+            const transformed = transformGeneratedContent(parseResult.data, subjectId, fallbackConcepts);
 
             // Add required session fields, including raw document for reference tab
             loadSession({
