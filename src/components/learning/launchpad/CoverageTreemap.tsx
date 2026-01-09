@@ -10,13 +10,13 @@ interface CoverageTreemapProps {
 
 // Use centralized theme colors
 const TREEMAP_COLORS = {
-    strong: { fill: COLORS.secondary.sage, stroke: COLORS.secondary.sageDark || '#059669' },
+    strong: { fill: COLORS.secondary.sage, stroke: '#059669' }, // Sage-600 for stroke
     medium: { fill: COLORS.info, stroke: '#2563EB' },             // Blue-600
     weak: { fill: COLORS.secondary.amber, stroke: '#D97706' },    // Amber-600
 };
 
 const CustomizedContent = (props: any) => {
-    const { depth, x, y, width, height, name, size, children } = props;
+    const { depth, x, y, width, height, name, size } = props;
 
     // Softer, more trustworthy color scheme
     // Based on content density: higher = healthier (green), lower = needs attention (amber)
@@ -31,7 +31,7 @@ const CustomizedContent = (props: any) => {
     // Text colors that work on the colored backgrounds
     const textColor = '#ffffff';
     const subTextColor = 'rgba(255, 255, 255, 0.85)';
-    
+
     // Calculate concept count from size (size = conceptCount * 100)
     const conceptCount = Math.round(size / 100);
 
@@ -87,9 +87,14 @@ export const CoverageTreemap: React.FC<CoverageTreemapProps> = ({ data }) => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            style={{ width: '100%', height: '100%', minHeight: '300px' }}
+            style={{
+                width: '100%',
+                height: '100%',
+                minHeight: '200px',
+                minWidth: '200px',
+            }}
         >
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={200}>
                 <Treemap
                     data={data}
                     dataKey="size"

@@ -178,7 +178,37 @@ function parseConcepts(content: string): ParsedConcept[] {
             jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
 
             // Sanitize control characters that aren't valid in JSON strings
-            jsonStr = jsonStr.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+            jsonStr = jsonStr.replace(/[\x00-\x1F\x7F-\x9F]/g, (char) => {
+                // Preserve actual newlines and tabs for re-escaping
+                if (char === '\n') return '\\n';
+                if (char === '\r') return '\\r';
+                if (char === '\t') return '\\t';
+                return '';
+            });
+
+            // Fix unescaped quotes inside strings (common LLM error)
+            // This attempts to fix quotes that appear within string values
+            jsonStr = jsonStr.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g, (_match, content) => {
+                // Re-escape any unescaped quotes that might have slipped through
+                const fixed = content.replace(/(?<!\\)"/g, '\\"');
+                return `"${fixed}"`;
+            });
+
+            // Handle truncated JSON by attempting to close open brackets
+            let openBraces = 0;
+            let openBrackets = 0;
+            for (const char of jsonStr) {
+                if (char === '{') openBraces++;
+                if (char === '}') openBraces--;
+                if (char === '[') openBrackets++;
+                if (char === ']') openBrackets--;
+            }
+
+            // If truncated, try to complete it
+            if (openBrackets > 0 || openBraces > 0) {
+                // Add closing brackets/braces
+                jsonStr += ']'.repeat(openBrackets) + '}'.repeat(openBraces);
+            }
 
             const parsed = JSON.parse(jsonStr);
             if (parsed.concepts && Array.isArray(parsed.concepts)) {
@@ -190,7 +220,8 @@ function parseConcepts(content: string): ParsedConcept[] {
                 }
             }
         } catch (e) {
-            console.warn('[ContentParser] Failed to parse JSON block:', e);
+            // Silently continue - fallback to markdown parsing will handle it
+            console.debug('[ContentParser] JSON block parse failed, will try markdown fallback:', e);
         }
     }
 
