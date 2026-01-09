@@ -8,18 +8,26 @@ These guidelines ensure consistency across the codebase. AI coding tools MUST fo
 
 ---
 
-## 🏗️ Architecture: Silver Bullet Learning Flow
-The app follows a 7-step "Baking Analogy" flow. Components map to these steps:
+## 🏗️ Architecture: SENSA v2.0 Universal Learning Flow
 
-| Step | Goal | Component | Analogy |
-|---|---|---|---|
-| **1. See** | Intent | `SessionStartModal` | Determining value |
-| **2. Explore** | Survey | `SessionScoutPreview` | Skimming ingredients |
-| **3. Explore+** | Prime | `SessionScoutPreview` (Step 3) | Guessing chemistry |
-| **4. Note** | Connect | `ConceptMapBuilder` | Mapping process |
-| **5. Study** | Memory | `MapReconstructionTest` | Recalling memory |
-| **6. Prove** | Mastery | `MasteryChallenge` | Baking solo |
-| **7. Apply** | Fluency | `VelocityLearning` | Improvising |
+The app follows a **5-step flow** based on the Universal Learning Equation:
+
+```
+I = min(h, G × Q_f × Q_M × Q_P)
+```
+
+| Step | Name | Equation Impact | Component | Purpose |
+|------|------|-----------------|-----------|---------|
+| **1. See** | Goal Setting | G (Governance) | `SessionStartModal` | Set learning intent |
+| **2. Explore** | Survey + Predict | Q_P, Q_M | `SessionScoutPreview` | Tier visualization, guess connections |
+| **3. Note** | Map Building | Q_P, Q_M | `ConceptMapBuilder` | Build concept map, validate guesses |
+| **4. Study** | Deep Dive | Q_P, Q_M | `MapReconstructionTest` | SHAPE content, reconstruction |
+| **5. Apply** | Synthesis + Flow | Q_f | `MasteryChallenge` | Boss battle + optional speed drills |
+
+**Key Types:**
+- `TierType = 'foundation' | 'keystone' | 'utility'`
+- `SensaPhase = 'see' | 'explore' | 'note' | 'study' | 'apply' | 'complete'`
+- `EquationMetadata` - AI-generated quality baselines
 
 ---
 

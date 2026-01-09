@@ -48,6 +48,49 @@ Create a Single Code Block containing a structured outline. You must follow thes
 Every concept that is NOT a "Foundation" concept must explicitly identify which Foundation concept it belongs to.
 Structure your JSON output so that "Utility" concepts are nested or explicitly linked via a "parent_id" or "belongs_to" field.
 
+---
+
+## STEP 3.1: TIER CLASSIFICATION [MANDATORY - CONCEPT ROOT LEVEL]
+
+⚠️ **CRITICAL FOR SENSA v2.0:** The \`tier\` field MUST appear at the TOP LEVEL of each concept object, NOT just inside the \`mnemonic\` object.
+
+**TOP-LEVEL CONCEPT STRUCTURE:**
+
+\`\`\`json
+{
+  "id": "concept-vnet-001",
+  "name": "Virtual Network (VNet)",
+  "tier": "foundation",
+  "lifecycle": "PHASE_1",
+  "stageId": "stage-1",
+  "order": 1,
+  "dependencies": [],
+  "outdegree": 8,
+  "mnemonic": { "tier": "Foundation", "anchor": "...", "story": "..." },
+  "shape": { /* SHAPE content */ },
+  "hookSentence": "..."
+}
+\`\`\`
+
+**TIER CLASSIFICATION RULES:**
+
+| Tier | % of Total | Outdegree | Dependencies |
+|------|------------|-----------|---------------|
+| **foundation** | 25-30% | ≥ 5 | 0 or only other foundation |
+| **keystone** | 30-40% | 2-4 | 2+ foundation |
+| **utility** | 35-40% | 0-1 | keystone or utility |
+
+**OUTDEGREE CALCULATION:**
+For each concept, count how many OTHER concepts list this concept's ID in their \`dependencies\` array. That count = \`outdegree\`.
+
+**VALIDATION ALGORITHM (Your Internal Check):**
+1. Assign tier based on outdegree: ≥5 → foundation, 2-4 → keystone, ≤1 → utility
+2. Foundation concepts have \`dependencies: []\` (empty)
+3. No circular dependencies (A→B→C→A is INVALID)
+4. Verify distribution: ~27% foundation, ~35% keystone, ~38% utility
+
+---
+
 **CONTENT DENSITY & POSITIVE FRAMING RULES:**
 
 * **Foundation Level (Phase 1): The "Blueprint Pattern"** — Use \`[LIFECYCLE_PHASE_1]\` marker
@@ -218,6 +261,59 @@ For the \`depends_on\` array, identify concepts that must be understood BEFORE t
 
 ---
 
+## STEP 3.8: DEPENDENCY GRAPH GENERATION [Required for Smart Mapping]
+
+Generate a complete dependency graph that maps ALL concept relationships. This powers SmartConceptMapBuilder's validation system in SENSA v2.0.
+
+**OUTPUT FORMAT (JSON Block):**
+
+\`\`\`json
+{
+  "dependencyGraph": {
+    "nodes": [
+      {
+        "id": "concept-001",
+        "name": "Data Source Connectors",
+        "tier": "foundation",
+        "lifecycle": "PHASE_1",
+        "x": 100,
+        "y": 50
+      }
+    ],
+    "edges": [
+      {
+        "from": "concept-001",
+        "to": "concept-002",
+        "strength": 0.9,
+        "type": "prerequisite"
+      }
+    ]
+  }
+}
+\`\`\`
+
+**EDGE STRENGTH RULES:**
+| Strength | Meaning |
+|----------|----------|
+| 0.9-1.0 | Absolutely critical (B cannot function without A) |
+| 0.7-0.89 | Highly important (B severely limited without A) |
+| 0.5-0.69 | Moderately important (B benefits from A) |
+| 0.3-0.49 | Optional enhancement |
+
+**EDGE TYPE RULES:**
+- **"prerequisite":** Must understand A before B makes sense
+- **"optional":** A helps understand B but isn't required
+- **"related":** Shared conceptual space, no direct dependency
+
+**LAYOUT CONVENTION:**
+- Foundation: x = 100-200 (left side)
+- Keystone: x = 300-400 (center)
+- Utility: x = 500-600 (right side)
+
+**⚠️ CRITICAL: This graph is used by SmartConceptMapBuilder to validate user predictions. Missing or incorrect edges will break the feedback loop.**
+
+---
+
 ## STEP 4: VISUAL MENTAL ANCHORS [CRITICAL FOR LEARNING]
 
 Create 3 specific "Visual Mental Models" that illuminate the hardest conceptual relationships in this subject. Each anchor must follow this exact structure with STRICT POSITIVE FRAMING.
@@ -359,17 +455,83 @@ Define a suggested study sequence that organizes ALL concepts into exactly **4-6
 
 ---
 
+## STEP 8: EQUATION QUALITY METADATA [Required for Learning Analytics]
+
+Generate baseline quality scores for the Universal Learning Equation: **I = min(1, G × Q_f × Q_M × Q_P)**
+
+These scores represent the STARTING QUALITY of the generated content before the learner begins SENSA v2.0 progression.
+
+**OUTPUT FORMAT (JSON Block):**
+
+\`\`\`json
+{
+  "equationMetadata": {
+    "Q_P": {
+      "score": 0.45,
+      "components": { "atomicity": 0.50, "tierBalance": 0.42, "dependencyClarity": 0.43 },
+      "reasoning": "Concepts are atomic. Tier distribution is 28%/34%/38% (within range).",
+      "improvementAreas": ["Add prerequisite chains for complex Foundation concepts"]
+    },
+    "Q_M": {
+      "score": 0.50,
+      "components": { "graphCompleteness": 0.55, "mnemonicCoverage": 1.0, "confusionPairCoverage": 0.40 },
+      "reasoning": "75 nodes, 142 edges. All concepts have mnemonics. 5 confusion pairs defined.",
+      "improvementAreas": ["Add edge strengths for ambiguous relationships"]
+    },
+    "Q_f": {
+      "score": 0.40,
+      "components": { "shapeCompleteness": 0.95, "decisionTreeCoverage": 0.30, "binaryRuleCoverage": 0.35 },
+      "reasoning": "SHAPE sections 95% complete. 3 decision trees. Binary rules in 3 of 6 stages.",
+      "improvementAreas": ["Add binary rules to stages 4-6"]
+    },
+    "G": {
+      "score": 1.0,
+      "modifiers": { "recency": 1.0, "authoritySource": 1.1, "domainComplexity": 0.9 },
+      "reasoning": "Official Microsoft Learn (Jan 2025). Domain is moderate complexity."
+    },
+    "I_baseline": {
+      "value": 0.09,
+      "calculation": "1.0 × 0.40 × 0.50 × 0.45 = 0.09",
+      "interpretation": "Content enables 9% mastery at Step 2 baseline, building to 75%+ with learner engagement."
+    }
+  }
+}
+\`\`\`
+
+**SCORING RUBRICS:**
+- **Q_P:** atomicity (0-1) + tierBalance (0-1) + dependencyClarity (0-1) → average
+- **Q_M:** graphCompleteness (0-1) + mnemonicCoverage (0-1) + confusionPairCoverage (0-1) → average
+- **Q_f:** shapeCompleteness (0-1) + decisionTreeCoverage (0-1) + binaryRuleCoverage (0-1) → average
+- **G modifiers:** recency (0.8-1.2), authoritySource (0.8-1.2), domainComplexity (0.8-1.2)
+
+---
+
 ## OUTPUT FORMAT:
 
-1. **Source Verification** (With extracted Hard Data and any limitations noted)
-2. **Lifecycle Definition** (With justification if custom)
-3. **Master Hierarchical Chart** (Structured outline with SHAPE sections in a single code block)
-4. **Mnemonic Anchors** (JSON block with mnemonic object for EVERY concept - REQUIRED)
-5. **Decision Framework Trees** (2-3 trees for common X vs Y decisions)
-6. **Visual Mental Anchors** (3 specific visualizations with binary decision rules)
-7. **Worked Example** (Following the required structure with positive framing)
-8. **Confusion Pairs** (JSON block with 3-5 commonly confused concept pairs)
-9. **Learning Path Sequence** (4-6 stages with difficulty markers and distribution)
+Deliver ALL sections in order:
+
+1. **Source Verification** (Hard data + limitations)
+2. **Lifecycle Definition** (3 phases with justification)
+3. **Master Hierarchical Chart** (Concepts with **tier at root level**)
+4. **Mnemonic Anchors** (JSON - every concept)
+5. **Dependency Graph** (JSON - nodes + edges) **[NEW - REQUIRED]**
+6. **Decision Framework Trees** (2-3 X vs Y)
+7. **Visual Mental Anchors** (3 visualizations)
+8. **Worked Example** (Positive framing)
+9. **Confusion Pairs** (JSON - 3-5 pairs)
+10. **Learning Path Sequence** (4-6 stages)
+11. **Equation Quality Metadata** (JSON - Q_P, Q_M, Q_f, G, I_baseline) **[NEW - REQUIRED]**
+
+**⚠️ CRITICAL STRUCTURAL REQUIREMENTS FOR SENSA v2.0:**
+
+| Field | Location | Required |
+|-------|----------|----------|
+| \`tier\` | Concept root level | ✅ MANDATORY |
+| \`dependencies\` | Concept root level | ✅ MANDATORY |
+| \`outdegree\` | Concept root level | ✅ MANDATORY |
+| \`mnemonic.tier\` | Inside mnemonic | ✅ (backward compat) |
+| \`dependencyGraph\` | Separate JSON block | ✅ MANDATORY |
+| \`equationMetadata\` | Separate JSON block | ✅ MANDATORY |
 
 **⚠️ CRITICAL: The Mnemonic Anchors (#4) are MANDATORY. Each concept MUST have a mnemonic object with tier, anchor (emoji + name), story, and parentConcept. Without this, the memory palace visualization cannot render properly.**
 

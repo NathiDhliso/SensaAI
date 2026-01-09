@@ -2,6 +2,7 @@
 import { parseGeneratedContent } from '@/lib/content-adapter';
 import type { ParsedGeneratedContent, ParsedConfusionPair } from '@/lib/content-adapter/types';
 import type { SavedResult } from '@/lib/storage/types';
+import type { EquationMetadata } from '@/lib/types/sensa-flow.types';
 
 /** Tier distribution from system prompt STEP 3.7 */
 export interface TierDistribution {
@@ -54,6 +55,8 @@ export interface SystemPromptMetrics {
         phase2: string;
         phase3: string;
     } | null;
+    /** SENSA v2.0: Equation quality metadata from AI */
+    equationMetadata: EquationMetadata | null;
 }
 
 export interface TreePacket {
@@ -142,7 +145,7 @@ export function analyzeContentQuality(result: SavedResult): ContentAnalytics {
     if (cognitiveLoadScore > 8) {
         recommendations.push("Reduce density: Concepts are packed too tightly. Breaks needed.");
     }
-    
+
     // System prompt-specific recommendations
     if (systemPromptMetrics.shapeCoverage.percentage < 50) {
         recommendations.push("Add SHAPE sections: Micro-learning content is incomplete.");
@@ -156,7 +159,7 @@ export function analyzeContentQuality(result: SavedResult): ContentAnalytics {
     if (!systemPromptMetrics.decisionFrameworks.available) {
         recommendations.push("Add decision trees: 'When X vs Y?' frameworks aid application.");
     }
-    
+
     if (recommendations.length === 0) {
         recommendations.push("Ready to learn! Content looks healthy.");
     }
@@ -233,7 +236,7 @@ function analyzeSystemPromptElements(
                     concept.shape.eliminationLogic
                 ];
                 const filledFields = shapeFields.filter(Boolean).length;
-                
+
                 if (filledFields === 5) {
                     shapeComplete++;
                 } else if (filledFields > 0) {
@@ -267,6 +270,13 @@ function analyzeSystemPromptElements(
     // Lifecycle phases (STEP 2)
     const lifecyclePhases = parsedData?.domainAnalysis?.lifecycle || null;
 
+    // SENSA v2.0: Equation Metadata (STEP 8)
+    // Create equation metadata from content analysis (AI equationMetadata will be added to parser later)
+    const equationMetadata: EquationMetadata = createDefaultEquationMetadata(
+        tierDistribution,
+        { complete: shapeComplete, partial: shapePartial, missing: shapeMissing, percentage: totalConcepts > 0 ? Math.round((shapeComplete / totalConcepts) * 100) : 0 }
+    );
+
     return {
         tierDistribution,
         shapeCoverage: {
@@ -285,7 +295,81 @@ function analyzeSystemPromptElements(
             available: hasDecisionTrees,
             treeCount
         },
-        lifecyclePhases
+        lifecyclePhases,
+        equationMetadata
+    };
+}
+
+/**
+ * Create default equation metadata when AI doesn't provide it
+ */
+function createDefaultEquationMetadata(
+    tierDist: TierDistribution,
+    shapeCov: ShapeCoverage
+): EquationMetadata {
+    // Calculate Q_P from tier balance
+    const tierBalance = tierDist.total > 0
+        ? (tierDist.foundation + tierDist.keystone) / tierDist.total
+        : 0.5;
+    const Q_P_value = Math.min(1, tierBalance * 0.8 + 0.2);
+
+    // Calculate Q_M from shape and mnemonic coverage
+    const Q_M_value = Math.min(1, (shapeCov.percentage / 100) * 0.7 + 0.3);
+
+    // Default Q_f (will be determined at runtime)
+    const Q_f_value = 0.5;
+
+    // Default G (governance)
+    const G_value = 1.0;
+
+    // Calculate I baseline
+    const I_baseline_value = G_value * Q_f_value * Q_M_value * Q_P_value;
+
+    return {
+        Q_P: {
+            score: Q_P_value,
+            components: {
+                atomicity: tierBalance,
+                tierBalance: tierBalance,
+                dependencyClarity: 0.5
+            },
+            reasoning: `Tier balance: ${Math.round(tierBalance * 100)}%`,
+            improvementAreas: tierBalance < 0.6 ? ['Add more foundation concepts'] : []
+        },
+        Q_M: {
+            score: Q_M_value,
+            components: {
+                graphCompleteness: 0.5,
+                mnemonicCoverage: shapeCov.percentage / 100,
+                confusionPairCoverage: 0.5
+            },
+            reasoning: `SHAPE coverage: ${shapeCov.percentage}%`,
+            improvementAreas: shapeCov.percentage < 50 ? ['Add more SHAPE content'] : []
+        },
+        Q_f: {
+            score: Q_f_value,
+            components: {
+                shapeCompleteness: shapeCov.percentage / 100,
+                decisionTreeCoverage: 0.5,
+                binaryRuleCoverage: 0.5
+            },
+            reasoning: 'To be determined at synthesis',
+            improvementAreas: []
+        },
+        G: {
+            score: G_value,
+            modifiers: {
+                recency: 1.0,
+                authoritySource: 1.0,
+                domainComplexity: 1.0
+            },
+            reasoning: 'Default governance'
+        },
+        I_baseline: {
+            value: I_baseline_value,
+            calculation: `${G_value.toFixed(2)} × ${Q_f_value.toFixed(2)} × ${Q_M_value.toFixed(2)} × ${Q_P_value.toFixed(2)}`,
+            interpretation: I_baseline_value >= 0.75 ? 'Ready for mastery' : 'Room for improvement'
+        }
     };
 }
 
@@ -300,7 +384,7 @@ function buildCoverageMap(
 ): TreePacket[] {
     const coverageMap: TreePacket[] = [];
     const allConcepts = result.pass1Data.concepts; // Always use the full concept list
-    
+
     // Create a map of concept name to parsed data for tier info
     const conceptDataMap = new Map<string, { tier?: string }>();
     if (parsedData?.concepts) {
@@ -372,9 +456,9 @@ function buildCoverageMap(
     });
 
     // If we have meaningful tier distribution, use it
-    const hasTierData = tierGroups['Foundation'].length > 0 || 
-                        tierGroups['Keystone'].length > 0 || 
-                        tierGroups['Utility'].length > 0;
+    const hasTierData = tierGroups['Foundation'].length > 0 ||
+        tierGroups['Keystone'].length > 0 ||
+        tierGroups['Utility'].length > 0;
 
     if (hasTierData) {
         const tierColors = {

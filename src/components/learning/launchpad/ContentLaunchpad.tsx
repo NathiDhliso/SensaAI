@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     Activity,
     Clock,
-    Target,
     ArrowLeft,
     Play,
     AlertCircle,
@@ -12,7 +11,8 @@ import {
     LayoutGrid,
     Layers,
     HeartPulse,
-    GitBranch
+    GitBranch,
+    Brain
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -24,7 +24,8 @@ import { ScoreCard } from './ScoreCard';
 import { CoverageTreemap } from './CoverageTreemap';
 import { TierDistributionChart } from './TierDistributionChart';
 import { ContentHealthIndicators } from './ContentHealthIndicators';
-import { LifecyclePhaseDisplay } from './LifecyclePhaseDisplay';
+import { EquationMetadataCard } from './EquationMetadataCard';
+import { FlowProgressBar } from '@/components/ui/FlowProgressBar';
 import styles from './ContentLaunchpad.module.css';
 
 export default function ContentLaunchpad() {
@@ -127,22 +128,23 @@ export default function ContentLaunchpad() {
                         <ArrowLeft size={16} /> Library
                     </button>
                     <h1>{result.subject}</h1>
-                    {/* Lifecycle Phases - STEP 2 from System Prompt */}
-                    {systemPromptMetrics.lifecyclePhases && (
-                        <LifecyclePhaseDisplay
-                            phases={systemPromptMetrics.lifecyclePhases}
-                            delay={0.05}
-                        />
-                    )}
+                    {/* SENSA v2.0: 5-Step Flow Progress */}
+                    <FlowProgressBar
+                        currentPhase="see"
+                        completedPhases={[]}
+                        compact={true}
+                    />
                 </div>
             </header>
 
-            {/* SCORECARDS */}
+            {/* SCORECARDS - SENSA v2.0 Equation-centric */}
             <div className={styles.scoreRow}>
                 <ScoreCard
-                    title="Readiness Score"
-                    value={`${metrics.qualityScore}%`}
-                    icon={Target}
+                    title="Mastery Index"
+                    value={`${systemPromptMetrics.equationMetadata?.I_baseline
+                        ? Math.round(systemPromptMetrics.equationMetadata.I_baseline.value * 100)
+                        : metrics.qualityScore}%`}
+                    icon={Brain}
                     status={metrics.qualityScore > 80 ? 'good' : metrics.qualityScore > 60 ? 'neutral' : 'warning'}
                     delay={0.1}
                 />
@@ -203,6 +205,17 @@ export default function ContentLaunchpad() {
 
                 {/* RIGHT COLUMN */}
                 <div className={styles.rightColumn}>
+                    {/* SENSA v2.0: EQUATION METADATA CARD */}
+                    {systemPromptMetrics.equationMetadata && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.25, duration: 0.4 }}
+                        >
+                            <EquationMetadataCard metadata={systemPromptMetrics.equationMetadata} />
+                        </motion.div>
+                    )}
+
                     {/* CONTENT HEALTH - System Prompt Elements */}
                     <motion.div
                         className={styles.healthSection}

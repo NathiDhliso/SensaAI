@@ -2,7 +2,8 @@
  * Velocity Learning Page
  * 
  * Main entry point for the SensaAI Learning Velocity Engine.
- * Orchestrates the Silver Bullet Learning Cycle using the strict useLearningFlow state machine.
+ * Orchestrates the SENSA v2.0 5-Step Flow with Universal Learning Equation tracking.
+ * I = min(h, G × Q_f × Q_M × Q_P)
  */
 
 import { useState, useEffect } from 'react';
@@ -11,8 +12,12 @@ import { AlertCircle, Brain } from 'lucide-react';
 
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/hooks/useLearningFlow';
+import { useSensaFlow } from '@/hooks/useSensaFlow';
 
-import VelocityDashboard from '@/components/learning/VelocityDashboard';
+// SENSA v2.0: MasteryDashboard will be used in COMPLETE phase - future implementation
+// import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
+import { EquationTracker } from '@/components/ui/EquationTracker';
+import { FlowProgressBar } from '@/components/ui/FlowProgressBar';
 import MicroLearningLoopController from '@/components/learning/MicroLearningLoopController';
 import DiagnosticLaunchSystem from '@/components/learning/DiagnosticLaunchSystem';
 import SessionStartModal from '@/components/learning/SessionStartModal';
@@ -44,13 +49,15 @@ export default function VelocityLearning() {
         markSessionMastered
     } = useLearningStore();
 
-    // 2. The State Machine Hook
+    // 2. The State Machine Hook (legacy - used for phase detection)
     const {
         currentPhase,
         activeConcept,
-        showDashboard,
         showStartModal
     } = useLearningFlow();
+
+    // 2b. SENSA v2.0 Flow State Machine
+    const sensaFlow = useSensaFlow();
 
     // 3. Local UI State
     const [lockedIn, setLockedIn] = useState(false);
@@ -155,19 +162,23 @@ export default function VelocityLearning() {
             <main className={styles.content}>
                 <div className={styles.mainArea}>
 
-                    {/* Dashboard: Visible in Meta Phases */}
-                    <AnimatePresence>
-                        {showDashboard && (
-                            <motion.div exit={{ opacity: 0, height: 0 }} className={styles.dashboardContainer}>
-                                <VelocityDashboard
-                                    sessionConceptsCompleted={currentSession.progress.conceptsLearnedToday}
-                                    sessionStartTime={currentSession.progress.sessionStartTime ? new Date(currentSession.progress.sessionStartTime) : undefined}
-                                    cognitiveLoad={cognitiveLoad}
-                                    onActionSelect={() => { }}
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    {/* SENSA v2.0: Equation Tracker - Always visible during learning */}
+                    <EquationTracker
+                        G={sensaFlow.G}
+                        Q_P={sensaFlow.Q_P}
+                        Q_M={sensaFlow.Q_M}
+                        Q_f={sensaFlow.Q_f}
+                        I={sensaFlow.I}
+                        weakestVariable={sensaFlow.weakestVariable.variable}
+                        compact={true}
+                    />
+
+                    {/* SENSA v2.0: Flow Progress Bar */}
+                    <FlowProgressBar
+                        currentPhase={sensaFlow.phase}
+                        completedPhases={sensaFlow.completedSteps}
+                        compact={true}
+                    />
 
                     {/* Main Content Switcher */}
                     <AnimatePresence mode="wait">
@@ -220,8 +231,11 @@ export default function VelocityLearning() {
                     >
                         <SessionScoutPreview
                             concepts={currentSession!.concepts}
-                            initialPhase={currentPhase === 'PREVIEW' ? 'preview' : 'scout'}
-                            onComplete={handleScoutComplete}
+                            onComplete={() => {
+                                handleScoutComplete();
+                                // Update SENSA flow
+                                sensaFlow.completeExplore(new Map());
+                            }}
                         />
                     </motion.div>
                 );
@@ -237,7 +251,11 @@ export default function VelocityLearning() {
                     >
                         <ConceptMapBuilder
                             concepts={currentSession!.concepts}
-                            onComplete={(data) => markSessionMapBuilt(data)}
+                            onComplete={(data) => {
+                                markSessionMapBuilt(data);
+                                // SENSA v2.0: Update equation (Note phase)
+                                sensaFlow.completeNote(data);
+                            }}
                         />
                     </motion.div>
                 );
@@ -293,7 +311,11 @@ export default function VelocityLearning() {
                         <MapReconstructionTest
                             concepts={currentSession!.concepts}
                             originalMap={useLearningStore.getState().studySession?.conceptMap || null}
-                            onComplete={(passed) => markSessionMapReconstructed(passed)}
+                            onComplete={(passed) => {
+                                markSessionMapReconstructed(passed);
+                                // SENSA v2.0: Update equation (Study phase)
+                                sensaFlow.completeStudy(passed ? 0.8 : 0.5);
+                            }}
                         />
                     </motion.div>
                 );
@@ -308,7 +330,15 @@ export default function VelocityLearning() {
                     >
                         <MasteryChallenge
                             concepts={currentSession!.concepts}
-                            onComplete={(_passed) => markSessionMastered()}
+                            onComplete={(result) => {
+                                markSessionMastered();
+                                // SENSA v2.0: Update equation (Apply phase)
+                                sensaFlow.completeApply(
+                                    result.synthesisScore,
+                                    result.flowModeCompleted,
+                                    result.Q_f
+                                );
+                            }}
                         />
                     </motion.div>
                 );

@@ -132,6 +132,28 @@ export interface LearningConcept {
   order: number;
   icon?: string;
 
+  // ========== SENSA v2.0 TIER SYSTEM (REQUIRED) ==========
+  /**
+   * Top-level tier classification for progression control.
+   * - foundation: Core concepts (outdegree ≥ 5)
+   * - keystone: Connecting concepts (outdegree 2-4)
+   * - utility: Polish/optimization (outdegree ≤ 1)
+   */
+  tier: 'foundation' | 'keystone' | 'utility';
+
+  /**
+   * Array of concept IDs this concept depends on.
+   * Foundation concepts typically have empty arrays.
+   */
+  dependencies: string[];
+
+  /**
+   * Count of concepts that depend on THIS concept.
+   * Calculated from other concepts' dependencies arrays.
+   */
+  outdegree: number;
+  // ========== END SENSA v2.0 ==========
+
   // Core Content
   hookSentence?: string;
   whyYouNeed?: string;

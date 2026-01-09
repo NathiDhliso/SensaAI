@@ -26,6 +26,7 @@ import {
     X
 } from 'lucide-react';
 import type { LearningConcept, ConceptMapData } from '@/lib/types/learning';
+import type { DependencyGraph, ValidationResult } from '@/lib/types/sensa-flow.types';
 import {
     suggestConnections,
     detectGaps,
@@ -52,11 +53,16 @@ const LABEL_PRESETS = [
 
 interface ConceptMapBuilderProps {
     concepts: LearningConcept[];
-    onComplete?: (data: ConceptMapData) => void;
+    onComplete?: (data: ConceptMapData, validation?: ValidationResult) => void;
     initialData?: ConceptMapData | null;
     readOnly?: boolean;
     /** Optional callback to exit/go back */
     onBack?: () => void;
+    // ========== SENSA v2.0 ==========
+    /** Optional dependency graph from AI for validation */
+    dependencyGraph?: DependencyGraph;
+    /** User guesses from Step 2: Explore */
+    userGuesses?: Map<string, string>;
 }
 
 interface MapNode {
@@ -89,8 +95,14 @@ export default function ConceptMapBuilder({
     onComplete,
     initialData,
     readOnly = false,
-    onBack
+    onBack,
+    dependencyGraph,
+    userGuesses
 }: ConceptMapBuilderProps) {
+    // ========== SENSA v2.0 Phase State ==========
+    const [mapPhase, setMapPhase] = useState<'build' | 'validate' | 'rebuild'>('build');
+    const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+
     // Core State - initialize nodes with conceptName fallback for backward compatibility
     const [nodes, setNodes] = useState<MapNode[]>(() => {
         if (!initialData?.nodes) return [];
@@ -431,6 +443,82 @@ export default function ConceptMapBuilder({
     };
 
     // =========================================================================
+    // SENSA v2.0: GUESS VALIDATION
+    // =========================================================================
+
+    const validateGuesses = useCallback(() => {
+        if (!userGuesses || !dependencyGraph || userGuesses.size === 0) {
+            return null;
+        }
+
+        const correctPredictions: string[] = [];
+        const incorrectPredictions: Array<{
+            conceptId: string;
+            userGuess: string;
+            actualConnection: string;
+        }> = [];
+
+        // Find all actual edges from foundation → keystone
+        const edgeMap = new Map<string, string[]>();
+        for (const edge of dependencyGraph.edges) {
+            const existing = edgeMap.get(edge.from) || [];
+            existing.push(edge.to);
+            edgeMap.set(edge.from, existing);
+        }
+
+        // Check each user guess
+        userGuesses.forEach((guessedKeystoneId, foundationId) => {
+            const actualEdges = edgeMap.get(foundationId) || [];
+            if (actualEdges.includes(guessedKeystoneId)) {
+                correctPredictions.push(foundationId);
+            } else {
+                incorrectPredictions.push({
+                    conceptId: foundationId,
+                    userGuess: getConceptName(guessedKeystoneId),
+                    actualConnection: actualEdges.length > 0
+                        ? getConceptName(actualEdges[0])
+                        : 'No direct connection'
+                });
+            }
+        });
+
+        const guessAccuracy = (correctPredictions.length / userGuesses.size) * 100;
+
+        return {
+            guessAccuracy,
+            correctPredictions,
+            incorrectPredictions
+        };
+    }, [userGuesses, dependencyGraph, getConceptName]);
+
+    // Trigger validation when entering validate phase
+    useEffect(() => {
+        if (mapPhase === 'validate' && !validationResult) {
+            const result = validateGuesses();
+            setValidationResult(result);
+        }
+    }, [mapPhase, validationResult, validateGuesses]);
+
+    const handleFinishMap = useCallback(() => {
+        if (userGuesses && dependencyGraph) {
+            // Go to validation phase first
+            setMapPhase('validate');
+        } else {
+            // No validation needed, just complete
+            onComplete?.({ nodes, connections });
+        }
+    }, [userGuesses, dependencyGraph, nodes, connections, onComplete]);
+
+    const handleCompleteWithValidation = useCallback(() => {
+        onComplete?.({ nodes, connections }, validationResult || undefined);
+    }, [nodes, connections, onComplete, validationResult]);
+
+    const handleRebuild = useCallback(() => {
+        setMapPhase('rebuild');
+        setValidationResult(null);
+    }, []);
+
+    // =========================================================================
     // RENDER FUNCTIONS
     // =========================================================================
 
@@ -601,6 +689,65 @@ export default function ConceptMapBuilder({
     };
 
     // =========================================================================
+    // SENSA v2.0: VALIDATION PANEL
+    // =========================================================================
+
+    const renderValidationPanel = () => {
+        if (mapPhase !== 'validate' || !validationResult) return null;
+
+        return (
+            <motion.div
+                className={styles.validationPanel}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+            >
+                <div className={styles.validationHeader}>
+                    <Sparkles size={20} />
+                    <h3>Prediction Check</h3>
+                </div>
+
+                <div className={styles.validationScore}>
+                    <span className={styles.scoreLabel}>Accuracy</span>
+                    <span className={styles.scoreValue}>
+                        {Math.round(validationResult.guessAccuracy)}%
+                    </span>
+                </div>
+
+                {validationResult.correctPredictions.length > 0 && (
+                    <div className={styles.validationCorrect}>
+                        <Check size={14} />
+                        <span>{validationResult.correctPredictions.length} correct predictions!</span>
+                    </div>
+                )}
+
+                {validationResult.incorrectPredictions.length > 0 && (
+                    <div className={styles.validationIncorrect}>
+                        <AlertTriangle size={14} />
+                        <div>
+                            <strong>{validationResult.incorrectPredictions.length} to review:</strong>
+                            {validationResult.incorrectPredictions.slice(0, 3).map((err, idx) => (
+                                <div key={idx} className={styles.incorrectItem}>
+                                    • You guessed &quot;{err.userGuess}&quot;, actual: &quot;{err.actualConnection}&quot;
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <div className={styles.validationActions}>
+                    <button onClick={handleRebuild} className={styles.rebuildButton}>
+                        Rebuild Map
+                    </button>
+                    <button onClick={handleCompleteWithValidation} className={styles.continueButton}>
+                        Continue → Study
+                        <ArrowRight size={16} />
+                    </button>
+                </div>
+            </motion.div>
+        );
+    };
+
+    // =========================================================================
     // MAIN RENDER
     // =========================================================================
 
@@ -740,17 +887,20 @@ export default function ConceptMapBuilder({
                 {!readOnly && renderAiPanel()}
 
                 {/* Complete Button */}
-                {!readOnly && nodes.length >= 2 && connections.length >= 1 && onComplete && (
+                {!readOnly && mapPhase === 'build' && nodes.length >= 2 && connections.length >= 1 && onComplete && (
                     <motion.button
                         className={styles.completeButton}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        onClick={() => onComplete({ nodes, connections })}
+                        onClick={handleFinishMap}
                     >
-                        Finished Map
+                        {userGuesses ? 'Check Predictions →' : 'Finished Map'}
                         <Check size={20} />
                     </motion.button>
                 )}
+
+                {/* Validation Panel */}
+                {renderValidationPanel()}
             </div>
         </div>
     );

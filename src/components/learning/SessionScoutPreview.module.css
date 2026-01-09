@@ -1009,3 +1009,341 @@
 .capitalize {
     text-transform: capitalize;
 }
+
+/* ============================================================================
+   SENSA v2.0: Tier Flow Visualization
+   ============================================================================ */
+
+.tierFlow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.tierColumn {
+    flex: 1;
+    min-width: 200px;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tierHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+}
+
+.tierHeader .tierLabel {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tierHeader .tierCount {
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+.tierFoundation {
+    background: linear-gradient(135deg, var(--color-foundation) 0%, color-mix(in srgb, var(--color-foundation) 80%, black) 100%);
+    color: white;
+}
+
+.tierKeystone {
+    background: linear-gradient(135deg, var(--color-keystone) 0%, color-mix(in srgb, var(--color-keystone) 80%, black) 100%);
+    color: white;
+}
+
+.tierUtility {
+    background: linear-gradient(135deg, var(--color-utility) 0%, color-mix(in srgb, var(--color-utility) 80%, black) 100%);
+    color: white;
+}
+
+.flowArrow {
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+    margin-top: 2.5rem;
+}
+
+.conceptChip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    background: var(--color-surface-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.conceptChip:hover {
+    border-color: var(--color-border-hover);
+    transform: translateY(-1px);
+}
+
+.chipEmoji {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.chipName {
+    flex: 1;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.foundationChip {
+    border-left: 3px solid var(--color-foundation);
+}
+
+.keystoneChip {
+    border-left: 3px solid var(--color-keystone);
+}
+
+.utilityChip {
+    border-left: 3px solid var(--color-utility);
+}
+
+.moreChip {
+    padding: 0.5rem 0.875rem;
+    background: var(--color-surface-subtle);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    color: var(--color-text-tertiary);
+    text-align: center;
+}
+
+.tierInsight {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-primary-transparent);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+}
+
+.tierInsight svg {
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+/* ============================================================================
+   SENSA v2.0: Prediction Grid (Step 2)
+   ============================================================================ */
+
+.predictionGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.predictionRow {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.foundationBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--color-foundation);
+    color: white;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    min-width: 160px;
+}
+
+.badgeEmoji {
+    font-size: 1rem;
+}
+
+.predictionArrow {
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+}
+
+.keystoneSelect {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.625rem 1rem;
+    background: var(--color-surface-base);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.keystoneSelect:hover {
+    border-color: var(--color-border-hover);
+}
+
+.keystoneSelect:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.keystoneSelect.selected {
+    border-color: var(--color-success);
+    background: var(--color-success-subtle);
+}
+
+.guessCheck {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-success);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.guessProgress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.guessProgressBar {
+    flex: 1;
+    height: 6px;
+    background: var(--color-surface-subtle);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.guessProgressFill {
+    height: 100%;
+    background: var(--color-success);
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+.guessCount {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ============================================================================
+   SENSA v2.0: Step Navigation
+   ============================================================================ */
+
+.stepNav {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: var(--color-surface-subtle);
+    border-radius: var(--radius-md);
+    margin: 0 1.5rem;
+}
+
+.stepNavItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    transition: all 0.2s ease;
+    flex: 1;
+    justify-content: center;
+}
+
+.stepNavItem.active {
+    background: var(--color-surface-base);
+    color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.stepNavItem.complete {
+    color: var(--color-success);
+}
+
+.stepNavItem.complete::after {
+    content: '✓';
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}
+
+/* ============================================================================
+   SENSA v2.0: Spin Animation
+   ============================================================================ */
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   Responsive: Compact Mode for Tier Flow
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .tierFlow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tierColumn {
+        max-width: none;
+    }
+
+    .flowArrow {
+        transform: rotate(90deg);
+        margin: 0 auto;
+    }
+
+    .predictionRow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .foundationBadge {
+        min-width: auto;
+    }
+
+    .keystoneSelect {
+        min-width: auto;
+    }
+}
