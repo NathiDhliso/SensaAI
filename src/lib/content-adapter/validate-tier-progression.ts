@@ -11,6 +11,16 @@ import type { LearningConcept } from '@/lib/types/learning';
 import type { TierType, TierDistribution } from '@/lib/types/sensa-flow.types';
 
 // ============================================================================
+// Configuration
+// ============================================================================
+
+export const TIER_CONFIG = {
+    foundation: { color: '#6366f1', label: 'Foundation' }, // Indigo
+    keystone: { color: '#f59e0b', label: 'Keystone' },     // Amber
+    utility: { color: '#64748b', label: 'Utility' }        // Slate
+} as const;
+
+// ============================================================================
 // Tier Access Control
 // ============================================================================
 

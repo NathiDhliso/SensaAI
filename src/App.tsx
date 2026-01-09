@@ -1,9 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
-import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
 
-import { usePersonalizationStore } from './store/personalization-store';
 import { useBionicReading } from './hooks/useBionicReading';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -29,24 +28,20 @@ function LoadingFallback() {
   );
 }
 
-// Redirect component for legacy /results/:id routes
-function ResultsRedirect() {
-  const { id } = useParams<{ id: string }>();
-  return <Navigate to={`/study/${id}`} replace />;
-}
+
 
 function App() {
-  const bionicReading = usePersonalizationStore(state => state.bionicReading);
+  // const bionicReading = usePersonalizationStore(state => state.bionicReading);
 
 
   // Apply bionic reading mode to document
-  useEffect(() => {
-    if (bionicReading) {
-      document.documentElement.setAttribute('data-bionic-reading', 'true');
-    } else {
-      document.documentElement.removeAttribute('data-bionic-reading');
-    }
-  }, [bionicReading]);
+  // useEffect(() => {
+  //   if (bionicReading) {
+  //     document.documentElement.setAttribute('data-bionic-reading', 'true');
+  //   } else {
+  //     document.documentElement.removeAttribute('data-bionic-reading');
+  //   }
+  // }, [bionicReading]);
 
   // Apply bionic reading text processing
   useBionicReading();
@@ -70,11 +65,7 @@ function App() {
             <ProtectedRoute><Generate /></ProtectedRoute>
           } />
 
-          {/*
-           * Results page - now redirects to Study Command Center
-           * Results.tsx is kept for backward compatibility but route redirects
-           */}
-          <Route path="/results/:id" element={<ResultsRedirect />} />
+
 
           {/* ═══════════════════════════════════════════════════════════════
               LEARNING FLOW - Unified Study Command Center

@@ -16,13 +16,13 @@ import {
     Trophy,
     Clock,
     CheckCircle2,
-    AlertTriangle,
     Zap,
     ArrowRight,
     SkipForward,
     Target,
     Timer
 } from 'lucide-react';
+
 import type { LearningConcept } from '@/lib/types/learning';
 import type { MasteryChallengeResult } from '@/lib/types/sensa-flow.types';
 import { UI_TIMINGS } from '@/constants/ui-constants';
@@ -30,7 +30,7 @@ import { DEFAULT_MASTERY_SCENARIO } from '@/constants/learning-content';
 import { usePauseGlobalTimer } from '@/hooks';
 import styles from './MasteryChallenge.module.css';
 
-// ============================================================================
+// ============================================================================ 
 // Types
 // ============================================================================
 
@@ -48,7 +48,7 @@ interface FlowDrill {
     timeLimit: number; // seconds
 }
 
-// ============================================================================
+// ============================================================================ 
 // Constants
 // ============================================================================
 
@@ -56,7 +56,7 @@ const FLOW_MODE_THRESHOLD = 0.7; // 70% synthesis score unlocks Flow Mode
 const FLOW_DRILL_TIME = 15; // seconds per drill
 const FLOW_DRILL_COUNT = 5;
 
-// ============================================================================
+// ============================================================================ 
 // Component
 // ============================================================================
 
@@ -68,7 +68,7 @@ export default function MasteryChallenge({
     const [mode, setMode] = useState<ChallengeMode>('intro');
 
     // Synthesis state
-    const [synthesisTimeRemaining, setSynthesisTimeRemaining] = useState(UI_TIMINGS.MASTERY_TIME_SECONDS);
+    const [synthesisTimeRemaining, setSynthesisTimeRemaining] = useState<number>(UI_TIMINGS.MASTERY_TIME_SECONDS);
     const [userResponse, setUserResponse] = useState('');
     const [synthesisScore, setSynthesisScore] = useState(0);
 

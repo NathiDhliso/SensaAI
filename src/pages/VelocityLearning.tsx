@@ -24,7 +24,6 @@ import SessionStartModal from '@/components/learning/SessionStartModal';
 import VelocityLockInGate from '@/components/learning/VelocityLockInGate';
 import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
 import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
-import MapReconstructionTest from '@/components/learning/MapReconstructionTest';
 import MasteryChallenge from '@/components/learning/MasteryChallenge';
 
 import type { SensaAILearningConcept } from '@/lib/content-adapter/transformer';
@@ -45,7 +44,6 @@ export default function VelocityLearning() {
         markSessionScouted,
         markSessionPreviewed,
         markSessionMapBuilt,
-        markSessionMapReconstructed,
         markSessionMastered
     } = useLearningStore();
 
@@ -300,25 +298,7 @@ export default function VelocityLearning() {
                     </motion.div>
                 );
 
-            case 'RECONSTRUCT':
-                return (
-                    <motion.div
-                        key="reconstruction"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={styles.fullWidthContainer}
-                    >
-                        <MapReconstructionTest
-                            concepts={currentSession!.concepts}
-                            originalMap={useLearningStore.getState().studySession?.conceptMap || null}
-                            onComplete={(passed) => {
-                                markSessionMapReconstructed(passed);
-                                // SENSA v2.0: Update equation (Study phase)
-                                sensaFlow.completeStudy(passed ? 0.8 : 0.5);
-                            }}
-                        />
-                    </motion.div>
-                );
+
 
             case 'MASTER':
                 return (

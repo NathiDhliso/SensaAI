@@ -40,6 +40,7 @@ interface SessionScoutPreviewProps {
     concepts: LearningConcept[];
     dependencyGraph?: DependencyGraph;
     onComplete: (guesses: Map<string, string>) => void;
+    initialPhase?: string;
 }
 
 const STEP_CONFIG = {

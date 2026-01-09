@@ -26,8 +26,7 @@ export { BlankSheetTest } from './BlankSheetTest';
 export type { BlankSheetTestProps, BlankSheetResult, TypingMetrics } from './BlankSheetTest';
 
 // SensaAI Learning Velocity Engine: Velocity Dashboard
-export { VelocityDashboard } from './VelocityDashboard';
-export type { VelocityMetrics, RetentionMetrics, OptimalAction, VelocityDashboardProps } from './VelocityDashboard';
+
 
 // SensaAI Learning Velocity Engine: Confusion Prevention - DEPRECATED/REMOVED
 // export { ConfusionPrevention, findConfusionPairs } from './ConfusionPrevention';

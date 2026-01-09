@@ -12,7 +12,6 @@ export type LearningPhase =
     | 'BUILD'           // Concept Mapping (ConceptMapBuilder)
     | 'DIAGNOSE'        // Diagnostic Assessment (DiagnosticLaunchSystem)
     | 'LEARN'           // Micro-Learning Loop (MicroLearningLoopController)
-    | 'RECONSTRUCT'     // Map Reconstruction (MapReconstructionTest)
     | 'MASTER'          // Mastery Challenge (MasteryChallenge)
     | 'COMPLETE';       // All caught up
 
@@ -116,11 +115,7 @@ export function useLearningFlow(): LearningFlow {
             return 'LEARN';
         }
 
-        // --- Level 6: Reconstruct & Master (Review) ---
-        // If no active concept (implied all complete or none selectable), checks map reconstruction
-        if (studySession.mapBuilt && !studySession.mapReconstructed) {
-            return 'RECONSTRUCT';
-        }
+
 
         if (studySession.mapReconstructed && !studySession.mastered) {
             return 'MASTER';

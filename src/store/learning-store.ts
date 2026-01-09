@@ -182,6 +182,10 @@ const createStudySession = (
   // SENSA Explore+
   previewed: false,
   // SENSA Phase 2: Note
+  mapBuilt: false,
+  conceptMap: null,
+  // SENSA Phase 3: Study
+  mapReconstructed: false,
   mastered: false,
   // Step 3: The Guess (Priming)
   predictions: {},

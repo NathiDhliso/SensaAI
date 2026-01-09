@@ -6,7 +6,6 @@
  */
 
 import { useEffect } from 'react';
-import { usePersonalizationStore } from '@/store/personalization-store';
 
 /**
  * Apply bionic reading formatting to a text node
@@ -106,7 +105,7 @@ function removeBionicFormatting(element: Element): void {
  * Hook to apply bionic reading globally
  */
 export function useBionicReading(): void {
-    const bionicReading = usePersonalizationStore(state => state.bionicReading);
+    const bionicReading = false; // Feature removed;
 
     useEffect(() => {
         const mainContent = document.getElementById('root');

@@ -14,14 +14,9 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
-  BookOpen,
-  Zap,
-  Eye,
-  BookOpenCheck,
   Volume2, VolumeX, Bot,
   Edit2
 } from 'lucide-react';
-import { SensaIcon } from '@/components/ui';
 import { useThemeStore, type Theme } from '@/store/theme-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
@@ -31,15 +26,7 @@ import { UI_TIMINGS } from '@/constants/ui-constants';
 import { getAllPersonas } from '@/lib/ai/coach';
 import styles from './Settings.module.css';
 
-const PROFILE_STYLES = [
-  { value: 'visual', label: 'Visual (Palace)', icon: <SensaIcon icon={Eye} variant="glow" />, desc: 'Diagrams, charts, and imagery' },
-  { value: 'text', label: 'Text (Velocity)', icon: <SensaIcon icon={BookOpen} variant="glow" />, desc: 'Structured text and lists' },
-] as const;
 
-const PROFILE_MODES = [
-  { value: 'burst', label: 'Burst (5m)', icon: <SensaIcon icon={Zap} variant="glow" />, desc: 'Short, intense sprints' },
-  { value: 'deep', label: 'Deep (25m)', icon: <SensaIcon icon={Brain} variant="glow" />, desc: 'Thorough, immersive sessions' },
-] as const;
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -55,8 +42,6 @@ export default function Settings() {
     setCoachVoiceEnabled,
     coachIntensity,
     setCoachIntensity,
-    bionicReading,
-    setBionicReading,
     resetOnboarding
   } = usePersonalizationStore();
   const personas = getAllPersonas();
@@ -68,8 +53,6 @@ export default function Settings() {
     clearSession,
     currentSession,
     getSession,
-    learningProfile,
-    setLearningProfile
   } = useLearningStore();
   const progress = currentSession?.progress;
   const customContent = getSession();
@@ -181,50 +164,12 @@ export default function Settings() {
               <h2 className={styles.sectionTitle}>Learning Profile</h2>
             </div>
 
-            {/* Visual vs Text */}
-            <div className={styles.settingRow}>
-              <div className={styles.settingInfo}>
-                <span className={styles.settingLabel}>Primary Style</span>
-                <span className={styles.settingDesc}>How do you prefer to learn?</span>
-              </div>
-              <div className={styles.optionGrid}>
-                {PROFILE_STYLES.map(({ value, label, icon, desc }) => (
-                  <button
-                    key={value}
-                    onClick={() => setLearningProfile({ style: value as 'visual' | 'text' })}
-                    className={`${styles.optionButton} ${learningProfile?.style === value ? styles.optionActive : ''}`}
-                    title={desc}
-                  >
-                    <span>{icon}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Burst vs Deep */}
-            <div className={styles.settingRow}>
-              <div className={styles.settingInfo}>
-                <span className={styles.settingLabel}>Focus Mode</span>
-                <span className={styles.settingDesc}>Short sprints or deep dives?</span>
-              </div>
-              <div className={styles.optionGrid}>
-                {PROFILE_MODES.map(({ value, label, icon, desc }) => (
-                  <button
-                    key={value}
-                    onClick={() => setLearningProfile({ mode: value as 'burst' | 'deep' })}
-                    className={`${styles.optionButton} ${learningProfile?.mode === value ? styles.optionActive : ''}`}
-                    title={desc}
-                  >
-                    <span>{icon}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+              Your learning profile is optimized for the Velocity Engine.
+            </p>
 
             {/* Additional Toggles */}
-            <div className={styles.togglesGrid} style={{ marginTop: '1.5rem' }}>
+            {/* <div className={styles.togglesGrid} style={{ marginTop: '1.5rem' }}>
               <button
                 onClick={() => setBionicReading(!bionicReading)}
                 className={`${styles.toggleButton} ${bionicReading ? styles.toggleActive : ''}`}
@@ -233,7 +178,7 @@ export default function Settings() {
                 <BookOpenCheck size={16} />
                 <span>Bionic Reading</span>
               </button>
-            </div>
+            </div> */}
 
             <button
               onClick={() => {
