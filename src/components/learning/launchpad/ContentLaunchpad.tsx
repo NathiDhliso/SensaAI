@@ -127,7 +127,34 @@ export default function ContentLaunchpad() {
                     <button onClick={() => navigate('/library')} className={styles.backButton}>
                         <ArrowLeft size={16} /> Library
                     </button>
-                    <h1>{result.subject}</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <h1>{result.subject}</h1>
+                        <button
+                            onClick={() => {
+                                // Use octet-stream to force download instead of opening in tab
+                                const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/octet-stream' });
+                                const url = URL.createObjectURL(blob);
+
+                                const safeSubject = (result.subject || 'untitled')
+                                    .replace(/[^a-z0-9]+/gi, '-')
+                                    .replace(/^-+|-+$/g, '')
+                                    .toLowerCase();
+
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `sensa-${safeSubject || 'export'}.json`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                            }}
+                            className={styles.backButton}
+                            style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}
+                            title="Download raw JSON content to your computer"
+                        >
+                            (Download JSON)
+                        </button>
+                    </div>
                     {/* SENSA v2.0: 5-Step Flow Progress */}
                     <FlowProgressBar
                         currentPhase="see"
@@ -180,7 +207,7 @@ export default function ContentLaunchpad() {
                             <span>Content Coverage</span>
                             <LayoutGrid size={18} />
                         </div>
-                        <div style={{ flexGrow: 1, minHeight: 0 }}>
+                        <div style={{ flexGrow: 1, height: '100%', minHeight: '300px' }}>
                             <CoverageTreemap data={coverageMap} />
                         </div>
                     </motion.div>

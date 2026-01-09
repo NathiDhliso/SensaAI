@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { Mail, Lock, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
@@ -16,11 +16,14 @@ export function Login() {
     const [error, setError] = useState<string | null>(null);
 
     // Redirect if already authenticated
-    if (isAuthenticated) {
-        const from = (location.state as { from?: string })?.from || '/';
-        navigate(from, { replace: true });
-        return null;
-    }
+    useEffect(() => {
+        if (isAuthenticated) {
+            const from = (location.state as { from?: string })?.from || '/';
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, navigate, location]);
+
+    if (isAuthenticated) return null;
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();

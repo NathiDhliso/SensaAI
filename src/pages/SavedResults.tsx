@@ -1,8 +1,19 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, BookOpen, Upload, Search, Eye, FileJson, Cloud } from 'lucide-react';
+import {
+  Trash2,
+  Search,
+  BookOpen,
+  Upload,
+  Loader2,
+  FileJson,
+  ArrowLeft,
+  Eye,
+  Cloud
+} from 'lucide-react';
 import { storageManager, importFromFile } from '@/lib/storage';
-import type { SavedResult } from '@/lib/storage';
+import type { SavedResult } from '@/lib/storage/types';
+// import type { SavedResult } from '@/lib/storage'; // Assuming types are exported from index or specifically
 
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './SavedResults.module.css';
@@ -48,15 +59,42 @@ export default function SavedResults() {
     }
   };
 
-  const handleDownloadBackup = (result: SavedResult) => {
-    // Create ephemeral download link
-    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${result.subject.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_backup.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleDownloadBackup = async (result: SavedResult) => {
+    try {
+      // Fetch full result to ensure we have the complete document
+      const fullResult = await storageManager.loadResult(result.id);
+      if (!fullResult) {
+        console.error('Failed to load full result for backup');
+        return;
+      }
+
+      // Force download with octet-stream
+      const blob = new Blob([JSON.stringify(fullResult, null, 2)], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+
+      const safeSubject = (fullResult.subject || 'untitled')
+        .replace(/[^a-z0-9]+/gi, '-')
+        .replace(/^-+|-+$/g, '')
+        .toLowerCase();
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sensa-${safeSubject || 'export'}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download backup:', error);
+    }
+  };
+
+  /* 
+   * Navigate to Document Viewer
+   * Replaces the old text download functionality
+   */
+  const handleViewDocument = (id: string) => {
+    navigate(`/view/${id}`);
   };
 
   const handleImportClick = () => {
@@ -71,7 +109,8 @@ export default function SavedResults() {
       filtered = filtered.filter(r =>
         r.subject.toLowerCase().includes(query) ||
         r.pass1Data.domain.toLowerCase().includes(query) ||
-        r.pass1Data.roleScope.toLowerCase().includes(query)
+        // r.pass1Data.roleScope.toLowerCase().includes(query) // roleScope might not exist on all pass1Data versions
+        (r.pass1Data as any).roleScope?.toLowerCase().includes(query)
       );
     }
 
@@ -289,6 +328,14 @@ export default function SavedResults() {
                     Learn
                   </button>
                   <button
+                    onClick={() => handleViewDocument(result.id)}
+                    className={styles.actionButton}
+                    title="View Readable Document"
+                    style={{ marginRight: '4px' }}
+                  >
+                    <Eye size={18} />
+                  </button>
+                  <button
                     onClick={() => handleDownloadBackup(result)}
                     className={styles.backupButton}
                     title="Download backup (JSON) - can be re-imported later"
@@ -308,8 +355,6 @@ export default function SavedResults() {
             ))}
           </div>
         )}
-
-
       </div>
     </div>
   );

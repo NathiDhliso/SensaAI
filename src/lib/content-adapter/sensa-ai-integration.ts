@@ -156,9 +156,9 @@ export function getTierDistribution(concepts: SensaAILearningConcept[]): {
   utility: SensaAILearningConcept[];
   distribution: { foundation: number; keystone: number; utility: number };
 } {
-  const foundation = concepts.filter(c => c.tierLevel === 'Foundation');
-  const keystone = concepts.filter(c => c.tierLevel === 'Keystone');
-  const utility = concepts.filter(c => c.tierLevel === 'Utility');
+  const foundation = concepts.filter(c => c.tier === 'foundation');
+  const keystone = concepts.filter(c => c.tier === 'keystone');
+  const utility = concepts.filter(c => c.tier === 'utility');
 
   const total = concepts.length;
 
@@ -213,7 +213,7 @@ export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
   const avgComplexity = concepts.reduce((sum, c) => sum + c.complexityScore, 0) / concepts.length;
 
   const tierDistribution = concepts.reduce((dist, c) => {
-    dist[c.tierLevel] = (dist[c.tierLevel] || 0) + 1;
+    dist[c.tier] = (dist[c.tier] || 0) + 1;
     return dist;
   }, {} as Record<string, number>);
 

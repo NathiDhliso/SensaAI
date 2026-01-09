@@ -108,7 +108,7 @@ async function generateDiagnosticBatch(
     hookSentence: c.hookSentence,
     keyPoints: c.keyPoints.slice(0, 3), // Limit context
     whyYouNeed: c.whyYouNeed,
-    tierLevel: c.tierLevel
+    tier: c.tier
   }));
 
   const prompt = `Generate ${questionsPerConcept} diagnostic questions for each of these foundation concepts in "${subject}":
@@ -118,7 +118,7 @@ CONCEPT: ${c.name}
 Purpose: ${c.hookSentence}
 Key Points: ${c.keyPoints.join(', ')}
 Why Important: ${c.whyYouNeed}
-Tier: ${c.tierLevel}
+Tier: ${c.tier}
 `).join('\n')}
 
 For each concept, create ${questionsPerConcept} questions that test EXISTING knowledge:
@@ -250,7 +250,7 @@ export function createDiagnosticAssessment(
   const avgComplexity = foundationConcepts.reduce((sum, c) => sum + c.complexityScore, 0) / foundationConcepts.length;
 
   const tierDistribution = foundationConcepts.reduce((dist, c) => {
-    dist[c.tierLevel] = (dist[c.tierLevel] || 0) + 1;
+    dist[c.tier] = (dist[c.tier] || 0) + 1;
     return dist;
   }, {} as Record<string, number>);
 

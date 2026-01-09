@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 // Mnemonic context for Memory Palace integration
 export const MnemonicSchema = z.object({
-    tier: z.enum(['Foundation', 'Keystone', 'Utility']),
+    tier: z.enum(['Foundation', 'Keystone', 'Utility', 'foundation', 'keystone', 'utility']).optional(),
     anchor: z.string().min(1),
     story: z.string(),
     imageUrl: z.string().optional(),
@@ -61,6 +61,7 @@ export const AnnotationsSchema = z.object({
 export const ConceptSchema = z.object({
     order: z.number().int().positive(),
     name: z.string().min(1),
+    tier: z.enum(['foundation', 'keystone', 'utility']).default('utility'),
     shape: ShapeSchema.optional(),
     lifecycle: LifecycleSchema.optional(),
     mnemonic: MnemonicSchema.optional(),

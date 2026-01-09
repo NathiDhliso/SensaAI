@@ -14,6 +14,7 @@ const SavedResults = lazy(() => import('./pages/SavedResults'));
 const Study = lazy(() => import('./pages/Study'));
 const VelocityLearning = lazy(() => import('./pages/VelocityLearning'));
 const ContentLaunchpad = lazy(() => import('./components/learning/launchpad/ContentLaunchpad'));
+const DocumentView = lazy(() => import('./pages/DocumentView'));
 
 
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
@@ -125,6 +126,11 @@ function App() {
            */}
           <Route path="/library" element={
             <ProtectedRoute><SavedResults /></ProtectedRoute>
+          } />
+
+          {/* Document Viewer */}
+          <Route path="/view/:id" element={
+            <ProtectedRoute><DocumentView /></ProtectedRoute>
           } />
         </Routes>
         <SettingsPanel />

@@ -87,9 +87,12 @@ export class InterleavingAlgorithm {
      * Get the tier of a concept based on its properties
      */
     getConceptTier(concept: LearningConcept): ConceptTier {
-        // Use mnemonic tier if available
-        if (concept.mnemonic?.tier) {
-            return concept.mnemonic.tier as ConceptTier;
+        // Use implicit root tier or mnemonic tier
+        const t = concept.tier || concept.mnemonic?.tier;
+
+        if (t) {
+            const pascal = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+            return pascal as ConceptTier;
         }
 
         // Otherwise, infer from position/importance

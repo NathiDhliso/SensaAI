@@ -614,14 +614,41 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
     }
 
     // Extract mnemonic
+    // Extract mnemonic and Tier (checking root level first for Sensa v2.0 compliance)
+    let tier: 'Foundation' | 'Keystone' | 'Utility' | undefined;
+
+    // Check root level tier (preferred in new prompt)
+    if (typeof c.tier === 'string') {
+        const t = c.tier.toLowerCase();
+        if (t === 'foundation') tier = 'Foundation';
+        else if (t === 'keystone') tier = 'Keystone';
+        else if (t === 'utility') tier = 'Utility';
+    }
+
     let mnemonic: ParsedMnemonic | undefined;
     if (c.mnemonic && typeof c.mnemonic === 'object') {
         const m = c.mnemonic as Record<string, unknown>;
+
+        // If not found at root, check inside mnemonic
+        if (!tier && typeof m.tier === 'string') {
+            const t = m.tier.toLowerCase();
+            if (t === 'foundation') tier = 'Foundation';
+            else if (t === 'keystone') tier = 'Keystone';
+            else if (t === 'utility') tier = 'Utility';
+        }
+
         mnemonic = {
-            tier: (typeof m.tier === 'string' ? m.tier : 'Foundation') as 'Foundation' | 'Keystone' | 'Utility',
+            tier: tier || 'Foundation', // Default to Foundation if still missing
             anchor: typeof m.anchor === 'string' ? m.anchor : '',
             story: typeof m.story === 'string' ? m.story : '',
             parentName: typeof m.parentConcept === 'string' ? m.parentConcept : undefined,
+        };
+    } else if (tier) {
+        // If mnemonic object missing but tier exists at root, create minimal mnemonic
+        mnemonic = {
+            tier: tier,
+            anchor: `${name}`,
+            story: '',
         };
     }
 

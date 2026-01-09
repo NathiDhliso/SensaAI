@@ -6,7 +6,7 @@
 export interface MnemonicContext {
   anchor: string;
   story: string;
-  tier: 'Foundation' | 'Keystone' | 'Utility';
+  tier?: 'foundation' | 'keystone' | 'utility';
   parentName?: string;
   parentId?: string;
   dependsOn?: string[];
@@ -27,7 +27,7 @@ export interface DependencyMetrics {
   dependentCount: number;
   dependencyCount: number;
   totalConnections: number;
-  calculatedTier: 'Foundation' | 'Keystone' | 'Utility';
+  calculatedTier: 'foundation' | 'keystone' | 'utility';
   centralityScore: number;
   clusterGroup: string;
 }

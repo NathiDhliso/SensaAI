@@ -75,7 +75,9 @@ function getConceptPhase(concept: LearningConcept): string | null {
  * Get the tier of a concept.
  */
 function getConceptTier(concept: LearningConcept): 'Foundation' | 'Keystone' | 'Utility' {
-  return concept.mnemonic?.tier || 'Utility';
+  const t = concept.tier || concept.mnemonic?.tier || 'utility';
+  const pascal = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+  return pascal as 'Foundation' | 'Keystone' | 'Utility';
 }
 
 /**
@@ -89,9 +91,9 @@ function prerequisitesMet(
   if (!concept.prerequisites || concept.prerequisites.length === 0) {
     return true;
   }
-  
+
   return concept.prerequisites.every(prereq => {
-    const prereqConcept = allConcepts.find(c => 
+    const prereqConcept = allConcepts.find(c =>
       c.name.toLowerCase() === prereq.toLowerCase() ||
       c.id === prereq
     );
@@ -108,7 +110,7 @@ function calculateTierDistribution(
 ): { foundation: number; keystone: number; utility: number } {
   const completed = allConcepts.filter(c => completedConcepts.includes(c.id));
   const total = completed.length || 1;
-  
+
   return {
     foundation: completed.filter(c => getConceptTier(c) === 'Foundation').length / total,
     keystone: completed.filter(c => getConceptTier(c) === 'Keystone').length / total,
@@ -126,11 +128,11 @@ function getIdealNextTier(
   const idealFoundation = 0.4;
   const idealKeystone = 0.35;
   const idealUtility = 0.25;
-  
+
   const foundationDelta = idealFoundation - distribution.foundation;
   const keystoneDelta = idealKeystone - distribution.keystone;
   const utilityDelta = idealUtility - distribution.utility;
-  
+
   // Return the tier that's most behind its ideal
   if (foundationDelta >= keystoneDelta && foundationDelta >= utilityDelta) {
     return 'Foundation';
@@ -154,11 +156,11 @@ function scoreConcept(
     strictPrerequisites = true,
     tierBalanceWeight = 0.3,
   } = options;
-  
+
   let prerequisiteScore = 1.0;
   let interleavingScore = 0.5;
   let tierBalanceScore = 0.5;
-  
+
   // 1. Prerequisite Score (0 or 1 if strict, gradual otherwise)
   const prereqsMet = prerequisitesMet(candidate, context.allConcepts, context.completedConcepts);
   if (strictPrerequisites && !prereqsMet) {
@@ -166,7 +168,7 @@ function scoreConcept(
   } else if (!prereqsMet) {
     prerequisiteScore = 0.3;
   }
-  
+
   // 2. Interleaving Score
   if (context.lastConceptId) {
     const lastConcept = context.allConcepts.find(c => c.id === context.lastConceptId);
@@ -175,12 +177,12 @@ function scoreConcept(
       const candidatePhase = getConceptPhase(candidate);
       const lastTier = getConceptTier(lastConcept);
       const candidateTier = getConceptTier(candidate);
-      
+
       // Prefer different phases (interleaving effect)
       if (interleavePhases && lastPhase && candidatePhase) {
         interleavingScore = lastPhase !== candidatePhase ? 1.0 : 0.3;
       }
-      
+
       // Prefer different tiers
       if (interleaveTiers) {
         if (lastTier !== candidateTier) {
@@ -189,12 +191,12 @@ function scoreConcept(
       }
     }
   }
-  
+
   // 3. Tier Balance Score
   const distribution = calculateTierDistribution(context.completedConcepts, context.allConcepts);
   const idealTier = getIdealNextTier(distribution);
   const candidateTier = getConceptTier(candidate);
-  
+
   if (candidateTier === idealTier) {
     tierBalanceScore = 1.0;
   } else if (
@@ -203,13 +205,13 @@ function scoreConcept(
   ) {
     tierBalanceScore = 0.6;
   }
-  
+
   // Weight and combine
-  const total = 
+  const total =
     (prerequisiteScore * 0.4) +
     (interleavingScore * (0.3 - tierBalanceWeight / 2)) +
     (tierBalanceScore * tierBalanceWeight);
-  
+
   return {
     total,
     prerequisite: prerequisiteScore,
@@ -245,26 +247,26 @@ export function getOptimalNextConcept(
   options: ConceptSelectionOptions = {}
 ): SelectionResult | null {
   const { allConcepts, completedConcepts } = context;
-  
+
   // Get incomplete concepts
   const incomplete = allConcepts.filter(c => !completedConcepts.includes(c.id));
-  
+
   if (incomplete.length === 0) {
     return null;
   }
-  
+
   // Score all candidates
   const scored = incomplete.map(concept => ({
     concept,
     scores: scoreConcept(concept, context, options),
   }));
-  
+
   // Sort by total score (descending)
   scored.sort((a, b) => b.scores.total - a.scores.total);
-  
+
   const best = scored[0];
   const alternatives = scored.slice(1, 4).map(s => s.concept);
-  
+
   // Generate reason
   let reason = 'Next in sequence';
   if (best.scores.prerequisite === 1.0 && best.scores.interleaving > 0.7) {
@@ -274,7 +276,7 @@ export function getOptimalNextConcept(
   } else if (best.scores.prerequisite < 1.0) {
     reason = 'Available with partial prerequisites';
   }
-  
+
   return {
     concept: best.concept,
     reason,
@@ -295,7 +297,7 @@ export function getReadyConcepts(
   allConcepts: LearningConcept[],
   completedConcepts: string[]
 ): LearningConcept[] {
-  return allConcepts.filter(c => 
+  return allConcepts.filter(c =>
     !completedConcepts.includes(c.id) &&
     prerequisitesMet(c, allConcepts, completedConcepts)
   );
@@ -309,14 +311,14 @@ export function getBlockedConcepts(
   completedConcepts: string[]
 ): Array<{ concept: LearningConcept; missingPrereqs: string[] }> {
   return allConcepts
-    .filter(c => 
+    .filter(c =>
       !completedConcepts.includes(c.id) &&
       !prerequisitesMet(c, allConcepts, completedConcepts)
     )
     .map(concept => ({
       concept,
       missingPrereqs: (concept.prerequisites || []).filter(prereq => {
-        const prereqConcept = allConcepts.find(c => 
+        const prereqConcept = allConcepts.find(c =>
           c.name.toLowerCase() === prereq.toLowerCase()
         );
         return prereqConcept && !completedConcepts.includes(prereqConcept.id);
@@ -339,14 +341,14 @@ export function calculateLearningVelocity(
   const elapsed = (Date.now() - sessionStartTime) / 1000 / 60 / 60; // hours
   const completed = completedConcepts.length;
   const conceptsPerHour = elapsed > 0 ? completed / elapsed : 0;
-  
+
   const remaining = allConcepts.length - completed;
-  const estimatedTimeToComplete = conceptsPerHour > 0 
+  const estimatedTimeToComplete = conceptsPerHour > 0
     ? (remaining / conceptsPerHour) * 60 // minutes
     : remaining * 5; // default 5 min per concept
-  
+
   const distribution = calculateTierDistribution(completedConcepts, allConcepts);
-  
+
   return {
     conceptsPerHour: Math.round(conceptsPerHour * 10) / 10,
     estimatedTimeToComplete: Math.round(estimatedTimeToComplete),

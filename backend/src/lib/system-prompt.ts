@@ -149,18 +149,18 @@ Create 2-3 decision trees for the most common "When do I use X vs Y?" questions 
 
 For each Core Concept, generate memory palace anchors that enable spatial learning. These anchors will be displayed as visual markers in a map-based learning interface.
 
-**DEPENDENCY TIER ASSIGNMENT:**
-Analyze each concept's role in the domain hierarchy:
+**TIER ASSIGNMENT:**
+Analyze each concept's role in the domain hierarchy and assign a "tier":
 
-- **Foundation:** Universal constants that other concepts depend on (the "bedrock")
+- **foundation:** Universal constants that other concepts depend on (the "bedrock")
   - Examples: VNet, Storage Account, Entra ID, IAM, S3 Bucket, DNS, Active Directory
   - Visual Scale: MASSIVE/LANDSCAPE (these are "always there" like landmarks)
   
-- **Keystone:** Major functional blocks that perform core operations (the "workers")
+- **keystone:** Major functional blocks that perform core operations (the "workers")
   - Examples: VM, NSG, App Service, Lambda, EC2, Load Balancer, API Gateway
   - Visual Scale: HUMAN/ROOM SIZE (relatable, interactive scale)
   
-- **Utility:** Specialized tools, tokens, or add-ons (the "accessories")
+- **utility:** Specialized tools, tokens, or add-ons (the "accessories")
   - Examples: SAS Token, PIM, Locks, Tags, Metrics, Policies, Secrets
   - Visual Scale: HANDHELD/SMALL (tools you pick up and use)
 
@@ -173,12 +173,12 @@ Analyze each concept's role in the domain hierarchy:
 **TIER-SPECIFIC ANCHOR EXAMPLES:**
 | Tier | Concept | Anchor Example |
 |------|---------|----------------|
-| Foundation | VNet | "Volcano 🌋" |
-| Foundation | Storage Account | "Skyscraper 🏢" |
-| Keystone | NSG | "Night Guard 👮" |
-| Keystone | VM | "Vending Machine 🎰" |
-| Utility | SAS Token | "Secret Key 🔑" |
-| Utility | Lock | "Luggage Lock 🔒" |
+| foundation | VNet | "Volcano 🌋" |
+| foundation | Storage Account | "Skyscraper 🏢" |
+| keystone | NSG | "Night Guard 👮" |
+| keystone | VM | "Vending Machine 🎰" |
+| utility | SAS Token | "Secret Key 🔑" |
+| utility | Lock | "Luggage Lock 🔒" |
 
 **BIZARRE STORY RULES:**
 Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
@@ -192,11 +192,11 @@ Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
 - Utility (SAS Token as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
 
 **MNEMONIC OUTPUT FORMAT:**
-Include a \`mnemonic\` object for each concept in structured output:
+Include a `mnemonic` object and `tier` property for each concept in structured output:
 \`\`\`json
 {
+  "tier": "foundation" | "keystone" | "utility",
   "mnemonic": {
-    "tier": "Foundation" | "Keystone" | "Utility",
     "anchor": "Concrete Object + Emoji (e.g., 'Volcano 🌋')",
     "story": "The 2-3 sentence bizarre scene...",
     "parentConcept": "Exact Name of Parent Concept" | null,
@@ -396,5 +396,5 @@ Verify HIGH frequency of:
  * Returns the system prompt for backend generation
  */
 export function getSystemPrompt(): string {
-    return SYSTEM_PROMPT_V4;
+  return SYSTEM_PROMPT_V4;
 }

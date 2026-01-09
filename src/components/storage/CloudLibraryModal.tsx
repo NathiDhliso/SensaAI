@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Cloud, X, Check, Download, Filter, Calendar, BookOpen, RefreshCw, CheckCircle2, AlertCircle, Layers } from 'lucide-react';
+import { Search, Cloud, X, Check, Download, Filter, Calendar, BookOpen, RefreshCw, CheckCircle2, AlertCircle, Layers, FileJson, FileText, Trash2 } from 'lucide-react';
 import { storageManager } from '@/lib/storage';
-import type { SavedResult } from '@/lib/storage';
+import type { SavedResult } from '@/lib/storage/types';
+import { parseContent } from '@/lib/content-adapter/json-content-parser';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './CloudLibraryModal.module.css';
@@ -95,6 +96,103 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
         } catch (error) {
             console.error('Failed to download:', error);
             showToast('Download failed', 'error');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleExportJson = async (result: SavedResult) => {
+        setProcessingId(result.id);
+        try {
+            // Must fetch full result first as list only has metadata
+            const fullResult = await storageManager.loadResult(result.id);
+            if (!fullResult) throw new Error('Failed to load full result');
+
+            // Use octet-stream to force download
+            const blob = new Blob([JSON.stringify(fullResult, null, 2)], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+
+            const safeSubject = (result.subject || 'untitled')
+                .replace(/[^a-z0-9]+/gi, '-')
+                .replace(/^-+|-+$/g, '')
+                .toLowerCase();
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sensa-${safeSubject || 'export'}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('Exported JSON successfully', 'success');
+        } catch (error) {
+            console.error('Failed to export:', error);
+            showToast('Export failed', 'error');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleExportText = async (result: SavedResult) => {
+        setProcessingId(result.id);
+        try {
+            const fullResult = await storageManager.loadResult(result.id);
+            if (!fullResult || !fullResult.fullDocument) throw new Error('Failed to load full result');
+
+            const parseResult = parseContent(fullResult.fullDocument);
+
+            let content = '';
+
+            if (parseResult.success) {
+                const fullData = parseResult.data;
+                // 1. Format content
+                content += `SUBJECT: ${fullResult.subject.toUpperCase()}\n`;
+                content += `DOMAIN: ${fullResult.pass1Data.domain}\n`;
+                content += `GENERATED: ${new Date(fullResult.generatedAt).toLocaleString()}\n`;
+                content += `=================================================\n\n`;
+                content += `[ CONCEPTS & MNEMONICS ]\n\n`;
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const concepts = fullData.concepts as any[];
+
+                if (concepts && Array.isArray(concepts)) {
+                    concepts.forEach((c: any, i: number) => {
+                        content += `${i + 1}. ${c.name.toUpperCase()}\n`;
+                        const tier = c.tier || (c.mnemonic && c.mnemonic.tier) || 'Uncategorized';
+                        const displayTier = tier.charAt(0).toUpperCase() + tier.slice(1);
+                        content += `   Tier: ${displayTier}\n`;
+
+                        const def = c.phase1?.microMetaphor || c.phase1?.hookSentence || "No definition";
+                        content += `   Definition: ${def}\n`;
+
+                        if (c.mnemonic) {
+                            content += `   ---------------------------------------------\n`;
+                            content += `   Anchor: ${c.mnemonic.anchor}\n`;
+                            content += `   Story: ${c.mnemonic.story}\n`;
+                        }
+                        content += `\n`;
+                    });
+                }
+            } else {
+                // Fallback: Export raw markdown
+                content = fullResult.fullDocument;
+            }
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const safeSubject = (result.subject || 'untitled').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sensa-${safeSubject}-content.txt`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showToast('Exported Text successfully', 'success');
+        } catch (error) {
+            console.error('Failed to export text:', error);
+            showToast('Export failed', 'error');
         } finally {
             setProcessingId(null);
         }
@@ -472,6 +570,32 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
                                                         Synced
                                                     </span>
                                                 </div>
+                                                <button
+                                                    onClick={() => handleExportJson(result)}
+                                                    className={styles.openButton}
+                                                    style={{ backgroundColor: 'transparent', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', marginRight: '0.5rem' }}
+                                                    disabled={processingId === result.id}
+                                                    title="Export JSON file"
+                                                >
+                                                    {processingId === result.id ? (
+                                                        <div className={styles.spinnerSmall} />
+                                                    ) : (
+                                                        <FileJson size={16} />
+                                                    )}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleExportText(result)}
+                                                    className={styles.openButton}
+                                                    style={{ backgroundColor: 'transparent', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', marginRight: '0.5rem' }}
+                                                    disabled={processingId === result.id}
+                                                    title="Export Text file"
+                                                >
+                                                    {processingId === result.id ? (
+                                                        <div className={styles.spinnerSmall} />
+                                                    ) : (
+                                                        <FileText size={16} />
+                                                    )}
+                                                </button>
                                                 <button
                                                     onClick={() => {
                                                         onClose();

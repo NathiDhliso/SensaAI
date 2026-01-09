@@ -63,7 +63,7 @@ export interface TreePacket {
     name: string;
     size: number;   // Represents density/word count
     score: number;  // Represents quality/coverage (0-100)
-    tier?: 'Foundation' | 'Keystone' | 'Utility';
+    tier?: 'Foundation' | 'Keystone' | 'Utility' | 'foundation' | 'keystone' | 'utility';
     children?: TreePacket[];
     [key: string]: any; // Index signature for Recharts
 }
@@ -212,18 +212,22 @@ function analyzeSystemPromptElements(
 
         parsedData.concepts.forEach(concept => {
             // Count tiers
-            if (concept.mnemonic?.tier) {
-                switch (concept.mnemonic.tier) {
-                    case 'Foundation':
-                        tierDistribution.foundation++;
-                        break;
-                    case 'Keystone':
-                        tierDistribution.keystone++;
-                        break;
-                    case 'Utility':
-                        tierDistribution.utility++;
-                        break;
+            // Count tiers
+            const tier = concept.tier || concept.mnemonic?.tier;
+            if (tier) {
+                const normalizedTier = tier.toLowerCase();
+
+                if (normalizedTier === 'foundation') {
+                    tierDistribution.foundation++;
+                } else if (normalizedTier === 'keystone') {
+                    tierDistribution.keystone++;
+                } else if (normalizedTier === 'utility') {
+                    tierDistribution.utility++;
+                } else {
+                    console.warn(`[Analytics] Unknown tier value: ${tier} for concept ${concept.name}`);
                 }
+            } else {
+                console.warn(`[Analytics] Missing tier for concept: ${concept.name}`);
             }
 
             // Count SHAPE sections
@@ -396,7 +400,9 @@ function buildCoverageMap(
     if (parsedData?.concepts) {
         parsedData.concepts.forEach(c => {
             // Normalize key for improved matching
-            conceptDataMap.set(c.name.toLowerCase().trim(), { tier: c.mnemonic?.tier });
+            const tier = c.tier || c.mnemonic?.tier;
+            console.log(`[CoverageMap] Concept: ${c.name}, Tier resolved: ${tier}, Root: ${c.tier}, Mnemonic: ${c.mnemonic?.tier}`);
+            conceptDataMap.set(c.name.toLowerCase().trim(), { tier });
         });
     }
 
@@ -415,7 +421,7 @@ function buildCoverageMap(
                     name: cName,
                     size: 50,
                     score: 90,
-                    tier: conceptDataMap.get(cName.toLowerCase().trim())?.tier as 'Foundation' | 'Keystone' | 'Utility' | undefined
+                    tier: conceptDataMap.get(cName.toLowerCase().trim())?.tier as 'Foundation' | 'Keystone' | 'Utility' | 'foundation' | 'keystone' | 'utility' | undefined
                 }));
 
                 coverageMap.push({
@@ -437,7 +443,7 @@ function buildCoverageMap(
                         name: c,
                         size: 50,
                         score: 80,
-                        tier: conceptDataMap.get(c.toLowerCase().trim())?.tier as 'Foundation' | 'Keystone' | 'Utility' | undefined
+                        tier: conceptDataMap.get(c.toLowerCase().trim())?.tier as 'Foundation' | 'Keystone' | 'Utility' | 'foundation' | 'keystone' | 'utility' | undefined
                     }))
                 });
             }
@@ -446,33 +452,49 @@ function buildCoverageMap(
     }
 
     // Fallback: Group by tiers if we have tier data
+    // Fallback: Group by tiers if we have tier data.
+    // We only use lowercase keys to prevent duplicates (e.g. "Keystone" and "keystone")
     const tierGroups: Record<string, string[]> = {
-        'Foundation': [],
-        'Keystone': [],
-        'Utility': [],
-        'Uncategorized': []
+        'foundation': [],
+        'keystone': [],
+        'utility': [],
+        'uncategorized': []
     };
 
-    allConcepts.forEach(conceptName => {
-        const tier = conceptDataMap.get(conceptName.toLowerCase().trim())?.tier;
-        if (tier && tierGroups[tier]) {
-            tierGroups[tier].push(conceptName);
+    allConcepts.forEach((conceptName, index) => {
+        let tier = conceptDataMap.get(conceptName.toLowerCase().trim())?.tier;
+
+        // Dynamic Fallback: If no tier found, calculate it (prevents "Uncategorized" for mapped concepts)
+        if (!tier) {
+            tier = determineTierFallback(index + 1, conceptName).toLowerCase() as 'foundation' | 'keystone' | 'utility';
+            console.log(`[CoverageMap] Fallback tier for ${conceptName}: ${tier}`);
+        }
+
+        // Handle both capitalized and lowercase keys for grouping
+        if (tier) {
+            const normalizedTier = tier.toLowerCase();
+            if (tierGroups[normalizedTier]) {
+                tierGroups[normalizedTier].push(conceptName);
+            } else {
+                tierGroups['uncategorized'].push(conceptName);
+            }
         } else {
-            tierGroups['Uncategorized'].push(conceptName);
+            console.log(`[CoverageMap] Uncategorized concept: ${conceptName}, tier value: ${tier}`);
+            tierGroups['uncategorized'].push(conceptName);
         }
     });
 
     // If we have meaningful tier distribution, use it
-    const hasTierData = tierGroups['Foundation'].length > 0 ||
-        tierGroups['Keystone'].length > 0 ||
-        tierGroups['Utility'].length > 0;
+    const hasTierData = tierGroups['foundation'].length > 0 ||
+        tierGroups['keystone'].length > 0 ||
+        tierGroups['utility'].length > 0;
 
     if (hasTierData) {
         const tierColors = {
-            'Foundation': 85,
-            'Keystone': 90,
-            'Utility': 80,
-            'Uncategorized': 70
+            'foundation': 85,
+            'keystone': 90,
+            'utility': 80,
+            'uncategorized': 70
         };
 
         Object.entries(tierGroups).forEach(([tierName, concepts]) => {
@@ -511,4 +533,28 @@ function readabilityScore(text: string): number {
     const sentences = text.split(/[.!?]+/).length;
     const words = text.split(/\s+/).length;
     return words / (sentences || 1);
+}
+
+/**
+ * Fallback tier determination if metadata is missing
+ * Matches logic from json-content-parser.ts
+ */
+function determineTierFallback(order: number, name: string): string {
+    const foundationKeywords = ['workspace', 'environment', 'schema', 'security', 'dashboard', 'apps', 'account', 'network', 'vnet', 'identity', 'policy'];
+    const keystoneKeywords = ['query', 'relationship', 'dax', 'filter', 'refresh', 'gateway', 'storage', 'vm', 'function'];
+
+    const nameLower = name.toLowerCase();
+
+    for (const keyword of foundationKeywords) {
+        if (nameLower.includes(keyword)) return 'Foundation';
+    }
+
+    for (const keyword of keystoneKeywords) {
+        if (nameLower.includes(keyword)) return 'Keystone';
+    }
+
+    // Fallback based on order
+    if (order <= 5 || order % 10 === 1) return 'Foundation';
+    if (order <= 30) return 'Keystone';
+    return 'Utility';
 }

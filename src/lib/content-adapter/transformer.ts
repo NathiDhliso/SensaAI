@@ -19,7 +19,7 @@ export interface SensaAILearningConcept extends Omit<LearningConcept, 'confusion
 
   // Metadata for intelligent systems
   foundationLevel: boolean;               // Eligible for diagnostic inclusion
-  tierLevel: 'Foundation' | 'Keystone' | 'Utility';  // For interleaving algorithm
+  tier: 'foundation' | 'keystone' | 'utility';  // For interleaving algorithm
   complexityScore: number;                // 1-10 for adaptive timing
   prerequisiteWeight: number;             // How many concepts depend on this
   frequencyWeight: number;                // How often this concept is used
@@ -303,8 +303,16 @@ function isFoundationLevel(concept: ParsedConcept, allConcepts: ParsedConcept[])
 /**
  * Calculate concept tier for interleaving algorithm
  */
-function calculateTierLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'Foundation' | 'Keystone' | 'Utility' {
-  // Use mnemonic tier if available
+/**
+ * Calculate concept tier for interleaving algorithm
+ */
+function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'foundation' | 'keystone' | 'utility' {
+  // Use explicit root tier if available (preferred)
+  if (concept.tier) {
+    return concept.tier;
+  }
+
+  // Use mnemonic tier if available (legacy fallback)
   if (concept.mnemonic?.tier) {
     return concept.mnemonic.tier;
   }
@@ -319,10 +327,12 @@ function calculateTierLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]
   const dependencyCount = concept.phase1.prerequisite &&
     !concept.phase1.prerequisite.toLowerCase().includes('none') ? 1 : 0;
 
-  if (dependentCount >= 3) return 'Foundation';
-  if (dependentCount >= 1 || dependencyCount > 0) return 'Keystone';
-  return 'Utility';
+  if (dependentCount >= 3) return 'foundation';
+  if (dependentCount >= 1 || dependencyCount > 0) return 'keystone';
+  return 'utility';
 }
+
+
 
 /**
  * Calculate complexity score for adaptive timing
@@ -669,7 +679,7 @@ export function transformToLearningConcepts(
       mnemonic = {
         anchor: parsedConcept.mnemonic.anchor,
         story: parsedConcept.mnemonic.story,
-        tier: parsedConcept.mnemonic.tier,
+        tier: parsedConcept.mnemonic.tier || parsedConcept.tier || 'utility',
         parentName: parsedConcept.mnemonic.parentName,
         parentId: parsedConcept.mnemonic.parentId,
         dependsOn: parsedConcept.mnemonic.dependsOn,
@@ -695,6 +705,13 @@ export function transformToLearningConcepts(
       logicalConnection: parsedConcept.logicalConnection,
       mnemonic,
       shape: parsedConcept.shape,
+      tier: calculateTier(parsedConcept, parsed.concepts),
+      dependencies: extractPrerequisites(parsedConcept, parsed.concepts),
+      outdegree: parsed.concepts.filter(other =>
+        other.id !== parsedConcept.id &&
+        (other.phase1.prerequisite?.toLowerCase().includes(parsedConcept.name.toLowerCase()) ||
+          other.phase1.execution?.toLowerCase().includes(parsedConcept.name.toLowerCase()))
+      ).length,
     });
   }
 
@@ -726,7 +743,7 @@ export function transformToSensaAIConcepts(
     const keyPoints = extractKeyPoints(parsedConcept);
     const diagnosticQuestions = generateDiagnosticQuestions(parsedConcept);
     const foundationLevel = isFoundationLevel(parsedConcept, parsed.concepts);
-    const tierLevel = calculateTierLevel(parsedConcept, parsed.concepts);
+    const tier = calculateTier(parsedConcept, parsed.concepts);
     const complexityScore = calculateComplexityScore(parsedConcept);
 
     // Calculate weights for diagnostic selection
@@ -749,7 +766,7 @@ export function transformToSensaAIConcepts(
       diagnosticQuestions,
       confusionPairs: conceptConfusionPairs,
       foundationLevel,
-      tierLevel,
+      tier,
       complexityScore,
       prerequisiteWeight,
       frequencyWeight,
@@ -834,7 +851,7 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
     if (concept.keyPoints.length >= 3) completenessScore++;
     if (concept.diagnosticQuestions.length >= 1) completenessScore++;
     if (concept.foundationLevel !== undefined) completenessScore++;
-    if (concept.tierLevel) completenessScore++;
+    if (concept.tier) completenessScore++;
     if (concept.complexityScore > 0) completenessScore++;
     if (concept.confusionPairs.length >= 0) completenessScore++; // Always true, validates structure
   });
@@ -891,9 +908,9 @@ export function validateSensaAIMetadata(concepts: SensaAILearningConcept[]): {
 
   // Check tier distribution
   const tierCounts = {
-    Foundation: concepts.filter(c => c.tierLevel === 'Foundation').length,
-    Keystone: concepts.filter(c => c.tierLevel === 'Keystone').length,
-    Utility: concepts.filter(c => c.tierLevel === 'Utility').length
+    Foundation: concepts.filter(c => c.tier === 'foundation').length,
+    Keystone: concepts.filter(c => c.tier === 'keystone').length,
+    Utility: concepts.filter(c => c.tier === 'utility').length
   };
 
   const total = concepts.length;
