@@ -32,6 +32,7 @@ interface AuthState {
 
 interface AuthActions {
     login: () => void;
+    loginWithCredentials: (email: string, password: string) => Promise<void>;
     logout: () => void;
     handleCallback: (code: string) => Promise<void>;
     refreshTokens: () => Promise<void>;
@@ -74,21 +75,25 @@ const generateCodeChallenge = async (verifier: string) => {
 
 const CODE_VERIFIER_KEY = 'auth_code_verifier';
 
+// Initialize Cognito Client
+// note: region is inferred from config or defaults to us-east-1 if needed, 
+// strictly we should get it from env but often it's not strictly required for just public client operations if endpoint is inferred, 
+// but for SDK V3 it's best to pass it.
+const AWS_REGION = import.meta.env.VITE_AWS_REGION || 'us-east-1';
+
 export const useAuthStore = create<AuthState & AuthActions>()(
     persist(
         (set, get) => ({
             ...initialState,
 
             login: async () => {
+                // ... (keep existing hosted UI logic as fallback) ...
                 // Generate PKCE verifier and challenge
                 const codeVerifier = generateRandomString(128);
                 const codeChallenge = await generateCodeChallenge(codeVerifier);
 
-                // Store verifier in localStorage (needs to persist across redirect)
-                // We use localStorage directly to ensure it survives the redirect cycle safely outside of Zustand state if state cleared
                 localStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
 
-                // Redirect to Cognito hosted UI
                 const params = new URLSearchParams({
                     client_id: COGNITO_CLIENT_ID,
                     response_type: 'code',
@@ -101,32 +106,98 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 window.location.href = `https://${COGNITO_DOMAIN}/login?${params.toString()}`;
             },
 
+            loginWithCredentials: async (email, password) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const { CognitoIdentityProviderClient, InitiateAuthCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+
+                    const client = new CognitoIdentityProviderClient({ region: AWS_REGION });
+
+                    const command = new InitiateAuthCommand({
+                        AuthFlow: 'USER_PASSWORD_AUTH',
+                        ClientId: COGNITO_CLIENT_ID,
+                        AuthParameters: {
+                            USERNAME: email,
+                            PASSWORD: password,
+                        },
+                    });
+
+                    const response = await client.send(command);
+                    const authResult = response.AuthenticationResult;
+
+                    if (!authResult || !authResult.AccessToken || !authResult.IdToken) {
+                        throw new Error('Authentication failed - No tokens received');
+                    }
+
+                    // Parse ID Token
+                    const idTokenPayload = JSON.parse(atob(authResult.IdToken.split('.')[1]));
+
+                    const user: User = {
+                        id: idTokenPayload.sub,
+                        email: idTokenPayload.email,
+                        name: idTokenPayload.name || idTokenPayload.email?.split('@')[0],
+                    };
+
+                    const tokens: AuthTokens = {
+                        accessToken: authResult.AccessToken,
+                        refreshToken: authResult.RefreshToken || get().tokens?.refreshToken || '', // Keep old refresh token if not returned
+                        idToken: authResult.IdToken,
+                        expiresAt: Date.now() + (authResult.ExpiresIn || 3600) * 1000,
+                    };
+
+                    // Configure API Client
+                    apiClient.configure({
+                        getToken: async () => {
+                            const currentTokens = get().tokens;
+                            if (!currentTokens) return null;
+                            if (Date.now() >= currentTokens.expiresAt - 60000) {
+                                await get().refreshTokens();
+                            }
+                            return get().tokens?.accessToken || null;
+                        },
+                    });
+
+                    set({
+                        user,
+                        tokens,
+                        isAuthenticated: true,
+                        isLoading: false,
+                        error: null // clear explicit error
+                    });
+
+                    return Promise.resolve();
+                } catch (error) {
+                    console.error('Login error:', error);
+                    let errorMessage = 'Authentication failed';
+                    if (error instanceof Error) {
+                        // Clean up AWS error messages typically like "NotAuthorizedException: Incorrect username or password."
+                        errorMessage = error.message.replace(/^[a-zA-Z]+: /, '');
+                    }
+                    set({
+                        error: errorMessage,
+                        isLoading: false,
+                    });
+                    return Promise.reject(error);
+                }
+            },
+
             logout: () => {
-                // Clear local state
                 set({ user: null, tokens: null, isAuthenticated: false });
                 localStorage.removeItem(CODE_VERIFIER_KEY);
 
-                // Redirect to Cognito logout
-                const params = new URLSearchParams({
-                    client_id: COGNITO_CLIENT_ID,
-                    logout_uri: window.location.origin,
-                });
-
-                window.location.href = `https://${COGNITO_DOMAIN}/logout?${params.toString()}`;
+                // For direct auth, we just clear local state and redirect to login
+                window.location.reload();
             },
 
             handleCallback: async (code: string) => {
                 set({ isLoading: true, error: null });
 
                 try {
-                    // Retrieve code verifier
                     const codeVerifier = localStorage.getItem(CODE_VERIFIER_KEY);
 
                     if (!codeVerifier) {
                         console.warn('PKCE code verifier missing, redirecting to login...');
-                        // Clear any stale state
                         set({ user: null, tokens: null, isAuthenticated: false });
-                        // Trigger login flow again
                         get().login();
                         return;
                     }
@@ -142,7 +213,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         }),
                     });
 
-                    // Clean up verifier
                     localStorage.removeItem(CODE_VERIFIER_KEY);
 
                     if (!response.ok) {
@@ -150,8 +220,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                     }
 
                     const data = await response.json();
-
-                    // Parse the ID token to get user info
                     const idTokenPayload = JSON.parse(atob(data.id_token.split('.')[1]));
 
                     const user: User = {
@@ -167,17 +235,13 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         expiresAt: Date.now() + data.expires_in * 1000,
                     };
 
-                    // Configure API client with token getter
                     apiClient.configure({
                         getToken: async () => {
                             const currentTokens = get().tokens;
                             if (!currentTokens) return null;
-
-                            // Refresh if expired
                             if (Date.now() >= currentTokens.expiresAt - 60000) {
                                 await get().refreshTokens();
                             }
-
                             return get().tokens?.accessToken || null;
                         },
                     });
@@ -200,6 +264,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 const { tokens } = get();
                 if (!tokens?.refreshToken) return;
 
+                // Try to refresh via backend first (legacy flow support)
                 try {
                     const response = await fetch('/api/v1/auth/refresh', {
                         method: 'POST',
@@ -209,21 +274,54 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         }),
                     });
 
-                    if (!response.ok) {
-                        throw new Error('Token refresh failed');
+                    // If backend endpoint works, use it
+                    if (response.ok) {
+                        const data = await response.json();
+                        set({
+                            tokens: {
+                                ...tokens,
+                                accessToken: data.access_token,
+                                idToken: data.id_token,
+                                expiresAt: Date.now() + data.expires_in * 1000,
+                            },
+                        });
+                        return;
                     }
+                } catch (e) {
+                    // Fallback to SDK refresh if implemented (omitted for brevity standard backend preferred for refresh token security)
+                    console.warn('Backend refresh failed, trying SDK...');
+                }
 
-                    const data = await response.json();
+                // SDK Refresh Implementation (InitiateAuth with REFRESH_TOKEN_AUTH)
+                try {
+                    const { CognitoIdentityProviderClient, InitiateAuthCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+                    const client = new CognitoIdentityProviderClient({ region: AWS_REGION });
 
-                    set({
-                        tokens: {
-                            ...tokens,
-                            accessToken: data.access_token,
-                            idToken: data.id_token,
-                            expiresAt: Date.now() + data.expires_in * 1000,
+                    const command = new InitiateAuthCommand({
+                        AuthFlow: 'REFRESH_TOKEN_AUTH',
+                        ClientId: COGNITO_CLIENT_ID,
+                        AuthParameters: {
+                            REFRESH_TOKEN: tokens.refreshToken,
                         },
                     });
-                } catch {
+
+                    const response = await client.send(command);
+                    const authResult = response.AuthenticationResult;
+
+                    if (authResult) {
+                        set({
+                            tokens: {
+                                ...tokens,
+                                accessToken: authResult.AccessToken || tokens.accessToken,
+                                idToken: authResult.IdToken || tokens.idToken,
+                                expiresAt: Date.now() + (authResult.ExpiresIn || 3600) * 1000,
+                            },
+                        });
+                    } else {
+                        throw new Error('No refresh result');
+                    }
+
+                } catch (err) {
                     // If refresh fails, log out
                     set({ user: null, tokens: null, isAuthenticated: false });
                 }
@@ -232,12 +330,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             getAccessToken: async () => {
                 const { tokens, refreshTokens } = get();
                 if (!tokens) return null;
-
-                // Refresh if expired
                 if (Date.now() >= tokens.expiresAt - 60000) {
                     await refreshTokens();
                 }
-
                 return get().tokens?.accessToken || null;
             },
 

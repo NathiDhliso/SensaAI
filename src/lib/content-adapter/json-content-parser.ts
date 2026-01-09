@@ -225,6 +225,65 @@ function parseConcepts(content: string): ParsedConcept[] {
         }
     }
 
+    // Fallback: Try to find raw JSON object start if no blocks found
+    if (concepts.length === 0) {
+        // Look for { "concepts": [ ...
+        const rawJsonStart = content.search(/\{\s*"concepts"\s*:\s*\[/);
+        if (rawJsonStart !== -1) {
+            try {
+                // Try to extract just the concepts object
+                // We'll count braces to find the end
+                let braceCount = 0;
+                let inString = false;
+                let escape = false;
+                let endIndex = -1;
+
+                for (let i = rawJsonStart; i < content.length; i++) {
+                    const char = content[i];
+
+                    if (escape) {
+                        escape = false;
+                        continue;
+                    }
+
+                    if (char === '\\') {
+                        escape = true;
+                        continue;
+                    }
+
+                    if (char === '"') {
+                        inString = !inString;
+                        continue;
+                    }
+
+                    if (!inString) {
+                        if (char === '{') braceCount++;
+                        if (char === '}') {
+                            braceCount--;
+                            if (braceCount === 0) {
+                                endIndex = i + 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (endIndex !== -1) {
+                    const jsonStr = content.substring(rawJsonStart, endIndex);
+                    const parsed = JSON.parse(jsonStr);
+                    if (parsed.concepts && Array.isArray(parsed.concepts)) {
+                        for (const concept of parsed.concepts) {
+                            const parsedConcept = convertJsonConcept(concept);
+                            if (parsedConcept) concepts.push(parsedConcept);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.debug('[ContentParser] Raw JSON extraction failed:', e);
+            }
+        }
+    }
+
     // Alternative: Try to find concepts in escaped JSON format (when fullDocument is stringified)
     if (concepts.length === 0) {
         const escapedJsonRegex = /\\?"concepts\\?":\s*\[/g;
@@ -233,7 +292,7 @@ function parseConcepts(content: string): ParsedConcept[] {
         }
     }
 
-    // Final fallback: Parse markdown-style concept headers (## N. Concept Name)
+    // Final fallback: Parse markdown-style concept headers (## N. Concept Name or similar)
     if (concepts.length === 0) {
         return parseConceptsFromMarkdown(content);
     }
@@ -250,14 +309,22 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
 
     // Find concept blocks using markdown headers: ## N. Concept Name
     // The format is ## followed by a number, period, and concept name
-    const conceptHeaderRegex = /##\s*(\d+)\.\s*([^\n]+)/g;
+    // IMPROVED REGEX: Also captures "## Concept Name" without numbers
+    const conceptHeaderRegex = /##\s*(?:(\d+)\.\s*)?([^\n]+)/g;
     const conceptMatches: Array<{ order: number; name: string; startIndex: number }> = [];
 
     let match;
+    let fallbackOrder = 1;
     while ((match = conceptHeaderRegex.exec(content)) !== null) {
+        const capturedName = match[2].trim();
+        // Skip likely non-concept headers like "Deliverables", "Timeline", etc.
+        if (['deliverables', 'timeline', 'overview', 'summary'].includes(capturedName.toLowerCase())) {
+            continue;
+        }
+
         conceptMatches.push({
-            order: parseInt(match[1], 10),
-            name: match[2].trim(),
+            order: match[1] ? parseInt(match[1], 10) : fallbackOrder++,
+            name: capturedName,
             startIndex: match.index,
         });
     }

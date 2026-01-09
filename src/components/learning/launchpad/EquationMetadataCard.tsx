@@ -29,30 +29,30 @@ export function EquationMetadataCard({ metadata, compact = false }: EquationMeta
         {
             key: 'Q_P',
             label: 'Preparation Quality',
-            value: metadata.Q_P.value,
+            value: metadata.Q_P.score,
             color: EQUATION_COLORS_HEX.Q_P,
-            justification: metadata.Q_P.justification,
+            justification: metadata.Q_P.reasoning,
         },
         {
             key: 'Q_M',
             label: 'Modeling Quality',
-            value: metadata.Q_M.value,
+            value: metadata.Q_M.score,
             color: EQUATION_COLORS_HEX.Q_M,
-            justification: metadata.Q_M.justification,
+            justification: metadata.Q_M.reasoning,
         },
         {
             key: 'Q_f',
             label: 'Fluency Quality',
-            value: metadata.Q_f.value,
+            value: metadata.Q_f.score,
             color: EQUATION_COLORS_HEX.Q_f,
-            justification: metadata.Q_f.justification,
+            justification: metadata.Q_f.reasoning,
         },
         {
             key: 'G',
             label: 'Governance',
-            value: metadata.G.value,
+            value: metadata.G.score,
             color: EQUATION_COLORS_HEX.G,
-            justification: metadata.G.justification,
+            justification: metadata.G.reasoning,
         },
     ];
 

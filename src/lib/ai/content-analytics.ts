@@ -323,11 +323,17 @@ function createDefaultEquationMetadata(
     const G_value = 1.0;
 
     // Calculate I baseline
-    const I_baseline_value = G_value * Q_f_value * Q_M_value * Q_P_value;
+    // Ensure all values are valid numbers before calculation
+    const Q_P_safe = isNaN(Q_P_value) ? 0 : Q_P_value;
+    const Q_M_safe = isNaN(Q_M_value) ? 0 : Q_M_value;
+    const Q_f_safe = isNaN(Q_f_value) ? 0 : Q_f_value;
+    const G_safe = isNaN(G_value) ? 0 : G_value;
+
+    const I_baseline_value = G_safe * Q_f_safe * Q_M_safe * Q_P_safe;
 
     return {
         Q_P: {
-            score: Q_P_value,
+            score: isNaN(Q_P_value) ? 0 : Q_P_value,
             components: {
                 atomicity: tierBalance,
                 tierBalance: tierBalance,
@@ -337,7 +343,7 @@ function createDefaultEquationMetadata(
             improvementAreas: tierBalance < 0.6 ? ['Add more foundation concepts'] : []
         },
         Q_M: {
-            score: Q_M_value,
+            score: isNaN(Q_M_value) ? 0 : Q_M_value,
             components: {
                 graphCompleteness: 0.5,
                 mnemonicCoverage: shapeCov.percentage / 100,
@@ -389,7 +395,8 @@ function buildCoverageMap(
     const conceptDataMap = new Map<string, { tier?: string }>();
     if (parsedData?.concepts) {
         parsedData.concepts.forEach(c => {
-            conceptDataMap.set(c.name, { tier: c.mnemonic?.tier });
+            // Normalize key for improved matching
+            conceptDataMap.set(c.name.toLowerCase().trim(), { tier: c.mnemonic?.tier });
         });
     }
 
@@ -408,7 +415,7 @@ function buildCoverageMap(
                     name: cName,
                     size: 50,
                     score: 90,
-                    tier: conceptDataMap.get(cName)?.tier
+                    tier: conceptDataMap.get(cName.toLowerCase().trim())?.tier as 'Foundation' | 'Keystone' | 'Utility' | undefined
                 }));
 
                 coverageMap.push({
@@ -430,7 +437,7 @@ function buildCoverageMap(
                         name: c,
                         size: 50,
                         score: 80,
-                        tier: conceptDataMap.get(c)?.tier
+                        tier: conceptDataMap.get(c.toLowerCase().trim())?.tier as 'Foundation' | 'Keystone' | 'Utility' | undefined
                     }))
                 });
             }
@@ -447,7 +454,7 @@ function buildCoverageMap(
     };
 
     allConcepts.forEach(conceptName => {
-        const tier = conceptDataMap.get(conceptName)?.tier;
+        const tier = conceptDataMap.get(conceptName.toLowerCase().trim())?.tier;
         if (tier && tierGroups[tier]) {
             tierGroups[tier].push(conceptName);
         } else {
