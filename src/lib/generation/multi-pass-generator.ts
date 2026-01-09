@@ -1,5 +1,5 @@
 import { getSystemPrompt } from '@/lib/system-prompt';
-import { useLearningStore } from '@/store/learning-store';
+
 import {
   getBedrockClient,
   invokeClaudeModel,
@@ -18,7 +18,7 @@ import {
   createLifecycleScopePrompt,
   getDefaultLifecycle,
 } from './dynamic-lifecycle';
-import { enhanceWithVisuals } from './visual-enhancer';
+
 import { extractPartialConcepts } from '@/lib/types/concept-schema';
 import type { Pass1Result, ProgressCallback, GenerationResult, ValidationResult, DynamicLifecycle } from '@/lib/types/generation';
 
@@ -64,13 +64,10 @@ export async function generateChartIteratively(
   const bedrockClient = await getBedrockClient(config);
 
   // Get profile settings (Stop Guessing)
-  const { learningProfile } = useLearningStore.getState();
-  const aphantasiaMode = learningProfile.style === 'text'; // 'text' style maps to aphantasia optimizations
-
   // We no longer guess familiar systems. Default to null for neutral, or could add to profile later.
   const familiarSystem = null;
 
-  const systemPrompt = getSystemPrompt(aphantasiaMode, familiarSystem);
+  const systemPrompt = getSystemPrompt(familiarSystem);
 
   if (abortSignal?.aborted) {
     throw new Error('Generation cancelled by user');
@@ -631,16 +628,7 @@ OUTPUT JSON ONLY - Focus on quality assessment:
     finalContent = applyFixes(pass3Text, validation.fixes);
   }
 
-  // Phase 1.5: Visual Bridge (Titan Image Gen)
-  onProgress(4, 'in-progress', { message: 'Painting memory anchors (Titan)...' });
-  try {
-    finalContent = await enhanceWithVisuals(finalContent, config, (msg: string) => {
-      onProgress(4, 'in-progress', { message: msg });
-    });
-  } catch (err) {
-    console.error('Visual enhancement failed:', err);
-    // Proceed without images if enhancement fails
-  }
+
 
   const fullDocument = assembleFinalDocument(pass1Data, pass2Text, finalContent);
 

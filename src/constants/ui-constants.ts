@@ -21,16 +21,16 @@ export const GENERATION_MESSAGES = {
     'Weaving a web of dependencies...',
   ],
   pass3: [
-    'Dreaming up bizarre scenarios...',
-    'Placing anchors in strange places...',
-    'Constructing your memory palace...',
-    'Scattering surreal objects across the landscape...',
-    'Inviting peculiar characters to guard your knowledge...',
+    'Synthesizing core concepts...',
+    'Establishing key terminology...',
+    'Building the knowledge structure...',
+    'Defining relationships and hierarchies...',
+    'Creating memory anchors...',
   ],
   pass4: [
-    'Polishing the surrealist experience...',
-    'Making sure the dream holds together...',
-    'Final reality check on unreality...',
+    'Polishing the learning experience...',
+    'Validating structural integrity...',
+    'Final quality assurance check...',
   ],
 } as const;
 

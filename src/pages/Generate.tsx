@@ -550,9 +550,9 @@ export default function Generate() {
                   <Loader2 className={styles.activityIcon} />
                 </div>
                 <div className={styles.activityInfo}>
-                  <span className={styles.activityLabel}>Building Your Memory Palace</span>
+                  <span className={styles.activityLabel}>Building Knowledge Structure</span>
                   <span className={styles.activityPhase}>
-                    {passes[3] === 'in-progress' ? '🏰 Constructing Scenes' :
+                    {passes[3] === 'in-progress' ? '🏗️ Synthesizing Concepts' :
                       passes[4] === 'in-progress' ? '✨ Final Polish' :
                         passes[2] === 'in-progress' ? '🔗 Weaving Connections' :
                           passes[1] === 'in-progress' ? '🔍 Exploring Domain' : 'Processing'}
@@ -566,7 +566,7 @@ export default function Generate() {
                 <p className={styles.activityText}>{currentActivity}</p>
                 {pass1Data && passes[3] === 'in-progress' && (
                   <p className={styles.conceptCount}>
-                    Placing {pass1Data.concepts.length} surreal anchors across the landscape
+                    Defining {pass1Data.concepts.length} core concepts
                   </p>
                 )}
               </div>
@@ -598,7 +598,7 @@ export default function Generate() {
                 <div className={styles.livePreview}>
                   <div className={styles.previewHeader}>
                     <div className={styles.previewTitle}>
-                      🏰 {constructionPhase === 'complete' ? 'Memory Palace Complete!' : 'Building Your Memory Palace'}
+                      🏰 {constructionPhase === 'complete' ? 'Knowledge Structure Ready!' : 'Building Knowledge Structure'}
                     </div>
                     <div className={styles.previewBadge}>
                       <span></span> {constructionPhase === 'complete' ? 'Done' : 'Live'}
@@ -621,8 +621,8 @@ export default function Generate() {
                       <span className={styles.constructionPhase}>
                         {constructionPhase === 'foundation' && '🔍 Analyzing domain...'}
                         {constructionPhase === 'framing' && '🏗️ Framing structure...'}
-                        {constructionPhase === 'detailing' && `🎨 Placing anchors (${streamedConcepts.length}/${expectedConceptCount})...`}
-                        {constructionPhase === 'complete' && '✨ Palace complete!'}
+                        {constructionPhase === 'detailing' && `🎨 Detailing concepts (${streamedConcepts.length}/${expectedConceptCount})...`}
+                        {constructionPhase === 'complete' && '✨ Structure complete!'}
                       </span>
                     </div>
                   )}
@@ -676,7 +676,7 @@ export default function Generate() {
                         transition={{ delay: 0.5 }}
                       >
                         <span className={styles.conceptName}>
-                          +{pass1Data.concepts.length - 12} more anchors
+                          +{pass1Data.concepts.length - 12} more concepts
                         </span>
                       </motion.div>
                     )}

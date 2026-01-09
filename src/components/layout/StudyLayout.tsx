@@ -90,11 +90,7 @@ export function StudyLayout({
   const {
     getSession,
     getCognitiveLoadLevel,
-    learningProfile
   } = useLearningStore();
-
-  // Simple recommendation based on explicit profile
-  const recommendedTab = learningProfile.style === 'visual' ? 'overview' : 'learn';
 
   const session = getSession();
   const cognitiveLevel = getCognitiveLoadLevel();
@@ -154,7 +150,6 @@ export function StudyLayout({
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
-              const isRecommended = recommendedTab === tab.id && !isActive;
 
               return (
                 <button
@@ -162,13 +157,11 @@ export function StudyLayout({
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`${styles.tabButton} ${isActive ? styles.tabActive : ''} ${isRecommended ? styles.tabRecommended : ''}`}
+                  className={`${styles.tabButton} ${isActive ? styles.tabActive : ''}`}
                   style={{ '--tab-color': tab.color } as React.CSSProperties}
-                  title={isRecommended ? 'Recommended for you' : undefined}
                 >
                   <Icon size={16} />
                   <span>{tab.label}</span>
-                  {isRecommended && <span className={styles.recommendedBadge}>★</span>}
                 </button>
               );
             })}

@@ -198,15 +198,13 @@ Analyze each concept's role in the domain hierarchy:
 
 - **Foundation:** Universal constants that other concepts depend on (the "bedrock")
   - Examples: VNet, Storage Account, Entra ID, IAM, S3 Bucket, DNS, Active Directory
-  - Visual Scale: MASSIVE/LANDSCAPE (these are "always there" like landmarks)
   
 - **Keystone:** Major functional blocks that perform core operations (the "workers")
   - Examples: VM, NSG, App Service, Lambda, EC2, Load Balancer, API Gateway
-  - Visual Scale: HUMAN/ROOM SIZE (relatable, interactive scale)
   
 - **Utility:** Specialized tools, tokens, or add-ons (the "accessories")
   - Examples: SAS Token, PIM, Locks, Tags, Metrics, Policies, Secrets
-  - Visual Scale: HANDHELD/SMALL (tools you pick up and use)
+
 
 **ANCHOR GENERATION RULES:**
 1. Select anchor object starting with SAME FIRST LETTER as concept name
@@ -257,7 +255,7 @@ For the \`depends_on\` array, identify concepts that must be understood BEFORE t
 - Utility concepts reference the Keystone or Foundation concepts they attach to
 - A concept can depend on multiple prerequisites
 
-**⚠️ QUALITY GATE: Every concept MUST include a mnemonic object. Concepts without mnemonics will cause the memory palace visualization to fail. This is NOT optional.**
+**⚠️ QUALITY GATE: Every concept MUST include a mnemonic object. This is NOT optional.**
 
 ---
 
@@ -533,7 +531,8 @@ Deliver ALL sections in order:
 | \`dependencyGraph\` | Separate JSON block | ✅ MANDATORY |
 | \`equationMetadata\` | Separate JSON block | ✅ MANDATORY |
 
-**⚠️ CRITICAL: The Mnemonic Anchors (#4) are MANDATORY. Each concept MUST have a mnemonic object with tier, anchor (emoji + name), story, and parentConcept. Without this, the memory palace visualization cannot render properly.**
+**⚠️ CRITICAL: The Mnemonic Anchors (#4) are MANDATORY. Each concept MUST have a mnemonic object with tier, anchor (emoji + name), story, and parentConcept.**
+
 
 ---
 
@@ -555,49 +554,12 @@ Verify HIGH frequency of:
 
 **EXECUTION NOTE:** Always complete Step 1 (Live Verification) before generating the chart. Use the terminology: [Critical Distinction], [Design Boundary]/[Prerequisite Check]/[Exam Focus], and [Verify in Docs]. Ensure all three phase labels consistently use the chosen lifecycle verbs.`;
 
-/**
- * Aphantasia-friendly enhancement for users who can't visualize mentally.
- * Transforms visualization-heavy prompts into sequential/narrative-based learning.
- */
-export const APHANTASIA_MODE_ENHANCEMENT = `
----
-## APHANTASIA ACCOMMODATION MODE [ACTIVE]
 
-The learner has aphantasia (inability to form mental images). Adapt ALL content generation:
-
-**LANGUAGE TRANSFORMATIONS (Apply throughout):**
-- Replace "Picture..." → "Think of it as..."
-- Replace "Imagine..." → "Consider this analogy..."  
-- Replace "Visualize..." → "Follow this sequence..."
-- Replace "See it as..." → "It works like..."
-- Replace "close your eyes and see" → "trace the logical steps"
-
-**MENTAL ANCHOR ADAPTATIONS:**
-Instead of vivid imagery, emphasize:
-1. **Narrative Sequences:** "First X happens, then Y follows, which triggers Z"
-2. **Logical Relationships:** "X relates to Y the way [familiar concept] relates to [familiar concept]"
-3. **Physical/Procedural Memory:** "Your hands would do X, then Y, then Z"
-4. **Factual Chains:** "Remember: A connects to B connects to C because..."
-5. **Story-Based Mnemonics:** Frame concepts as characters in a short story with cause-effect relationships
-
-**STRUCTURE EMPHASIS:**
-- Add numbered step sequences (Step 1, Step 2, Step 3)
-- Include "Flow:" descriptions showing information/action progression
-- Use "Before/After" comparisons instead of spatial metaphors
-- Emphasize the WHY behind each connection, not just the visual arrangement
-
-**EXAMPLE TRANSFORMATION:**
-❌ "Picture a three-story building where Floor 1 handles..."
-✅ "Think of it as a three-step process: Step 1 handles authentication (who you are), Step 2 handles authorization (what you can access), Step 3 handles governance (the rules everyone follows). Each step must complete before the next begins."
-
-Apply this accommodation to ALL Mental Anchors, Worked Examples, and Learning Path descriptions.
----
-`;
 
 /**
  * Returns the system prompt with optional aphantasia and familiar system enhancements
  */
-export function getSystemPrompt(aphantasiaMode: boolean = false, familiarSystem?: string | null): string {
+export function getSystemPrompt(familiarSystem?: string | null): string {
   let prompt = SYSTEM_PROMPT_V4;
 
   if (familiarSystem) {
@@ -609,10 +571,6 @@ export function getSystemPrompt(aphantasiaMode: boolean = false, familiarSystem?
 
     // 2. Add mandatory constraint
     prompt += `\n\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFAMILIAR SYSTEM OVERRIDE: ${familiarSystem.toUpperCase()}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nYou MUST use metaphors related to "${familiarSystem}" for ALL Analogical Models.\nExample: If system is "Cooking", map concepts to ingredients, recipes, chefs, kitchen tools.\nDO NOT use generic examples.\n`;
-  }
-
-  if (aphantasiaMode) {
-    prompt += APHANTASIA_MODE_ENHANCEMENT;
   }
 
   return prompt;

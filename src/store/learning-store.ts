@@ -13,6 +13,7 @@ import type {
   EnhancedCognitiveMetrics,
   SessionPrimer,
   ConceptMapData,
+
 } from '@/lib/types/learning';
 
 
@@ -134,8 +135,7 @@ export interface DiagnosticSession {
 
 // [NEW] SensaAI Learning Profile (Stop Guessing)
 export type LearningProfile = {
-  style: 'visual' | 'text'; // Palace vs Velocity
-  mode: 'burst' | 'deep';   // Quick vs Thorough
+  // Simplified profile
   onboardingCompleted: boolean;
 };
 
@@ -182,9 +182,6 @@ const createStudySession = (
   // SENSA Explore+
   previewed: false,
   // SENSA Phase 2: Note
-  mapBuilt: false,
-  conceptMap: null,
-  mapReconstructed: false,
   mastered: false,
   // Step 3: The Guess (Priming)
   predictions: {},
@@ -405,10 +402,8 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       isExploreMode: false,
 
 
-      // Initial Profile State (Default to Visual/Deep)
+      // Initial Profile State
       learningProfile: {
-        style: 'visual',
-        mode: 'deep',
         onboardingCompleted: false
       },
 
@@ -578,6 +573,8 @@ export const useLearningStore = create<LearningState & LearningActions>()(
             : null
         }));
       },
+
+
 
       markSessionMastered: () => {
         set((state) => ({
@@ -1087,36 +1084,8 @@ export const useLearningStore = create<LearningState & LearningActions>()(
           showNeuralReset: needsReset,
         });
 
-        // Update behavioral signals for learning profile inference
-        import('@/store/personalization-store').then(({ usePersonalizationStore }) => {
-          import('@/lib/learning/profile-detector').then(({ inferLearningProfile }) => {
-            const personalization = usePersonalizationStore.getState();
-            const currentSignals = personalization.behavioralSignals;
+        // Personalization/Profile inference removed
 
-            // Calculate updated signals
-            const newTotalConcepts = currentSignals.totalConceptsViewed + 1;
-            const newAvgTimePerConcept = currentSignals.avgTimePerConcept === 0
-              ? responseTimeMs / 1000
-              : (currentSignals.avgTimePerConcept * 0.8 + (responseTimeMs / 1000) * 0.2);
-
-            const updatedSignals = {
-              avgTimePerConcept: newAvgTimePerConcept,
-              consecutiveErrors: newConsecutiveErrors,
-              totalConceptsViewed: newTotalConcepts,
-            };
-
-            personalization.updateBehavioralSignals(updatedSignals);
-
-            // Re-run profile inference with updated signals
-            const allSignals = { ...currentSignals, ...updatedSignals };
-            const { profile, confidence } = inferLearningProfile(allSignals, personalization.aphantasiaMode);
-
-            // Only update if confidence increased
-            if (confidence > personalization.profileConfidence) {
-              personalization.setInferredProfile(profile, confidence);
-            }
-          });
-        });
       },
 
       triggerNeuralReset: () => set({ showNeuralReset: true }),
