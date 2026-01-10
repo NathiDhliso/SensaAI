@@ -7,6 +7,7 @@
 
 import { parseGeneratedContent, transformGeneratedContent } from '@/lib/content-adapter';
 import { useLearningStore } from '@/store/learning-store';
+import { indexedDBStorage } from '@/lib/storage/indexed-db-storage';
 
 export interface ParseAndLoadResult {
     success: boolean;
@@ -17,8 +18,11 @@ export interface ParseAndLoadResult {
  * Parse raw generated content and load it into the learning store.
  * This centralizes the duplicate logic found in Results.tsx and SavedResults.tsx.
  * 
+ * Also caches parsed concepts to IndexedDB for lazy loading to prevent memory issues.
+ * 
  * @param rawContent - The raw generated document content
  * @param subjectId - Optional subject ID (defaults to generated ID)
+ * @param fallbackConcepts - Optional concept names for recovery
  * @returns Result object indicating success or containing error message
  */
 export function parseAndLoadContent(rawContent: string, subjectId?: string, fallbackConcepts: string[] = []): ParseAndLoadResult {
@@ -33,10 +37,19 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string, fall
         }
 
         const transformed = transformGeneratedContent(parseResult.data, subjectId, fallbackConcepts);
+        const effectiveSubjectId = subjectId || `subject-${Date.now()}`;
+
+        // CRITICAL: Cache parsed concepts to IndexedDB for lazy loading
+        // This prevents memory crashes by allowing tier-by-tier loading
+        if (indexedDBStorage.isSupported()) {
+            indexedDBStorage.saveConcepts(effectiveSubjectId, parseResult.data.concepts)
+                .then(() => console.log(`[content-loader] Cached ${parseResult.data.concepts.length} concepts to IndexedDB`))
+                .catch(err => console.warn('[content-loader] Failed to cache concepts:', err));
+        }
 
         // Add required session fields, including raw document for reference tab
         useLearningStore.getState().loadSession({
-            subjectId: subjectId || `subject-${Date.now()}`,
+            subjectId: effectiveSubjectId,
             subject: transformed.metadata.domain,
             mode: 'learn',
             stages: transformed.stages,
@@ -55,6 +68,7 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string, fall
         };
     }
 }
+
 
 /**
  * Hook version for components that need reactive access
@@ -75,10 +89,18 @@ export function useParseAndLoadContent() {
             }
 
             const transformed = transformGeneratedContent(parseResult.data, subjectId, fallbackConcepts);
+            const effectiveSubjectId = subjectId || `subject-${Date.now()}`;
+
+            // CRITICAL: Cache parsed concepts to IndexedDB for lazy loading
+            if (indexedDBStorage.isSupported()) {
+                indexedDBStorage.saveConcepts(effectiveSubjectId, parseResult.data.concepts)
+                    .then(() => console.log(`[content-loader] Cached ${parseResult.data.concepts.length} concepts to IndexedDB`))
+                    .catch(err => console.warn('[content-loader] Failed to cache concepts:', err));
+            }
 
             // Add required session fields, including raw document for reference tab
             loadSession({
-                subjectId: subjectId || `subject-${Date.now()}`,
+                subjectId: effectiveSubjectId,
                 subject: transformed.metadata.domain,
                 mode: 'learn',
                 stages: transformed.stages,
@@ -98,3 +120,4 @@ export function useParseAndLoadContent() {
         }
     };
 }
+

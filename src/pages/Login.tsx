@@ -15,6 +15,10 @@ export function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Access store error to display it (as it cleans up AWS error messages)
+    // NOTE: Must be before any conditional returns to follow React hooks rules
+    const storeError = useAuthStore(state => state.error);
+
     // Redirect if already authenticated
     useEffect(() => {
         if (isAuthenticated) {
@@ -23,6 +27,7 @@ export function Login() {
         }
     }, [isAuthenticated, navigate, location]);
 
+    // Early return AFTER all hooks
     if (isAuthenticated) return null;
 
     const handleSubmit = async (e: FormEvent) => {
@@ -50,8 +55,6 @@ export function Login() {
         }
     };
 
-    // Access store error to display it (as it cleans up AWS error messages)
-    const storeError = useAuthStore(state => state.error);
 
     return (
         <div className={styles.container}>
