@@ -466,7 +466,7 @@ function buildCoverageMap(
 
         // Dynamic Fallback: If no tier found, calculate it (prevents "Uncategorized" for mapped concepts)
         if (!tier) {
-            tier = determineTierFallback(index + 1, conceptName).toLowerCase() as 'foundation' | 'keystone' | 'utility';
+            tier = determineTierFallback(index + 1, conceptName, allConcepts.length).toLowerCase() as 'foundation' | 'keystone' | 'utility';
             console.log(`[CoverageMap] Fallback tier for ${conceptName}: ${tier}`);
         }
 
@@ -535,26 +535,20 @@ function readabilityScore(text: string): number {
     return words / (sentences || 1);
 }
 
-/**
- * Fallback tier determination if metadata is missing
- * Matches logic from json-content-parser.ts
- */
-function determineTierFallback(order: number, name: string): string {
-    const foundationKeywords = ['workspace', 'environment', 'schema', 'security', 'dashboard', 'apps', 'account', 'network', 'vnet', 'identity', 'policy'];
-    const keystoneKeywords = ['query', 'relationship', 'dax', 'filter', 'refresh', 'gateway', 'storage', 'vm', 'function'];
+function determineTierFallback(order: number, _name: string, totalConcepts: number = 30): string {
+    // SILVER BULLET SCALING LOGIC:
+    // Instead of hardcoded keywords, we use a "Narrative Arc" distribution.
+    // Every learning journey has a beginning (Foundation), middle (Keystone), and application (Utility).
 
-    const nameLower = name.toLowerCase();
+    // Normalize position 0-1
+    const position = Math.max(0, Math.min(1, order / Math.max(1, totalConcepts)));
 
-    for (const keyword of foundationKeywords) {
-        if (nameLower.includes(keyword)) return 'Foundation';
-    }
+    // 1. Foundation (First 20%): Setup, core concepts, basic terminology
+    if (position <= 0.20) return 'Foundation';
 
-    for (const keyword of keystoneKeywords) {
-        if (nameLower.includes(keyword)) return 'Keystone';
-    }
+    // 2. Keystone (Middle 50%): The core mechanics, relationships, and deep logic
+    if (position <= 0.70) return 'Keystone';
 
-    // Fallback based on order
-    if (order <= 5 || order % 10 === 1) return 'Foundation';
-    if (order <= 30) return 'Keystone';
+    // 3. Utility (Last 30%): Application, optimization, edge cases, tools
     return 'Utility';
 }

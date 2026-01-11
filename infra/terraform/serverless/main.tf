@@ -159,7 +159,8 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "dynamodb:GetItem",
           "dynamodb:UpdateItem",
           "dynamodb:Query",
-          "dynamodb:BatchWriteItem"
+          "dynamodb:BatchWriteItem",
+          "dynamodb:DeleteItem"
         ]
         Resource = [
           aws_dynamodb_table.concepts.arn,

@@ -38,6 +38,11 @@ def create_sk(tier: str, concept_id: str) -> str:
     return f"TIER#{tier}#CONCEPT#{concept_id}"
 
 
+def create_subject_sk(session_id: str) -> str:
+    """Create sort key for subject metadata"""
+    return f"SUBJECT#{session_id}"
+
+
 def create_gsi1_pk(user_id: str, session_id: str) -> str:
     """Create GSI1 partition key for tier-based queries"""
     return f"USER#{user_id}#SESSION#{session_id}"

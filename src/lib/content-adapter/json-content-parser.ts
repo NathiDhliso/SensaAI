@@ -496,24 +496,18 @@ function extractFirstSentence(text: string): string {
  * Determine tier based on concept order and name
  * Returns lowercase tier values: 'foundation', 'keystone', 'utility'
  */
-function determineTier(order: number, name: string): 'foundation' | 'keystone' | 'utility' {
-    // Foundation concepts (first in each stage, or core infrastructure)
-    const foundationKeywords = ['workspace', 'environment', 'schema', 'security', 'dashboard', 'apps'];
-    const keystoneKeywords = ['query', 'relationship', 'dax', 'filter', 'refresh', 'gateway'];
+function determineTier(order: number, _name: string): 'foundation' | 'keystone' | 'utility' {
+    // SILVER BULLET SCALING LOGIC (Parser Version):
+    // When parsing stream/markdown, we might not know the total count yet.
+    // We use a safe "Growth" heuristic assuming a standard ~30-50 concept curriculum.
 
-    const nameLower = name.toLowerCase();
+    // 1. Foundation: First 5 concepts are almost always setup/definitions
+    if (order <= 5) return 'foundation';
 
-    for (const keyword of foundationKeywords) {
-        if (nameLower.includes(keyword)) return 'foundation';
-    }
-
-    for (const keyword of keystoneKeywords) {
-        if (nameLower.includes(keyword)) return 'keystone';
-    }
-
-    // Fallback based on order
-    if (order <= 5 || order % 10 === 1) return 'foundation';
+    // 2. Keystone: The core body of knowledge (next ~20-25 concepts)
     if (order <= 30) return 'keystone';
+
+    // 3. Utility: Everything else is application/advanced
     return 'utility';
 }
 

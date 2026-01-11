@@ -96,7 +96,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Store concepts in DynamoDB
         concepts_table = dynamodb.Table(CONCEPTS_TABLE)
-        store_concepts(concepts_table, user_id, session_id, concepts)
+        store_concepts(concepts_table, user_id, session_id, concepts, subject)
         
         # Update job status to completed
         jobs_table.update_item(
@@ -293,15 +293,43 @@ def assign_stage_by_tier(tier: str) -> str:
     return stage_mapping.get(tier, "PREPARE")
 
 
-def store_concepts(table: Any, user_id: str, session_id: str, concepts: List[Dict[str, Any]]) -> None:
+def store_concepts(table: Any, user_id: str, session_id: str, concepts: List[Dict[str, Any]], subject_name: str) -> None:
     """
-    Store concepts in DynamoDB using batch write for efficiency
+    Store concepts in DynamoDB using batch write for efficiency.
+    Also stores a Metadata Item to allow listing subjects by user.
     """
+    from shared.utils import create_pk, create_sk, create_gsi1_pk, create_gsi1_sk, create_subject_sk, get_ttl_timestamp, generate_id
+
     pk = create_pk(user_id, session_id)
     gsi1_pk = create_gsi1_pk(user_id, session_id)
     
+    # Metadata item for listing subjects
+    # PK = USER#{userId}, SK = SUBJECT#{sessionId}
+    # This allows Querying PK=USER#{userId} to get all subjects for that user
+    user_pk = f"USER#{user_id}"
+    subject_sk = create_subject_sk(session_id)
+    
+    metadata_item = {
+        "PK": user_pk,
+        "SK": subject_sk,
+        "GSI1PK": user_pk, # Optional: if we want to sort/filter by user in GSI
+        "GSI1SK": subject_sk,
+        "userId": user_id,
+        "sessionId": session_id,
+        "subject": subject_name,
+        "conceptCount": len(concepts),
+        "createdAt": get_ttl_timestamp(0),
+        "updatedAt": get_ttl_timestamp(0),
+        "expiresAt": get_ttl_timestamp(168), # 7 days
+        "type": "SUBJECT_METADATA"
+    }
+
     # Batch write in chunks of 25 (DynamoDB limit)
     with table.batch_writer() as batch:
+        # 1. Write the metadata item first
+        batch.put_item(Item=metadata_item)
+
+        # 2. Write all concepts
         for concept in concepts:
             concept_id = concept.get("id", generate_id())
             tier = concept.get("tier", "foundation")
