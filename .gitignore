@@ -32,6 +32,7 @@ dist-ssr
 
 # Terraform
 infra/terraform/.terraform/
+.terraform/
 terraform.tfstate
 terraform.tfstate.backup
 tfplan
@@ -42,3 +43,7 @@ backend/src/**/*.js
 backend/src/**/*.js.map
 backend/dist/
 
+# Deployment & Build Artifacts
+*.zip
+*.exe
+backend/lambda/deploy/

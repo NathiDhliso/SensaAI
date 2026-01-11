@@ -11,8 +11,7 @@ from typing import Any, Dict, List, Optional
 import boto3
 
 # Import shared utilities
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Import shared utilities
 from shared.utils import (
     api_response,
     parse_cursor,

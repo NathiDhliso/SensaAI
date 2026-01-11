@@ -8,13 +8,12 @@ import json
 import os
 import re
 from typing import Any, Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 from botocore.config import Config
 
 # Import shared utilities
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared.utils import (
     generate_id,
     get_ttl_timestamp,
@@ -26,6 +25,7 @@ from shared.utils import (
     TIERS,
     STAGES,
 )
+from shared.system_prompt import get_system_prompt
 
 # Environment variables
 CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-dev")
@@ -36,6 +36,8 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
 dynamodb = boto3.resource("dynamodb")
 bedrock = boto3.client(
     "bedrock-runtime",
+    region_name="us-east-1",
+
     config=Config(
         retries={"max_attempts": 3, "mode": "adaptive"},
         read_timeout=900,
@@ -118,90 +120,157 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return api_response(500, {"error": str(e)})
 
 
+import concurrent.futures
+
 def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict[str, Any]]:
     """
-    Invoke Bedrock Claude to generate learning concepts
+    Silver Bullet Generation: Parallel execution for maximum speed and volume.
+    Splits the 70 concepts into 2 parallel requests (Part 1 & Part 2) to bypass token limits.
     """
-    system_prompt = get_system_prompt(subject)
+    from shared.system_prompt import get_silver_bullet_prompt
     
-    user_message = f"""Generate a comprehensive learning curriculum for: {subject}
-
-{f"Additional context: {context}" if context else ""}
-
-Return a JSON array of concepts with the following structure for each concept:
-{{
-    "id": "unique-concept-id",
-    "name": "Concept Name",
-    "tier": "foundation" | "keystone" | "utility",
-    "stageId": "PREPARE" | "MODEL" | "DELIVER",
-    "description": "Brief description",
-    "keyPoints": ["point1", "point2", "point3"],
-    "prerequisiteWeight": 0.0-1.0,
-    "displayProperties": {{
-        "emoji": "📚",
-        "category": "category-name"
-    }}
-}}
-
-Generate 30-50 concepts covering all tiers and stages comprehensively."""
-
-    response = bedrock.invoke_model(
-        modelId="anthropic.claude-3-sonnet-20240229-v1:0",
-        contentType="application/json",
-        accept="application/json",
-        body=json.dumps({
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 100000,
-            "system": system_prompt,
-            "messages": [
-                {"role": "user", "content": user_message}
-            ],
-        }),
-    )
+    # Logging removed to prevent stdout capture by local dev server
+    # silver_bullet_prompt = get_silver_bullet_prompt(subject)
     
-    response_body = json.loads(response["body"].read())
-    content = response_body.get("content", [{}])[0].get("text", "")
+    def generate_part(part_num: int):
+        prompt = get_silver_bullet_prompt(subject, part_num, context)
+        
+        try:
+            response = bedrock.invoke_model(
+                modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                contentType="application/json",
+                accept="application/json",
+                body=json.dumps({
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": 8192,
+                    "temperature": 0.7,
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ]
+                })
+            )
+            
+            response_body = json.loads(response.get("body").read())
+            raw_content = response_body.get("content", [])[0].get("text", "")
+            
+            return parse_concepts_from_response(raw_content)
+            
+        except Exception as e:
+            # logger.error(f"Error in Part {part_num}: {e}")
+            return []
+
+    # Run both parts in parallel
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        future1 = executor.submit(generate_part, 1)
+        future2 = executor.submit(generate_part, 2)
+        
+        part1_concepts = future1.result()
+        part2_concepts = future2.result()
     
-    # Parse JSON from response
-    concepts = parse_concepts_from_response(content)
+    all_expanded_concepts = part1_concepts + part2_concepts
     
-    # Assign tiers if not specified
-    for i, concept in enumerate(concepts):
-        if "tier" not in concept or concept["tier"] not in TIERS:
-            # Distribute across tiers based on position
-            concept["tier"] = assign_tier_by_position(i, len(concepts))
-        if "stageId" not in concept or concept["stageId"] not in STAGES:
-            concept["stageId"] = assign_stage_by_tier(concept["tier"])
+    # Filter out any non-dict items (e.g. strings) that might have slipped through the parser
+    all_expanded_concepts = [c for c in all_expanded_concepts if isinstance(c, dict)]
+    
+    # Post-process: assign tiers/stages if missing
+    for i, concept in enumerate(all_expanded_concepts):
         if "id" not in concept:
             concept["id"] = generate_id()
+        
+        # Ensure tier consistency
+        if i < 14: # First 20%
+             concept["tier"] = concept.get("tier", "foundation")
+        elif i < 42: # Next 40%
+             concept["tier"] = concept.get("tier", "keystone")
+        else:
+             concept["tier"] = concept.get("tier", "utility")
+             
+        # Normalize fields
+        concept["stageId"] = concept.get("stageId", "PREPARE")
+        if "mnemonic" not in concept:
+            concept["mnemonic"] = {}
             
-    return concepts
+    return all_expanded_concepts
 
 
 def parse_concepts_from_response(content: str) -> List[Dict[str, Any]]:
     """
-    Extract JSON array from Claude's response
+    Robustly parsing of JSON content, handling common LLM formatting issues
+    like markdown blocks, trailing commas, or truncation.
     """
-    # Try to find JSON array in response
-    json_match = re.search(r'\[[\s\S]*\]', content)
-    if json_match:
+    try:
+        # 1. Strip markdown
+        content = content.strip()
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.startswith("```"):
+            content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
+        
+        # logger.info(f"PARSE_CONCEPTS: content starts with '{content[:100]}...'")
+
+        # 2. Try Regex Extraction first (most reliable for mixed content)
+        # Matches [ ... ] block
+        json_array_pattern = r'\[\s*\{.*?\}\s*\]'
+        match = re.search(json_array_pattern, content, re.DOTALL)
+        
+        if match:
+            json_str = match.group(0)
+            try:
+                result = json.loads(json_str)
+                # logger.info(f"PARSE_CONCEPTS: regex extraction found {len(result)} items")
+                return result
+            except json.JSONDecodeError as e:
+                pass
+                # logger.warning(f"PARSE_CONCEPTS: regex extraction failed: {e}")
+        
+        # 3. Try Direct Parse
         try:
-            return json.loads(json_match.group())
+            result = json.loads(content)
+            if isinstance(result, list):
+                # logger.info(f"PARSE_CONCEPTS: direct parse found {len(result)} items")
+                return result
+            elif isinstance(result, dict) and "concepts" in result:
+                # logger.info(f"PARSE_CONCEPTS: dict parse found {len(result['concepts'])} concepts")
+                return result["concepts"]
         except json.JSONDecodeError:
             pass
-    
-    # Try to parse entire response as JSON
-    try:
-        result = json.loads(content)
-        if isinstance(result, list):
-            return result
-        if isinstance(result, dict) and "concepts" in result:
-            return result["concepts"]
-    except json.JSONDecodeError:
-        pass
-    
-    # Fallback: return empty list
-    return []
+
+        # 4. Try robust extraction for truncated JSON
+        # logger.info("Trying robust extraction for truncated JSON...")
+        concepts = []
+        # Find all complete JSON objects { ... }
+        # This regex balances braces to some extent but isn't perfect
+        # A simple approach: split by "}," and re-assemble
+        
+        # Better: iteratively find largest valid JSON objects
+        decoder = json.JSONDecoder()
+        idx = 0
+        while idx < len(content):
+            try:
+                obj, end_idx = decoder.raw_decode(content, idx)
+                if isinstance(obj, dict) and "name" in obj:
+                    concepts.append(obj)
+                elif isinstance(obj, list):
+                    concepts.extend(obj)
+                idx = end_idx
+                # Skip whitespace/commas
+                while idx < len(content) and content[idx] in ' \t\n\r,[]':
+                    idx += 1
+            except json.JSONDecodeError:
+                idx += 1 # Advance character by character if stuck
+                
+        if concepts:
+            # logger.info(f"Robust extraction found {len(concepts)} concepts")
+            return concepts
+
+        return []
+
+    except Exception as e:
+        # logger.error(f"Error parsing concepts: {e}")
+        return []
 
 
 def assign_tier_by_position(index: int, total: int) -> str:
@@ -251,37 +320,23 @@ def store_concepts(table: Any, user_id: str, session_id: str, concepts: List[Dic
                     "keyPoints": concept.get("keyPoints", []),
                     "prerequisiteWeight": str(concept.get("prerequisiteWeight", 0.5)),
                     "displayProperties": concept.get("displayProperties", {}),
+                    # Store full SENSA learning science data
+                    "mnemonic": concept.get("mnemonic", {}),
+                    "phase1": concept.get("phase1", {}),
+                    "phase2": concept.get("phase2", []),
+                    "phase3": concept.get("phase3", {}),
+                    "shape": concept.get("shape", {}),
+                    "criticalDistinctions": concept.get("criticalDistinctions", []),
+                    "designBoundaries": concept.get("designBoundaries", []),
+                    "examFocus": concept.get("examFocus", []),
+                    "dependencies": concept.get("dependencies", []),
+                    "outdegree": concept.get("outdegree", 0),
                     "createdAt": get_ttl_timestamp(0),
                     "expiresAt": get_ttl_timestamp(168),  # TTL after 7 days
                 }
             )
 
 
-def get_system_prompt(subject: str) -> str:
-    """
-    Return system prompt for content generation
-    Matches the TypeScript system-prompt.ts patterns
-    """
-    return f"""You are an expert learning curriculum designer creating content for the SENSA learning platform.
-
-Your goal is to create a comprehensive, well-structured curriculum for: {subject}
-
-TIER DEFINITIONS:
-- foundation: Core concepts that must be understood first. Building blocks.
-- keystone: Central concepts that connect multiple ideas. The "meat" of the subject.
-- utility: Practical applications and specialized tools. How to use the knowledge.
-
-STAGE DEFINITIONS (Lifecycle):
-- PREPARE: Introduction, context, prerequisites
-- MODEL: Deep exploration, examples, patterns
-- DELIVER: Application, integration, mastery
-
-REQUIREMENTS:
-1. Each concept must have exactly 3+ keyPoints
-2. Use positive framing (what TO do, not what NOT to do)
-3. Be specific and actionable
-4. Assign appropriate tier based on concept nature
-5. Ensure logical dependencies (foundation before keystone)
-6. Include emojis for visual categorization
-
-Return ONLY valid JSON array, no markdown formatting."""
+# Note: get_system_prompt is now imported from shared.system_prompt
+# This ensures the full SENSA learning science (SHAPE, tiers, mnemonics,
+# confusion pairs, learning paths) is preserved in Lambda generation

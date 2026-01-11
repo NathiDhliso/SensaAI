@@ -70,6 +70,27 @@
   background: var(--color-surface-subtle);
 }
 
+.homeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.homeButton:hover {
+  color: var(--color-text-dark);
+  border-color: var(--color-border-emphasis);
+  background: var(--color-surface-subtle);
+}
+
 .titleGroup {
   display: flex;
   flex-direction: column;

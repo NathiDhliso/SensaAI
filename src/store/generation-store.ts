@@ -215,6 +215,8 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
       completeGeneration: (result) =>
         set((state) => ({
           fullDocument: result.fullDocument,
+          pass1Data: result.pass1 || state.pass1Data, // Ensure pass1Data is set from result
+          validation: result.validation || state.validation, // Ensure validation is set from result
           isGenerating: false,
           results: [result, ...state.results.slice(0, 9)],
         })),

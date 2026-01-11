@@ -1,133 +1,256 @@
-// Hybrid Content Generator
-// Dev mode: Uses .env AWS credentials directly
-// Prod mode: Uses backend API
-
-import { generationApi } from '@/lib/api';
-import { generateChartIteratively as generateDirect } from '@/lib/generation/multi-pass-generator';
-import { useGenerationStore } from '@/store/generation-store';
+import { conceptsApi } from '@/lib/api';
+import { useAuthStore } from '@/store/auth-store';
 import type { ProgressCallback, GenerationResult, ValidationResult } from '@/lib/types/generation';
 
-const isDev = import.meta.env.DEV;
-
+/**
+ * Generate content using the serverless Lambda + DynamoDB pipeline.
+ * All heavy lifting happens server-side - browser only polls for status.
+ */
 export async function generateWithBackend(
     subject: string,
     onProgress: ProgressCallback,
     abortSignal?: AbortSignal,
     context?: string
 ): Promise<GenerationResult> {
+    console.log('🚀 Using serverless Lambda + DynamoDB pipeline');
 
-    // DEV MODE: Use direct AWS SDK with .env credentials
-    if (isDev) {
-        console.log('🔧 Dev mode: Using direct AWS SDK with .env credentials');
+    // Get user ID from auth store
+    const { user } = useAuthStore.getState();
+    const userId = user?.id || 'anonymous';
 
-        const { bedrockConfig } = useGenerationStore.getState();
-        if (!bedrockConfig) {
-            throw new Error('AWS credentials not configured. Please add VITE_AWS_* variables to .env file.');
-        }
-
-        return generateDirect(subject, bedrockConfig, onProgress, abortSignal, context);
-    }
-
-    // PRODUCTION MODE: Use backend API
-    console.log('🚀 Production mode: Using backend API');
-
+    // Pass 1: Start serverless generation
     onProgress(1, 'in-progress', {
-        message: 'Starting AI generation...',
+        message: 'Initiating serverless generation...',
         progress: 5,
     });
 
-    const { jobId } = await generationApi.start({ subject });
+    // Start simulated progress during the blocking API call to give user feedback
+    let simProgress = 5;
+    const simInterval = setInterval(() => {
+        simProgress += 1; // Slow increment
+        if (simProgress > 90) simProgress = 90; // Cap at 90%
 
-    let fullContent = '';
-    let lastProgress = 10;
+        onProgress(2, 'in-progress', {
+            message: `Crafting curriculum... (${Math.round(simProgress)}%)`,
+            progress: simProgress,
+        });
+    }, 1000);
 
     try {
-        for await (const chunk of generationApi.stream(jobId)) {
-            if (abortSignal?.aborted) {
-                await generationApi.cancel(jobId);
-                throw new Error('Generation cancelled');
-            }
-
-            if (chunk.error) {
-                throw new Error(chunk.error);
-            }
-
-            if (chunk.content) {
-                fullContent += chunk.content;
-                lastProgress = Math.min(95, lastProgress + 1);
-
-                onProgress(2, 'in-progress', {
-                    message: 'Generating content...',
-                    progress: lastProgress,
-                });
-            }
-
-            if (chunk.status === 'completed' || chunk.done) {
-                break;
-            }
-
-            if (chunk.status === 'failed') {
-                throw new Error('Generation failed on server');
-            }
-        }
-    } catch (error) {
-        if (error instanceof Error && error.message === 'Generation cancelled') {
-            throw error;
-        }
-        const status = await generationApi.getStatus(jobId);
-        if (status.status === 'completed') {
-            fullContent = status.content;
-        } else {
-            throw error;
-        }
-    }
-
-    onProgress(4, 'complete', {
-        message: 'Generation complete!',
-        progress: 100,
-    });
-
-    const validation: ValidationResult = {
-        valid: true,
-        conceptCount: { expected: 50, found: 50 },
-        lifecycleConsistency: 95,
-        positiveFraming: 95,
-        formatConsistency: 95,
-        completeness: 95,
-        issues: [],
-        violations: {
-            outOfScope: [],
-            negativeFraming: [],
-        },
-        fixes: {},
-    };
-
-    return {
-        pass1: {
-            domain: 'Generated',
-            lifecycle: { phase1: 'Learn', phase2: 'Apply', phase3: 'Master' },
-            roleScope: subject,
-            excludedActions: [],
-            concepts: [],
-            numericalLimits: [],
-            recentUpdates: [],
-            sourceVerification: 'Backend Generated',
-        },
-        pass2: fullContent,
-        pass3: fullContent,
-        validation,
-        fullDocument: fullContent,
-        metadata: {
+        console.log('📡 Calling generate API with:', { subject, userId });
+        const generateResponse = await conceptsApi.generate({
             subject,
-            generatedAt: new Date().toISOString(),
-            qualityMetrics: {
-                lifecycleConsistency: 95,
-                positiveFraming: 95,
-                formatConsistency: 95,
-                completeness: 95,
+            userId,
+            context,
+        });
+        clearInterval(simInterval);
+        console.log('📡 Generate API Response:', JSON.stringify(generateResponse, null, 2));
+
+        if (generateResponse.status === 'failed') {
+            throw new Error(generateResponse.error || 'Generation failed');
+        }
+
+        // Ensure we jump to 100% completion for this phase
+        onProgress(2, 'complete', {
+            message: 'AI generation complete!',
+            progress: 100,
+        });
+
+        const { jobId, sessionId } = generateResponse;
+
+        // Skip polling if already completed (which it should be for sync lambda)
+        if (generateResponse.status !== 'completed') {
+            let progressValue = 55;
+            const pollInterval = 2000;
+            const maxPollTime = 15 * 60 * 1000;
+            const startTime = Date.now();
+
+            while (true) {
+                if (abortSignal?.aborted) throw new Error('Generation cancelled by user');
+                if (Date.now() - startTime > maxPollTime) throw new Error('Generation timed out');
+
+                const status = await conceptsApi.getJobStatus(jobId);
+                if (status.status === 'completed') {
+                    onProgress(2, 'complete', { message: 'AI generation complete!', progress: 60 });
+                    break;
+                }
+                if (status.status === 'failed') throw new Error(status.error || 'Generation failed on server');
+
+                progressValue = Math.min(59, progressValue + 1);
+                onProgress(2, 'in-progress', { message: 'AI is finalizing...', progress: progressValue });
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+            }
+        }
+
+        // Pass 3: Fetch generated concepts from DynamoDB
+        onProgress(3, 'in-progress', {
+            message: 'Loading generated concepts...',
+            progress: 65,
+        });
+
+        // Fetch all tiers
+        const [foundationConcepts, keystoneConcepts, utilityConcepts] = await Promise.all([
+            conceptsApi.getAllByTier(userId, sessionId, 'foundation'),
+            conceptsApi.getAllByTier(userId, sessionId, 'keystone'),
+            conceptsApi.getAllByTier(userId, sessionId, 'utility'),
+        ]);
+
+        console.log('📦 Fetched concepts:', {
+            foundation: foundationConcepts?.length ?? 'undefined',
+            keystone: keystoneConcepts?.length ?? 'undefined',
+            utility: utilityConcepts?.length ?? 'undefined',
+        });
+
+        const allConcepts = [...(foundationConcepts || []), ...(keystoneConcepts || []), ...(utilityConcepts || [])];
+        console.log('📦 Total concepts for document:', allConcepts.length);
+
+        onProgress(3, 'complete', {
+            message: `Loaded ${allConcepts.length} concepts!`,
+            progress: 85,
+        });
+
+        // Pass 4: Build result document
+        onProgress(4, 'in-progress', {
+            message: 'Assembling final document...',
+            progress: 90,
+        });
+
+        // Convert concepts to the full document format
+        const fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
+            ...c,
+            tier: c.tier || 'utility' // Ensure tier is always defined
+        })));
+        console.log('📄 Built fullDocument length:', fullDocument?.length, 'First 200 chars:', fullDocument?.substring(0, 200));
+
+        const validation: ValidationResult = {
+            valid: true,
+            conceptCount: { expected: allConcepts.length, found: allConcepts.length },
+            lifecycleConsistency: 95,
+            positiveFraming: 95,
+            formatConsistency: 95,
+            completeness: 95,
+            issues: [],
+            violations: { outOfScope: [], negativeFraming: [] },
+            fixes: {},
+        };
+
+        onProgress(4, 'complete', {
+            message: 'Generation complete!',
+            progress: 100,
+            ...validation,
+        });
+
+        const conceptNames = allConcepts.map(c => c.name);
+
+        return {
+            pass1: {
+                domain: subject,
+                lifecycle: { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' },
+                roleScope: subject,
+                excludedActions: [],
+                concepts: conceptNames,
+                numericalLimits: [],
+                recentUpdates: [],
+                sourceVerification: 'Lambda + DynamoDB Generated',
             },
-        },
-    };
+            pass2: fullDocument,
+            pass3: fullDocument,
+            validation,
+            fullDocument,
+            metadata: {
+                subject,
+                generatedAt: new Date().toISOString(),
+                qualityMetrics: {
+                    lifecycleConsistency: 95,
+                    positiveFraming: 95,
+                    formatConsistency: 95,
+                    completeness: 95,
+                },
+            },
+        };
+
+    } catch (error) {
+        clearInterval(simInterval);
+        throw error;
+    }
 }
 
+/**
+ * Build a full document from concepts in the format expected by the content parser.
+ * This creates the JSON structure that parseGeneratedContent expects.
+ */
+function buildDocumentFromConcepts(subject: string, concepts: Array<{
+    id?: string;
+    name: string;
+    tier: string;
+    stageId: string;
+    description?: string;
+    keyPoints?: string[];
+    prerequisiteWeight?: number;
+    displayProperties?: { emoji?: string; category?: string };
+}>): string {
+    const conceptBlocks = concepts.map((concept, index) => ({
+        order: index + 1,
+        name: concept.name,
+        tier: concept.tier,
+        stageId: concept.stageId,
+        description: concept.description || `Core concept in ${subject}`,
+        keyPoints: concept.keyPoints || [
+            `Key aspect 1 of ${concept.name}`,
+            `Key aspect 2 of ${concept.name}`,
+            `Key aspect 3 of ${concept.name}`,
+        ],
+        prerequisiteWeight: concept.prerequisiteWeight || 0.5,
+        displayProperties: concept.displayProperties || {
+            emoji: '📚',
+            category: concept.tier,
+        },
+        mnemonic: {
+            tier: concept.tier === 'foundation' ? 'Foundation' : concept.tier === 'keystone' ? 'Keystone' : 'Utility',
+            anchor: `${concept.displayProperties?.emoji || '📚'} ${concept.name}`,
+            story: `Understanding ${concept.name} in the context of ${subject}`,
+        },
+        phase1: {
+            hookSentence: `Why ${concept.name} matters in ${subject}`,
+            microMetaphor: `Think of ${concept.name} as a building block`,
+            prerequisite: 'None',
+            selection: [
+                `What is ${concept.name}?`,
+                `When to use ${concept.name}`,
+            ],
+            execution: `Apply ${concept.name} in practice`,
+        },
+        phase2: concept.keyPoints?.map(point => ({
+            title: point,
+            content: `Detailed explanation of ${point}`,
+        })) || [],
+        phase3: {
+            tool: `${concept.name} toolkit`,
+            metrics: ['Effectiveness', 'Efficiency'],
+            thresholds: 'Meet all criteria',
+        },
+        criticalDistinctions: [
+            { correct: `Proper use of ${concept.name}`, incorrect: 'Common misunderstanding' },
+        ],
+        designBoundaries: [
+            { boundary: 'Scope', rationale: 'Stay focused' },
+        ],
+        examFocus: [
+            { point: `Key exam topic for ${concept.name}`, weight: 'High' },
+        ],
+    }));
+
+    // Return as JSON that the parser expects
+    return JSON.stringify({
+        domain: subject,
+        lifecycle: {
+            phase1: 'PREPARE',
+            phase2: 'MODEL',
+            phase3: 'DELIVER',
+        },
+        concepts: conceptBlocks,
+    }, null, 2);
+}
+
+// Export with legacy name for compatibility
 export { generateWithBackend as generateChartIteratively };

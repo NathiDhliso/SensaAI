@@ -48,6 +48,12 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string, fall
         }
 
         // Add required session fields, including raw document for reference tab
+        console.log('[content-loader] Loading session to store:', {
+            subjectId: effectiveSubjectId,
+            domain: transformed.metadata.domain,
+            conceptCount: transformed.concepts.length
+        });
+
         useLearningStore.getState().loadSession({
             subjectId: effectiveSubjectId,
             subject: transformed.metadata.domain,
@@ -60,6 +66,7 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string, fall
             },
         });
 
+        console.log('[content-loader] Session loaded successfully');
         return { success: true };
     } catch (error) {
         return {

@@ -462,6 +462,7 @@
   box-shadow: var(--shadow-glow-primary);
 }
 
+.actionButton,
 .backupButton,
 .deleteButton {
   display: inline-flex;
@@ -477,6 +478,7 @@
   transition: all 0.2s;
 }
 
+.actionButton:hover,
 .backupButton:hover {
   background: var(--color-border);
   color: var(--color-secondary-amber);

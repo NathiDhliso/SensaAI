@@ -1,0 +1,67 @@
+{
+    "modelSummaries": [
+        {
+            "modelArn": "arn:aws:bedrock:af-south-1::foundation-model/anthropic.claude-opus-4-5-20251101-v1:0",
+            "modelId": "anthropic.claude-opus-4-5-20251101-v1:0",
+            "modelName": "Claude Opus 4.5",
+            "providerName": "Anthropic",
+            "inputModalities": [
+                "TEXT",
+                "IMAGE"
+            ],
+            "outputModalities": [
+                "TEXT"
+            ],
+            "responseStreamingSupported": true,
+            "customizationsSupported": [],
+            "inferenceTypesSupported": [
+                "INFERENCE_PROFILE"
+            ],
+            "modelLifecycle": {
+                "status": "ACTIVE"
+            }
+        },
+        {
+            "modelArn": "arn:aws:bedrock:af-south-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+            "modelId": "anthropic.claude-haiku-4-5-20251001-v1:0",
+            "modelName": "Claude Haiku 4.5",
+            "providerName": "Anthropic",
+            "inputModalities": [
+                "TEXT",
+                "IMAGE"
+            ],
+            "outputModalities": [
+                "TEXT"
+            ],
+            "responseStreamingSupported": true,
+            "customizationsSupported": [],
+            "inferenceTypesSupported": [
+                "INFERENCE_PROFILE"
+            ],
+            "modelLifecycle": {
+                "status": "ACTIVE"
+            }
+        },
+        {
+            "modelArn": "arn:aws:bedrock:af-south-1::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "modelId": "anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "modelName": "Claude Sonnet 4.5",
+            "providerName": "Anthropic",
+            "inputModalities": [
+                "TEXT",
+                "IMAGE"
+            ],
+            "outputModalities": [
+                "TEXT"
+            ],
+            "responseStreamingSupported": true,
+            "customizationsSupported": [],
+            "inferenceTypesSupported": [
+                "INFERENCE_PROFILE"
+            ],
+            "modelLifecycle": {
+                "status": "ACTIVE"
+            }
+        }
+    ]
+}

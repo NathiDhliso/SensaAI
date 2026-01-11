@@ -364,10 +364,14 @@ if (typeof window !== 'undefined') {
 
     const tokens = useAuthStore.getState().tokens;
     if (tokens) {
-        // Check if tokens are expired - if so, clear auth state
+        // Check if tokens are expired
         if (Date.now() >= tokens.expiresAt) {
-            console.warn('[Auth] Session expired, clearing auth state');
-            useAuthStore.setState({ user: null, tokens: null, isAuthenticated: false });
+            console.warn('[Auth] Session expired, attempting refresh...');
+            // Attempt to refresh instead of immediately clearing
+            useAuthStore.getState().refreshTokens().catch(() => {
+                console.warn('[Auth] Refresh failed, clearing auth state');
+                useAuthStore.setState({ user: null, tokens: null, isAuthenticated: false });
+            });
         } else {
             apiClient.configure({
                 getToken: () => useAuthStore.getState().getAccessToken(),

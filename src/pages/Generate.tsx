@@ -171,7 +171,7 @@ export default function Generate() {
             name: concept.name,
             order: concept.order,
             stageId: 'stage-1',
-            mnemonic: concept.anchor ? { tier: 'Foundation', anchor: concept.anchor, story: '' } : undefined,
+            mnemonic: concept.anchor ? { tier: 'foundation', anchor: concept.anchor, story: '' } : undefined,
             phase1: { hookSentence: '', microMetaphor: '', prerequisite: '', selection: [], execution: '' },
             phase2: [],
             phase3: { tool: '', metrics: [], thresholds: '' },
@@ -255,20 +255,33 @@ export default function Generate() {
 
           // Import and use storageManager
           const { storageManager } = await import('@/lib/storage');
-          await storageManager.saveResult(savedResult);
+          try {
+            console.log('[Generate] Saving result to storage:', resultId);
+            await storageManager.saveResult(savedResult);
+            console.log('[Generate] Result saved. Hydrating store...');
 
-          // Silver Bullet: Hydrate learning store and go straight to Study
-          const loadResult = parseAndLoadContent(result.fullDocument, resultId);
-          if (loadResult.success) {
-            navigate(`/study/${resultId}?tab=learn`);
-          } else {
-            // Fallback to results if loading fails
-            console.warn('Failed to load content into learning store:', loadResult.error);
-            navigate(`/results/${resultId}`);
+            // Silver Bullet: Hydrate learning store and go straight to Study
+            const loadResult = parseAndLoadContent(result.fullDocument, resultId);
+            console.log('[Generate] Store hydration result:', loadResult);
+
+            if (loadResult.success) {
+              console.log('[Generate] Navigating to Study in 500ms...');
+              // Add small delay to ensure DB transaction commits before navigation
+              setTimeout(() => {
+                navigate(`/study/${resultId}?tab=learn`);
+              }, 500);
+            } else {
+              // Fallback to results if loading fails
+              console.warn('Failed to load content into learning store:', loadResult.error);
+              navigate(`/study/${resultId}`);
+            }
+          } catch (storageError) {
+            console.error('[Generate] Storage save failed:', storageError);
+            navigate(`/study/${resultId}`);
           }
         } else {
           // Fallback if validation/pass1Data not available
-          navigate(`/results/${Date.now()}`);
+          navigate(`/study/${Date.now()}`);
         }
       })
       .catch((err) => {
@@ -320,7 +333,7 @@ export default function Generate() {
             );
 
             if (shouldLoad) {
-              navigate(`/results/${existing.id}`);
+              navigate(`/study/${existing.id}`);
               return;
             }
           }

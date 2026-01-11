@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, PutItemCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, GetCommand, QueryCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
 export const conceptsRouter = Router();
@@ -9,23 +9,22 @@ interface AuthenticatedRequest extends Request {
     user?: { sub: string; email: string };
 }
 
-// DynamoDB client
+// AWS clients - configured for af-south-1
 const dynamoClient = new DynamoDBClient({
     region: process.env.AWS_REGION || 'af-south-1',
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-// Lambda client for invoking generation function
 const lambdaClient = new LambdaClient({
     region: process.env.AWS_REGION || 'af-south-1',
 });
 
-// Table names from environment
+// Table and function names
 const CONCEPTS_TABLE = process.env.CONCEPTS_TABLE || 'sensapbl-concepts-dev';
 const JOBS_TABLE = process.env.JOBS_TABLE || 'sensapbl-jobs-dev';
 const GENERATE_FUNCTION = process.env.GENERATE_LAMBDA || 'sensapbl-generate-concepts-dev';
 
-// Helper to create pagination cursor
+// Pagination helpers
 function createCursor(lastKey: Record<string, unknown> | undefined): string | null {
     if (!lastKey) return null;
     return Buffer.from(JSON.stringify(lastKey)).toString('base64');
@@ -54,9 +53,9 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             return;
         }
 
-        // Build query for GSI
         const gsi1pk = `USER#${userId}#SESSION#${sessionId}`;
-        const queryParams: Parameters<typeof docClient.send>[0] = new QueryCommand({
+
+        const result: QueryCommandOutput = await docClient.send(new QueryCommand({
             TableName: CONCEPTS_TABLE,
             IndexName: 'tier-index',
             KeyConditionExpression: tier
@@ -67,11 +66,8 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
                 : { ':pk': gsi1pk },
             Limit: limit,
             ExclusiveStartKey: parseCursor(cursor),
-        });
+        }));
 
-        const result = await docClient.send(queryParams);
-
-        // Transform items to concept format
         const concepts = (result.Items || []).map(item => ({
             id: item.conceptId,
             name: item.name,
@@ -81,6 +77,17 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             keyPoints: item.keyPoints || [],
             prerequisiteWeight: parseFloat(item.prerequisiteWeight) || 0.5,
             displayProperties: item.displayProperties || {},
+            // Include full SENSA learning science fields
+            mnemonic: item.mnemonic || {},
+            phase1: item.phase1 || {},
+            phase2: item.phase2 || [],
+            phase3: item.phase3 || {},
+            shape: item.shape || {},
+            criticalDistinctions: item.criticalDistinctions || [],
+            designBoundaries: item.designBoundaries || [],
+            examFocus: item.examFocus || [],
+            dependencies: item.dependencies || [],
+            outdegree: item.outdegree || 0,
         }));
 
         res.json({
@@ -95,7 +102,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
     }
 });
 
-// Start async concept generation
+// Start async concept generation via Lambda
 conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.sub || 'anonymous';
@@ -106,7 +113,8 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
             return;
         }
 
-        // Invoke Lambda function asynchronously
+        console.log(`🚀 Invoking Lambda: ${GENERATE_FUNCTION} for subject: ${subject}`);
+
         const payload = JSON.stringify({
             body: JSON.stringify({
                 subject,
@@ -118,16 +126,19 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
 
         const invokeCommand = new InvokeCommand({
             FunctionName: GENERATE_FUNCTION,
-            InvocationType: 'RequestResponse', // Sync for now, can be 'Event' for true async
+            InvocationType: 'RequestResponse',
             Payload: Buffer.from(payload),
         });
 
         const lambdaResponse = await lambdaClient.send(invokeCommand);
         const responsePayload = JSON.parse(
-            Buffer.from(lambdaResponse.Payload || '{}').toString()
+            Buffer.from(lambdaResponse.Payload || new Uint8Array()).toString()
         );
 
+        console.log('📝 Raw Lambda Response Payload:', JSON.stringify(responsePayload, null, 2));
+
         if (lambdaResponse.FunctionError) {
+            console.error('❌ Lambda Function Error:', responsePayload);
             res.status(500).json({
                 error: 'Generation failed',
                 details: responsePayload
@@ -135,8 +146,10 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
             return;
         }
 
-        // Parse Lambda response body
         const body = JSON.parse(responsePayload.body || '{}');
+        console.log('📦 Parsed Lambda Body:', JSON.stringify(body, null, 2));
+
+        console.log(`✅ Lambda completed: ${body.conceptCount || 0} concepts generated`);
         res.json(body);
     } catch (error) {
         console.error('Generation error:', error);
@@ -174,3 +187,4 @@ conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Respon
         res.status(500).json({ error: 'Failed to get job status' });
     }
 });
+

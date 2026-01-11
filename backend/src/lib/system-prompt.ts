@@ -192,15 +192,15 @@ Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
 - Utility (SAS Token as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
 
 **MNEMONIC OUTPUT FORMAT:**
-Include a `mnemonic` object and `tier` property for each concept in structured output:
+Include a \`mnemonic\` object and \`tier\` property for each concept in structured output:
 \`\`\`json
 {
   "tier": "foundation" | "keystone" | "utility",
-  "mnemonic": {
+    "mnemonic": {
     "anchor": "Concrete Object + Emoji (e.g., 'Volcano 🌋')",
-    "story": "The 2-3 sentence bizarre scene...",
-    "parentConcept": "Exact Name of Parent Concept" | null,
-    "depends_on": ["Prerequisite Concept 1", "Prerequisite Concept 2"]
+      "story": "The 2-3 sentence bizarre scene...",
+        "parentConcept": "Exact Name of Parent Concept" | null,
+          "depends_on": ["Prerequisite Concept 1", "Prerequisite Concept 2"]
   }
 }
 \`\`\`

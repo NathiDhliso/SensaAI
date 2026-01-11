@@ -43,6 +43,7 @@ export type ParseResult = {
  * Handles the wrapper format with fullDocument field
  */
 export function parseContent(rawContent: string): ParseResult {
+    console.log('[ContentParser] parseContent received:', typeof rawContent, 'length:', rawContent?.length, 'first 100:', rawContent?.substring(0, 100));
     try {
         // Try to parse as JSON wrapper first
         let content = rawContent;
@@ -170,6 +171,44 @@ function parseConcepts(content: string): ParsedConcept[] {
     const jsonBlockRegex = /```json\s*(\{[\s\S]*?"concepts"[\s\S]*?\})\s*```/g;
     let match;
     let blockCount = 0;
+
+    // Fast path: Try parsing entire content as JSON object with concepts
+    try {
+        // Remove BOM (Byte Order Mark) if present
+        let cleanContent = content.replace(/^\uFEFF/, '');
+
+        // Remove control characters EXCEPT valid whitespace (newline, carriage return, tab)
+        // These are valid in JSON and must be preserved
+        cleanContent = cleanContent.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+
+        // AGGRESSIVE CLEANUP: Remove "==========" lines that might leak from logs
+        cleanContent = cleanContent.replace(/^={3,}.*$/gm, '');
+        cleanContent = cleanContent.replace(/^Content-Type:.*$/gm, '');
+        cleanContent = cleanContent.trim();
+
+        // Fix unescaped quotes inside strings (common LLM error) in the full content
+        // Note: Be careful not to break valid structural quotes. 
+        // For full document, might be risky to use the granular regex, so we scan simpler.
+        // Actually, JSON.stringify output should be clean. 
+        // But if content came from LLM raw, it might need it.
+        // Since we suspect it comes from JSON.stringify, minimal cleaning is best.
+
+        const directParse = JSON.parse(cleanContent);
+        if (directParse && directParse.concepts && Array.isArray(directParse.concepts)) {
+            console.log('[ContentParser] Direct JSON parse successful');
+            for (const concept of directParse.concepts) {
+                const parsedConcept = convertJsonConcept(concept);
+                if (parsedConcept && !seenIds.has(parsedConcept.id)) {
+                    seenIds.add(parsedConcept.id);
+                    concepts.push(parsedConcept);
+                }
+            }
+            if (concepts.length > 0) return concepts;
+        }
+    } catch (e) {
+        console.warn('[ContentParser] Direct JSON parse failed:', e);
+        // Not a single valid JSON object, continue to block searching
+    }
 
     while ((match = jsonBlockRegex.exec(content)) !== null) {
         blockCount++;

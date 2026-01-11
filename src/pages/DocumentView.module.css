@@ -1,8 +1,8 @@
 .container {
     min-height: 100vh;
     padding: 2rem;
-    background: var(--bg-dark);
-    color: var(--text-primary);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
     display: flex;
     justify-content: center;
 }
@@ -24,62 +24,64 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
-    background: var(--surface-light);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-secondary);
-    font-weight: 500;
-    transition: all 0.2s;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+    transition: var(--transition-normal);
     cursor: pointer;
+    font-family: var(--font-body);
 }
 
 .backButton:hover {
-    background: var(--surface-hover);
-    color: var(--text-primary);
-    border-color: var(--primary-color);
+    background: var(--color-surface-hover);
+    color: var(--color-text-primary);
+    border-color: var(--color-primary);
 }
 
 .document {
-    background: var(--surface-card);
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
     padding: 3rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    font-family: 'Merriweather', serif;
-    /* Serif for readability */
+    box-shadow: var(--shadow-lg);
+    font-family: var(--font-display);
 }
 
 /* Print Styles */
 .metaHeader {
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--color-border);
     padding-bottom: 2rem;
     margin-bottom: 3rem;
 }
 
 .title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
     margin-bottom: 0.5rem;
-    line-height: 1.2;
+    line-height: var(--line-height-tight);
 }
 
 .domain {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
     margin-bottom: 1.5rem;
     display: flex;
     gap: 1rem;
     align-items: center;
+    font-family: var(--font-body);
 }
 
 .tag {
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--primary-light);
+    background: var(--overlay-primary-10);
+    color: var(--color-primary);
     padding: 0.25rem 0.75rem;
-    border-radius: 100px;
-    font-size: 0.875rem;
-    font-family: var(--font-sans);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-medium);
 }
 
 .section {
@@ -87,16 +89,16 @@
 }
 
 .sectionTitle {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
     margin-bottom: 1.5rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--color-border);
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-family: var(--font-sans);
+    font-family: var(--font-display);
 }
 
 .conceptList {
@@ -106,10 +108,10 @@
 }
 
 .conceptItem {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--overlay-white-10);
     padding: 1.5rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--overlay-white-10);
 }
 
 .conceptHeader {
@@ -120,47 +122,51 @@
 }
 
 .conceptName {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    font-family: var(--font-display);
 }
 
 .conceptTier {
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-    font-family: var(--font-sans);
+    letter-spacing: var(--letter-spacing-wide);
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
 }
 
 .conceptDef {
-    font-size: 1.05rem;
-    line-height: 1.6;
-    color: var(--text-secondary);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
     margin-bottom: 1rem;
+    font-family: var(--font-body);
 }
 
 .mnemonicBox {
-    background: rgba(99, 102, 241, 0.05);
-    border-left: 3px solid var(--primary-color);
+    background: var(--overlay-primary-5);
+    border-left: 3px solid var(--color-primary);
     padding: 1rem;
     margin-top: 1rem;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .mnemonicLabel {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     text-transform: uppercase;
-    font-weight: 700;
-    color: var(--primary-light);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
     margin-bottom: 0.25rem;
     display: block;
+    font-family: var(--font-display);
 }
 
 .mnemonicText {
     font-style: italic;
-    color: var(--text-secondary);
-    line-height: 1.5;
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-normal);
+    font-family: var(--font-body);
 }
 
 .learningPath {
@@ -178,36 +184,42 @@
 .stepNumber {
     width: 2rem;
     height: 2rem;
-    background: var(--surface-hover);
+    background: var(--color-surface-hover);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    color: var(--text-primary);
-    font-family: var(--font-sans);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    font-family: var(--font-display);
 }
 
 .stepContent h4 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
     margin-bottom: 0.25rem;
+    font-family: var(--font-display);
 }
 
 .stepMeta {
-    color: var(--text-tertiary);
-    font-size: 0.9rem;
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-body);
 }
 
 .rawView {
     white-space: pre-wrap;
-    font-family: monospace;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 1rem;
-    border-radius: 8px;
-    color: var(--text-secondary);
-    line-height: 1.5;
+    font-family: var(--font-mono);
+    background: var(--color-bg-tertiary);
+    /* Dark background for code/raw view */
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    color: var(--color-text-primary);
+    /* Ensure high contrast */
+    line-height: var(--line-height-relaxed);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-border);
 }
 
 .loading {
@@ -217,5 +229,6 @@
     justify-content: center;
     height: 50vh;
     gap: 1rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
 }

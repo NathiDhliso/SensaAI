@@ -18,7 +18,8 @@ import {
   Zap,
   ChevronDown,
   Settings,
-  Brain
+  Brain,
+  Home
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 
@@ -132,7 +133,10 @@ export function StudyLayout({
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <button onClick={handleBack} className={styles.backButton} aria-label="Back to home">
+          <button onClick={() => navigate('/')} className={styles.homeButton} aria-label="Go home">
+            <Home size={18} />
+          </button>
+          <button onClick={handleBack} className={styles.backButton} aria-label="Go back">
             <ArrowLeft size={18} />
           </button>
 
