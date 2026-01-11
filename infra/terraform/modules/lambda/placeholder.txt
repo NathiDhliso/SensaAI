@@ -1,0 +1,3 @@
+# Placeholder for Lambda deployment
+# This file is created during terraform init
+# CI/CD will replace with actual Lambda code

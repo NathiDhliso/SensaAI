@@ -115,6 +115,40 @@ module "ecr" {
   environment = var.environment
 }
 
+# DynamoDB Tables for Concepts Storage
+module "dynamodb" {
+  source = "./modules/dynamodb"
+
+  environment  = var.environment
+  project_name = "sensapbl"
+
+  tags = {
+    Component = "ServerlessLearning"
+  }
+}
+
+# Lambda Functions for Concept Generation and Queries
+module "lambda" {
+  source = "./modules/lambda"
+
+  environment         = var.environment
+  project_name        = "sensapbl"
+  concepts_table_arn  = module.dynamodb.concepts_table_arn
+  concepts_table_name = module.dynamodb.concepts_table_name
+  jobs_table_arn      = module.dynamodb.jobs_table_arn
+  jobs_table_name     = module.dynamodb.jobs_table_name
+
+  # Optional: Enable for production to eliminate cold starts
+  enable_provisioned_concurrency    = var.environment == "prod"
+  provisioned_concurrent_executions = 1
+
+  tags = {
+    Component = "ServerlessLearning"
+  }
+
+  depends_on = [module.dynamodb]
+}
+
 # Configure Kubernetes provider after EKS is created
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint

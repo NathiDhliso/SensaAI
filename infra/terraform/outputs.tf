@@ -54,3 +54,24 @@ output "ecr_backend_url" {
   description = "ECR repository URL for backend"
   value       = module.ecr.backend_repository_url
 }
+
+# Serverless Learning Pipeline Outputs
+output "dynamodb_concepts_table" {
+  description = "DynamoDB table name for concepts"
+  value       = module.dynamodb.concepts_table_name
+}
+
+output "dynamodb_jobs_table" {
+  description = "DynamoDB table name for generation jobs"
+  value       = module.dynamodb.jobs_table_name
+}
+
+output "lambda_generate_function" {
+  description = "Lambda function name for concept generation"
+  value       = module.lambda.generate_concepts_function_name
+}
+
+output "lambda_query_function" {
+  description = "Lambda function name for concept queries"
+  value       = module.lambda.query_concepts_function_name
+}
