@@ -134,34 +134,32 @@ export function analyzeContentQuality(result: SavedResult): ContentAnalytics {
     const recommendations: string[] = [];
 
     if (totalConcepts < 15) {
-        recommendations.push("Expand coverage: Topic count is low for this subject.");
+        recommendations.push("Quick read: This module is concise and great for a rapid review session.");
     }
-    if (readabilityScore(result.fullDocument) > 12) { // Simple Flesch-Kincaid proxy
-        recommendations.push("Simplify text: High vocabulary load detected.");
-    }
-    if (validation.completeness < 80) {
-        recommendations.push("Improve depth: Content lacks expected detail.");
+    if (readabilityScore(result.fullDocument) > 12) {
+        recommendations.push("Advanced Vocabulary: We recommend scanning the definitions first to master key terms.");
     }
     if (cognitiveLoadScore > 8) {
-        recommendations.push("Reduce density: Concepts are packed too tightly. Breaks needed.");
+        recommendations.push("High Density: This content is concept-heavy. We recommend taking a break halfway through.");
     }
 
-    // System prompt-specific recommendations
-    if (systemPromptMetrics.shapeCoverage.percentage < 50) {
-        recommendations.push("Add SHAPE sections: Micro-learning content is incomplete.");
+    // Feature-specific study tips
+    if (systemPromptMetrics.confusionPairs.length > 0) {
+        recommendations.push("Clarify nuances: Use the 'Confusion Pairs' section to distinguish similar concepts.");
+    } else {
+        recommendations.push("Focus on definitions: clear distinctions are key to mastery.");
     }
-    if (systemPromptMetrics.mnemonicCoverage.percentage < 50) {
-        recommendations.push("Add memory anchors: Mnemonic content aids retention.");
+
+    if (systemPromptMetrics.decisionFrameworks.available) {
+        recommendations.push("Apply your knowledge: Use the Decision Trees to practice 'When X vs Y' scenarios.");
     }
-    if (systemPromptMetrics.confusionPairs.length < 3) {
-        recommendations.push("Add confusion pairs: Discrimination practice improves recall.");
-    }
-    if (!systemPromptMetrics.decisionFrameworks.available) {
-        recommendations.push("Add decision trees: 'When X vs Y?' frameworks aid application.");
+
+    if (systemPromptMetrics.mnemonicCoverage.withAnchors > 0) {
+        recommendations.push("Boost retention: creating visualization anchors improves long-term recall.");
     }
 
     if (recommendations.length === 0) {
-        recommendations.push("Ready to learn! Content looks healthy.");
+        recommendations.push("Ready to learn! This content is well-balanced for a standard study session.");
     }
 
     // 8. Build Coverage Map (Treemap) - Enhanced with tier information

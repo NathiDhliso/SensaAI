@@ -1,32 +1,35 @@
 
 import { ResponsiveContainer, Treemap, Tooltip } from 'recharts';
 import { motion } from 'framer-motion';
-import { COLORS } from '@/constants/theme-colors';
+import { COLORS, GRAPH_COLORS } from '@/constants/theme-colors';
 import type { TreePacket } from '@/lib/ai/content-analytics';
 
 interface CoverageTreemapProps {
     data: TreePacket[];
 }
 
-// Use centralized theme colors
-const TREEMAP_COLORS = {
-    strong: { fill: COLORS.secondary.sage, stroke: '#059669' }, // Sage-600 for stroke
-    medium: { fill: COLORS.info, stroke: '#2563EB' },             // Blue-600
-    weak: { fill: COLORS.secondary.amber, stroke: '#D97706' },    // Amber-600
-};
-
 const CustomizedContent = (props: any) => {
     const { depth, x, y, width, height, name, size } = props;
 
-    // Softer, more trustworthy color scheme
-    // Based on content density: higher = healthier (green), lower = needs attention (amber)
-    const getStyle = (val: number) => {
-        if (val >= 600) return { ...TREEMAP_COLORS.strong, opacity: 0.7 };
-        if (val >= 300) return { ...TREEMAP_COLORS.medium, opacity: 0.6 };
-        return { ...TREEMAP_COLORS.weak, opacity: 0.65 };
+    // Semantic color scheme based on Tier/Category name
+    const getStyle = (categoryName: string) => {
+        const lowerName = categoryName.toLowerCase();
+
+        if (lowerName.includes('foundation') || lowerName.includes('basics') || lowerName.includes('preparation')) {
+            return { fill: GRAPH_COLORS.foundation, stroke: COLORS.secondary.sage, opacity: 0.8 };
+        }
+        if (lowerName.includes('keystone') || lowerName.includes('structuring') || lowerName.includes('modeling')) {
+            return { fill: GRAPH_COLORS.keystone, stroke: COLORS.accent.default, opacity: 0.8 };
+        }
+        if (lowerName.includes('utility') || lowerName.includes('advanced') || lowerName.includes('delivery')) {
+            return { fill: GRAPH_COLORS.utility, stroke: COLORS.secondary.amber, opacity: 0.8 };
+        }
+
+        // Fallback for "Other" or unknown categories
+        return { fill: COLORS.text.muted, stroke: COLORS.text.light, opacity: 0.6 };
     };
 
-    const style = depth === 1 ? getStyle(size) : { fill: 'none', opacity: 0, stroke: 'none' };
+    const style = depth === 1 ? getStyle(name) : { fill: 'none', opacity: 0, stroke: 'none' };
 
     // Text colors that work on the colored backgrounds
     const textColor = '#ffffff';
