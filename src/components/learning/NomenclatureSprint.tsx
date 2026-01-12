@@ -288,7 +288,7 @@ export function NomenclatureSprint({
                 </div>
 
                 <div className={styles.optionsGrid}>
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence>
                         {shuffledOptions.map((option, idx) => {
                             const isSelected = selectedTerm === option;
                             const isCorrectAnswer = option === currentPair?.metaphor;

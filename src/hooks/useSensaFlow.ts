@@ -72,6 +72,7 @@ export interface SensaFlowActions {
 
     // Utilities
     reset: () => void;
+    syncFromStore: (session: any) => void;
 }
 
 export interface UseSensaFlowReturn extends SensaFlowState, SensaFlowActions {
@@ -277,6 +278,54 @@ export function useSensaFlow(): UseSensaFlowReturn {
         setState(createInitialState());
     }, []);
 
+    const syncFromStore = useCallback((studySession: any) => {
+        if (!studySession) return;
+
+        setState(prev => {
+            let phase: SensaPhase = 'see';
+            const completedSteps: SensaPhase[] = [];
+
+            // 1. Explore Phase logic
+            if (studySession.scouted || studySession.previewed) {
+                if (!completedSteps.includes('see')) completedSteps.push('see');
+                phase = 'explore';
+            }
+            // 2. Note Phase logic
+            // If we have previewed, we are theoretically ready for Note
+            if (studySession.previewed) {
+                // If we finished explore, mark it
+                if (!completedSteps.includes('explore')) completedSteps.push('explore');
+                phase = 'note';
+            }
+            // 3. Study Phase logic
+            if (studySession.mapBuilt) {
+                if (!completedSteps.includes('note')) completedSteps.push('note');
+                phase = 'study';
+            }
+            // 4. Apply Phase logic
+            if (studySession.mapReconstructed) {
+                if (!completedSteps.includes('study')) completedSteps.push('study');
+                phase = 'apply';
+            }
+            // 5. Complete Phase logic
+            if (studySession.mastered) {
+                if (!completedSteps.includes('apply')) completedSteps.push('apply');
+                phase = 'complete';
+            }
+
+            // Only update if changes found to avoid loops
+            if (prev.phase === phase && prev.completedSteps.length === completedSteps.length) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                phase,
+                completedSteps
+            };
+        });
+    }, []);
+
     // =========================================================================
     // Computed Properties
     // =========================================================================
@@ -322,6 +371,7 @@ export function useSensaFlow(): UseSensaFlowReturn {
         setEquationMetadata,
         setDependencyGraph,
         reset,
+        syncFromStore,
         isComplete,
         hasMastered,
         weakestVariable,

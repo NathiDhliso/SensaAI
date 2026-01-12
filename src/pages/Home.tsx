@@ -6,6 +6,7 @@ import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGenerationStore } from '@/store/generation-store';
 import { useUIStore } from '@/store/ui-store';
+import { usePersonalizationStore } from '@/store/personalization-store';
 import { CloudLibraryModal } from '@/components/storage/CloudLibraryModal';
 import { CATEGORY_COLORS, DIFFICULTY_COLORS } from '@/constants/theme-colors';
 import { UI_TIMINGS } from '@/constants/ui-constants';
@@ -238,18 +239,58 @@ export default function Home() {
             <Calendar size={18} />
             <span>Semester Progress</span>
           </div>
-          <div className={styles.countdownContent}>
-            <div className={styles.countdownStat}>
-              <span className={styles.countdownNumber}>12</span>
-              <span className={styles.countdownLabel}>weeks left</span>
-            </div>
-            <div className={styles.countdownBar}>
-              <div className={styles.countdownFill} style={{ width: '25%' }} />
-            </div>
-            <p className={styles.countdownMessage}>
-              📅 Week 4 of 16 — Perfect time to build foundations!
-            </p>
-          </div>
+
+          {(() => {
+            const { semesterStartDate } = usePersonalizationStore();
+
+            if (!semesterStartDate) {
+              return (
+                <div className={styles.countdownContent} style={{ alignItems: 'center', textAlign: 'center' }}>
+                  <p className={styles.countdownMessage} style={{ marginBottom: '0.5rem' }}>
+                    Set your semester start date to track progress.
+                  </p>
+                  <button
+                    onClick={openSettingsPanel}
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'var(--color-accent)',
+                      background: 'none',
+                      border: '1px solid var(--color-accent)',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '1rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Configure Schedule
+                  </button>
+                </div>
+              );
+            }
+
+            const start = new Date(semesterStartDate);
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - start.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const currentWeek = Math.ceil(diffDays / 7);
+            const totalWeeks = 16; // Standard semester
+            const weeksLeft = Math.max(0, totalWeeks - currentWeek);
+            const progressPercent = Math.min(100, Math.max(0, (currentWeek / totalWeeks) * 100));
+
+            return (
+              <div className={styles.countdownContent}>
+                <div className={styles.countdownStat}>
+                  <span className={styles.countdownNumber}>{weeksLeft}</span>
+                  <span className={styles.countdownLabel}>weeks left</span>
+                </div>
+                <div className={styles.countdownBar}>
+                  <div className={styles.countdownFill} style={{ width: `${progressPercent}%` }} />
+                </div>
+                <p className={styles.countdownMessage}>
+                  📅 Week {currentWeek} of {totalWeeks} — {currentWeek < 8 ? 'Build your foundations!' : 'Time to consolidate!'}
+                </p>
+              </div>
+            );
+          })()}
         </div>
 
         <div className={styles.actionButtons}>

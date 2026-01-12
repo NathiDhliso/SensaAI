@@ -46,19 +46,27 @@ export function useLearningFlow(): LearningFlow {
         const currentId = currentSession.progress.currentConceptId;
         const completedIds = currentSession.progress.completedConcepts;
 
-        // If current is valid and incomplete, use it
+        // If current is valid, incomplete, AND exists in concepts, use it
         if (currentId && !completedIds.includes(currentId)) {
-            return currentSession.concepts.find(c => c.id === currentId) || null;
+            const current = currentSession.concepts.find(c => c.id === currentId);
+            if (current) return current;
+            // currentId is stale/invalid, fall through to recovery
         }
 
-        // Otherwise, is there a "next" concept available?
-        // Note: We don't auto-advance state here, we just strictly READ state.
-        // If the store says current is X and X is done, we effectively have NO active concept 
-        // until the store updates (which happens via completeConcept action usually).
-        // However, for the purpose of the UI finding what to show:
+        // Try getNextConcept (depends on valid currentConceptId)
         const nextId = getNextConcept();
         if (nextId) {
-            return currentSession.concepts.find(c => c.id === nextId) || null;
+            const next = currentSession.concepts.find(c => c.id === nextId);
+            if (next) return next;
+        }
+
+        // RECOVERY: currentId is invalid/completed and getNextConcept failed.
+        // Find the FIRST concept that is NOT completed.
+        // This ensures we ALWAYS have an activeConcept if there are incomplete concepts.
+        const firstIncomplete = currentSession.concepts.find(c => !completedIds.includes(c.id));
+        if (firstIncomplete) {
+            console.log('[useLearningFlow] RECOVERY: Using first incomplete concept:', firstIncomplete.name);
+            return firstIncomplete;
         }
 
         return null;

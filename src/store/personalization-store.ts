@@ -28,6 +28,9 @@ type PersonalizationState = {
 
   // Cognitive Load Settings
   stressFreeMode: boolean; // Shorter AI explanations + forced Bionic Text
+
+  // Academic Schedule
+  semesterStartDate: string | null; // ISO Date String
 };
 
 type PersonalizationActions = {
@@ -44,6 +47,9 @@ type PersonalizationActions = {
 
   // Cognitive Load Actions
   setStressFreeMode: (enabled: boolean) => void;
+
+  // Academic Schedule Actions
+  setSemesterStartDate: (date: string | null) => void;
 };
 
 export const usePersonalizationStore = create<PersonalizationState & PersonalizationActions>()(
@@ -62,6 +68,9 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
       // Cognitive Load Defaults
       stressFreeMode: false,
 
+      // Academic Schedule Defaults
+      semesterStartDate: null,
+
       completeOnboarding: (role, system) => {
         set({
           onboardingComplete: true,
@@ -75,6 +84,7 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
           onboardingComplete: false,
           chosenRole: null,
           familiarSystem: null,
+          semesterStartDate: null,
         });
       },
 
@@ -107,9 +117,15 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
       setStressFreeMode: (enabled) => {
         set({ stressFreeMode: enabled });
       },
+
+      // Academic Schedule Actions
+      setSemesterStartDate: (date) => {
+        set({ semesterStartDate: date });
+      },
     }),
     {
       name: 'personalization-storage',
+      version: 2,
     }
   )
 );

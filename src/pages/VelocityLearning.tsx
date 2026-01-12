@@ -65,6 +65,13 @@ export default function VelocityLearning() {
     // 2c. Flow State Detection (Momentum Checkpoints)
     const flowState = useFlowState();
 
+    // Sync SENSA flow state from persisted study session on mount/change
+    useEffect(() => {
+        if (studySession) {
+            sensaFlow.syncFromStore(studySession);
+        }
+    }, [studySession?.id, sensaFlow.syncFromStore]);
+
     // 3. Local UI State
     const [lockedIn, setLockedIn] = useState(false);
     const [showTimeToast, setShowTimeToast] = useState(false);

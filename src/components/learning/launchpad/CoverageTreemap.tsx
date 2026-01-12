@@ -9,34 +9,37 @@ interface CoverageTreemapProps {
 }
 
 const CustomizedContent = (props: any) => {
-    const { depth, x, y, width, height, name, size } = props;
+    const { depth, x, y, width, height, name, size, tier } = props;
 
     // Semantic color scheme based on Tier/Category name
     const getStyle = (categoryName: string) => {
-        const lowerName = categoryName.toLowerCase();
+        const lowerName = (categoryName || '').toLowerCase();
 
         if (lowerName.includes('foundation') || lowerName.includes('basics') || lowerName.includes('preparation')) {
-            return { fill: GRAPH_COLORS.foundation, stroke: COLORS.secondary.sage, opacity: 0.8 };
+            return { fill: GRAPH_COLORS.foundation, stroke: COLORS.secondary.sage, opacity: 0.9 };
         }
         if (lowerName.includes('keystone') || lowerName.includes('structuring') || lowerName.includes('modeling')) {
-            return { fill: GRAPH_COLORS.keystone, stroke: COLORS.accent.default, opacity: 0.8 };
+            return { fill: GRAPH_COLORS.keystone, stroke: COLORS.accent.default, opacity: 0.9 };
         }
         if (lowerName.includes('utility') || lowerName.includes('advanced') || lowerName.includes('delivery')) {
-            return { fill: GRAPH_COLORS.utility, stroke: COLORS.secondary.amber, opacity: 0.8 };
+            return { fill: GRAPH_COLORS.utility, stroke: COLORS.secondary.amber, opacity: 0.9 };
         }
 
-        // Fallback for "Other" or unknown categories
-        return { fill: COLORS.text.muted, stroke: COLORS.text.light, opacity: 0.6 };
+        // Fallback
+        return { fill: COLORS.text.muted, stroke: COLORS.text.light, opacity: 0.7 };
     };
 
-    const style = depth === 1 ? getStyle(name) : { fill: 'none', opacity: 0, stroke: 'none' };
+    // Determine style based on Tier (leaf) or Name (group)
+    const category = tier || name;
+    const isLeaf = depth === 2 || (depth === 1 && !props.children);
+    const style = isLeaf ? getStyle(category) : { fill: 'none', opacity: 0, stroke: 'none' };
 
-    // Text colors that work on the colored backgrounds
+    // Text colors
     const textColor = '#ffffff';
-    const subTextColor = 'rgba(255, 255, 255, 0.85)';
+    const subTextColor = 'rgba(255, 255, 255, 0.9)';
 
-    // Calculate concept count from size (size = conceptCount * 100)
-    const conceptCount = Math.round(size / 100);
+    // Only render if it's a leaf node to avoid group overlaps
+    if (!isLeaf) return null;
 
     return (
         <g>
@@ -47,34 +50,33 @@ const CustomizedContent = (props: any) => {
                 height={height}
                 fill={style.fill}
                 fillOpacity={style.opacity}
-                stroke={style.stroke}
-                strokeWidth={1.5}
-                strokeOpacity={0.5}
-                rx={8}
-                ry={8}
+                stroke="#fff"
+                strokeWidth={2} // Strong border to separate tiles
+                rx={6}
+                ry={6}
             />
-            {depth === 1 && width > 50 && height > 30 ? (
+            {width > 60 && height > 35 ? (
                 <>
                     <text
                         x={x + width / 2}
-                        y={y + height / 2}
+                        y={y + height / 2 - 6}
                         textAnchor="middle"
                         fill={textColor}
-                        fontSize={Math.min(12, width / 10)}
+                        fontSize={Math.min(11, width / 12)}
                         fontWeight={600}
-                        style={{ pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
+                        style={{ pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
                     >
                         {name.length > 20 ? name.substring(0, 18) + '...' : name}
                     </text>
                     <text
                         x={x + width / 2}
-                        y={y + height / 2 + 14}
+                        y={y + height / 2 + 8}
                         textAnchor="middle"
                         fill={subTextColor}
                         fontSize={9}
-                        style={{ pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
+                        style={{ pointerEvents: 'none' }}
                     >
-                        {conceptCount} Concepts
+                        {Math.round(size / 100)} pts
                     </text>
                 </>
             ) : null}
@@ -98,7 +100,7 @@ export const CoverageTreemap: React.FC<CoverageTreemapProps> = ({ data }) => {
             }}
         >
             <div style={{ width: '100%', height: 'calc(100% - 20px)', minHeight: '300px', flex: 1 }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                     <Treemap
                         data={data}
                         dataKey="size"

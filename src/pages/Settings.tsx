@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   Volume2, VolumeX, Bot,
   Edit2,
-  Zap
+  Zap,
+  Calendar
 } from 'lucide-react';
 import { useThemeStore, type Theme } from '@/store/theme-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
@@ -45,7 +46,9 @@ export default function Settings() {
     setCoachIntensity,
     resetOnboarding,
     stressFreeMode,
-    setStressFreeMode
+    setStressFreeMode,
+    semesterStartDate,
+    setSemesterStartDate
   } = usePersonalizationStore();
   const personas = getAllPersonas();
   const activePersona = personas.find(p => p.id === selectedPersona) || personas[0];
@@ -293,6 +296,29 @@ export default function Settings() {
                 <Zap size={16} />
                 <span>{stressFreeMode ? 'On' : 'Off'}</span>
               </button>
+            </div>
+          </div>
+
+          {/* Academic Schedule Section */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <Calendar className={styles.sectionIcon} />
+              <h2 className={styles.sectionTitle}>Academic Schedule</h2>
+            </div>
+
+            <div className={styles.settingRow}>
+              <div className={styles.settingInfo}>
+                <span className={styles.settingLabel}>Semester Start Date</span>
+                <span className={styles.settingDesc}>
+                  Set when your semester began to track effective study weeks.
+                </span>
+              </div>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={semesterStartDate || ''}
+                onChange={(e) => setSemesterStartDate(e.target.value)}
+              />
             </div>
           </div>
 
