@@ -12,6 +12,7 @@ export type LearningPhase =
     | 'BUILD'           // Concept Mapping (ConceptMapBuilder)
     | 'DIAGNOSE'        // Diagnostic Assessment (DiagnosticLaunchSystem)
     | 'LEARN'           // Micro-Learning Loop (MicroLearningLoopController)
+    | 'REMEDIATE'       // Neural Reset (triggered when Blank Sheet score < 60%)
     | 'MASTER'          // Mastery Challenge (MasteryChallenge)
     | 'COMPLETE';       // All caught up
 

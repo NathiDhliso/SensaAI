@@ -649,3 +649,11 @@
     box-shadow: var(--shadow-glow-primary);
     transform: translateY(-2px);
 }
+
+.remediationButton {
+    background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-primary-coral) 100%);
+}
+
+.remediationButton:hover {
+    background: linear-gradient(135deg, var(--color-primary-coral) 0%, var(--color-warning) 100%);
+}

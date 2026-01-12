@@ -15,7 +15,8 @@ import {
   ChevronUp,
   AlertTriangle,
   Volume2, VolumeX, Bot,
-  Edit2
+  Edit2,
+  Zap
 } from 'lucide-react';
 import { useThemeStore, type Theme } from '@/store/theme-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
@@ -42,7 +43,9 @@ export default function Settings() {
     setCoachVoiceEnabled,
     coachIntensity,
     setCoachIntensity,
-    resetOnboarding
+    resetOnboarding,
+    stressFreeMode,
+    setStressFreeMode
   } = usePersonalizationStore();
   const personas = getAllPersonas();
   const activePersona = personas.find(p => p.id === selectedPersona) || personas[0];
@@ -265,6 +268,31 @@ export default function Settings() {
                   <span className={styles.intensityValue}>{coachIntensity}</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Cognitive Load Section */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <Zap className={styles.sectionIcon} />
+              <h2 className={styles.sectionTitle}>Cognitive Load</h2>
+            </div>
+
+            <div className={styles.settingRow}>
+              <div className={styles.settingDescription}>
+                <strong>Stress-Free Mode</strong>
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+                  Shorter AI explanations and forced Bionic Text for easier reading.
+                </p>
+              </div>
+              <button
+                onClick={() => setStressFreeMode(!stressFreeMode)}
+                className={`${styles.toggleButton} ${stressFreeMode ? styles.toggleActive : ''}`}
+                aria-pressed={stressFreeMode}
+              >
+                <Zap size={16} />
+                <span>{stressFreeMode ? 'On' : 'Off'}</span>
+              </button>
             </div>
           </div>
 

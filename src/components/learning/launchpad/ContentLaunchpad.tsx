@@ -22,7 +22,7 @@ import type { SavedResult } from '@/lib/storage/types';
 
 import { ScoreCard } from './ScoreCard';
 import { CoverageTreemap } from './CoverageTreemap';
-import { TierDistributionChart } from './TierDistributionChart';
+import { BucketReadinessChecklist } from './BucketReadinessChecklist';
 import { ContentHealthIndicators } from './ContentHealthIndicators';
 import { EquationMetadataCard } from './EquationMetadataCard';
 import { SourceVerification } from './SourceVerification';
@@ -266,7 +266,7 @@ export default function ContentLaunchpad() {
                         </div>
                     </motion.div>
 
-                    {/* TIER DISTRIBUTION - STEP 3.7 from System Prompt */}
+                    {/* BUCKET READINESS CHECKLIST - Mental Filing Cabinet */}
                     <motion.div
                         className={styles.tierSection}
                         initial={{ opacity: 0, y: 16 }}
@@ -274,11 +274,22 @@ export default function ContentLaunchpad() {
                         transition={{ delay: 0.35, duration: 0.4 }}
                     >
                         <div className={styles.sectionTitle}>
-                            <span>Dependency Tiers</span>
+                            <span>Bucket Readiness</span>
                             <Layers size={18} />
                         </div>
-                        <TierDistributionChart
-                            data={systemPromptMetrics.tierDistribution}
+                        <BucketReadinessChecklist
+                            foundation={{
+                                total: systemPromptMetrics.tierDistribution.foundation,
+                                mastered: 0 // TODO: Connect to actual mastery tracking
+                            }}
+                            keystone={{
+                                total: systemPromptMetrics.tierDistribution.keystone,
+                                mastered: 0
+                            }}
+                            utility={{
+                                total: systemPromptMetrics.tierDistribution.utility,
+                                mastered: 0
+                            }}
                             delay={0.4}
                         />
                     </motion.div>

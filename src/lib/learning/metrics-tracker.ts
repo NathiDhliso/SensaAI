@@ -51,6 +51,10 @@ export interface ConceptMetric {
     scheduledReviews: string[];
     /** Reviews completed on time */
     reviewsOnTime: number;
+    /** Last recall timestamp for Knowledge Warmth tracking */
+    lastRecallTimestamp?: string;
+    /** Remediation attempts count for Mastery Branching */
+    remediationAttempts?: number;
 }
 
 export interface LearningVelocityMetrics {
@@ -383,6 +387,72 @@ export class LearningMetricsTracker {
     clear(): void {
         this.metrics = createDefaultMetrics(this.metrics.userId);
         this.currentSession = null;
+        this.saveToStorage();
+    }
+
+    // ─── KNOWLEDGE WARMTH ────────────────────────────────────────────────────
+
+    /**
+     * Record a recall attempt (for Knowledge Warmth tracking)
+     */
+    recordRecallAttempt(conceptId: string): void {
+        const metric = this.metrics.conceptMetrics.get(conceptId);
+        if (metric) {
+            metric.lastRecallTimestamp = new Date().toISOString();
+        } else {
+            // Create new metric if doesn't exist
+            this.metrics.conceptMetrics.set(conceptId, {
+                conceptId,
+                firstAttemptTime: new Date().toISOString(),
+                attemptCount: 1,
+                requiredConfusionDrill: false,
+                scheduledReviews: [],
+                reviewsOnTime: 0,
+                lastRecallTimestamp: new Date().toISOString(),
+            });
+        }
+        this.saveToStorage();
+    }
+
+    /**
+     * Get knowledge warmth level for a concept
+     * Hot (🔥): < 24h | Warm (🌡️): 1-3 days | Cool (❄️): 3-7 days | Cold (🧊): > 7 days
+     */
+    getKnowledgeWarmth(conceptId: string): 'hot' | 'warm' | 'cool' | 'cold' {
+        const metric = this.metrics.conceptMetrics.get(conceptId);
+        if (!metric?.lastRecallTimestamp) {
+            return 'cold'; // Never recalled = cold
+        }
+
+        const lastRecall = new Date(metric.lastRecallTimestamp);
+        const now = new Date();
+        const hoursSinceRecall = (now.getTime() - lastRecall.getTime()) / (1000 * 60 * 60);
+
+        if (hoursSinceRecall < 24) return 'hot';
+        if (hoursSinceRecall < 72) return 'warm';
+        if (hoursSinceRecall < 168) return 'cool';
+        return 'cold';
+    }
+
+    /**
+     * Get all concept warmth levels (for library display)
+     */
+    getAllConceptWarmth(): Map<string, 'hot' | 'warm' | 'cool' | 'cold'> {
+        const warmthMap = new Map<string, 'hot' | 'warm' | 'cool' | 'cold'>();
+        for (const conceptId of this.metrics.conceptMetrics.keys()) {
+            warmthMap.set(conceptId, this.getKnowledgeWarmth(conceptId));
+        }
+        return warmthMap;
+    }
+
+    /**
+     * Record remediation attempt for Mastery Branching
+     */
+    recordRemediationAttempt(conceptId: string): void {
+        const metric = this.metrics.conceptMetrics.get(conceptId);
+        if (metric) {
+            metric.remediationAttempts = (metric.remediationAttempts || 0) + 1;
+        }
         this.saveToStorage();
     }
 }

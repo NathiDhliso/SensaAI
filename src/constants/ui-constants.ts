@@ -239,3 +239,20 @@ export const MOMENTUM_CHECKPOINT = {
   // Buffer after dismissal
   POST_CONTINUE_BUFFER_MS: 15 * 60 * 1000, // 15 min before next checkpoint offer
 } as const;
+
+/**
+ * Knowledge Warmth Configuration
+ * Manages the "Forgetting Curve" to keep knowledge fresh before lectures.
+ */
+export const KNOWLEDGE_WARMTH = {
+  /** Hot: Last recall within 24 hours */
+  HOT_THRESHOLD_HOURS: 24,
+  /** Warm: Last recall within 3 days */
+  WARM_THRESHOLD_HOURS: 72,
+  /** Cool: Last recall within 7 days */
+  COOL_THRESHOLD_HOURS: 168,
+  /** Cold: Last recall over 7 days ago (triggers Prime Refresh) */
+} as const;
+
+export type KnowledgeWarmthLevel = 'hot' | 'warm' | 'cool' | 'cold';
+

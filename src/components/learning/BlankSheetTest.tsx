@@ -44,8 +44,8 @@ export interface BlankSheetTestProps {
     keyPoints: string[];
     /** Callback when test completes */
     onComplete: (result: BlankSheetResult) => void;
-    /** Callback to skip */
-    onSkip: () => void;
+    /** Callback when remediation is needed (score < 60%) */
+    onNeedRemediation?: (result: BlankSheetResult) => void;
 }
 
 export interface BlankSheetResult {
@@ -65,6 +65,10 @@ export interface BlankSheetResult {
     metrics: TypingMetrics;
     /** AI Coach Feedback */
     coachFeedback?: CoachFeedback;
+    /** Whether remediation is required (score < 60%) */
+    needsRemediation: boolean;
+    /** Remediation attempts count */
+    remediationAttempts?: number;
 }
 
 export interface TypingMetrics {
@@ -185,7 +189,7 @@ export function BlankSheetTest({
     concept,
     keyPoints,
     onComplete,
-    onSkip,
+    onNeedRemediation,
 }: BlankSheetTestProps) {
     const [response, setResponse] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -272,6 +276,7 @@ export function BlankSheetTest({
                 ...metrics,
                 totalTime: (Date.now() - startTime) / 1000,
             },
+            needsRemediation: analysis.score < 60,
         };
 
         // Generate AI Coach Feedback (single concept mode)
@@ -297,9 +302,13 @@ export function BlankSheetTest({
     // Handle continue after results
     const handleContinue = useCallback(() => {
         if (result) {
-            onComplete(result);
+            if (result.needsRemediation && onNeedRemediation) {
+                onNeedRemediation(result);
+            } else {
+                onComplete(result);
+            }
         }
-    }, [result, onComplete]);
+    }, [result, onComplete, onNeedRemediation]);
 
     // Results view
     if (showResults && result) {
@@ -409,9 +418,15 @@ export function BlankSheetTest({
                         </div>
                     )}
 
-                    <button className={styles.continueButton} onClick={handleContinue}>
-                        Continue Learning
-                    </button>
+                    {result.needsRemediation ? (
+                        <button className={`${styles.continueButton} ${styles.remediationButton}`} onClick={handleContinue}>
+                            Neural Reset Required
+                        </button>
+                    ) : (
+                        <button className={styles.continueButton} onClick={handleContinue}>
+                            Continue Learning
+                        </button>
+                    )}
                 </div>
             </motion.div>
         );
@@ -480,9 +495,6 @@ export function BlankSheetTest({
                     >
                         <Send size={18} />
                         {isSubmitting ? 'Analyzing...' : 'Submit Response'}
-                    </button>
-                    <button className={styles.skipButton} onClick={onSkip}>
-                        Skip this test
                     </button>
                 </div>
             </div>

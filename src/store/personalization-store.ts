@@ -25,6 +25,9 @@ type PersonalizationState = {
   coachVoiceEnabled: boolean;
   coachIntensity: number; // 1-5 scale
   lastSessionMood: Mood | null;
+
+  // Cognitive Load Settings
+  stressFreeMode: boolean; // Shorter AI explanations + forced Bionic Text
 };
 
 type PersonalizationActions = {
@@ -38,6 +41,9 @@ type PersonalizationActions = {
   setCoachVoiceEnabled: (enabled: boolean) => void;
   setCoachIntensity: (intensity: number) => void;
   setLastSessionMood: (mood: Mood) => void;
+
+  // Cognitive Load Actions
+  setStressFreeMode: (enabled: boolean) => void;
 };
 
 export const usePersonalizationStore = create<PersonalizationState & PersonalizationActions>()(
@@ -52,6 +58,9 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
       coachVoiceEnabled: true,
       coachIntensity: 3,
       lastSessionMood: null,
+
+      // Cognitive Load Defaults
+      stressFreeMode: false,
 
       completeOnboarding: (role, system) => {
         set({
@@ -92,6 +101,11 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
 
       setLastSessionMood: (mood) => {
         set({ lastSessionMood: mood });
+      },
+
+      // Cognitive Load Actions
+      setStressFreeMode: (enabled) => {
+        set({ stressFreeMode: enabled });
       },
     }),
     {

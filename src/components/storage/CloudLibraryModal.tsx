@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Cloud, X, Check, Download, Filter, Calendar, BookOpen, RefreshCw, CheckCircle2, AlertCircle, Layers, FileJson, FileText, Trash2 } from 'lucide-react';
+import { Search, Cloud, X, Check, Download, Calendar, BookOpen, RefreshCw, CheckCircle2, AlertCircle, Layers, FileJson, FileText } from 'lucide-react';
 import { storageManager } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage/types';
 import { parseContent } from '@/lib/content-adapter/json-content-parser';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { UI_TIMINGS } from '@/constants/ui-constants';
+import { getMetricsTracker } from '@/lib/learning/metrics-tracker';
 import styles from './CloudLibraryModal.module.css';
 
 interface CloudLibraryModalProps {
@@ -21,6 +22,28 @@ interface ToastState {
     message: string;
     type: 'success' | 'error';
     visible: boolean;
+}
+
+// Knowledge Warmth Badge Component
+// Displays 🔥 Hot → 🧊 Cold based on last recall timestamp
+function WarmthBadge({ subjectId }: { subjectId: string }) {
+    const tracker = getMetricsTracker();
+    const warmth = tracker.getKnowledgeWarmth(subjectId);
+
+    const config = {
+        hot: { emoji: '🔥', label: 'Hot', className: styles.warmthHot },
+        warm: { emoji: '🌡️', label: 'Warm', className: styles.warmthWarm },
+        cool: { emoji: '❄️', label: 'Cool', className: styles.warmthCool },
+        cold: { emoji: '🧊', label: 'Cold', className: styles.warmthCold },
+    };
+
+    const { emoji, label, className } = config[warmth];
+
+    return (
+        <span className={`${styles.warmthBadge} ${className}`} title={`Knowledge Warmth: ${label}`}>
+            {emoji}
+        </span>
+    );
 }
 
 export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryModalProps) {
@@ -538,7 +561,13 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
                                     )}
 
                                     <div className={styles.itemInfo}>
-                                        <h3>{result.subject}</h3>
+                                        <div className={styles.itemTitleRow}>
+                                            <h3>{result.subject}</h3>
+                                            {/* Knowledge Warmth Indicator */}
+                                            {result.savedLocally && (
+                                                <WarmthBadge subjectId={result.id} />
+                                            )}
+                                        </div>
                                         <div className={styles.itemMeta}>
                                             <span className={styles.metaDomain}>
                                                 <BookOpen size={12} />
