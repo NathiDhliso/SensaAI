@@ -25,6 +25,7 @@ import type { LearningConcept } from '@/lib/types/learning';
 import type { EquationMetadata } from '@/lib/types/sensa-flow.types';
 import { calculateMasteryIndex, findWeakestVariable, MASTERY_THRESHOLD } from '@/constants/sensa-flow-constants';
 import { EQUATION_COLORS_HEX } from '@/constants/sensa-flow-constants';
+import { GRAPH_COLORS } from '@/constants/theme-colors';
 import styles from './MasteryDashboard.module.css';
 
 // ============================================================================
@@ -223,9 +224,9 @@ export function MasteryDashboard({
 
             <div className={styles.tierBars}>
                 {[
-                    { tier: 'Foundation', value: tierMastery.foundation, color: '#22c55e' },
-                    { tier: 'Keystone', value: tierMastery.keystone, color: '#f59e0b' },
-                    { tier: 'Utility', value: tierMastery.utility, color: '#8b5cf6' },
+                    { tier: 'Foundation', value: tierMastery.foundation, color: GRAPH_COLORS.foundation },
+                    { tier: 'Keystone', value: tierMastery.keystone, color: GRAPH_COLORS.keystone },
+                    { tier: 'Utility', value: tierMastery.utility, color: GRAPH_COLORS.utility },
                 ].map(t => (
                     <div key={t.tier} className={styles.tierRow}>
                         <span className={styles.tierLabel}>{t.tier}</span>

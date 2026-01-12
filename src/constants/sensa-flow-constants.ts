@@ -1,3 +1,5 @@
+import { COLORS } from './theme-colors';
+
 /**
  * SENSA v2.0 Flow Constants
  * 
@@ -148,9 +150,9 @@ export const EQUATION_COLORS = {
 
 // Fallback colors if CSS vars not defined
 export const EQUATION_COLORS_HEX = {
-    G: '#6366f1',   // Indigo
-    Q_P: '#22c55e', // Green
-    Q_M: '#f59e0b', // Amber
-    Q_f: '#ec4899', // Pink
-    I: '#8b5cf6',   // Purple
+    G: '#6366f1',             // Indigo (Custom for Governance)
+    Q_P: COLORS.success,      // #22c55e - Green
+    Q_M: COLORS.warning,      // #f59e0b - Amber
+    Q_f: COLORS.secondary.rose, // #ec4899 - Pink
+    I: COLORS.accent.light,   // #8b5cf6 - Purple
 } as const;

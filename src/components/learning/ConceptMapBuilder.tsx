@@ -787,24 +787,93 @@ export default function ConceptMapBuilder({
 
     return (
         <div className={styles.container}>
-            {/* Sidebar */}
+            {/* Sidebar with Visual Bucket Zones */}
             {!readOnly && (
                 <div className={styles.sidebar}>
                     <div className={styles.sidebarHeader}>
-                        <h3 className={styles.sidebarTitle}>Concepts</h3>
+                        <h3 className={styles.sidebarTitle}>Concepts by Tier</h3>
                         <p className={styles.sidebarHint}>Click to add to canvas</p>
                     </div>
-                    <div className={styles.conceptList}>
-                        {concepts.map(c => (
-                            <div
-                                key={c.id}
-                                className={`${styles.sidebarItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
-                                onClick={() => handleAddConcept(c)}
-                            >
-                                {c.name}
-                                {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
-                            </div>
-                        ))}
+
+                    {/* Foundation Zone */}
+                    <div className={styles.bucketZone}>
+                        <div className={`${styles.bucketHeader} ${styles.bucketFoundation}`}>
+                            <span className={styles.bucketIcon}>🔷</span>
+                            <span>Foundation</span>
+                            <span className={styles.bucketCount}>
+                                {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation').length}
+                            </span>
+                        </div>
+                        <div className={styles.bucketConcepts}>
+                            {concepts
+                                .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation')
+                                .map(c => (
+                                    <div
+                                        key={c.id}
+                                        className={`${styles.sidebarItem} ${styles.foundationItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                        onClick={() => handleAddConcept(c)}
+                                    >
+                                        {c.name}
+                                        {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+
+                    {/* Keystone Zone */}
+                    <div className={styles.bucketZone}>
+                        <div className={`${styles.bucketHeader} ${styles.bucketKeystone}`}>
+                            <span className={styles.bucketIcon}>🔶</span>
+                            <span>Keystone</span>
+                            <span className={styles.bucketCount}>
+                                {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone').length}
+                            </span>
+                        </div>
+                        <div className={styles.bucketConcepts}>
+                            {concepts
+                                .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone')
+                                .map(c => (
+                                    <div
+                                        key={c.id}
+                                        className={`${styles.sidebarItem} ${styles.keystoneItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                        onClick={() => handleAddConcept(c)}
+                                    >
+                                        {c.name}
+                                        {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+
+                    {/* Utility Zone */}
+                    <div className={styles.bucketZone}>
+                        <div className={`${styles.bucketHeader} ${styles.bucketUtility}`}>
+                            <span className={styles.bucketIcon}>🔹</span>
+                            <span>Utility</span>
+                            <span className={styles.bucketCount}>
+                                {concepts.filter(c => {
+                                    const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
+                                    return t !== 'foundation' && t !== 'keystone';
+                                }).length}
+                            </span>
+                        </div>
+                        <div className={styles.bucketConcepts}>
+                            {concepts
+                                .filter(c => {
+                                    const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
+                                    return t !== 'foundation' && t !== 'keystone';
+                                })
+                                .map(c => (
+                                    <div
+                                        key={c.id}
+                                        className={`${styles.sidebarItem} ${styles.utilityItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                        onClick={() => handleAddConcept(c)}
+                                    >
+                                        {c.name}
+                                        {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                    </div>
+                                ))}
+                        </div>
                     </div>
                 </div>
             )}

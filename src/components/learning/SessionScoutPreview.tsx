@@ -14,7 +14,7 @@ import {
     ArrowRight,
     ArrowLeft,
     BookOpen,
-    Lightbulb,
+    Zap,
     AlertCircle,
     Sparkles,
     Volume2,
@@ -28,13 +28,14 @@ import type { LearningConcept } from '@/lib/types/learning';
 import type { DependencyGraph } from '@/lib/types/sensa-flow.types';
 import { generatePreviewAnalysis } from '@/lib/ai/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { NomenclatureSprint } from './NomenclatureSprint';
 import styles from './SessionScoutPreview.module.css';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type ExploreStep = 'structure' | 'visual' | 'prime';
+export type ExploreStep = 'structure' | 'sprint' | 'prime';
 
 interface SessionScoutPreviewProps {
     concepts: LearningConcept[];
@@ -45,11 +46,11 @@ interface SessionScoutPreviewProps {
 
 const STEP_CONFIG = {
     structure: { label: 'Tier Structure', icon: Layers, eqVar: 'Q_P' },
-    visual: { label: 'Predict Links', icon: Lightbulb, eqVar: 'Q_M' },
+    sprint: { label: 'Nomenclature Sprint', icon: Zap, eqVar: 'Q_M' },
     prime: { label: 'Gap Priming', icon: AlertCircle, eqVar: 'Q_M' },
 } as const;
 
-const STEPS_ORDER: ExploreStep[] = ['structure', 'visual', 'prime'];
+const STEPS_ORDER: ExploreStep[] = ['structure', 'sprint', 'prime'];
 
 // ============================================================================
 // Component
@@ -61,7 +62,7 @@ export function SessionScoutPreview({
     onComplete
 }: SessionScoutPreviewProps) {
     const [step, setStep] = useState<ExploreStep>('structure');
-    const [guesses, setGuesses] = useState<Map<string, string>>(new Map());
+    const [guesses] = useState<Map<string, string>>(new Map()); // Kept for onComplete signature
     const [acknowledgedGaps, setAcknowledgedGaps] = useState<Set<string>>(new Set());
 
     const { selectedPersona } = usePersonalizationStore();
@@ -92,10 +93,6 @@ export function SessionScoutPreview({
     const handleBack = useCallback(() => {
         navigate(-1);
     }, [navigate]);
-
-    const handleGuess = useCallback((foundationId: string, keystoneId: string) => {
-        setGuesses(prev => new Map(prev).set(foundationId, keystoneId));
-    }, []);
 
     const handleAcknowledgeGap = useCallback((conceptId: string) => {
         setAcknowledgedGaps(prev => new Set(prev).add(conceptId));
@@ -218,77 +215,22 @@ export function SessionScoutPreview({
     );
 
     // ========================================================================
-    // Step 2: Visual — Predict Connections (Guess Collection)
+    // Step 2: Sprint — Nomenclature Sprint (REPLACES Predict Links)
     // ========================================================================
-    const renderVisualStep = () => {
-        // Only show first 5 foundation concepts for guessing
-        const foundationsForGuessing = conceptsByTier.foundation.slice(0, 5);
+    const renderSprintStep = () => {
+        const handleSprintComplete = (passed: boolean, _accuracy: number) => {
+            if (passed) {
+                // Move to next step
+                setStep('prime');
+            }
+            // If not passed, NomenclatureSprint handles retry internally
+        };
 
         return (
-            <div className={styles.stepContent}>
-                <div className={styles.instructionBox}>
-                    <Lightbulb size={20} className={`${styles.instructionIcon} ${styles.iconWarning}`} />
-                    <div>
-                        <h3>Predict the Connections</h3>
-                        <p>For each Foundation concept, guess which Keystone it enables. Don't worry about being wrong!</p>
-                    </div>
-                </div>
-
-                <div className={styles.predictionGrid}>
-                    {foundationsForGuessing.map(foundation => (
-                        <motion.div
-                            key={foundation.id}
-                            className={styles.predictionRow}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                        >
-                            <div className={styles.foundationBadge}>
-                                <span className={styles.badgeEmoji}>
-                                    {foundation.mnemonic?.anchor?.split(' ')[1] || '🔷'}
-                                </span>
-                                <span>{foundation.name}</span>
-                            </div>
-
-                            <ArrowRight size={16} className={styles.predictionArrow} />
-
-                            <select
-                                className={`${styles.keystoneSelect} ${guesses.has(foundation.id) ? styles.selected : ''}`}
-                                onChange={(e) => handleGuess(foundation.id, e.target.value)}
-                                value={guesses.get(foundation.id) || ''}
-                            >
-                                <option value="" disabled>I think this enables...</option>
-                                {conceptsByTier.keystone.map(k => (
-                                    <option key={k.id} value={k.id}>
-                                        {k.mnemonic?.anchor?.split(' ')[1] || '🔶'} {k.name}
-                                    </option>
-                                ))}
-                            </select>
-
-                            {guesses.has(foundation.id) && (
-                                <motion.div
-                                    className={styles.guessCheck}
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                >
-                                    ✓
-                                </motion.div>
-                            )}
-                        </motion.div>
-                    ))}
-                </div>
-
-                <div className={styles.guessProgress}>
-                    <div className={styles.guessProgressBar}>
-                        <div
-                            className={styles.guessProgressFill}
-                            style={{ width: `${(guesses.size / foundationsForGuessing.length) * 100}%` }}
-                        />
-                    </div>
-                    <span className={styles.guessCount}>
-                        {guesses.size}/{foundationsForGuessing.length} predictions made
-                    </span>
-                </div>
-            </div>
+            <NomenclatureSprint
+                concepts={concepts}
+                onComplete={handleSprintComplete}
+            />
         );
     };
 
@@ -389,7 +331,7 @@ export function SessionScoutPreview({
     const renderStep = () => {
         switch (step) {
             case 'structure': return renderStructureStep();
-            case 'visual': return renderVisualStep();
+            case 'sprint': return renderSprintStep();
             case 'prime': return renderPrimeStep();
         }
     };

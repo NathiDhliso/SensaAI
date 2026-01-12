@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Clock, Target, BookOpen, RefreshCw, Compass,
   ChevronRight, Brain, Sparkles, Heart, ArrowLeft,
-  Zap, BatteryLow, Activity, AlertCircle
+  Zap, BatteryLow, Activity, AlertCircle, GraduationCap
 } from 'lucide-react';
 import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/types/learning';
 import { MOOD_OPTIONS, type Mood } from '@/lib/ai/coach';
@@ -93,6 +93,22 @@ export function SessionStartModal({
     return Math.round((completedConcepts / totalConcepts) * 100);
   }, [completedConcepts, totalConcepts]);
 
+  // ========== SEMESTER HOOK ==========
+  // AI-generated "Why this matters in class" line to anchor the session
+  const semesterHook = useMemo(() => {
+    // Generate contextual hook based on subject and progress
+    const hooks = [
+      `This knowledge will help you decode your professor's examples in real-time.`,
+      `Mastering this now means no panic before your first ${subjectName} exam.`,
+      `Your classmates will ask YOU for explanations after lecture.`,
+      `This is the foundation that makes advanced ${subjectName} feel like common sense.`,
+      `Professors love when students can connect these dots during discussions.`,
+    ];
+    // Use subject name hash for consistent hook per subject
+    const hash = subjectName.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    return hooks[hash % hooks.length];
+  }, [subjectName]);
+
   const handleDurationSelect = (minutes: number) => {
     setSelectedDuration(minutes);
     setShowCustom(false);
@@ -150,6 +166,17 @@ export function SessionStartModal({
                 <span className={styles.progressText}>
                   {completedConcepts} of {totalConcepts} concepts ({progress}%)
                 </span>
+              </div>
+
+              {/* Semester Hook - Why this matters */}
+              <div className={styles.semesterHook}>
+                <div className={styles.hookIcon}>
+                  <GraduationCap size={20} />
+                </div>
+                <div className={styles.hookContent}>
+                  <span className={styles.hookLabel}>Why this session matters:</span>
+                  <p className={styles.hookText}>{semesterHook}</p>
+                </div>
               </div>
 
               {/* Mood Selection */}

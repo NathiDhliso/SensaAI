@@ -7,6 +7,7 @@
  * I = min(h, G × f(M(P(x))))
  */
 
+import { GRAPH_COLORS, COLORS } from '@/constants/theme-colors';
 import type { LearningConcept } from '@/lib/types/learning';
 import type { TierType, TierDistribution } from '@/lib/types/sensa-flow.types';
 
@@ -15,9 +16,9 @@ import type { TierType, TierDistribution } from '@/lib/types/sensa-flow.types';
 // ============================================================================
 
 export const TIER_CONFIG = {
-    foundation: { color: '#6366f1', label: 'Foundation' }, // Indigo
-    keystone: { color: '#f59e0b', label: 'Keystone' },     // Amber
-    utility: { color: '#64748b', label: 'Utility' }        // Slate
+    foundation: { color: GRAPH_COLORS.foundation, label: 'Foundation' },
+    keystone: { color: GRAPH_COLORS.keystone, label: 'Keystone' },
+    utility: { color: COLORS.text.muted, label: 'Utility' }
 } as const;
 
 // ============================================================================

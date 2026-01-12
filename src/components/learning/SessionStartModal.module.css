@@ -553,7 +553,7 @@
 .moodCard:hover .moodIconWrapper {
   background: white;
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px var(--overlay-black-10);
 }
 
 .moodLabel {
@@ -671,4 +671,50 @@
     font-size: 0.9375rem;
     border-radius: 12px;
   }
+}
+
+/* Semester Hook - Why this matters in class */
+.semesterHook {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--overlay-sage-10) 0%, var(--overlay-primary-5) 100%);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.hookIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--color-surface);
+  border-radius: 50%;
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.hookContent {
+  flex: 1;
+}
+
+.hookLabel {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.hookText {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  font-style: italic;
 }

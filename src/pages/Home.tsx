@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, Zap, Cloud } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud, Calendar } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -232,6 +232,26 @@ export default function Home() {
           )}
         </div>
 
+        {/* Semester Countdown Widget */}
+        <div className={styles.semesterCountdown}>
+          <div className={styles.countdownHeader}>
+            <Calendar size={18} />
+            <span>Semester Progress</span>
+          </div>
+          <div className={styles.countdownContent}>
+            <div className={styles.countdownStat}>
+              <span className={styles.countdownNumber}>12</span>
+              <span className={styles.countdownLabel}>weeks left</span>
+            </div>
+            <div className={styles.countdownBar}>
+              <div className={styles.countdownFill} style={{ width: '25%' }} />
+            </div>
+            <p className={styles.countdownMessage}>
+              📅 Week 4 of 16 — Perfect time to build foundations!
+            </p>
+          </div>
+        </div>
+
         <div className={styles.actionButtons}>
           <button onClick={() => setShowCloudLibrary(true)} className={styles.cloudLibraryButton}>
             <Cloud size={18} />
@@ -250,7 +270,7 @@ export default function Home() {
         <CloudLibraryModal
           isOpen={showCloudLibrary}
           onClose={() => setShowCloudLibrary(false)}
-          onUpdate={() => {}}
+          onUpdate={() => { }}
         />
       </div>
     </div>

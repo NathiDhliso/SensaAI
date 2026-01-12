@@ -617,3 +617,75 @@
     font-size: 0.75rem;
   }
 }
+
+/* ============================================
+   SEMESTER COUNTDOWN WIDGET
+   Tracks academic progress
+   ============================================ */
+
+.semesterCountdown {
+  width: 100%;
+  max-width: 42rem;
+  background: color-mix(in srgb, var(--color-surface), transparent 40%);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.countdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-bottom: 1rem;
+}
+
+.countdownContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.countdownStat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.countdownNumber {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.countdownLabel {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+.countdownBar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.countdownFill {
+  height: 100%;
+  background: var(--gradient-accent);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.countdownMessage {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}

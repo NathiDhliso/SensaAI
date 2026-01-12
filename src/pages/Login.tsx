@@ -64,12 +64,26 @@ export function Login() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
             >
-                {/* Visual Side (Left) */}
+                {/* Visual Side (Left) - Prime Directive */}
                 <div className={styles.visualSide}>
                     <div className={styles.visualContent}>
-                        <div className={styles.logoIcon} style={{ background: 'rgba(255,255,255,0.2)' }}>
+                        <div className={styles.logoIcon} style={{ background: 'var(--overlay-white-20)' }}>
                             <Sparkles size={24} />
                         </div>
+
+                        {/* Prime Directive Banner */}
+                        <div className={styles.primeDirective}>
+                            <h2 className={styles.primeTitle}>🎯 Prime Directive</h2>
+                            <p className={styles.primeStatement}>
+                                <strong>Own your learning.</strong> Don't just pass exams—build mental architecture that lasts a lifetime.
+                            </p>
+                            <div className={styles.primePrinciples}>
+                                <span>🧠 Understand First</span>
+                                <span>🔗 Connect Always</span>
+                                <span>🔥 Apply Relentlessly</span>
+                            </div>
+                        </div>
+
                         <div style={{ marginTop: 'auto' }}>
                             <p className={styles.quote}>
                                 "Learning is not attained by chance, it must be sought for with ardor and attended to with diligence."

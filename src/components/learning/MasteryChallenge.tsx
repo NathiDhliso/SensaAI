@@ -257,23 +257,39 @@ export default function MasteryChallenge({
     };
 
     // ========================================================================
-    // Scenario Generation
+    // Context-Swap Synthesis: Scenario Generation
+    // Present concepts in a NEW domain to challenge transfer learning
     // ========================================================================
+
+    const CONTEXT_SWAP_DOMAINS = [
+        { name: 'Restaurant Kitchen', icon: '👨‍🍳', frame: 'running a busy restaurant kitchen where' },
+        { name: 'Sports Team', icon: '⚽', frame: 'coaching a championship sports team where' },
+        { name: 'Music Production', icon: '🎵', frame: 'producing a hit album in a recording studio where' },
+        { name: 'City Planning', icon: '🏙️', frame: 'designing a sustainable smart city where' },
+        { name: 'Healthcare', icon: '🏥', frame: 'managing a hospital emergency room where' },
+    ];
+
+    // Select a random domain based on concept hash for consistency
+    const domainHash = concepts.reduce((acc, c) => acc + c.name.charCodeAt(0), 0);
+    const selectedDomain = CONTEXT_SWAP_DOMAINS[domainHash % CONTEXT_SWAP_DOMAINS.length];
 
     const conceptNames = concepts.slice(0, 3).map(c => c.name).join(', ');
     const scenario = concepts.length > 0
-        ? `You are consulting for a client who needs to implement a comprehensive solution using the concepts you've learned.
+        ? `**🔄 Context-Swap Challenge**
 
-**Scenario:**
-Design and explain a complete system that integrates ${conceptNames}${concepts.length > 3 ? ', and more' : ''}.
+You're ${selectedDomain.frame} the principles from your studies apply in surprising ways.
+
+${selectedDomain.icon} **Scenario: ${selectedDomain.name}**
+
+Take the concepts of ${conceptNames}${concepts.length > 3 ? ', and more' : ''} and explain how they would work in this ${selectedDomain.name.toLowerCase()} context.
 
 **Requirements:**
-1. Explain how each concept contributes to the solution
-2. Describe the relationships between concepts
-3. Identify potential challenges and how you'd address them
-4. Provide a step-by-step implementation approach
+1. 🔗 Describe how each concept translates to this new domain
+2. ⚡ Explain the relationships—what's the "foundation" and what's the "keystone"?
+3. ⚠️ What would "failure" look like if these principles were ignored?
+4. 🎯 Give a concrete step-by-step example using terminology from BOTH domains
 
-**Your Response:**`
+**Your Context-Swapped Response:**`
         : DEFAULT_MASTERY_SCENARIO;
 
     // ========================================================================
