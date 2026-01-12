@@ -249,12 +249,41 @@ Return a JSON object with the following structure:
 }}
 ```
 
+## MANDATORY FIELD CHECKLIST (EVERY CONCEPT MUST HAVE):
+
+Before generating each concept, verify ALL of these fields are present and SUBSTANTIVE:
+
+| Field | Minimum Quality | Example BAD | Example GOOD |
+|-------|----------------|-------------|--------------|
+| `hookSentence` | 15+ words, compelling hook | "RLS is important" | "Control who sees what data at the row level, ensuring each user only sees records relevant to them" |
+| `whyYouNeed` | Explain consequence of not having it | "It helps with security" | "Without RLS, any dashboard user could access ALL customer data—a compliance nightmare for GDPR/HIPAA" |
+| `technicalDetails` | Advanced insight with specifics | "Technical concept" | "RLS filters are DAX expressions evaluated per-user at query time; PATHCONTAINS is preferred for hierarchical security" |
+| `shape.simpleCore` | One sentence, zero jargon | "RLS is row-level security" | "A filter that automatically hides rows based on who's logged in" |
+| `shape.highStakesExample` | REAL company + year + outcome | "A company used this" | "Contoso (2023) prevented a data breach by implementing RLS, blocking 40K unauthorized row access attempts monthly" |
+| `mnemonic.story` | Bizarre visual story with action | "Remember RLS" | "A giant ROWBOAT has a LOCK on it—only users with the RIGHT KEY (their username) can row to specific DATA ISLANDS" |
+
+## BANNED PATTERNS (Auto-Fail):
+
+1. **CIRCULAR DEFINITIONS** - "X is X" or "Think of X like X"
+   - BAD: "Row-Level Security is security at the row level"
+   - GOOD: "A filter that automatically hides rows based on who's logged in"
+
+2. **CONCEPT NAME ECHO** - Just repeating the concept name with filler
+   - BAD: "RLS is RLS for reporting"
+   - GOOD: "Ensure each sales rep only sees their own territory's data"
+
+3. **VAGUE PLACEHOLDERS** - Generic statements without specifics
+   - BAD: "Understanding this concept is essential for mastering the subject"
+   - GOOD: "Required for PL-300 exam: 10-15% of questions test RLS scenarios"
+
 **CRITICAL REQUIREMENTS:**
 1. Generate 30-50 concepts covering all tiers comprehensively
 2. Every concept MUST have tier at root level
-3. Every concept MUST have mnemonic, SHAPE, and phase1/2/3
-4. Use POSITIVE framing only - no "cannot", "don't", "won't"
-5. Return ONLY valid JSON, no markdown formatting
+3. Every concept MUST have COMPLETE mnemonic (anchor + story), SHAPE (all 5 fields), phase1/2/3
+4. Every concept MUST have hookSentence, whyYouNeed, technicalDetails with REAL content
+5. Use POSITIVE framing only - no "cannot", "don't", "won't"
+6. Return ONLY valid JSON, no markdown formatting
+7. NEVER use the concept name in its own definition (circular)
 
 ---
 
@@ -411,26 +440,19 @@ OBJECTIVE: Generate Part {part_num} of a comprehensive curriculum (Concepts {sta
 ## CONTEXT & EMPHASIS:
 {context}
 
-## STRATEGY: TIERED DEPTH
-To cover the full breadth of the subject while maintaining depth where it matters, you must vary the detail level based on the concept's TIER.
+## STRATEGY: UNIFORM DEPTH & HOLISTIC LEARNING
+To support the "NO FALLBACKS" policy, EVERY concept must be fully fleshed out with complete learning science metadata. Do NOT skip fields for Keystone or Utility tiers.
 
-### 1. FOUNDATION TIER (Top 20% - The "Why" & "How")
-- **Depth**: MAXIMUM. Full SENSA v2.0 structure.
-- **Fields Required**: name, tier, tierJustification (Why it is foundation?), order, mnemonic (FULL), phase1, phase2, phase3, shape, criticalDistinctions.
-- **Goal**: Deep understanding of core principles.
+### REQUIRED FIELDS (ALL CONCEPTS):
+- **Core**: name, tier, tierJustification, order
+- **Engagement**: phase1 (hookSentence, microMetaphor)
+- **Memory**: mnemonic (FULL: anchor + story + tier)
+- **Understanding**: description, keyPoints, whyYouNeed, technicalDetails, shape (simpleCore, highStakesExample, analogicalModel)
+- **Application**: phase2 (content), phase3 (tool, metrics)
+- **Relationship**: criticalDistinctions, designBoundaries
 
-### 2. KEYSTONE TIER (Middle 40% - The "What")
-- **Depth**: MEDIUM. Core operational knowledge.
-- **Fields Required**: name, tier, tierJustification (Why it is keystone?), order, description, keyPoints, phase1 (hook only), shape (simpleCore + analogy only).
-- **Goal**: Functional competence.
-
-### 3. UTILITY TIER (Bottom 40% - The "Tools")
-- **Depth**: MINIMUM. Reference knowledge.
-- **Fields Required**: name, tier, tierJustification (Why it is utility?), order, description, keyPoints (list of 3).
-- **Goal**: Awareness of tools/features.
-
-## MANDATORY DOMAIN DIMENSIONS [Must be covered across the curriculum]
- regardless of the subject, you must explicitly include concepts that address these universal professional standards:
+### MANDATORY DOMAIN DIMENSIONS [Must be covered across the curriculum]
+regardless of the subject, you must explicitly include concepts that address these universal professional standards:
 
 1. **Governance, Compliance & Security**: (e.g., Regulatory requirements, Data privacy/protection, Safety standards, Role-based access, Ethics).
 2. **Accessibility & Inclusivity**: (e.g., Design for all users, Industry standard compliance (WCAG/ADA), Ergonomics, Broad usability).
@@ -438,28 +460,34 @@ To cover the full breadth of the subject while maintaining depth where it matter
 4. **Professional Lifecycle & Development**: (e.g., Development workflows (Dev/Test/Prod), Version control, Publication strategies, Maintenance).
 5. **Advanced & Emerging Capabilities**: (e.g., AI/ML integration, Automation features, Smart tooling, Future-facing trends).
 
-*Ensure at least 2-3 concepts in this batch specifically address each of these 5 pillars, translating them to the specific context of "{subject}".*
+*Ensure at least 1-2 concepts in this batch specifically address these pillars.*
 
 ## OUTPUT FORMAT:
 Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 
 ```json
 [
-  // FOUNDATION CONCEPT (Full Depth)
   {{
-    "name": "Core Principle",
-    "tier": "foundation",
-    "tierJustification": "This is a Foundation concept because it establishes the [Core Context] required by [Dependent Concepts].",
-    "order": 1,
-    "whyYouNeed": "Professionals rely on this to [action] because [benefit].",
-    "technicalDetails": "Advanced: [specific technical insight].",
+    "name": "Concept Name",
+    "tier": "foundation|keystone|utility",
+    "tierJustification": "Reason for tier...",
+    "order": {start_idx},
+    "whyYouNeed": "Professionals rely on this...",
+    "technicalDetails": "Advanced insight...",
     "workedExample": {{
-      "problem": "Scenario: You need to [task]...",
-      "solution": "Approach: Use [concept] to...",
-      "steps": ["Step 1...", "Step 2...", "Step 3..."]
+      "problem": "Scenario...",
+      "solution": "Approach...",
+      "steps": ["Step 1...", "Step 2..."]
     }},
-    "mnemonic": {{ "anchor": "Object + Emoji", "story": "Bizarre scene..." }},
-    "phase1": {{ "hookSentence": "...", "microMetaphor": "..." }},
+    "mnemonic": {{ 
+        "tier": "Foundation|Keystone|Utility",
+        "anchor": "Object + Emoji", 
+        "story": "Bizarre scene..." 
+    }},
+    "phase1": {{ 
+        "hookSentence": "Compelling hook...", 
+        "microMetaphor": "Physical analogy..." 
+    }},
     "phase2": [ {{ "title": "...", "content": "..." }} ],
     "phase3": {{ "tool": "...", "metrics": [...] }},
     "shape": {{
@@ -469,17 +497,18 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
       "patternRecognition": {{ "question": "...", "answer": "..." }},
       "eliminationLogic": "[A] for [X], [B] for [Y]."
     }},
-    "keyPoints": ["Point 1", "Point 2", "Point 3"]
-  }},
-  // ... more concepts ...
+    "keyPoints": ["Point 1", "Point 2", "Point 3"],
+    "criticalDistinctions": [{{ "correct": "...", "incorrect": "..." }}],
+    "designBoundaries": [{{ "boundary": "...", "rationale": "..." }}]
+  }}
 ]
 ```
 
 ## CRITICAL RULES:
 1. QUANTITY: You MUST generate exactly {count} concepts (from #{start_idx} to #{end_idx}).
 2. FORMAT: valid JSON array. NO markdown. NO text before/after.
-3. REAL WORLD EXAMPLES: Field `shape.highStakesExample` MUST be a real case study (e.g., "Netflix 2013 migration", "NASA Mars Rover", "Spotify Squad model"). DO NOT use generic text like "Imagine a company...".
-4. METAPHORS: Field `shape.analogicalModel` and `mnemonics` MUST use objects/systems OUTSIDE the domain (e.g., Cooking, Construction, nature). NEVER use the concept name itself.
+3. REAL WORLD EXAMPLES: Field `shape.highStakesExample` MUST be a real case study.
+4. METAPHORS: Field `shape.analogicalModel` and `mnemonics` MUST use objects/systems OUTSIDE the domain.
 5. POSITIVE FRAMING: Use strictly positive, empowering language.
 
 Generate concepts {start_idx} through {end_idx} now:"""
@@ -490,23 +519,38 @@ def get_silver_bullet_prompt(subject: str, part: int = 1, context: str = "") -> 
     if context:
         context_str = f"USER CONTEXT / SPECIFIC FOCUS:\n{context}\n\n*Prioritize this context in your concept selection.*"
 
-    if part == 1:
-        # Part 1: Concepts 1-35 (Foundation + Keystone)
+    # Split 70 concepts into 4 parts to ensure full depth within token limits
+    # Part 1: 1-18 (18 concepts)
+    # Part 2: 19-35 (17 concepts)
+    # Part 3: 36-53 (18 concepts)
+    # Part 4: 54-70 (17 concepts)
+
+    ranges = [
+        (1, 18),
+        (19, 35),
+        (36, 53),
+        (54, 70)
+    ]
+
+    if 1 <= part <= 4:
+        start_idx, end_idx = ranges[part - 1]
+        count = end_idx - start_idx + 1
+        return SILVER_BULLET_PROMPT.format(
+            subject=subject,
+            part_num=part,
+            start_idx=start_idx,
+            end_idx=end_idx,
+            count=count,
+            context=context_str
+        )
+    else:
+        # Fallback to Part 1 if invalid part
         return SILVER_BULLET_PROMPT.format(
             subject=subject, 
             part_num=1, 
             start_idx=1, 
-            end_idx=35, 
-            count=35,
+            end_idx=20, 
+            count=20,
             context=context_str
         )
-    else:
-        # Part 2: Concepts 36-70 (Keystone + Utility)
-        return SILVER_BULLET_PROMPT.format(
-            subject=subject, 
-            part_num=2, 
-            start_idx=36, 
-            end_idx=70, 
-            count=35,
-            context=context_str
-        )
+

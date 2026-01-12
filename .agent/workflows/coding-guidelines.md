@@ -660,6 +660,39 @@ localStorage.setItem('sensa-result-v1', ...);
 3.  **Loading States**: While fetching real data, use skeleton loaders or spinners, not fake numbers.
 4.  **Transformation**: If the API response isn't ready, write the *transformer* logic that will handle the future API response, rather than hardcoding values.
 
+---
+
+## 🚀 FULL THROTTLE: NO FALLBACKS POLICY - CRITICAL
+
+**AI-generated content MUST NOT have fallback synthesizers. If AI didn't generate it, it's EMPTY.**
+
+### Content Transformation Rules:
+1.  **Direct Pass-through Only**: Content transformation functions (`generateHookSentence`, `generateWhyYouNeed`, etc.) MUST only return the AI-generated field or empty string.
+2.  **NO Fallback Chains**: Do NOT check multiple fields and synthesize content. The AI prompt is responsible for generating all required fields.
+3.  **UI Handles Empty**: The UI components are responsible for hiding sections when content is missing (using `isRealContent()` validation).
+
+```typescript
+// ✅ CORRECT - Full Throttle
+function generateHookSentence(concept: ParsedConcept): string {
+  return concept.phase1.hookSentence || '';
+}
+
+// ❌ WRONG - Fallback chains
+function generateHookSentence(concept: ParsedConcept): string {
+  if (concept.phase1.hookSentence) return concept.phase1.hookSentence;
+  if (concept.shape?.simpleCore) return concept.shape.simpleCore;  // NO!
+  if (concept.phase1.prerequisite) return concept.phase1.prerequisite;  // NO!
+  return `Think of ${concept.name} like...`;  // ABSOLUTELY NO!
+}
+```
+
+### Rationale:
+- Fallbacks mask AI generation failures, making it hard to identify prompt issues
+- Synthesized content often produces circular garbage ("Think of X like a X")
+- Clean empty states are better than low-quality filled states
+- The `auditConceptContent()` function logs missing fields to console in dev mode
+
+
 
 ## 📊 Dashboard & Analytics Views
 
@@ -707,4 +740,13 @@ localStorage.setItem('sensa-result-v1', ...);
 ### Data Integrity
 - **Pass Rate**: Must be calculated via `analyzeContentQuality()` utility based on real content metrics.
 - **Zero Mock Data**: If analysis is unavailable, show "Analysis Pending" or dashes (`--`), never fake scores.
+
+---
+
+## ☁️ Deployment & Infrastructure
+
+> [!NOTE]
+> For deployment instructions, see `.agent/workflows/deployment.md`.
+> **TL;DR**: Do NOT use SAM. Use `infra/scripts/deploy.sh`.
+
 

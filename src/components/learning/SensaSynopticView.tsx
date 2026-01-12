@@ -17,6 +17,7 @@ import {
     Activity
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
+import { isRealContent, auditConceptContent } from '@/lib/validation/content-quality';
 import styles from './SensaSynopticView.module.css';
 
 interface SensaSynopticViewProps {
@@ -38,23 +39,15 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
     const [focusedTier, setFocusedTier] = useState<'foundation' | 'keystone' | 'utility' | null>(null);
     const [containerSize, setContainerSize] = useState({ width: 800, height: 700 });
 
-    // Validate content helpers (Ported from ConceptBrowser)
-    const isValidContent = (text: string | undefined, conceptName: string): boolean => {
-        if (!text) return false;
-        const lowerText = text.toLowerCase().trim();
-        const lowerName = conceptName.toLowerCase().trim();
-
-        if (text.trim() === conceptName.trim()) return false;
-        if (lowerText === lowerName) return false;
-        // The following checks are removed as per the instruction's diff
-        // if (lowerText.includes(lowerName) || lowerName.includes(lowerText)) return false;
-        // if (lowerText === `think of ${lowerName} like a ${lowerName}`) return false;
-        // if (lowerText.includes(`${lowerName} makes it possible`)) return false;
-        // if (lowerText.includes('is essential for mastering')) return false;
-        // if (lowerText.includes('example pending generation')) return false;
-
-        return true;
-    };
+    // DEV: Audit content gaps when a concept is selected (logs to console)
+    useEffect(() => {
+        if (selectedId) {
+            const concept = concepts.find(c => c.id === selectedId);
+            if (concept) {
+                auditConceptContent(concept);
+            }
+        }
+    }, [selectedId, concepts]);
 
     // Calculate node positions
     const nodePositions = useMemo(() => {
@@ -101,19 +94,33 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
         const concept = concepts.find(c => c.name === conceptName);
 
         // If a specific concept is hovered, explain WHY it fits there
-        if (conceptName) {
-            // PRIORITY 1: USE AI GENERATED JUSTIFICATION (The "Silver Bullet" Dynamic Content)
-            if (concept?.tierJustification) {
+        if (conceptName && concept) {
+            // PRIORITY 1: AI-Generated tierJustification (if real content)
+            if (isRealContent(concept.tierJustification, concept.name)) {
                 return `💡 ${concept.tierJustification}`;
             }
 
-            // Fallback: Template
-            switch (tier) {
-                case 'foundation': return `${conceptName} is a Foundation Root 🏗️ because it's a core building block you need to understand before anything else!`;
-                case 'keystone': return `${conceptName} is a Keystone Bridge 🌉 because it connects different ideas together to help them make sense.`;
-                case 'utility': return `${conceptName} is a Utility Tool 🛠️ because it helps you solve specific problems in special situations.`;
-                default: return "";
+            // PRIORITY 2: Use SHAPE simpleCore (if real content)
+            if (isRealContent(concept.shape?.simpleCore, concept.name)) {
+                const tierLabel = tier === 'foundation' ? 'Foundation 🏗️' :
+                    tier === 'keystone' ? 'Keystone 🌉' : 'Utility 🛠️';
+                return `${tierLabel}: ${concept.shape!.simpleCore}`;
             }
+
+            // PRIORITY 3: Use hookSentence (if real content)
+            if (isRealContent(concept.hookSentence, concept.name)) {
+                const tierLabel = tier === 'foundation' ? 'Foundation 🏗️' :
+                    tier === 'keystone' ? 'Keystone 🌉' : 'Utility 🛠️';
+                return `${tierLabel}: ${concept.hookSentence}`;
+            }
+
+            // PRIORITY 4: Use whyYouNeed (if real content)
+            if (isRealContent(concept.whyYouNeed, concept.name)) {
+                return `Why: ${concept.whyYouNeed}`;
+            }
+
+            // NO FALLBACK - return empty if no real content (UI will handle)
+            return '';
         }
 
         // General Tier Description covers
@@ -332,36 +339,27 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                         </div>
 
                         <div className={styles.drawerContent}>
-                            {/* Hook */}
-                            {isValidContent(selectedConcept.hookSentence, selectedConcept.name) && (
+                            {/* Quick Summary - only show if real content */}
+                            {isRealContent(selectedConcept.hookSentence, selectedConcept.name) && (
                                 <div className={styles.section}>
                                     <h4><BookOpen size={16} /> Quick Summary</h4>
                                     <p>{selectedConcept.hookSentence}</p>
                                 </div>
                             )}
 
-                            {/* Why It Matters */}
-                            {isValidContent(selectedConcept.whyYouNeed, selectedConcept.name) && (
+                            {/* Why It Matters - only show if real content */}
+                            {isRealContent(selectedConcept.whyYouNeed, selectedConcept.name) && (
                                 <div className={styles.section}>
                                     <h4>Why It Matters</h4>
                                     <p>{selectedConcept.whyYouNeed}</p>
                                 </div>
                             )}
 
-                            {/* Metaphor */}
-                            {isValidContent(selectedConcept.metaphor, selectedConcept.name) && (
-                                <div className={styles.section}>
-                                    <h4>Think of it like...</h4>
-                                    <p className={styles.metaphor}>{selectedConcept.metaphor}</p>
-                                </div>
-                            )}
-
-                            {/* Mnemonic (Anchor/Image) */}
-                            {selectedConcept.mnemonic && (
+                            {/* Memory Anchor - only show if real content */}
+                            {selectedConcept.mnemonic && isRealContent(selectedConcept.mnemonic.story, selectedConcept.name) && (
                                 <div className={styles.section}>
                                     <h4><Anchor size={16} /> Memory Anchor</h4>
                                     <p><strong>{selectedConcept.mnemonic.anchor}:</strong> {selectedConcept.mnemonic.story}</p>
-
                                     {selectedConcept.mnemonic.imageUrl && (
                                         <div className={styles.mnemonicImage}>
                                             <img
@@ -374,22 +372,21 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                                 </div>
                             )}
 
-                            {/* Real World */}
-                            {isValidContent(selectedConcept.realWorldExample, selectedConcept.name) && (
+                            {/* Real World Context - only show if real content */}
+                            {isRealContent(selectedConcept.realWorldExample, selectedConcept.name) && (
                                 <div className={styles.section}>
                                     <h4><Globe size={16} /> Real World Context</h4>
                                     <p>{selectedConcept.realWorldExample}</p>
                                 </div>
                             )}
 
-                            {/* Technical */}
-                            {isValidContent(selectedConcept.technicalDetails, selectedConcept.name) &&
-                                !selectedConcept.technicalDetails?.includes('is a core concept') && (
-                                    <div className={styles.section}>
-                                        <h4><Lightbulb size={16} /> Technical Insight</h4>
-                                        <p>{selectedConcept.technicalDetails}</p>
-                                    </div>
-                                )}
+                            {/* Technical Insight - only show if real content */}
+                            {isRealContent(selectedConcept.technicalDetails, selectedConcept.name) && (
+                                <div className={styles.section}>
+                                    <h4><Lightbulb size={16} /> Technical Insight</h4>
+                                    <p>{selectedConcept.technicalDetails}</p>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}

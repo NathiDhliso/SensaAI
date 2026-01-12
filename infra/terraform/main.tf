@@ -135,8 +135,11 @@ module "lambda" {
   project_name        = "sensapbl"
   concepts_table_arn  = module.dynamodb.concepts_table_arn
   concepts_table_name = module.dynamodb.concepts_table_name
+
   jobs_table_arn      = module.dynamodb.jobs_table_arn
   jobs_table_name     = module.dynamodb.jobs_table_name
+
+  source_dir = "${path.module}/../../backend/lambda"
 
   # Optional: Enable for production to eliminate cold starts
   enable_provisioned_concurrency    = var.environment == "prod"

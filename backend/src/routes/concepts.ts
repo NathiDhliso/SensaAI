@@ -9,20 +9,20 @@ interface AuthenticatedRequest extends Request {
     user?: { sub: string; email: string };
 }
 
-// AWS clients - configured for af-south-1
+// AWS clients - configured for us-east-1
 const dynamoClient = new DynamoDBClient({
-    region: process.env.AWS_REGION || 'af-south-1',
+    region: process.env.AWS_REGION || 'us-east-1',
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const lambdaClient = new LambdaClient({
-    region: process.env.AWS_REGION || 'af-south-1',
+    region: process.env.AWS_REGION || 'us-east-1',
 });
 
 // Table and function names
-const CONCEPTS_TABLE = process.env.CONCEPTS_TABLE || 'sensapbl-concepts-dev';
-const JOBS_TABLE = process.env.JOBS_TABLE || 'sensapbl-jobs-dev';
-const GENERATE_FUNCTION = process.env.GENERATE_LAMBDA || 'sensapbl-generate-concepts-dev';
+const CONCEPTS_TABLE = process.env.CONCEPTS_TABLE || 'sensapbl-concepts-pilot';
+const JOBS_TABLE = process.env.JOBS_TABLE || 'sensapbl-jobs-pilot';
+const GENERATE_FUNCTION = process.env.GENERATE_LAMBDA || 'sensapbl-generate-concepts-pilot';
 
 // Pagination helpers
 function createCursor(lastKey: Record<string, unknown> | undefined): string | null {

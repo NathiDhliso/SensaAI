@@ -189,28 +189,25 @@ function buildDocumentFromConcepts(subject: string, concepts: Array<{
     prerequisiteWeight?: number;
     displayProperties?: { emoji?: string; category?: string };
 }>): string {
-    const conceptBlocks = concepts.map((concept, index) => ({
+    const conceptBlocks = concepts.map((concept: any, index) => ({
         order: index + 1,
         name: concept.name,
         tier: concept.tier,
         stageId: concept.stageId,
-        description: concept.description || `Core concept in ${subject}`,
-        keyPoints: concept.keyPoints || [
-            `Key aspect 1 of ${concept.name}`,
-            `Key aspect 2 of ${concept.name}`,
-            `Key aspect 3 of ${concept.name}`,
-        ],
+        description: concept.description || concept.phase1?.hookSentence || `Core concept in ${subject}`,
+        keyPoints: concept.keyPoints || [],
         prerequisiteWeight: concept.prerequisiteWeight || 0.5,
         displayProperties: concept.displayProperties || {
             emoji: '📚',
             category: concept.tier,
         },
-        mnemonic: {
+        // Use real AI-generated content if available, otherwise fallback (which shouldn't happen with strict policy)
+        mnemonic: concept.mnemonic || {
             tier: concept.tier === 'foundation' ? 'Foundation' : concept.tier === 'keystone' ? 'Keystone' : 'Utility',
             anchor: `${concept.displayProperties?.emoji || '📚'} ${concept.name}`,
             story: `Understanding ${concept.name} in the context of ${subject}`,
         },
-        phase1: {
+        phase1: concept.phase1 || {
             hookSentence: `Why ${concept.name} matters in ${subject}`,
             microMetaphor: `Think of ${concept.name} as a building block`,
             prerequisite: 'None',
@@ -220,22 +217,23 @@ function buildDocumentFromConcepts(subject: string, concepts: Array<{
             ],
             execution: `Apply ${concept.name} in practice`,
         },
-        phase2: concept.keyPoints?.map(point => ({
+        phase2: concept.phase2 || (concept.keyPoints?.map((point: string) => ({
             title: point,
             content: `Detailed explanation of ${point}`,
-        })) || [],
-        phase3: {
+        })) || []),
+        phase3: concept.phase3 || {
             tool: `${concept.name} toolkit`,
             metrics: ['Effectiveness', 'Efficiency'],
             thresholds: 'Meet all criteria',
         },
-        criticalDistinctions: [
+        shape: concept.shape || {}, // Ensure SHAPE is passed through!
+        criticalDistinctions: concept.criticalDistinctions || [
             { correct: `Proper use of ${concept.name}`, incorrect: 'Common misunderstanding' },
         ],
-        designBoundaries: [
+        designBoundaries: concept.designBoundaries || [
             { boundary: 'Scope', rationale: 'Stay focused' },
         ],
-        examFocus: [
+        examFocus: concept.examFocus || [
             { point: `Key exam topic for ${concept.name}`, weight: 'High' },
         ],
     }));

@@ -21,6 +21,7 @@ import type { LearningConcept } from '@/lib/types/learning';
 import { useLearningStore } from '@/store/learning-store';
 import { renderShapeOrIcon } from '@/components/ui/SensaShape';
 import { VELOCITY_CONFIG } from '@/constants/ui-constants';
+import { isRealContent } from '@/lib/validation/content-quality';
 
 import BlankSheetTest from './BlankSheetTest';
 import ConfusionDrill from './ConfusionDrill';
@@ -127,15 +128,38 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
     const [revealStep, setRevealStep] = useState(0);
     const [startTime] = useState(Date.now());
 
-    // Synthesize problem/solution if not explicitly provided
+    // Synthesize problem/solution - STRICT MODE: flag missing content
     const example = useMemo(() => {
-        if (concept.workedExample) return concept.workedExample;
+        // Priority: Use explicit workedExample if provided
+        if (concept.workedExample) return { ...concept.workedExample, hasError: false };
 
-        // Fallback synthesis
+        // Build scenario from available content
+        const contextText = concept.shape?.highStakesExample ||
+            concept.hookSentence ||
+            concept.whyYouNeed;
+
+        // Use shape.analogicalModel or shape.simpleCore for solution approach
+        const approachText = concept.shape?.analogicalModel ||
+            concept.shape?.simpleCore ||
+            concept.metaphor;
+
+        // Check if we have REAL content (not placeholders)
+        const hasRealContext = isRealContent(contextText, concept.name);
+        const hasRealApproach = isRealContent(approachText, concept.name);
+        const hasRealSteps = (concept.howToUse && concept.howToUse.length > 0) ||
+            (concept.keyPoints && concept.keyPoints.length > 0);
+
         return {
-            problem: `Scenario: You need to utilize ${concept.name} to ${concept.whyYouNeed ? concept.whyYouNeed.toLowerCase() : 'improve efficiency'}. How would you approach this?`,
-            solution: `Applying ${concept.name} effectively:`,
-            steps: concept.howToUse || ['Step 1: Analyze the requirements', `Step 2: Implement ${concept.name}`]
+            problem: hasRealContext
+                ? `Scenario: ${contextText}`
+                : null, // Flag as missing
+            solution: hasRealApproach
+                ? `Approach: ${approachText}`
+                : null, // Flag as missing
+            steps: hasRealSteps
+                ? (concept.howToUse && concept.howToUse.length > 0 ? concept.howToUse : concept.keyPoints!)
+                : [], // Empty = error
+            hasError: !hasRealContext || !hasRealApproach || !hasRealSteps
         };
     }, [concept]);
 
@@ -181,10 +205,13 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
                         )}
                     </div>
                 )}
-                <div className={styles.learningSection}>
-                    <h5 className={styles.sectionTitle}>The Problem</h5>
-                    <p>{example.problem}</p>
-                </div>
+                {/* Only show problem section if we have real content */}
+                {example.problem && (
+                    <div className={styles.learningSection}>
+                        <h5 className={styles.sectionTitle}>The Problem</h5>
+                        <p>{example.problem}</p>
+                    </div>
+                )}
 
                 {!isSolutionRevealed ? (
                     <button className={styles.submitButton} onClick={handleReveal}>
@@ -423,13 +450,15 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                     </div>
                 )}
 
-                {/* Technical Details */}
-                {concept.technicalDetails && (
-                    <div className={styles.technicalDetails}>
-                        <h5>Technical Details</h5>
-                        <p>{concept.technicalDetails}</p>
-                    </div>
-                )}
+                {/* Technical Details - hide if generic */}
+                {concept.technicalDetails &&
+                    !concept.technicalDetails.includes('is a core concept') &&
+                    concept.technicalDetails.trim() !== '' && (
+                        <div className={styles.technicalDetails}>
+                            <h5>Technical Details</h5>
+                            <p>{concept.technicalDetails}</p>
+                        </div>
+                    )}
 
                 <button className={styles.submitButton} onClick={onComplete}>
                     <span>I understand, let's verify</span>

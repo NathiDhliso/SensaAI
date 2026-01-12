@@ -726,3 +726,28 @@
     background: var(--color-surface-subtle);
     color: var(--color-accent);
 }
+
+/* Content Error State - Flag to Support */
+.contentError {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-4);
+    background: color-mix(in srgb, var(--color-error) 15%, transparent);
+    border: 1px solid var(--color-error);
+    border-radius: var(--radius-md);
+    color: var(--color-error);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    margin: 0;
+}
+
+.contentError svg {
+    flex-shrink: 0;
+}
+
+.contentError strong {
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}

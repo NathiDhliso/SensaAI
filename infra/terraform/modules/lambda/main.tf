@@ -69,18 +69,26 @@ resource "aws_iam_role_policy" "lambda_policy" {
   })
 }
 
+
+# Archive the source code
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_dir  = var.source_dir
+  output_path = "${path.module}/lambda.zip"
+  excludes    = ["__pycache__", "tests", ".pytest_cache", "venv", ".venv", ".git"]
+}
+
 # Generate Concepts Lambda Function
 resource "aws_lambda_function" "generate_concepts" {
   function_name = "${var.project_name}-generate-concepts-${var.environment}"
   role          = aws_iam_role.lambda_execution.arn
-  handler       = "handler.lambda_handler"
+  handler       = "generate_concepts.handler.lambda_handler"
   runtime       = "python3.12"
   timeout       = var.lambda_timeout
   memory_size   = var.lambda_memory_size
 
-  # Placeholder - will be updated by CI/CD pipeline
-  filename         = "${path.module}/placeholder.zip"
-  source_code_hash = filebase64sha256("${path.module}/placeholder.zip")
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   environment {
     variables = {
@@ -100,14 +108,13 @@ resource "aws_lambda_function" "generate_concepts" {
 resource "aws_lambda_function" "query_concepts" {
   function_name = "${var.project_name}-query-concepts-${var.environment}"
   role          = aws_iam_role.lambda_execution.arn
-  handler       = "handler.lambda_handler"
+  handler       = "query_concepts.handler.lambda_handler"
   runtime       = "python3.12"
   timeout       = 30          # Short timeout for queries
   memory_size   = 512         # Smaller memory footprint
 
-  # Placeholder - will be updated by CI/CD pipeline
-  filename         = "${path.module}/placeholder.zip"
-  source_code_hash = filebase64sha256("${path.module}/placeholder.zip")
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   environment {
     variables = {

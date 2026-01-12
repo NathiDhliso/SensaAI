@@ -98,6 +98,33 @@ Create a Single Code Block containing a structured outline. You must follow thes
 
 ---
 
+## MANDATORY FIELD CHECKLIST (EVERY CONCEPT MUST HAVE):
+
+Before generating each concept, verify ALL of these fields are present and SUBSTANTIVE:
+
+| Field | Minimum Quality | Example BAD | Example GOOD |
+|-------|----------------|-------------|--------------|
+| \`hookSentence\` | 15+ words, compelling hook | "RLS is important" | "Control who sees what data at the row level, ensuring each user only sees records relevant to them" |
+| \`shape.simpleCore\` | One sentence, zero jargon | "RLS is row-level security" | "A filter that automatically hides rows based on who's logged in" |
+| \`logicalConnection\` | Explains link to previous concept | "Next concept is..." | "**[Logical Connection]:** Building on the user role defined above, we now restrict what that user can see..." |
+| \`mnemonic.story\` | Bizarre, vivid interaction | "Imagine a lock" | "The Night Guard (NSG) falls asleep on the Subway Bench (Subnet) and drops his badge into the Volcano (VNet)" |
+
+## BANNED PATTERNS (Auto-Fail):
+
+1. **CIRCULAR DEFINITIONS** - "X is X" or "Think of X like X"
+   - BAD: "Row-Level Security is security at the row level"
+   - GOOD: "A filter that automatically hides rows based on who's logged in"
+
+2. **ECHOING NAMES** - Using the concept name as the metaphor/definition
+   - BAD: "Think of an API Gateway like a Gateway to an API"
+   - GOOD: "Think of an API Gateway like a Hotel Concierge desk that routes requests"
+
+3. **EMPTY FALLBACKS** - "See documentation" or "Check Azure portal" for core fields
+   - BAD: "[Verify in Docs]" for a core constraint
+   - GOOD: "[Design Boundary]: Max 10 GB per partition (verify latest limits for edge cases)"
+
+---
+
 ## STEP 3.5: SHAPE MICRO-LEARNING FORMAT [Required for Each Concept]
 
 Every concept in the Master Chart MUST include SHAPE sections designed for 2-minute learning bursts:

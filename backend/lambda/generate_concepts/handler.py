@@ -159,15 +159,15 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
             # logger.error(f"Error in Part {part_num}: {e}")
             return []
 
-    # Run both parts in parallel
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future1 = executor.submit(generate_part, 1)
-        future2 = executor.submit(generate_part, 2)
+    # Run all 4 parts in parallel
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(generate_part, i) for i in range(1, 5)]
         
-        part1_concepts = future1.result()
-        part2_concepts = future2.result()
+        results = [f.result() for f in futures]
     
-    all_expanded_concepts = part1_concepts + part2_concepts
+    all_expanded_concepts = []
+    for part_concepts in results:
+        all_expanded_concepts.extend(part_concepts)
     
     # Filter out any non-dict items (e.g. strings) that might have slipped through the parser
     all_expanded_concepts = [c for c in all_expanded_concepts if isinstance(c, dict)]

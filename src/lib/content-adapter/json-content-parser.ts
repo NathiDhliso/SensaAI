@@ -358,8 +358,6 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
     const concepts: ParsedConcept[] = [];
 
     // Find concept blocks using markdown headers: ## N. Concept Name
-    // The format is ## followed by a number, period, and concept name
-    // IMPROVED REGEX: Also captures "## Concept Name" without numbers
     const conceptHeaderRegex = /##\s*(?:(\d+)\.\s*)?([^\n]+)/g;
     const conceptMatches: Array<{ order: number; name: string; startIndex: number }> = [];
 
@@ -367,7 +365,6 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
     let fallbackOrder = 1;
     while ((match = conceptHeaderRegex.exec(content)) !== null) {
         const capturedName = match[2].trim();
-        // Skip likely non-concept headers like "Deliverables", "Timeline", etc.
         if (['deliverables', 'timeline', 'overview', 'summary'].includes(capturedName.toLowerCase())) {
             continue;
         }
@@ -384,79 +381,167 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
         const current = conceptMatches[i];
         const next = conceptMatches[i + 1];
 
-        // Extract block content between this header and the next
+        // Extract block content
         const blockEnd = next ? next.startIndex : content.length;
         const blockContent = content.substring(current.startIndex, blockEnd);
 
-        // Extract PREPARE section (phase1)
-        const prepareMatch = blockContent.match(/[-─]\s*PREPARE:\s*([\s\S]*?)(?:\n•\s*MODEL:|\n[-─]\s*MODEL:|$)/i);
-        const modelMatch = blockContent.match(/[•]\s*MODEL:\s*([\s\S]*?)(?:\n○\s*DELIVER:|\n[-─]\s*DELIVER:|$)/i);
-        const deliverMatch = blockContent.match(/[○]\s*DELIVER:\s*([\s\S]*?)(?=\n##|\n```|$)/i);
+        // --- EXTRACT LIFECYCLE PHASES (V4 PROMPT) ---
+        // Support both old "PREPARE:" and new "[LIFECYCLE_PHASE_1]" markers
+        const p1Regex = /(?:\[LIFECYCLE_PHASE_1\]|[-─]\s*PREPARE:)\s*([\s\S]*?)(?=\[LIFECYCLE_PHASE_2\]|[-─]\s*MODEL:|$)/i;
+        const p2Regex = /(?:\[LIFECYCLE_PHASE_2\]|[-─]\s*MODEL:)\s*([\s\S]*?)(?=\[LIFECYCLE_PHASE_3\]|[-─]\s*DELIVER:|$)/i;
+        const p3Regex = /(?:\[LIFECYCLE_PHASE_3\]|[-─]\s*DELIVER:)\s*([\s\S]*?)(?=\n##|\n```|⚠️|$)/i;
 
-        // Extract critical distinction
-        const criticalMatch = blockContent.match(/\*\*\[Critical Distinction\]:\*\*\s*([^\n]+)/i);
-        const designMatch = blockContent.match(/\*\*\[Design Boundary\]:\*\*\s*([^\n]+)/i);
-        const examMatch = blockContent.match(/\*\*\[Exam Focus\]:\*\*\s*([^\n]+)/i);
+        const p1Match = blockContent.match(p1Regex);
+        const p2Match = blockContent.match(p2Regex);
+        const p3Match = blockContent.match(p3Regex);
 
-        // Extract prerequisite if available
-        const prereqMatch = prepareMatch?.[1]?.match(/Prerequisite:\s*([^\n]+)/i);
-        const executionMatch = prepareMatch?.[1]?.match(/Execution:\s*([^\n]+(?:\n(?![•○-])[^\n]+)*)/i);
+        const p1Text = p1Match?.[1] || '';
+        const p2Text = p2Match?.[1] || '';
+        const p3Text = p3Match?.[1] || '';
 
-        // Extract tool and metrics from DELIVER section
-        const toolMatch = deliverMatch?.[1]?.match(/Tool:\s*([^\n]+)/i);
-        const metricMatch = deliverMatch?.[1]?.match(/Metric:\s*([^\n]+)/i);
-        const validationMatch = deliverMatch?.[1]?.match(/Validation:\s*([^\n]+)/i);
+        // --- EXTRACT PHASE 1 FIELDS ---
+        // explicit extraction of Hook Sentence
+        const hookMatch = p1Text.match(/\*\*Hook Sentence\*\*:\s*([^\n]+)/i);
+        const metaphorMatch = p1Text.match(/\*\*Micro-Metaphor\*\*:\s*([^\n]+)/i);
+        const prereqMatch = p1Text.match(/(?:\*\*Prerequisite\*\*|Prerequisite):\s*([^\n]+)/i);
+        const executionMatch = p1Text.match(/(?:\*\*Execution\*\*|Execution):\s*([^\n]+)/i);
 
-        // Parse MODEL section for configuration items
-        const phase2Items: string[] = [];
-        if (modelMatch?.[1]) {
-            const configLines = modelMatch[1].match(/\*\*([^*]+)\*\*:\s*([^\n]+)/g);
-            if (configLines) {
-                configLines.forEach(line => {
-                    const cleaned = line.replace(/\*\*/g, '').trim();
-                    if (cleaned.length > 0 && cleaned.length < 200) {
-                        phase2Items.push(cleaned);
-                    }
-                });
-            }
-        }
+        // --- EXTRACT PHASE 2 FIELDS ---
+        const criticalDistinctions: string[] = [];
+        const designBoundaries: string[] = [];
+        const examFocus: string[] = [];
+
+        // Regex for bolded markers
+        const cdRegex = /\*\*\[Critical Distinction\]:\*\*\s*([^\n]+)/gi;
+        const dbRegex = /\*\*\[Design Boundary\]:\*\*\s*([^\n]+)/gi;
+        const efRegex = /\*\*\[Exam Focus\]:\*\*\s*([^\n]+)/gi;
+        const pcRegex = /\*\*\[Prerequisite Check\]:\*\*\s*([^\n]+)/gi;
+
+        let m;
+        while ((m = cdRegex.exec(p2Text)) !== null) criticalDistinctions.push(m[1].trim());
+        while ((m = dbRegex.exec(p2Text)) !== null) designBoundaries.push(m[1].trim());
+        while ((m = efRegex.exec(p2Text)) !== null) examFocus.push(m[1].trim());
+        while ((m = pcRegex.exec(p2Text)) !== null) designBoundaries.push(m[1].trim()); // Treat prereq checks as boundaries
+
+        // --- EXTRACT SHAPE SECTIONS (V4 PROMPT) ---
+        const shapeSimple = blockContent.match(/\*\*S - SIMPLE CORE\*\*\s*(?:\([^)]+\)\s*)?\n([^\n]+)/i);
+        const shapeHighStakes = blockContent.match(/\*\*H - HIGH-STAKES EXAMPLE\*\*\s*(?:\([^)]+\)\s*)?\n([\s\S]*?)(?=\n\*\*A -|\n\*\*P -|$)/i);
+        const shapeAnalogy = blockContent.match(/\*\*A - ANALOGICAL MODEL\*\*\s*(?:\([^)]+\)\s*)?\n([\s\S]*?)(?=\n\*\*P -|\n\*\*E -|$)/i);
+        const shapePattern = blockContent.match(/\*\*P - PATTERN RECOGNITION\*\*\s*(?:\([^)]+\)\s*)?\n([\s\S]*?)(?=\n\*\*E -|$)/i);
+        const shapeElimination = blockContent.match(/\*\*E - ELIMINATION LOGIC\*\*\s*(?:\([^)]+\)\s*)?\n([^\n]+)/i);
 
         const concept: ParsedConcept = {
             id: slugifyName(current.name),
             name: current.name,
             order: current.order,
             stageId: determineStageId(current.order),
+
+            // Phase 1
             phase1: {
-                hookSentence: extractFirstSentence(prepareMatch?.[1] || ''),
-                microMetaphor: '',
+                // Prefer explicit Hook Sentence, fall back to first line of P1 if missing (but try to be smart)
+                hookSentence: hookMatch?.[1]?.trim() || extractFirstSentence(p1Text),
+                microMetaphor: metaphorMatch?.[1]?.trim() || '',
                 prerequisite: prereqMatch?.[1]?.trim() || '',
                 selection: [],
                 execution: executionMatch?.[1]?.trim() || '',
             },
-            phase2: phase2Items.slice(0, 10), // Limit to 10 items
+
+            // Phase 2
+            phase2: [], // Deprecated in V4, using specific arrays below
+            criticalDistinctions,
+            designBoundaries,
+            examFocus,
+
+            // Phase 3
             phase3: {
-                tool: toolMatch?.[1]?.trim() || '',
-                metrics: metricMatch ? [metricMatch[1].trim()] : [],
-                thresholds: validationMatch?.[1]?.trim() || '',
+                tool: p3Text.match(/Tool:\s*([^\n]+)/i)?.[1]?.trim() || '',
+                metrics: p3Text.match(/Metric:\s*([^\n]+)/i)?.[1]?.trim() ? [p3Text.match(/Metric:\s*([^\n]+)/i)![1].trim()] : [],
+                thresholds: p3Text.match(/Thresholds?:\s*([^\n]+)/i)?.[1]?.trim() || '',
             },
+
+            // SHAPE
             shape: {
-                simpleCore: extractFirstSentence(prepareMatch?.[1] || ''),
-                highStakesExample: examMatch?.[1]?.trim() || '',
-                analogicalModel: '',
-                patternRecognition: { question: '', answer: '' },
-                eliminationLogic: '',
+                simpleCore: shapeSimple?.[1]?.trim() || '',
+                highStakesExample: shapeHighStakes?.[1]?.trim() || '',
+                analogicalModel: shapeAnalogy?.[1]?.trim() || '',
+                patternRecognition: {
+                    question: shapePattern?.[1]?.split('Answer:')?.[0]?.replace('Question:', '')?.trim() || '',
+                    answer: shapePattern?.[1]?.split('Answer:')?.[1]?.trim() || ''
+                },
+                eliminationLogic: shapeElimination?.[1]?.trim() || '',
             },
+
+            // Root Fields for UI
+            whyYouNeed: shapeSimple?.[1]?.trim() || hookMatch?.[1]?.trim() || '', // Simple Core is the best "Why"
+            technicalDetails: p2Text.substring(0, 300).trim(), // Phase 2 is technical details
+
             mnemonic: {
                 tier: determineTier(current.order, current.name),
                 anchor: `${current.name}`,
-                story: criticalMatch?.[1]?.trim() || '',
+                // Fallback story if JSON extraction fails (will be overwritten if JSON is found)
+                story: criticalDistinctions[0] || designBoundaries[0] || '',
             },
-            criticalDistinctions: criticalMatch ? [criticalMatch[1].trim()] : [],
-            designBoundaries: designMatch ? [designMatch[1].trim()] : [],
-            examFocus: examMatch ? [examMatch[1].trim()] : [],
         };
 
         concepts.push(concept);
+    }
+
+    // --- ENHANCE WITH JSON MNEMONICS ---
+    // The prompt generates a separate JSON block for mnemonics. We must find and merge it.
+    try {
+        const jsonBlockRegex = /```json\s*(\[\s*\{[\s\S]*?\}\s*\])\s*```/g;
+        // Also look for object wrapper { "mnemonics": [...] }
+        const jsonObjectRegex = /```json\s*(\{[\s\S]*?\})\s*```/g;
+
+        // Helper to process JSON data
+        const processMnemonicData = (data: any[]) => {
+            if (!Array.isArray(data)) return;
+
+            data.forEach((item: any) => {
+                // Check if item IS the mnemonic object or CONTAINs it
+                const mnemonicData = item.mnemonic || item;
+                const anchor = mnemonicData.anchor || item.anchor;
+                const story = mnemonicData.story || item.story;
+
+                if (!anchor && !story) return;
+
+                // Fuzzy match name
+                const concept = concepts.find(c =>
+                    c.name.toLowerCase().includes((item.name || item.conceptName || '').toLowerCase()) ||
+                    (item.name && c.name.toLowerCase().includes(item.name.toLowerCase()))
+                );
+
+                if (concept) {
+                    // Safe access to current mnemonic state
+                    const curTier = concept.mnemonic?.tier;
+                    const curAnchor = concept.mnemonic?.anchor || '';
+                    const curStory = concept.mnemonic?.story || '';
+
+                    concept.mnemonic = {
+                        tier: (item.tier as any) || curTier,
+                        anchor: anchor || curAnchor,
+                        story: story || curStory,
+                        parentName: mnemonicData.parentConcept || mnemonicData.parentName || undefined,
+                    };
+                }
+            });
+        };
+
+        let m;
+        while ((m = jsonBlockRegex.exec(content)) !== null) {
+            try { processMnemonicData(JSON.parse(m[1])); } catch (e) { }
+        }
+
+        while ((m = jsonObjectRegex.exec(content)) !== null) {
+            try {
+                const obj = JSON.parse(m[1]);
+                if (obj.mnemonics) processMnemonicData(obj.mnemonics);
+                // Some prompts output { "mnemonic": ... } per concept, but usually it's a list
+            } catch (e) { }
+        }
+
+    } catch (e) {
+        console.warn('Failed to merge mnemonic JSON', e);
     }
 
     console.log(`[ContentParser] Parsed ${concepts.length} concepts from markdown format`);
@@ -613,7 +698,7 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
     const order = typeof c.order === 'number' ? c.order : 1;
     const name = typeof c.name === 'string' ? c.name : 'Unknown Concept';
 
-    // Extract lifecycle phases
+    // Extract lifecycle phases - check BOTH lifecycle.phase1 AND root-level phase1
     let hookSentence = '';
     let microMetaphor = '';
     let prerequisite = '';
@@ -624,6 +709,14 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
     let metrics: string[] = [];
     let thresholds = '';
 
+    // NEW: Extract root-level fields that UI needs (whyYouNeed, technicalDetails)
+    let whyYouNeed = typeof c.whyYouNeed === 'string' ? c.whyYouNeed : '';
+    let technicalDetails = typeof c.technicalDetails === 'string' ? c.technicalDetails : '';
+    let tierJustification = typeof c.tierJustification === 'string' ? c.tierJustification : '';
+    let workedExample = c.workedExample && typeof c.workedExample === 'object' ? c.workedExample : undefined;
+    let keyPoints = Array.isArray(c.keyPoints) ? c.keyPoints as string[] : [];
+
+    // Check for lifecycle wrapper first (legacy format)
     if (c.lifecycle && typeof c.lifecycle === 'object') {
         const lifecycle = c.lifecycle as Record<string, unknown>;
 
@@ -646,6 +739,31 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
             metrics = Array.isArray(p3.metrics) ? p3.metrics as string[] : [];
             thresholds = typeof p3.thresholds === 'string' ? p3.thresholds : '';
         }
+    }
+
+    // ALSO check root-level phase1/2/3 (new prompt format puts them at root)
+    if (c.phase1 && typeof c.phase1 === 'object') {
+        const p1 = c.phase1 as Record<string, unknown>;
+        if (!hookSentence) hookSentence = typeof p1.hookSentence === 'string' ? p1.hookSentence : '';
+        if (!microMetaphor) microMetaphor = typeof p1.microMetaphor === 'string' ? p1.microMetaphor : '';
+        if (!prerequisite) prerequisite = typeof p1.prerequisite === 'string' ? p1.prerequisite : '';
+        if (!execution) execution = typeof p1.execution === 'string' ? p1.execution : '';
+        if (selection.length === 0) selection = Array.isArray(p1.selection) ? p1.selection as string[] : [];
+    }
+
+    if (phase2.length === 0 && Array.isArray(c.phase2)) {
+        phase2 = (c.phase2 as Array<{ title?: string; content?: string } | string>).map(item => {
+            if (typeof item === 'string') return item;
+            if (typeof item === 'object' && item.content) return item.content;
+            return '';
+        }).filter(Boolean);
+    }
+
+    if (!tool && c.phase3 && typeof c.phase3 === 'object') {
+        const p3 = c.phase3 as Record<string, unknown>;
+        tool = typeof p3.tool === 'string' ? p3.tool : '';
+        if (metrics.length === 0) metrics = Array.isArray(p3.metrics) ? p3.metrics as string[] : [];
+        if (!thresholds) thresholds = typeof p3.thresholds === 'string' ? p3.thresholds : '';
     }
 
     // Extract SHAPE data
@@ -723,7 +841,8 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
             prerequisite,
             selection,
             execution,
-            ...((c.lifecycle as any)?.phase1 || {})
+            ...((c.lifecycle as any)?.phase1 || {}),
+            ...((c.phase1 && typeof c.phase1 === 'object') ? c.phase1 as Record<string, unknown> : {})
         },
         phase2,
         phase3: {
@@ -736,6 +855,18 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
         criticalDistinctions,
         designBoundaries,
         examFocus,
+        // NEW: Root-level fields for UI consumption
+        whyYouNeed,
+        technicalDetails,
+        tierJustification,
+        workedExample: workedExample ? {
+            problem: (workedExample as Record<string, unknown>).problem as string || '',
+            solution: (workedExample as Record<string, unknown>).solution as string || '',
+            steps: Array.isArray((workedExample as Record<string, unknown>).steps)
+                ? (workedExample as Record<string, unknown>).steps as string[]
+                : []
+        } : undefined,
+        keyPoints,
     };
 }
 

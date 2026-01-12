@@ -430,25 +430,9 @@ function getConceptIcon(conceptName: string, mentalAnchors: ParsedMentalAnchor[]
 
 
 
-function generateHookSentence(concept: ParsedConcept, metaphor: string): string {
-  // Use extracted hook sentence if available
-  if (concept.phase1.hookSentence) {
-    return concept.phase1.hookSentence;
-  }
-  // Use SHAPE simple core as fallback
-  if (concept.shape?.simpleCore) {
-    return concept.shape.simpleCore;
-  }
-  // Use prerequisite info if available
-  if (concept.phase1.prerequisite && concept.phase1.prerequisite.length > 20) {
-    return concept.phase1.prerequisite;
-  }
-  // Use metaphor if it's not empty and different from concept name
-  if (metaphor && metaphor.toLowerCase() !== concept.name.toLowerCase()) {
-    return `Think of ${concept.name} like a ${metaphor.toLowerCase()}.`;
-  }
-  // Return empty - UI should handle missing hook gracefully
-  return '';
+function generateHookSentence(concept: ParsedConcept, _metaphor: string): string {
+  // FULL THROTTLE: Only return AI-generated content, NO FALLBACKS
+  return concept.phase1.hookSentence || '';
 }
 
 function getConceptMetaphor(concept: ParsedConcept, mentalAnchors: ParsedMentalAnchor[]): string {
@@ -489,38 +473,13 @@ function extractPrerequisites(concept: ParsedConcept, allConcepts: ParsedConcept
 }
 
 function generateWhyYouNeed(concept: ParsedConcept): string {
-  // PRIORITY 1: Use AI-generated field if available
-  if (concept.whyYouNeed) {
-    return concept.whyYouNeed;
-  }
-  // PRIORITY 2: Use SHAPE elimination logic if available (it explains key distinctions)
-  if (concept.shape?.eliminationLogic || concept.shape?.elimination) {
-    return concept.shape.eliminationLogic || concept.shape.elimination || '';
-  }
-  if (concept.criticalDistinctions.length > 0) {
-    return concept.criticalDistinctions[0];
-  }
-
-  if (concept.designBoundaries.length > 0) {
-    return concept.designBoundaries[0];
-  }
-
-  // Return empty - UI should handle missing content gracefully
-  return '';
+  // FULL THROTTLE: Only return AI-generated content, NO FALLBACKS
+  return concept.whyYouNeed || '';
 }
 
 function generateRealWorldExample(concept: ParsedConcept, _metaphor: string): string {
-  // Use SHAPE high-stakes example if available (check both field names)
-  const highStakes = concept.shape?.highStakesExample || concept.shape?.highStakes;
-  if (highStakes) {
-    return highStakes;
-  }
-  // Use SHAPE analogical model if available (check both field names)
-  const analogy = concept.shape?.analogicalModel || concept.shape?.analogy;
-  if (analogy) {
-    return analogy;
-  }
-  return `Example pending generation for ${concept.name}.`;
+  // FULL THROTTLE: Only return AI-generated content, NO FALLBACKS
+  return concept.shape?.highStakesExample || '';
 }
 
 function slugify(text: string): string {
@@ -801,12 +760,12 @@ export function transformToLearningConcepts(
           order: concepts.length + 1,
           name: name,
           icon: 'shape:seed',
-          metaphor: `A fundamental unit of ${parsed.domainAnalysis.domain}`,
-          hookSentence: `${name} is a key component of the system.`,
-          whyYouNeed: 'Understanding this concept fills a gap in your knowledge.',
-          realWorldExample: `Example pending generation.`,
-          howToUse: ['Identify the concept', 'Relate it to others', 'Apply in context'],
-          technicalDetails: 'Concept identified during domain analysis.',
+          metaphor: '', // Empty - UI will hide
+          hookSentence: '', // Empty - UI will hide
+          whyYouNeed: '', // Empty - UI will hide
+          realWorldExample: '', // Empty - UI will hide
+          howToUse: [],
+          technicalDetails: '', // Empty - UI will hide
           prerequisites: [],
           visualElement: safeSlugify(name),
           actionButtonText: `Explore ${name}`,
@@ -815,7 +774,7 @@ export function transformToLearningConcepts(
             phase2: { title: 'ACTION', steps: ['Apply'] },
             phase3: { title: 'VERIFICATION', steps: ['Validate'] }
           },
-          logicalConnection: 'Part of the domain ecosystem.',
+          logicalConnection: '',
           shape: undefined,
           tier: tier,
           dependencies: [],
