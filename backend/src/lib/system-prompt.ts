@@ -219,28 +219,28 @@ Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
 - Utility (SAS Token as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
 
 **MNEMONIC OUTPUT FORMAT:**
-Include a \`mnemonic\` object and \`tier\` property for each concept in structured output:
+Include a \`tier\`, \`dependsOn\` array, and \`mnemonic\` object for each concept in structured output:
 \`\`\`json
 {
   "tier": "foundation" | "keystone" | "utility",
-    "mnemonic": {
+  "dependsOn": ["Prerequisite Concept 1", "Prerequisite Concept 2"],
+  "mnemonic": {
     "anchor": "Concrete Object + Emoji (e.g., 'Volcano 🌋')",
-      "story": "The 2-3 sentence bizarre scene...",
-        "parentConcept": "Exact Name of Parent Concept" | null,
-          "depends_on": ["Prerequisite Concept 1", "Prerequisite Concept 2"]
+    "story": "The 2-3 sentence bizarre scene...",
+    "parentConcept": "Exact Name of Parent Concept" | null
   }
 }
 \`\`\`
 
-**DEPENDENCY TRACKING RULES:**
-For the \`depends_on\` array, identify concepts that must be understood BEFORE this concept:
-- Use EXACT concept names from your Master Chart
-- Foundation concepts typically have empty \`depends_on\` arrays (they are the bedrock)
-- Keystone concepts reference their logical Foundation parents
-- Utility concepts reference the Keystone or Foundation concepts they attach to
-- A concept can depend on multiple prerequisites
+**DEPENDENCY DECLARATION RULES (\`dependsOn\` field):**
+1. Use EXACT concept names from this curriculum (case-sensitive matching)
+2. Only include DIRECT prerequisites (not transitive dependencies)
+3. Omit universal prerequisites (don't list "Introduction" for every concept)
+4. Empty array \`[]\` if no prerequisites (Foundation concepts typically have this)
+5. Keystone concepts reference their Foundation parents
+6. Utility concepts reference the specific concepts they attach to
 
-**⚠️ QUALITY GATE: Every concept MUST include a mnemonic object. Concepts without mnemonics will cause the memory palace visualization to fail. This is NOT optional.**
+**⚠️ QUALITY GATE: Every concept MUST include a mnemonic object AND a dependsOn array. Concepts missing either will cause the dependency visualization to fail. This is NOT optional.**
 
 ---
 

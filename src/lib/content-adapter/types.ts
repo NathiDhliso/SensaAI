@@ -59,6 +59,8 @@ export interface ParsedConcept {
   criticalDistinctions: string[];
   designBoundaries: string[];
   examFocus: string[];
+  // NEW: Explicit dependency declaration (Sensa v2.0)
+  dependsOn?: string[];
 }
 
 export interface ParsedStage {

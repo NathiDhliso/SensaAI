@@ -346,36 +346,43 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         }),
         {
             name: 'sensapbl-auth',
-            partialize: (state) => ({
-                user: state.user,
-                tokens: state.tokens,
-                isAuthenticated: state.isAuthenticated,
-            }),
+            onRehydrateStorage: () => (state) => {
+                if (state && state.tokens) {
+                    console.log('[Auth] Hydrated auth state, configuring API client');
+                    // Check if tokens are expired immediately upon hydration
+                    if (Date.now() >= state.tokens.expiresAt) {
+                        console.warn('[Auth] Session expired on load, attempting refresh...');
+                        // We can try to refresh, but we need to be careful about async in this callback
+                        // Best to just set the token getter, and let the getter handle refresh logic if possible, 
+                        // or trigger the refresh action safely.
+                        // However, the existing logic at the bottom of the file tried to refresh.
+                        // Let's just configure the client, and trigger a refresh check.
+                        setTimeout(() => {
+                            useAuthStore.getState().refreshTokens().catch(() => {
+                                console.warn('[Auth] Refresh failed, clearing auth state');
+                                useAuthStore.setState({ user: null, tokens: null, isAuthenticated: false });
+                            });
+                        }, 0);
+                    }
+
+                    apiClient.configure({
+                        getToken: async () => {
+                            const store = useAuthStore.getState();
+                            const currentTokens = store.tokens;
+                            if (!currentTokens) return null;
+
+                            // Check expiration with buffer
+                            if (Date.now() >= currentTokens.expiresAt - 60000) {
+                                await store.refreshTokens();
+                            }
+                            return useAuthStore.getState().tokens?.accessToken || null;
+                        },
+                    });
+                }
+            }
         }
     )
 );
 
-// Initialize API client on app load
-if (typeof window !== 'undefined') {
-    // Clean up any stale verifier on fresh load (login will generate a new one)
-    if (!window.location.search.includes('code=')) {
-        localStorage.removeItem(CODE_VERIFIER_KEY);
-    }
-
-    const tokens = useAuthStore.getState().tokens;
-    if (tokens) {
-        // Check if tokens are expired
-        if (Date.now() >= tokens.expiresAt) {
-            console.warn('[Auth] Session expired, attempting refresh...');
-            // Attempt to refresh instead of immediately clearing
-            useAuthStore.getState().refreshTokens().catch(() => {
-                console.warn('[Auth] Refresh failed, clearing auth state');
-                useAuthStore.setState({ user: null, tokens: null, isAuthenticated: false });
-            });
-        } else {
-            apiClient.configure({
-                getToken: () => useAuthStore.getState().getAccessToken(),
-            });
-        }
-    }
-}
+// We remove the module-level initialization because onRehydrateStorage handles it more reliably.
+// The previous code block (lines 359-381) is removed.

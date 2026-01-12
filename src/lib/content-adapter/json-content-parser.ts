@@ -216,6 +216,16 @@ function parseConcepts(content: string): ParsedConcept[] {
             // Unescape the JSON content
             let jsonStr = match[1];
 
+            // ROBUST EXTRACTION: Find the actual JSON object/array bounds
+            // The AI often leaks headers like "VISUAL MASTERY" inside the ```json block
+            const firstOpenBrace = jsonStr.indexOf('{');
+            const lastCloseBrace = jsonStr.lastIndexOf('}');
+
+            if (firstOpenBrace !== -1 && lastCloseBrace !== -1 && lastCloseBrace > firstOpenBrace) {
+                // Extract just the JSON part
+                jsonStr = jsonStr.substring(firstOpenBrace, lastCloseBrace + 1);
+            }
+
             // Remove any trailing commas in arrays/objects (common LLM error)
             jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
 
@@ -253,7 +263,7 @@ function parseConcepts(content: string): ParsedConcept[] {
             }
 
             const parsed = JSON.parse(jsonStr);
-            if (parsed.concepts && Array.isArray(parsed.concepts)) {
+            if (parsed && parsed.concepts && Array.isArray(parsed.concepts)) {
                 for (const concept of parsed.concepts) {
                     const parsedConcept = convertJsonConcept(concept);
                     // Deduplicate by ID to handle merged content
@@ -264,8 +274,8 @@ function parseConcepts(content: string): ParsedConcept[] {
                 }
             }
         } catch (e) {
-            // Log warning but continue processing other blocks
-            console.warn(`[ContentParser] JSON block ${blockCount} parse error (continuing):`, e);
+            console.warn(`[ContentParser] Failed to parse JSON block ${blockCount}`, e);
+            // Continue to next block
         }
     }
 
@@ -867,6 +877,10 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
                 : []
         } : undefined,
         keyPoints,
+        // NEW: Extract dependsOn from root level (Sensa v2.0 compliance)
+        dependsOn: Array.isArray(c.dependsOn) ? c.dependsOn as string[] : [],
+        // Also store tier at root for transformer
+        tier: tier,
     };
 }
 

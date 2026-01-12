@@ -169,8 +169,8 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
     for part_concepts in results:
         all_expanded_concepts.extend(part_concepts)
     
-    # Filter out any non-dict items (e.g. strings) that might have slipped through the parser
-    all_expanded_concepts = [c for c in all_expanded_concepts if isinstance(c, dict)]
+    # Filter out any non-dict items or items without names that might have slipped through
+    all_expanded_concepts = [c for c in all_expanded_concepts if isinstance(c, dict) and c.get("name")]
     
     # Post-process: assign tiers/stages if missing
     for i, concept in enumerate(all_expanded_concepts):
@@ -345,6 +345,10 @@ def store_concepts(table: Any, user_id: str, session_id: str, concepts: List[Dic
                     "stageId": concept.get("stageId", "PREPARE"),
                     "name": concept.get("name", "Unnamed Concept"),
                     "description": concept.get("description", ""),
+                    "tierJustification": concept.get("tierJustification", ""),
+                    "whyYouNeed": concept.get("whyYouNeed", ""),
+                    "technicalDetails": concept.get("technicalDetails", ""),
+                    "workedExample": concept.get("workedExample", {}),
                     "keyPoints": concept.get("keyPoints", []),
                     "prerequisiteWeight": str(concept.get("prerequisiteWeight", 0.5)),
                     "displayProperties": concept.get("displayProperties", {}),

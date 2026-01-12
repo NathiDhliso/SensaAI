@@ -629,6 +629,14 @@ export function transformToLearningConcepts(
 ): LearningConcept[] {
   const concepts: LearningConcept[] = [];
 
+  // SANITIZE FALLBACKS: Ideally we should fix the source, but we filter here to be safe
+  const validFallbacks = fallbackConcepts.filter(name =>
+    name &&
+    name.trim().length > 0 &&
+    !name.toLowerCase().includes('unnamed') &&
+    !name.toLowerCase().includes('undefined')
+  );
+
   const lifecycleLabels = parsed.domainAnalysis.lifecycle;
   const conceptToStage = distributeConceptsToStages(parsed.concepts, stages);
 
@@ -734,6 +742,8 @@ export function transformToLearningConcepts(
       } : undefined,
       tier: calculateTier(parsedConcept, parsed.concepts),
       tierJustification: parsedConcept.tierJustification,
+      // Map raw stageId (PREPARE/MODEL/DELIVER) to lifecyclePhase with Robust Normalization
+      lifecyclePhase: normalizeLifecyclePhase(parsedConcept.stageId),
       dependencies: extractPrerequisites(parsedConcept, parsed.concepts),
       outdegree: parsed.concepts.filter(other =>
         other.id !== parsedConcept.id &&
@@ -745,11 +755,11 @@ export function transformToLearningConcepts(
 
 
 
-  // RECOVERY: Inject skeleton concepts for any missing names in fallbackConcepts
-  if (fallbackConcepts.length > 0) {
+  // RECOVERY: Inject skeleton concepts for any missing names in validFallbacks
+  if (validFallbacks.length > 0) {
     const existingNames = new Set(concepts.map(c => c.name.toLowerCase()));
 
-    fallbackConcepts.forEach((name, idx) => {
+    validFallbacks.forEach((name, idx) => {
       if (!existingNames.has(name.toLowerCase())) {
         const skeletonId = `skeleton-${safeSlugify(name)}`;
         const tier = determineTierFallback(concepts.length + idx + 1, name);
@@ -777,6 +787,7 @@ export function transformToLearningConcepts(
           logicalConnection: '',
           shape: undefined,
           tier: tier,
+          lifecyclePhase: 'PREPARE', // Default for skeletons
           dependencies: [],
           outdegree: 0
         });
@@ -785,6 +796,159 @@ export function transformToLearningConcepts(
   }
 
   return concepts;
+}
+
+// Helper to normalize fuzzy AI output to strict Lifecycle Phase
+function normalizeLifecyclePhase(input: string | undefined): 'PREPARE' | 'MODEL' | 'DELIVER' {
+  if (!input) return 'PREPARE';
+
+  const s = input.toUpperCase();
+
+  // Phase 1: Foundation/Prepare
+  if (s.includes('PREPARE') || s.includes('FOUNDATION') || s.includes('STAGE 1') || s.includes('PRIME') || s.includes('PHASE 1')) return 'PREPARE';
+
+  // Phase 2: Action/Model
+  if (s.includes('MODEL') || s.includes('APPLICATION') || s.includes('STAGE 2') || s.includes('ACTION') || s.includes('PHASE 2') || s.includes('EXECUTE')) return 'MODEL';
+
+  // Phase 3: Deliver/Verification
+  if (s.includes('DELIVER') || s.includes('VERIFICATION') || s.includes('STAGE 3') || s.includes('RETRIEVAL') || s.includes('PHASE 3') || s.includes('VALIDATE')) return 'DELIVER';
+
+  return 'PREPARE'; // Default
+}
+
+// Helper to force-balance distribution if AI fails to spread concepts
+// Helper to force-balance distribution if AI fails to spread concepts
+function balanceLifecycleDistribution(concepts: LearningConcept[]) {
+  const counts = { PREPARE: 0, MODEL: 0, DELIVER: 0 };
+  concepts.forEach(c => { if (c.lifecyclePhase) counts[c.lifecyclePhase]++; });
+
+  const total = concepts.length;
+  if (total < 3) return; // Too few to balance
+
+  // If any sector is empty or heavily skewed (>70%), redistribute by Order
+  const isSkewed = (counts.PREPARE === 0 || counts.MODEL === 0 || counts.DELIVER === 0) ||
+    (counts.PREPARE / total > 0.7) ||
+    (counts.MODEL / total > 0.7);
+
+  if (isSkewed) {
+    console.warn('⚠️ Lifecycle Distribution Skewed. Force Balancing by Order.');
+    // Sort a copy to determine rank
+    const sortedIds = [...concepts].sort((a, b) => (a.order || 0) - (b.order || 0)).map(c => c.id);
+
+    const chunkSize = Math.ceil(total / 3);
+
+    concepts.forEach(c => {
+      // Find rank in sorted list
+      const rank = sortedIds.indexOf(c.id);
+      if (rank < chunkSize) c.lifecyclePhase = 'PREPARE';
+      else if (rank < chunkSize * 2) c.lifecyclePhase = 'MODEL';
+      else c.lifecyclePhase = 'DELIVER';
+    });
+  }
+}
+
+// ============================================================================
+// SILVER BULLET: ROBUST TIER CLASSIFICATION
+// ============================================================================
+
+/**
+ * Validate all dependsOn references exist in the curriculum
+ * Removes hallucinated dependencies
+ */
+function validateDependencies(concepts: ParsedConcept[]): void {
+  const allNames = new Set(concepts.map(c => c.name));
+
+  concepts.forEach(concept => {
+    if (concept.dependsOn && concept.dependsOn.length > 0) {
+      concept.dependsOn = concept.dependsOn.filter(dep => {
+        if (!allNames.has(dep)) {
+          console.warn(`⚠️ "${concept.name}" depends on non-existent "${dep}". Removing.`);
+          return false;
+        }
+        return true;
+      });
+    }
+  });
+}
+
+/**
+ * Detect circular dependencies in the concept graph
+ * Returns true if a cycle exists
+ */
+function hasCycle(concepts: ParsedConcept[]): boolean {
+  const graph = new Map<string, string[]>();
+  concepts.forEach(c => {
+    graph.set(c.name, c.dependsOn || []);
+  });
+
+  const visited = new Set<string>();
+  const recStack = new Set<string>();
+
+  function dfs(node: string): boolean {
+    visited.add(node);
+    recStack.add(node);
+
+    for (const neighbor of graph.get(node) || []) {
+      if (!visited.has(neighbor) && dfs(neighbor)) return true;
+      if (recStack.has(neighbor)) return true;
+    }
+
+    recStack.delete(node);
+    return false;
+  }
+
+  for (const node of graph.keys()) {
+    if (!visited.has(node) && dfs(node)) {
+      console.error(`🚨 Circular dependency detected involving "${node}"!`);
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Calculate outdegree (how many concepts depend on this one)
+ */
+function calculateOutdegrees(concepts: ParsedConcept[]): Map<string, number> {
+  const outdegrees = new Map<string, number>();
+  concepts.forEach(c => outdegrees.set(c.name, 0));
+
+  concepts.forEach(concept => {
+    (concept.dependsOn || []).forEach(depName => {
+      outdegrees.set(depName, (outdegrees.get(depName) || 0) + 1);
+    });
+  });
+
+  return outdegrees;
+}
+
+/**
+ * Assign tiers using percentile-based thresholds (adaptive to curriculum size)
+ */
+function assignTiersByPercentile(concepts: LearningConcept[], outdegrees: Map<string, number>): void {
+  const degreeValues = Array.from(outdegrees.values()).sort((a, b) => b - a);
+
+  // Handle edge cases
+  if (degreeValues.length < 3) {
+    console.log('📊 Too few concepts for percentile tiers. Using defaults.');
+    return;
+  }
+
+  // Calculate percentile thresholds
+  const p80 = degreeValues[Math.floor(degreeValues.length * 0.2)] || 0; // Top 20%
+  const p50 = degreeValues[Math.floor(degreeValues.length * 0.5)] || 0; // Top 50%
+
+  console.log(`📊 Tier Thresholds: Foundation >= ${p80}, Keystone >= ${p50}, Utility < ${p50}`);
+
+  concepts.forEach(c => {
+    const degree = outdegrees.get(c.name) || 0;
+    // Only assign if threshold is meaningful (avoid all utility if p80 = 0)
+    if (p80 > 0 || p50 > 0) {
+      if (degree >= p80 && p80 > 0) c.tier = 'foundation';
+      else if (degree >= p50 && p50 > 0) c.tier = 'keystone';
+      else c.tier = 'utility';
+    }
+  });
 }
 
 /**
@@ -797,7 +961,70 @@ export function transformToSensaAIConcepts(
   fallbackConcepts: string[] = []
 ): SensaAILearningConcept[] {
   // First get the base learning concepts (including skeletons)
-  const baseConcepts = transformToLearningConcepts(parsed, stages, fallbackConcepts);
+  let baseConcepts = transformToLearningConcepts(parsed, stages, fallbackConcepts);
+
+  // CRITICAL FILTER: Remove any "Unnamed Concept" or empty name artifacts that slipped through
+  baseConcepts = baseConcepts.filter(c =>
+    c.name &&
+    c.name.trim().length > 0 &&
+    c.name !== 'Unnamed Concept' &&
+    !c.name.toLowerCase().includes('unnamed')
+  );
+
+  // CRITICAL: Deduplicate Concepts by Name (Fuzzy Match)
+  // This handles the "Power BI Service Workspaces" double-up bug
+  const deduped: LearningConcept[] = [];
+  const seenNames = new Map<string, LearningConcept>();
+
+  baseConcepts.forEach(c => {
+    // Normalize name: lowercase, trim, remove special chars to catch "Workspace" vs "Workspaces"
+    // For now, strict name matching (case insensitive) is safer to avoid over-merging distinct concepts
+    const norm = c.name.toLowerCase().trim();
+
+    if (seenNames.has(norm)) {
+      const existing = seenNames.get(norm)!;
+      // Merge logic: If new one has better shape data, update the existing one
+      if (!existing.shape && c.shape) {
+        Object.assign(existing, c);
+      }
+      // If conflicting tiers, prefer Foundation
+      if (c.tier === 'foundation' && existing.tier !== 'foundation') {
+        existing.tier = 'foundation';
+      }
+    } else {
+      seenNames.set(norm, c);
+      deduped.push(c);
+    }
+  });
+  baseConcepts = deduped;
+
+  // CRITICAL: Ensure balanced distribution layout
+  balanceLifecycleDistribution(baseConcepts);
+
+  // ========================================================================
+  // SILVER BULLET: Robust Tier Classification with Validated Dependencies
+  // ========================================================================
+
+  // Step 1: Validate all dependsOn references exist (remove hallucinations)
+  validateDependencies(parsed.concepts);
+
+  // Step 2: Check for circular dependencies
+  if (hasCycle(parsed.concepts)) {
+    console.error('🚨 Circular dependencies detected! Falling back to order-based tiers.');
+    // Fallback: Assign tiers based on order (first third = foundation, etc.)
+    const third = Math.ceil(baseConcepts.length / 3);
+    baseConcepts.forEach((c, idx) => {
+      if (idx < third) c.tier = 'foundation';
+      else if (idx < third * 2) c.tier = 'keystone';
+      else c.tier = 'utility';
+    });
+  } else {
+    // Step 3: Calculate outdegrees (how many concepts depend on each one)
+    const outdegrees = calculateOutdegrees(parsed.concepts);
+
+    // Step 4: Assign tiers using percentile-based thresholds
+    assignTiersByPercentile(baseConcepts, outdegrees);
+  }
 
   // Identify confusion pairs across all concepts
   const confusionMap = identifyConfusionPairs(parsed.concepts);

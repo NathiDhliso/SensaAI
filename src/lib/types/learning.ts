@@ -142,6 +142,14 @@ export interface LearningConcept {
   tier: 'foundation' | 'keystone' | 'utility';
 
   /**
+   * The Lifecycle Phase this concept belongs to (Spatial Dimension).
+   * - PREPARE: Foundation/Setup (Phase 1)
+   * - MODEL: Core Action/Implementation (Phase 2)
+   * - DELIVER: Verification/Output (Phase 3)
+   */
+  lifecyclePhase: 'PREPARE' | 'MODEL' | 'DELIVER';
+
+  /**
    * Explanation of why this concept belongs to its tier.
    * Generated dynamically by the AI.
    */
