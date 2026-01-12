@@ -125,44 +125,102 @@ import concurrent.futures
 def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict[str, Any]]:
     """
     Silver Bullet Generation: Parallel execution for maximum speed and volume.
-    Splits the 70 concepts into 2 parallel requests (Part 1 & Part 2) to bypass token limits.
+    Splits the 70 concepts into 4 parallel requests to bypass token limits.
+    
+    Hardening (v4.1):
+    - Retry logic with exponential backoff per partition
+    - Concept validation for mandatory fields
+    - Minimum concept threshold for partial failure detection
     """
     from shared.system_prompt import get_silver_bullet_prompt
+    import time
     
-    # Logging removed to prevent stdout capture by local dev server
-    # silver_bullet_prompt = get_silver_bullet_prompt(subject)
+    MAX_RETRIES = 3
+    RETRY_BACKOFF_BASE = 2  # Exponential backoff: 2, 4, 8 seconds
+    MIN_CONCEPTS_THRESHOLD = 40  # Minimum acceptable concepts for a successful job
     
-    def generate_part(part_num: int):
+    def validate_concept(concept: Dict[str, Any]) -> bool:
+        """Validate that a concept has mandatory fields for frontend rendering."""
+        if not isinstance(concept, dict):
+            return False
+        
+        # Must have a name
+        if not concept.get("name"):
+            return False
+        
+        # Must have tier (foundation, keystone, utility)
+        valid_tiers = {"foundation", "keystone", "utility"}
+        if concept.get("tier") not in valid_tiers:
+            return False
+        
+        # Must have mnemonic with at least anchor or story
+        mnemonic = concept.get("mnemonic", {})
+        if not isinstance(mnemonic, dict):
+            return False
+        if not mnemonic.get("anchor") and not mnemonic.get("story"):
+            return False
+        
+        # Must have SHAPE with at least simpleCore
+        shape = concept.get("shape", {})
+        if not isinstance(shape, dict):
+            return False
+        if not shape.get("simpleCore"):
+            return False
+        
+        return True
+    
+    def generate_part_with_retry(part_num: int) -> List[Dict[str, Any]]:
+        """Generate a single partition with retry logic."""
         prompt = get_silver_bullet_prompt(subject, part_num, context)
+        last_error = None
         
-        try:
-            response = bedrock.invoke_model(
-                modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
-                contentType="application/json",
-                accept="application/json",
-                body=json.dumps({
-                    "anthropic_version": "bedrock-2023-05-31",
-                    "max_tokens": 8192,
-                    "temperature": 0.7,
-                    "messages": [
-                        {"role": "user", "content": prompt}
-                    ]
-                })
-            )
+        for attempt in range(MAX_RETRIES):
+            try:
+                response = bedrock.invoke_model(
+                    modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                    contentType="application/json",
+                    accept="application/json",
+                    body=json.dumps({
+                        "anthropic_version": "bedrock-2023-05-31",
+                        "max_tokens": 8192,
+                        "temperature": 0.7,
+                        "messages": [
+                            {"role": "user", "content": prompt}
+                        ]
+                    })
+                )
+                
+                response_body = json.loads(response.get("body").read())
+                raw_content = response_body.get("content", [])[0].get("text", "")
+                
+                parsed = parse_concepts_from_response(raw_content)
+                
+                # Validate each concept
+                validated = [c for c in parsed if validate_concept(c)]
+                
+                # If we got at least some valid concepts, return them
+                if validated:
+                    return validated
+                
+                # If parse succeeded but validation failed for all, retry
+                last_error = f"Part {part_num}: All {len(parsed)} concepts failed validation"
+                
+            except Exception as e:
+                last_error = str(e)
             
-            response_body = json.loads(response.get("body").read())
-            raw_content = response_body.get("content", [])[0].get("text", "")
-            
-            return parse_concepts_from_response(raw_content)
-            
-        except Exception as e:
-            # logger.error(f"Error in Part {part_num}: {e}")
-            return []
+            # Exponential backoff before retry (except on last attempt)
+            if attempt < MAX_RETRIES - 1:
+                sleep_time = RETRY_BACKOFF_BASE ** (attempt + 1)
+                time.sleep(sleep_time)
+        
+        # All retries exhausted
+        # Log error for debugging (will appear in CloudWatch)
+        print(f"[ERROR] generate_part_with_retry failed after {MAX_RETRIES} attempts: {last_error}")
+        return []
 
-    # Run all 4 parts in parallel
+    # Run all 4 parts in parallel with retry logic
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        futures = [executor.submit(generate_part, i) for i in range(1, 5)]
-        
+        futures = [executor.submit(generate_part_with_retry, i) for i in range(1, 5)]
         results = [f.result() for f in futures]
     
     all_expanded_concepts = []
@@ -172,18 +230,23 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
     # Filter out any non-dict items or items without names that might have slipped through
     all_expanded_concepts = [c for c in all_expanded_concepts if isinstance(c, dict) and c.get("name")]
     
+    # Check minimum threshold
+    if len(all_expanded_concepts) < MIN_CONCEPTS_THRESHOLD:
+        print(f"[WARNING] Only {len(all_expanded_concepts)} concepts generated (threshold: {MIN_CONCEPTS_THRESHOLD})")
+        # We still return what we have, but the caller can check the count
+    
     # Post-process: assign tiers/stages if missing
     for i, concept in enumerate(all_expanded_concepts):
         if "id" not in concept:
             concept["id"] = generate_id()
         
-        # Ensure tier consistency
-        if i < 14: # First 20%
-             concept["tier"] = concept.get("tier", "foundation")
-        elif i < 42: # Next 40%
-             concept["tier"] = concept.get("tier", "keystone")
+        # Ensure tier consistency based on position if not already set correctly
+        if i < 14:  # First 20%
+            concept["tier"] = concept.get("tier", "foundation")
+        elif i < 42:  # Next 40%
+            concept["tier"] = concept.get("tier", "keystone")
         else:
-             concept["tier"] = concept.get("tier", "utility")
+            concept["tier"] = concept.get("tier", "utility")
              
         # Normalize fields
         concept["stageId"] = concept.get("stageId", "PREPARE")

@@ -2,6 +2,9 @@
 SENSA System Prompt for Lambda
 This is a Python version of the TypeScript system-prompt.ts
 Contains the full learning science for SENSA v2.0
+
+Prompt Version: v4.1 (Silver Bullet Parallel Generation)
+See docs/prompts/README.md for version history.
 """
 
 SYSTEM_PROMPT_V4 = """ACT AS: An expert professor and curriculum designer for the subject: {subject}.

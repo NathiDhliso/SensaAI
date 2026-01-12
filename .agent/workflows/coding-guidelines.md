@@ -749,4 +749,49 @@ function generateHookSentence(concept: ParsedConcept): string {
 > For deployment instructions, see `.agent/workflows/deployment.md`.
 > **TL;DR**: Do NOT use SAM. Use `infra/scripts/deploy.sh`.
 
+---
+
+## 📝 System Prompt Versioning - MANDATORY
+
+All AI prompts used for content generation **MUST** be version-controlled and stored in the `docs/prompts` directory.
+
+### Naming Convention
+
+Prompts must follow this naming format:
+```
+v{major}.{minor}_{snake_case_description}.txt
+```
+
+**Examples:**
+- `v4.0_master_curriculum_designer.txt`
+- `v4.1_silver_bullet_parallel.txt`
+- `v5.0_structured_json_output.txt`
+
+### Version Incrementing Rules
+
+| Change Type | Action | Example |
+|-------------|--------|---------|
+| **Major** (Breaking) | New output format, field additions/removals, tier logic changes | v4.0 → v5.0 |
+| **Minor** (Enhancement) | Phrasing improvements, added examples, clarified instructions | v4.0 → v4.1 |
+
+### Workflow
+
+1.  **Before Modifying a Prompt:**
+    - Copy the current prompt to `docs/prompts` with its version number if not already there.
+    - Create a new file with the incremented version number.
+2.  **After Modifying:**
+    - Update `backend/lambda/shared/system_prompt.py` to reference the new version (or keep prompts inline but document the version at the top).
+    - Add a comment in the code noting the version: `# Prompt Version: v4.1`
+3.  **Never:**
+    - Directly modify a prompt in `.py` or `.ts` without updating the version in `docs/prompts`.
+    - Delete old prompt versions (they serve as history).
+
+### File Structure
+```
+docs/prompts/
+├── v4.0_master_curriculum_designer.txt  # Full SENSA v2.0 prompt
+├── v4.1_silver_bullet_parallel.txt      # Parallelized generation prompt
+└── README.md                            # Changelog and version history
+```
+
 
