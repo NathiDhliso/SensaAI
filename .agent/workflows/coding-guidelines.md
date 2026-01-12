@@ -642,7 +642,23 @@ localStorage.setItem('sensa-result-v1', ...);
 10. **Keys centralized** - No magic strings for localStorage
 11. **TypeScript compiles** - Run `npx tsc --noEmit`
 
-## 🚫 NO Mock Data - STRICT ZERO TOLERANCE
+## 🚫 NO PLACEHOLDERS & NO FAKE DATA - STRICT ZERO TOLERANCE
+
+**The application must NEVER contain fake, mock, or placeholder data in production code.**
+
+### Forbidden Patterns:
+1.  **NO Lorem Ipsum**: Never use "Lorem ipsum", "consectetur adipiscing", etc.
+2.  **NO "John Doe"**: Never use fake keys or names like "John Doe", "Jane Smith", "Acme Corp".
+3.  **NO Hardcoded Stats**: Never hardcode metrics like `98%`, `123`, `4.5/5`.
+    - **Fix**: Calculate them dynamically from the data, or show an empty state (`--`, `null`).
+4.  **NO "Mock" Variables**: Do not leave `const mockData = ...` in the code.
+5.  **NO Placeholder Text**: Avoid "Description goes here", "Title", "Sample Text".
+
+### Rules for Handling Missing Data:
+1.  **Real Data Only**: If the data doesn't exist, create a proper interface and use empty states (null/undefined) or implement the actual data source.
+2.  **Schema First**: Define the TypeScript interface for the real data structure first.
+3.  **Loading States**: While fetching real data, use skeleton loaders or spinners, not fake numbers.
+4.  **Transformation**: If the API response isn't ready, write the *transformer* logic that will handle the future API response, rather than hardcoding values.
 
 
 ## 📊 Dashboard & Analytics Views
@@ -670,15 +686,6 @@ localStorage.setItem('sensa-result-v1', ...);
 - **Titles**: Uppercase titles should be reserved for small eyebrow text, not main headers.
 - **Whitespace**: Use generous whitespace (`gap: 1.5rem+`) to separate logical groups.
 - **Contrast**: Ensure text on colored backgrounds (like treemaps) has sufficient contrast (use white or black helper functions).
-
----
-
-
-**Rules:**
-1.  **Real Data Only**: If the data doesn't exist, create a proper interface and use empty states (null/undefined) or implement the actual data source.
-2.  **Schema First**: Define the TypeScript interface for the real data structure first.
-3.  **Loading States**: While fetching real data, use skeleton loaders or spinners, not fake numbers.
-4.  **Transformation**: If the API response isn't ready, write the *transformer* logic that will handle the future API response, rather than hardcoding values.
 
 ---
 

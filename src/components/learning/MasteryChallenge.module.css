@@ -354,3 +354,280 @@
     color: var(--color-success-text);
     margin: 0;
 }
+
+.celebrationIcon.passed {
+    color: var(--color-success);
+}
+
+.celebrationIcon.failed {
+    color: var(--color-warning);
+}
+
+.scoreBreakdown {
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.scoreRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-2) var(--spacing-3);
+    color: var(--color-text-secondary);
+}
+
+.scoreRow.finalScore {
+    background: var(--overlay-primary-10);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.scoreValue {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-lg);
+}
+
+.resultMessage {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+    margin: 0;
+    line-height: var(--line-height-relaxed);
+}
+
+.continueButton {
+    align-self: center;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-4) var(--spacing-8);
+    background: var(--color-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-text-on-accent);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.continueButton:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow-primary);
+}
+
+/* Flow Mode styles */
+.flowModePreview {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-4);
+    background: var(--overlay-amber-10);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--color-secondary-amber);
+}
+
+.flowModePreview strong {
+    color: var(--color-text-primary);
+}
+
+.flowModePreview p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.synthesisFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-2) 0;
+}
+
+.wordCount {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+/* Flow Gate styles */
+.flowGateContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-6);
+    text-align: center;
+    padding: var(--spacing-8);
+}
+
+.flowGateIcon {
+    color: var(--color-secondary-amber);
+}
+
+.flowGateScore {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+}
+
+.flowGateScore strong {
+    color: var(--color-success);
+}
+
+.flowGateInfo {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    text-align: left;
+    padding: var(--spacing-4);
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-md);
+    max-width: 400px;
+}
+
+.flowGateInfo p {
+    margin: var(--spacing-1) 0 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.flowGateActions {
+    display: flex;
+    gap: var(--spacing-4);
+}
+
+.skipButton {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skipButton:hover {
+    border-color: var(--color-border-emphasis);
+    color: var(--color-text-primary);
+}
+
+.acceptButton {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-6);
+    background: var(--color-secondary-amber);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-text-on-accent);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.acceptButton:hover {
+    box-shadow: var(--shadow-glow-amber);
+}
+
+/* Flow Mode Drills styles */
+.flowModeContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+}
+
+.flowHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flowProgress span {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.flowProgressBar {
+    width: 200px;
+    height: 4px;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-top: var(--spacing-2);
+}
+
+.flowProgressFill {
+    height: 100%;
+    background: var(--color-secondary-amber);
+    transition: width 0.3s ease;
+}
+
+.drillTimer {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-semibold);
+}
+
+.drillTimer.warning {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+}
+
+.drillCard {
+    text-align: center;
+    padding: var(--spacing-6);
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-lg);
+}
+
+.drillConcept {
+    display: inline-block;
+    padding: var(--spacing-1) var(--spacing-3);
+    background: var(--overlay-amber-10);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-secondary-amber);
+    margin-bottom: var(--spacing-4);
+}
+
+.drillQuestion {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.drillAnswerGrid {
+    display: flex;
+    gap: var(--spacing-3);
+    justify-content: center;
+}
+
+.drillAnswer {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.drillAnswer:hover {
+    border-color: var(--color-accent);
+    background: var(--overlay-primary-5);
+}

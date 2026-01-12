@@ -5,8 +5,6 @@ import {
   Search,
   BookOpen,
   Upload,
-  Loader2,
-  FileJson,
   ArrowLeft,
   Eye,
   Cloud
@@ -59,43 +57,9 @@ export default function SavedResults() {
     }
   };
 
-  const handleDownloadBackup = async (result: SavedResult) => {
-    try {
-      // Fetch full result to ensure we have the complete document
-      const fullResult = await storageManager.loadResult(result.id);
-      if (!fullResult) {
-        console.error('Failed to load full result for backup');
-        return;
-      }
 
-      // Force download with octet-stream
-      const blob = new Blob([JSON.stringify(fullResult, null, 2)], { type: 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
 
-      const safeSubject = (fullResult.subject || 'untitled')
-        .replace(/[^a-z0-9]+/gi, '-')
-        .replace(/^-+|-+$/g, '')
-        .toLowerCase();
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `sensa-${safeSubject || 'export'}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to download backup:', error);
-    }
-  };
-
-  /* 
-   * Navigate to Document Viewer
-   * Replaces the old text download functionality
-   */
-  const handleViewDocument = (id: string) => {
-    navigate(`/view/${id}`);
-  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -327,21 +291,7 @@ export default function SavedResults() {
                     <BookOpen size={16} />
                     Learn
                   </button>
-                  <button
-                    onClick={() => handleViewDocument(result.id)}
-                    className={styles.actionButton}
-                    title="View Readable Document"
-                    style={{ marginRight: '4px' }}
-                  >
-                    <Eye size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDownloadBackup(result)}
-                    className={styles.backupButton}
-                    title="Download backup (JSON) - can be re-imported later"
-                  >
-                    <FileJson size={16} />
-                  </button>
+
                   <button
                     onClick={() => handleDelete(result.id)}
                     className={styles.deleteButton}

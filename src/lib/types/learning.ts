@@ -115,14 +115,14 @@ export interface WorkedExample {
 // ============================================================================
 
 export interface ShapeContent {
-  simpleCore: string;
-  highStakesExample: string;
-  analogicalModel: string;
-  patternRecognition: {
+  simpleCore?: string;
+  highStakesExample?: string;
+  analogicalModel?: string;
+  patternRecognition?: {
     question: string;
     answer: string;
   };
-  eliminationLogic: string;
+  eliminationLogic?: string;
 }
 
 export interface LearningConcept {
@@ -140,6 +140,12 @@ export interface LearningConcept {
    * - utility: Polish/optimization (outdegree ≤ 1)
    */
   tier: 'foundation' | 'keystone' | 'utility';
+
+  /**
+   * Explanation of why this concept belongs to its tier.
+   * Generated dynamically by the AI.
+   */
+  tierJustification?: string;
 
   /**
    * Array of concept IDs this concept depends on.
@@ -254,6 +260,16 @@ export interface StudySession {
   mastered: boolean;
   // Step 3: The Guess (Priming) - User predictions per concept
   predictions: Record<string, string>;
+
+  // ========== MOMENTUM CHECKPOINT SYSTEM ==========
+  /** Number of times we've offered a checkpoint this session */
+  checkpointOffers: number;
+  /** Timestamp of last checkpoint offer (ISO string) */
+  lastCheckpointAt: string | null;
+  /** Whether user is currently detected in flow state */
+  isInFlowState: boolean;
+  /** Timestamp when time toast was shown (to prevent re-showing) */
+  timeToastShownAt: string | null;
 }
 
 export interface ConceptMapData {

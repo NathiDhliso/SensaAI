@@ -87,7 +87,9 @@ Every concept MUST include SHAPE sections designed for 2-minute learning bursts:
 One sentence. No jargon. A complete beginner could repeat it.
 
 **H - HIGH-STAKES EXAMPLE** (30 seconds)
-A real company + year + specific numbers or human impact.
+A SPECIFIC real-world application. MUST name a real entity (Company, Agency, Historical Event) + Year + Outcome.
+BAD: "A large corporation used this..."
+GOOD: "SpaceX used this in 2020 to optimize Falcon 9 landing trajectory..."
 
 **A - ANALOGICAL MODEL** (45 seconds)
 Map to a familiar system (construction, cooking, sports, etc.)
@@ -183,9 +185,17 @@ Return a JSON object with the following structure:
       "order": 1,
       "name": "Concept Name",
       "tier": "foundation|keystone|utility",
+      "tierJustification": "This is Foundation because it establishes [core context] needed by other concepts.",
       "stageId": "PREPARE|MODEL|DELIVER",
       "dependencies": [],
       "outdegree": 5,
+      "whyYouNeed": "Professionals use this to [action] because [benefit]. Without it, [consequence].",
+      "technicalDetails": "Advanced insight: [specific technical detail or limitation].",
+      "workedExample": {{
+        "problem": "Scenario: You need to [realistic task]. How would you approach this?",
+        "solution": "Approach: Apply [concept] by [method].",
+        "steps": ["Step 1: Analyze...", "Step 2: Configure...", "Step 3: Verify..."]
+      }},
       "mnemonic": {{
         "tier": "Foundation",
         "anchor": "Object + Emoji",
@@ -207,11 +217,11 @@ Return a JSON object with the following structure:
         "thresholds": "..."
       }},
       "shape": {{
-        "simple": "One sentence core concept",
-        "highStakes": "Real example with numbers",
-        "analogy": "Physical world mapping",
-        "pattern": {{ "question": "...", "answer": "..." }},
-        "elimination": "A is X, B is Y distinction"
+        "simpleCore": "One sentence core concept (no jargon)",
+        "highStakesExample": "REAL Case: [Company/Agency] ([Year]) used this to [outcome with numbers]",
+        "analogicalModel": "Like [physical system]: [concept] = [physical element], [concept2] = [element2]",
+        "patternRecognition": {{ "question": "You know you mastered this when...", "answer": "..." }},
+        "eliminationLogic": "[A] handles [X], while [B] handles [Y]"
       }},
       "criticalDistinctions": [
         {{ "correct": "...", "incorrect": "..." }}
@@ -324,7 +334,15 @@ EXPAND_PROMPT = """You are expanding concepts for: {subject}
 {{
   "name": "Concept Name",
   "tier": "foundation|keystone|utility",
+  "tierJustification": "This is [tier] because [specific reason].",
   "order": 1,
+  "whyYouNeed": "Professionals use this to [action] because [benefit].",
+  "technicalDetails": "Advanced: [specific technical insight].",
+  "workedExample": {{
+    "problem": "Scenario: You need to [task]...",
+    "solution": "Approach: Apply [concept] by...",
+    "steps": ["Step 1...", "Step 2...", "Step 3..."]
+  }},
   "mnemonic": {{
     "tier": "Foundation|Keystone|Utility",
     "anchor": "Concrete Object + Emoji (e.g., 'Volcano 🌋')",
@@ -347,7 +365,7 @@ EXPAND_PROMPT = """You are expanding concepts for: {subject}
   }},
   "shape": {{
     "simpleCore": "One sentence core concept",
-    "highStakesExample": "Real company + year + specific numbers",
+    "highStakesExample": "REAL Case Study: Specific Company/Event + Year + Outcome (NO generics)",
     "analogicalModel": "Physical world mapping (3-4 mappings)",
     "patternRecognition": {{ "question": "Self-test Q", "answer": "Answer" }},
     "eliminationLogic": "A is X, B is Y distinction"
@@ -398,17 +416,17 @@ To cover the full breadth of the subject while maintaining depth where it matter
 
 ### 1. FOUNDATION TIER (Top 20% - The "Why" & "How")
 - **Depth**: MAXIMUM. Full SENSA v2.0 structure.
-- **Fields Required**: name, tier, order, mnemonic (FULL), phase1, phase2, phase3, shape, criticalDistinctions.
+- **Fields Required**: name, tier, tierJustification (Why it is foundation?), order, mnemonic (FULL), phase1, phase2, phase3, shape, criticalDistinctions.
 - **Goal**: Deep understanding of core principles.
 
 ### 2. KEYSTONE TIER (Middle 40% - The "What")
 - **Depth**: MEDIUM. Core operational knowledge.
-- **Fields Required**: name, tier, order, description, keyPoints, phase1 (hook only), shape (simpleCore + analogy only).
+- **Fields Required**: name, tier, tierJustification (Why it is keystone?), order, description, keyPoints, phase1 (hook only), shape (simpleCore + analogy only).
 - **Goal**: Functional competence.
 
 ### 3. UTILITY TIER (Bottom 40% - The "Tools")
 - **Depth**: MINIMUM. Reference knowledge.
-- **Fields Required**: name, tier, order, description, keyPoints (list of 3).
+- **Fields Required**: name, tier, tierJustification (Why it is utility?), order, description, keyPoints (list of 3).
 - **Goal**: Awareness of tools/features.
 
 ## MANDATORY DOMAIN DIMENSIONS [Must be covered across the curriculum]
@@ -431,12 +449,27 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
   {{
     "name": "Core Principle",
     "tier": "foundation",
+    "tierJustification": "This is a Foundation concept because it establishes the [Core Context] required by [Dependent Concepts].",
     "order": 1,
-    "mnemonic": {{ "anchor": "...", "story": "..." }},
-    "phase1": {{ ... }},
-    "phase2": [ ... ],
-    "phase3": {{ ... }},
-    "shape": {{ ... }}
+    "whyYouNeed": "Professionals rely on this to [action] because [benefit].",
+    "technicalDetails": "Advanced: [specific technical insight].",
+    "workedExample": {{
+      "problem": "Scenario: You need to [task]...",
+      "solution": "Approach: Use [concept] to...",
+      "steps": ["Step 1...", "Step 2...", "Step 3..."]
+    }},
+    "mnemonic": {{ "anchor": "Object + Emoji", "story": "Bizarre scene..." }},
+    "phase1": {{ "hookSentence": "...", "microMetaphor": "..." }},
+    "phase2": [ {{ "title": "...", "content": "..." }} ],
+    "phase3": {{ "tool": "...", "metrics": [...] }},
+    "shape": {{
+      "simpleCore": "One sentence, no jargon.",
+      "highStakesExample": "REAL: [Company] ([Year]) achieved [outcome].",
+      "analogicalModel": "Like [system]: [mapping]...",
+      "patternRecognition": {{ "question": "...", "answer": "..." }},
+      "eliminationLogic": "[A] for [X], [B] for [Y]."
+    }},
+    "keyPoints": ["Point 1", "Point 2", "Point 3"]
   }},
   // ... more concepts ...
 ]
@@ -445,8 +478,8 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 ## CRITICAL RULES:
 1. QUANTITY: You MUST generate exactly {count} concepts (from #{start_idx} to #{end_idx}).
 2. FORMAT: valid JSON array. NO markdown. NO text before/after.
-3. TIERS: Assign tiers based on importance (Foundation for core, Keystone for major, Utility for minor).
-4. MNEMONICS: Only for Foundation tier.
+3. REAL WORLD EXAMPLES: Field `shape.highStakesExample` MUST be a real case study (e.g., "Netflix 2013 migration", "NASA Mars Rover", "Spotify Squad model"). DO NOT use generic text like "Imagine a company...".
+4. METAPHORS: Field `shape.analogicalModel` and `mnemonics` MUST use objects/systems OUTSIDE the domain (e.g., Cooking, Construction, nature). NEVER use the concept name itself.
 5. POSITIVE FRAMING: Use strictly positive, empowering language.
 
 Generate concepts {start_idx} through {end_idx} now:"""

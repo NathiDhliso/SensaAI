@@ -158,7 +158,7 @@ export const VELOCITY_CONFIG = {
     HIGH_COGNITIVE_LOAD: 0.8,    // 80% load triggers break recommendation
     MODERATE_COGNITIVE_LOAD: 0.4, // 40% load is moderate
     TREND_SIGNIFICANCE: 5,        // 5% change is significant
-    PREVIOUS_VELOCITY_PLACEHOLDER: 5, // Placeholder for previous velocity
+    DEFAULT_VELOCITY_BASELINE: 5, // Baseline for velocity calculations
   },
 
   // Blank Sheet Test
@@ -200,4 +200,42 @@ export const VELOCITY_CONFIG = {
     QUESTIONS_PER_CONCEPT: 2,
     MIN_ANSWER_CHARS: 10,
   }
+} as const;
+
+/**
+ * Flow State Detection Configuration
+ * Used to detect when users are in a productive "flow" state
+ * and protect them from interruptions.
+ */
+export const FLOW_STATE = {
+  // Detection thresholds
+  MIN_STREAK_FOR_FLOW: 3,           // 3+ concepts without pause
+  SPEED_THRESHOLD: 0.8,             // 80% of user's baseline time
+  MAX_IDLE_MS: 30_000,              // 30 seconds max between concepts
+  ACCURACY_THRESHOLD: 0.7,          // 70% verification accuracy
+
+  // Flow protection
+  CHECKPOINT_BUFFER_MS: 15 * 60 * 1000,   // 15 min extension when in flow
+  HEALTH_BREAK_THRESHOLD_MS: 90 * 60 * 1000, // 90 min before health nudge
+
+  // UI
+  FLOW_INDICATOR_FADE_MS: 3000,     // Flow mode indicator fade duration
+} as const;
+
+/**
+ * Momentum Checkpoint Configuration
+ * Governs when and how to present "natural pauses" to users.
+ */
+export const MOMENTUM_CHECKPOINT = {
+  // Timing
+  TIME_TOAST_DELAY_MS: 500,         // Delay before showing time toast
+  CHECKPOINT_ANIMATION_MS: 400,     // Checkpoint card animation duration
+  RECAP_ANIMATION_MS: 500,          // Session recap animation duration
+
+  // Thresholds
+  MIN_CONCEPTS_FOR_RECAP: 1,        // At least 1 concept needed for recap
+  STREAK_CELEBRATION_THRESHOLD: 5,  // 5+ concepts for "on fire" celebration
+
+  // Buffer after dismissal
+  POST_CONTINUE_BUFFER_MS: 15 * 60 * 1000, // 15 min before next checkpoint offer
 } as const;

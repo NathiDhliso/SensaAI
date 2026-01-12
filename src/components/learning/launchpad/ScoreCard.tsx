@@ -5,6 +5,7 @@ import type { LucideIcon } from 'lucide-react';
 import styles from './ScoreCard.module.css';
 
 interface ScoreCardProps {
+    id?: string;
     title: string;
     value: string | number;
     unit?: string;
@@ -22,6 +23,7 @@ const STATUS_COLORS = {
 };
 
 export const ScoreCard: React.FC<ScoreCardProps> = ({
+    id,
     title,
     value,
     unit,
@@ -33,6 +35,7 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
 
     return (
         <motion.div
+            id={id}
             className={styles.card}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}

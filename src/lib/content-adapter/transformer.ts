@@ -355,11 +355,11 @@ function calculateComplexityScore(concept: ParsedConcept): number {
   // Factor in SHAPE sections (indicates comprehensive coverage)
   if (concept.shape) {
     const shapeCount = [
-      concept.shape.simpleCore,
-      concept.shape.highStakesExample,
-      concept.shape.analogicalModel,
-      concept.shape.patternRecognition.question,
-      concept.shape.eliminationLogic
+      concept.shape.simpleCore || concept.shape.simple,
+      concept.shape.highStakesExample || concept.shape.highStakes,
+      concept.shape.analogicalModel || concept.shape.analogy,
+      concept.shape.patternRecognition?.question || concept.shape.pattern?.question,
+      concept.shape.eliminationLogic || concept.shape.elimination
     ].filter(Boolean).length;
     complexity += Math.min(2, shapeCount / 3); // Max 2 points
   }
@@ -405,12 +405,22 @@ function findMetaphorForConcept(conceptName: string, mentalAnchors: ParsedMental
     for (const mapping of anchor.mappings) {
       if (mapping.concept.toLowerCase().includes(lowerName) ||
         lowerName.includes(mapping.concept.toLowerCase())) {
-        return mapping.metaphorElement;
+
+        // Validation: Verify the metaphor is not circular (not the name itself)
+        const candidate = mapping.metaphorElement;
+        const lowerCandidate = candidate.toLowerCase();
+
+        if (lowerCandidate !== lowerName &&
+          !lowerCandidate.includes(lowerName) &&
+          !lowerName.includes(lowerCandidate)) {
+          return candidate;
+        }
       }
     }
   }
 
-  return conceptName;
+  // Return empty string if no metaphor found - UI should handle missing metaphors
+  return '';
 }
 
 function getConceptIcon(conceptName: string, mentalAnchors: ParsedMentalAnchor[], domain: string): string {
@@ -429,17 +439,33 @@ function generateHookSentence(concept: ParsedConcept, metaphor: string): string 
   if (concept.shape?.simpleCore) {
     return concept.shape.simpleCore;
   }
-  // Generate fallback
-  if (concept.phase1.prerequisite) {
-    return `${metaphor} - ${concept.name} provides the foundation for effective operations.`;
+  // Use prerequisite info if available
+  if (concept.phase1.prerequisite && concept.phase1.prerequisite.length > 20) {
+    return concept.phase1.prerequisite;
   }
-  return `Every system needs a ${metaphor.toLowerCase()}. ${concept.name} makes it possible.`;
+  // Use metaphor if it's not empty and different from concept name
+  if (metaphor && metaphor.toLowerCase() !== concept.name.toLowerCase()) {
+    return `Think of ${concept.name} like a ${metaphor.toLowerCase()}.`;
+  }
+  // Return empty - UI should handle missing hook gracefully
+  return '';
 }
 
 function getConceptMetaphor(concept: ParsedConcept, mentalAnchors: ParsedMentalAnchor[]): string {
-  // Use extracted micro-metaphor if available
+  const lowerName = concept.name.toLowerCase();
+
+  // Use extracted micro-metaphor if available AND valid (not circular)
   if (concept.phase1.microMetaphor) {
-    return concept.phase1.microMetaphor;
+    const lowerMetaphor = concept.phase1.microMetaphor.toLowerCase();
+
+    // Strict validation: Metaphor cannot be the concept name or a substring of it
+    const isCircular = lowerMetaphor === lowerName ||
+      lowerMetaphor.includes(lowerName) ||
+      lowerName.includes(lowerMetaphor);
+
+    if (!isCircular) {
+      return concept.phase1.microMetaphor;
+    }
   }
   // Fall back to finding from mental anchors
   return findMetaphorForConcept(concept.name, mentalAnchors);
@@ -463,9 +489,13 @@ function extractPrerequisites(concept: ParsedConcept, allConcepts: ParsedConcept
 }
 
 function generateWhyYouNeed(concept: ParsedConcept): string {
-  // Use SHAPE elimination logic if available (it explains key distinctions)
-  if (concept.shape?.eliminationLogic) {
-    return concept.shape.eliminationLogic;
+  // PRIORITY 1: Use AI-generated field if available
+  if (concept.whyYouNeed) {
+    return concept.whyYouNeed;
+  }
+  // PRIORITY 2: Use SHAPE elimination logic if available (it explains key distinctions)
+  if (concept.shape?.eliminationLogic || concept.shape?.elimination) {
+    return concept.shape.eliminationLogic || concept.shape.elimination || '';
   }
   if (concept.criticalDistinctions.length > 0) {
     return concept.criticalDistinctions[0];
@@ -475,19 +505,22 @@ function generateWhyYouNeed(concept: ParsedConcept): string {
     return concept.designBoundaries[0];
   }
 
-  return `${concept.name} is essential for mastering this subject effectively.`;
+  // Return empty - UI should handle missing content gracefully
+  return '';
 }
 
-function generateRealWorldExample(concept: ParsedConcept, metaphor: string): string {
-  // Use SHAPE high-stakes example if available
-  if (concept.shape?.highStakesExample) {
-    return concept.shape.highStakesExample;
+function generateRealWorldExample(concept: ParsedConcept, _metaphor: string): string {
+  // Use SHAPE high-stakes example if available (check both field names)
+  const highStakes = concept.shape?.highStakesExample || concept.shape?.highStakes;
+  if (highStakes) {
+    return highStakes;
   }
-  // Use SHAPE analogical model if available
-  if (concept.shape?.analogicalModel) {
-    return concept.shape.analogicalModel;
+  // Use SHAPE analogical model if available (check both field names)
+  const analogy = concept.shape?.analogicalModel || concept.shape?.analogy;
+  if (analogy) {
+    return analogy;
   }
-  return `Just like ${metaphor.toLowerCase()}, ${concept.name} provides essential functionality in this domain.`;
+  return `Example pending generation for ${concept.name}.`;
 }
 
 function slugify(text: string): string {
@@ -708,6 +741,7 @@ export function transformToLearningConcepts(
         parentName: parsedConcept.mnemonic.parentName,
         parentId: parsedConcept.mnemonic.parentId,
         dependsOn: parsedConcept.mnemonic.dependsOn,
+        imageUrl: parsedConcept.mnemonic.imageUrl,
       };
     }
 
@@ -722,15 +756,25 @@ export function transformToLearningConcepts(
       whyYouNeed: generateWhyYouNeed(parsedConcept),
       realWorldExample: generateRealWorldExample(parsedConcept, metaphor),
       howToUse: howToUse.length > 0 ? howToUse : ['Review the concept details', 'Understand the lifecycle', 'Practice application'],
-      technicalDetails: technicalDetails || `${parsedConcept.name} is a core concept in this domain.`,
+      technicalDetails: parsedConcept.technicalDetails || technicalDetails || '',
+      workedExample: parsedConcept.workedExample,
+      keyPoints: parsedConcept.keyPoints,
       prerequisites: extractPrerequisites(parsedConcept, parsed.concepts),
       visualElement: slugify(parsedConcept.name),
       actionButtonText: `Master ${parsedConcept.name}`,
       lifecycle,
       logicalConnection: parsedConcept.logicalConnection,
       mnemonic,
-      shape: parsedConcept.shape,
+      // Normalize SHAPE to use standard field names with legacy fallbacks
+      shape: parsedConcept.shape ? {
+        simpleCore: parsedConcept.shape.simpleCore || parsedConcept.shape.simple,
+        highStakesExample: parsedConcept.shape.highStakesExample || parsedConcept.shape.highStakes,
+        analogicalModel: parsedConcept.shape.analogicalModel || parsedConcept.shape.analogy,
+        patternRecognition: parsedConcept.shape.patternRecognition || parsedConcept.shape.pattern,
+        eliminationLogic: parsedConcept.shape.eliminationLogic || parsedConcept.shape.elimination,
+      } : undefined,
       tier: calculateTier(parsedConcept, parsed.concepts),
+      tierJustification: parsedConcept.tierJustification,
       dependencies: extractPrerequisites(parsedConcept, parsed.concepts),
       outdegree: parsed.concepts.filter(other =>
         other.id !== parsedConcept.id &&
@@ -760,9 +804,9 @@ export function transformToLearningConcepts(
           metaphor: `A fundamental unit of ${parsed.domainAnalysis.domain}`,
           hookSentence: `${name} is a key component of the system.`,
           whyYouNeed: 'Understanding this concept fills a gap in your knowledge.',
-          realWorldExample: `Like a missing puzzle piece, ${name} completes the picture.`,
+          realWorldExample: `Example pending generation.`,
           howToUse: ['Identify the concept', 'Relate it to others', 'Apply in context'],
-          technicalDetails: 'Recovered concept from domain analysis.',
+          technicalDetails: 'Concept identified during domain analysis.',
           prerequisites: [],
           visualElement: safeSlugify(name),
           actionButtonText: `Explore ${name}`,

@@ -1,0 +1,415 @@
+.container {
+    padding: var(--spacing-6);
+    background: var(--color-surface);
+    /* Corrected from --surface-primary */
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-light);
+    /* Corrected from --border-neutral-subtle */
+    min-height: 900px;
+    /* Increased height */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    /* Optional: Subtle grid pattern for technical feel */
+    background-image:
+        radial-gradient(var(--color-border-light) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+    position: relative;
+    z-index: 10;
+    pointer-events: none;
+    /* Let clicks pass through to map if needed */
+}
+
+/* Make header text selectable/interactive though */
+.header>* {
+    pointer-events: auto;
+}
+
+.headerIcon {
+    width: 48px;
+    height: 48px;
+    background: var(--color-surface-secondary);
+    /* Corrected */
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: var(--spacing-1) 0 0 0;
+}
+
+.mapContainer {
+    flex: 1;
+    position: relative;
+    border-radius: var(--radius-md);
+    /* No background here, let container grid show */
+}
+
+/* Orbit Rings - Visual Guides */
+.orbitRing {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed var(--color-text-disabled);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.3;
+    z-index: 0;
+    transition: all 0.3s ease;
+}
+
+.orbitRing.active {
+    border-color: var(--color-primary);
+    border-style: solid;
+    border-width: 2px;
+    opacity: 1;
+    box-shadow: 0 0 30px var(--overlay-primary-20);
+}
+
+.ringLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    /* Position above the line */
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    pointer-events: none;
+    z-index: 0;
+    text-shadow: 0 2px 4px var(--color-bg-primary);
+    /* Corrected */
+}
+
+.dimmed {
+    opacity: 0.1;
+}
+
+.node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    z-index: 2;
+    background: var(--color-surface);
+    /* Corrected */
+    border: 2px solid var(--color-border);
+    /* Corrected */
+    /* Default border */
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(8px);
+    padding: var(--spacing-1);
+}
+
+.node:hover {
+    z-index: 20;
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-primary);
+}
+
+.nodeLabel {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-align: center;
+    padding: 0 var(--spacing-2);
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--color-text-primary);
+    /* Ensure contrast */
+    pointer-events: none;
+}
+
+/* Tier Specifics */
+/* Foundation: Close to center, Solid */
+.foundation {
+    width: 130px;
+    height: 130px;
+    border-color: var(--tier-foundation);
+}
+
+.foundation .nodeLabel {
+    font-size: var(--font-size-sm);
+}
+
+/* Keystone: Middle distance */
+.keystone {
+    width: 100px;
+    height: 100px;
+    border-color: var(--tier-keystone);
+}
+
+/* Utility: Outer edge, smaller */
+.utility {
+    width: 80px;
+    height: 80px;
+    border-color: var(--tier-utility);
+}
+
+/* Hub Node */
+.hub {
+    width: 160px;
+    height: 160px;
+    background: var(--color-surface);
+    /* Corrected */
+    border: 4px solid var(--color-primary);
+    z-index: 5;
+    box-shadow: 0 0 40px var(--overlay-primary-20);
+}
+
+.hub .nodeLabel {
+    font-size: var(--font-size-lg);
+    font-weight: 800;
+}
+
+/* Connection Lines */
+.connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Drawer / Details Panel */
+.drawer {
+    position: absolute;
+    top: var(--spacing-4);
+    right: var(--spacing-4);
+    bottom: var(--spacing-4);
+    width: 420px;
+
+    /* Glassmorphism */
+    background: var(--color-surface);
+    /* Corrected */
+    /* Fallback */
+    background: color-mix(in srgb, var(--color-surface) 95%, transparent);
+    /* Modern mix fallback */
+    backdrop-filter: blur(16px);
+
+    border: 1px solid var(--color-border-light);
+    /* Corrected */
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2xl);
+    padding: var(--spacing-6);
+    overflow-y: auto;
+    z-index: 200;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.tierTooltip {
+    position: absolute;
+    bottom: var(--spacing-6);
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 100;
+    min-width: 300px;
+    text-align: center;
+    background: var(--color-bg-secondary);
+    /* Solid fallback */
+    background: color-mix(in srgb, var(--color-bg-secondary) 90%, transparent);
+    /* Modern mix */
+    border: 1px solid var(--color-primary);
+    padding: var(--spacing-3) var(--spacing-5);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(8px);
+    color: var(--color-text-primary);
+    /* Ensure explicit text color */
+}
+
+.tierTitle {
+    font-size: var(--font-size-xs);
+    font-weight: 800;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-1);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.tierDesc {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.drawerHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-6);
+    padding-bottom: var(--spacing-4);
+    border-bottom: 1px solid var(--color-border-light);
+    /* Corrected */
+}
+
+.drawerTitle {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    margin: var(--spacing-2) 0;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+}
+
+.drawerTier {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-2);
+}
+
+/* Badge Backgrounds */
+.foundation_bg {
+    background: var(--tier-foundation);
+    color: var(--color-bg-primary);
+    /* Corrected */
+}
+
+.keystone_bg {
+    background: var(--tier-keystone);
+    color: var(--color-bg-primary);
+    /* Corrected */
+}
+
+.utility_bg {
+    background: var(--tier-utility);
+    color: var(--color-bg-primary);
+    /* Corrected */
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: var(--spacing-2);
+    border-radius: var(--radius-full);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.closeButton:hover {
+    color: var(--color-text-primary);
+    background: var(--overlay-primary-10);
+    transform: rotate(90deg);
+}
+
+.drawerContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+}
+
+.section {
+    padding: var(--spacing-5);
+    background: var(--color-surface-secondary);
+    /* Corrected */
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+    /* Corrected */
+}
+
+.section h4 {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin: 0 0 var(--spacing-3) 0;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.section p {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-md);
+}
+
+.metaphor {
+    font-style: italic;
+    color: var(--color-primary);
+    font-weight: 500;
+    border-left: 3px solid var(--color-primary);
+    padding-left: var(--spacing-3);
+}
+
+.mnemonicImage {
+    margin-top: var(--spacing-4);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-neutral-subtle);
+    background: var(--surface-primary);
+}
+
+.mnemonicImage img {
+    width: 100%;
+    height: auto;
+    max-height: 250px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s;
+}
+
+.mnemonicImage:hover img {
+    transform: scale(1.05);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .drawer {
+        width: 100%;
+        top: 50%;
+        height: 50%;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+}

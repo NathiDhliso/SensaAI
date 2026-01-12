@@ -99,10 +99,12 @@ export function SessionStartModal({
   };
 
   const handleNext = () => {
+    console.log('[SessionStartModal] handleNext called', { selectedMood, selectedGoal, selectedDuration });
     // Phase 0 Requirement: User must actively define their intention.
     // Store the selected mood before moving to prime phase
     setLastSessionMood(selectedMood);
     setStep('prime');
+    console.log('[SessionStartModal] setStep(prime) called');
   };
 
   return (
@@ -178,7 +180,28 @@ export function SessionStartModal({
                       <button
                         key={mood.id}
                         className={`${styles.moodCard} ${selectedMood === mood.id ? styles.moodCardActive : ''}`}
-                        onClick={() => setSelectedMood(mood.id)}
+                        onClick={() => {
+                          setSelectedMood(mood.id);
+                          // Smart Defaults (Curated Session)
+                          switch (mood.id) {
+                            case 'energized':
+                              setSelectedGoal('learn-new');
+                              setSelectedDuration(45);
+                              break;
+                            case 'neutral':
+                              setSelectedGoal('learn-new');
+                              setSelectedDuration(30);
+                              break;
+                            case 'tired':
+                              setSelectedGoal('review'); // Easier cognitive load
+                              setSelectedDuration(15);   // Shorter duration
+                              break;
+                            case 'stressed':
+                              setSelectedGoal('explore'); // Low pressure
+                              setSelectedDuration(15);    // Quick win
+                              break;
+                          }
+                        }}
                         title={mood.description}
                       >
                         <div className={styles.moodIconWrapper} style={{ color: moodColor }}>
@@ -300,7 +323,9 @@ export function SessionStartModal({
               duration={showCustom ? parseInt(customDuration) || 30 : selectedDuration}
               mood={selectedMood}
               onComplete={(data) => {
+                console.log('[SessionStartModal] onComplete received from GuidedPrimer', { selectedGoal, selectedDuration, data });
                 onStart(selectedGoal, showCustom ? parseInt(customDuration) || 30 : selectedDuration, data);
+                console.log('[SessionStartModal] onStart called');
               }}
               onBack={() => setStep('setup')}
             />

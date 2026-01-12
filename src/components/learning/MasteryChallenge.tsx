@@ -39,6 +39,7 @@ type ChallengeMode = 'intro' | 'synthesis' | 'flow-gate' | 'flow' | 'complete';
 interface MasteryChallengeProps {
     concepts: LearningConcept[];
     onComplete: (result: MasteryChallengeResult) => void;
+    onClose?: () => void; // Called when user clicks Continue after results
 }
 
 interface FlowDrill {
@@ -62,7 +63,8 @@ const FLOW_DRILL_COUNT = 5;
 
 export default function MasteryChallenge({
     concepts,
-    onComplete
+    onComplete,
+    onClose
 }: MasteryChallengeProps) {
     // Phase state
     const [mode, setMode] = useState<ChallengeMode>('intro');
@@ -483,6 +485,14 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
                         ? 'You\'ve demonstrated strong mastery of these concepts.'
                         : 'Review the concepts and try again when you\'re ready.'}
                 </p>
+
+                <button
+                    className={styles.continueButton}
+                    onClick={() => onClose?.()}
+                >
+                    <CheckCircle2 size={20} />
+                    Continue
+                </button>
             </motion.div>
         );
     };

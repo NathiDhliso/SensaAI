@@ -1,0 +1,160 @@
+/**
+ * SessionTimeToast Styles
+ * Subtle, non-intrusive design that floats at top of screen
+ */
+
+.toast {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 0.75rem 1rem;
+    box-shadow: var(--shadow-lg);
+
+    max-width: 500px;
+    width: calc(100% - 2rem);
+}
+
+.content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.iconContainer {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--overlay-warning-10);
+    color: var(--color-warning);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.fireIcon {
+    color: var(--color-danger);
+    animation: flicker 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes flicker {
+    from {
+        opacity: 0.8;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.subtitle {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.keepGoingButton {
+    padding: 0.5rem 0.875rem;
+    background: var(--color-primary);
+    color: var(--color-text-on-accent);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.keepGoingButton:hover {
+    filter: brightness(1.1);
+}
+
+.breakButton {
+    padding: 0.5rem 0.875rem;
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.breakButton:hover {
+    border-color: var(--color-border-emphasis);
+    color: var(--color-text-primary);
+}
+
+.closeButton {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-border-emphasis);
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .toast {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .actions {
+        justify-content: stretch;
+    }
+
+    .keepGoingButton,
+    .breakButton {
+        flex: 1;
+        padding: 0.625rem;
+    }
+}

@@ -16,8 +16,18 @@ export interface ParsedConcept {
   name: string;
   order: number;
   tier?: 'foundation' | 'keystone' | 'utility'; // Added to support root-level tier
+  tierJustification?: string; // Explain WHY it fits this tier
   stageId: string;
   logicalConnection?: string;
+  // NEW: Direct UI consumption fields
+  whyYouNeed?: string; // Why professionals need this concept
+  technicalDetails?: string; // Advanced technical insight
+  workedExample?: {
+    problem: string;
+    solution: string;
+    steps: string[];
+  };
+  keyPoints?: string[]; // Key points for recall
   phase1: {
     hookSentence: string;
     microMetaphor: string;
@@ -31,13 +41,18 @@ export interface ParsedConcept {
     metrics: string[];
     thresholds: string;
   };
-  // SHAPE micro-learning sections
+  // SHAPE micro-learning sections (normalized field names)
   shape?: {
-    simpleCore: string;
-    highStakesExample: string;
-    analogicalModel: string;
-    patternRecognition: { question: string; answer: string };
-    eliminationLogic: string;
+    simpleCore?: string;
+    simple?: string; // Legacy fallback
+    highStakesExample?: string;
+    highStakes?: string; // Legacy fallback
+    analogicalModel?: string;
+    analogy?: string; // Legacy fallback
+    patternRecognition?: { question: string; answer: string };
+    pattern?: { question: string; answer: string }; // Legacy fallback
+    eliminationLogic?: string;
+    elimination?: string; // Legacy fallback
   };
   // Memory Palace mnemonic context
   mnemonic?: ParsedMnemonic;

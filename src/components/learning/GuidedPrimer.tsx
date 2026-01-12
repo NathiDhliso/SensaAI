@@ -194,18 +194,24 @@ export default function GuidedPrimer({
     };
 
     const handleComplete = () => {
-        audioManager.fadeOutBackgroundMusic(1500);
+        console.log('[GuidedPrimer] handleComplete called', { reason, action, reward });
+        audioManager.fadeOutBackgroundMusic(1500).catch(() => { });
         onComplete({ reason, action, reward });
+        console.log('[GuidedPrimer] onComplete fired');
     };
 
     const handleSkipConfirm = () => {
-        audioManager.fadeOutBackgroundMusic(500);
+        console.log('[GuidedPrimer] handleSkipConfirm called');
+        // Fire and forget audio fade - don't block UI navigation
+        audioManager.fadeOutBackgroundMusic(500).catch(() => { });
+
         // Use sensible defaults for skipped priming
         onComplete({
             reason: 'Quick start',
             action: 'Learn something new',
             reward: 'Personal satisfaction'
         });
+        console.log('[GuidedPrimer] onComplete fired (skip)');
     };
 
     const toggleMusic = () => {
@@ -586,7 +592,10 @@ export default function GuidedPrimer({
                                 </button>
                                 <button
                                     className={styles.dialogConfirmButton}
-                                    onClick={handleSkipConfirm}
+                                    onClick={() => {
+                                        console.log('[GuidedPrimer] Start Learning button CLICKED');
+                                        handleSkipConfirm();
+                                    }}
                                 >
                                     Start Learning
                                     <ChevronRight size={18} />

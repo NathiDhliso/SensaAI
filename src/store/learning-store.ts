@@ -189,6 +189,11 @@ const createStudySession = (
   mastered: false,
   // Step 3: The Guess (Priming)
   predictions: {},
+  // Momentum Checkpoint System
+  checkpointOffers: 0,
+  lastCheckpointAt: null,
+  isInFlowState: false,
+  timeToastShownAt: null,
 });
 
 const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]): UserProgress => {
@@ -532,18 +537,25 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const state = get();
         const subjectId = state.currentSession?.subjectId || 'unknown';
         const session = createStudySession(subjectId, goal, duration, targetConcepts);
+        console.log('[learning-store] startStudySession: creating session', { goal, duration, session });
         set({ studySession: session, showSessionModal: false });
+        console.log('[learning-store] startStudySession: set() called, new studySession:', get().studySession);
       },
 
       setSessionPrimer: (primer) => {
         const state = get();
-        if (!state.studySession) return;
+        console.log('[learning-store] setSessionPrimer called, current studySession:', state.studySession);
+        if (!state.studySession) {
+          console.log('[learning-store] setSessionPrimer: NO studySession, returning early!');
+          return;
+        }
         set({
           studySession: {
             ...state.studySession,
             primer
           }
         });
+        console.log('[learning-store] setSessionPrimer: set() called, new primer:', get().studySession?.primer);
       },
 
       markSessionScouted: () => {

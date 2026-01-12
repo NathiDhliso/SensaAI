@@ -91,6 +91,8 @@
   position: relative;
   transition: transform 0.2s ease;
   width: 100%;
+  z-index: var(--z-sticky);
+  /* SILVER BULLET FIX: Prevent stacking context trap when transform activates */
 }
 
 .inputWrapper:focus-within {

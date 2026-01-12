@@ -85,9 +85,33 @@ export function useLearningFlow(): LearningFlow {
             return 'PRIME';
         }
 
-        // --- Level 2: Scout & Preview (Explore Mode) ---
-        // Only if goal is 'learn-new' (default)
+        // ================================================================
+        // GOAL-SPECIFIC FLOW ROUTING
+        // ================================================================
+
+        // --- EXPLORE MODE (Stressed users) ---
+        // Zero pressure, calming browse-only experience
+        // NO testing, NO active recall, just passive reading
+        if (studySession.goal === 'explore') {
+            // Skip everything — go straight to COMPLETE which shows a calm browse view
+            // The user can read concepts at their own pace without any assessments
+            return 'COMPLETE';
+        }
+
+        // --- REVIEW MODE (Tired users) ---
+        // Light refresher, minimal cognitive load
+        // Skip exploration phases, just light map review then complete
+        if (studySession.goal === 'review') {
+            // Optional: light map review, but skip all testing
+            if (!studySession.mapBuilt) return 'BUILD';
+            // After map, go straight to COMPLETE (no Learn phase, no Blank Sheet)
+            return 'COMPLETE';
+        }
+
+        // --- LEARN-NEW MODE (Energized/Neutral users) ---
+        // Full learning flow with all phases
         if (studySession.goal === 'learn-new') {
+            // Level 2: Scout & Preview (Explore Mode)
             if (!studySession.scouted) return 'SCOUT';
             if (!studySession.previewed) return 'PREVIEW';
         }

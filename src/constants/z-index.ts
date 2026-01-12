@@ -10,44 +10,38 @@
  */
 
 export const Z_INDEX = {
-    /** Base layer - default stacking context */
+    /** Base layer - default stacking context (CSS: var(--z-base)) */
     BASE: 1,
 
-    /** Dropdowns, popovers, tooltips */
-    DROPDOWN: 10,
+    /** Dropdowns, popovers (CSS: var(--z-dropdown)) */
+    DROPDOWN: 100,
 
-    /** Sticky elements (headers, sidebars) */
-    STICKY: 20,
+    /** Sticky elements (headers, sidebars) (CSS: var(--z-sticky)) */
+    STICKY: 200,
 
-    /** Fixed position elements */
-    FIXED: 50,
+    /** Fixed position elements (CSS: var(--z-fixed)) */
+    FIXED: 300,
 
-    /** SENSA v2.0: Equation tracker (persistent, below map nodes) */
-    EQUATION_TRACKER: 60,
+    /** Modal backdrops (CSS: var(--z-modal-backdrop)) */
+    MODAL_BACKDROP: 400,
 
-    /** SENSA v2.0: Flow progress bar (persistent, below map nodes) */
-    FLOW_PROGRESS: 65,
+    /** Modals, dialogs (CSS: var(--z-modal)) */
+    MODAL: 500,
 
-    /** SENSA v2.0: Concept map nodes (interactive, above persistent UI) */
-    MAP_NODES: 70,
+    /** Popovers (CSS: var(--z-popover)) */
+    POPOVER: 600,
 
-    /** SENSA v2.0: Concept map connections (below nodes) */
-    MAP_CONNECTIONS: 68,
+    /** Tooltips (CSS: var(--z-tooltip)) */
+    TOOLTIP: 700,
 
-    /** Overlays, backdrops */
-    OVERLAY: 100,
+    /** Overlays (CSS: var(--z-overlay)) */
+    OVERLAY: 1000,
 
-    /** SENSA v2.0: Validation panel (above map, below modals) */
-    VALIDATION_PANEL: 150,
+    /** Notifications, toasts (CSS: var(--z-toast)) */
+    TOAST: 2000,
 
-    /** Modals, dialogs */
-    MODAL: 1000,
-
-    /** Tooltips (should appear above modals) */
-    TOOLTIP: 10000,
-
-    /** Notifications, toasts (highest priority) */
-    NOTIFICATION: 100000,
+    /** Maximum z-index (CSS: var(--z-max)) */
+    MAX: 9999,
 } as const;
 
 export type ZIndexKey = keyof typeof Z_INDEX;

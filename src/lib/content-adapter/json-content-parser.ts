@@ -589,11 +589,13 @@ function extractMnemonic(content: string, conceptName: string): ParsedMnemonic |
     const tierMatch = match[1].match(/\\"tier\\":\s*\\"([^"]+)\\"/);
     const anchorMatch = match[1].match(/\\"anchor\\":\s*\\"([^"]+)\\"/);
     const storyMatch = match[1].match(/\\"story\\":\s*\\"([^"]{0,500})/);
+    const imageMatch = match[1].match(/\\"imageUrl\\":\s*\\"([^"]+)\\"/);
 
     return {
         tier: (tierMatch?.[1]?.toLowerCase() as 'foundation' | 'keystone' | 'utility') || 'foundation',
         anchor: anchorMatch?.[1]?.replace(/\\"/g, '"') || '',
         story: storyMatch?.[1]?.replace(/\\"/g, '"') || '',
+        imageUrl: imageMatch?.[1]?.replace(/\\"/g, '"'),
     };
 }
 

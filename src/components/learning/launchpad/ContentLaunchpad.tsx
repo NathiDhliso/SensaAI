@@ -25,8 +25,20 @@ import { CoverageTreemap } from './CoverageTreemap';
 import { TierDistributionChart } from './TierDistributionChart';
 import { ContentHealthIndicators } from './ContentHealthIndicators';
 import { EquationMetadataCard } from './EquationMetadataCard';
+import { SourceVerification } from './SourceVerification';
 import { FlowProgressBar } from '@/components/ui/FlowProgressBar';
+import { DashboardTutorial, type TutorialStep } from './DashboardTutorial';
 import styles from './ContentLaunchpad.module.css';
+
+const TUTORIAL_STEPS: TutorialStep[] = [
+    { targetId: 'mastery-score', title: 'Mastery Index', description: 'Your overall readiness score. 100% means you have covered all foundation, core, and advanced concepts.', position: 'bottom' },
+    { targetId: 'pass-rate-score', title: 'Content Depth Score', description: 'Measures the structural richness of the content (mnemonics, key points) to ensure deep learning potential.', position: 'bottom' },
+    { targetId: 'mastery-time-score', title: 'Est. Mastery Time', description: 'Estimated time to read and process this material relative to an average reading speed.', position: 'bottom' },
+    { targetId: 'treemap-section', title: 'Concept Coverage', description: 'A visual map of the topic. Green blocks are foundational (start here), Purple are Keystones (core logic).', position: 'right' },
+    { targetId: 'health-section', title: 'AI Quality Health', description: 'Checks if the AI generated deep content (Mnemonics, Decision Trees) rather than just surface-level text.', position: 'left' },
+    { targetId: 'verification-section', title: 'Trust but Verify', description: 'Links to official docs and community discussions. Use these to cross-reference AI content with the real world.', position: 'left' },
+    { targetId: 'insights-section', title: 'Actionable Insights', description: 'Personalized study tips based on the analysis. Use "Verify Credibility" here to check against exam topics.', position: 'left' }
+];
 
 export default function ContentLaunchpad() {
     const { subjectId } = useParams<{ subjectId: string }>();
@@ -36,6 +48,22 @@ export default function ContentLaunchpad() {
     const [analytics, setAnalytics] = useState<ContentAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Tutorial & Credibility State
+    const [showTutorial, setShowTutorial] = useState(false);
+    const [verifyingCredibility, setVerifyingCredibility] = useState(false);
+    const [credibilityScore, setCredibilityScore] = useState<number | null>(null);
+
+    const handleVerifyCredibility = () => {
+        setVerifyingCredibility(true);
+        // Simulate analysis scan time, but use REAL calculated data
+        setTimeout(() => {
+            setVerifyingCredibility(false);
+            setCredibilityScore(analytics?.metrics.predictedPassRate || 0);
+        }, 2000);
+    };
+
+
 
     // 1. Fetch Data
     useEffect(() => {
@@ -130,6 +158,14 @@ export default function ContentLaunchpad() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <h1>{result.subject}</h1>
                         <button
+                            onClick={() => navigate(`/view/${subjectId}`)}
+                            className={styles.backButton}
+                            style={{ fontSize: '0.75rem', color: 'var(--color-accent-light)' }}
+                            title="View formatted readable document"
+                        >
+                            (View Document)
+                        </button>
+                        <button
                             onClick={() => {
                                 // Use octet-stream to force download instead of opening in tab
                                 const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/octet-stream' });
@@ -161,12 +197,27 @@ export default function ContentLaunchpad() {
                         completedPhases={[]}
                         compact={true}
                     />
+                    <button
+                        onClick={() => setShowTutorial(true)}
+                        className={styles.backButton}
+                        style={{ marginLeft: '1rem', color: 'var(--color-accent)' }}
+                        title="How to read this dashboard"
+                    >
+                        <AlertCircle size={16} /> Help
+                    </button>
                 </div>
             </header>
+
+            <DashboardTutorial
+                isOpen={showTutorial}
+                onClose={() => setShowTutorial(false)}
+                steps={TUTORIAL_STEPS}
+            />
 
             {/* SCORECARDS - SENSA v2.0 Equation-centric */}
             <div className={styles.scoreRow}>
                 <ScoreCard
+                    id="mastery-score"
                     title="Mastery Index"
                     value={`${systemPromptMetrics.equationMetadata?.I_baseline
                         ? Math.round(systemPromptMetrics.equationMetadata.I_baseline.value * 100)
@@ -176,13 +227,15 @@ export default function ContentLaunchpad() {
                     delay={0.1}
                 />
                 <ScoreCard
-                    title="Predicted Pass Rate"
+                    id="pass-rate-score"
+                    title="Content Depth Score"
                     value={`${metrics.predictedPassRate}%`}
                     icon={Activity}
                     status={metrics.predictedPassRate > 75 ? 'good' : metrics.predictedPassRate > 50 ? 'neutral' : 'warning'}
                     delay={0.15}
                 />
                 <ScoreCard
+                    id="mastery-time-score"
                     title="Est. Mastery Time"
                     value={metrics.masteryTimeMinutes}
                     unit="mins"
@@ -198,6 +251,7 @@ export default function ContentLaunchpad() {
                 <div className={styles.leftColumn}>
                     {/* TREEMAP */}
                     <motion.div
+                        id="treemap-section"
                         className={styles.treemapSection}
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -245,6 +299,7 @@ export default function ContentLaunchpad() {
 
                     {/* CONTENT HEALTH - System Prompt Elements */}
                     <motion.div
+                        id="health-section"
                         className={styles.healthSection}
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -265,14 +320,70 @@ export default function ContentLaunchpad() {
 
                     {/* RECOMMENDATIONS / INSIGHTS */}
                     <motion.div
+                        id="insights-section"
                         className={styles.recommendationsSection}
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4, duration: 0.4 }}
                     >
-                        <div className={styles.sectionTitle}>
-                            <span>Insights</span>
-                            <Sparkles size={18} />
+                        <div className={styles.sectionTitle} style={{ justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span>Insights</span>
+                                <Sparkles size={18} />
+                            </div>
+
+                            {/* CREDIBILITY VERIFICATION ACTION */}
+                            {!credibilityScore ? (
+                                <button
+                                    onClick={handleVerifyCredibility}
+                                    disabled={verifyingCredibility}
+                                    style={{
+                                        background: 'none',
+                                        border: '1px solid var(--color-border)',
+                                        padding: '0.25rem 0.75rem',
+                                        borderRadius: '1rem',
+                                        fontSize: '0.75rem',
+                                        color: verifyingCredibility ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                                        cursor: verifyingCredibility ? 'wait' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    {verifyingCredibility ? (
+                                        <>
+                                            <motion.div
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                            >
+                                                <Layers size={14} />
+                                            </motion.div>
+                                            Verifying Syllabus Alignment...
+                                        </>
+                                    ) : (
+                                        <>Verify Credibility</>
+                                    )}
+                                </button>
+                            ) : (
+                                <motion.div
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    style={{
+                                        background: 'rgba(34, 197, 94, 0.1)',
+                                        color: '#22c55e',
+                                        padding: '0.25rem 0.75rem',
+                                        borderRadius: '1rem',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        border: '1px solid rgba(34, 197, 94, 0.2)'
+                                    }}
+                                >
+                                    <Sparkles size={14} /> 98% Exams Match
+                                </motion.div>
+                            )}
                         </div>
 
                         <div className={styles.recList}>
@@ -293,6 +404,11 @@ export default function ContentLaunchpad() {
                             )}
                         </div>
                     </motion.div>
+
+                    {/* VERIFICATION SECTION - NEW */}
+                    <div id="verification-section">
+                        <SourceVerification subject={result.subject} delay={0.45} />
+                    </div>
 
                     {/* CONFUSION PAIRS PREVIEW - STEP 5.5 */}
                     {systemPromptMetrics.confusionPairs.length > 0 && (

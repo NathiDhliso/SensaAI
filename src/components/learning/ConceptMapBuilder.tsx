@@ -23,7 +23,8 @@ import {
     AlertTriangle,
     Undo2,
     Redo2,
-    X
+    X,
+    LayoutGrid
 } from 'lucide-react';
 import type { LearningConcept, ConceptMapData } from '@/lib/types/learning';
 import type { DependencyGraph, ValidationResult } from '@/lib/types/sensa-flow.types';
@@ -183,6 +184,39 @@ export default function ConceptMapBuilder({
 
     const canUndo = historyIndex >= 0;
     const canRedo = historyIndex < history.length - 1;
+
+    // =========================================================================
+    // AUTO-LAYOUT FUNCTION
+    // =========================================================================
+
+    const autoLayout = useCallback(() => {
+        if (nodes.length === 0) return;
+
+        pushHistory();
+
+        // Get canvas dimensions (or use defaults)
+        const canvasWidth = canvasRef.current?.clientWidth || 800;
+        const canvasHeight = canvasRef.current?.clientHeight || 600;
+
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+
+        // Calculate radius based on number of nodes (more nodes = larger radius)
+        const baseRadius = Math.min(canvasWidth, canvasHeight) * 0.35;
+        const radius = Math.max(baseRadius, nodes.length * 25);
+
+        // Arrange nodes in a circle
+        const layoutedNodes = nodes.map((node, index) => {
+            const angle = (2 * Math.PI * index) / nodes.length - Math.PI / 2; // Start from top
+            return {
+                ...node,
+                x: centerX + radius * Math.cos(angle),
+                y: centerY + radius * Math.sin(angle)
+            };
+        });
+
+        setNodes(layoutedNodes);
+    }, [nodes, pushHistory]);
 
     // =========================================================================
     // KEYBOARD SHORTCUTS
@@ -828,6 +862,14 @@ export default function ConceptMapBuilder({
                             title="Redo (Ctrl+Y)"
                         >
                             <Redo2 size={20} />
+                        </button>
+                        <div className={styles.toolbarDivider} />
+                        <button
+                            className={styles.toolButton}
+                            onClick={autoLayout}
+                            title="Auto-layout nodes"
+                        >
+                            <LayoutGrid size={20} />
                         </button>
                     </div>
                 )}

@@ -13,11 +13,14 @@ import { AlertCircle, Brain } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/hooks/useLearningFlow';
 import { useSensaFlow } from '@/hooks/useSensaFlow';
+import { useFlowState } from '@/hooks/useFlowState';
 
 // SENSA v2.0: MasteryDashboard will be used in COMPLETE phase - future implementation
 // import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
 import { EquationTracker } from '@/components/ui/EquationTracker';
 import { FlowProgressBar } from '@/components/ui/FlowProgressBar';
+import MomentumCheckpoint from '@/components/ui/MomentumCheckpoint';
+import SessionTimeToast from '@/components/ui/SessionTimeToast';
 import MicroLearningLoopController from '@/components/learning/MicroLearningLoopController';
 import DiagnosticLaunchSystem from '@/components/learning/DiagnosticLaunchSystem';
 import SessionStartModal from '@/components/learning/SessionStartModal';
@@ -25,6 +28,7 @@ import VelocityLockInGate from '@/components/learning/VelocityLockInGate';
 import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
 import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
 import MasteryChallenge from '@/components/learning/MasteryChallenge';
+import SensaSynopticView from '@/components/learning/SensaSynopticView';
 
 import type { SensaAILearningConcept } from '@/lib/content-adapter/transformer';
 import styles from './VelocityLearning.module.css';
@@ -33,6 +37,7 @@ export default function VelocityLearning() {
     // 1. Core State & Actions
     const {
         currentSession,
+        studySession,
         startDiagnostic,
         completeDiagnostic,
         startStudySession,
@@ -57,8 +62,26 @@ export default function VelocityLearning() {
     // 2b. SENSA v2.0 Flow State Machine
     const sensaFlow = useSensaFlow();
 
+    // 2c. Flow State Detection (Momentum Checkpoints)
+    const flowState = useFlowState();
+
     // 3. Local UI State
     const [lockedIn, setLockedIn] = useState(false);
+    const [showTimeToast, setShowTimeToast] = useState(false);
+    const [showCheckpoint, setShowCheckpoint] = useState(false);
+    const [timeToastDismissed, setTimeToastDismissed] = useState(false);
+
+    // DEBUG: Track phase changes
+    useEffect(() => {
+        console.log('[VelocityLearning] currentPhase changed:', currentPhase, { showStartModal, lockedIn });
+    }, [currentPhase, showStartModal, lockedIn]);
+
+    // Momentum Checkpoint: Show time toast when goal exceeded
+    useEffect(() => {
+        if (flowState.timeGoalExceeded && !timeToastDismissed && !flowState.isInFlow) {
+            setShowTimeToast(true);
+        }
+    }, [flowState.timeGoalExceeded, timeToastDismissed, flowState.isInFlow]);
 
     // 4. Effects
     // Initialize session timer
@@ -77,12 +100,16 @@ export default function VelocityLearning() {
 
     // 5. Handlers
     const handleStartSession = (goal: any, duration: number, primer?: { reason: string; action: string; reward: string }) => {
+        console.log('[VelocityLearning] handleStartSession called', { goal, duration, primer });
         startStudySession(goal, duration);
+        console.log('[VelocityLearning] startStudySession completed');
         if (primer) {
             setSessionPrimer(primer);
+            console.log('[VelocityLearning] setSessionPrimer completed');
         }
         // Lock-in state is implied by session start, but we update local UI state to be sure
         setLockedIn(true);
+        console.log('[VelocityLearning] setLockedIn(true) completed');
     };
 
     const handleScoutComplete = () => {
@@ -160,23 +187,27 @@ export default function VelocityLearning() {
             <main className={styles.content}>
                 <div className={styles.mainArea}>
 
-                    {/* SENSA v2.0: Equation Tracker - Always visible during learning */}
-                    <EquationTracker
-                        G={sensaFlow.G}
-                        Q_P={sensaFlow.Q_P}
-                        Q_M={sensaFlow.Q_M}
-                        Q_f={sensaFlow.Q_f}
-                        I={sensaFlow.I}
-                        weakestVariable={sensaFlow.weakestVariable.variable}
-                        compact={true}
-                    />
+                    {/* SENSA v2.0: Equation Tracker - Hide in Explore Mode */}
+                    {studySession?.goal !== 'explore' && (
+                        <>
+                            <EquationTracker
+                                G={sensaFlow.G}
+                                Q_P={sensaFlow.Q_P}
+                                Q_M={sensaFlow.Q_M}
+                                Q_f={sensaFlow.Q_f}
+                                I={sensaFlow.I}
+                                weakestVariable={sensaFlow.weakestVariable.variable}
+                                compact={true}
+                            />
 
-                    {/* SENSA v2.0: Flow Progress Bar */}
-                    <FlowProgressBar
-                        currentPhase={sensaFlow.phase}
-                        completedPhases={sensaFlow.completedSteps}
-                        compact={true}
-                    />
+                            {/* SENSA v2.0: Flow Progress Bar */}
+                            <FlowProgressBar
+                                currentPhase={sensaFlow.phase}
+                                completedPhases={sensaFlow.completedSteps}
+                                compact={true}
+                            />
+                        </>
+                    )}
 
                     {/* Main Content Switcher */}
                     <AnimatePresence mode="wait">
@@ -193,6 +224,46 @@ export default function VelocityLearning() {
                         totalConcepts={currentSession.concepts.length}
                         completedConcepts={currentSession.progress.completedConcepts.length}
                         onStart={handleStartSession}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Momentum Checkpoint System */}
+            <AnimatePresence>
+                {showTimeToast && (
+                    <SessionTimeToast
+                        targetMinutes={useLearningStore.getState().studySession?.targetDuration || 30}
+                        onKeepGoing={() => {
+                            setShowTimeToast(false);
+                            setTimeToastDismissed(true);
+                        }}
+                        onTakeBreak={() => {
+                            setShowTimeToast(false);
+                            setTimeToastDismissed(true);
+                            setShowCheckpoint(true);
+                        }}
+                        onDismiss={() => {
+                            setShowTimeToast(false);
+                            setTimeToastDismissed(true);
+                        }}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showCheckpoint && (
+                    <MomentumCheckpoint
+                        conceptsCompleted={useLearningStore.getState().studySession?.conceptsCompleted.length || 0}
+                        timeSpentMinutes={Math.floor(flowState.sessionDurationMs / 60000)}
+                        nextConcept={activeConcept || null}
+                        streakCount={flowState.streakCount}
+                        onContinue={() => {
+                            setShowCheckpoint(false);
+                        }}
+                        onExit={() => {
+                            // TODO: Navigate to recap screen
+                            setShowCheckpoint(false);
+                        }}
                     />
                 )}
             </AnimatePresence>
@@ -325,6 +396,18 @@ export default function VelocityLearning() {
 
             case 'COMPLETE':
             default:
+                // For explore mode (stressed users): Show calming browse experience
+                if (studySession?.goal === 'explore') {
+                    // Stressed Mode: Show "Sensa Synoptic View" (Mind Map)
+                    return (
+                        <SensaSynopticView
+                            concepts={currentSession!.concepts}
+                            subjectName={currentSession!.subject}
+                        />
+                    );
+                }
+
+                // Default: All caught up message
                 return (
                     <div className={styles.emptyState}>
                         <Brain size={48} className={styles.emptyIcon} />
