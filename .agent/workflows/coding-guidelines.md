@@ -802,46 +802,64 @@ docs/prompts/
 
 ---
 
-## 🚧 Forbidden Code Patterns - CRITICAL
+## 🚧 Automated CI Checks - CRITICAL
 
-The following patterns are **strictly forbidden** in the codebase. A CI check script (`scripts/check-hardcoded-subjects.ps1`) exists to detect violations.
+The `scripts/` directory contains PowerShell scripts to enforce coding guidelines. Run before every commit.
 
-### 1. Subject-Specific Conditional Logic
-
-**NEVER** hardcode subject names or create conditional branches based on specific subjects.
-
-```python
-# ❌ FORBIDDEN (Python)
-if "pl-300" in subject.lower() or "power bi" in subject.lower():
-    partitions = ["Data Prep", "Modeling", ...]  # Subject-specific logic
-
-# ❌ FORBIDDEN (TypeScript)
-if (subject.toLowerCase().includes("az-104")) {
-  // Subject-specific behavior
-}
-```
-
-**Why?** Subject-specific logic:
-- Violates the principle of dynamic subject handling.
-- Creates maintenance burden as new subjects are added.
-- Masks issues with the core generation prompt.
-
-**What to do instead?**
-- Design prompts and logic to work for **any** subject dynamically.
-- Use the `subject` variable as a pass-through parameter only.
-- If partitioning is needed, instruct the AI to derive partitions from the subject itself.
-
-### 2. Running the Check
-
-Before committing, run:
+### Quick Command (Run All)
 ```powershell
-pwsh scripts/check-hardcoded-subjects.ps1
+pwsh scripts/run-all-checks.ps1
 ```
 
-The script will:
-- Scan `src/` and `backend/` directories.
-- Detect patterns like `if "..." in subject`, `subject.toLowerCase().includes(...)`.
-- Exit with code `1` if violations are found.
+### Available Scripts
+
+| Script | Description | Rule Enforced |
+|--------|-------------|---------------|
+| `check-hardcoded-subjects.ps1` | Detects subject-specific conditional logic | Dynamic subjects only |
+| `check-hardcoded-colors.ps1` | Detects hex colors in TS/TSX files | Use COLORS constants |
+| `check-magic-timeouts.ps1` | Detects setTimeout with magic numbers | Use UI_TIMINGS |
+| `check-console-logs.ps1` | Detects console.log/debug statements | Remove before prod |
+| `check-any-types.ps1` | Detects explicit `any` type usage | Use specific types |
+| `run-all-checks.ps1` | Master script - runs all above checks | All rules |
+
+### Forbidden Patterns Detected
+
+**1. Subject-Specific Logic**
+```python
+# ❌ FORBIDDEN
+if "power bi" in subject.lower():
+    partitions = [...]
+```
+
+**2. Hardcoded Colors**
+```typescript
+// ❌ FORBIDDEN
+const color = "#3b82f6";
+// ✅ CORRECT  
+const color = COLORS.primary.blue;
+```
+
+**3. Magic Timeout Numbers**
+```typescript
+// ❌ FORBIDDEN
+setTimeout(() => {}, 2000);
+// ✅ CORRECT
+setTimeout(() => {}, UI_TIMINGS.TOAST_SHORT);
+```
+
+**4. Console Statements**
+```typescript
+// ❌ FORBIDDEN (in production)
+console.log("debug");
+```
+
+**5. Explicit 'any' Types**
+```typescript
+// ❌ FORBIDDEN
+function process(data: any) {}
+// ✅ CORRECT
+function process(data: ConceptData) {}
+```
 
 ---
 
