@@ -14,6 +14,24 @@ export interface ContentGap {
 }
 
 // Patterns that indicate placeholder/generic content (must be rejected)
+export interface VerifiableConcept {
+    id?: string;
+    name: string;
+    hookSentence?: string;
+    whyYouNeed?: string;
+    technicalDetails?: string;
+    realWorldExample?: string;
+    metaphor?: string;
+    mnemonic?: { anchor?: string; story?: string;[key: string]: unknown };
+    shape?: {
+        simpleCore?: string;
+        highStakesExample?: string;
+        analogicalModel?: string;
+        patternRecognition?: { question?: string; answer?: string };
+        eliminationLogic?: string;
+    };
+    [key: string]: unknown;
+}
 const PLACEHOLDER_PATTERNS = [
     'pending generation',
     'is a core concept',
@@ -132,27 +150,14 @@ export function auditConceptContent(concept: {
 /**
  * Validate a concept and return all missing/invalid fields
  */
-export function validateConceptContent(concept: {
-    id: string;
-    name: string;
-    hookSentence?: string;
-    whyYouNeed?: string;
-    technicalDetails?: string;
-    realWorldExample?: string;
-    metaphor?: string;
-    mnemonic?: { anchor?: string; story?: string };
-    shape?: {
-        simpleCore?: string;
-        highStakesExample?: string;
-        analogicalModel?: string;
-        patternRecognition?: { question?: string; answer?: string };
-        eliminationLogic?: string;
-    };
-}): ContentGap[] {
+export function validateConceptContent(concept: VerifiableConcept): ContentGap[] {
     const gaps: ContentGap[] = [];
 
+    // Ensure ID exists for reporting
+    // const conceptId = concept.id || 'unknown';
+
     // Check required fields
-    if (!isRealContent(concept.hookSentence, concept.name)) {
+    if (!isRealContent(concept.hookSentence || '', concept.name)) {
         gaps.push({
             field: 'hookSentence',
             conceptId: concept.id,
@@ -162,7 +167,7 @@ export function validateConceptContent(concept: {
         });
     }
 
-    if (!isRealContent(concept.whyYouNeed, concept.name)) {
+    if (!isRealContent(concept.whyYouNeed || '', concept.name)) {
         gaps.push({
             field: 'whyYouNeed',
             conceptId: concept.id,
@@ -172,7 +177,7 @@ export function validateConceptContent(concept: {
         });
     }
 
-    if (!isRealContent(concept.realWorldExample, concept.name)) {
+    if (!isRealContent(concept.realWorldExample || '', concept.name)) {
         gaps.push({
             field: 'realWorldExample',
             conceptId: concept.id,
@@ -183,7 +188,7 @@ export function validateConceptContent(concept: {
     }
 
     // Check mnemonic
-    if (!concept.mnemonic?.story || !isRealContent(concept.mnemonic.story, concept.name)) {
+    if (!concept.mnemonic?.story || !isRealContent(concept.mnemonic.story || '', concept.name)) {
         gaps.push({
             field: 'mnemonic.story',
             conceptId: concept.id,
@@ -194,7 +199,7 @@ export function validateConceptContent(concept: {
     }
 
     // Check SHAPE content
-    if (!concept.shape?.simpleCore || !isRealContent(concept.shape.simpleCore, concept.name)) {
+    if (!concept.shape?.simpleCore || !isRealContent(concept.shape.simpleCore || '', concept.name)) {
         gaps.push({
             field: 'shape.simpleCore',
             conceptId: concept.id,
@@ -204,7 +209,7 @@ export function validateConceptContent(concept: {
         });
     }
 
-    if (!concept.shape?.highStakesExample || !isRealContent(concept.shape.highStakesExample, concept.name)) {
+    if (!concept.shape?.highStakesExample || !isRealContent(concept.shape.highStakesExample || '', concept.name)) {
         gaps.push({
             field: 'shape.highStakesExample',
             conceptId: concept.id,
@@ -239,15 +244,15 @@ export function hasCriticalGaps(concept: Parameters<typeof validateConceptConten
  * @returns true if repair is valid
  */
 export function verifyRepair(
-    original: { name: string;[key: string]: any },
-    repaired: { name: string;[key: string]: any }
+    original: VerifiableConcept,
+    repaired: VerifiableConcept
 ): boolean {
     // 1. Check if name changed (forbidden unless explicit rename strategy)
     if (original.name !== repaired.name) return false;
 
     // 2. Run standard validation on repaired version
     // Check if it still has critical gaps
-    const gaps = validateConceptContent(repaired as any);
+    const gaps = validateConceptContent(repaired);
     if (gaps.some(g => g.severity === 'critical')) return false;
 
     // 3. Check for specific regression: Circular Metaphors

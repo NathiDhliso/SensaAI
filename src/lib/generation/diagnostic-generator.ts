@@ -170,18 +170,33 @@ Return a JSON object with concept IDs as keys:
       const conceptQuestions = rawQuestions[concept.id] || [];
 
       if (Array.isArray(conceptQuestions)) {
-        const validatedQuestions = conceptQuestions.map((q: any, index: number) => ({
-          id: q.id || `diag-${concept.id}-${index + 1}`,
-          question: q.question || `What is the purpose of ${concept.name}?`,
-          type: ['multiple-choice', 'true-false', 'short-answer'].includes(q.type)
-            ? q.type as 'multiple-choice' | 'true-false' | 'short-answer'
-            : 'multiple-choice',
-          options: Array.isArray(q.options) ? q.options : undefined,
-          correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
-          expectedTime: typeof q.expectedTime === 'number' ? q.expectedTime : 30,
-          keyPoints: Array.isArray(q.keyPoints) ? q.keyPoints : [concept.hookSentence],
-          rationale: q.rationale || 'Tests existing knowledge of concept'
-        }));
+        const validatedQuestions = conceptQuestions.map((qItem: unknown, index: number) => {
+          const q = qItem as {
+            id?: string;
+            question?: string;
+            type?: string;
+            options?: string[];
+            correctAnswer?: number;
+            keyPoints?: string[];
+            rationale?: string;
+            expectedTime?: number;
+            complexity?: string;
+          };
+
+          return {
+            id: q.id || `diag-${concept.id}-${index + 1}`,
+            question: q.question || `What is the purpose of ${concept.name}?`,
+            type: ['multiple-choice', 'true-false', 'short-answer'].includes(q.type || '')
+              ? (q.type as 'multiple-choice' | 'true-false' | 'short-answer')
+              : 'multiple-choice',
+            options: Array.isArray(q.options) ? q.options : undefined,
+            correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
+            expectedTime: typeof q.expectedTime === 'number' ? q.expectedTime : 30,
+            keyPoints: Array.isArray(q.keyPoints) ? q.keyPoints : [concept.hookSentence || 'Concept mastery'],
+            rationale: q.rationale || 'Tests existing knowledge of concept',
+            complexity: (q.complexity as 'basic' | 'intermediate' | 'advanced') || 'intermediate'
+          };
+        });
 
         questionMap.set(concept.id, validatedQuestions);
       } else {

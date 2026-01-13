@@ -112,11 +112,10 @@ export const CoverageTreemap: React.FC<CoverageTreemapProps> = ({ data }) => {
             }}
         >
             <div style={{ width: '100%', height: 'calc(100% - 20px)', minHeight: '300px', flex: 1 }}>
-                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                <ResponsiveContainer width="100%" height="100%" minHeight={300} minWidth={200}>
                     <Treemap
                         data={data}
                         dataKey="size"
-                        aspectRatio={4 / 3}
                         stroke="transparent"
                         fill={COLORS.accent.light}
                         content={(props) => <CustomizedContent {...(props as CustomizedContentProps)} />}

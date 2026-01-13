@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Cloud, X, Check, Download, Calendar, BookOpen, RefreshCw, CheckCircle2, AlertCircle, Layers, FileJson, FileText } from 'lucide-react';
 import { storageManager } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage/types';
+import type { ParsedConcept } from '@/lib/content-adapter/types';
 import { parseContent } from '@/lib/content-adapter/json-content-parser';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { UI_TIMINGS } from '@/constants/ui-constants';
@@ -176,11 +177,10 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
                 content += `=================================================\n\n`;
                 content += `[ CONCEPTS & MNEMONICS ]\n\n`;
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const concepts = fullData.concepts as any[];
+                const concepts = fullData.concepts as ParsedConcept[];
 
                 if (concepts && Array.isArray(concepts)) {
-                    concepts.forEach((c: any, i: number) => {
+                    concepts.forEach((c: ParsedConcept, i: number) => {
                         content += `${i + 1}. ${c.name.toUpperCase()}\n`;
                         const tier = c.tier || (c.mnemonic && c.mnemonic.tier) || 'Uncategorized';
                         const displayTier = tier.charAt(0).toUpperCase() + tier.slice(1);

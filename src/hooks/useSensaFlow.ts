@@ -9,7 +9,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import type { SensaPhase, DependencyGraph, ValidationResult, EquationMetadata } from '@/lib/types/sensa-flow.types';
-import type { ConceptMapData } from '@/lib/types/learning';
+import type { ConceptMapData, StudySession } from '@/lib/types/learning';
 import {
     calculateMasteryIndex,
     hasMastery,
@@ -72,7 +72,7 @@ export interface SensaFlowActions {
 
     // Utilities
     reset: () => void;
-    syncFromStore: (session: any) => void;
+    syncFromStore: (session: StudySession) => void;
 }
 
 export interface UseSensaFlowReturn extends SensaFlowState, SensaFlowActions {
@@ -278,7 +278,7 @@ export function useSensaFlow(): UseSensaFlowReturn {
         setState(createInitialState());
     }, []);
 
-    const syncFromStore = useCallback((studySession: any) => {
+    const syncFromStore = useCallback((studySession: StudySession) => {
         if (!studySession) return;
 
         setState(prev => {

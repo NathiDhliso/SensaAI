@@ -1,6 +1,7 @@
 import { conceptsApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import type { ProgressCallback, GenerationResult, ValidationResult } from '@/lib/types/generation';
+import type { ParsedConcept } from '@/lib/content-adapter/types';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 
 /**
@@ -27,7 +28,7 @@ export async function generateWithBackend(
     onProgress: ProgressCallback,
     abortSignal?: AbortSignal,
     context?: string,
-    startFromPass: number = 1
+    _startFromPass: number = 1
 ): Promise<GenerationResult> {
     // Get user ID from auth store
     const { user } = useAuthStore.getState();
@@ -49,7 +50,7 @@ export async function generateWithBackend(
             message: `Crafting curriculum... (${Math.round(simProgress)}%)`,
             progress: simProgress,
         });
-    }, 1000);
+    }, UI_TIMINGS.ONE_SECOND);
 
     try {
         const generateResponse = await conceptsApi.generate({
@@ -184,64 +185,64 @@ export async function generateWithBackend(
  * Build a full document from concepts in the format expected by the content parser.
  * This creates the JSON structure that parseGeneratedContent expects.
  */
-export function buildDocumentFromConcepts(subject: string, concepts: Array<{
-    id?: string;
-    name: string;
-    tier: string;
-    stageId: string;
-    description?: string;
-    keyPoints?: string[];
-    prerequisiteWeight?: number;
-    displayProperties?: { emoji?: string; category?: string };
-}>): string {
-    const conceptBlocks = concepts.map((concept: any, index) => ({
-        order: index + 1,
-        name: concept.name,
-        tier: concept.tier,
-        stageId: concept.stageId,
-        description: concept.description || concept.phase1?.hookSentence || `Core concept in ${subject}`,
-        keyPoints: concept.keyPoints || [],
-        prerequisiteWeight: concept.prerequisiteWeight || 0.5,
-        displayProperties: concept.displayProperties || {
-            emoji: '📚',
-            category: concept.tier,
-        },
-        // Use real AI-generated content if available, otherwise fallback (which shouldn't happen with strict policy)
-        mnemonic: concept.mnemonic || {
-            tier: concept.tier === 'foundation' ? 'Foundation' : concept.tier === 'keystone' ? 'Keystone' : 'Utility',
-            anchor: `${concept.displayProperties?.emoji || '📚'} ${concept.name}`,
-            story: `Understanding ${concept.name} in the context of ${subject}`,
-        },
-        phase1: concept.phase1 || {
-            hookSentence: `Why ${concept.name} matters in ${subject}`,
-            microMetaphor: `Think of ${concept.name} as a building block`,
-            prerequisite: 'None',
-            selection: [
-                `What is ${concept.name}?`,
-                `When to use ${concept.name}`,
+export function buildDocumentFromConcepts(subject: string, concepts: ParsedConcept[]): string {
+    const conceptBlocks = concepts.map((c, index) => {
+        const concept = c as ParsedConcept & {
+            description?: string;
+            keyPoints?: string[];
+            prerequisiteWeight?: number;
+            displayProperties?: { emoji?: string; category?: string };
+        };
+
+        return {
+            order: index + 1,
+            name: concept.name,
+            tier: concept.tier,
+            stageId: concept.stageId,
+            description: concept.description || concept.phase1?.hookSentence || `Core concept in ${subject}`,
+            keyPoints: concept.keyPoints || [],
+            prerequisiteWeight: concept.prerequisiteWeight || 0.5,
+            displayProperties: concept.displayProperties || {
+                emoji: '📚',
+                category: concept.tier,
+            },
+            // Use real AI-generated content if available, otherwise fallback (which shouldn't happen with strict policy)
+            mnemonic: concept.mnemonic || {
+                tier: concept.tier === 'foundation' ? 'Foundation' : concept.tier === 'keystone' ? 'Keystone' : 'Utility',
+                anchor: `${concept.displayProperties?.emoji || '📚'} ${concept.name}`,
+                story: `Understanding ${concept.name} in the context of ${subject}`,
+            },
+            phase1: concept.phase1 || {
+                hookSentence: `Why ${concept.name} matters in ${subject}`,
+                microMetaphor: `Think of ${concept.name} as a building block`,
+                prerequisite: 'None',
+                selection: [
+                    `What is ${concept.name}?`,
+                    `When to use ${concept.name}`,
+                ],
+                execution: `Apply ${concept.name} in practice`,
+            },
+            phase2: concept.phase2 || (concept.keyPoints?.map((point: string) => ({
+                title: point,
+                content: `Detailed explanation of ${point}`,
+            })) || []),
+            phase3: concept.phase3 || {
+                tool: `${concept.name} toolkit`,
+                metrics: ['Effectiveness', 'Efficiency'],
+                thresholds: 'Meet all criteria',
+            },
+            shape: concept.shape || {}, // Ensure SHAPE is passed through!
+            criticalDistinctions: concept.criticalDistinctions || [
+                { correct: `Proper use of ${concept.name}`, incorrect: 'Common misunderstanding' },
             ],
-            execution: `Apply ${concept.name} in practice`,
-        },
-        phase2: concept.phase2 || (concept.keyPoints?.map((point: string) => ({
-            title: point,
-            content: `Detailed explanation of ${point}`,
-        })) || []),
-        phase3: concept.phase3 || {
-            tool: `${concept.name} toolkit`,
-            metrics: ['Effectiveness', 'Efficiency'],
-            thresholds: 'Meet all criteria',
-        },
-        shape: concept.shape || {}, // Ensure SHAPE is passed through!
-        criticalDistinctions: concept.criticalDistinctions || [
-            { correct: `Proper use of ${concept.name}`, incorrect: 'Common misunderstanding' },
-        ],
-        designBoundaries: concept.designBoundaries || [
-            { boundary: 'Scope', rationale: 'Stay focused' },
-        ],
-        examFocus: concept.examFocus || [
-            { point: `Key exam topic for ${concept.name}`, weight: 'High' },
-        ],
-    }));
+            designBoundaries: concept.designBoundaries || [
+                { boundary: 'Scope', rationale: 'Stay focused' },
+            ],
+            examFocus: concept.examFocus || [
+                { point: `Key exam topic for ${concept.name}`, weight: 'High' },
+            ],
+        };
+    });
 
     // Return as JSON that the parser expects
     return JSON.stringify({
@@ -273,7 +274,7 @@ export async function surgicallyRepairConcept(
             issue,
             userId,
             // currentContent removed as it's not in the API signature
-        })) as unknown as { status?: string; concept?: any;[key: string]: any };
+        })) as unknown as { status?: string; concept?: unknown;[key: string]: unknown };
 
         if (response.status === 'completed' && response.concept) {
             return response.concept;

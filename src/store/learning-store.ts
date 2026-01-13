@@ -159,6 +159,7 @@ const createStudySession = (
   goal: StudyGoal,
   targetDuration: number,
   targetConcepts: string[] = [],
+  primer: SessionPrimer | null = null,
   targetPhases: LifecyclePhaseKey[] = ['phase1', 'phase2', 'phase3']
 ): StudySession => ({
   id: `study-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -176,7 +177,7 @@ const createStudySession = (
   isActive: true,
   goalAchieved: false,
   // SENSA Phase 0: See
-  primer: null,
+  primer: primer,
   // SENSA Phase 1: Explore
   scouted: false,
   // SENSA Explore+
@@ -315,7 +316,7 @@ type LearningActions = {
   getDiagnosticSession: () => DiagnosticSession | null;
 
   // Study Session Actions
-  startStudySession: (goal: StudyGoal, duration: number, targetConcepts?: string[]) => void;
+  startStudySession: (goal: StudyGoal, duration: number, targetConcepts?: string[], primer?: SessionPrimer | null) => void;
   setSessionPrimer: (primer: SessionPrimer) => void;
   markSessionScouted: () => void;
   markSessionPreviewed: () => void;
@@ -533,10 +534,10 @@ export const useLearningStore = create<LearningState & LearningActions>()(
       // STUDY SESSION ACTIONS
       // =====================================================================
 
-      startStudySession: (goal, duration, targetConcepts = []) => {
+      startStudySession: (goal, duration, targetConcepts = [], primer = null) => {
         const state = get();
         const subjectId = state.currentSession?.subjectId || 'unknown';
-        const session = createStudySession(subjectId, goal, duration, targetConcepts);
+        const session = createStudySession(subjectId, goal, duration, targetConcepts, primer);
         set({ studySession: session, showSessionModal: false });
       },
 

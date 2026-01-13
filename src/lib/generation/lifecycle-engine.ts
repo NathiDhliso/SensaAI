@@ -6,6 +6,8 @@
  * expensive AI regeneration.
  */
 
+import type { ParsedConcept } from '@/lib/content-adapter/types';
+
 export class SelfHealingEngine {
 
   /**
@@ -14,7 +16,7 @@ export class SelfHealingEngine {
    * @param field The dot-notation path to the field (e.g., 'phase3.tool')
    * @returns The repaired concept
    */
-  public repairField(concept: any, field: string): any {
+  public repairField(concept: ParsedConcept, field: string): ParsedConcept {
     const repaired = JSON.parse(JSON.stringify(concept)); // Deep clone
     const value = this.getTemplateValue(field, concept.name);
 
@@ -25,7 +27,7 @@ export class SelfHealingEngine {
   /**
    * Get the template value for a given field
    */
-  private getTemplateValue(field: string, conceptName: string): any {
+  private getTemplateValue(field: string, conceptName: string): string | string[] {
     switch (field) {
       case 'phase1.prerequisite':
         return 'None';
@@ -50,16 +52,16 @@ export class SelfHealingEngine {
   /**
    * Set value at nested object path
    */
-  private setNestedValue(obj: any, path: string, value: any): void {
+  private setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): void {
     const parts = path.split('.');
-    let current = obj;
+    let current: Record<string, unknown> = obj;
 
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
       if (!current[part]) {
         current[part] = {};
       }
-      current = current[part];
+      current = current[part] as Record<string, unknown>;
     }
 
     current[parts[parts.length - 1]] = value;

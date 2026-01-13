@@ -74,7 +74,7 @@ export default function SavedResults() {
         r.subject.toLowerCase().includes(query) ||
         r.pass1Data.domain.toLowerCase().includes(query) ||
         // r.pass1Data.roleScope.toLowerCase().includes(query) // roleScope might not exist on all pass1Data versions
-        (r.pass1Data as any).roleScope?.toLowerCase().includes(query)
+        (r.pass1Data as { roleScope?: string }).roleScope?.toLowerCase().includes(query)
       );
     }
 

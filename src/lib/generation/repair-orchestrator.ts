@@ -6,19 +6,18 @@
  */
 
 import type { ContentGap } from '@/lib/validation/content-quality.ts';
-import type { RepairPlan, RepairAction, RepairStrategy } from '@/lib/types/generation';
-import { isRealContent, verifyRepair } from '@/lib/validation/content-quality';
+import type { RepairPlan, RepairAction } from '@/lib/types/generation';
+import { verifyRepair, type VerifiableConcept } from '@/lib/validation/content-quality';
 import { SelfHealingEngine } from './lifecycle-engine';
 import { surgicallyRepairConcept } from './backend-generator';
 import type { ParsedConcept } from '@/lib/content-adapter/types';
-import { performanceMonitor } from '@/lib/monitoring/performance';
 
 export class RepairStrategyRouter {
 
     /**
      * Route a list of content gaps to specific repair actions
      */
-    public generateRepairPlan(gaps: ContentGap[], concepts: any[]): RepairPlan {
+    public generateRepairPlan(gaps: ContentGap[], concepts: ParsedConcept[]): RepairPlan {
         const actions: RepairAction[] = [];
 
         for (const gap of gaps) {
@@ -39,19 +38,19 @@ export class RepairStrategyRouter {
     /**
      * Determine the best strategy for a specific gap
      */
-    private determineStrategy(gap: ContentGap, concepts: any[]): RepairAction | null {
+    private determineStrategy(gap: ContentGap, concepts: ParsedConcept[]): RepairAction | null {
         const concept = concepts.find(c => c.id === gap.conceptId);
         if (!concept) return null;
 
         // 1. Analyze the specific field
-        const fieldContent = this.getNestedValue(concept, gap.field);
+        const fieldContent = this.getNestedValue(concept as unknown as Record<string, unknown>, gap.field);
 
         // 2. Check if content exists but is "Fluff" (Hallucination/Placeholder)
         // using isRealContent logic implicitly (since gap exists, it failed validation)
         // We re-check specific patterns to decide strategy.
 
-        const isFluff = fieldContent && typeof fieldContent === 'string' && fieldContent.length > 5;
-        const isEmpty = !fieldContent || fieldContent.length === 0;
+        const isFluff = fieldContent && typeof fieldContent === 'string' && (fieldContent as string).length > 5;
+        const isEmpty = !fieldContent || (fieldContent as string).length === 0;
 
         // STRATEGY 1: SELF-HEAL (Templates)
         // Use for missing generic fields or structural gaps that don't need deep intelligence
@@ -113,8 +112,8 @@ export class RepairStrategyRouter {
     /**
      * Get value from nested object path
      */
-    private getNestedValue(obj: any, path: string): any {
-        return path.split('.').reduce((prev, curr) => prev ? prev[curr] : undefined, obj);
+    private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
+        return path.split('.').reduce<unknown>((prev, curr) => prev ? (prev as Record<string, unknown>)[curr] : undefined, obj);
     }
 
     /**
@@ -147,17 +146,14 @@ export class RepairStrategyRouter {
     ): Promise<ParsedConcept[]> {
         const engine = new SelfHealingEngine();
         // Clone to avoid mutating state directly
-        let repairedConcepts = JSON.parse(JSON.stringify(concepts));
+        const repairedConcepts: ParsedConcept[] = JSON.parse(JSON.stringify(concepts));
 
         let processed = 0;
         const total = plan.actions.length;
-        const startTime = Date.now();
-
         for (const action of plan.actions) {
-            const actionStart = Date.now();
             onProgress?.(processed, total, `Fixing ${action.field} in ${action.conceptId}`);
 
-            const conceptIndex = repairedConcepts.findIndex((c: any) => c.id === action.conceptId);
+            const conceptIndex = repairedConcepts.findIndex((c: ParsedConcept) => c.id === action.conceptId);
             if (conceptIndex === -1) {
                 processed++;
                 continue;
@@ -172,12 +168,12 @@ export class RepairStrategyRouter {
                 }
                 else if (action.strategy === 'SURGICAL_AI') {
                     // Smart AI fix
-                    const repaired = await surgicallyRepairConcept(subject, concept.name, action.reason);
+                    const repaired = (await surgicallyRepairConcept(subject, concept.name, action.reason)) as ParsedConcept;
 
                     if (repaired) {
                         // Validate before merging
                         // Validate before merging using the correct 2-argument signature
-                        const isValid = verifyRepair(concept, repaired);
+                        const isValid = verifyRepair(concept as unknown as VerifiableConcept, repaired as unknown as VerifiableConcept);
 
                         if (isValid) {
                             // Merge the repaired content
@@ -187,8 +183,7 @@ export class RepairStrategyRouter {
                                 id: concept.id, // Preserve ID
                                 order: concept.order, // Preserve order
                                 stageId: concept.stageId, // Preserve stage
-                                dependencies: concept.dependencies, // Preserve dependencies (unless specifically fixing them)
-                            };
+                            } as ParsedConcept;
                         } else {
                             // Re-run validation to log specific errors
                             // We don't import validateConceptContent here to avoid circular deps if possible

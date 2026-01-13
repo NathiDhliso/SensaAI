@@ -282,11 +282,11 @@ export default function Settings() {
             </div>
 
             <div className={styles.settingRow}>
-              <div className={styles.settingDescription}>
-                <strong>Stress-Free Mode</strong>
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+              <div className={styles.settingInfo}>
+                <span className={styles.settingLabel}>Stress-Free Mode</span>
+                <span className={styles.settingDesc}>
                   Shorter AI explanations and forced Bionic Text for easier reading.
-                </p>
+                </span>
               </div>
               <button
                 onClick={() => setStressFreeMode(!stressFreeMode)}

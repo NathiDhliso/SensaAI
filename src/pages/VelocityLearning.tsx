@@ -32,7 +32,6 @@ import MasteryChallenge from '@/components/learning/MasteryChallenge';
 import SensaSynopticView from '@/components/learning/SensaSynopticView';
 
 import type {
-    SessionRecommendation,
     StudyGoal,
     LearningConcept
 } from '@/lib/types/learning';
@@ -51,7 +50,6 @@ export default function VelocityLearning() {
         setCurrentConcept,
         getNextConcept,
         startSession,
-        setSessionPrimer,
         markSessionScouted,
         markSessionPreviewed,
         markSessionMapBuilt,
@@ -117,10 +115,9 @@ export default function VelocityLearning() {
 
     // 5. Handlers
     const handleStartSession = (goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
-        startStudySession(goal, duration);
-        if (primer) {
-            setSessionPrimer(primer);
-        }
+        // Pass primer atomically to ensure correct initial phase state (avoids PRIME phase sticking)
+        startStudySession(goal, duration, [], primer || null);
+
         // Lock-in state is implied by session start, but we update local UI state to be sure
         setLockedIn(true);
     };

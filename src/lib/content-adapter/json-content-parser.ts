@@ -503,21 +503,31 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
         const jsonObjectRegex = /```json\s*(\{[\s\S]*?\})\s*```/g;
 
         // Helper to process JSON data
-        const processMnemonicData = (data: any[]) => {
+        const processMnemonicData = (data: unknown[]) => {
             if (!Array.isArray(data)) return;
 
-            data.forEach((item: any) => {
+            data.forEach((item: unknown) => {
                 // Check if item IS the mnemonic object or CONTAINs it
-                const mnemonicData = item.mnemonic || item;
-                const anchor = mnemonicData.anchor || item.anchor;
-                const story = mnemonicData.story || item.story;
+                const mItem = item as {
+                    mnemonic?: { anchor?: string; story?: string; tier?: string };
+                    anchor?: string;
+                    story?: string;
+                    name?: string;
+                    conceptName?: string;
+                    parentConcept?: string;
+                    parentName?: string;
+                    tier?: string;
+                };
+                const mnemonicData = mItem.mnemonic || mItem;
+                const anchor = mnemonicData.anchor || mItem.anchor;
+                const story = mnemonicData.story || mItem.story;
 
                 if (!anchor && !story) return;
 
                 // Fuzzy match name
                 const concept = concepts.find(c =>
-                    c.name.toLowerCase().includes((item.name || item.conceptName || '').toLowerCase()) ||
-                    (item.name && c.name.toLowerCase().includes(item.name.toLowerCase()))
+                    c.name.toLowerCase().includes((mItem.name || mItem.conceptName || '').toLowerCase()) ||
+                    (mItem.name && c.name.toLowerCase().includes(mItem.name.toLowerCase()))
                 );
 
                 if (concept) {
@@ -527,10 +537,10 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
                     const curStory = concept.mnemonic?.story || '';
 
                     concept.mnemonic = {
-                        tier: (item.tier as any) || curTier,
+                        tier: (mItem.tier as 'foundation' | 'keystone' | 'utility') || curTier,
                         anchor: anchor || curAnchor,
                         story: story || curStory,
-                        parentName: mnemonicData.parentConcept || mnemonicData.parentName || undefined,
+                        parentName: mItem.parentConcept || mItem.parentName || undefined,
                     };
                 }
             });
@@ -860,7 +870,7 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
             prerequisite,
             selection,
             execution,
-            ...((c.lifecycle as any)?.phase1 || {}),
+            ...((c.lifecycle && typeof c.lifecycle === 'object' ? (c.lifecycle as Record<string, unknown>).phase1 as Record<string, unknown> : {}) || {}),
             ...((c.phase1 && typeof c.phase1 === 'object') ? c.phase1 as Record<string, unknown> : {})
         },
         phase2,

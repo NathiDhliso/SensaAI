@@ -65,7 +65,7 @@ export interface TreePacket {
     score: number;  // Represents quality/coverage (0-100)
     tier?: 'Foundation' | 'Keystone' | 'Utility' | 'foundation' | 'keystone' | 'utility';
     children?: TreePacket[];
-    [key: string]: any; // Index signature for Recharts
+    [key: string]: unknown; // Index signature for Recharts
 }
 
 export interface ContentAnalytics {
