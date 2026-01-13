@@ -35,8 +35,8 @@ const CustomizedContent = (props: any) => {
     const style = isLeaf ? getStyle(category) : { fill: 'none', opacity: 0, stroke: 'none' };
 
     // Text colors - using white for visibility on colored backgrounds
-    const textColor = '#fff';
-    const subTextColor = 'rgba(255, 255, 255, 0.9)';
+    const textColor = COLORS.white;
+    const subTextColor = COLORS.white;
 
     // Only render if it's a leaf node to avoid group overlaps
     if (!isLeaf) return null;
@@ -50,7 +50,7 @@ const CustomizedContent = (props: any) => {
                 height={height}
                 fill={style.fill}
                 fillOpacity={style.opacity}
-                stroke="#fff"
+                stroke={COLORS.white}
                 strokeWidth={2} // Strong border to separate tiles
                 rx={6}
                 ry={6}
@@ -64,7 +64,7 @@ const CustomizedContent = (props: any) => {
                         fill={textColor}
                         fontSize={Math.min(11, width / 12)}
                         fontWeight={600}
-                        style={{ pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
+                        style={{ pointerEvents: 'none', textShadow: 'var(--shadow-sm)' }}
                     >
                         {name.length > 20 ? name.substring(0, 18) + '...' : name}
                     </text>
@@ -114,7 +114,7 @@ export const CoverageTreemap: React.FC<CoverageTreemapProps> = ({ data }) => {
                                 background: 'white',
                                 border: '1px solid #e5e7eb',
                                 borderRadius: '12px',
-                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                                boxShadow: 'var(--shadow-md)',
                                 padding: '0.75rem 1rem',
                             }}
                             itemStyle={{ color: COLORS.text.medium, fontSize: '0.875rem' }}

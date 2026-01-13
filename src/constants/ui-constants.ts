@@ -65,6 +65,11 @@ export const UI_TIMINGS = {
   TOAST_MEDIUM: 3000,       // For confirmation messages
   TOAST_LONG: 5000,         // For error messages, welcome toasts
 
+  // Generic Delays
+  DELAY_FAST: 200,
+  DELAY_SHORT: 500,
+  DELAY_MEDIUM: 1500,
+
   // Interaction delays
   BLUR_DELAY: 200,          // Delay before closing dropdowns on blur
   DEBOUNCE_DEFAULT: 300,    // Default debounce for inputs

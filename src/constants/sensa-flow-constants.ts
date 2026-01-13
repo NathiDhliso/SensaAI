@@ -150,7 +150,7 @@ export const EQUATION_COLORS = {
 
 // Fallback colors if CSS vars not defined
 export const EQUATION_COLORS_HEX = {
-    G: '#6366f1',             // Indigo (Custom for Governance)
+    G: COLORS.primary.indigo,             // Indigo (Custom for Governance)
     Q_P: COLORS.success,      // #22c55e - Green
     Q_M: COLORS.warning,      // #f59e0b - Amber
     Q_f: COLORS.secondary.rose, // #ec4899 - Pink

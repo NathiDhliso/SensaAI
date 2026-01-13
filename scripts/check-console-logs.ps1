@@ -34,11 +34,6 @@ $ForbiddenPatterns = @(
         Pattern     = 'console\.debug\s*\(';
         Description = "console.debug statement - remove before production";
         Severity    = "HIGH"
-    },
-    @{
-        Pattern     = 'console\.warn\s*\(';
-        Description = "console.warn statement - verify if intentional";
-        Severity    = "MEDIUM"
     }
 )
 

@@ -543,7 +543,7 @@ export default function ContentLaunchpad() {
                                     initial={{ scale: 0.8, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     style={{
-                                        background: `rgba(34, 197, 94, 0.1)`,
+                                        background: 'var(--color-success-bg)',
                                         color: COLORS.success,
                                         padding: '0.25rem 0.75rem',
                                         borderRadius: '1rem',
@@ -552,7 +552,7 @@ export default function ContentLaunchpad() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '0.5rem',
-                                        border: '1px solid rgba(34, 197, 94, 0.2)'
+                                        border: '1px solid var(--color-success-border)'
                                     }}
                                 >
                                     <Sparkles size={14} /> 98% Exams Match

@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Flame, X } from 'lucide-react';
-import { MOMENTUM_CHECKPOINT } from '@/constants/ui-constants';
+import { MOMENTUM_CHECKPOINT, UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './SessionTimeToast.module.css';
 
 interface SessionTimeToastProps {
@@ -44,17 +44,17 @@ export default function SessionTimeToast({
 
     const handleKeepGoing = () => {
         setIsVisible(false);
-        setTimeout(onKeepGoing, 200);
+        setTimeout(onKeepGoing, UI_TIMINGS.DELAY_FAST);
     };
 
     const handleTakeBreak = () => {
         setIsVisible(false);
-        setTimeout(onTakeBreak, 200);
+        setTimeout(onTakeBreak, UI_TIMINGS.DELAY_FAST);
     };
 
     const handleDismiss = () => {
         setIsVisible(false);
-        setTimeout(onDismiss, 200);
+        setTimeout(onDismiss, UI_TIMINGS.DELAY_FAST);
     };
 
     return (

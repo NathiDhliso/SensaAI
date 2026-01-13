@@ -122,7 +122,7 @@ export function DashboardTutorial({ isOpen, onClose, steps }: DashboardTutorialP
                         style={{
                             position: 'absolute',
                             inset: 0,
-                            background: 'rgba(0, 0, 0, 0.75)',
+                            background: 'var(--overlay-black-60)',
                             transition: 'background 0.3s'
                         }}
                     >
@@ -164,7 +164,7 @@ export function DashboardTutorial({ isOpen, onClose, steps }: DashboardTutorialP
                                 padding: '1.5rem',
                                 borderRadius: '1rem',
                                 border: '1px solid var(--color-border)',
-                                boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                                boxShadow: 'var(--shadow-xl)',
                                 color: 'var(--color-text-primary)'
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>

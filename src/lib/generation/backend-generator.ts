@@ -1,6 +1,7 @@
 import { conceptsApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import type { ProgressCallback, GenerationResult, ValidationResult } from '@/lib/types/generation';
+import { UI_TIMINGS } from '@/constants/ui-constants';
 
 /**
  * Uploads the raw exam/blueprint file to the secure storage bucket.
@@ -12,7 +13,7 @@ export async function uploadExamBlueprint(file: File): Promise<string> {
     // await fetch(response.url, { method: 'PUT', body: file });
 
     // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, UI_TIMINGS.DELAY_MEDIUM));
 
     return `s3://sensa-blueprints/${Date.now()}/${file.name}`;
 }

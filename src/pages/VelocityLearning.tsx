@@ -14,6 +14,7 @@ import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/hooks/useLearningFlow';
 import { useSensaFlow } from '@/hooks/useSensaFlow';
 import { useFlowState } from '@/hooks/useFlowState';
+import { UI_TIMINGS } from '@/constants/ui-constants';
 
 // SENSA v2.0: MasteryDashboard will be used in COMPLETE phase - future implementation
 // import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
@@ -144,7 +145,7 @@ export default function VelocityLearning() {
     // Hydration grace period: Wait briefly for parent Study.tsx to hydrate before showing empty state
     const [isInitializing, setIsInitializing] = useState(true);
     useEffect(() => {
-        const timer = setTimeout(() => setIsInitializing(false), 500);
+        const timer = setTimeout(() => setIsInitializing(false), UI_TIMINGS.DELAY_SHORT);
         return () => clearTimeout(timer);
     }, []);
 

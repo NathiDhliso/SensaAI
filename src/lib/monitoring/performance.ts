@@ -24,9 +24,6 @@ class PerformanceMonitor {
         this.metrics.push(event);
 
         // In prod, this would send to Analytics/CloudWatch
-        if (import.meta.env.DEV) {
-            console.log(`[PerfMonitor] ${type}: ${value}`, tags);
-        }
     }
 
     public getAverage(type: MetricType): number {

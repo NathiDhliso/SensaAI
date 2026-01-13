@@ -18,6 +18,7 @@ export const COLORS = {
         amethyst: '#6B46C1',
         coral: '#F97316',
         plum: '#7C2D92',
+        indigo: '#6366f1',
     },
 
     // Secondary palette
@@ -49,6 +50,10 @@ export const COLORS = {
         light: '#595959',  // Darkened for legibility (was #6b7280)
         muted: '#64748b',  // Slate 500 - Passes WCAG AA (was #94a3b8)
     },
+
+    // Base colors
+    white: '#ffffff',
+    black: '#000000',
 
 } as const;
 

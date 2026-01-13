@@ -7,7 +7,7 @@ import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
 import { generateWithBackend, uploadExamBlueprint } from '@/lib/generation/backend-generator';
 import { parseAndLoadContent } from '@/lib/content-loader';
-import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
+import { PASS_NAMES, GENERATION_MESSAGES, UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './Generate.module.css';
 
 import type { PassStatus, Pass1Result, ValidationResult, LifecyclePhases, StreamedConceptPreview } from '@/lib/types/generation';
@@ -249,7 +249,7 @@ export default function Generate() {
           await storageManager.saveResult(savedResult);
           const loadResult = parseAndLoadContent(result.fullDocument, resultId);
           if (loadResult.success) {
-            setTimeout(() => navigate(`/study/${resultId}?tab=learn`), 500);
+            setTimeout(() => navigate(`/study/${resultId}?tab=learn`), UI_TIMINGS.DELAY_SHORT);
           } else {
             navigate(`/study/${resultId}`);
           }
