@@ -43,16 +43,8 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string, fall
         // This prevents memory crashes by allowing tier-by-tier loading
         if (indexedDBStorage.isSupported()) {
             indexedDBStorage.saveConcepts(effectiveSubjectId, parseResult.data.concepts)
-                .then(() => console.log(`[content-loader] Cached ${parseResult.data.concepts.length} concepts to IndexedDB`))
-                .catch(err => console.warn('[content-loader] Failed to cache concepts:', err));
+                .catch(() => { /* Silent cache failure */ });
         }
-
-        // Add required session fields, including raw document for reference tab
-        console.log('[content-loader] Loading session to store:', {
-            subjectId: effectiveSubjectId,
-            domain: transformed.metadata.domain,
-            conceptCount: transformed.concepts.length
-        });
 
         useLearningStore.getState().loadSession({
             subjectId: effectiveSubjectId,
@@ -66,7 +58,6 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string, fall
             },
         });
 
-        console.log('[content-loader] Session loaded successfully');
         return { success: true };
     } catch (error) {
         return {
@@ -101,8 +92,7 @@ export function useParseAndLoadContent() {
             // CRITICAL: Cache parsed concepts to IndexedDB for lazy loading
             if (indexedDBStorage.isSupported()) {
                 indexedDBStorage.saveConcepts(effectiveSubjectId, parseResult.data.concepts)
-                    .then(() => console.log(`[content-loader] Cached ${parseResult.data.concepts.length} concepts to IndexedDB`))
-                    .catch(err => console.warn('[content-loader] Failed to cache concepts:', err));
+                    .catch(() => { /* Silent cache failure */ });
             }
 
             // Add required session fields, including raw document for reference tab

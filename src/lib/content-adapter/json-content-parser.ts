@@ -43,7 +43,6 @@ export type ParseResult = {
  * Handles the wrapper format with fullDocument field
  */
 export function parseContent(rawContent: string): ParseResult {
-    console.log('[ContentParser] parseContent received:', typeof rawContent, 'length:', rawContent?.length, 'first 100:', rawContent?.substring(0, 100));
     try {
         // Try to parse as JSON wrapper first
         let content = rawContent;
@@ -195,7 +194,6 @@ function parseConcepts(content: string): ParsedConcept[] {
             if (possibleJson.length > 20) {
                 const directParse = JSON.parse(possibleJson);
                 if (directParse && directParse.concepts && Array.isArray(directParse.concepts)) {
-                    console.log('[ContentParser] Direct JSON parse successful');
                     for (const concept of directParse.concepts) {
                         const parsedConcept = convertJsonConcept(concept);
                         if (parsedConcept && !seenIds.has(parsedConcept.id)) {
@@ -207,8 +205,7 @@ function parseConcepts(content: string): ParsedConcept[] {
                 }
             }
         }
-    } catch (e) {
-        console.debug('[ContentParser] Direct JSON parse failed (continuing to block extraction):', e);
+    } catch {
         // Not a single valid JSON object, continue to block searching
     }
 
@@ -284,10 +281,7 @@ function parseConcepts(content: string): ParsedConcept[] {
         }
     }
 
-    // Log extraction summary
-    if (blockCount > 0) {
-        console.log(`[ContentParser] Extracted ${concepts.length} concepts from ${blockCount} JSON block(s)`);
-    }
+    // Extraction complete
 
 
     // Fallback: Try to find raw JSON object start if no blocks found
@@ -343,8 +337,8 @@ function parseConcepts(content: string): ParsedConcept[] {
                         }
                     }
                 }
-            } catch (e) {
-                console.debug('[ContentParser] Raw JSON extraction failed:', e);
+            } catch {
+                // Raw JSON extraction failed
             }
         }
     }
@@ -559,7 +553,6 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
         console.warn('Failed to merge mnemonic JSON', e);
     }
 
-    console.log(`[ContentParser] Parsed ${concepts.length} concepts from markdown format`);
     return concepts;
 }
 

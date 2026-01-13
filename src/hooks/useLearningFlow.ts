@@ -65,7 +65,6 @@ export function useLearningFlow(): LearningFlow {
         // This ensures we ALWAYS have an activeConcept if there are incomplete concepts.
         const firstIncomplete = currentSession.concepts.find(c => !completedIds.includes(c.id));
         if (firstIncomplete) {
-            console.log('[useLearningFlow] RECOVERY: Using first incomplete concept:', firstIncomplete.name);
             return firstIncomplete;
         }
 

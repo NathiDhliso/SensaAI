@@ -119,17 +119,14 @@ export function useCheckpointActions() {
     const recordCheckpointShown = useCallback(() => {
         // This would update studySession.lastCheckpointAt
         // Implementation depends on store action being added
-        console.log('[useCheckpointActions] Checkpoint shown');
     }, []);
 
     const recordContinueDecision = useCallback(() => {
         // User chose to continue - extend buffer
-        console.log('[useCheckpointActions] User continuing, buffer extended');
     }, []);
 
     const recordExitDecision = useCallback(() => {
         // User chose to exit - prepare recap data
-        console.log('[useCheckpointActions] User exiting');
     }, []);
 
     return {

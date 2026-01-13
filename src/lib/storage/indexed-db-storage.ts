@@ -218,7 +218,6 @@ class IndexedDBStorage implements StorageProvider {
         }
 
         transaction.oncomplete = () => {
-          console.log(`[IndexedDB] Cached ${concepts.length} concepts for ${subjectId}`);
           resolve();
         };
 
@@ -251,7 +250,6 @@ class IndexedDBStorage implements StorageProvider {
         request.onsuccess = () => {
           const entries = (request.result || []) as CachedConceptEntry[];
           const concepts = entries.map(e => e.concept);
-          console.log(`[IndexedDB] Loaded ${concepts.length} ${tier} concepts for ${subjectId}`);
           resolve(concepts);
         };
 
@@ -313,7 +311,6 @@ class IndexedDBStorage implements StorageProvider {
         };
 
         transaction.oncomplete = () => {
-          console.log(`[IndexedDB] Cleared concepts cache for ${subjectId}`);
           resolve();
         };
 
