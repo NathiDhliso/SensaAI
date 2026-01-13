@@ -18,11 +18,9 @@ import {
     AlertTriangle,
     Layers,
     Clock,
-    ArrowUpRight,
     Sparkles
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
-import type { EquationMetadata } from '@/lib/types/sensa-flow.types';
 import { calculateMasteryIndex, findWeakestVariable, MASTERY_THRESHOLD } from '@/constants/sensa-flow-constants';
 import { EQUATION_COLORS_HEX } from '@/constants/sensa-flow-constants';
 import { GRAPH_COLORS } from '@/constants/theme-colors';
@@ -52,7 +50,6 @@ interface MasteryDashboardProps {
         Q_M: number;
         Q_f: number;
     };
-    equationMetadata?: EquationMetadata | null;
 }
 
 // ============================================================================
@@ -63,7 +60,6 @@ export function MasteryDashboard({
     concepts,
     sessions,
     currentEquation,
-    equationMetadata,
 }: MasteryDashboardProps) {
     // Calculate current mastery index
     const currentI = useMemo(() =>
@@ -94,8 +90,8 @@ export function MasteryDashboard({
 
         concepts.forEach(c => {
             counts[c.tier]++;
-            // Assume lifecycle.stage indicates mastery (this would come from actual data)
-            if (c.lifecycle?.stage === 'mastered') {
+            // Use lifecyclePhase as a proxy for mastery in SENSA v2.0
+            if (c.lifecyclePhase === 'DELIVER') {
                 tiers[c.tier]++;
             }
         });

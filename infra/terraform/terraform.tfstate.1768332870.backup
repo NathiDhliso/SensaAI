@@ -1,7 +1,7 @@
 {
   "version": 4,
   "terraform_version": "1.13.4",
-  "serial": 149,
+  "serial": 147,
   "lineage": "93d6dc4b-b2c9-0b0e-0ca9-36f8c0bad994",
   "outputs": {
     "cognito_client_id": {
@@ -880,6 +880,14 @@
       ]
     },
     {
+      "module": "module.lambda",
+      "mode": "managed",
+      "type": "aws_lambda_provisioned_concurrency_config",
+      "name": "query_concepts",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": []
+    },
+    {
       "module": "module.s3",
       "mode": "data",
       "type": "aws_caller_identity",
@@ -1136,6 +1144,53 @@
             "module.s3.aws_s3_bucket.content",
             "module.s3.data.aws_caller_identity.current"
           ]
+        }
+      ]
+    },
+    {
+      "module": "module.vpc",
+      "mode": "managed",
+      "type": "aws_vpc",
+      "name": "main",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:us-east-1:311964231104:vpc/vpc-05d9d54f501d365b9",
+            "assign_generated_ipv6_cidr_block": false,
+            "cidr_block": "10.0.0.0/16",
+            "default_network_acl_id": "acl-007476cf5c49d6334",
+            "default_route_table_id": "rtb-08745215d0f3ffef1",
+            "default_security_group_id": "sg-0eda967488460b914",
+            "dhcp_options_id": "dopt-04a77071ef890bffc",
+            "enable_dns_hostnames": false,
+            "enable_dns_support": false,
+            "enable_network_address_usage_metrics": false,
+            "id": "vpc-05d9d54f501d365b9",
+            "instance_tenancy": "default",
+            "ipv4_ipam_pool_id": null,
+            "ipv4_netmask_length": null,
+            "ipv6_association_id": "",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_network_border_group": "",
+            "ipv6_ipam_pool_id": "",
+            "ipv6_netmask_length": 0,
+            "main_route_table_id": "rtb-08745215d0f3ffef1",
+            "owner_id": "311964231104",
+            "tags": {
+              "Name": "sensapbl-pilot-vpc"
+            },
+            "tags_all": {
+              "Environment": "pilot",
+              "ManagedBy": "Terraform",
+              "Name": "sensapbl-pilot-vpc",
+              "Project": "SensaPBL"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ=="
         }
       ]
     }

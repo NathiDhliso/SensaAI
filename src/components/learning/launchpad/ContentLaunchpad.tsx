@@ -94,7 +94,7 @@ export default function ContentLaunchpad() {
                     const loadedConcepts = parseResult.success && parseResult.data ? parseResult.data.concepts : [];
                     setConcepts(loadedConcepts);
 
-                    const allGaps = loadedConcepts.flatMap(c => validateConceptContent(c));
+                    const allGaps = loadedConcepts.flatMap(c => validateConceptContent(c as any));
                     const criticalGaps = allGaps.filter(g => g.severity === 'critical');
 
                     if (criticalGaps.length > 0) {
