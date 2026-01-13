@@ -121,14 +121,9 @@ export function useConceptCache(subjectId: string | undefined): ConceptCacheStat
         if (!subjectId) return;
 
         const checkCacheExists = async () => {
-            const hasCache = await indexedDBStorage.hasConceptsCache(subjectId);
+            const _hasCache = await indexedDBStorage.hasConceptsCache(subjectId);
             setState(prev => ({ ...prev, initialized: true }));
-
-            if (hasCache) {
-                console.log(`[useConceptCache] Cache exists for ${subjectId}`);
-            } else {
-                console.log(`[useConceptCache] No cache for ${subjectId}, will populate on first use`);
-            }
+            // Cache existence is tracked internally, no side effects needed
         };
 
         checkCacheExists();

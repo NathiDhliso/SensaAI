@@ -265,8 +265,6 @@ export async function surgicallyRepairConcept(
     const { user } = useAuthStore.getState();
     const userId = user?.id || 'anonymous';
 
-    console.log(`🏥 Surgically repairing concept "${conceptName}"...`);
-
     try {
         const response: any = await conceptsApi.repair({
             subject,

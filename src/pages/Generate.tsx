@@ -289,7 +289,6 @@ export default function Generate() {
     if (pendingFile) {
       progressCallback(1, 'in-progress', { message: 'Uploading Blueprint to Secure Storage...', progress: 2 });
       uploadExamBlueprint(pendingFile).then(s3Url => {
-        console.log('Blueprint available at:', s3Url);
         const blueprintContext = `[BLUEPRINT_ID]: ${s3Url}\n[FILENAME]: ${pendingFile.name}`;
         setPendingFile(null); // Clear pending file
 

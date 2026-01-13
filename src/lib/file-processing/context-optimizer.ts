@@ -8,7 +8,6 @@ import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-console.log('PDF Worker Configured:', pdfjsLib.GlobalWorkerOptions.workerSrc);
 
 export type ContentMode = 'BLUEPRINT' | 'QUESTION' | 'GENERAL';
 

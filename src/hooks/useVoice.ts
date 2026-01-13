@@ -88,7 +88,6 @@ export function useVoice(): UseVoiceResult {
             // No static line found - Silent fallback
             // In "Studio Quality Only" mode, dynamic text is intentionally silent.
             // We do not error here, we just don't play.
-            console.log('[Voice] No studio recording exists for this text. Skipping playback.');
         }
 
         setIsLoading(false);
