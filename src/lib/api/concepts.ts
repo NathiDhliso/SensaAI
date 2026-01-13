@@ -71,6 +71,16 @@ export const conceptsApi = {
     },
 
     /**
+     * Surgically repair a specific concept
+     */
+    async repair(request: { subject: string; conceptName: string; issue: string; userId: string }): Promise<ParsedConcept> {
+        return apiClient.post<ParsedConcept>('/concepts/generate', {
+            ...request,
+            action: 'repair'
+        });
+    },
+
+    /**
      * Check status of a generation job
      */
     async getJobStatus(jobId: string): Promise<JobStatus> {

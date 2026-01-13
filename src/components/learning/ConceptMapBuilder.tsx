@@ -64,6 +64,8 @@ interface ConceptMapBuilderProps {
     dependencyGraph?: DependencyGraph;
     /** User guesses from Step 2: Explore */
     userGuesses?: Map<string, string>;
+    /** Current subject name for dynamic AI stopwords */
+    subjectName?: string;
 }
 
 interface MapNode {
@@ -94,11 +96,12 @@ interface HistoryEntry {
 export default function ConceptMapBuilder({
     concepts,
     onComplete,
-    initialData,
+    initialData = null,
     readOnly = false,
     onBack,
     dependencyGraph,
-    userGuesses
+    userGuesses,
+    subjectName
 }: ConceptMapBuilderProps) {
     // ========== SENSA v2.0 Phase State ==========
     const [mapPhase, setMapPhase] = useState<'build' | 'validate' | 'rebuild'>('build');
@@ -310,7 +313,8 @@ export default function ConceptMapBuilder({
                     fromId: fromNode?.conceptId || '',
                     toId: toNode?.conceptId || ''
                 };
-            })
+            }),
+            subjectName // Pass subject name for dynamic filtering
         );
         setSuggestions(newSuggestions.slice(0, 3));
 
@@ -324,10 +328,11 @@ export default function ConceptMapBuilder({
                     fromId: fromNode?.conceptId || '',
                     toId: toNode?.conceptId || ''
                 };
-            })
+            }),
+            subjectName // Pass subject name
         );
         setDetectedGaps(gaps);
-    }, [nodes, connections, concepts]);
+    }, [nodes, connections, concepts, subjectName]);
 
     useEffect(() => {
         const timer = setTimeout(analyzeMap, UI_TIMINGS.MAP_LOAD_DELAY);

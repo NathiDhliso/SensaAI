@@ -452,7 +452,15 @@ To support the "NO FALLBACKS" policy, EVERY concept must be fully fleshed out wi
 - **Memory**: mnemonic (FULL: anchor + story + tier)
 - **Understanding**: description, keyPoints, whyYouNeed, technicalDetails, shape (simpleCore, highStakesExample, analogicalModel)
 - **Application**: phase2 (content), phase3 (tool, metrics)
-- **Relationship**: criticalDistinctions, designBoundaries
+- **Relationship**: connections (MUST be strictly typed: requires, extends, enables, contains), criticalDistinctions, designBoundaries
+
+### STRICT CONNECTION RULES (Sensa v2.0):
+Define connections using only these Semantic Relationship verbs:
+1. **requires**: Hard dependency (Prerequisite). "A cannot function without B."
+2. **extends**: Enhancement/Specialization. "A adds features or specificity to B."
+3. **enables**: Capability Flow. "A provides the power/access that B uses."
+4. **contains**: Composition. "A includes B as a sub-component."
+5. **related-to**: Soft association (Use sparingly, <5% of connections).
 
 ### MANDATORY DOMAIN DIMENSIONS [Must be covered across the curriculum]
 regardless of the subject, you must explicitly include concepts that address these universal professional standards:
@@ -502,7 +510,10 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
     }},
     "keyPoints": ["Point 1", "Point 2", "Point 3"],
     "criticalDistinctions": [{{ "correct": "...", "incorrect": "..." }}],
-    "designBoundaries": [{{ "boundary": "...", "rationale": "..." }}]
+    "designBoundaries": [{{ "boundary": "...", "rationale": "..." }}],
+    "connections": [
+      {{ "target": "Other Concept Name", "type": "requires|extends|enables|contains" }}
+    ]
   }}
 ]
 ```
@@ -522,20 +533,23 @@ def get_silver_bullet_prompt(subject: str, part: int = 1, context: str = "") -> 
     if context:
         context_str = f"USER CONTEXT / SPECIFIC FOCUS:\n{context}\n\n*Prioritize this context in your concept selection.*"
 
-    # Split 70 concepts into 4 parts to ensure full depth within token limits
-    # Part 1: 1-18 (18 concepts)
-    # Part 2: 19-35 (17 concepts)
-    # Part 3: 36-53 (18 concepts)
-    # Part 4: 54-70 (17 concepts)
+    # Split 70 concepts into 5 parts (approx 14 each) to ensure full depth within token limits
+    # Smaller batches = higher success rate and less likely to truncate JSON
+    # Part 1: 1-14
+    # Part 2: 15-28
+    # Part 3: 29-42
+    # Part 4: 43-56
+    # Part 5: 57-70
 
     ranges = [
-        (1, 18),
-        (19, 35),
-        (36, 53),
-        (54, 70)
+        (1, 14),
+        (15, 28),
+        (29, 42),
+        (43, 56),
+        (57, 70)
     ]
 
-    if 1 <= part <= 4:
+    if 1 <= part <= 5:
         start_idx, end_idx = ranges[part - 1]
         count = end_idx - start_idx + 1
         return SILVER_BULLET_PROMPT.format(
@@ -557,3 +571,66 @@ def get_silver_bullet_prompt(subject: str, part: int = 1, context: str = "") -> 
             context=context_str
         )
 
+# =============================================================================
+# SURGICAL FIX PROMPT (Single Concept Repair)
+# =============================================================================
+
+SURGICAL_FIX_PROMPT = """ACT AS: An expert professor and curriculum designer.
+OBJECTIVE: Surgically repair a specific concept in the "{subject}" curriculum.
+
+## DEFECT TO FIX:
+Concept: "{concept_name}"
+Issue: {issue_description}
+
+## REQUIREMENTS:
+Generate a FULLY REPAIRED JSON object for this single concept.
+Focus specifically on resolving the issue described above while maintaining high quality in all other fields.
+
+## OUTPUT FORMAT:
+Return ONLY the raw JSON object for this concept.
+
+```json
+{{
+  "name": "{concept_name}",
+  "tier": "foundation|keystone|utility",
+  "tierJustification": "Reason...",
+  "order": 1,
+  "whyYouNeed": "...",
+  "technicalDetails": "...",
+  "workedExample": {{ ... }},
+  "mnemonic": {{ 
+    "tier": "...", 
+    "anchor": "Concrete Object + Emoji", 
+    "story": "Bizarre scene..." 
+  }},
+  "phase1": {{ "hookSentence": "...", "microMetaphor": "..." }},
+  "phase2": [ ... ],
+  "phase3": {{ "tool": "...", "metrics": [...] }},
+  "shape": {{
+    "simpleCore": "One sentence, no jargon.",
+    "highStakesExample": "REAL Case: Specific Company/Event + Year + Outcome (NO generic examples).",
+    "analogicalModel": "Like [system]: [mapping]...",
+    "patternRecognition": {{ "question": "...", "answer": "..." }},
+    "eliminationLogic": "..."
+  }},
+  "strictConnections": [
+     {{ "target": "Related Concept", "type": "requires|extends|enables|contains" }}
+  ]
+}}
+```
+
+## CRITICAL RULES:
+1. Fix the identified issue completely.
+2. Ensure `shape.highStakesExample` is a REAL historical case study with Company + Year.
+3. Ensure `mnemonic.story` is bizarre, memorable, and uses the anchor.
+4. Use strictly positive framing.
+5. Return ONLY valid JSON for the single concept object. NO markdown.
+"""
+
+def get_surgical_fix_prompt(subject: str, concept_name: str, issue: str) -> str:
+    """Returns the surgical fix prompt for a single concept"""
+    return SURGICAL_FIX_PROMPT.format(
+        subject=subject, 
+        concept_name=concept_name, 
+        issue_description=issue
+    )

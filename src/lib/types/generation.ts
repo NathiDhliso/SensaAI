@@ -90,6 +90,27 @@ export type ValidationResult = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// REPAIR & SURGICAL MERGE (Surgical Merge Protocol)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type RepairStrategy = 'SELF_HEAL' | 'SURGICAL_AI' | 'FULL_REBUILD' | 'NONE';
+
+export type RepairAction = {
+  strategy: RepairStrategy;
+  conceptId: string;
+  field: string;
+  reason: string;
+  priority: 'high' | 'medium' | 'low';
+};
+
+export type RepairPlan = {
+  actions: RepairAction[];
+  estimatedTimeMs: number;
+  status: 'pending' | 'in-progress' | 'completed' | 'failed';
+  currentActionIndex: number;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // GENERATION RESULTS
 // ═══════════════════════════════════════════════════════════════════════════
 

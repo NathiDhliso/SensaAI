@@ -23,7 +23,7 @@ type GenerationCheckpoint = {
   timestamp: number;
 };
 
-type GenerationState = {
+export type GenerationState = {
   bedrockConfig: BedrockConfig | null;
   currentSubject: string | null;
   currentContext: string | null;
@@ -44,6 +44,13 @@ type GenerationState = {
   streamedConcepts: ParsedConcept[];
   constructionPhase: ConstructionPhase;
   expectedConceptCount: number;
+  // Surgical Merge Protocol
+  history: Pass1Result[];
+  repairProgress: {
+    total: number;
+    completed: number;
+    currentAction: string;
+  } | null;
 };
 
 type GenerationProgressUpdate = {
@@ -82,6 +89,10 @@ type GenerationActions = {
   setConstructionPhase: (phase: ConstructionPhase) => void;
   setExpectedConceptCount: (count: number) => void;
   clearStreamedConcepts: () => void;
+  // Surgical Merge Actions
+  snapshotState: () => void;
+  rollbackState: () => void;
+  setRepairProgress: (progress: { total: number; completed: number; currentAction: string } | null) => void;
 };
 
 const getEnvBedrockConfig = (): BedrockConfig | null => {
@@ -124,13 +135,15 @@ const initialState: GenerationState = {
   validation: null,
   fullDocument: null,
   results: [],
-  recentSubjects: ['Azure Administrator', 'MCAT Biology', 'CPA Tax Accounting'],
+  recentSubjects: ['Example Subject A', 'Example Subject B', 'Example Subject C'],
   isGenerating: false,
   error: null,
   checkpoint: null,
   streamedConcepts: [],
   constructionPhase: 'idle',
   expectedConceptCount: 0,
+  history: [],
+  repairProgress: null,
 };
 
 export const useGenerationStore = create<GenerationState & GenerationActions>()(
@@ -289,6 +302,26 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
       setExpectedConceptCount: (count) => set({ expectedConceptCount: count }),
 
       clearStreamedConcepts: () => set({ streamedConcepts: [], constructionPhase: 'idle' }),
+
+      snapshotState: () =>
+        set((state) => {
+          if (!state.pass1Data) return {};
+          return {
+            history: [...state.history, state.pass1Data],
+          };
+        }),
+
+      rollbackState: () =>
+        set((state) => {
+          if (state.history.length === 0) return {};
+          const previous = state.history[state.history.length - 1];
+          return {
+            pass1Data: previous,
+            history: state.history.slice(0, -1),
+          };
+        }),
+
+      setRepairProgress: (progress) => set({ repairProgress: progress }),
     }),
     {
       name: 'chart-generator-storage',

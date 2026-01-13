@@ -6,7 +6,7 @@ OBJECTIVE: Create a "Visual Master Hierarchical Chart" (Structured Outline), "De
 
 ## STEP 1: LIVE VERIFICATION [Required for Accuracy]
 
-Browse the web for the most recent official syllabus or standard (e.g., "Microsoft Learn Skills Measured," "2025 Tax Code," "Bar Exam Content Outline," authoritative textbook).
+Browse the web for the most recent official syllabus or standard (e.g., "Official Exam Guide," "Industry Standards Body," "Professional Certification Outline," authoritative textbook).
 
 * **Scan for Updates:** Identify 3 specific topics added or emphasized in the last 12 months.
 * **Extract Hard Data:** Look for specific numbers (statutory limits, dates, thresholds, version requirements, fee schedules) that have changed. If numerical data isn't publicly available, explicitly state this limitation.
@@ -58,8 +58,8 @@ Structure your JSON output so that "Utility" concepts are nested or explicitly l
 
 \`\`\`json
 {
-  "id": "concept-vnet-001",
-  "name": "Virtual Network (VNet)",
+  "id": "concept-foundation-001",
+  "name": "Core Foundation Concept",
   "tier": "foundation",
   "lifecycle": "PHASE_1",
   "stageId": "stage-1",
@@ -148,16 +148,16 @@ Every concept in the Master Chart MUST include SHAPE sections designed for 2-min
 
 **S - SIMPLE CORE** (15 seconds to read)
 One sentence. No jargon. A complete beginner could repeat it.
-Example: "Lambda runs your code without you managing servers - you just upload and trigger."
+Example: "Automation Tool runs your code without you managing servers - you just upload and trigger."
 
 **H - HIGH-STAKES EXAMPLE** (30 seconds to read)
 A real company + year + specific numbers or human impact.
-Example: "In 2017, the S3 outage cost companies $150M in 4 hours - Lambda functions depending on S3 also failed, teaching engineers about regional dependencies."
+Example: "In 2017, a major storage outage cost companies millions - dependent functions also failed, teaching engineers about regional dependencies."
 
 **A - ANALOGICAL MODEL** (45 seconds to read)
 Map to a familiar system (construction, cooking, sports, etc.) that matches typical learner backgrounds.
 3-4 specific technical concepts mapped to physical elements.
-Example: "Think of Lambda like a restaurant kitchen: You're the chef (code), AWS is the kitchen equipment (infrastructure). You focus on recipes (logic), they handle the stove, fridge, and cleanup (scaling, patching, monitoring)."
+Example: "Think of the Platform like a restaurant kitchen: You're the chef (code), the Provider is the kitchen equipment (infrastructure). You focus on recipes (logic), they handle the stove, fridge, and cleanup (scaling, patching, monitoring)."
 
 **P - PATTERN RECOGNITION** (20 seconds to read)
 A self-test question. "You know you've mastered this when you can answer:"
@@ -197,13 +197,13 @@ For each Core Concept, generate memory palace anchors that enable spatial learni
 Analyze each concept's role in the domain hierarchy:
 
 - **Foundation:** Universal constants that other concepts depend on (the "bedrock")
-  - Examples: VNet, Storage Account, Entra ID, IAM, S3 Bucket, DNS, Active Directory
+  - Examples: Core Protocol, Root Identity, Primary Data Store, Base Infrastructure
   
 - **Keystone:** Major functional blocks that perform core operations (the "workers")
-  - Examples: VM, NSG, App Service, Lambda, EC2, Load Balancer, API Gateway
+  - Examples: Compute Node, Processing Engine, Gateway, Service Logic
   
 - **Utility:** Specialized tools, tokens, or add-ons (the "accessories")
-  - Examples: SAS Token, PIM, Locks, Tags, Metrics, Policies, Secrets
+  - Examples: Access Token, Metric, Policy, Secret Key, Tag
 
 
 **ANCHOR GENERATION RULES:**
@@ -215,11 +215,11 @@ Analyze each concept's role in the domain hierarchy:
 **TIER-SPECIFIC ANCHOR EXAMPLES:**
 | Tier | Concept | Anchor Example |
 |------|---------|----------------|
-| Foundation | VNet | "Volcano 🌋" |
-| Foundation | Storage Account | "Skyscraper 🏢" |
-| Keystone | NSG | "Night Guard 👮" |
-| Keystone | VM | "Vending Machine 🎰" |
-| Utility | SAS Token | "Secret Key 🔑" |
+| Foundation | Core Protocol | "Volcano 🌋" |
+| Foundation | Data Store | "Skyscraper 🏢" |
+| Keystone | Security Gate | "Night Guard 👮" |
+| Keystone | Processor | "Vending Machine 🎰" |
+| Utility | Access Key | "Secret Key 🔑" |
 | Utility | Lock | "Luggage Lock 🔒" |
 
 **BIZARRE STORY RULES:**
@@ -229,9 +229,9 @@ Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
 3. **DEPENDENCY RULE:** If concept has a logical parent, the story MUST depict the current anchor INTERACTING with the parent's anchor
 
 **STORY EXAMPLES:**
-- Foundation (VNet as Volcano): "A colossal Volcano erupts with glowing data-lava, but the lava flows only into carved private channels, never mixing. Each channel leads to a different isolated kingdom below."
-- Keystone (NSG as Night Guard, parent: Subnet): "A muscular Night Guard wearing badges made of port numbers sleeps on a purple Subway Bench (Subnet). When anyone approaches, he instantly awakens, checks their badge, and only then allows passage."
-- Utility (SAS Token as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
+- Foundation (Core Protocol as Volcano): "A colossal Volcano erupts with glowing data-lava, but the lava flows only into carved private channels, never mixing. Each channel leads to a different isolated kingdom below."
+- Keystone (Security Gate as Night Guard, parent: Network): "A muscular Night Guard wearing badges made of port numbers sleeps on a purple Subway Bench (Network). When anyone approaches, he instantly awakens, checks their badge, and only then allows passage."
+- Utility (Access Key as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
 
 **MNEMONIC OUTPUT FORMAT:**
 Include a \`mnemonic\` object for each concept in structured output:
@@ -339,7 +339,7 @@ Create 3 specific "Visual Mental Models" that illuminate the hardest conceptual 
    • A single YES/NO decision rule that distinguishes this anchor's concepts from related concepts
    • Format: "If [condition], YES → [this concept]. Otherwise, consider [alternative]."
    • Must be answerable in under 6 seconds
-   • Example: "If you need cross-region traffic distribution, YES → use Global Accelerator. Otherwise, consider regional Load Balancers."
+   • Example: "If you need global traffic distribution, YES → use Global Router. Otherwise, consider regional Load Balancers."
 
 5. **Why It Helps Section - POSITIVE FRAMING MANDATORY:**
    • Start with capability-focused phrases:
@@ -554,7 +554,57 @@ Verify HIGH frequency of:
 
 **EXECUTION NOTE:** Always complete Step 1 (Live Verification) before generating the chart. Use the terminology: [Critical Distinction], [Design Boundary]/[Prerequisite Check]/[Exam Focus], and [Verify in Docs]. Ensure all three phase labels consistently use the chosen lifecycle verbs.`;
 
+export const SURGICAL_FIX_PROMPT = `ACT AS: An expert professor and curriculum designer.
+OBJECTIVE: Surgically repair a specific concept in the "{subject}" curriculum.
 
+## DEFECT TO FIX:
+Concept: "{concept_name}"
+Issue: {issue_description}
+
+## REQUIREMENTS:
+Generate a FULLY REPAIRED JSON object for this single concept.
+Focus specifically on resolving the issue described above while maintaining high quality in all other fields.
+
+## OUTPUT FORMAT:
+Return ONLY the raw JSON object for this concept.
+
+\`\`\`json
+{
+  "name": "{concept_name}",
+  "tier": "foundation|keystone|utility",
+  "tierJustification": "Reason...",
+  "order": 1,
+  "whyYouNeed": "...",
+  "technicalDetails": "...",
+  "workedExample": { ... },
+  "mnemonic": { 
+    "tier": "...", 
+    "anchor": "Concrete Object + Emoji", 
+    "story": "Bizarre scene..." 
+  },
+  "phase1": { "hookSentence": "...", "microMetaphor": "..." },
+  "phase2": [ ... ],
+  "phase3": { "tool": "...", "metrics": [...] },
+  "shape": {
+    "simpleCore": "One sentence, no jargon.",
+    "highStakesExample": "REAL Case: Specific Company/Event + Year + Outcome (NO generic examples).",
+    "analogicalModel": "Like [system]: [mapping]...",
+    "patternRecognition": { "question": "...", "answer": "..." },
+    "eliminationLogic": "..."
+  },
+  "strictConnections": [
+     { "target": "Related Concept", "type": "requires|extends|enables|contains" }
+  ]
+}
+\`\`\`
+
+## CRITICAL RULES:
+1. Fix the identified issue completely.
+2. Ensure \`shape.highStakesExample\` is a REAL historical case study with Company + Year.
+3. Ensure \`mnemonic.story\` is bizarre, memorable, and uses the anchor.
+4. Use strictly positive framing.
+5. Return ONLY valid JSON for the single concept object. NO markdown.
+`;
 
 /**
  * Returns the system prompt with optional aphantasia and familiar system enhancements
@@ -574,4 +624,11 @@ export function getSystemPrompt(familiarSystem?: string | null): string {
   }
 
   return prompt;
+}
+
+export function getSurgicalFixPrompt(subject: string, conceptName: string, issue: string): string {
+  return SURGICAL_FIX_PROMPT
+    .replace('{subject}', subject)
+    .replace('{concept_name}', conceptName)
+    .replace('{issue_description}', issue);
 }

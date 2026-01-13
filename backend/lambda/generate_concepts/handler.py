@@ -25,7 +25,7 @@ from shared.utils import (
     TIERS,
     STAGES,
 )
-from shared.system_prompt import get_system_prompt
+from shared.system_prompt import get_system_prompt, get_surgical_fix_prompt
 
 # Environment variables
 CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-dev")
@@ -62,6 +62,22 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         user_id = body.get("userId", "anonymous")
         session_id = body.get("sessionId", generate_id())
         context_text = body.get("context", "")
+        action = body.get("action", "generate")
+        
+        if action == "repair":
+            concept_name = body.get("conceptName")
+            issue = body.get("issue")
+            if not concept_name or not issue:
+                return api_response(400, {"error": "conceptName and issue are required for repair"})
+                
+            repaired_concept = repair_concept_with_bedrock(subject, concept_name, issue)
+            if not repaired_concept:
+                return api_response(500, {"error": "Failed to repair concept"})
+                
+            return api_response(200, {
+                "status": "completed",
+                "concept": repaired_concept
+            })
         
         if not subject:
             return api_response(400, {"error": "Subject is required"})
@@ -171,6 +187,11 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
     
     def generate_part_with_retry(part_num: int) -> List[Dict[str, Any]]:
         """Generate a single partition with retry logic."""
+        # Stagger start times to avoid hitting API rate limits all at once
+        # Part 1 starts immediately, others wait 1.5s * part_num
+        if part_num > 1:
+            time.sleep(1.5 * part_num)
+            
         prompt = get_silver_bullet_prompt(subject, part_num, context)
         last_error = None
         
@@ -218,9 +239,16 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
         print(f"[ERROR] generate_part_with_retry failed after {MAX_RETRIES} attempts: {last_error}")
         return []
 
-    # Run all 4 parts in parallel with retry logic
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        futures = [executor.submit(generate_part_with_retry, i) for i in range(1, 5)]
+    # Run all 5 parts with staggered start and controlled concurrency to avoid throttling
+    # Changed from 4 to 5 parts (smaller batches = more reliable)
+    # Reduced max_workers to 3 to reduce rate limiting probability
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        # Add a small delay based on part number to stagger the API calls
+        futures = []
+        for i in range(1, 6):
+            # We don't sleep here because submit is instant, we sleep inside the task
+            futures.append(executor.submit(generate_part_with_retry, i))
+            
         results = [f.result() for f in futures]
     
     all_expanded_concepts = []
@@ -254,6 +282,42 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
             concept["mnemonic"] = {}
             
     return all_expanded_concepts
+
+
+def repair_concept_with_bedrock(subject: str, concept_name: str, issue: str) -> Optional[Dict[str, Any]]:
+    """
+    Surgically repair a single concept using Bedrock
+    """
+    prompt = get_surgical_fix_prompt(subject, concept_name, issue)
+    
+    try:
+        response = bedrock.invoke_model(
+            modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            contentType="application/json",
+            accept="application/json",
+            body=json.dumps({
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": 4096,
+                "temperature": 0.5, # Lower temperature for precision
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ]
+            })
+        )
+        
+        response_body = json.loads(response.get("body").read())
+        content = response_body.get("content", [])[0].get("text", "")
+        
+        # Parse the single concept
+        concepts = parse_concepts_from_response(content)
+        if concepts and len(concepts) > 0:
+            return concepts[0]
+            
+        return None
+        
+    except Exception as e:
+        print(f"[ERROR] Repair failed: {e}")
+        return None
 
 
 def parse_concepts_from_response(content: str) -> List[Dict[str, Any]]:
@@ -425,6 +489,7 @@ def store_concepts(table: Any, user_id: str, session_id: str, concepts: List[Dic
                     "designBoundaries": concept.get("designBoundaries", []),
                     "examFocus": concept.get("examFocus", []),
                     "dependencies": concept.get("dependencies", []),
+                    "connections": concept.get("connections", []),
                     "outdegree": concept.get("outdegree", 0),
                     "createdAt": get_ttl_timestamp(0),
                     "expiresAt": get_ttl_timestamp(168),  # TTL after 7 days

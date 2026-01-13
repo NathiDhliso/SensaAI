@@ -654,6 +654,12 @@ localStorage.setItem('sensa-result-v1', ...);
 4.  **NO "Mock" Variables**: Do not leave `const mockData = ...` in the code.
 5.  **NO Placeholder Text**: Avoid "Description goes here", "Title", "Sample Text".
 
+## 4. Architecture & State Management
+- **Store-First State:** Use Zustand stores (`learning-store.ts`, `auth-store.ts`) for all shared state. Avoid lifting state up through props unless strictly necessary for pure components.
+- **Dynamic Subjects ONLY:** NEVER hardcode subject names (e.g., "Power BI", "Biology") or subject-specific logic. All features must derive context dynamically from `currentSession.subject` or generic configuration.
+- **Service Layer Isolation:** Logic should reside in `src/lib`, not in UI components.
+- **Immutability:** Always treat state as immutable. Use functional updates (e.g., `.map()`, `.filter()`).
+
 ### Rules for Handling Missing Data:
 1.  **Real Data Only**: If the data doesn't exist, create a proper interface and use empty states (null/undefined) or implement the actual data source.
 2.  **Schema First**: Define the TypeScript interface for the real data structure first.

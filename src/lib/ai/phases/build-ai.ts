@@ -10,6 +10,17 @@
 import type { LearningConcept } from '@/lib/types/learning';
 import { getPersonaResponse, type PersonaId } from '../coach';
 
+const GENERIC_STOP_WORDS = new Set([
+    'the', 'and', 'or', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'as',
+    'is', 'are', 'was', 'were', 'be', 'been', 'being',
+    'a', 'an', 'this', 'that', 'these', 'those',
+    'it', 'its', 'from', 'into', 'onto',
+    'concept', 'intro', 'introduction', 'summary', 'overview', 'basic', 'basics',
+    'create', 'creating', 'update', 'updating', 'configure', 'configuring',
+    'monitor', 'monitoring', 'optimize', 'optimizing',
+    'define', 'defining', 'manage', 'management', 'analysis', 'analytics' // Common action verbs
+]);
+
 export interface ConnectionSuggestion {
     id: string;
     fromConceptId: string;
@@ -37,12 +48,22 @@ export interface LabelValidation {
  */
 export function suggestConnections(
     concepts: LearningConcept[],
-    existingConnections: Array<{ fromId: string; toId: string }>
+    existingConnections: Array<{ fromId: string; toId: string }>,
+    subjectName?: string
 ): ConnectionSuggestion[] {
     const suggestions: ConnectionSuggestion[] = [];
     const existingPairs = new Set(
         existingConnections.map(c => `${c.fromId}-${c.toId}`)
     );
+
+    // Dynamic Stopwords: Flatten the subject name into tokens
+    const subjectTokens = subjectName
+        ? new Set(cleanTokens(subjectName, new Set()))
+        : new Set<string>();
+
+    // Merge generic words with subject-specific noise
+    // e.g. if subject is "Subject Name", then 'subject' and 'name' become stopwords
+    const effectiveStopWords = new Set([...GENERIC_STOP_WORDS, ...subjectTokens]);
 
     // Analyze each pair of concepts for potential connections
     for (let i = 0; i < concepts.length; i++) {
@@ -58,16 +79,25 @@ export function suggestConnections(
             }
 
             // Check for keyword overlap
-            const connection = findConnectionType(conceptA, conceptB);
+            const connection = findConnectionType(conceptA, conceptB, effectiveStopWords);
+
+            // STRICTER THRESHOLD:
+            // Generic 'relates to' requires >0.65 (approx 3 shared words)
+            // Specific labels (uses, requires) require >0.55 (2 shared words)
             if (connection) {
-                suggestions.push({
-                    id: `suggestion-${Date.now()}-${i}-${j}`,
-                    fromConceptId: conceptA.id,
-                    toConceptId: conceptB.id,
-                    suggestedLabel: connection.label,
-                    confidence: connection.confidence,
-                    reasoning: connection.reasoning,
-                });
+                const isGeneric = connection.label === 'relates to';
+                const threshold = isGeneric ? 0.65 : 0.55;
+
+                if (connection.confidence >= threshold) {
+                    suggestions.push({
+                        id: `suggestion-${Date.now()}-${i}-${j}`,
+                        fromConceptId: conceptA.id,
+                        toConceptId: conceptB.id,
+                        suggestedLabel: connection.label,
+                        confidence: connection.confidence,
+                        reasoning: connection.reasoning,
+                    });
+                }
             }
         }
     }
@@ -81,11 +111,12 @@ export function suggestConnections(
  */
 function findConnectionType(
     conceptA: LearningConcept,
-    conceptB: LearningConcept
+    conceptB: LearningConcept,
+    stopWords: Set<string>
 ): { label: string; confidence: number; reasoning: string } | null {
     // Check if concepts share keywords
-    const wordsA = extractKeywords(conceptA);
-    const wordsB = extractKeywords(conceptB);
+    const wordsA = extractKeywords(conceptA, stopWords);
+    const wordsB = extractKeywords(conceptB, stopWords);
 
     const sharedWords = wordsA.filter(w => wordsB.includes(w));
 
@@ -94,6 +125,7 @@ function findConnectionType(
     }
 
     // Determine relationship type
+    // Base confidence logic: 1 word = 0.5, 2 words = 0.7, 3+ words = 0.9
     const confidence = Math.min(0.9, 0.3 + (sharedWords.length * 0.2));
 
     // Common relationship patterns
@@ -107,14 +139,17 @@ function findConnectionType(
 
     for (const pattern of patterns) {
         if (sharedWords.some(w => pattern.keywords.includes(w.toLowerCase()))) {
-            return { label: pattern.label, confidence, reasoning: pattern.reasoning };
+            return { label: pattern.label, confidence: Math.max(confidence, 0.7), reasoning: pattern.reasoning };
         }
     }
 
     // Default generic connection
+    // We penalize generic "relates to" if it's just 1 shared word
+    if (sharedWords.length < 2) return null;
+
     return {
         label: 'relates to',
-        confidence: confidence * 0.7,
+        confidence: confidence * 0.8, // 2 words (0.7) * 0.8 = 0.56. Filtered out by 0.65 threshold.
         reasoning: `Shared concepts: ${sharedWords.slice(0, 3).join(', ')}`,
     };
 }
@@ -122,31 +157,48 @@ function findConnectionType(
 /**
  * Extract keywords from a concept
  */
-function extractKeywords(concept: LearningConcept): string[] {
+function extractKeywords(concept: LearningConcept, stopWords: Set<string>): string[] {
     const words: string[] = [];
 
     // From name
-    words.push(...concept.name.toLowerCase().split(/\s+/));
+    words.push(...cleanTokens(concept.name, stopWords));
 
     // From key points
     if (concept.keyPoints) {
         concept.keyPoints.forEach(point => {
-            words.push(...point.toLowerCase().split(/\s+/).filter(w => w.length > 3));
+            words.push(...cleanTokens(point, stopWords));
         });
     }
 
     return [...new Set(words)];
 }
 
+function cleanTokens(text: string, stopWords: Set<string>): string[] {
+    return text.toLowerCase()
+        .split(/[^a-z0-9]+/i) // Split by non-alphanumeric
+        .filter(w => w.length > 2) // Filter very short words
+        .filter(w => !stopWords.has(w));
+}
+
+/**
+ * Detect concepts that might be missing connections
+ */
 /**
  * Detect concepts that might be missing connections
  */
 export function detectGaps(
     concepts: LearningConcept[],
     nodesOnMap: string[],
-    connections: Array<{ fromId: string; toId: string }>
+    connections: Array<{ fromId: string; toId: string }>,
+    subjectName?: string
 ): GapDetection[] {
     const gaps: GapDetection[] = [];
+
+    // Dynamic Stopwords (consistency with suggestConnections)
+    const subjectTokens = subjectName
+        ? new Set(cleanTokens(subjectName, new Set()))
+        : new Set<string>();
+    const effectiveStopWords = new Set([...GENERIC_STOP_WORDS, ...subjectTokens]);
 
     // Check each node on the map
     for (const nodeId of nodesOnMap) {
@@ -164,14 +216,14 @@ export function detectGaps(
                 conceptId: nodeId,
                 conceptName: concept.name,
                 message: `"${concept.name}" has no connections. How does it relate to other concepts?`,
-                suggestedConnections: findPotentialConnections(concept, concepts, nodesOnMap),
+                suggestedConnections: findPotentialConnections(concept, concepts, nodesOnMap, effectiveStopWords),
             });
         } else if (connectionCount === 1 && nodesOnMap.length > 3) {
             gaps.push({
                 conceptId: nodeId,
                 conceptName: concept.name,
                 message: `"${concept.name}" only has one connection. Are there more relationships?`,
-                suggestedConnections: findPotentialConnections(concept, concepts, nodesOnMap),
+                suggestedConnections: findPotentialConnections(concept, concepts, nodesOnMap, effectiveStopWords),
             });
         }
     }
@@ -185,19 +237,21 @@ export function detectGaps(
 function findPotentialConnections(
     concept: LearningConcept,
     allConcepts: LearningConcept[],
-    nodesOnMap: string[]
+    nodesOnMap: string[],
+    stopWords: Set<string>
 ): string[] {
-    const keywords = extractKeywords(concept);
+    const keywords = extractKeywords(concept, stopWords);
     const potentials: string[] = [];
 
     for (const other of allConcepts) {
         if (other.id === concept.id) continue;
         if (!nodesOnMap.includes(other.id)) continue;
 
-        const otherKeywords = extractKeywords(other);
+        const otherKeywords = extractKeywords(other, stopWords);
         const shared = keywords.filter(k => otherKeywords.includes(k));
 
-        if (shared.length > 0) {
+        // Stricter threshold for gap suggestions
+        if (shared.length > 1) {
             potentials.push(other.name);
         }
     }

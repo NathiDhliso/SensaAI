@@ -15,16 +15,11 @@ GUIDELINES:
 6. Consider what practitioners actually DO in this field
 
 EXAMPLES OF GOOD LIFECYCLES:
-- Azure Administrator: PROVISION → CONFIGURE → MONITOR
-- Power BI Data Analyst: PREPARE → MODEL → DELIVER
-- Software Developer: DEFINE → IMPLEMENT → DEBUG
-- Accountant: RECOGNIZE → MEASURE → DISCLOSE
-- Doctor: ASSESS → TREAT → MONITOR
-- Project Manager: INITIATE → EXECUTE → CLOSE
-- Data Engineer: INGEST → TRANSFORM → ORCHESTRATE
-- Security Analyst: DETECT → INVESTIGATE → RESPOND
-- UX Designer: RESEARCH → DESIGN → VALIDATE
-- Machine Learning Engineer: COLLECT → TRAIN → DEPLOY
+- Role A (Technical): DEFINE → IMPLEMENT → DEBUG
+- Role B (Analytical): COLLECT → ANALYZE → REPORT
+- Role C (Creative): RESEARCH → DESIGN → VALIDATE
+- Role D (Operational): PLAN → EXECUTE → MONITOR
+- Role E (Strategic): ASSESS → STRATEGIZE → DEPLOY
 
 RESPOND IN EXACTLY THIS JSON FORMAT (no markdown, no extra text):
 {
@@ -48,9 +43,9 @@ export function parseLifecycleResponse(response: string): DynamicLifecycle | nul
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
-    
+
     const parsed = JSON.parse(jsonMatch[0]);
-    
+
     if (!parsed.phase1 || !parsed.phase2 || !parsed.phase3) {
       return null;
     }

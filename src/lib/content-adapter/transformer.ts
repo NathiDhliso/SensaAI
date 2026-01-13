@@ -602,23 +602,18 @@ function safeSlugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 }
 
-function determineTierFallback(order: number, name: string): 'foundation' | 'keystone' | 'utility' {
-  const foundationKeywords = ['workspace', 'environment', 'schema', 'security', 'dashboard', 'apps', 'account', 'network', 'vnet', 'identity', 'policy'];
-  const keystoneKeywords = ['query', 'relationship', 'dax', 'filter', 'refresh', 'gateway', 'storage', 'vm', 'function'];
+function determineTierFallback(order: number, _name: string): 'foundation' | 'keystone' | 'utility' {
+  // PURE DYNAMIC LOGIC:
+  // We cannot assume any semantic meaning from the name because the subject is unknown.
+  // We rely strictly on the topological order (learning sequence).
 
-  const nameLower = name.toLowerCase();
-
-  for (const keyword of foundationKeywords) {
-    if (nameLower.includes(keyword)) return 'foundation';
-  }
-
-  for (const keyword of keystoneKeywords) {
-    if (nameLower.includes(keyword)) return 'keystone';
-  }
-
-  // Fallback based on order
+  // 1. Foundation: The first few concepts are universally introductory.
   if (order <= 5) return 'foundation';
-  if (order <= 15) return 'keystone';
+
+  // 2. Keystone: The core body of the curriculum.
+  if (order <= 20) return 'keystone';
+
+  // 3. Utility: Later concepts are typically advanced applications or specific tools.
   return 'utility';
 }
 
@@ -972,7 +967,7 @@ export function transformToSensaAIConcepts(
   );
 
   // CRITICAL: Deduplicate Concepts by Name (Fuzzy Match)
-  // This handles the "Power BI Service Workspaces" double-up bug
+  // This handles the "Duplicate Concept" double-up bug
   const deduped: LearningConcept[] = [];
   const seenNames = new Map<string, LearningConcept>();
 

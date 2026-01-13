@@ -21,10 +21,10 @@ function inferDependenciesFromPrerequisite(
     }
 
     const dependencies: string[] = [];
-    
+
     for (const other of allConcepts) {
         if (other.id === concept.id) continue;
-        
+
         const otherNameLower = other.name.toLowerCase();
         // Check if the prerequisite text mentions this concept
         if (prereqText.includes(otherNameLower)) {
@@ -41,7 +41,7 @@ function inferDependenciesFromPrerequisite(
             }
         }
     }
-    
+
     return dependencies;
 }
 
@@ -59,9 +59,33 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
     const addedEdges = new Set<string>(); // Prevent duplicates
 
     for (const concept of concepts) {
+        // Priority 1: Strict Connections (Sensa v2.0 Strict Mode)
+        if (concept.strictConnections && concept.strictConnections.length > 0) {
+            for (const conn of concept.strictConnections) {
+                const targetId = nameToIdMap.get(conn.target.toLowerCase());
+                const edgeKey = `${concept.id}->${targetId}`;
+
+                if (targetId && targetId !== concept.id && !addedEdges.has(edgeKey)) {
+                    edges.push({
+                        id: `edge-${concept.id}-${targetId}`,
+                        source: concept.id,
+                        target: targetId,
+                        relationship: conn.type,
+                        weight: 1.0,
+                    });
+                    addedEdges.add(edgeKey);
+                }
+            }
+            // If we have strict connections, we skip other inferred dependencies to avoid noise
+            if (addedEdges.size > 0 && Array.from(addedEdges).some(k => k.startsWith(`${concept.id}->`))) {
+                continue;
+            }
+        }
+
+        // Priority 2: Inferred from dependencies/mnemonic
         // Get explicit dependencies from mnemonic
         let dependsOn = concept.mnemonic?.dependsOn || [];
-        
+
         // Fallback: infer from prerequisite text if no explicit dependencies
         if (dependsOn.length === 0) {
             dependsOn = inferDependenciesFromPrerequisite(concept, concepts);
@@ -70,7 +94,7 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
         for (const depName of dependsOn) {
             const targetId = nameToIdMap.get(depName.toLowerCase());
             const edgeKey = `${concept.id}->${targetId}`;
-            
+
             if (targetId && targetId !== concept.id && !addedEdges.has(edgeKey)) {
                 edges.push({
                     id: `edge-${concept.id}-${targetId}`,
@@ -87,7 +111,7 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
         if (concept.mnemonic?.parentName) {
             const parentId = nameToIdMap.get(concept.mnemonic.parentName.toLowerCase());
             const edgeKey = `${concept.id}->${parentId}`;
-            
+
             if (parentId && parentId !== concept.id && !addedEdges.has(edgeKey)) {
                 edges.push({
                     id: `edge-${concept.id}-${parentId}`,
@@ -99,12 +123,12 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
                 addedEdges.add(edgeKey);
             }
         }
-        
+
         // Also use parentId if directly available
         if (concept.mnemonic?.parentId) {
             const parentId = concept.mnemonic.parentId;
             const edgeKey = `${concept.id}->${parentId}`;
-            
+
             if (parentId !== concept.id && !addedEdges.has(edgeKey)) {
                 edges.push({
                     id: `edge-${concept.id}-${parentId}`,
@@ -124,9 +148,9 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
         console.log('[DependencyParser] No dependencies found, creating order-based chain');
         for (let i = 1; i < concepts.length; i++) {
             edges.push({
-                id: `edge-chain-${concepts[i].id}-${concepts[i-1].id}`,
+                id: `edge-chain-${concepts[i].id}-${concepts[i - 1].id}`,
                 source: concepts[i].id,
-                target: concepts[i-1].id,
+                target: concepts[i - 1].id,
                 relationship: 'related-to',
                 weight: 0.5,
             });
@@ -193,7 +217,7 @@ export function calculateDependencyMetrics(
             dependentCount,
             dependencyCount,
             totalConnections,
-            calculatedTier: calculateTier(dependentCount),
+            calculatedTier: calculateTier(dependentCount).toLowerCase() as 'foundation' | 'keystone' | 'utility',
             centralityScore: calculateCentralityScore(totalConnections, maxConnections),
             clusterGroup: concept.stageId,
         });
@@ -234,13 +258,13 @@ export function buildSubjectGraph(
 
     for (const [id, metrics] of metricsMap) {
         switch (metrics.calculatedTier) {
-            case 'Foundation':
+            case 'foundation':
                 foundationCount++;
                 break;
-            case 'Keystone':
+            case 'keystone':
                 keystoneCount++;
                 break;
-            case 'Utility':
+            case 'utility':
                 utilityCount++;
                 break;
         }
@@ -268,12 +292,28 @@ export function buildSubjectGraph(
 }
 
 /**
- * Get the dependency metrics for a specific concept.
- * Utility function for components that need single concept metrics.
+ * Incrementally update metrics for a subset of concepts (Surgical Merge).
+ * Only recalculates stats for the affected node and its direct neighbors.
  */
-export function getConceptMetrics(
-    graph: SubjectGraph,
-    conceptId: string
-): DependencyMetrics | undefined {
-    return graph.nodes.find(n => n.id === conceptId)?.metrics;
+export function updateIncrementalMetrics(
+    allConcepts: ParsedConcept[],
+    affectedConceptId: string
+): Map<string, DependencyMetrics> {
+    // 1. Re-extract edges (fast for 70 items)
+    const edges = extractDependencyEdges(allConcepts);
+
+    // 2. Identify blast radius: affected node + neighbors
+    const neighbors = new Set<string>();
+    neighbors.add(affectedConceptId);
+
+    edges.forEach(edge => {
+        if (edge.source === affectedConceptId) neighbors.add(edge.target);
+        if (edge.target === affectedConceptId) neighbors.add(edge.source);
+    });
+
+    // 3. Recalculate full metrics (safest to ensure global consistency, 
+    //    optimization to only update neighbors can be done if perf is an issue)
+    //    For <100 nodes, O(N) is negligible.
+    return calculateDependencyMetrics(allConcepts, edges);
 }
+

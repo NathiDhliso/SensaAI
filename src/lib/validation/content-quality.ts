@@ -231,3 +231,30 @@ export function hasCriticalGaps(concept: Parameters<typeof validateConceptConten
     const gaps = validateConceptContent(concept);
     return gaps.some(g => g.severity === 'critical');
 }
+
+/**
+ * Verify that a repair attempt actually fixed the issue without regressions.
+ * @param original - The concept before repair
+ * @param repaired - The concept after repair
+ * @returns true if repair is valid
+ */
+export function verifyRepair(
+    original: { name: string;[key: string]: any },
+    repaired: { name: string;[key: string]: any }
+): boolean {
+    // 1. Check if name changed (forbidden unless explicit rename strategy)
+    if (original.name !== repaired.name) return false;
+
+    // 2. Run standard validation on repaired version
+    // Check if it still has critical gaps
+    const gaps = validateConceptContent(repaired as any);
+    if (gaps.some(g => g.severity === 'critical')) return false;
+
+    // 3. Check for specific regression: Circular Metaphors
+    // (Ensure we didn't just replace one placeholder with another)
+    if (repaired.shape?.simpleCore && !isRealContent(repaired.shape.simpleCore, repaired.name)) {
+        return false;
+    }
+
+    return true;
+}

@@ -19,11 +19,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'nebula' as SensaShapeType,
     color: CATEGORY_COLORS.cloud,
     subjects: [
-      { name: 'AWS Solutions Architect', difficulty: 'Advanced', hours: 40 },
-      { name: 'Azure Administrator', difficulty: 'Intermediate', hours: 35 },
-      { name: 'Kubernetes', difficulty: 'Advanced', hours: 30 },
-      { name: 'Docker Fundamentals', difficulty: 'Beginner', hours: 15 },
-      { name: 'Terraform', difficulty: 'Intermediate', hours: 25 },
+      { name: 'Cloud Architecture', difficulty: 'Advanced', hours: 40 },
+      { name: 'Container Orchestration', difficulty: 'Advanced', hours: 30 },
+      { name: 'Infrastructure as Code', difficulty: 'Intermediate', hours: 25 },
+      { name: 'CI/CD Pipelines', difficulty: 'Intermediate', hours: 20 },
+      { name: 'Serverless Computing', difficulty: 'Beginner', hours: 15 },
     ],
   },
   {
@@ -32,11 +32,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'synapse' as SensaShapeType,
     color: CATEGORY_COLORS.data,
     subjects: [
-      { name: 'Machine Learning Fundamentals', difficulty: 'Intermediate', hours: 35 },
-      { name: 'Python for Data Science', difficulty: 'Beginner', hours: 20 },
-      { name: 'SQL Mastery', difficulty: 'Beginner', hours: 15 },
-      { name: 'Power BI', difficulty: 'Intermediate', hours: 20 },
-      { name: 'Data Engineering', difficulty: 'Advanced', hours: 40 },
+      { name: 'Machine Learning', difficulty: 'Intermediate', hours: 35 },
+      { name: 'Data Visualization', difficulty: 'Beginner', hours: 20 },
+      { name: 'Database Design', difficulty: 'Intermediate', hours: 25 },
+      { name: 'Big Data Analytics', difficulty: 'Advanced', hours: 40 },
+      { name: 'Artificial Intelligence', difficulty: 'Advanced', hours: 45 },
     ],
   },
   {
@@ -45,11 +45,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'construct' as SensaShapeType,
     color: CATEGORY_COLORS.dev,
     subjects: [
-      { name: 'React & TypeScript', difficulty: 'Intermediate', hours: 30 },
-      { name: 'Node.js Backend', difficulty: 'Intermediate', hours: 25 },
-      { name: 'System Design', difficulty: 'Advanced', hours: 35 },
-      { name: 'REST API Design', difficulty: 'Beginner', hours: 15 },
-      { name: 'GraphQL', difficulty: 'Intermediate', hours: 20 },
+      { name: 'Frontend Frameworks', difficulty: 'Intermediate', hours: 30 },
+      { name: 'Backend Systems', difficulty: 'Intermediate', hours: 25 },
+      { name: 'System Architecture', difficulty: 'Advanced', hours: 35 },
+      { name: 'API Design', difficulty: 'Beginner', hours: 15 },
+      { name: 'Mobile Development', difficulty: 'Intermediate', hours: 25 },
     ],
   },
   {
@@ -58,11 +58,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'bastion' as SensaShapeType,
     color: CATEGORY_COLORS.security,
     subjects: [
-      { name: 'CompTIA Security+', difficulty: 'Intermediate', hours: 30 },
-      { name: 'Network Security', difficulty: 'Advanced', hours: 35 },
-      { name: 'Ethical Hacking', difficulty: 'Advanced', hours: 40 },
-      { name: 'CISSP Fundamentals', difficulty: 'Expert', hours: 60 },
-      { name: 'Penetration Testing', difficulty: 'Advanced', hours: 45 },
+      { name: 'Network Security', difficulty: 'Intermediate', hours: 30 },
+      { name: 'Penetration Testing', difficulty: 'Advanced', hours: 40 },
+      { name: 'Security Compliance', difficulty: 'Advanced', hours: 35 },
+      { name: 'Cryptography', difficulty: 'Advanced', hours: 25 },
+      { name: 'Incident Response', difficulty: 'Intermediate', hours: 20 },
     ],
   },
   {
@@ -71,11 +71,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'prism' as SensaShapeType,
     color: CATEGORY_COLORS.business,
     subjects: [
-      { name: 'PMP Certification', difficulty: 'Advanced', hours: 40 },
-      { name: 'Agile & Scrum', difficulty: 'Beginner', hours: 15 },
+      { name: 'Project Management', difficulty: 'Advanced', hours: 40 },
       { name: 'Business Analysis', difficulty: 'Intermediate', hours: 25 },
-      { name: 'Product Management', difficulty: 'Intermediate', hours: 30 },
-      { name: 'Financial Analysis', difficulty: 'Advanced', hours: 35 },
+      { name: 'Product Strategy', difficulty: 'Intermediate', hours: 30 },
+      { name: 'Financial Modeling', difficulty: 'Advanced', hours: 35 },
+      { name: 'Agile Methodologies', difficulty: 'Beginner', hours: 15 },
     ],
   }
 ];

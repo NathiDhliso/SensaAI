@@ -61,6 +61,10 @@ export interface ParsedConcept {
   examFocus: string[];
   // NEW: Explicit dependency declaration (Sensa v2.0)
   dependsOn?: string[];
+  strictConnections?: {
+    target: string;
+    type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to';
+  }[];
 }
 
 export interface ParsedStage {

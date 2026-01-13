@@ -168,7 +168,9 @@ function parseConcepts(content: string): ParsedConcept[] {
     const seenIds = new Set<string>(); // Prevent duplicates from merged blocks
 
     // Find JSON blocks containing concepts array
-    const jsonBlockRegex = /```json\s*(\{[\s\S]*?"concepts"[\s\S]*?\})\s*```/g;
+    // Find JSON blocks containing concepts array
+    // We strictly look for blocks that look like JSON arrays or objects
+    const jsonBlockRegex = /```(?:json)?\s*(\{[\s\S]*?"concepts"[\s\S]*?\})\s*```/g;
     let match;
     let blockCount = 0;
 
@@ -178,32 +180,32 @@ function parseConcepts(content: string): ParsedConcept[] {
         let cleanContent = content.replace(/^\uFEFF/, '');
 
         // Remove control characters EXCEPT valid whitespace (newline, carriage return, tab)
-        // These are valid in JSON and must be preserved
         cleanContent = cleanContent.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
 
-        // AGGRESSIVE CLEANUP: Remove "==========" lines that might leak from logs
+        // AGGRESSIVE CLEANUP: Remove common non-JSON headers that LLMs leak
+        cleanContent = cleanContent.replace(/^[#\s]*VISUAL MASTER HIERARCHICAL CHART.*$/gmi, '');
         cleanContent = cleanContent.replace(/^={3,}.*$/gm, '');
         cleanContent = cleanContent.replace(/^Content-Type:.*$/gm, '');
-        cleanContent = cleanContent.trim();
 
-        // Fix unescaped quotes inside strings (common LLM error) in the full content
-        // Note: Be careful not to break valid structural quotes. 
-        // For full document, might be risky to use the granular regex, so we scan simpler.
-        // Actually, JSON.stringify output should be clean. 
-        // But if content came from LLM raw, it might need it.
-        // Since we suspect it comes from JSON.stringify, minimal cleaning is best.
-
-        const directParse = JSON.parse(cleanContent);
-        if (directParse && directParse.concepts && Array.isArray(directParse.concepts)) {
-            console.log('[ContentParser] Direct JSON parse successful');
-            for (const concept of directParse.concepts) {
-                const parsedConcept = convertJsonConcept(concept);
-                if (parsedConcept && !seenIds.has(parsedConcept.id)) {
-                    seenIds.add(parsedConcept.id);
-                    concepts.push(parsedConcept);
+        // Locate the FIRST opening brace that is part of a valid object structure
+        const firstBrace = cleanContent.indexOf('{');
+        if (firstBrace !== -1) {
+            const possibleJson = cleanContent.substring(firstBrace).trim();
+            // Simple check if it ends with } or is large enough
+            if (possibleJson.length > 20) {
+                const directParse = JSON.parse(possibleJson);
+                if (directParse && directParse.concepts && Array.isArray(directParse.concepts)) {
+                    console.log('[ContentParser] Direct JSON parse successful');
+                    for (const concept of directParse.concepts) {
+                        const parsedConcept = convertJsonConcept(concept);
+                        if (parsedConcept && !seenIds.has(parsedConcept.id)) {
+                            seenIds.add(parsedConcept.id);
+                            concepts.push(parsedConcept);
+                        }
+                    }
+                    if (concepts.length > 0) return concepts;
                 }
             }
-            if (concepts.length > 0) return concepts;
         }
     } catch (e) {
         console.warn('[ContentParser] Direct JSON parse failed:', e);
@@ -216,7 +218,7 @@ function parseConcepts(content: string): ParsedConcept[] {
             // Unescape the JSON content
             let jsonStr = match[1];
 
-            // ROBUST EXTRACTION: Find the actual JSON object/array bounds
+            // ROBUST EXTRACTION: Find the actual JSON object bounds
             // The AI often leaks headers like "VISUAL MASTERY" inside the ```json block
             const firstOpenBrace = jsonStr.indexOf('{');
             const lastCloseBrace = jsonStr.lastIndexOf('}');
@@ -225,6 +227,9 @@ function parseConcepts(content: string): ParsedConcept[] {
                 // Extract just the JSON part
                 jsonStr = jsonStr.substring(firstOpenBrace, lastCloseBrace + 1);
             }
+
+            // Remove any potential header text that might have been included before the brace
+            // (Though the substring above handles most of it)
 
             // Remove any trailing commas in arrays/objects (common LLM error)
             jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
@@ -362,7 +367,7 @@ function parseConcepts(content: string): ParsedConcept[] {
 
 /**
  * Parse concepts from markdown-style headers like:
- * ## 1. Power BI Service Workspace Management
+ * ## 1. Example Concept Name
  */
 function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
     const concepts: ParsedConcept[] = [];

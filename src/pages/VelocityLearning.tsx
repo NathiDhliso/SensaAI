@@ -327,6 +327,7 @@ export default function VelocityLearning() {
                     >
                         <ConceptMapBuilder
                             concepts={currentSession!.concepts}
+                            subjectName={currentSession!.subject}
                             onComplete={(data) => {
                                 markSessionMapBuilt(data);
                                 // SENSA v2.0: Update equation (Note phase)

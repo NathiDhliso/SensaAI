@@ -18,7 +18,13 @@ import { motion } from 'framer-motion';
 
 import { storageManager } from '@/lib/storage';
 import { analyzeContentQuality, type ContentAnalytics } from '@/lib/ai/content-analytics';
+import { parseGeneratedContent } from '@/lib/content-adapter';
 import type { SavedResult } from '@/lib/storage/types';
+import { RepairStrategyRouter } from '@/lib/generation/repair-orchestrator';
+import type { RepairPlan } from '@/lib/types/generation';
+import { validateConceptContent } from '@/lib/validation/content-quality';
+import { buildDocumentFromConcepts } from '@/lib/generation/backend-generator';
+import type { ParsedConcept } from '@/lib/content-adapter/types';
 
 import { ScoreCard } from './ScoreCard';
 import { CoverageTreemap } from './CoverageTreemap';
@@ -48,6 +54,11 @@ export default function ContentLaunchpad() {
     const [analytics, setAnalytics] = useState<ContentAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [repairPlan, setRepairPlan] = useState<RepairPlan | null>(null);
+    const [concepts, setConcepts] = useState<ParsedConcept[]>([]);
+    const [isRepairing, setIsRepairing] = useState(false);
+
+    // Tutorial & Credibility State
 
     // Tutorial & Credibility State
     const [showTutorial, setShowTutorial] = useState(false);
@@ -63,8 +74,6 @@ export default function ContentLaunchpad() {
         }, 2000);
     };
 
-
-
     // 1. Fetch Data
     useEffect(() => {
         const loadData = async () => {
@@ -75,6 +84,28 @@ export default function ContentLaunchpad() {
                     setResult(data);
                     // 2. Run Analytics (Pure Calculation)
                     const metrics = analyzeContentQuality(data);
+
+                    // SURGICAL REPAIR CHECK (Phase 1)
+                    // Check for critical content gaps that require surgical intervention
+                    const strategies = new RepairStrategyRouter();
+                    // Parse content to get concepts
+                    const parseResult = parseGeneratedContent(data.fullDocument);
+                    const loadedConcepts = parseResult.success && parseResult.data ? parseResult.data.concepts : [];
+                    setConcepts(loadedConcepts);
+
+                    const allGaps = loadedConcepts.flatMap(c => validateConceptContent(c));
+                    const criticalGaps = allGaps.filter(g => g.severity === 'critical');
+
+                    if (criticalGaps.length > 0) {
+                        const plan = strategies.generateRepairPlan(criticalGaps, concepts);
+                        if (plan.actions.length > 0) {
+                            console.log('[Surgical Merge] Repair Plan Generated:', plan);
+                            setRepairPlan(plan);
+                        }
+                    }
+
+                    // Only set analytics if we don't need critical repairs (or if we want to show partial data)
+                    // We'll show partial stats even if repair is needed
                     setAnalytics(metrics);
                 } else {
                     setError('Content not found');
@@ -93,6 +124,138 @@ export default function ContentLaunchpad() {
     const handleStartLearning = () => {
         navigate(`/study/${subjectId}?tab=learn`);
     };
+
+    const handleAutoRepair = async () => {
+        if (!repairPlan || !result || !subjectId) return;
+
+        setIsRepairing(true);
+        try {
+            const strategies = new RepairStrategyRouter();
+
+            // Execute repair plan
+            const newConcepts = await strategies.executeRepairPlan(
+                repairPlan,
+                concepts,
+                result.subject,
+                (p, t, action) => console.log(`[Repairing ${p}/${t}] ${action}`)
+            );
+
+            // Rebuild document
+            const strictConcepts = newConcepts.map(c => ({
+                ...c,
+                tier: c.tier || 'utility',
+                stageId: c.stageId || 'PREPARE'
+            }));
+            const newDocument = buildDocumentFromConcepts(result.subject, strictConcepts);
+
+            const newResult: SavedResult = {
+                ...result,
+                fullDocument: newDocument,
+                generatedAt: new Date().toISOString()
+            };
+
+            // Save to storage
+            await storageManager.saveResult(newResult);
+
+            // Update local state
+            setResult(newResult);
+            setConcepts(newConcepts);
+            setRepairPlan(null); // Clear plan to show dashboard
+
+            // Re-run analytics
+            const metrics = analyzeContentQuality(newResult);
+            setAnalytics(metrics);
+
+        } catch (err) {
+            console.error("Auto-repair failed:", err);
+            setError("Failed to apply repairs. Please try regenerating.");
+        } finally {
+            setIsRepairing(false);
+        }
+    };
+
+    if (repairPlan) {
+        return (
+            <div className={styles.container} style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <motion.div
+                    className={styles.repairContainer}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                        <HeartPulse size={48} className={styles.loadingIcon} style={{ color: 'var(--color-primary)' }} />
+                        <div style={{ textAlign: 'left' }}>
+                            <h2 style={{ margin: 0 }}>Self-Healing Content</h2>
+                            <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>
+                                Surgical Merge Protocol Active
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className={styles.repairCard}>
+                        <h3 style={{ marginTop: 0 }}>Repair Plan ({repairPlan.actions.length} fixes)</h3>
+
+                        <div className={styles.repairList}>
+                            {repairPlan.actions.map((action, i) => (
+                                <motion.div
+                                    key={i}
+                                    className={`${styles.repairItem} ${action.strategy === 'SURGICAL_AI' ? styles.ai : ''}`}
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: i * 0.1 }}
+                                >
+                                    <Activity size={16} />
+                                    <div className={styles.repairItemContent}>
+                                        <div className={styles.repairItemTitle}>{action.conceptId}</div>
+                                        <div className={styles.repairItemDetail}>
+                                            {action.strategy === 'SURGICAL_AI' ? 'Optimizing: ' : 'Fixing: '}
+                                            {action.field.split('.').pop()}
+                                        </div>
+                                    </div>
+                                    <div className={styles.repairItemBadge}>
+                                        {action.strategy.replace('_', ' ')}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        <div className={styles.repairActions}>
+                            <button onClick={() => navigate('/library')} className={styles.backButton}>
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAutoRepair}
+                                className={styles.startButton}
+                                style={{
+                                    opacity: isRepairing ? 0.7 : 1,
+                                    cursor: isRepairing ? 'wait' : 'pointer'
+                                }}
+                                disabled={isRepairing}
+                            >
+                                {isRepairing ? (
+                                    <>
+                                        <motion.div
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                                            style={{ marginRight: '0.5rem' }}
+                                        >
+                                            <Sparkles size={16} />
+                                        </motion.div>
+                                        Auto-Repairing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={16} style={{ marginRight: '0.5rem' }} />
+                                        Start Auto-Repair
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

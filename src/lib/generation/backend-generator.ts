@@ -179,7 +179,7 @@ export async function generateWithBackend(
  * Build a full document from concepts in the format expected by the content parser.
  * This creates the JSON structure that parseGeneratedContent expects.
  */
-function buildDocumentFromConcepts(subject: string, concepts: Array<{
+export function buildDocumentFromConcepts(subject: string, concepts: Array<{
     id?: string;
     name: string;
     tier: string;
@@ -248,6 +248,39 @@ function buildDocumentFromConcepts(subject: string, concepts: Array<{
         },
         concepts: conceptBlocks,
     }, null, 2);
+}
+
+/**
+ * Execute a surgical repair on a single concept using the AI backend
+ */
+export async function surgicallyRepairConcept(
+    subject: string,
+    conceptName: string,
+    issue: string
+): Promise<any> {
+    const { user } = useAuthStore.getState();
+    const userId = user?.id || 'anonymous';
+
+    console.log(`🏥 Surgically repairing concept "${conceptName}"...`);
+
+    try {
+        const response: any = await conceptsApi.repair({
+            subject,
+            conceptName,
+            issue,
+            userId
+        });
+
+        if (response.status === 'completed' && response.concept) {
+            return response.concept;
+        }
+
+        // Fallback if response structure differs (handling generic API wrapper returns)
+        return response;
+    } catch (error) {
+        console.error("Surgical repair failed:", error);
+        throw error;
+    }
 }
 
 // Export with legacy name for compatibility

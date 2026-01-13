@@ -17,7 +17,7 @@ export interface DependencyEdge {
   id: string;
   source: string;
   target: string;
-  relationship: 'depends-on' | 'related-to';
+  relationship: 'depends-on' | 'related-to' | 'requires' | 'extends' | 'enables' | 'contains';
   weight: number;
 }
 
