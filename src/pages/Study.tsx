@@ -88,35 +88,25 @@ export default function Study() {
   // Hydration Effect: Load data from storage if store is empty or IDs mismatch
   useEffect(() => {
     const hydrateFromStorage = async () => {
-      console.log('[Study] Hydrating check. SubjectId:', subjectId);
-      console.log('[Study] Current Session ID:', currentSession?.id);
-
       if (!subjectId) return;
 
       // Check if we already have the correct session loaded
       if (currentSession?.id === subjectId || currentSession?.subjectId === subjectId) {
-        console.log('[Study] Correct session already in memory');
         return;
       }
 
       // Need to hydrate from storage
-      console.log('[Study] STARTING HYDRATION for:', subjectId);
       setIsHydrating(true);
       try {
         const result = await storageManager.loadResult(subjectId);
-        console.log('[Study] Storage result found:', !!result);
         if (result?.fullDocument) {
           // Pass fallback concepts from pass1Data to ensure full coverage
           const fallbackConcepts = result.pass1Data?.concepts || [];
-          console.log('[Study] Parsing loaded document...');
           const loadResult = parseAndLoadContent(result.fullDocument, subjectId, fallbackConcepts);
-          console.log('[Study] Parse result:', loadResult);
 
           if (!loadResult.success) {
             console.error('Failed to hydrate session:', loadResult.error);
           }
-        } else {
-          console.warn('[Study] No fullDocument found in storage for:', subjectId);
         }
       } catch (error) {
         console.error('Failed to load from storage:', error);

@@ -78,11 +78,6 @@ export default function VelocityLearning() {
     const [showCheckpoint, setShowCheckpoint] = useState(false);
     const [timeToastDismissed, setTimeToastDismissed] = useState(false);
 
-    // DEBUG: Track phase changes
-    useEffect(() => {
-        console.log('[VelocityLearning] currentPhase changed:', currentPhase, { showStartModal, lockedIn });
-    }, [currentPhase, showStartModal, lockedIn]);
-
     // Momentum Checkpoint: Show time toast when goal exceeded
     useEffect(() => {
         if (flowState.timeGoalExceeded && !timeToastDismissed && !flowState.isInFlow) {
@@ -107,16 +102,12 @@ export default function VelocityLearning() {
 
     // 5. Handlers
     const handleStartSession = (goal: any, duration: number, primer?: { reason: string; action: string; reward: string }) => {
-        console.log('[VelocityLearning] handleStartSession called', { goal, duration, primer });
         startStudySession(goal, duration);
-        console.log('[VelocityLearning] startStudySession completed');
         if (primer) {
             setSessionPrimer(primer);
-            console.log('[VelocityLearning] setSessionPrimer completed');
         }
         // Lock-in state is implied by session start, but we update local UI state to be sure
         setLockedIn(true);
-        console.log('[VelocityLearning] setLockedIn(true) completed');
     };
 
     const handleScoutComplete = () => {

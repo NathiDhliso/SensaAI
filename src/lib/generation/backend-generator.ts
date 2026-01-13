@@ -7,8 +7,6 @@ import type { ProgressCallback, GenerationResult, ValidationResult } from '@/lib
  * Triggers the server-side ingestion pipeline (Lambda Parser -> Vector Index).
  */
 export async function uploadExamBlueprint(file: File): Promise<string> {
-    console.log(`📤 Uploading file: ${file.name} (${file.size} bytes)`);
-
     // TODO: Replace with actual S3 presigned URL upload
     // const response = await conceptsApi.getUploadUrl(file.name, file.type);
     // await fetch(response.url, { method: 'PUT', body: file });
@@ -16,7 +14,6 @@ export async function uploadExamBlueprint(file: File): Promise<string> {
     // Simulate upload delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    console.log('✅ Upload complete. Server ingestion triggered.');
     return `s3://sensa-blueprints/${Date.now()}/${file.name}`;
 }
 
@@ -31,8 +28,6 @@ export async function generateWithBackend(
     context?: string,
     startFromPass: number = 1
 ): Promise<GenerationResult> {
-    console.log('🚀 Using serverless Lambda + DynamoDB pipeline');
-
     // Get user ID from auth store
     const { user } = useAuthStore.getState();
     const userId = user?.id || 'anonymous';
@@ -56,14 +51,12 @@ export async function generateWithBackend(
     }, 1000);
 
     try {
-        console.log('📡 Calling generate API with:', { subject, userId });
         const generateResponse = await conceptsApi.generate({
             subject,
             userId,
             context,
         });
         clearInterval(simInterval);
-        console.log('📡 Generate API Response:', JSON.stringify(generateResponse, null, 2));
 
         if (generateResponse.status === 'failed') {
             throw new Error(generateResponse.error || 'Generation failed');
@@ -114,14 +107,7 @@ export async function generateWithBackend(
             conceptsApi.getAllByTier(userId, sessionId, 'utility'),
         ]);
 
-        console.log('📦 Fetched concepts:', {
-            foundation: foundationConcepts?.length ?? 'undefined',
-            keystone: keystoneConcepts?.length ?? 'undefined',
-            utility: utilityConcepts?.length ?? 'undefined',
-        });
-
         const allConcepts = [...(foundationConcepts || []), ...(keystoneConcepts || []), ...(utilityConcepts || [])];
-        console.log('📦 Total concepts for document:', allConcepts.length);
 
         onProgress(3, 'complete', {
             message: `Loaded ${allConcepts.length} concepts!`,
@@ -139,7 +125,6 @@ export async function generateWithBackend(
             ...c,
             tier: c.tier || 'utility' // Ensure tier is always defined
         })));
-        console.log('📄 Built fullDocument length:', fullDocument?.length, 'First 200 chars:', fullDocument?.substring(0, 200));
 
         const validation: ValidationResult = {
             valid: true,
