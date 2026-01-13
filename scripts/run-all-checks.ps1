@@ -26,7 +26,8 @@ $checks = @(
     @{ Name = "Hardcoded Colors"; Script = "check-hardcoded-colors.ps1" },
     @{ Name = "Magic Timeouts"; Script = "check-magic-timeouts.ps1" },
     @{ Name = "Console.log Statements"; Script = "check-console-logs.ps1" },
-    @{ Name = "Explicit 'any' Types"; Script = "check-any-types.ps1" }
+    @{ Name = "Explicit 'any' Types"; Script = "check-any-types.ps1" },
+    @{ Name = "CSS Variable Prefixes"; Script = "check-css-var-prefixes.ps1" }
 )
 
 $results = @()

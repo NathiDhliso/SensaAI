@@ -179,7 +179,7 @@
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: var(--surface-card);
+    background: var(--color-surface);
     border: 2px solid var(--color-border);
     display: flex;
     align-items: center;
@@ -206,12 +206,12 @@
 /* Tier Specific Styles */
 .node.foundation {
     border-color: var(--color-info);
-    background: radial-gradient(circle at 30% 30%, rgba(var(--color-info-rgb), 0.2), var(--surface-card));
+    background: radial-gradient(circle at 30% 30%, rgba(var(--color-info-rgb), 0.2), var(--color-surface));
 }
 
 .node.keystone {
     border-color: var(--color-primary);
-    background: radial-gradient(circle at 30% 30%, rgba(var(--color-primary-rgb), 0.2), var(--surface-card));
+    background: radial-gradient(circle at 30% 30%, rgba(var(--color-primary-rgb), 0.2), var(--color-surface));
     width: 140px;
     height: 140px;
     margin-left: -70px;
@@ -225,7 +225,7 @@
 
 .node.utility {
     border-color: var(--color-success);
-    background: radial-gradient(circle at 30% 30%, rgba(var(--color-success-rgb), 0.2), var(--surface-card));
+    background: radial-gradient(circle at 30% 30%, rgba(var(--color-success-rgb), 0.2), var(--color-surface));
     width: 100px;
     height: 100px;
     margin-left: -50px;
@@ -270,7 +270,7 @@
 .sidebar {
     width: 400px;
     /* Fixed width when open */
-    background: var(--surface-start);
+    background: var(--color-surface-secondary);
     /* Darker background */
     border-left: 1px solid var(--color-border);
     display: flex;
@@ -399,8 +399,8 @@
     margin-top: var(--spacing-4);
     border-radius: var(--radius-md);
     overflow: hidden;
-    border: 1px solid var(--border-neutral-subtle);
-    background: var(--surface-primary);
+    border: 1px solid var(--color-border-light);
+    background: var(--color-surface);
 }
 
 .mnemonicImage img {
