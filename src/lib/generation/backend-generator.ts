@@ -262,17 +262,18 @@ export async function surgicallyRepairConcept(
     subject: string,
     conceptName: string,
     issue: string
-): Promise<any> {
+): Promise<unknown> {
     const { user } = useAuthStore.getState();
     const userId = user?.id || 'anonymous';
 
     try {
-        const response: any = await conceptsApi.repair({
+        const response = (await conceptsApi.repair({
             subject,
             conceptName,
             issue,
-            userId
-        });
+            userId,
+            // currentContent removed as it's not in the API signature
+        })) as unknown as { status?: string; concept?: any;[key: string]: any };
 
         if (response.status === 'completed' && response.concept) {
             return response.concept;

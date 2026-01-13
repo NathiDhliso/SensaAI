@@ -31,6 +31,11 @@ import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
 import MasteryChallenge from '@/components/learning/MasteryChallenge';
 import SensaSynopticView from '@/components/learning/SensaSynopticView';
 
+import type {
+    SessionRecommendation,
+    StudyGoal,
+    LearningConcept
+} from '@/lib/types/learning';
 import type { SensaAILearningConcept } from '@/lib/content-adapter/transformer';
 import styles from './VelocityLearning.module.css';
 
@@ -52,6 +57,15 @@ export default function VelocityLearning() {
         markSessionMapBuilt,
         markSessionMastered
     } = useLearningStore();
+
+
+
+    type DiagnosticResults = {
+        knownConcepts: string[];
+        knowledgeGaps: string[];
+        confidenceScores: Record<string, number>;
+        canSkipFoundation: boolean;
+    };
 
     // 2. The State Machine Hook (legacy - used for phase detection)
     const {
@@ -102,7 +116,7 @@ export default function VelocityLearning() {
     }, [currentPhase, startDiagnostic]);
 
     // 5. Handlers
-    const handleStartSession = (goal: any, duration: number, primer?: { reason: string; action: string; reward: string }) => {
+    const handleStartSession = (goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
         startStudySession(goal, duration);
         if (primer) {
             setSessionPrimer(primer);
@@ -136,7 +150,7 @@ export default function VelocityLearning() {
         if (nextId) setCurrentConcept(nextId);
     };
 
-    const handleDiagnosticComplete = (results: any) => {
+    const handleDiagnosticComplete = (results: DiagnosticResults) => {
         completeDiagnostic(results);
     };
 
@@ -361,7 +375,7 @@ export default function VelocityLearning() {
                         <MicroLearningLoopController
                             concept={activeConcept}
                             allConcepts={currentSession!.concepts}
-                            complexityScore={(activeConcept as any).complexityScore || 5}
+                            complexityScore={(activeConcept as LearningConcept & { complexityScore?: number }).complexityScore || 5}
                             userVelocity={1.0}
                             onLoopComplete={handleLoopComplete}
                             onSkip={handleSkipConcept}

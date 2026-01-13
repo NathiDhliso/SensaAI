@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Lightbulb, Map, FileText, Download } from 'lucide-react';
 import { storageManager } from '@/lib/storage';
 import { parseContent } from '@/lib/content-adapter/json-content-parser';
+import type { ParsedConcept } from '@/lib/content-adapter/types';
 import styles from './DocumentView.module.css';
 
 export default function DocumentView() {
@@ -13,7 +14,7 @@ export default function DocumentView() {
         subject: string;
         domain: string;
         date: string;
-        data: any | null; // Structured data
+        data: { concepts: ParsedConcept[]; learningPath?: { stages: { name: string; narrativeBridge?: string; capabilitiesGained?: string }[] } } | null; // Structured data
         raw: string; // Always keep raw text available
     } | null>(null);
     const [loading, setLoading] = useState(true);
@@ -102,7 +103,7 @@ export default function DocumentView() {
                                     Concepts & Mnemonics
                                 </h2>
                                 <div className={styles.conceptList}>
-                                    {content.data.concepts?.map((concept: any, idx: number) => (
+                                    {content.data.concepts?.map((concept: ParsedConcept, idx: number) => (
                                         <div key={idx} className={styles.conceptItem}>
                                             <div className={styles.conceptHeader}>
                                                 <span className={styles.conceptName}>{idx + 1}. {concept.name}</span>
@@ -131,7 +132,7 @@ export default function DocumentView() {
                                     Learning Path
                                 </h2>
                                 <div className={styles.learningPath}>
-                                    {content.data.learningPath?.stages?.map((stage: any, idx: number) => (
+                                    {content.data.learningPath?.stages?.map((stage: { name: string; narrativeBridge?: string; capabilitiesGained?: string }, idx: number) => (
                                         <div key={idx} className={styles.pathStep}>
                                             <div className={styles.stepNumber}>{idx + 1}</div>
                                             <div className={styles.stepContent}>

@@ -44,7 +44,7 @@ export function Login() {
             await loginWithCredentials(email, password);
             // Navigation handled by auth check effect or manual redirect here
             navigate('/');
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Error is also set in store, but we can set local state too if preferred
             // For now relying on local state for immediate feedback control
             console.error(err);

@@ -261,7 +261,7 @@ interface TestPhaseProps {
  * Uses the comprehensive BlankSheetTest component
  */
 function TestPhase({ concept, keyPoints, timeLimit: _timeLimit, onComplete }: TestPhaseProps) {
-    const handleComplete = useCallback((result: any) => {
+    const handleComplete = useCallback((result: { score: number; scoringConfidence: number; metrics: { totalTime: number } }) => {
         // Map BlankSheetResult to TestPhaseResult
         onComplete({
             recalledPoints: result.score / 100 * keyPoints.length, // approximation

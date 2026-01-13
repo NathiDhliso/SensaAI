@@ -80,13 +80,13 @@ export default function Settings() {
           resetProgress();
           break;
         case 'results':
-          (useGenerationStore.setState as any)({ results: [] });
+          useGenerationStore.setState({ results: [] });
           break;
         case 'all':
           resetProgress();
           clearSession();
           resetOnboarding();
-          (useGenerationStore.setState as any)({ results: [] });
+          useGenerationStore.setState({ results: [] });
           break;
       }
       setConfirmClear(null);

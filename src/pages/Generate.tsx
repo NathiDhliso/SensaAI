@@ -10,7 +10,7 @@ import { parseAndLoadContent } from '@/lib/content-loader';
 import { PASS_NAMES, GENERATION_MESSAGES, UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './Generate.module.css';
 
-import type { PassStatus, Pass1Result, ValidationResult, LifecyclePhases, StreamedConceptPreview } from '@/lib/types/generation';
+import type { PassStatus, Pass1Result, ValidationResult, LifecyclePhases, StreamedConceptPreview, GenerationResult } from '@/lib/types/generation';
 
 // Local type for progress callback data, matching ProgressCallback's data parameter
 type ProgressData = {
@@ -212,7 +212,7 @@ export default function Generate() {
     const { currentFileContext, pendingFile, setPendingFile } = useGenerationStore.getState();
     let effectiveContext = context || '';
 
-    const handleGenerationSuccess = async (result: any) => {
+    const handleGenerationSuccess = async (result: GenerationResult) => {
       completeGeneration(result);
       clearCheckpoint();
 
@@ -262,12 +262,13 @@ export default function Generate() {
       }
     };
 
-    const handleGenerationError = (err: any) => {
+    const handleGenerationError = (err: unknown) => {
       console.error('Generation error:', err);
-      if (err.message === 'Generation cancelled by user') {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === 'Generation cancelled by user') {
         navigate('/');
       } else {
-        setError(err.message || 'Generation failed.');
+        setError(message || 'Generation failed.');
       }
     };
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Archive, Sparkles, Clock, Zap, Cloud, Calendar, Paperclip, FileText, AlertTriangle, X } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
@@ -99,8 +99,7 @@ export default function Home() {
 
   /* Hooks & Store */
   const { openSettingsPanel } = useUIStore();
-  // Using explicit cast to avoid type inference issues with store intersection types
-  const { recentSubjects, setFileContext, currentFileContext, setPendingFile } = useGenerationStore() as any;
+  const { recentSubjects, setFileContext, currentFileContext, setPendingFile } = useGenerationStore();
 
   /* Derived State */
   const allSubjects = useMemo(() => {

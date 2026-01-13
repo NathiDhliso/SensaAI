@@ -8,7 +8,19 @@ interface CoverageTreemapProps {
     data: TreePacket[];
 }
 
-const CustomizedContent = (props: any) => {
+interface CustomizedContentProps {
+    depth: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    name: string;
+    size?: number;
+    tier?: string;
+    [key: string]: unknown;
+}
+
+const CustomizedContent = (props: CustomizedContentProps) => {
     const { depth, x, y, width, height, name, size, tier } = props;
 
     // Semantic color scheme based on Tier/Category name
@@ -55,7 +67,7 @@ const CustomizedContent = (props: any) => {
                 rx={6}
                 ry={6}
             />
-            {width > 60 && height > 35 ? (
+            {(size ?? 0) > 0 && (height > 35 ? (
                 <>
                     <text
                         x={x + width / 2}
@@ -76,10 +88,10 @@ const CustomizedContent = (props: any) => {
                         fontSize={9}
                         style={{ pointerEvents: 'none' }}
                     >
-                        {Math.round(size / 100)} pts
+                        {Math.round((size ?? 0) / 100)} pts
                     </text>
                 </>
-            ) : null}
+            ) : null)}
         </g>
     );
 };
@@ -107,7 +119,7 @@ export const CoverageTreemap: React.FC<CoverageTreemapProps> = ({ data }) => {
                         aspectRatio={4 / 3}
                         stroke="transparent"
                         fill={COLORS.accent.light}
-                        content={<CustomizedContent />}
+                        content={(props) => <CustomizedContent {...(props as CustomizedContentProps)} />}
                     >
                         <Tooltip
                             contentStyle={{
