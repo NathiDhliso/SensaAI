@@ -18,6 +18,8 @@ const DocumentView = lazy(() => import('./pages/DocumentView'));
 
 
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
+const SignUp = lazy(() => import('./pages/SignUp').then(m => ({ default: m.SignUp })));
+const ConfirmSignUp = lazy(() => import('./pages/ConfirmSignUp').then(m => ({ default: m.ConfirmSignUp })));
 const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
 
 function LoadingFallback() {
@@ -56,6 +58,8 @@ function App() {
               ═══════════════════════════════════════════════════════════════ */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/confirm-signup" element={<ConfirmSignUp />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/callback" element={<AuthCallback />} />
 

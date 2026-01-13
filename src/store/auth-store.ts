@@ -33,6 +33,9 @@ interface AuthState {
 interface AuthActions {
     login: () => void;
     loginWithCredentials: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string, name: string) => Promise<void>;
+    confirmSignUp: (email: string, code: string) => Promise<void>;
+    resendConfirmationCode: (email: string) => Promise<void>;
     logout: () => void;
     handleCallback: (code: string) => Promise<void>;
     refreshTokens: () => Promise<void>;
@@ -178,6 +181,82 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         isLoading: false,
                     });
                     return Promise.reject(error);
+                }
+            },
+
+            signUp: async (email, password, name) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const { CognitoIdentityProviderClient, SignUpCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+                    const client = new CognitoIdentityProviderClient({ region: AWS_REGION });
+
+                    const command = new SignUpCommand({
+                        ClientId: COGNITO_CLIENT_ID,
+                        Username: email,
+                        Password: password,
+                        UserAttributes: [
+                            { Name: 'email', Value: email },
+                            { Name: 'name', Value: name },
+                        ],
+                    });
+
+                    await client.send(command);
+                    set({ isLoading: false, error: null });
+                } catch (error) {
+                    console.error('Sign up error:', error);
+                    let errorMessage = 'Sign up failed';
+                    if (error instanceof Error) {
+                        errorMessage = error.message.replace(/^[a-zA-Z]+: /, '');
+                    }
+                    set({ error: errorMessage, isLoading: false });
+                    throw error;
+                }
+            },
+
+            confirmSignUp: async (email, code) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const { CognitoIdentityProviderClient, ConfirmSignUpCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+                    const client = new CognitoIdentityProviderClient({ region: AWS_REGION });
+
+                    const command = new ConfirmSignUpCommand({
+                        ClientId: COGNITO_CLIENT_ID,
+                        Username: email,
+                        ConfirmationCode: code,
+                    });
+
+                    await client.send(command);
+                    set({ isLoading: false, error: null });
+                } catch (error) {
+                    console.error('Confirm sign up error:', error);
+                    let errorMessage = 'Verification failed';
+                    if (error instanceof Error) {
+                        errorMessage = error.message.replace(/^[a-zA-Z]+: /, '');
+                    }
+                    set({ error: errorMessage, isLoading: false });
+                    throw error;
+                }
+            },
+
+            resendConfirmationCode: async (email) => {
+                try {
+                    const { CognitoIdentityProviderClient, ResendConfirmationCodeCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+                    const client = new CognitoIdentityProviderClient({ region: AWS_REGION });
+
+                    const command = new ResendConfirmationCodeCommand({
+                        ClientId: COGNITO_CLIENT_ID,
+                        Username: email,
+                    });
+
+                    await client.send(command);
+                } catch (error) {
+                    console.error('Resend code error:', error);
+                    let errorMessage = 'Failed to resend code';
+                    if (error instanceof Error) {
+                        errorMessage = error.message.replace(/^[a-zA-Z]+: /, '');
+                    }
+                    set({ error: errorMessage });
+                    throw error;
                 }
             },
 

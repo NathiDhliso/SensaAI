@@ -1,38 +1,25 @@
-import { useState, useEffect, type FormEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
-import { Mail, Lock, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import styles from './Login.module.css';
+import styles from './Login.module.css'; // Reusing Login styles for consistency
 
-export function Login() {
+export function SignUp() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const { loginWithCredentials, isAuthenticated } = useAuthStore();
+    const { signUp } = useAuthStore();
 
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Access store error to display it (as it cleans up AWS error messages)
-    // NOTE: Must be before any conditional returns to follow React hooks rules
     const storeError = useAuthStore(state => state.error);
-
-    // Redirect if already authenticated
-    useEffect(() => {
-        if (isAuthenticated) {
-            const from = (location.state as { from?: string })?.from || '/';
-            navigate(from, { replace: true });
-        }
-    }, [isAuthenticated, navigate, location]);
-
-    // Early return AFTER all hooks
-    if (isAuthenticated) return null;
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if (!email || !password) {
+        if (!name || !email || !password) {
             setError('Please fill in all fields');
             return;
         }
@@ -41,20 +28,15 @@ export function Login() {
         setIsLoading(true);
 
         try {
-            await loginWithCredentials(email, password);
-            // Navigation handled by auth check effect or manual redirect here
-            navigate('/');
+            await signUp(email, password, name);
+            // After successful sign up, move to verification
+            navigate('/confirm-signup', { state: { email } });
         } catch (err: unknown) {
-            // Error is also set in store, but we can set local state too if preferred
-            // For now relying on local state for immediate feedback control
             console.error(err);
-            // The store sets the error, but we want to ensure we display it.
-            // We can check store error or just use the caught error.
         } finally {
             setIsLoading(false);
         }
     };
-
 
     return (
         <div className={styles.container}>
@@ -64,34 +46,32 @@ export function Login() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
             >
-                {/* Visual Side (Left) - Prime Directive */}
+                {/* Visual Side (Left) */}
                 <div className={styles.visualSide}>
                     <div className={styles.visualContent}>
                         <div className={styles.logoIcon} style={{ background: 'var(--overlay-white-20)' }}>
                             <Sparkles size={24} />
                         </div>
 
-                        {/* Prime Directive Banner */}
                         <div className={styles.primeDirective}>
-                            <h2 className={styles.primeTitle}>🎯 Prime Directive</h2>
+                            <h2 className={styles.primeTitle}>🚀 Join SensaAI</h2>
                             <p className={styles.primeStatement}>
-                                <strong>Own your learning.</strong> Don't just pass exams—build mental architecture that lasts a lifetime.
+                                Build your personalized learning architecture. Master subjects faster with AI-driven velocity and spatial mnemonics.
                             </p>
                             <div className={styles.primePrinciples}>
-                                <span>🧠 Understand First</span>
-                                <span>🔗 Connect Always</span>
-                                <span>🔥 Apply Relentlessly</span>
+                                <span>⚡ Rapid Acquisition</span>
+                                <span>🧠 Deep Understanding</span>
+                                <span>📈 Measurable Velocity</span>
                             </div>
                         </div>
 
                         <div style={{ marginTop: 'auto' }}>
                             <p className={styles.quote}>
-                                "Learning is not attained by chance, it must be sought for with ardor and attended to with diligence."
+                                "The more that you read, the more things you will know. The more that you learn, the more places you'll go."
                             </p>
-                            <span className={styles.author}>— Abigail Adams</span>
+                            <span className={styles.author}>— Dr. Seuss</span>
                         </div>
                     </div>
-                    {/* Decorative Shapes */}
                     <div className={`${styles.visualShape} ${styles.shape1}`} />
                     <div className={`${styles.visualShape} ${styles.shape2}`} />
                 </div>
@@ -102,8 +82,8 @@ export function Login() {
                         <div className={styles.logoIcon}>
                             <Sparkles size={28} />
                         </div>
-                        <h1 className={styles.title}>Welcome Back</h1>
-                        <p className={styles.subtitle}>Sign in to continue your learning journey</p>
+                        <h1 className={styles.title}>Create Account</h1>
+                        <p className={styles.subtitle}>Begin your high-velocity learning journey</p>
                     </div>
 
                     <AnimatePresence mode="wait">
@@ -121,6 +101,22 @@ export function Login() {
                     </AnimatePresence>
 
                     <form className={styles.form} onSubmit={handleSubmit}>
+                        <div className={styles.inputGroup}>
+                            <label className={styles.label} htmlFor="name">Full Name</label>
+                            <div className={styles.inputWrapper}>
+                                <User size={18} className={styles.inputIcon} />
+                                <input
+                                    id="name"
+                                    type="text"
+                                    className={styles.input}
+                                    placeholder="John Doe"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </div>
+
                         <div className={styles.inputGroup}>
                             <label className={styles.label} htmlFor="email">Email Address</label>
                             <div className={styles.inputWrapper}>
@@ -162,7 +158,7 @@ export function Login() {
                                 <Loader2 className={styles.spinner} size={20} />
                             ) : (
                                 <>
-                                    <span>Sign In</span>
+                                    <span>Create Account</span>
                                     <ArrowRight size={18} />
                                 </>
                             )}
@@ -171,9 +167,9 @@ export function Login() {
 
                     <div className={styles.footer}>
                         <p>
-                            Don't have an account?
-                            <span className={styles.link} onClick={() => navigate('/signup')}>
-                                Sign up
+                            Already have an account?
+                            <span className={styles.link} onClick={() => navigate('/login')}>
+                                Sign in
                             </span>
                         </p>
                     </div>
