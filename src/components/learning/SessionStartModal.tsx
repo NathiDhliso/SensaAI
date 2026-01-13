@@ -1,11 +1,3 @@
-/**
- * SessionStartModal Component
- * 
- * Step 1: The Why (Establish Intent)
- * Modal for starting a study session with goal and time selection.
- * 
- * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Step 1
- */
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -16,6 +8,7 @@ import {
 import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/types/learning';
 import { MOOD_OPTIONS, type Mood } from '@/lib/ai/coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { MOOD_COLORS } from '@/constants/theme-colors';
 import GuidedPrimer from './GuidedPrimer';
 import styles from './SessionStartModal.module.css';
 
@@ -115,12 +108,10 @@ export function SessionStartModal({
   };
 
   const handleNext = () => {
-    console.log('[SessionStartModal] handleNext called', { selectedMood, selectedGoal, selectedDuration });
     // Phase 0 Requirement: User must actively define their intention.
     // Store the selected mood before moving to prime phase
     setLastSessionMood(selectedMood);
     setStep('prime');
-    console.log('[SessionStartModal] setStep(prime) called');
   };
 
   return (
@@ -195,13 +186,8 @@ export function SessionStartModal({
                       stressed: AlertCircle
                     }[mood.id] || Activity;
 
-                    // Map mood to specific color
-                    const moodColor = {
-                      energized: '#F59E0B', // Amber
-                      neutral: '#60A5FA',   // Blue
-                      tired: '#94A3B8',     // Slate
-                      stressed: '#EF4444'   // Red
-                    }[mood.id] || 'currentColor';
+                    // Use centralized MOOD_COLORS
+                    const moodColor = MOOD_COLORS[mood.id as keyof typeof MOOD_COLORS] || 'currentColor';
 
                     return (
                       <button
@@ -350,9 +336,7 @@ export function SessionStartModal({
               duration={showCustom ? parseInt(customDuration) || 30 : selectedDuration}
               mood={selectedMood}
               onComplete={(data) => {
-                console.log('[SessionStartModal] onComplete received from GuidedPrimer', { selectedGoal, selectedDuration, data });
                 onStart(selectedGoal, showCustom ? parseInt(customDuration) || 30 : selectedDuration, data);
-                console.log('[SessionStartModal] onStart called');
               }}
               onBack={() => setStep('setup')}
             />

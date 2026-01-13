@@ -34,8 +34,8 @@ const CustomizedContent = (props: any) => {
     const isLeaf = depth === 2 || (depth === 1 && !props.children);
     const style = isLeaf ? getStyle(category) : { fill: 'none', opacity: 0, stroke: 'none' };
 
-    // Text colors
-    const textColor = '#ffffff';
+    // Text colors - using white for visibility on colored backgrounds
+    const textColor = '#fff';
     const subTextColor = 'rgba(255, 255, 255, 0.9)';
 
     // Only render if it's a leaf node to avoid group overlaps
@@ -106,7 +106,7 @@ export const CoverageTreemap: React.FC<CoverageTreemapProps> = ({ data }) => {
                         dataKey="size"
                         aspectRatio={4 / 3}
                         stroke="transparent"
-                        fill="#8884d8"
+                        fill={COLORS.accent.light}
                         content={<CustomizedContent />}
                     >
                         <Tooltip
@@ -117,8 +117,8 @@ export const CoverageTreemap: React.FC<CoverageTreemapProps> = ({ data }) => {
                                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
                                 padding: '0.75rem 1rem',
                             }}
-                            itemStyle={{ color: '#374151', fontSize: '0.875rem' }}
-                            labelStyle={{ color: '#111827', fontWeight: 600, marginBottom: '0.25rem' }}
+                            itemStyle={{ color: COLORS.text.medium, fontSize: '0.875rem' }}
+                            labelStyle={{ color: COLORS.text.dark, fontWeight: 600, marginBottom: '0.25rem' }}
                         />
                     </Treemap>
                 </ResponsiveContainer>

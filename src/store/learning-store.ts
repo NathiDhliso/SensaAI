@@ -537,25 +537,18 @@ export const useLearningStore = create<LearningState & LearningActions>()(
         const state = get();
         const subjectId = state.currentSession?.subjectId || 'unknown';
         const session = createStudySession(subjectId, goal, duration, targetConcepts);
-        console.log('[learning-store] startStudySession: creating session', { goal, duration, session });
         set({ studySession: session, showSessionModal: false });
-        console.log('[learning-store] startStudySession: set() called, new studySession:', get().studySession);
       },
 
       setSessionPrimer: (primer) => {
         const state = get();
-        console.log('[learning-store] setSessionPrimer called, current studySession:', state.studySession);
-        if (!state.studySession) {
-          console.log('[learning-store] setSessionPrimer: NO studySession, returning early!');
-          return;
-        }
+        if (!state.studySession) return;
         set({
           studySession: {
             ...state.studySession,
             primer
           }
         });
-        console.log('[learning-store] setSessionPrimer: set() called, new primer:', get().studySession?.primer);
       },
 
       markSessionScouted: () => {

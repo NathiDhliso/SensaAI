@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
+import { SCORE_COLORS } from '@/constants/theme-colors';
 import styles from './ScoreCard.module.css';
 
 interface ScoreCardProps {
@@ -15,12 +16,6 @@ interface ScoreCardProps {
     delay?: number;
 }
 
-// Softer, more trustworthy colors
-const STATUS_COLORS = {
-    good: '#10B981',    // Sage green - calming success
-    warning: '#F59E0B', // Warm amber - gentle attention
-    neutral: '#60A5FA', // Calm blue - informational
-};
 
 export const ScoreCard: React.FC<ScoreCardProps> = ({
     id,
@@ -31,7 +26,7 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
     status = 'neutral',
     delay = 0
 }) => {
-    const color = STATUS_COLORS[status];
+    const color = SCORE_COLORS[status];
 
     return (
         <motion.div

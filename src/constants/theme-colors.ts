@@ -132,6 +132,26 @@ export const GRAPH_COLORS = {
 } as const;
 
 // ============================================
+// MOOD COLORS (for SessionStartModal.tsx)
+// ============================================
+export const MOOD_COLORS = {
+    energized: COLORS.secondary.amber,  // #F59E0B - Amber
+    neutral: COLORS.info,               // #3b82f6 - Blue (adjusted for consistency)
+    tired: COLORS.text.muted,           // #64748b - Slate
+    stressed: COLORS.error,             // #EF4444 - Red
+} as const;
+
+// ============================================
+// SCORE COLORS (for ScoreCard.tsx)
+// ============================================
+export const SCORE_COLORS = {
+    good: COLORS.secondary.sage,        // #10B981 - Sage green
+    warning: COLORS.secondary.amber,    // #F59E0B - Warm amber
+    neutral: COLORS.info,               // #3b82f6 - Calm blue
+} as const;
+
+
+// ============================================
 // TEXT STROKE COLORS (for graph labels with outlines)
 // ============================================
 export const TEXT_STROKE = {

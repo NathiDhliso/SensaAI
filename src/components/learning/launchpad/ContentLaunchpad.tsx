@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { COLORS } from '@/constants/theme-colors';
 import {
     Activity,
     Clock,
@@ -99,7 +100,6 @@ export default function ContentLaunchpad() {
                     if (criticalGaps.length > 0) {
                         const plan = strategies.generateRepairPlan(criticalGaps, concepts);
                         if (plan.actions.length > 0) {
-                            console.log('[Surgical Merge] Repair Plan Generated:', plan);
                             setRepairPlan(plan);
                         }
                     }
@@ -137,7 +137,7 @@ export default function ContentLaunchpad() {
                 repairPlan,
                 concepts,
                 result.subject,
-                (p, t, action) => console.log(`[Repairing ${p}/${t}] ${action}`)
+                () => { /* Progress callback - silent */ }
             );
 
             // Rebuild document
@@ -543,8 +543,8 @@ export default function ContentLaunchpad() {
                                     initial={{ scale: 0.8, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     style={{
-                                        background: 'rgba(34, 197, 94, 0.1)',
-                                        color: '#22c55e',
+                                        background: `rgba(34, 197, 94, 0.1)`,
+                                        color: COLORS.success,
                                         padding: '0.25rem 0.75rem',
                                         borderRadius: '1rem',
                                         fontSize: '0.75rem',
