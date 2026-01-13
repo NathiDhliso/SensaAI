@@ -49,8 +49,6 @@ export async function loadSensaAIContent(
 
     if (generateAssessments && config && transformed.metadata.diagnosticReady) {
       try {
-        console.log('[SensaAI] Generating enhanced assessment materials...');
-
         // Generate enhanced diagnostic questions
         enhancedDiagnostics = await generateEnhancedDiagnosticQuestions(
           transformed.concepts,
@@ -70,27 +68,9 @@ export async function loadSensaAIContent(
         // Create diagnostic assessment
         diagnosticAssessment = createDiagnosticAssessment(transformed.concepts, enhancedDiagnostics);
 
-        console.log('[SensaAI] Enhanced assessments generated successfully');
-
       } catch (error) {
-        console.warn('[SensaAI] Failed to generate enhanced assessments:', error);
         // Continue with built-in assessments
       }
-    }
-
-    // Step 5: Log diagnostics for debugging
-    console.log('[SensaAI] Content loaded:', {
-      totalConcepts: transformed.concepts.length,
-      foundationConcepts: transformed.metadata.foundationConcepts,
-      diagnosticReady: transformed.metadata.diagnosticReady,
-      metadataCompleteness: `${transformed.metadata.metadataCompleteness}%`,
-      validationIssues: validation.issues.length,
-      enhancedAssessments: !!enhancedDiagnostics
-    });
-
-    if (validation.issues.length > 0) {
-      console.warn('[SensaAI] Validation issues:', validation.issues);
-      console.log('[SensaAI] Recommendations:', validation.recommendations);
     }
 
     return {

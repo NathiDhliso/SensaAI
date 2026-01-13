@@ -221,11 +221,7 @@ function analyzeSystemPromptElements(
                     tierDistribution.keystone++;
                 } else if (normalizedTier === 'utility') {
                     tierDistribution.utility++;
-                } else {
-                    console.warn(`[Analytics] Unknown tier value: ${tier} for concept ${concept.name}`);
                 }
-            } else {
-                console.warn(`[Analytics] Missing tier for concept: ${concept.name}`);
             }
 
             // Count SHAPE sections
@@ -399,7 +395,6 @@ function buildCoverageMap(
         parsedData.concepts.forEach(c => {
             // Normalize key for improved matching
             const tier = c.tier || c.mnemonic?.tier;
-            console.log(`[CoverageMap] Concept: ${c.name}, Tier resolved: ${tier}, Root: ${c.tier}, Mnemonic: ${c.mnemonic?.tier}`);
             conceptDataMap.set(c.name.toLowerCase().trim(), { tier });
         });
     }
@@ -465,7 +460,6 @@ function buildCoverageMap(
         // Dynamic Fallback: If no tier found, calculate it (prevents "Uncategorized" for mapped concepts)
         if (!tier) {
             tier = determineTierFallback(index + 1, conceptName, allConcepts.length).toLowerCase() as 'foundation' | 'keystone' | 'utility';
-            console.log(`[CoverageMap] Fallback tier for ${conceptName}: ${tier}`);
         }
 
         // Handle both capitalized and lowercase keys for grouping
@@ -477,7 +471,6 @@ function buildCoverageMap(
                 tierGroups['uncategorized'].push(conceptName);
             }
         } else {
-            console.log(`[CoverageMap] Uncategorized concept: ${conceptName}, tier value: ${tier}`);
             tierGroups['uncategorized'].push(conceptName);
         }
     });

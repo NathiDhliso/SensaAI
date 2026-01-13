@@ -348,7 +348,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             name: 'sensapbl-auth',
             onRehydrateStorage: () => (state) => {
                 if (state && state.tokens) {
-                    console.log('[Auth] Hydrated auth state, configuring API client');
                     // Check if tokens are expired immediately upon hydration
                     if (Date.now() >= state.tokens.expiresAt) {
                         console.warn('[Auth] Session expired on load, attempting refresh...');

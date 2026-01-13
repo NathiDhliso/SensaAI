@@ -145,7 +145,6 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
     // If still no edges, create a simple linear chain based on concept order
     // This ensures the graph isn't completely disconnected
     if (edges.length === 0 && concepts.length > 1) {
-        console.log('[DependencyParser] No dependencies found, creating order-based chain');
         for (let i = 1; i < concepts.length; i++) {
             edges.push({
                 id: `edge-chain-${concepts[i].id}-${concepts[i - 1].id}`,
@@ -157,7 +156,6 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
         }
     }
 
-    console.log(`[DependencyParser] Extracted ${edges.length} edges from ${concepts.length} concepts`);
     return edges;
 }
 

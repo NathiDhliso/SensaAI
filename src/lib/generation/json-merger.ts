@@ -90,7 +90,6 @@ export function mergeJsonConceptBlocks(rawContent: string): string {
                         : undefined;
 
                     if (order !== undefined && seenOrders.has(order)) {
-                        console.debug(`[JSONMerger] Skipping duplicate concept order ${order}`);
                         continue;
                     }
 
@@ -109,16 +108,12 @@ export function mergeJsonConceptBlocks(rawContent: string): string {
 
     // If no concepts found or only one block, return original content
     if (allConcepts.length === 0) {
-        console.debug('[JSONMerger] No concepts found in JSON blocks, returning original content');
         return rawContent;
     }
 
     if (blockCount === 1) {
-        console.debug('[JSONMerger] Only one JSON block found, no merge needed');
         return rawContent;
     }
-
-    console.log(`[JSONMerger] Merged ${allConcepts.length} concepts from ${blockCount} JSON blocks`);
 
     // Sort concepts by order to ensure correct sequence
     allConcepts.sort((a, b) => {

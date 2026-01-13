@@ -56,11 +56,8 @@ export async function generateEnhancedDiagnosticQuestions(
   const foundationConcepts = concepts.filter(c => c.foundationLevel);
 
   if (foundationConcepts.length === 0) {
-    console.warn('[DiagnosticGenerator] No foundation concepts found for diagnostic generation');
     return questionMap;
   }
-
-  console.log(`[DiagnosticGenerator] Generating questions for ${foundationConcepts.length} foundation concepts`);
 
   // Process concepts in batches to avoid overwhelming the API
   const batchSize = 3;
@@ -151,8 +148,6 @@ Return a JSON object with concept IDs as keys:
   const client = await getBedrockClient(config);
   const messages = [{ role: 'user' as const, content: prompt }];
 
-  console.log('[DiagnosticGenerator] Calling Claude API for batch generation...');
-
   const response = await invokeClaudeModel(
     client,
     messages,
@@ -195,7 +190,6 @@ Return a JSON object with concept IDs as keys:
       }
     });
 
-    console.log(`[DiagnosticGenerator] Successfully generated questions for ${questionMap.size} concepts`);
     return questionMap;
 
   } catch (error) {

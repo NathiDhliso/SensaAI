@@ -927,15 +927,12 @@ function assignTiersByPercentile(concepts: LearningConcept[], outdegrees: Map<st
 
   // Handle edge cases
   if (degreeValues.length < 3) {
-    console.log('📊 Too few concepts for percentile tiers. Using defaults.');
-    return;
+    return; // Too few concepts for percentile tiers
   }
 
   // Calculate percentile thresholds
   const p80 = degreeValues[Math.floor(degreeValues.length * 0.2)] || 0; // Top 20%
   const p50 = degreeValues[Math.floor(degreeValues.length * 0.5)] || 0; // Top 50%
-
-  console.log(`📊 Tier Thresholds: Foundation >= ${p80}, Keystone >= ${p50}, Utility < ${p50}`);
 
   concepts.forEach(c => {
     const degree = outdegrees.get(c.name) || 0;
