@@ -14,8 +14,6 @@ import {
     calculateMasteryIndex,
     hasMastery,
     findWeakestVariable,
-    MASTERY_THRESHOLD,
-    FLOW_MODE_THRESHOLD,
 } from '@/constants/sensa-flow-constants';
 
 // ============================================================================

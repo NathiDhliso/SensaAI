@@ -19,7 +19,7 @@ export async function enhanceWithVisuals(
 
     // Filter for Foundation concepts that have an anchor but NO image yet
     const foundationConcepts = parsed.data.concepts.filter(
-        c => c.mnemonic?.tier === 'Foundation' &&
+        c => c.mnemonic?.tier === 'foundation' &&
             c.mnemonic.anchor &&
             !c.mnemonic.imageUrl
     );

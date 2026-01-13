@@ -8,7 +8,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Target, Info } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target } from 'lucide-react';
 import { Z_INDEX } from '@/constants/z-index';
 import { EQUATION_COLORS_HEX, MASTERY_THRESHOLD } from '@/constants/sensa-flow-constants';
 import styles from './EquationTracker.module.css';

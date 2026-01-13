@@ -97,7 +97,7 @@ export type RepairStrategy = 'SELF_HEAL' | 'SURGICAL_AI' | 'FULL_REBUILD' | 'NON
 
 export type RepairAction = {
   strategy: RepairStrategy;
-  conceptId: string;
+  conceptId?: string;
   field: string;
   reason: string;
   priority: 'high' | 'medium' | 'low';

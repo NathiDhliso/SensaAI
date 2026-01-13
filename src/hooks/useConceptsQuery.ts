@@ -15,7 +15,7 @@
  */
 
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { conceptsApi, type ConceptsQueryParams } from '@/lib/api';
+import { conceptsApi } from '@/lib/api';
 import type { ParsedConcept } from '@/lib/content-adapter/types';
 import { IndexedDBStorage } from '@/lib/storage/indexed-db-storage';
 
@@ -175,7 +175,10 @@ export function useGenerateConcepts(options: UseGenerateConceptsOptions = {}) {
 export function useJobStatus(jobId: string | null, options: { enabled?: boolean } = {}) {
     return useQuery({
         queryKey: conceptsQueryKeys.job(jobId ?? ''),
-        queryFn: () => conceptsApi.getJobStatus(jobId!),
+        queryFn: async () => {
+            if (!jobId) throw new Error('Job ID is required');
+            return conceptsApi.getJobStatus(jobId);
+        },
         enabled: !!jobId && (options.enabled ?? true),
         refetchInterval: (query) => {
             // Poll every 2 seconds until completed

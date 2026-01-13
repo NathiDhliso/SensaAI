@@ -22,6 +22,9 @@ export const Z_INDEX = {
     /** Fixed position elements (CSS: var(--z-fixed)) */
     FIXED: 300,
 
+    /** Learning equation tracker overlay */
+    EQUATION_TRACKER: 350,
+
     /** Modal backdrops (CSS: var(--z-modal-backdrop)) */
     MODAL_BACKDROP: 400,
 

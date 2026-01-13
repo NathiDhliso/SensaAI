@@ -7,7 +7,7 @@
 
 export interface ContentGap {
     field: string;
-    conceptId: string;
+    conceptId?: string;
     conceptName: string;
     severity: 'critical' | 'warning';
     message: string;

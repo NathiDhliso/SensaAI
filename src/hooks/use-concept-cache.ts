@@ -121,9 +121,9 @@ export function useConceptCache(subjectId: string | undefined): ConceptCacheStat
         if (!subjectId) return;
 
         const checkCacheExists = async () => {
-            const _hasCache = await indexedDBStorage.hasConceptsCache(subjectId);
+            if (!subjectId) return;
+            await indexedDBStorage.hasConceptsCache(subjectId);
             setState(prev => ({ ...prev, initialized: true }));
-            // Cache existence is tracked internally, no side effects needed
         };
 
         checkCacheExists();

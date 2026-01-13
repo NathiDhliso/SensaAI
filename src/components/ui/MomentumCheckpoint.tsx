@@ -102,7 +102,7 @@ export default function MomentumCheckpoint({
                             )}
                         </div>
                         <p className={styles.upNextHook}>
-                            {nextConcept.hook || 'Continue your journey...'}
+                            {nextConcept.hookSentence || 'Continue your journey...'}
                         </p>
                     </div>
                 )}
