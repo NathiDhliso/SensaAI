@@ -170,7 +170,7 @@ export default function Settings() {
               <h2 className={styles.sectionTitle}>Learning Profile</h2>
             </div>
 
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
               Your learning profile is optimized for the Velocity Engine.
             </p>
 
