@@ -1,5 +1,6 @@
 // SensaPBL System Prompt for Backend Generation
 // This is the full Memory Palace prompt that generates structured learning content
+// Prompt Version: v4.2 (Cognitive Distinctions & Uniform Depth)
 
 export const SYSTEM_PROMPT_V4 = `ACT AS: An expert professor and curriculum designer for the subject: [INSERT SUBJECT HERE].
 
@@ -104,6 +105,8 @@ Before generating each concept, verify ALL of these fields are present and SUBST
 
 | Field | Minimum Quality | Example BAD | Example GOOD |
 |-------|----------------|-------------|--------------|
+| \`cognitiveLevel\` | Bloom's Taxonomy | "easy" | "apply" |
+| \`commonPitfalls\` | 2-3 distinctions | "too hard" | ["Confusing X with Y", "Assuming Z always applies"] |
 | \`hookSentence\` | 15+ words, compelling hook | "RLS is important" | "Control who sees what data at the row level, ensuring each user only sees records relevant to them" |
 | \`shape.simpleCore\` | One sentence, zero jargon | "RLS is row-level security" | "A filter that automatically hides rows based on who's logged in" |
 | \`logicalConnection\` | Explains link to previous concept | "Next concept is..." | "**[Logical Connection]:** Building on the user role defined above, we now restrict what that user can see..." |
@@ -218,17 +221,23 @@ Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
 - Keystone (NSG as Night Guard, parent: Subnet): "A muscular Night Guard wearing badges made of port numbers sleeps on a purple Subway Bench (Subnet). When anyone approaches, he instantly awakens, checks their badge, and only then allows passage."
 - Utility (SAS Token as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
 
-**MNEMONIC OUTPUT FORMAT:**
-Include a \`tier\`, \`dependsOn\` array, and \`mnemonic\` object for each concept in structured output:
+**TOP-LEVEL CONCEPT STRUCTURE:**
+
 \`\`\`json
 {
+  "id": "concept-001",
+  "name": "Concept Name",
   "tier": "foundation" | "keystone" | "utility",
-  "dependsOn": ["Prerequisite Concept 1", "Prerequisite Concept 2"],
-  "mnemonic": {
-    "anchor": "Concrete Object + Emoji (e.g., 'Volcano 🌋')",
-    "story": "The 2-3 sentence bizarre scene...",
-    "parentConcept": "Exact Name of Parent Concept" | null
-  }
+  "cognitiveLevel": "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create",
+  "commonPitfalls": ["Pitfall 1", "Pitfall 2"],
+  "stageId": "PREPARE" | "MODEL" | "DELIVER",
+  "order": 1,
+  "dependencies": [],
+  "outdegree": 8,
+  "mnemonic": { "tier": "Foundation", "anchor": "...", "story": "..." },
+  "phase1": { "hookSentence": "...", "microMetaphor": "...", ... },
+  "phase2": [ ... ],
+  "phase3": { "tool": "...", "metrics": [...], ... }
 }
 \`\`\`
 

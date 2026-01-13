@@ -208,7 +208,7 @@ function parseConcepts(content: string): ParsedConcept[] {
             }
         }
     } catch (e) {
-        console.warn('[ContentParser] Direct JSON parse failed:', e);
+        console.debug('[ContentParser] Direct JSON parse failed (continuing to block extraction):', e);
         // Not a single valid JSON object, continue to block searching
     }
 
@@ -731,6 +731,17 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
     let workedExample = c.workedExample && typeof c.workedExample === 'object' ? c.workedExample : undefined;
     let keyPoints = Array.isArray(c.keyPoints) ? c.keyPoints as string[] : [];
 
+    // Phase 2: Extract cognitive classification
+    let cognitiveLevel: ParsedConcept['cognitiveLevel'] | undefined;
+    if (typeof c.cognitiveLevel === 'string') {
+        const level = c.cognitiveLevel.toLowerCase();
+        if (['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'].includes(level)) {
+            cognitiveLevel = level as ParsedConcept['cognitiveLevel'];
+        }
+    }
+    let commonPitfalls = Array.isArray(c.commonPitfalls) ? c.commonPitfalls as string[] : [];
+
+
     // Check for lifecycle wrapper first (legacy format)
     if (c.lifecycle && typeof c.lifecycle === 'object') {
         const lifecycle = c.lifecycle as Record<string, unknown>;
@@ -882,6 +893,9 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
                 : []
         } : undefined,
         keyPoints,
+        // Phase 2 Cognitive Model
+        cognitiveLevel,
+        commonPitfalls,
         // NEW: Extract dependsOn from root level (Sensa v2.0 compliance)
         dependsOn: Array.isArray(c.dependsOn) ? c.dependsOn as string[] : [],
         // Also store tier at root for transformer

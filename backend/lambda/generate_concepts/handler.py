@@ -61,6 +61,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         subject = body.get("subject")
         user_id = body.get("userId", "anonymous")
         session_id = body.get("sessionId", generate_id())
+        job_id = body.get("jobId", generate_id())
         context_text = body.get("context", "")
         action = body.get("action", "generate")
         
@@ -83,7 +84,6 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return api_response(400, {"error": "Subject is required"})
         
         # Create job record
-        job_id = generate_id()
         jobs_table = dynamodb.Table(JOBS_TABLE)
         jobs_table.put_item(
             Item={
@@ -198,7 +198,7 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
         for attempt in range(MAX_RETRIES):
             try:
                 response = bedrock.invoke_model(
-                    modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                    modelId="anthropic.claude-3-5-sonnet-20241022-v2:0", # Use verified stable Sonnet 3.5
                     contentType="application/json",
                     accept="application/json",
                     body=json.dumps({
@@ -292,7 +292,7 @@ def repair_concept_with_bedrock(subject: str, concept_name: str, issue: str) -> 
     
     try:
         response = bedrock.invoke_model(
-            modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
             contentType="application/json",
             accept="application/json",
             body=json.dumps({
@@ -477,6 +477,8 @@ def store_concepts(table: Any, user_id: str, session_id: str, concepts: List[Dic
                     "technicalDetails": concept.get("technicalDetails", ""),
                     "workedExample": concept.get("workedExample", {}),
                     "keyPoints": concept.get("keyPoints", []),
+                    "cognitiveLevel": concept.get("cognitiveLevel", "understand"),
+                    "commonPitfalls": concept.get("commonPitfalls", []),
                     "prerequisiteWeight": str(concept.get("prerequisiteWeight", 0.5)),
                     "displayProperties": concept.get("displayProperties", {}),
                     # Store full SENSA learning science data

@@ -1,9 +1,10 @@
+```
 """
 SENSA System Prompt for Lambda
 This is a Python version of the TypeScript system-prompt.ts
 Contains the full learning science for SENSA v2.0
 
-Prompt Version: v4.1 (Silver Bullet Parallel Generation)
+Prompt Version: v4.2 (Cognitive Distinctions & Uniform Depth)
 See docs/prompts/README.md for version history.
 """
 
@@ -36,6 +37,8 @@ Analyze the subject and derive a logical 3-phase operational cycle that authenti
   "id": "concept-001",
   "name": "Concept Name",
   "tier": "foundation" | "keystone" | "utility",
+  "cognitiveLevel": "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create",
+  "commonPitfalls": ["Pitfall 1", "Pitfall 2"],
   "stageId": "PREPARE" | "MODEL" | "DELIVER",
   "order": 1,
   "dependencies": [],
@@ -189,6 +192,8 @@ Return a JSON object with the following structure:
       "name": "Concept Name",
       "tier": "foundation|keystone|utility",
       "tierJustification": "This is Foundation because it establishes [core context] needed by other concepts.",
+      "cognitiveLevel": "understand",
+      "commonPitfalls": ["Misinterpreting X", "Assuming Y"],
       "stageId": "PREPARE|MODEL|DELIVER",
       "dependencies": [],
       "outdegree": 5,
@@ -447,12 +452,18 @@ OBJECTIVE: Generate Part {part_num} of a comprehensive curriculum (Concepts {sta
 To support the "NO FALLBACKS" policy, EVERY concept must be fully fleshed out with complete learning science metadata. Do NOT skip fields for Keystone or Utility tiers.
 
 ### REQUIRED FIELDS (ALL CONCEPTS):
-- **Core**: name, tier, tierJustification, order
+- **Core**: name, tier, tierJustification, cognitiveLevel, commonPitfalls, order
 - **Engagement**: phase1 (hookSentence, microMetaphor)
 - **Memory**: mnemonic (FULL: anchor + story + tier)
 - **Understanding**: description, keyPoints, whyYouNeed, technicalDetails, shape (simpleCore, highStakesExample, analogicalModel)
 - **Application**: phase2 (content), phase3 (tool, metrics)
 - **Relationship**: connections (MUST be strictly typed: requires, extends, enables, contains), criticalDistinctions, designBoundaries
+
+### COGNITIVE CLASSIFICATION (Bloom's Taxonomy):
+Assign one to `cognitiveLevel`: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`.
+
+### CRITICAL CLARIFICATIONS (Common Pitfalls):
+Provide 2-3 items in `commonPitfalls` that resolve typical learner confusion. Frame POSITIVELY as precision checks.
 
 ### STRICT CONNECTION RULES (Sensa v2.0):
 Define connections using only these Semantic Relationship verbs:
@@ -482,6 +493,8 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
     "name": "Concept Name",
     "tier": "foundation|keystone|utility",
     "tierJustification": "Reason for tier...",
+    "cognitiveLevel": "understand",
+    "commonPitfalls": ["Misinterpreting X", "Assuming Y"],
     "order": {start_idx},
     "whyYouNeed": "Professionals rely on this...",
     "technicalDetails": "Advanced insight...",
@@ -527,11 +540,38 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 
 Generate concepts {start_idx} through {end_idx} now:"""
 
+
 def get_silver_bullet_prompt(subject: str, part: int = 1, context: str = "") -> str:
     # If context is provided, format it for the prompt
     context_str = ""
     if context:
         context_str = f"USER CONTEXT / SPECIFIC FOCUS:\n{context}\n\n*Prioritize this context in your concept selection.*"
+
+    # DOMAIN-BASED PARTITIONING: Ensure unique coverage across parts
+    # This prevents duplicates like "RLS" appearing in multiple parts
+    domain_focus = ""
+    
+    subject_lower = subject.lower()
+    if "pl-300" in subject_lower or "power bi" in subject_lower:
+        partitions = [
+            "Part 1 Focus: Data Preparation, Connectivity (Power Query, Data Sources, Cleansing)",
+            "Part 2 Focus: Data Modeling (Star Schema, Relationships, DAX Measures/Calculated Columns)",
+            "Part 3 Focus: Data Visualization (Charts, Maps, KPI, Conditional Formatting, Navigation)",
+            "Part 4 Focus: Data Analysis & Security (AI Visuals, RLS, OLS, Performance Analyzer)",
+            "Part 5 Focus: Deployment & Maintenance (Workspaces, Apps, Dashboards, Data Gateways)"
+        ]
+        if 1 <= part <= 5:
+            domain_focus = f"\nDOMAIN PILLAR IDENTIFIER:\n{partitions[part-1]}\n*STRICT RULE: Only generate concepts relevant to this pillar. DO NOT REPEAT topics from other pillars.*\n"
+    elif "az-104" in subject_lower or "azure administrator" in subject_lower:
+        partitions = [
+            "Part 1 Focus: Identity, Governance & Storage (Entra ID, RBAC, Subscriptions, Blob/File storage)",
+            "Part 2 Focus: Compute Assets (Virtual Machines, App Services, Containers, AVD)",
+            "Part 3 Focus: Networking - Infrastructure (VNets, Subnets, DNS, Peering, IP addressing)",
+            "Part 4 Focus: Networking - Traffic & Security (Load Balancer, Gateway, NSG, Firewall, Traffic Manager)",
+            "Part 5 Focus: Monitoring & Backup (Azure Monitor, Log Analytics, Recovery Services, Backup Policies)"
+        ]
+        if 1 <= part <= 5:
+            domain_focus = f"\nDOMAIN PILLAR IDENTIFIER:\n{partitions[part-1]}\n*STRICT RULE: Only generate concepts relevant to this pillar. DO NOT REPEAT topics from other pillars.*\n"
 
     # Split 70 concepts into 5 parts (approx 14 each) to ensure full depth within token limits
     # Smaller batches = higher success rate and less likely to truncate JSON
@@ -558,7 +598,7 @@ def get_silver_bullet_prompt(subject: str, part: int = 1, context: str = "") -> 
             start_idx=start_idx,
             end_idx=end_idx,
             count=count,
-            context=context_str
+            context=context_str + domain_focus
         )
     else:
         # Fallback to Part 1 if invalid part

@@ -28,6 +28,25 @@ export function detectStructuralChanges(oldConcept: ParsedConcept | undefined, n
     return false;
 }
 
+export interface RepairPlan {
+    targetConceptId: string;
+    originalState: ParsedConcept;
+    repairGoal: string; // e.g., "Fix tier classification"
+    constraints: string[]; // e.g., "Must maintain foundation parent"
+}
+
+export interface MergeResult {
+    success: boolean;
+    updatedConcepts: ParsedConcept[];
+    affectedNodes?: string[]; // IDs of nodes that changed
+    rollbackToken?: string; // For undo
+    metricsDiff?: {
+        before: number; // e.g., avg outdegree
+        after: number;
+    };
+    error?: string;
+}
+
 /**
  * Perform an ATOMIC update of a single concept into the store state.
  * Returns the modified part of the state if successful, or null on failure.
@@ -35,7 +54,7 @@ export function detectStructuralChanges(oldConcept: ParsedConcept | undefined, n
 export function atomicSurgicalMerge(
     currentConcepts: ParsedConcept[],
     repairedConcept: ParsedConcept
-): { success: boolean; updatedConcepts: ParsedConcept[]; error?: string } {
+): MergeResult {
 
     // 1. SNAPSHOT (Implicit in the input array, provided we don't mutate it in place yet)
     // We create a shallow copy for the transaction

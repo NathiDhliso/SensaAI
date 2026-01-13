@@ -142,6 +142,11 @@ export interface LearningConcept {
   tier: 'foundation' | 'keystone' | 'utility';
 
   /**
+   * Bloom's Taxonomy Level (Phase 2 Cognitive Model)
+   */
+  cognitiveLevel?: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create';
+
+  /**
    * The Lifecycle Phase this concept belongs to (Spatial Dimension).
    * - PREPARE: Foundation/Setup (Phase 1)
    * - MODEL: Core Action/Implementation (Phase 2)
@@ -166,6 +171,11 @@ export interface LearningConcept {
    * Calculated from other concepts' dependencies arrays.
    */
   outdegree: number;
+
+  /**
+   * Common Pitfalls / Critical Distinguishements (Phase 2)
+   */
+  commonPitfalls?: string[];
   // ========== END SENSA v2.0 ==========
 
   // Core Content

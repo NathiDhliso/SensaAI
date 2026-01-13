@@ -327,6 +327,47 @@
     margin: 0;
 }
 
+.conceptTitleRow {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    flex-wrap: wrap;
+}
+
+.bloomBadge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: white;
+}
+
+.bloomBadge.remember {
+    background-color: #4CAF50;
+}
+
+.bloomBadge.understand {
+    background-color: #2196F3;
+}
+
+.bloomBadge.apply {
+    background-color: #9C27B0;
+}
+
+.bloomBadge.analyze {
+    background-color: #FF9800;
+}
+
+.bloomBadge.evaluate {
+    background-color: #F44336;
+}
+
+.bloomBadge.create {
+    background-color: #FFD700;
+    color: #333;
+}
+
 .hookSentence {
     font-size: 1.125rem;
     color: var(--color-text-dark);
@@ -466,6 +507,32 @@
 
 .systemPhysicsList li::marker {
     color: var(--color-accent-light);
+}
+
+.clarificationSection {
+    border-color: var(--color-warning);
+    background: var(--overlay-amber-5);
+}
+
+.clarificationList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.clarificationList li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    color: var(--color-warning);
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.clarificationIcon {
+    margin-top: 3px;
+    flex-shrink: 0;
 }
 
 .technicalDetails {

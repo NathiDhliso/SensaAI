@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
-import { generateWithBackend } from '@/lib/generation/backend-generator';
+import { generateWithBackend, uploadExamBlueprint } from '@/lib/generation/backend-generator';
 import { parseAndLoadContent } from '@/lib/content-loader';
 import { PASS_NAMES, GENERATION_MESSAGES } from '@/constants/ui-constants';
 import styles from './Generate.module.css';
@@ -207,95 +207,111 @@ export default function Generate() {
     setAbortController(controller);
     abortControllerRef.current = controller;
 
+    const progressCallback = createProgressCallback();
+
+    const { currentFileContext, pendingFile, setPendingFile } = useGenerationStore.getState();
+    let effectiveContext = context || '';
+
+    const handleGenerationSuccess = async (result: any) => {
+      completeGeneration(result);
+      clearCheckpoint();
+
+      // Auto-save to storage so Study page can always retrieve it
+      const currentState = useGenerationStore.getState();
+      const currentPass1 = currentState.pass1Data;
+      const currentValidation = currentState.validation;
+
+      if (currentPass1 && currentValidation) {
+        const resultId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        resultIdRef.current = resultId;
+        const savedResult = {
+          id: resultId,
+          subject: decodedSubject,
+          generatedAt: new Date().toISOString(),
+          fullDocument: result.fullDocument,
+          pass1Data: {
+            domain: currentPass1.domain,
+            roleScope: currentPass1.roleScope,
+            lifecycle: currentPass1.lifecycle,
+            concepts: currentPass1.concepts,
+          },
+          validation: {
+            lifecycleConsistency: currentValidation.lifecycleConsistency,
+            positiveFraming: currentValidation.positiveFraming,
+            formatConsistency: currentValidation.formatConsistency,
+            completeness: currentValidation.completeness,
+          },
+          savedLocally: true,
+        };
+
+        const { storageManager } = await import('@/lib/storage');
+        try {
+          await storageManager.saveResult(savedResult);
+          const loadResult = parseAndLoadContent(result.fullDocument, resultId);
+          if (loadResult.success) {
+            setTimeout(() => navigate(`/study/${resultId}?tab=learn`), 500);
+          } else {
+            navigate(`/study/${resultId}`);
+          }
+        } catch (storageError) {
+          console.error('[Generate] Storage save failed:', storageError);
+          navigate(`/study/${resultId}`);
+        }
+      } else {
+        navigate(`/study/${Date.now()}`);
+      }
+    };
+
+    const handleGenerationError = (err: any) => {
+      console.error('Generation error:', err);
+      if (err.message === 'Generation cancelled by user') {
+        navigate('/');
+      } else {
+        setError(err.message || 'Generation failed.');
+      }
+    };
+
     if (resumeData) {
-      // Resume from checkpoint
       useGenerationStore.setState({
         ...resumeData.restoredState,
         currentSubject: decodedSubject,
         isGenerating: true,
         error: null,
       });
-    } else {
-      // Fresh start
-      startGeneration(decodedSubject, context || undefined);
-      addRecentSubject(decodedSubject);
+
+      generateWithBackend(decodedSubject, progressCallback, controller.signal, effectiveContext || undefined, resumeData.startFromPass)
+        .then(handleGenerationSuccess)
+        .catch(handleGenerationError);
+      return;
     }
 
-    const progressCallback = createProgressCallback();
+    // Phase 1: Upload raw file if pending
+    if (pendingFile) {
+      progressCallback(1, 'in-progress', { message: 'Uploading Blueprint to Secure Storage...', progress: 2 });
+      uploadExamBlueprint(pendingFile).then(s3Url => {
+        console.log('Blueprint available at:', s3Url);
+        const blueprintContext = `[BLUEPRINT_ID]: ${s3Url}\n[FILENAME]: ${pendingFile.name}`;
+        setPendingFile(null); // Clear pending file
 
-    generateWithBackend(decodedSubject, progressCallback, controller.signal, context || undefined)
-      .then(async (result) => {
-        completeGeneration(result);
-        clearCheckpoint();
+        generateWithBackend(decodedSubject, progressCallback, controller.signal, blueprintContext)
+          .then(handleGenerationSuccess)
+          .catch(handleGenerationError);
+      }).catch(handleGenerationError);
+      return;
+    }
 
-        // Auto-save to storage so Study page can always retrieve it
-        const { pass1Data, validation } = useGenerationStore.getState();
-        if (pass1Data && validation) {
-          const resultId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          resultIdRef.current = resultId;
-          const savedResult = {
-            id: resultId,
-            subject: decodedSubject,
-            generatedAt: new Date().toISOString(),
-            fullDocument: result.fullDocument,
-            pass1Data: {
-              domain: pass1Data.domain,
-              roleScope: pass1Data.roleScope,
-              lifecycle: pass1Data.lifecycle,
-              concepts: pass1Data.concepts,
-            },
-            validation: {
-              lifecycleConsistency: validation.lifecycleConsistency,
-              positiveFraming: validation.positiveFraming,
-              formatConsistency: validation.formatConsistency,
-              completeness: validation.completeness,
-            },
-            savedLocally: true,
-          };
+    if (currentFileContext) {
+      const fileHeader = `\n\n[VERIFIED_SOURCE_MATERIAL]:\nProcessing Mode: ${currentFileContext.mode}\nSource: ${currentFileContext.fileName}\n\n${currentFileContext.content}`;
+      effectiveContext += fileHeader;
+    }
 
-          // Import and use storageManager
-          const { storageManager } = await import('@/lib/storage');
-          try {
-            console.log('[Generate] Saving result to storage:', resultId);
-            await storageManager.saveResult(savedResult);
-            console.log('[Generate] Result saved. Hydrating store...');
+    startGeneration(decodedSubject, effectiveContext || undefined);
+    addRecentSubject(decodedSubject);
 
-            // Silver Bullet: Hydrate learning store and go straight to Study
-            const loadResult = parseAndLoadContent(result.fullDocument, resultId);
-            console.log('[Generate] Store hydration result:', loadResult);
-
-            if (loadResult.success) {
-              console.log('[Generate] Navigating to Study in 500ms...');
-              // Add small delay to ensure DB transaction commits before navigation
-              setTimeout(() => {
-                navigate(`/study/${resultId}?tab=learn`);
-              }, 500);
-            } else {
-              // Fallback to results if loading fails
-              console.warn('Failed to load content into learning store:', loadResult.error);
-              navigate(`/study/${resultId}`);
-            }
-          } catch (storageError) {
-            console.error('[Generate] Storage save failed:', storageError);
-            navigate(`/study/${resultId}`);
-          }
-        } else {
-          // Fallback if validation/pass1Data not available
-          navigate(`/study/${Date.now()}`);
-        }
-      })
-      .catch((err) => {
-        console.error('Generation error:', err);
-        console.error('Error message:', err.message);
-        console.error('Error stack:', err.stack);
-        if (err.message === 'Generation cancelled by user') {
-          navigate('/');
-        } else {
-          // Show error on the page instead of silent navigation
-          setError(err.message || 'Generation failed. Please check your AWS credentials and try again.');
-        }
-      });
-  }, [bedrockConfig, createProgressCallback, startGeneration, addRecentSubject, completeGeneration, clearCheckpoint, setError, navigate]);
+    generateWithBackend(decodedSubject, progressCallback, controller.signal, effectiveContext || undefined)
+      .then(handleGenerationSuccess)
+      .catch(handleGenerationError);
+  }, [createProgressCallback, startGeneration, addRecentSubject, completeGeneration, clearCheckpoint, setError, navigate, context]);
 
   useEffect(() => {
     if (!subject) {

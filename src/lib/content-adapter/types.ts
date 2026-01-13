@@ -21,6 +21,8 @@ export interface ParsedConcept {
   logicalConnection?: string;
   // NEW: Direct UI consumption fields
   whyYouNeed?: string; // Why professionals need this concept
+  cognitiveLevel?: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create'; // Phase 2
+  commonPitfalls?: string[]; // Phase 2
   technicalDetails?: string; // Advanced technical insight
   workedExample?: {
     problem: string;

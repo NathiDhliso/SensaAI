@@ -256,5 +256,52 @@ export function verifyRepair(
         return false;
     }
 
+
     return true;
+}
+
+/**
+ * Verify relevance of uploaded context to the subject
+ * Returns a score between 0 and 1
+ */
+export function verifyContextRelevance(subjectTitle: string, fileContent: string): { score: number; keywords: string[] } {
+    if (!subjectTitle || !fileContent) return { score: 0, keywords: [] };
+
+    // 1. Extract keywords from subject
+    // Simple stop word list
+    const stopWords = new Set(['the', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'a', 'an', 'is', 'are', 'i', 'exam', 'guide', 'test', 'certification']);
+
+    // Clean and tokenize subject
+    const subjectKeywords = subjectTitle.toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .split(/\s+/)
+        .filter(w => w.length > 2 && !stopWords.has(w));
+
+    if (subjectKeywords.length === 0) return { score: 1, keywords: [] }; // Fallback if no valid keywords
+
+    // 2. Scan content for keywords
+    const contentLower = fileContent.toLowerCase().substring(0, 10000); // Check first 10k chars for speed
+    let matches = 0;
+
+    subjectKeywords.forEach(kw => {
+        // Count occurrences (approximate)
+        if (contentLower.includes(kw)) {
+            matches++;
+            // Bonus for multiple occurrences
+            const count = contentLower.split(kw).length - 1;
+            if (count > 2) matches += 0.5;
+        }
+    });
+
+    // 3. Calculate Score
+    // If we have 3 keywords and fast matches, we want high score.
+    // Base score = matches / keywords.length
+
+    let rawScore = matches / subjectKeywords.length;
+
+    // Normalize cap
+    return {
+        score: Math.min(1.0, rawScore),
+        keywords: subjectKeywords
+    };
 }

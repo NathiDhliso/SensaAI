@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, QueryCommand, GetCommand, QueryCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { v4 as uuidv4 } from 'uuid';
 
 export const conceptsRouter = Router();
 
@@ -53,7 +54,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             return;
         }
 
-        const gsi1pk = `USER#${userId}#SESSION#${sessionId}`;
+        const gsi1pk = `USER#${userId} #SESSION#${sessionId} `;
 
         const result: QueryCommandOutput = await docClient.send(new QueryCommand({
             TableName: CONCEPTS_TABLE,
@@ -62,7 +63,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
                 ? 'GSI1PK = :pk AND begins_with(GSI1SK, :tier)'
                 : 'GSI1PK = :pk',
             ExpressionAttributeValues: tier
-                ? { ':pk': gsi1pk, ':tier': `TIER#${tier}` }
+                ? { ':pk': gsi1pk, ':tier': `TIER#${tier} ` }
                 : { ':pk': gsi1pk },
             Limit: limit,
             ExclusiveStartKey: parseCursor(cursor),
@@ -113,44 +114,33 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
             return;
         }
 
-        console.log(`🚀 Invoking Lambda: ${GENERATE_FUNCTION} for subject: ${subject}`);
-
+        const jobId = uuidv4();
         const payload = JSON.stringify({
             body: JSON.stringify({
                 subject,
                 userId,
                 sessionId,
+                jobId,
                 context,
             }),
         });
 
         const invokeCommand = new InvokeCommand({
             FunctionName: GENERATE_FUNCTION,
-            InvocationType: 'RequestResponse',
+            InvocationType: 'Event', // Async: don't wait for Lambda to finish
             Payload: Buffer.from(payload),
         });
 
-        const lambdaResponse = await lambdaClient.send(invokeCommand);
-        const responsePayload = JSON.parse(
-            Buffer.from(lambdaResponse.Payload || new Uint8Array()).toString()
-        );
+        await lambdaClient.send(invokeCommand);
 
-        console.log('📝 Raw Lambda Response Payload:', JSON.stringify(responsePayload, null, 2));
+        console.log(`✅ Lambda invoked asynchronously for jobId: ${jobId} `);
 
-        if (lambdaResponse.FunctionError) {
-            console.error('❌ Lambda Function Error:', responsePayload);
-            res.status(500).json({
-                error: 'Generation failed',
-                details: responsePayload
-            });
-            return;
-        }
-
-        const body = JSON.parse(responsePayload.body || '{}');
-        console.log('📦 Parsed Lambda Body:', JSON.stringify(body, null, 2));
-
-        console.log(`✅ Lambda completed: ${body.conceptCount || 0} concepts generated`);
-        res.json(body);
+        res.json({
+            jobId,
+            sessionId,
+            status: 'in_progress',
+            message: 'Generation started'
+        });
     } catch (error) {
         console.error('Generation error:', error);
         res.status(500).json({ error: 'Failed to start generation' });

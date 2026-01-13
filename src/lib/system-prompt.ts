@@ -1,4 +1,5 @@
 export const SYSTEM_PROMPT_V4 = `ACT AS: An expert professor and curriculum designer for the subject: [INSERT SUBJECT HERE].
+// Prompt Version: v4.2 (Cognitive Distinctions & Uniform Depth)
 
 OBJECTIVE: Create a "Visual Master Hierarchical Chart" (Structured Outline), "Decision Framework Trees", "Mental Anchor Set", and "Learning Path Sequence" for this subject. PRIORITY: Factual Accuracy, Strict Visual Structure, Positive Cognitive Framing, and Cognitive Load Optimization. You must expose the critical details, dependencies, and specific terminology using capability-focused language.
 
@@ -61,6 +62,8 @@ Structure your JSON output so that "Utility" concepts are nested or explicitly l
   "id": "concept-foundation-001",
   "name": "Core Foundation Concept",
   "tier": "foundation",
+  "cognitiveLevel": "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create",
+  "commonPitfalls": ["Confusing X with Y", "Assuming Z is automatic"],
   "lifecycle": "PHASE_1",
   "stageId": "stage-1",
   "order": 1,
@@ -88,6 +91,37 @@ For each concept, count how many OTHER concepts list this concept's ID in their 
 2. Foundation concepts have \`dependencies: []\` (empty)
 3. No circular dependencies (A→B→C→A is INVALID)
 4. Verify distribution: ~27% foundation, ~35% keystone, ~38% utility
+
+---
+
+## STEP 3.2: COGNITIVE CLASSIFICATION (Bloom's Taxonomy) [PHASE 2]
+
+Assign one of the following cognitive levels to the \`cognitiveLevel\` field of each concept based on the required depth of mastery:
+
+1.  **remember**: Recalling facts, basic concepts, and terminology.
+2.  **understand**: Explaining ideas or concepts; interpreting and summarizing.
+3.  **apply**: Using information in new situations; implementing and executing.
+4.  **analyze**: Drawing connections among ideas; differentiating and organizing.
+5.  **evaluate**: Justifying a stand or decision; checking and critiquing.
+6.  **create**: Producing new or original work; designing and constructing.
+
+**COMMON PITFALLS:**
+For each concept, provide 2-3 **[Critical Clarifications]** (Common Pitfalls) that resolve typical learner confusion. Frame these positively as "Distinctions" or "Precision Checks".
+
+---
+
+## MANDATORY FIELD CHECKLIST (EVERY CONCEPT MUST HAVE):
+
+Before generating each concept, verify ALL of these fields are present and SUBSTANTIVE:
+
+| Field | Minimum Quality | Example BAD | Example GOOD |
+|-------|----------------|-------------|--------------|
+| \`cognitiveLevel\` | Bloom's Taxonomy | "easy" | "apply" |
+| \`commonPitfalls\` | 2-3 distinctions | "too hard" | ["Confusing X with Y", "Assuming Z always applies"] |
+| \`hookSentence\` | 15+ words, compelling hook | "RLS is important" | "Control who sees what data at the row level, ensuring each user only sees records relevant to them" |
+| \`shape.simpleCore\` | One sentence, zero jargon | "RLS is row-level security" | "A filter that automatically hides rows based on who's logged in" |
+| \`logicalConnection\` | Explains link to previous concept | "Next concept is..." | "**[Logical Connection]:** Building on the user role defined above, we now restrict what that user can see..." |
+| \`mnemonic.story\` | Bizarre, vivid interaction | "Imagine a lock" | "The Night Guard (NSG) falls asleep on the Subway Bench (Subnet) and drops his badge into the Volcano (VNet)" |
 
 ---
 
@@ -572,6 +606,8 @@ Return ONLY the raw JSON object for this concept.
 {
   "name": "{concept_name}",
   "tier": "foundation|keystone|utility",
+  "cognitiveLevel": "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create",
+  "commonPitfalls": ["Pitfall 1", "Pitfall 2"],
   "tierJustification": "Reason...",
   "order": 1,
   "whyYouNeed": "...",
@@ -607,24 +643,41 @@ Return ONLY the raw JSON object for this concept.
 `;
 
 /**
- * Returns the system prompt with optional aphantasia and familiar system enhancements
+ * Returns the system prompt with optional aphantasia and familiar system enhancements,
+ * and adaptive context mode instructions.
  */
-export function getSystemPrompt(familiarSystem?: string | null): string {
-  let prompt = SYSTEM_PROMPT_V4;
+export function getSystemPrompt(familiarSystem?: string | null, contextMode?: 'BLUEPRINT' | 'QUESTION' | 'GENERAL'): string {
+  let prompt = '';
 
+  // 1. Adaptive Context Mode Injection (HIGHEST PRIORITY)
+  if (contextMode && contextMode !== 'GENERAL') {
+    prompt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nVERIFIED SOURCE MODE: ${contextMode}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+
+    if (contextMode === 'BLUEPRINT') {
+      prompt += `[INSTRUCTION]: A verified <BLUEPRINT_SOURCE> has been provided in the context. You MUST use this source to STRICTLY define the Master Hierarchical Chart.\n- The tiers and concept structure must align with this blueprint.\n- Do not hallucinate concepts not implied by this blueprint.\n\n`;
+    } else if (contextMode === 'QUESTION') {
+      prompt += `[INSTRUCTION]: A verified <PRACTICE_SOURCE> (Question Bank) has been provided. You MUST use this to populate the 'SHAPE' High-Stakes Examples and Pattern Recognition sections.\n- Extract real scenarios from the questions for the 'High-Stakes Example'.\n- Use the questions to formulate the 'Pattern Recognition' Q&A pairs.\n\n`;
+    }
+  }
+
+  // 2. Base System Prompt
+  prompt += SYSTEM_PROMPT_V4;
+
+  // 3. Familiar System Override (Enhancement)
   if (familiarSystem) {
-    // 1. Replace generic analogy instruction
+    // Replace generic analogy instruction
     prompt = prompt.replace(
       'Map to a familiar system (construction, cooking, sports, etc.) that matches typical learner backgrounds.',
       `Map to the familiar system of "${familiarSystem.toUpperCase()}".`
     );
 
-    // 2. Add mandatory constraint
+    // Add mandatory constraint
     prompt += `\n\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFAMILIAR SYSTEM OVERRIDE: ${familiarSystem.toUpperCase()}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nYou MUST use metaphors related to "${familiarSystem}" for ALL Analogical Models.\nExample: If system is "Cooking", map concepts to ingredients, recipes, chefs, kitchen tools.\nDO NOT use generic examples.\n`;
   }
 
   return prompt;
 }
+
 
 export function getSurgicalFixPrompt(subject: string, conceptName: string, issue: string): string {
   return SURGICAL_FIX_PROMPT

@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, Zap, Cloud, Calendar } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud, Calendar, Paperclip, FileText, AlertTriangle, X } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -89,15 +89,18 @@ const DIFFICULTY_LEVELS = {
 
 export default function Home() {
   const [subject, setSubject] = useState('');
-  const [context, setContext] = useState('');
+  // const [context, setContext] = useState(''); // Removed in favor of file-only context
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showCloudLibrary, setShowCloudLibrary] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   /* Hooks & Store */
   const { openSettingsPanel } = useUIStore();
   // Using explicit cast to avoid type inference issues with store intersection types
-  const { recentSubjects } = useGenerationStore() as any;
+  const { recentSubjects, setFileContext, currentFileContext, setPendingFile } = useGenerationStore() as any;
 
   /* Derived State */
   const allSubjects = useMemo(() => {
@@ -119,12 +122,52 @@ export default function Home() {
     setShowSuggestions(false);
   };
 
+  /* Effects */
+  // Reactive Relevance Check
+  /* Effects */
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingFile(true);
+    setUploadWarning(null); // Clear previous errors immediately
+
+    try {
+      // 1. Prepare for Server-Side Upload (Phase 1 Silver Bullet)
+      setPendingFile(file);
+
+      // 2. Set Context UI State (without local text extraction)
+      // Note: We default to BLUEPRINT mode for PDF uploads as per spec 8.1
+      setFileContext('Raw PDF pending upload', file.name, 'BLUEPRINT');
+
+    } catch (err) {
+      console.error('File processing failed:', err);
+      setUploadWarning('Failed to process file.');
+    } finally {
+      setIsProcessingFile(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const clearFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFileContext('', '', 'GENERAL'); // Clear
+    setUploadWarning(null);
+  };
+
+
   const handleGenerate = () => {
     if (subject.trim()) {
       setShowSuggestions(false);
-      // Navigate directly to Generate page with optional context
-      const queryParams = context.trim() ? `?context=${encodeURIComponent(context.trim())}` : '';
-      navigate(`/generate/${encodeURIComponent(subject)}${queryParams}`);
+      // Navigate directly to Generate page
+      // Note: context query param is now redundant if we rely solely on file context, 
+      // but we keep the mechanism in case we want to re-enable text input later or pass logic.
+      // For now, passing empty context unless we want to serialize the file content here (not recommended).
+      // The store has the file content. Generate page retrieves context from URL OR Store.
+      // So we just navigate.
+      navigate(`/generate/${encodeURIComponent(subject)}`);
     }
   };
 
@@ -135,6 +178,58 @@ export default function Home() {
           <SensaShape type="nebula" size="xl" className={styles.heroIcon} />
 
           <div className={styles.inputSection}>
+            <div className={styles.contextInputWrapper}>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept=".pdf,.txt,.md"
+                style={{ display: 'none' }}
+              />
+
+              {currentFileContext?.content ? (
+                <div className={styles.fileBadge} title={currentFileContext.fileName}>
+                  <FileText size={14} className={styles.fileIcon} />
+                  <span className={styles.fileName}>
+                    {currentFileContext.fileName.length > 20
+                      ? currentFileContext.fileName.substring(0, 18) + '...'
+                      : currentFileContext.fileName}
+                  </span>
+                  {currentFileContext.mode !== 'GENERAL' && (
+                    <span className={styles.modeBadge}>{currentFileContext.mode}</span>
+                  )}
+                  <button onClick={clearFile} className={styles.clearFileButton}>
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className={styles.uploadTrigger}
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Upload verified exam or syllabus (PDF/TXT)"
+                >
+                  <span className={styles.uploadInstruction}>
+                    REQUIRED: Upload Verified Exam Paper / Syllabus
+                  </span>
+                  {isProcessingFile ? (
+                    <div className={styles.spinner} />
+                  ) : (
+                    <div className={styles.uploadButton}>
+                      <Paperclip size={18} />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {uploadWarning && (
+              <div className={styles.uploadWarning}>
+                <AlertTriangle size={12} />
+                <span>{uploadWarning}</span>
+              </div>
+            )}
+
             <div className={styles.inputWrapper}>
               <Search className={styles.searchIcon} />
               <input
@@ -193,23 +288,14 @@ export default function Home() {
                 )}
               </AnimatePresence>
             </div>
-
-            {/* [NEW] Context Input */}
-            <div className={styles.contextInputWrapper}>
-              <input
-                type="text"
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
-                placeholder="Target Exam / Context (Optional) - e.g. AZ-104, NCLEX, High School AP"
-                className={styles.contextInput}
-              />
-            </div>
           </div>
 
           <button
             onClick={handleGenerate}
-            disabled={!subject.trim()}
+            disabled={!subject.trim() || !currentFileContext}
+            title={!currentFileContext ? "Please upload a verified exam paper to proceed" : "Generate Learning System"}
             className={styles.generateButton}
+            style={{ opacity: (!subject.trim() || !currentFileContext) ? 0.5 : 1 }}
           >
             <Zap size={18} />
             Generate Learning System

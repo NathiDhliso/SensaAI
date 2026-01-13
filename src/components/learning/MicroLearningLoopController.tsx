@@ -271,21 +271,11 @@ function TestPhase({ concept, keyPoints, timeLimit: _timeLimit, onComplete }: Te
         });
     }, [keyPoints.length, onComplete]);
 
-    const handleSkip = useCallback(() => {
-        onComplete({
-            recalledPoints: 0,
-            totalPoints: keyPoints.length,
-            confidence: 0,
-            timeSpent: 0
-        });
-    }, [keyPoints.length, onComplete]);
-
     return (
         <BlankSheetTest
             concept={concept}
             keyPoints={keyPoints}
             onComplete={handleComplete}
-            onSkip={handleSkip}
         />
     );
 }
@@ -384,7 +374,14 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                         {renderShapeOrIcon(concept.icon, 'lg')}
                     </div>
                     <div>
-                        <h4>{concept.name}</h4>
+                        <div className={styles.conceptTitleRow}>
+                            <h4>{concept.name}</h4>
+                            {concept.cognitiveLevel && (
+                                <span className={`${styles.bloomBadge} ${styles[concept.cognitiveLevel]}`}>
+                                    {concept.cognitiveLevel.toUpperCase()}
+                                </span>
+                            )}
+                        </div>
                         <p className={styles.hookSentence}>{concept.hookSentence}</p>
                     </div>
                 </div>
@@ -445,6 +442,27 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                         <ul className={styles.systemPhysicsList}>
                             {systemPhysics.map((rule, idx) => (
                                 <li key={idx}>{rule}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {/* Section 4: Critical Clarifications (Common Pitfalls) [PHASE 2] */}
+                {concept.commonPitfalls && concept.commonPitfalls.length > 0 && (
+                    <div className={`${styles.learningSection} ${styles.clarificationSection}`}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionNumber}>4</span>
+                            <div>
+                                <h5 className={styles.sectionTitle}>Critical Clarifications</h5>
+                                <span className={styles.sectionSubtitle}>Precision Checks</span>
+                            </div>
+                        </div>
+                        <ul className={styles.clarificationList}>
+                            {concept.commonPitfalls.map((pitfall, idx) => (
+                                <li key={idx}>
+                                    <Lightbulb size={14} className={styles.clarificationIcon} />
+                                    <span>{pitfall}</span>
+                                </li>
                             ))}
                         </ul>
                     </div>

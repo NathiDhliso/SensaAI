@@ -737,6 +737,8 @@ export function transformToLearningConcepts(
       } : undefined,
       tier: calculateTier(parsedConcept, parsed.concepts),
       tierJustification: parsedConcept.tierJustification,
+      cognitiveLevel: parsedConcept.cognitiveLevel,
+      commonPitfalls: parsedConcept.commonPitfalls,
       // Map raw stageId (PREPARE/MODEL/DELIVER) to lifecyclePhase with Robust Normalization
       lifecyclePhase: normalizeLifecyclePhase(parsedConcept.stageId),
       dependencies: extractPrerequisites(parsedConcept, parsed.concepts),

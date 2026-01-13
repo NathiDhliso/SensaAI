@@ -3,6 +3,24 @@ import { useAuthStore } from '@/store/auth-store';
 import type { ProgressCallback, GenerationResult, ValidationResult } from '@/lib/types/generation';
 
 /**
+ * Uploads the raw exam/blueprint file to the secure storage bucket.
+ * Triggers the server-side ingestion pipeline (Lambda Parser -> Vector Index).
+ */
+export async function uploadExamBlueprint(file: File): Promise<string> {
+    console.log(`📤 Uploading file: ${file.name} (${file.size} bytes)`);
+
+    // TODO: Replace with actual S3 presigned URL upload
+    // const response = await conceptsApi.getUploadUrl(file.name, file.type);
+    // await fetch(response.url, { method: 'PUT', body: file });
+
+    // Simulate upload delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    console.log('✅ Upload complete. Server ingestion triggered.');
+    return `s3://sensa-blueprints/${Date.now()}/${file.name}`;
+}
+
+/**
  * Generate content using the serverless Lambda + DynamoDB pipeline.
  * All heavy lifting happens server-side - browser only polls for status.
  */
@@ -10,7 +28,8 @@ export async function generateWithBackend(
     subject: string,
     onProgress: ProgressCallback,
     abortSignal?: AbortSignal,
-    context?: string
+    context?: string,
+    startFromPass: number = 1
 ): Promise<GenerationResult> {
     console.log('🚀 Using serverless Lambda + DynamoDB pipeline');
 

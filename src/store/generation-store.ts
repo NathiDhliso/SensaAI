@@ -27,6 +27,11 @@ export type GenerationState = {
   bedrockConfig: BedrockConfig | null;
   currentSubject: string | null;
   currentContext: string | null;
+  currentFileContext: {
+    content: string;
+    fileName: string;
+    mode: 'BLUEPRINT' | 'QUESTION' | 'GENERAL';
+  } | null;
   passes: Record<number, PassStatus>;
   currentActivity: string;
   progress: number;
@@ -51,6 +56,7 @@ export type GenerationState = {
     completed: number;
     currentAction: string;
   } | null;
+  pendingFile: File | null;
 };
 
 type GenerationProgressUpdate = {
@@ -68,6 +74,8 @@ type GenerationActions = {
   setBedrockConfig: (config: BedrockConfig) => void;
   clearBedrockConfig: () => void;
   startGeneration: (subject: string, context?: string) => void;
+  setFileContext: (content: string, fileName: string, mode: 'BLUEPRINT' | 'QUESTION' | 'GENERAL') => void;
+  setPendingFile: (file: File | null) => void;
   updatePassStatus: (pass: number, status: PassStatus) => void;
   setCurrentActivity: (activity: string) => void;
   setProgress: (progress: number) => void;
@@ -142,8 +150,10 @@ const initialState: GenerationState = {
   streamedConcepts: [],
   constructionPhase: 'idle',
   expectedConceptCount: 0,
+  currentFileContext: null,
   history: [],
   repairProgress: null,
+  pendingFile: null,
 };
 
 export const useGenerationStore = create<GenerationState & GenerationActions>()(
@@ -154,6 +164,15 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
       setBedrockConfig: (config) => set({ bedrockConfig: config }),
 
       clearBedrockConfig: () => set({ bedrockConfig: null }),
+
+      setFileContext: (content, fileName, mode) =>
+        set({ currentFileContext: { content, fileName, mode } }),
+
+      pendingFile: null,
+
+      setPendingFile: (file) => set({ pendingFile: file }),
+
+      startTime: null,
 
       startGeneration: (subject, context) =>
         set({

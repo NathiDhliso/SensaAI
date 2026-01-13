@@ -33,7 +33,14 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
       <div className={styles.conceptHeader}>
         {renderShapeOrIcon(concept.icon, '2xl', styles.conceptIcon)}
         <div className={styles.conceptInfo}>
-          <h1 className={styles.conceptName}>{concept.name}</h1>
+          <div className={styles.titleRow}>
+            <h1 className={styles.conceptName}>{concept.name}</h1>
+            {concept.cognitiveLevel && (
+              <span className={`${styles.bloomBadge} ${styles[concept.cognitiveLevel]}`}>
+                {concept.cognitiveLevel.toUpperCase()}
+              </span>
+            )}
+          </div>
           <p className={styles.metaphor}>{concept.metaphor}</p>
         </div>
         {isCompleted && (
@@ -122,6 +129,19 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
                     <span key={idx} className={styles.prereqBadge}>{prereq}</span>
                   ))}
                 </div>
+              </div>
+            )}
+            {concept.commonPitfalls && concept.commonPitfalls.length > 0 && (
+              <div className={styles.pitfallsSection}>
+                <h4 className={styles.pitfallsTitle}>Critical Clarifications</h4>
+                <ul className={styles.pitfallsList}>
+                  {concept.commonPitfalls.map((pitfall, idx) => (
+                    <li key={idx} className={styles.pitfallItem}>
+                      <Lightbulb size={14} className={styles.pitfallIcon} />
+                      <span>{pitfall}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
