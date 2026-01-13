@@ -538,6 +538,31 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 4. METAPHORS: Field `shape.analogicalModel` and `mnemonics` MUST use objects/systems OUTSIDE the domain.
 5. POSITIVE FRAMING: Use strictly positive, empowering language.
 
+## ANTI-DUPLICATION PROTOCOL (CRITICAL FOR PARALLEL GENERATION):
+You are generating PART {part_num} of 5 parallel batches. To ensure ZERO duplicate concepts:
+
+### Step 1: Subject Breakdown (Internal - Do NOT output)
+Before generating concepts, mentally partition the subject into 5 non-overlapping knowledge pillars.
+Use this generic framework for ANY subject:
+- **Pillar 1**: Foundations & Core Terminology (definitions, base concepts)
+- **Pillar 2**: Architecture & Structure (how things connect/organize)
+- **Pillar 3**: Implementation & Configuration (hands-on actions)
+- **Pillar 4**: Security, Compliance & Governance (rules, restrictions, policies)
+- **Pillar 5**: Advanced Topics & Optimization (performance, troubleshooting, edge cases)
+
+You are responsible for **PILLAR {part_num}**. Focus EXCLUSIVELY on concepts belonging to this pillar.
+
+### Step 2: Concept ID Schema (MANDATORY)
+Every concept ID MUST follow this format: `concept-P{{part_num}}-{{seq}}`
+Examples: `concept-P1-001`, `concept-P2-007`, `concept-P3-014`
+This makes cross-part auditing unambiguous.
+
+### Step 3: Uniqueness Validation (Self-Check)
+Before outputting, verify:
+- NO concept name is repeated from common terms (if a term is "obvious", other parts likely covered it).
+- Names are SPECIFIC, not generic. Avoid "Introduction to X" or "Overview of Y".
+- If a concept seems foundational, assume Part 1 already has it—unless you ARE Part 1.
+
 Generate concepts {start_idx} through {end_idx} now:"""
 
 
@@ -548,30 +573,15 @@ def get_silver_bullet_prompt(subject: str, part: int = 1, context: str = "") -> 
         context_str = f"USER CONTEXT / SPECIFIC FOCUS:\n{context}\n\n*Prioritize this context in your concept selection.*"
 
     # DOMAIN-BASED PARTITIONING: Ensure unique coverage across parts
-    # This prevents duplicates like "RLS" appearing in multiple parts
-    domain_focus = ""
-    
-    subject_lower = subject.lower()
-    if "pl-300" in subject_lower or "power bi" in subject_lower:
-        partitions = [
-            "Part 1 Focus: Data Preparation, Connectivity (Power Query, Data Sources, Cleansing)",
-            "Part 2 Focus: Data Modeling (Star Schema, Relationships, DAX Measures/Calculated Columns)",
-            "Part 3 Focus: Data Visualization (Charts, Maps, KPI, Conditional Formatting, Navigation)",
-            "Part 4 Focus: Data Analysis & Security (AI Visuals, RLS, OLS, Performance Analyzer)",
-            "Part 5 Focus: Deployment & Maintenance (Workspaces, Apps, Dashboards, Data Gateways)"
-        ]
-        if 1 <= part <= 5:
-            domain_focus = f"\nDOMAIN PILLAR IDENTIFIER:\n{partitions[part-1]}\n*STRICT RULE: Only generate concepts relevant to this pillar. DO NOT REPEAT topics from other pillars.*\n"
-    elif "az-104" in subject_lower or "azure administrator" in subject_lower:
-        partitions = [
-            "Part 1 Focus: Identity, Governance & Storage (Entra ID, RBAC, Subscriptions, Blob/File storage)",
-            "Part 2 Focus: Compute Assets (Virtual Machines, App Services, Containers, AVD)",
-            "Part 3 Focus: Networking - Infrastructure (VNets, Subnets, DNS, Peering, IP addressing)",
-            "Part 4 Focus: Networking - Traffic & Security (Load Balancer, Gateway, NSG, Firewall, Traffic Manager)",
-            "Part 5 Focus: Monitoring & Backup (Azure Monitor, Log Analytics, Recovery Services, Backup Policies)"
-        ]
-        if 1 <= part <= 5:
-            domain_focus = f"\nDOMAIN PILLAR IDENTIFIER:\n{partitions[part-1]}\n*STRICT RULE: Only generate concepts relevant to this pillar. DO NOT REPEAT topics from other pillars.*\n"
+    # This instructs the AI to logically slice the subject itself into 5 parts
+    domain_focus = f"""
+DOMAIN PILLAR IDENTIFIER:
+CURRENT PART: {part} OF 5
+STRICT RULE: Partition the subject into 5 distinct, non-overlapping logical pillars. 
+You are currently responsible for PILLAR {part}.
+Focus EXCLUSIVELY on concepts relevant to this assigned segment of the syllabus. 
+DO NOT REPEAT topics that logically belong in other segments (e.g., if you are Pillar 1, do not cover advanced topics meant for Pillar 5).
+"""
 
     # Split 70 concepts into 5 parts (approx 14 each) to ensure full depth within token limits
     # Smaller batches = higher success rate and less likely to truncate JSON

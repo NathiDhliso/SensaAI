@@ -800,4 +800,48 @@ docs/prompts/
 └── README.md                            # Changelog and version history
 ```
 
+---
+
+## 🚧 Forbidden Code Patterns - CRITICAL
+
+The following patterns are **strictly forbidden** in the codebase. A CI check script (`scripts/check-hardcoded-subjects.ps1`) exists to detect violations.
+
+### 1. Subject-Specific Conditional Logic
+
+**NEVER** hardcode subject names or create conditional branches based on specific subjects.
+
+```python
+# ❌ FORBIDDEN (Python)
+if "pl-300" in subject.lower() or "power bi" in subject.lower():
+    partitions = ["Data Prep", "Modeling", ...]  # Subject-specific logic
+
+# ❌ FORBIDDEN (TypeScript)
+if (subject.toLowerCase().includes("az-104")) {
+  // Subject-specific behavior
+}
+```
+
+**Why?** Subject-specific logic:
+- Violates the principle of dynamic subject handling.
+- Creates maintenance burden as new subjects are added.
+- Masks issues with the core generation prompt.
+
+**What to do instead?**
+- Design prompts and logic to work for **any** subject dynamically.
+- Use the `subject` variable as a pass-through parameter only.
+- If partitioning is needed, instruct the AI to derive partitions from the subject itself.
+
+### 2. Running the Check
+
+Before committing, run:
+```powershell
+pwsh scripts/check-hardcoded-subjects.ps1
+```
+
+The script will:
+- Scan `src/` and `backend/` directories.
+- Detect patterns like `if "..." in subject`, `subject.toLowerCase().includes(...)`.
+- Exit with code `1` if violations are found.
+
+---
 
