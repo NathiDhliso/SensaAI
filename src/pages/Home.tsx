@@ -100,6 +100,7 @@ export default function Home() {
   /* Hooks & Store */
   const { openSettingsPanel } = useUIStore();
   const { recentSubjects, setFileContext, currentFileContext, setPendingFile } = useGenerationStore();
+  const { semesterStartDate } = usePersonalizationStore();
 
   /* Derived State */
   const allSubjects = useMemo(() => {
@@ -326,7 +327,6 @@ export default function Home() {
           </div>
 
           {(() => {
-            const { semesterStartDate } = usePersonalizationStore();
 
             if (!semesterStartDate) {
               return (

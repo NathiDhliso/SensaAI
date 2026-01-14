@@ -104,7 +104,7 @@ export default function VelocityLearning() {
         if (currentSession && !currentSession.progress.sessionStartTime) {
             startSession();
         }
-    }, [currentSession?.id, startSession]);
+    }, [currentSession, startSession]);
 
     // Auto-start diagnostic if needed
     useEffect(() => {

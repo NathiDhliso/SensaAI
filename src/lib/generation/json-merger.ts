@@ -28,7 +28,7 @@ function sanitizeJsonString(jsonStr: string): string {
     let sanitized = jsonStr.replace(/,(\s*[}\]])/g, '$1');
 
     // Sanitize control characters that aren't valid in JSON strings
-    sanitized = sanitized.replace(/[\x00-\x1F\x7F-\x9F]/g, (char) => {
+    sanitized = sanitized.replace(/[\u0000-\u001F\u007F-\u009F]/g, (char) => {
         if (char === '\n') return '\\n';
         if (char === '\r') return '\\r';
         if (char === '\t') return '\\t';

@@ -8,7 +8,7 @@
  */
 import { AlertTriangle, ChevronRight, Lock, CheckCircle2 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
-import { resolvePrerequisites, type PrerequisiteConcept } from '@/lib/learning/prerequisite-utils';
+import { resolvePrerequisites } from '@/lib/learning/prerequisite-utils';
 import styles from './PrerequisiteCheck.module.css';
 
 interface PrerequisiteCheckProps {

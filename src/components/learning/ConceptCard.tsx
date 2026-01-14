@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Check, Lightbulb } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
-import { renderShapeOrIcon } from '@/components/ui';
+import { SensaShape } from '@/components/ui/SensaShape';
+import { renderShapeOrIcon } from '@/components/ui/SensaShape.utils';
 import SpeedReaderBar from '@/components/ui/SpeedReaderBar';
 
 import styles from './ConceptCard.module.css';
@@ -31,7 +32,7 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
   return (
     <div className={styles.container}>
       <div className={styles.conceptHeader}>
-        {renderShapeOrIcon(concept.icon, '2xl', styles.conceptIcon)}
+        {renderShapeOrIcon(concept.icon, SensaShape, '2xl', styles.conceptIcon)}
         <div className={styles.conceptInfo}>
           <div className={styles.titleRow}>
             <h1 className={styles.conceptName}>{concept.name}</h1>

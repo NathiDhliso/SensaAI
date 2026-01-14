@@ -53,7 +53,7 @@ const formatAuthError = (error: unknown): string => {
     if (!(error instanceof Error)) return 'An unexpected error occurred';
 
     const message = error.message;
-    const name = (error as any).name || '';
+    const name = (error as unknown as Record<string, unknown>).name as string || '';
 
     // Already confirmed case
     if (message.includes('Current status is CONFIRMED')) {
@@ -398,7 +398,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         });
                         return;
                     }
-                } catch (e) {
+                } catch (_e) {
                     // Fallback to SDK refresh if implemented (omitted for brevity standard backend preferred for refresh token security)
                     console.warn('Backend refresh failed, trying SDK...');
                 }
@@ -432,7 +432,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         throw new Error('No refresh result');
                     }
 
-                } catch (err) {
+                } catch (_err) {
                     // If refresh fails, log out
                     set({ user: null, tokens: null, isAuthenticated: false });
                 }

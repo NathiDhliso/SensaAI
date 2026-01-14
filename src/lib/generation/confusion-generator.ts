@@ -42,7 +42,7 @@ export function calculateConceptSimilarity(
   concept2: LearningConcept
 ): number {
   let score = 0;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   let factors = 0;
 
   // Name similarity

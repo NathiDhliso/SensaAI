@@ -264,8 +264,8 @@ function findPotentialConnections(
  */
 export function validateConnectionLabel(
     label: string,
-    fromConcept: LearningConcept,
-    toConcept: LearningConcept
+    _fromConcept: LearningConcept,
+    _toConcept: LearningConcept
 ): LabelValidation {
     const labelLower = label.toLowerCase().trim();
 
@@ -282,7 +282,6 @@ export function validateConnectionLabel(
     const vagueLabels = ['relates to', 'connects', 'is related', 'link'];
     if (vagueLabels.includes(labelLower)) {
         return {
-            isValid: false,
             isValid: false,
             suggestion: suggestLabel(),
             reasoning: 'Try to be more specific. What type of relationship?',

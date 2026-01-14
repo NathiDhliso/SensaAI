@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 
@@ -19,6 +19,18 @@ export function DashboardTutorial({ isOpen, onClose, steps }: DashboardTutorialP
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
+    const updateTargetRect = useCallback(() => {
+        const step = steps[currentStepIndex];
+        const element = document.getElementById(step.targetId);
+        if (element) {
+            const rect = element.getBoundingClientRect();
+            setTargetRect(rect);
+
+            // Scroll element into view if needed
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [steps, currentStepIndex]);
+
     useEffect(() => {
         if (isOpen) {
             updateTargetRect();
@@ -34,19 +46,7 @@ export function DashboardTutorial({ isOpen, onClose, steps }: DashboardTutorialP
             window.removeEventListener('resize', updateTargetRect);
             document.body.style.overflow = 'unset';
         };
-    }, [isOpen, currentStepIndex]);
-
-    const updateTargetRect = () => {
-        const step = steps[currentStepIndex];
-        const element = document.getElementById(step.targetId);
-        if (element) {
-            const rect = element.getBoundingClientRect();
-            setTargetRect(rect);
-
-            // Scroll element into view if needed
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    };
+    }, [isOpen, updateTargetRect]);
 
     const handleNext = () => {
         if (currentStepIndex < steps.length - 1) {

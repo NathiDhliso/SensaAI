@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 
 interface ErrorWithStatus extends Error {
     statusCode?: number;

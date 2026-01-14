@@ -57,13 +57,13 @@ export default function Generate() {
     setExpectedConceptCount,
   } = useGenerationStore();
 
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [_showExitConfirm, _setShowExitConfirm] = useState(false);
 
   // Collision / Alias State
-  const [isCheckingCollision, setIsCheckingCollision] = useState(true);
+  const [_isCheckingCollision, setIsCheckingCollision] = useState(true);
   const [collisionJobId, setCollisionJobId] = useState<string | null>(null);
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
-  const [generatedAlias, setGeneratedAlias] = useState<string>('');
+  const [_generatedAlias, setGeneratedAlias] = useState<string>('');
 
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -168,7 +168,7 @@ export default function Generate() {
       // Optimistic delete - don't block UI too long, but ideally wait for success
       try {
         await conceptsApi.deleteJob(collisionJobId);
-      } catch (e) {
+      } catch (_e) {
         console.warn("Failed to delete old job, continuing anyway");
       }
     }
@@ -387,7 +387,7 @@ export default function Generate() {
       hasStartedRef.current = true;
       checkDuplicates();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [subject, bedrockConfig, context, navigate, canResumeFromCheckpoint, startGenerationProcess]);
 
 

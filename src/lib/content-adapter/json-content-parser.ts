@@ -179,7 +179,7 @@ function parseConcepts(content: string): ParsedConcept[] {
         let cleanContent = content.replace(/^\uFEFF/, '');
 
         // Remove control characters EXCEPT valid whitespace (newline, carriage return, tab)
-        cleanContent = cleanContent.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+        cleanContent = cleanContent.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
 
         // AGGRESSIVE CLEANUP: Remove common non-JSON headers that LLMs leak
         cleanContent = cleanContent.replace(/^[#\s]*VISUAL MASTER HIERARCHICAL CHART.*$/gmi, '');
@@ -232,7 +232,7 @@ function parseConcepts(content: string): ParsedConcept[] {
             jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
 
             // Sanitize control characters that aren't valid in JSON strings
-            jsonStr = jsonStr.replace(/[\x00-\x1F\x7F-\x9F]/g, (char) => {
+            jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F-\u009F]/g, (char) => {
                 // Preserve actual newlines and tabs for re-escaping
                 if (char === '\n') return '\\n';
                 if (char === '\r') return '\\r';
@@ -728,11 +728,11 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
     let thresholds = '';
 
     // NEW: Extract root-level fields that UI needs (whyYouNeed, technicalDetails)
-    let whyYouNeed = typeof c.whyYouNeed === 'string' ? c.whyYouNeed : '';
-    let technicalDetails = typeof c.technicalDetails === 'string' ? c.technicalDetails : '';
-    let tierJustification = typeof c.tierJustification === 'string' ? c.tierJustification : '';
-    let workedExample = c.workedExample && typeof c.workedExample === 'object' ? c.workedExample : undefined;
-    let keyPoints = Array.isArray(c.keyPoints) ? c.keyPoints as string[] : [];
+    const whyYouNeed = typeof c.whyYouNeed === 'string' ? c.whyYouNeed : '';
+    const technicalDetails = typeof c.technicalDetails === 'string' ? c.technicalDetails : '';
+    const tierJustification = typeof c.tierJustification === 'string' ? c.tierJustification : '';
+    const workedExample = c.workedExample && typeof c.workedExample === 'object' ? c.workedExample : undefined;
+    const keyPoints = Array.isArray(c.keyPoints) ? c.keyPoints as string[] : [];
 
     // Phase 2: Extract cognitive classification
     let cognitiveLevel: ParsedConcept['cognitiveLevel'] | undefined;
@@ -742,7 +742,7 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
             cognitiveLevel = level as ParsedConcept['cognitiveLevel'];
         }
     }
-    let commonPitfalls = Array.isArray(c.commonPitfalls) ? c.commonPitfalls as string[] : [];
+    const commonPitfalls = Array.isArray(c.commonPitfalls) ? c.commonPitfalls as string[] : [];
 
 
     // Check for lifecycle wrapper first (legacy format)

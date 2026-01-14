@@ -19,7 +19,8 @@ import {
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
 import { useLearningStore } from '@/store/learning-store';
-import { renderShapeOrIcon } from '@/components/ui/SensaShape';
+import { SensaShape } from '@/components/ui/SensaShape';
+import { renderShapeOrIcon } from '@/components/ui/SensaShape.utils';
 import { VELOCITY_CONFIG } from '@/constants/ui-constants';
 import { isRealContent } from '@/lib/validation/content-quality';
 
@@ -260,7 +261,7 @@ interface TestPhaseProps {
  * Test Phase: Blank sheet recall
  * Uses the comprehensive BlankSheetTest component
  */
-function TestPhase({ concept, keyPoints, timeLimit: _timeLimit, onComplete }: TestPhaseProps) {
+function TestPhase({ concept, keyPoints, onComplete }: TestPhaseProps) {
     const handleComplete = useCallback((result: { score: number; scoringConfidence: number; metrics: { totalTime: number } }) => {
         // Map BlankSheetResult to TestPhaseResult
         onComplete({
@@ -371,7 +372,7 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                 {/* Concept Overview */}
                 <div className={styles.conceptHighlight}>
                     <div className={styles.conceptIcon}>
-                        {renderShapeOrIcon(concept.icon, 'lg')}
+                        {renderShapeOrIcon(concept.icon, SensaShape, 'lg')}
                     </div>
                     <div>
                         <div className={styles.conceptTitleRow}>

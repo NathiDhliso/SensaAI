@@ -82,6 +82,11 @@ export function NomenclatureSprint({
         return [...wrongOptions, currentPair.metaphor].sort(() => Math.random() - 0.5);
     }, [currentPair, matchPairs]);
 
+    const handleTimeUp = useCallback(() => {
+        setIsComplete(true);
+        // Accuracy is calculated when handleContinue is called
+    }, []);
+
     // Timer effect
     useEffect(() => {
         if (!isStarted || isComplete) return;
@@ -98,12 +103,7 @@ export function NomenclatureSprint({
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [isStarted, isComplete]);
-
-    const handleTimeUp = useCallback(() => {
-        setIsComplete(true);
-        // Accuracy is calculated when handleContinue is called
-    }, []);
+    }, [isStarted, isComplete, handleTimeUp]);
 
     const handleStart = useCallback(() => {
         setIsStarted(true);

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useEffect, useState, type ReactNode } from 'react';
 import type { LearningStage, LearningConcept } from '@/lib/types/learning';
 import { loadContent } from '@/lib/content-adapter/dynamic-content-loader';
 
@@ -10,8 +10,7 @@ interface ContentContextType {
     reloadContent: () => Promise<void>;
 }
 
-// In a real app, this filename might be configurable via env vars or another config
-const CONTENT_URL = '/PL_300_1766515561801-c6ara0akv.json';
+import { CONTENT_URL } from '@/constants/content-constants';
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
@@ -48,10 +47,5 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     );
 }
 
-export function useContent() {
-    const context = useContext(ContentContext);
-    if (context === undefined) {
-        throw new Error('useContent must be used within a ContentProvider');
-    }
-    return context;
-}
+
+export { ContentContext };

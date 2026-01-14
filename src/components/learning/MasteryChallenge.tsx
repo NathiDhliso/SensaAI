@@ -57,6 +57,21 @@ const FLOW_MODE_THRESHOLD = 0.7; // 70% synthesis score unlocks Flow Mode
 const FLOW_DRILL_TIME = 15; // seconds per drill
 const FLOW_DRILL_COUNT = 5;
 
+// ============================================================================
+// Helper Functions (Outside component)
+// ============================================================================
+
+function generateDrillQuestion(concept: LearningConcept): string {
+    const templates = [
+        `What is the primary purpose of ${concept.name}?`,
+        `When would you use ${concept.name} vs an alternative?`,
+        `What are the key prerequisites for ${concept.name}?`,
+        `How does ${concept.name} fit in the overall architecture?`,
+        `What's the first step to implement ${concept.name}?`
+    ];
+    return templates[Math.floor(Math.random() * templates.length)];
+}
+
 // ============================================================================ 
 // Component
 // ============================================================================
@@ -85,8 +100,32 @@ export default function MasteryChallenge({
     usePauseGlobalTimer();
 
     // ========================================================================
-    // Generate Flow Drills from Concepts
+    // Score & Drill Logic (Declared before handlers)
     // ========================================================================
+
+    const calculateSynthesisScore = useCallback((response: string, conceptList: LearningConcept[]): number => {
+        if (!response || response.length < 50) return 0;
+
+        let score = 0;
+        const lengthScore = Math.min(response.length / 500, 0.4);
+        score += lengthScore;
+
+        const conceptsMentioned = conceptList.filter(c =>
+            response.toLowerCase().includes(c.name.toLowerCase())
+        ).length;
+        const mentionScore = (conceptsMentioned / Math.min(conceptList.length, 5)) * 0.4;
+        score += mentionScore;
+
+        const hasStructure = response.includes('\n') || response.includes('1.') || response.includes('-');
+        if (hasStructure) score += 0.2;
+
+        return Math.min(score, 1);
+    }, []);
+
+    const calculateFlowScore = useCallback((ans: string[], drills: FlowDrill[]): number => {
+        const answered = ans.filter(a => a.trim().length > 0).length;
+        return answered / drills.length;
+    }, []);
 
     const generateFlowDrills = useCallback((): FlowDrill[] => {
         return concepts.slice(0, FLOW_DRILL_COUNT).map((concept, idx) => ({
@@ -98,46 +137,6 @@ export default function MasteryChallenge({
     }, [concepts]);
 
     // ========================================================================
-    // Timer Effects
-    // ========================================================================
-
-    // Synthesis timer
-    useEffect(() => {
-        if (mode !== 'synthesis') return;
-
-        const interval = setInterval(() => {
-            setSynthesisTimeRemaining(prev => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    handleSynthesisComplete();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [mode]);
-
-    // Flow drill timer
-    useEffect(() => {
-        if (mode !== 'flow') return;
-
-        const interval = setInterval(() => {
-            setDrillTimeRemaining(prev => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    handleDrillTimeout();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [mode, currentDrillIndex]);
-
-    // ========================================================================
     // Handlers
     // ========================================================================
 
@@ -147,64 +146,7 @@ export default function MasteryChallenge({
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleStartChallenge = () => {
-        setMode('synthesis');
-    };
-
-    const handleSynthesisSubmit = () => {
-        handleSynthesisComplete();
-    };
-
-    const handleSynthesisComplete = () => {
-        // Calculate synthesis score based on response quality
-        const score = calculateSynthesisScore(userResponse, concepts);
-        setSynthesisScore(score);
-
-        // If score >= threshold, offer Flow Mode
-        if (score >= FLOW_MODE_THRESHOLD) {
-            setMode('flow-gate');
-        } else {
-            // Skip Flow Mode, go to results
-            completeChallenge(score, false, 0);
-        }
-    };
-
-    const handleAcceptFlowMode = () => {
-        const drills = generateFlowDrills();
-        setFlowDrills(drills);
-        setCurrentDrillIndex(0);
-        setDrillTimeRemaining(FLOW_DRILL_TIME);
-        setDrillAnswers([]);
-        setMode('flow');
-    };
-
-    const handleSkipFlowMode = () => {
-        completeChallenge(synthesisScore, false, 0);
-    };
-
-    const handleDrillAnswer = (answer: string) => {
-        const newAnswers = [...drillAnswers, answer];
-        setDrillAnswers(newAnswers);
-
-        if (currentDrillIndex < flowDrills.length - 1) {
-            // Move to next drill
-            setCurrentDrillIndex(prev => prev + 1);
-            setDrillTimeRemaining(FLOW_DRILL_TIME);
-        } else {
-            // All drills complete
-            const score = calculateFlowScore(newAnswers, flowDrills);
-            setFlowScore(score);
-            completeChallenge(synthesisScore, true, score);
-        }
-    };
-
-    const handleDrillTimeout = () => {
-        // Timeout counts as empty answer
-        handleDrillAnswer('');
-    };
-
-    const completeChallenge = (synthesis: number, flowCompleted: boolean, flow: number) => {
-        // Calculate Q_f based on combined performance
+    const completeChallenge = useCallback((synthesis: number, flowCompleted: boolean, flow: number) => {
         const Q_f = flowCompleted
             ? (synthesis * 0.6 + flow * 0.4) // Weighted: synthesis 60%, flow 40%
             : synthesis * 0.8; // Without flow, cap at 80% of synthesis
@@ -220,44 +162,100 @@ export default function MasteryChallenge({
                 Q_f
             });
         }, 500);
-    };
+    }, [onComplete]);
+
+    const handleSynthesisComplete = useCallback(() => {
+        const score = calculateSynthesisScore(userResponse, concepts);
+        setSynthesisScore(score);
+
+        if (score >= FLOW_MODE_THRESHOLD) {
+            setMode('flow-gate');
+        } else {
+            completeChallenge(score, false, 0);
+        }
+    }, [userResponse, concepts, calculateSynthesisScore, completeChallenge]);
+
+    const handleDrillAnswer = useCallback((answer: string) => {
+        setDrillAnswers(prev => {
+            const newAnswers = [...prev, answer];
+
+            if (currentDrillIndex < flowDrills.length - 1) {
+                setCurrentDrillIndex(cur => cur + 1);
+                setDrillTimeRemaining(FLOW_DRILL_TIME);
+            } else {
+                const score = calculateFlowScore(newAnswers, flowDrills);
+                setFlowScore(score);
+                completeChallenge(synthesisScore, true, score);
+            }
+            return newAnswers;
+        });
+    }, [currentDrillIndex, flowDrills, synthesisScore, calculateFlowScore, completeChallenge]);
+
+    const handleDrillTimeout = useCallback(() => {
+        handleDrillAnswer('');
+    }, [handleDrillAnswer]);
+
+    const handleStartChallenge = useCallback(() => {
+        setMode('synthesis');
+    }, []);
+
+    const handleSynthesisSubmit = useCallback(() => {
+        handleSynthesisComplete();
+    }, [handleSynthesisComplete]);
+
+    const handleAcceptFlowMode = useCallback(() => {
+        const drills = generateFlowDrills();
+        setFlowDrills(drills);
+        setCurrentDrillIndex(0);
+        setDrillTimeRemaining(FLOW_DRILL_TIME);
+        setDrillAnswers([]);
+        setMode('flow');
+    }, [generateFlowDrills]);
+
+    const handleSkipFlowMode = useCallback(() => {
+        completeChallenge(synthesisScore, false, 0);
+    }, [synthesisScore, completeChallenge]);
 
     // ========================================================================
-    // Score Calculations
+    // Timer Effects
     // ========================================================================
 
-    const calculateSynthesisScore = (response: string, conceptList: LearningConcept[]): number => {
-        if (!response || response.length < 50) return 0;
+    useEffect(() => {
+        if (mode !== 'synthesis') return;
 
-        // Simple heuristic: check for concept mentions and response length
-        let score = 0;
+        const interval = setInterval(() => {
+            setSynthesisTimeRemaining(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    handleSynthesisComplete();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
 
-        // Length score (up to 40%)
-        const lengthScore = Math.min(response.length / 500, 0.4);
-        score += lengthScore;
+        return () => clearInterval(interval);
+    }, [mode, handleSynthesisComplete]);
 
-        // Concept mention score (up to 40%)
-        const conceptsMentioned = conceptList.filter(c =>
-            response.toLowerCase().includes(c.name.toLowerCase())
-        ).length;
-        const mentionScore = (conceptsMentioned / Math.min(conceptList.length, 5)) * 0.4;
-        score += mentionScore;
+    useEffect(() => {
+        if (mode !== 'flow') return;
 
-        // Structure score - has paragraphs/points (up to 20%)
-        const hasStructure = response.includes('\n') || response.includes('1.') || response.includes('-');
-        if (hasStructure) score += 0.2;
+        const interval = setInterval(() => {
+            setDrillTimeRemaining(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    handleDrillTimeout();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
 
-        return Math.min(score, 1);
-    };
-
-    const calculateFlowScore = (answers: string[], drills: FlowDrill[]): number => {
-        // Simple: check if answers are non-empty
-        const answered = answers.filter(a => a.trim().length > 0).length;
-        return answered / drills.length;
-    };
+        return () => clearInterval(interval);
+    }, [mode, currentDrillIndex, handleDrillTimeout]);
 
     // ========================================================================
-    // Context-Swap Synthesis: Scenario Generation
+    // Scenario Generation
     // Present concepts in a NEW domain to challenge transfer learning
     // ========================================================================
 
@@ -563,19 +561,4 @@ Take the concepts of ${conceptNames}${concepts.length > 3 ? ', and more' : ''} a
             </div>
         </div>
     );
-}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-function generateDrillQuestion(concept: LearningConcept): string {
-    const templates = [
-        `What is the primary purpose of ${concept.name}?`,
-        `When would you use ${concept.name} vs an alternative?`,
-        `What are the key prerequisites for ${concept.name}?`,
-        `How does ${concept.name} fit in the overall architecture?`,
-        `What's the first step to implement ${concept.name}?`
-    ];
-    return templates[Math.floor(Math.random() * templates.length)];
 }

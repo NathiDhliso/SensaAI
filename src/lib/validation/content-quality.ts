@@ -302,7 +302,7 @@ export function verifyContextRelevance(subjectTitle: string, fileContent: string
     // If we have 3 keywords and fast matches, we want high score.
     // Base score = matches / keywords.length
 
-    let rawScore = matches / subjectKeywords.length;
+    const rawScore = matches / subjectKeywords.length;
 
     // Normalize cap
     return {
