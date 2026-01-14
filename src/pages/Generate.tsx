@@ -1,18 +1,21 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle2, Circle, Loader2, ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+import { AgentCore } from '@/components/generation/AgentCore';
+import { CognitiveStream } from '@/components/generation/CognitiveStream';
 
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
 import { generateWithBackend, uploadExamBlueprint } from '@/lib/generation/backend-generator';
 import { parseAndLoadContent } from '@/lib/content-loader';
-import { PASS_NAMES, GENERATION_MESSAGES, UI_TIMINGS } from '@/constants/ui-constants';
+import { UI_TIMINGS } from '@/constants/ui-constants';
 import styles from './Generate.module.css';
 
 import type { PassStatus, Pass1Result, ValidationResult, LifecyclePhases, StreamedConceptPreview, GenerationResult } from '@/lib/types/generation';
 
-// Local type for progress callback data, matching ProgressCallback's data parameter
+// Local type for progress callback data
 type ProgressData = {
   message?: string;
   partial?: string;
@@ -26,21 +29,16 @@ type ProgressData = {
 export default function Generate() {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
-  const location = useLocation(); // [NEW] Get location
+  const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const context = searchParams.get('context'); // [NEW] Parse context
+  const context = searchParams.get('context');
 
   const {
-    // ...
     bedrockConfig,
     passes,
-    currentActivity,
-    progress,
-    pass1Data,
     error,
     isGenerating,
     streamedConcepts,
-    constructionPhase,
     expectedConceptCount,
     startGeneration,
     completeGeneration,
@@ -60,53 +58,8 @@ export default function Generate() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
-  const [whimsicalMessage, setWhimsicalMessage] = useState('');
   const hasStartedRef = useRef(false);
   const resultIdRef = useRef<string | null>(null);
-  const messageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Track which pass is currently in progress for message cycling
-  const currentInProgressPass = passes[1] === 'in-progress' ? 1
-    : passes[2] === 'in-progress' ? 2
-      : passes[3] === 'in-progress' ? 3
-        : passes[4] === 'in-progress' ? 4
-          : 0;
-
-  // Cycle through whimsical messages based on current pass
-  useEffect(() => {
-    if (!isGenerating) {
-      if (messageIntervalRef.current) {
-        clearInterval(messageIntervalRef.current);
-        messageIntervalRef.current = null;
-      }
-      return;
-    }
-
-    const getCurrentPassMessages = () => {
-      if (currentInProgressPass === 1) return GENERATION_MESSAGES.pass1;
-      if (currentInProgressPass === 2) return GENERATION_MESSAGES.pass2;
-      if (currentInProgressPass === 3) return GENERATION_MESSAGES.pass3;
-      if (currentInProgressPass === 4) return GENERATION_MESSAGES.pass4;
-      return GENERATION_MESSAGES.pass3; // Default to pass3 messages
-    };
-
-    const messages = getCurrentPassMessages();
-    let messageIndex = 0;
-    setWhimsicalMessage(messages[0]);
-
-    messageIntervalRef.current = setInterval(() => {
-      messageIndex = (messageIndex + 1) % messages.length;
-      setWhimsicalMessage(messages[messageIndex]);
-    }, 3500);
-
-    return () => {
-      if (messageIntervalRef.current) {
-        clearInterval(messageIntervalRef.current);
-        messageIntervalRef.current = null;
-      }
-    };
-  }, [isGenerating, currentInProgressPass]);
-
 
   // Throttle ref for progress updates
   const lastProgressUpdateRef = useRef<number>(0);
@@ -150,7 +103,6 @@ export default function Generate() {
       // Handle pass-specific data
       if (pass === 1 && status === 'complete' && data && 'domain' in data && data.domain) {
         update.pass1Data = data as Pass1Result;
-        // Set expected concept count for optimistic UI
         if (data.concepts) {
           setExpectedConceptCount(data.concepts.length);
           setConstructionPhase('framing');
@@ -191,10 +143,8 @@ export default function Generate() {
         setConstructionPhase('complete');
       }
 
-      // Single atomic update
       updateGenerationProgress(update);
 
-      // Save checkpoint on pass completion
       if (status === 'complete') {
         saveCheckpoint(pass);
       }
@@ -208,7 +158,6 @@ export default function Generate() {
     abortControllerRef.current = controller;
 
     const progressCallback = createProgressCallback();
-
     const { currentFileContext, pendingFile, setPendingFile } = useGenerationStore.getState();
     let effectiveContext = context || '';
 
@@ -216,7 +165,7 @@ export default function Generate() {
       completeGeneration(result);
       clearCheckpoint();
 
-      // Auto-save to storage so Study page can always retrieve it
+      // Auto-save to storage
       const currentState = useGenerationStore.getState();
       const currentPass1 = currentState.pass1Data;
       const currentValidation = currentState.validation;
@@ -235,12 +184,7 @@ export default function Generate() {
             lifecycle: currentPass1.lifecycle,
             concepts: currentPass1.concepts,
           },
-          validation: {
-            lifecycleConsistency: currentValidation.lifecycleConsistency,
-            positiveFraming: currentValidation.positiveFraming,
-            formatConsistency: currentValidation.formatConsistency,
-            completeness: currentValidation.completeness,
-          },
+          validation: currentValidation,
           savedLocally: true,
         };
 
@@ -286,13 +230,13 @@ export default function Generate() {
       return;
     }
 
-    // Phase 1: Upload raw file if pending
     if (pendingFile) {
+      startGeneration(decodedSubject, context || undefined);
+      addRecentSubject(decodedSubject);
       progressCallback(1, 'in-progress', { message: 'Uploading Blueprint to Secure Storage...', progress: 2 });
       uploadExamBlueprint(pendingFile).then(s3Url => {
         const blueprintContext = `[BLUEPRINT_ID]: ${s3Url}\n[FILENAME]: ${pendingFile.name}`;
         setPendingFile(null); // Clear pending file
-
         generateWithBackend(decodedSubject, progressCallback, controller.signal, blueprintContext)
           .then(handleGenerationSuccess)
           .catch(handleGenerationError);
@@ -313,41 +257,33 @@ export default function Generate() {
       .catch(handleGenerationError);
   }, [createProgressCallback, startGeneration, addRecentSubject, completeGeneration, clearCheckpoint, setError, navigate, context]);
 
+  // Initial load effect
   useEffect(() => {
-    if (!subject) {
-      return;
-    }
+    if (!subject) return;
 
     // Check authentication
     const { isAuthenticated } = useAuthStore.getState();
-
-    // If not authenticated (and no env config fallback), redirect to login
     if (!isAuthenticated && !bedrockConfig) {
       navigate('/login', { state: { from: `/generate/${subject}` } });
       return;
     }
 
-    if (hasStartedRef.current) {
-      return;
-    }
+    if (hasStartedRef.current) return;
 
     const decodedSubject = decodeURIComponent(subject);
 
-    // Check for shared/existing intelligence before starting
     if (!hasStartedRef.current && !canResumeFromCheckpoint(decodedSubject)) {
+      hasStartedRef.current = true;
       const checkForExisting = async () => {
         try {
           const { storageManager } = await import('@/lib/storage');
           const existing = await storageManager.findLatestBySubject(decodedSubject);
-
           if (existing) {
-            // Found a match! Ask user what to do
             const shouldLoad = window.confirm(
               `Shared Intelligence Found! 🧠\n\n` +
               `We found an existing version of "${decodedSubject}" generated on ${new Date(existing.generatedAt).toLocaleDateString()}.\n\n` +
               `Would you like to load this shared knowledge instead of generating from scratch?`
             );
-
             if (shouldLoad) {
               navigate(`/study/${existing.id}`);
               return;
@@ -357,15 +293,13 @@ export default function Generate() {
           console.warn('Failed to check shared intelligence:', e);
         }
 
-        // Proceed with generation if no match or user chose to generate new
         if (canResumeFromCheckpoint(decodedSubject)) {
+          hasStartedRef.current = false;
           setShowResumeDialog(true);
         } else {
-          hasStartedRef.current = true;
           startGenerationProcess(decodedSubject);
         }
       };
-
       checkForExisting();
       return;
     }
@@ -380,34 +314,18 @@ export default function Generate() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subject, bedrockConfig, context]);
 
-  // Don't abort on unmount - only abort when user explicitly cancels
-  // React Strict Mode and HMR cause re-mounts that would incorrectly abort
 
-  // Warn user before leaving during active generation
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isGenerating) {
         e.preventDefault();
-        // Most browsers ignore custom messages, but we set one anyway
         e.returnValue = 'Generation in progress. Are you sure you want to leave?';
         return e.returnValue;
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isGenerating]);
-
-  // Handle cancel with confirmation
-  const handleCancelClick = () => {
-    if (isGenerating && passes[1] === 'complete') {
-      // If we have some progress, confirm before canceling
-      setShowConfirmCancel(true);
-    } else {
-      abortController?.abort();
-      navigate('/');
-    }
-  };
 
   const handleConfirmCancel = () => {
     setShowConfirmCancel(false);
@@ -415,39 +333,11 @@ export default function Generate() {
     navigate('/');
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'complete':
-        return <CheckCircle2 className={styles.iconComplete} />;
-      case 'in-progress':
-      case 'fixing':
-        return <Loader2 className={styles.iconProgress} />;
-      default:
-        return <Circle className={styles.iconQueued} />;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'complete':
-        return 'Complete';
-      case 'in-progress':
-        return 'In Progress';
-      case 'fixing':
-        return 'Auto-fixing';
-      default:
-        return 'Queued';
-    }
-  };
-
   const handleResumeFromCheckpoint = () => {
     if (!subject || !bedrockConfig) return;
-
     const decodedSubject = decodeURIComponent(subject);
     const resumeData = getCheckpointResumeData();
-
     if (!resumeData) return;
-
     setShowResumeDialog(false);
     hasStartedRef.current = true;
     startGenerationProcess(decodedSubject, resumeData);
@@ -468,19 +358,131 @@ export default function Generate() {
     startGenerationProcess(decodedSubject);
   };
 
+  const handleCancelClick = () => {
+    setShowConfirmCancel(true);
+  };
+
+  // Determine Agent Intensity based on Pass
+  const getAgentIntensity = (): number => {
+    if (!isGenerating) return 0;
+    if (passes[1] === 'in-progress') return 40; // Scanning
+    if (passes[2] === 'in-progress') return 60; // Thinking
+    if (passes[3] === 'in-progress') return 80; // Writing
+    if (passes[4] === 'in-progress') return 100; // Verifying (Max Glitch)
+    return 20; // Idle/Complete
+  };
+
+  const getAgentState = (): 'idle' | 'scanning' | 'thinking' | 'writing' | 'verifying' | 'complete' => {
+    if (!isGenerating) return 'idle';
+    if (passes[1] === 'in-progress') return 'scanning';
+    if (passes[2] === 'in-progress') return 'thinking';
+    if (passes[3] === 'in-progress') return 'writing';
+    if (passes[4] === 'in-progress') return 'verifying';
+    if (passes[4] === 'complete') return 'complete';
+    return 'idle';
+  };
+
+  const intensity = getAgentIntensity();
+  const agentState = getAgentState();
+
+  // Track current pass number for Cognitive Stream
+  const currentPass = passes[1] === 'in-progress' ? 1 :
+    passes[2] === 'in-progress' ? 2 :
+      passes[3] === 'in-progress' ? 3 :
+        passes[4] === 'in-progress' ? 4 : 0;
+
   return (
     <div className={styles.container}>
-      <div className={styles.wrapper}>
-        <button onClick={() => navigate('/')} className={styles.backButton}>
-          <ArrowLeft className={styles.backIcon} />
-          Back to Home
+
+      {/* Cinematic Cockpit */}
+      <div className={styles.cockpit}>
+
+        {/* Top Left: Abort */}
+        <button onClick={handleCancelClick} className={styles.abortButton}>
+          <ArrowLeft size={14} /> Abort Link
         </button>
 
-        {showResumeDialog && (
+        {/* Center Stage: The Entity */}
+        <div className={styles.centerStage}>
+          <div className={styles.agentWrapper}>
+            <AgentCore
+              state={agentState}
+              intensity={intensity}
+              glitch={intensity === 100} // Max intensity = glitch
+            />
+          </div>
+
+          {/* The Inner Monologue */}
+          <div className={styles.cognitiveStreamContainer}>
+            <CognitiveStream
+              pass={currentPass}
+              intensity={intensity}
+              isGenerating={isGenerating}
+            />
+          </div>
+        </div>
+
+        {/* HUD: Data & Stats */}
+        <div className={styles.hudContainer}>
+
+          {/* Left: Source Data */}
+          <div className={styles.sourcePanel}>
+            <span className={styles.hudLabel}>Input Vector</span>
+            <span className={styles.sourceTitle}>{decodeURIComponent(subject || 'Unknown Source')}</span>
+            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', opacity: 0.6 }}>
+              <div style={{ width: '8px', height: '8px', background: '#34d399', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '0.7rem' }}>SIGNAL_LOCKED</span>
+            </div>
+          </div>
+
+          {/* Center: System Progress */}
+          <div className={styles.progressPanel}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+              <span className={styles.hudLabel}>Construct Integrity</span>
+              <span className={styles.hudLabel}>{Math.round(useGenerationStore.getState().progress)}%</span>
+            </div>
+            <div className={styles.progressLine}>
+              <div className={styles.progressFill} style={{ width: `${useGenerationStore.getState().progress}%` }}></div>
+            </div>
+          </div>
+
+          {/* Right: Output Stats */}
+          <div className={styles.outputPanel}>
+            <span className={styles.hudLabel}>Nodes Synthesized</span>
+            <div className={styles.nodeCounter}>
+              {streamedConcepts.length} <span style={{ fontSize: '0.9rem', opacity: 0.5 }}>/ {expectedConceptCount || 'ESTIMATING...'}</span>
+            </div>
+            <span className={styles.nodeLabel}>Knowledge Graph Density</span>
+          </div>
+
+        </div>
+
+        {/* Pop-up for latest concept */}
+        <AnimatePresence>
+          {streamedConcepts.length > 0 && isGenerating && (
+            <motion.div
+              key={streamedConcepts[streamedConcepts.length - 1].id}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className={styles.latestConcept}
+            >
+              <span className={styles.conceptEmoji}>
+                {streamedConcepts[streamedConcepts.length - 1].mnemonic?.anchor?.match(/\p{Emoji}/u)?.[0] || '💠'}
+              </span>
+              {streamedConcepts[streamedConcepts.length - 1].name}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>
+
+      {showResumeDialog && (
+        <div className={styles.confirmOverlay}>
           <div className={styles.resumeDialog}>
-            <h2>Resume Previous Generation?</h2>
+            <h2>Resume Cognitive Trace?</h2>
             <p>
-              Found an incomplete generation for this subject from{' '}
+              Found residual memory signature from{' '}
               {(() => {
                 const checkpoint = useGenerationStore.getState().checkpoint;
                 if (!checkpoint) return 'earlier';
@@ -489,260 +491,54 @@ export default function Generate() {
                 return minutes < 1 ? 'just now' : `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
               })()}
             </p>
-            <p>
-              Progress saved: Pass {(getCheckpointResumeData()?.startFromPass ?? 1) - 1} complete
-            </p>
             <div className={styles.dialogActions}>
               <button onClick={handleResumeFromCheckpoint} className={styles.primaryButton}>
-                Resume Generation
+                Re-Integrate
               </button>
               <button onClick={handleStartFresh} className={styles.secondaryButton}>
-                Start Fresh
+                Purge & Restart
               </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        <div className={styles.card}>
-          <h1 className={styles.title}>
-            Generating: {decodeURIComponent(subject || '')}
-          </h1>
-
-          {pass1Data && (
-            <div className={styles.metadata}>
-              <span>
-                Role: <strong>{pass1Data.roleScope}</strong>
-              </span>
-              <span className={styles.separator}>•</span>
-              <span>
-                Lifecycle:{' '}
-                <strong>
-                  {pass1Data.lifecycle.phase1} → {pass1Data.lifecycle.phase2} →{' '}
-                  {pass1Data.lifecycle.phase3}
-                </strong>
-              </span>
+      {/* Confirm Cancel Dialog */}
+      {showConfirmCancel && (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmDialog}>
+            <h3>Disengage Neural Link?</h3>
+            <p>Warning: Premature disconnection will result in concept fragmentation.</p>
+            <div className={styles.confirmActions}>
+              <button onClick={() => setShowConfirmCancel(false)} className={styles.secondaryButton}>
+                Maintain Link
+              </button>
+              <button onClick={handleConfirmCancel} className={styles.cancelConfirmButton}>
+                Disengage
+              </button>
             </div>
-          )}
-
-          {error && (
-            <div className={styles.errorBox}>
-              <div className={styles.errorHeader}>
-                <AlertTriangle className={styles.errorIcon} />
-                <span className={styles.errorTitle}>Generation Failed</span>
-              </div>
-              <p className={styles.errorMessage}>{error}</p>
-              <div className={styles.errorActions}>
-                <button onClick={handleRetry} className={styles.retryButton}>
-                  <RefreshCw size={16} />
-                  Retry
-                </button>
-                <button onClick={() => navigate('/')} className={styles.homeButton}>
-                  Go Home
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className={styles.passList}>
-            {[1, 2, 3, 4].map((pass) => {
-              const status = passes[pass];
-              return (
-                <div key={pass} className={styles.passItem}>
-                  {getStatusIcon(status)}
-                  <span
-                    className={
-                      status === 'complete' ? styles.passTextComplete : styles.passText
-                    }
-                  >
-                    Pass {pass}: {PASS_NAMES[pass - 1]}
-                  </span>
-                  <span
-                    className={
-                      status === 'complete'
-                        ? styles.statusComplete
-                        : status === 'in-progress' || status === 'fixing'
-                          ? styles.statusProgress
-                          : styles.statusQueued
-                    }
-                  >
-                    {getStatusLabel(status)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {isGenerating && (
-            <div className={styles.activityBox}>
-              <div className={styles.activityHeader}>
-                <div className={styles.pulseRing}>
-                  <Loader2 className={styles.activityIcon} />
-                </div>
-                <div className={styles.activityInfo}>
-                  <span className={styles.activityLabel}>Building Knowledge Structure</span>
-                  <span className={styles.activityPhase}>
-                    {passes[3] === 'in-progress' ? '🏗️ Synthesizing Concepts' :
-                      passes[4] === 'in-progress' ? '✨ Final Polish' :
-                        passes[2] === 'in-progress' ? '🔗 Weaving Connections' :
-                          passes[1] === 'in-progress' ? '🔍 Exploring Domain' : 'Processing'}
-                  </span>
-                </div>
-              </div>
-
-              <div className={styles.activityDetails}>
-                {/* Whimsical message display */}
-                <p className={styles.whimsicalMessage}>{whimsicalMessage}</p>
-                <p className={styles.activityText}>{currentActivity}</p>
-                {pass1Data && passes[3] === 'in-progress' && (
-                  <p className={styles.conceptCount}>
-                    Defining {pass1Data.concepts.length} core concepts
-                  </p>
-                )}
-              </div>
-
-              <div className={styles.progressSection}>
-                <div className={styles.progressHeader}>
-                  <span className={styles.progressLabel}>Overall Progress</span>
-                  <span className={styles.progressPercent}>{Math.round(progress)}%</span>
-                </div>
-                <div className={styles.progressBar}>
-                  <div
-                    className={styles.progressFill}
-                    style={{ width: `${progress}%` }}
-                  />
-                  <div
-                    className={styles.progressGlow}
-                    style={{ left: `${progress}%` }}
-                  />
-                </div>
-                <div className={styles.progressStats}>
-                  <span>Estimated time: {progress < 30 ? '3-4 min' : progress < 70 ? '1-2 min' : '< 1 min'}</span>
-                  {pass1Data && (
-                    <span>{pass1Data.concepts.length} concepts • {pass1Data.domain}</span>
-                  )}
-                </div>
-              </div>
-
-              {pass1Data && pass1Data.concepts.length > 0 && (
-                <div className={styles.livePreview}>
-                  <div className={styles.previewHeader}>
-                    <div className={styles.previewTitle}>
-                      🏰 {constructionPhase === 'complete' ? 'Knowledge Structure Ready!' : 'Building Knowledge Structure'}
-                    </div>
-                    <div className={styles.previewBadge}>
-                      <span></span> {constructionPhase === 'complete' ? 'Done' : 'Live'}
-                    </div>
-                  </div>
-
-                  {pass1Data.lifecycle && (
-                    <div className={styles.lifecyclePreview}>
-                      <span className={styles.lifecyclePhase}>📋 {pass1Data.lifecycle.phase1}</span>
-                      <span className={styles.lifecycleArrow}>→</span>
-                      <span className={styles.lifecyclePhase}>⚙️ {pass1Data.lifecycle.phase2}</span>
-                      <span className={styles.lifecycleArrow}>→</span>
-                      <span className={styles.lifecyclePhase}>📊 {pass1Data.lifecycle.phase3}</span>
-                    </div>
-                  )}
-
-                  {/* Construction Progress Indicator */}
-                  {constructionPhase !== 'idle' && (
-                    <div className={styles.constructionStatus}>
-                      <span className={styles.constructionPhase}>
-                        {constructionPhase === 'foundation' && '🔍 Analyzing domain...'}
-                        {constructionPhase === 'framing' && '🏗️ Framing structure...'}
-                        {constructionPhase === 'detailing' && `🎨 Detailing concepts (${streamedConcepts.length}/${expectedConceptCount})...`}
-                        {constructionPhase === 'complete' && '✨ Structure complete!'}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Animated Concept Grid */}
-                  <div className={styles.conceptsGrid}>
-                    <AnimatePresence mode="popLayout">
-                      {/* Show streamed concepts with emoji anchors */}
-                      {streamedConcepts.slice(0, 12).map((concept, idx) => {
-                        // Extract emoji from anchor string
-                        const emojiMatch = concept.mnemonic?.anchor?.match(/\p{Emoji}/u);
-                        const emoji = emojiMatch ? emojiMatch[0] : '🎭';
-
-                        return (
-                          <motion.div
-                            key={concept.id}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{
-                              type: 'spring',
-                              stiffness: 300,
-                              damping: 20,
-                              delay: idx * 0.05
-                            }}
-                            className={`${styles.conceptChip} ${styles.streamedConcept}`}
-                          >
-                            <span className={styles.conceptIcon}>{emoji}</span>
-                            <span className={styles.conceptName}>{concept.name}</span>
-                          </motion.div>
-                        );
-                      })}
-
-                      {/* Show remaining concepts as placeholder outlines if we haven't streamed them yet */}
-                      {streamedConcepts.length < Math.min(12, pass1Data.concepts.length) &&
-                        pass1Data.concepts.slice(streamedConcepts.length, 12).map((concept, idx) => (
-                          <div
-                            key={`placeholder-${idx}`}
-                            className={`${styles.conceptChip} ${styles.conceptPlaceholder}`}
-                          >
-                            <span className={styles.conceptIcon}>⏳</span>
-                            <span className={styles.conceptName}>{concept}</span>
-                          </div>
-                        ))}
-                    </AnimatePresence>
-
-                    {pass1Data.concepts.length > 12 && (
-                      <motion.div
-                        className={styles.conceptChip}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        <span className={styles.conceptName}>
-                          +{pass1Data.concepts.length - 12} more concepts
-                        </span>
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className={styles.actions}>
-            <button
-              onClick={handleCancelClick}
-              className={styles.cancelButton}
-            >
-              Cancel
-            </button>
           </div>
         </div>
+      )}
 
-        {/* Confirm Cancel Dialog */}
-        {showConfirmCancel && (
-          <div className={styles.confirmOverlay}>
-            <div className={styles.confirmDialog}>
-              <h3>Cancel Generation?</h3>
-              <p>You have partial progress. Are you sure you want to cancel?</p>
-              <div className={styles.confirmActions}>
-                <button onClick={() => setShowConfirmCancel(false)} className={styles.secondaryButton}>
-                  Continue Generation
-                </button>
-                <button onClick={handleConfirmCancel} className={styles.cancelConfirmButton}>
-                  Yes, Cancel
-                </button>
-              </div>
+      {/* Error Overlay */}
+      {error && (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmDialog} style={{ border: '1px solid #ef4444' }}>
+            <h3 style={{ color: '#ef4444' }}>Critical Logic Failure</h3>
+            <p>{error}</p>
+            <div className={styles.confirmActions}>
+              <button onClick={() => navigate('/')} className={styles.secondaryButton}>
+                Abort
+              </button>
+              <button onClick={handleRetry} className={styles.primaryButton} style={{ background: '#ef4444', borderColor: '#ef4444' }}>
+                Re-Initialize
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
     </div>
   );
 }

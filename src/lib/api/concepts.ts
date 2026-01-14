@@ -45,6 +45,16 @@ export interface JobStatus {
     error?: string;
 }
 
+export interface JobSummary {
+    jobId: string;
+    userId?: string;
+    sessionId: string;
+    subject: string;
+    status: 'queued' | 'in_progress' | 'completed' | 'failed';
+    conceptCount?: number;
+    createdAt?: number;
+}
+
 export const conceptsApi = {
     /**
      * Query concepts with pagination and optional tier filtering
@@ -67,13 +77,17 @@ export const conceptsApi = {
      * Generation happens server-side, concepts stored in DynamoDB
      */
     async generate(request: GenerateConceptsRequest): Promise<GenerateConceptsResponse> {
-        return apiClient.post<GenerateConceptsResponse>('/concepts/generate', request);
+        console.log('[ConceptsAPI] generate() called:', request);
+        const response = await apiClient.post<GenerateConceptsResponse>('/concepts/generate', request);
+        console.log('[ConceptsAPI] generate() response:', response);
+        return response;
     },
 
     /**
      * Surgically repair a specific concept
      */
     async repair(request: { subject: string; conceptName: string; issue: string; userId: string }): Promise<ParsedConcept> {
+        console.log('[ConceptsAPI] repair() called:', request);
         return apiClient.post<ParsedConcept>('/concepts/generate', {
             ...request,
             action: 'repair'
@@ -81,10 +95,20 @@ export const conceptsApi = {
     },
 
     /**
+     * List all generation jobs for a user
+     */
+    async listJobs(userId: string): Promise<{ jobs: JobSummary[] }> {
+        return apiClient.get<{ jobs: JobSummary[] }>(`/concepts/jobs?userId=${userId}`);
+    },
+
+    /**
      * Check status of a generation job
      */
     async getJobStatus(jobId: string): Promise<JobStatus> {
-        return apiClient.get<JobStatus>(`/concepts/jobs/${jobId}`);
+        console.log('[ConceptsAPI] getJobStatus() called for jobId:', jobId);
+        const response = await apiClient.get<JobStatus>(`/concepts/jobs/${jobId}`);
+        console.log('[ConceptsAPI] getJobStatus() response:', response);
+        return response;
     },
 
     /**

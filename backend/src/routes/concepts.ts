@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, QueryCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, QueryCommandOutput, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -54,7 +54,8 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             return;
         }
 
-        const gsi1pk = `USER#${userId} #SESSION#${sessionId} `;
+        const gsi1pk = `USER#${userId}#SESSION#${sessionId}`;
+        console.log(`[Backend /concepts] Querying PK: '${gsi1pk}' for Tier: '${tier || 'all'}'`);
 
         const result: QueryCommandOutput = await docClient.send(new QueryCommand({
             TableName: CONCEPTS_TABLE,
@@ -63,7 +64,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
                 ? 'GSI1PK = :pk AND begins_with(GSI1SK, :tier)'
                 : 'GSI1PK = :pk',
             ExpressionAttributeValues: tier
-                ? { ':pk': gsi1pk, ':tier': `TIER#${tier} ` }
+                ? { ':pk': gsi1pk, ':tier': `TIER#${tier}#` }
                 : { ':pk': gsi1pk },
             Limit: limit,
             ExclusiveStartKey: parseCursor(cursor),
@@ -107,17 +108,24 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
 conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.sub || 'anonymous';
-        const { subject, sessionId, context } = req.body;
+        const { subject, context } = req.body;
+        // Always ensure sessionId exists - generate one if not provided
+        const sessionId = req.body.sessionId || uuidv4();
+
+        console.log('[Backend /generate] Request received:', { subject, userId, sessionId, hasContext: !!context });
 
         if (!subject) {
+            console.log('[Backend /generate] ERROR: Subject is required');
             res.status(400).json({ error: 'Subject is required' });
             return;
         }
 
         const jobId = uuidv4();
+        console.log('[Backend /generate] Created jobId:', jobId);
 
         // Fix race condition: Write initial job status BEFORE invoking Lambda
         // This ensures the client doesn't get a 404 when polling immediately
+        console.log('[Backend /generate] Writing initial job to DynamoDB...');
         await docClient.send(new PutCommand({
             TableName: JOBS_TABLE,
             Item: {
@@ -131,6 +139,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
                 expiresAt: Math.floor(Date.now() / 1000) + 86400, // 24h TTL
             }
         }));
+        console.log('[Backend /generate] Job written to DynamoDB');
 
         const payload = JSON.stringify({
             body: JSON.stringify({
@@ -148,9 +157,10 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
             Payload: Buffer.from(payload),
         });
 
+        console.log('[Backend /generate] Invoking Lambda:', GENERATE_FUNCTION);
         await lambdaClient.send(invokeCommand);
 
-        console.log(`✅ Lambda invoked asynchronously for jobId: ${jobId} `);
+        console.log(`[Backend /generate] ✅ Lambda invoked asynchronously for jobId: ${jobId}, sessionId: ${sessionId}`);
 
         res.json({
             jobId,
@@ -159,8 +169,47 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
             message: 'Generation started'
         });
     } catch (error) {
-        console.error('Generation error:', error);
+        console.error('[Backend /generate] ERROR:', error);
         res.status(500).json({ error: 'Failed to start generation' });
+    }
+});
+
+// List all jobs for a user
+conceptsRouter.get('/jobs', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.sub || req.query.userId as string;
+
+        if (!userId) {
+            res.status(400).json({ error: 'userId is required' });
+            return;
+        }
+
+        console.log('[Backend /jobs] Listing jobs for user:', userId);
+
+        const result = await docClient.send(new ScanCommand({
+            TableName: JOBS_TABLE,
+            FilterExpression: 'userId = :userId',
+            ExpressionAttributeValues: {
+                ':userId': userId,
+            },
+        }));
+
+        const jobs = (result.Items || []).map(item => ({
+            jobId: item.jobId,
+            status: item.status,
+            subject: item.subject,
+            createdAt: item.createdAt,
+            conceptCount: item.conceptCount,
+            sessionId: item.sessionId
+        }));
+
+        // Sort by createdAt desc
+        jobs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        res.json({ jobs });
+    } catch (error) {
+        console.error('[Backend /jobs] ERROR:', error);
+        res.status(500).json({ error: 'Failed to list jobs' });
     }
 });
 
@@ -170,15 +219,25 @@ conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Respon
         const { jobId } = req.params;
         const userId = req.user?.sub || req.query.userId as string;
 
+        console.log('[Backend /jobs/:jobId] Checking status:', { jobId, userId });
+
         const result = await docClient.send(new GetCommand({
             TableName: JOBS_TABLE,
             Key: { jobId, userId },
         }));
 
         if (!result.Item) {
+            console.log('[Backend /jobs/:jobId] Job not found:', { jobId, userId });
             res.status(404).json({ error: 'Job not found' });
             return;
         }
+
+        console.log('[Backend /jobs/:jobId] Job found:', {
+            jobId: result.Item.jobId,
+            status: result.Item.status,
+            sessionId: result.Item.sessionId,
+            conceptCount: result.Item.conceptCount,
+        });
 
         res.json({
             jobId: result.Item.jobId,
@@ -190,7 +249,7 @@ conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Respon
             error: result.Item.error,
         });
     } catch (error) {
-        console.error('Job status error:', error);
+        console.error('[Backend /jobs/:jobId] ERROR:', error);
         res.status(500).json({ error: 'Failed to get job status' });
     }
 });

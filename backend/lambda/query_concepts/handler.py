@@ -24,8 +24,8 @@ from shared.utils import (
 )
 
 # Environment variables
-CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-dev")
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
+CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-pilot")
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "pilot")
 
 # Default page size
 DEFAULT_LIMIT = 25

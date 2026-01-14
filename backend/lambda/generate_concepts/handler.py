@@ -7,6 +7,7 @@ and stores them in DynamoDB for paginated retrieval.
 import json
 import os
 import re
+import time
 from typing import Any, Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -21,6 +22,7 @@ from shared.utils import (
     create_sk,
     create_gsi1_pk,
     create_gsi1_sk,
+    create_subject_sk,
     api_response,
     TIERS,
     STAGES,
@@ -28,16 +30,15 @@ from shared.utils import (
 from shared.system_prompt import get_system_prompt, get_surgical_fix_prompt
 
 # Environment variables
-CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-dev")
-JOBS_TABLE = os.environ.get("JOBS_TABLE", "sensapbl-jobs-dev")
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
+CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-pilot")
+JOBS_TABLE = os.environ.get("JOBS_TABLE", "sensapbl-jobs-pilot")
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "pilot")
 
 # AWS clients
 dynamodb = boto3.resource("dynamodb")
 bedrock = boto3.client(
     "bedrock-runtime",
     region_name="us-east-1",
-
     config=Config(
         retries={"max_attempts": 3, "mode": "adaptive"},
         read_timeout=900,
@@ -55,6 +56,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     - body.sessionId: Session ID for this generation
     - body.context: Optional additional context
     """
+    print(f"[Lambda] Handler invoked with event type: {type(event)}")
     try:
         # Parse request body
         body = json.loads(event.get("body", "{}"))
@@ -64,6 +66,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         job_id = body.get("jobId", generate_id())
         context_text = body.get("context", "")
         action = body.get("action", "generate")
+        
+        print(f"[Lambda] Parsed request: subject={subject}, userId={user_id}, sessionId={session_id}, jobId={job_id}, action={action}")
         
         if action == "repair":
             concept_name = body.get("conceptName")
@@ -81,9 +85,11 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             })
         
         if not subject:
+            print("[Lambda] ERROR: Subject is required")
             return api_response(400, {"error": "Subject is required"})
         
         # Create job record
+        print(f"[Lambda] Creating initial job record in DynamoDB for jobId={job_id}...")
         jobs_table = dynamodb.Table(JOBS_TABLE)
         jobs_table.put_item(
             Item={
@@ -96,12 +102,16 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "expiresAt": get_ttl_timestamp(24),  # TTL after 24 hours
             }
         )
+        print("[Lambda] Job record created")
         
         # Generate content with Bedrock
+        print(f"[Lambda] Starting Bedrock generation for subject: {subject}")
         try:
             concepts = generate_concepts_with_bedrock(subject, context_text)
+            print(f"[Lambda] Bedrock generation complete. Got {len(concepts)} concepts")
         except Exception as e:
             # Update job status on failure
+            print(f"[Lambda] ERROR: Bedrock generation failed: {str(e)}")
             jobs_table.update_item(
                 Key={"jobId": job_id, "userId": user_id},
                 UpdateExpression="SET #status = :status, #error = :error",
@@ -111,10 +121,13 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return api_response(500, {"error": f"Generation failed: {str(e)}"})
         
         # Store concepts in DynamoDB
+        print(f"[Lambda] Storing {len(concepts)} concepts to DynamoDB...")
         concepts_table = dynamodb.Table(CONCEPTS_TABLE)
         store_concepts(concepts_table, user_id, session_id, concepts, subject)
+        print("[Lambda] Concepts stored successfully")
         
         # Update job status to completed
+        print(f"[Lambda] Updating job status to 'completed' for jobId={job_id}")
         jobs_table.update_item(
             Key={"jobId": job_id, "userId": user_id},
             UpdateExpression="SET #status = :status, conceptCount = :count",
@@ -124,6 +137,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 ":count": len(concepts),
             },
         )
+        print(f"[Lambda] Job status updated to 'completed'. Returning success response.")
         
         return api_response(200, {
             "jobId": job_id,
@@ -133,6 +147,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         })
         
     except Exception as e:
+        print(f"[Lambda] UNHANDLED ERROR: {str(e)}")
         return api_response(500, {"error": str(e)})
 
 
@@ -141,13 +156,14 @@ import concurrent.futures
 def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict[str, Any]]:
     """
     Silver Bullet Generation: Parallel execution for maximum speed and volume.
-    Splits the 70 concepts into 4 parallel requests to bypass token limits.
+    Splits the 70 concepts into 5 parallel requests to bypass token limits.
     
     Hardening (v4.1):
     - Retry logic with exponential backoff per partition
     - Concept validation for mandatory fields
     - Minimum concept threshold for partial failure detection
     """
+    # get_silver_bullet_prompt is imported at module level
     from shared.system_prompt import get_silver_bullet_prompt
     import time
     
@@ -195,10 +211,15 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
         prompt = get_silver_bullet_prompt(subject, part_num, context)
         last_error = None
         
+        # Use environment variable for model ID with fallback to Sonnet 3.5
+        model_id = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0")
+        print(f"[Lambda] Part {part_num}: Starting Bedrock call with model={model_id}")
+        
         for attempt in range(MAX_RETRIES):
             try:
+                print(f"[Lambda] Part {part_num}: Attempt {attempt + 1}/{MAX_RETRIES}")
                 response = bedrock.invoke_model(
-                    modelId="anthropic.claude-3-5-sonnet-20241022-v2:0", # Use verified stable Sonnet 3.5
+                    modelId=model_id,
                     contentType="application/json",
                     accept="application/json",
                     body=json.dumps({
@@ -213,11 +234,14 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
                 
                 response_body = json.loads(response.get("body").read())
                 raw_content = response_body.get("content", [])[0].get("text", "")
+                print(f"[Lambda] Part {part_num}: Got {len(raw_content)} chars from Bedrock")
                 
                 parsed = parse_concepts_from_response(raw_content)
+                print(f"[Lambda] Part {part_num}: Parsed {len(parsed)} concepts")
                 
                 # Validate each concept
                 validated = [c for c in parsed if validate_concept(c)]
+                print(f"[Lambda] Part {part_num}: Validated {len(validated)} concepts")
                 
                 # If we got at least some valid concepts, return them
                 if validated:
@@ -228,6 +252,7 @@ def generate_concepts_with_bedrock(subject: str, context: str = "") -> List[Dict
                 
             except Exception as e:
                 last_error = str(e)
+                print(f"[Lambda] Part {part_num}: Error on attempt {attempt + 1}: {last_error}")
             
             # Exponential backoff before retry (except on last attempt)
             if attempt < MAX_RETRIES - 1:
@@ -291,8 +316,11 @@ def repair_concept_with_bedrock(subject: str, concept_name: str, issue: str) -> 
     prompt = get_surgical_fix_prompt(subject, concept_name, issue)
     
     try:
+        # Use environment variable for model ID with fallback to Sonnet 3.5
+        model_id = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0")
+        
         response = bedrock.invoke_model(
-            modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",
+            modelId=model_id,
             contentType="application/json",
             accept="application/json",
             body=json.dumps({
@@ -497,8 +525,3 @@ def store_concepts(table: Any, user_id: str, session_id: str, concepts: List[Dic
                     "expiresAt": get_ttl_timestamp(168),  # TTL after 7 days
                 }
             )
-
-
-# Note: get_system_prompt is now imported from shared.system_prompt
-# This ensures the full SENSA learning science (SHAPE, tiers, mnemonics,
-# confusion pairs, learning paths) is preserved in Lambda generation

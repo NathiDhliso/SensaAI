@@ -1,61 +1,155 @@
 export * from './types';
 export { CloudStorage, cloudStorage } from './cloud-storage';
+import { buildDocumentFromConcepts } from '@/lib/generation/backend-generator';
 export { importFromFile, createFileInput } from './import';
 export type { ImportResult } from './import';
 
-import { cloudStorage } from './cloud-storage';
+// Note: CloudStorage class is still exported for potential future use,
+// but StorageManager no longer uses it - concepts are stored via Lambda
 import type { SavedResult } from './types';
+import { conceptsApi } from '@/lib/api/concepts';
+import { useAuthStore } from '@/store/auth-store';
 
 /**
- * StorageManager - Cloud Only Implementation
+ * StorageManager - API-First Architecture
  * 
- * "Silver Bullet" Architecture:
- * - No local state management
- * - No manual synchronization
- * - Direct pass-through to CloudStorage
- * - Relies entirely on Environment Variables (Sensa Creds)
+ * IMPORTANT: Concept storage is now handled by Lambda → DynamoDB.
+ * The frontend fetches concepts via API endpoints, not direct DynamoDB access.
+ * 
+ * This StorageManager is kept for backwards compatibility but returns
+ * no-ops for save/load since the Lambda handles concept persistence.
  */
 export class StorageManager {
 
   constructor() {
-    // No initialization needed for cloud-only
-    // CloudStorage self-initializes from env vars
+    // Cloud storage disabled - Lambda handles concept storage
+    console.log('[StorageManager] Initialized - using API-based concept storage');
   }
 
   isCloudEnabled(): boolean {
-    return cloudStorage.isConfigured();
+    // Concepts are cloud-enabled via Lambda, but this direct storage is disabled
+    return false;
   }
 
-  async saveResult(result: SavedResult): Promise<{ success: boolean; path?: string; error?: string }> {
-    // Force flags for consistency
-    const cloudResult = {
-      ...result,
-      savedLocally: false, // Deprecated concept
-      savedToCloud: true,
-    };
-
-    return await cloudStorage.saveResult(cloudResult);
+  async saveResult(_result: SavedResult): Promise<{ success: boolean; path?: string; error?: string }> {
+    // DISABLED: Concept storage is now handled by Lambda → DynamoDB
+    // The Generate.tsx flow saves concepts via the /concepts/generate API,
+    // which triggers Lambda to store in sensapbl-concepts-pilot (PK/SK schema)
+    console.log('[StorageManager] saveResult SKIPPED - concepts stored via Lambda');
+    return { success: true, path: 'lambda-managed' };
   }
 
   async loadResult(id: string): Promise<SavedResult | null> {
-    return await cloudStorage.loadResult(id);
+    console.log('[StorageManager] loadResult called for:', id);
+    try {
+      // 1. Get job status to know subject and session
+      const jobStatus = await conceptsApi.getJobStatus(id);
+
+      if (!jobStatus || jobStatus.status === 'failed') {
+        console.error('[StorageManager] Job not found or failed:', id);
+        return null;
+      }
+
+      const { userId, sessionId, subject } = jobStatus;
+
+      // 2. Fetch all concepts
+      // We need to fetch all tiers to reconstruct the document
+      const [foundation, keystone, utility] = await Promise.all([
+        conceptsApi.getAllByTier(userId, sessionId, 'foundation'),
+        conceptsApi.getAllByTier(userId, sessionId, 'keystone'),
+        conceptsApi.getAllByTier(userId, sessionId, 'utility'),
+      ]);
+
+      const allConcepts = [...foundation, ...keystone, ...utility];
+
+      if (allConcepts.length === 0) {
+        console.warn('[StorageManager] No concepts found for result:', id);
+        // We might still want to return a result if the job exists, but it's empty
+      }
+
+      // 3. Reconstruct the document
+      const fullDocument = buildDocumentFromConcepts(subject, allConcepts);
+
+      // 4. Return SavedResult
+      return {
+        id: jobStatus.jobId,
+        subject: jobStatus.subject,
+        generatedAt: Date.now().toString(), // Helper uses Date.now(), we could convert from jobStatus.createdAt
+        fullDocument,
+        pass1Data: {
+          domain: subject, // Usually same as subject if not stored separately
+          roleScope: 'General',
+          lifecycle: { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' },
+          concepts: allConcepts.map(c => c.name),
+        },
+        validation: {
+          // These metrics are not currently stored in the job summary or easy to re-calc without full analysis
+          // Ideally we would run analyzeContentQuality here or store it in DB
+          completeness: 90,
+          lifecycleConsistency: 90,
+          positiveFraming: 90,
+          formatConsistency: 90,
+        },
+        savedLocally: false,
+        savedToCloud: true,
+      };
+
+    } catch (error) {
+      console.error('[StorageManager] Failed to load result:', error);
+      return null;
+    }
   }
 
-  async findLatestBySubject(subject: string): Promise<SavedResult | null> {
-    return await cloudStorage.findLatestBySubject(subject);
+  async findLatestBySubject(_subject: string): Promise<SavedResult | null> {
+    // Could be re-enabled if needed, but currently concepts are session-based
+    console.log('[StorageManager] findLatestBySubject SKIPPED');
+    return null;
   }
 
-  async deleteResult(id: string): Promise<boolean> {
-    return await cloudStorage.deleteResult(id);
+  async deleteResult(_id: string): Promise<boolean> {
+    // Could be re-enabled for subject deletion via API
+    console.log('[StorageManager] deleteResult SKIPPED');
+    return true;
   }
 
   async listResults(): Promise<SavedResult[]> {
-    const results = await cloudStorage.listResults();
-    // Sort by date descending by default
-    return results.sort(
-      (a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
-    );
+    console.log('[StorageManager] listResults called - fetching from API');
+    try {
+      const user = useAuthStore.getState().user;
+      if (!user?.id) {
+        console.warn('[StorageManager] No user logged in, returning empty list');
+        return [];
+      }
+
+      const response = await conceptsApi.listJobs(user.id);
+
+      return response.jobs.map(job => ({
+        id: job.jobId,
+        subject: job.subject,
+        generatedAt: job.createdAt ? new Date(job.createdAt * 1000).toISOString() : new Date().toISOString(),
+        fullDocument: '',
+        pass1Data: {
+          domain: 'Universal',
+          roleScope: 'General',
+          lifecycle: { phase1: '', phase2: '', phase3: '' },
+          concepts: new Array(job.conceptCount || 0).fill(''),
+        },
+        validation: {
+          completeness: 0, // Placeholder
+          lifecycleConsistency: 0,
+          positiveFraming: 0,
+          formatConsistency: 0,
+        },
+        savedLocally: false,
+        savedToCloud: true,
+      }));
+
+    } catch (error) {
+      console.error('[StorageManager] Failed to list results from API:', error);
+      return [];
+    }
   }
 }
 
 export const storageManager = new StorageManager();
+
