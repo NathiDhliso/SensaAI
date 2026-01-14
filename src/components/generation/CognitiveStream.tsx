@@ -16,6 +16,7 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
     // Cycle thoughts based on pass and intensity
     useEffect(() => {
         if (!isGenerating) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid reset when not generating
             setThought("SYSTEM_READY :: WAITING_FOR_INPUT");
             return;
         }

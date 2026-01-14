@@ -30,7 +30,7 @@ export function useFlowState(): FlowStateInfo {
     const { studySession } = useLearningStore();
 
     const [sessionDurationMs, setSessionDurationMs] = useState(0);
-    const [now, setNow] = useState(Date.now());
+    const [now, setNow] = useState(() => Date.now());
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -41,6 +41,7 @@ export function useFlowState(): FlowStateInfo {
 
     useEffect(() => {
         if (!studySession?.startedAt) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync derived state from external clock
             setSessionDurationMs(0);
             return;
         }
@@ -108,7 +109,7 @@ export function useFlowState(): FlowStateInfo {
         }
 
         return true;
-    }, [isInFlow, timeGoalExceeded, studySession?.lastCheckpointAt]);
+    }, [isInFlow, timeGoalExceeded, studySession?.lastCheckpointAt, now]);
 
     // Health break logic (90+ min continuous learning)
     const shouldShowHealthBreak = useMemo(() => {

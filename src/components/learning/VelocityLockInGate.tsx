@@ -4,6 +4,7 @@
  * Full-screen dramatic confirmation before locking into Velocity Learning.
  * "There's no turning back" - once committed, users must complete setup.
  */
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Rocket, AlertTriangle, ArrowLeft, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +13,19 @@ import styles from './VelocityLockInGate.module.css';
 interface VelocityLockInGateProps {
     subjectName: string;
     onConfirm: () => void;
+}
+
+// Generate particle data outside component to avoid purity issues
+function generateParticles() {
+    return [...Array(20)].map((_, i) => ({
+        id: i,
+        initialX: Math.random() * 100 - 50,
+        initialY: Math.random() * 100 - 50,
+        duration: 3 + Math.random() * 2,
+        delay: Math.random() * 2,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+    }));
 }
 
 export default function VelocityLockInGate({
@@ -24,6 +38,9 @@ export default function VelocityLockInGate({
         navigate(-1);
     };
 
+    // Use lazy state initializer - only runs once on mount
+    const [particles] = useState(generateParticles);
+
     return (
         <motion.div
             className={styles.container}
@@ -33,13 +50,13 @@ export default function VelocityLockInGate({
         >
             {/* Animated background particles */}
             <div className={styles.particles}>
-                {[...Array(20)].map((_, i) => (
+                {particles.map((particle) => (
                     <motion.div
-                        key={i}
+                        key={particle.id}
                         className={styles.particle}
                         initial={{
-                            x: Math.random() * 100 - 50,
-                            y: Math.random() * 100 - 50,
+                            x: particle.initialX,
+                            y: particle.initialY,
                             opacity: 0
                         }}
                         animate={{
@@ -47,13 +64,13 @@ export default function VelocityLockInGate({
                             opacity: [0.3, 0.7, 0.3]
                         }}
                         transition={{
-                            duration: 3 + Math.random() * 2,
+                            duration: particle.duration,
                             repeat: Infinity,
-                            delay: Math.random() * 2
+                            delay: particle.delay
                         }}
                         style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
+                            left: particle.left,
+                            top: particle.top,
                         }}
                     />
                 ))}

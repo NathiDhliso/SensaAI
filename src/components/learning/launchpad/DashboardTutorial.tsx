@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 
@@ -31,15 +31,25 @@ export function DashboardTutorial({ isOpen, onClose, steps }: DashboardTutorialP
         }
     }, [steps, currentStepIndex]);
 
+    // Use useLayoutEffect for synchronous initial DOM measurement
+    useLayoutEffect(() => {
+        if (isOpen) {
+            // Schedule after paint to get accurate rect
+            requestAnimationFrame(() => {
+                updateTargetRect();
+            });
+        }
+    }, [isOpen, updateTargetRect, currentStepIndex]);
+
     useEffect(() => {
         if (isOpen) {
-            updateTargetRect();
             window.addEventListener('resize', updateTargetRect);
             // Prevent scrolling when tutorial is open
             document.body.style.overflow = 'hidden';
         } else {
             window.removeEventListener('resize', updateTargetRect);
             document.body.style.overflow = 'unset';
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid reset on modal close
             setCurrentStepIndex(0);
         }
         return () => {

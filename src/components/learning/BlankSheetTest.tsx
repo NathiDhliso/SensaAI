@@ -197,7 +197,7 @@ export function BlankSheetTest({
     const [result, setResult] = useState<BlankSheetResult | null>(null);
 
     // Timing state
-    const [startTime] = useState(Date.now());
+    const [startTime] = useState(() => Date.now());
     const [firstKeystrokeTime, setFirstKeystrokeTime] = useState<number | null>(null);
     const [lastKeystrokeTime, setLastKeystrokeTime] = useState<number | null>(null);
     const [pauseCount, setPauseCount] = useState(0);
@@ -205,8 +205,8 @@ export function BlankSheetTest({
     const { selectedPersona } = usePersonalizationStore();
     const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
 
-    // Real-time metrics
-    const metrics = useMemo((): TypingMetrics => {
+    // Real-time metrics - use callback to calculate on demand
+    const getMetrics = useCallback((): TypingMetrics => {
         const now = Date.now();
         const totalTime = (now - startTime) / 1000;
         const words = response.trim().split(/\s+/).filter(Boolean);
@@ -216,7 +216,6 @@ export function BlankSheetTest({
         const timeToFirstKeystroke = firstKeystrokeTime
             ? (firstKeystrokeTime - startTime) / 1000
             : 0;
-
         return {
             totalTime,
             wordCount,
@@ -226,6 +225,19 @@ export function BlankSheetTest({
             pauseCount,
         };
     }, [response, startTime, firstKeystrokeTime, pauseCount]);
+
+    // Current metrics snapshot for display (computed from response changes)
+    const metrics = useMemo(() => {
+        const words = response.trim().split(/\s+/).filter(Boolean);
+        return {
+            totalTime: 0, // Not real-time, updated on submit
+            wordCount: words.length,
+            characterCount: response.length,
+            wordsPerMinute: 0, // Display WPM requires real-time, deferred to getMetrics
+            timeToFirstKeystroke: 0,
+            pauseCount,
+        };
+    }, [response, pauseCount]);
 
     // Character count validation
     const isValid = response.length >= VELOCITY_CONFIG.BLANK_SHEET.MIN_CHARS;
@@ -259,6 +271,9 @@ export function BlankSheetTest({
         // Analyze response
         const analysis = analyzeResponse(response, keyPoints);
 
+        // Get final metrics at submit time
+        const finalMetrics = getMetrics();
+
         const blankSheetResult: BlankSheetResult = {
             responseText: response,
             score: analysis.score,
@@ -272,10 +287,7 @@ export function BlankSheetTest({
                 .filter(r => r.status === 'uncertain')
                 .map(r => r.point),
             scoringConfidence: analysis.confidence,
-            metrics: {
-                ...metrics,
-                totalTime: (Date.now() - startTime) / 1000,
-            },
+            metrics: finalMetrics,
             needsRemediation: analysis.score < 60,
         };
 
@@ -297,7 +309,7 @@ export function BlankSheetTest({
         setResult(blankSheetResult);
         setShowResults(true);
         setIsSubmitting(false);
-    }, [response, keyPoints, isValid, metrics, startTime, selectedPersona]);
+    }, [response, keyPoints, isValid, getMetrics, selectedPersona]);
 
     // Handle continue after results
     const handleContinue = useCallback(() => {

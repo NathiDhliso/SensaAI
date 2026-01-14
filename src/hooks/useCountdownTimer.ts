@@ -27,7 +27,10 @@ export function useCountdownTimer({
   const [isRunning, setIsRunning] = useState(autoStart);
   const onExpireRef = useRef(onExpire);
 
-  onExpireRef.current = onExpire;
+  // Update the ref in an effect to avoid updating during render
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
 
   useEffect(() => {
     if (!isRunning) return;

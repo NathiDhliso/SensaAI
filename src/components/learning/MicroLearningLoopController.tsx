@@ -127,7 +127,7 @@ interface WorkedExamplePhaseProps {
 function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamplePhaseProps) {
     const [isSolutionRevealed, setIsSolutionRevealed] = useState(false);
     const [revealStep, setRevealStep] = useState(0);
-    const [startTime] = useState(Date.now());
+    const [startTime] = useState(() => Date.now());
 
     // Synthesize problem/solution - STRICT MODE: flag missing content
     const example = useMemo(() => {
@@ -501,10 +501,20 @@ interface VerifyPhaseProps {
 function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhaseProps) {
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
     const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
-    const [startTime] = useState(Date.now());
+    const [startTime] = useState(() => Date.now());
 
-    // Generate a smart verification question
-    const question = useMemo(() => {
+    // Helper to shuffle an array (Fisher-Yates)
+    const shuffleArray = <T,>(arr: T[]): T[] => {
+        const result = [...arr];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    };
+
+    // Generate question once on mount using lazy state initializer
+    const [question] = useState(() => {
         // 1. Precise Pattern Recognition (The "Golden Question")
         if (concept.shape?.patternRecognition?.question && concept.shape?.patternRecognition?.answer) {
             const correctAnswer = concept.shape.patternRecognition.answer;
@@ -514,7 +524,7 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
             const distractors: string[] = [];
 
             if (otherConcepts.length >= 3) {
-                const shuffled = [...otherConcepts].sort(() => Math.random() - 0.5);
+                const shuffled = shuffleArray(otherConcepts);
                 for (let i = 0; i < 3; i++) {
                     const c = shuffled[i];
                     // Try to get a hook sentence or a key point
@@ -528,12 +538,12 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
             return {
                 question: concept.shape.patternRecognition.question,
                 correct: correctAnswer,
-                options: [correctAnswer, ...distractors.slice(0, 3)].sort(() => Math.random() - 0.5),
+                options: shuffleArray([correctAnswer, ...distractors.slice(0, 3)]),
             };
         }
 
         // 2. Fallback: Generate from key points
-        const randomPoint = keyPoints[Math.floor(Math.random() * keyPoints.length)];
+        const randomPoint = keyPoints[Math.floor(Math.random() * keyPoints.length)] || keyPoints[0] || concept.name;
 
         // Smart Distractors: Pick key points from OTHER concepts to make real-looking options
         const otherConcepts = allConcepts?.filter(c => c.id !== concept.id) || [];
@@ -542,7 +552,7 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
         // Try to get 3 distractors from other concepts
         if (otherConcepts.length >= 3) {
             // Shuffle other concepts
-            const shuffled = [...otherConcepts].sort(() => Math.random() - 0.5);
+            const shuffled = shuffleArray(otherConcepts);
 
             for (let i = 0; i < 3; i++) {
                 const c = shuffled[i];
@@ -567,12 +577,12 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
         return {
             question: `Which of the following applies to "${concept.name}"?`,
             correct: randomPoint,
-            options: [
+            options: shuffleArray([
                 randomPoint,
                 ...distractors.slice(0, 3)
-            ].sort(() => Math.random() - 0.5),
+            ]),
         };
-    }, [concept, keyPoints, allConcepts]);
+    });
 
     const correctIndex = question.options.indexOf(question.correct);
 

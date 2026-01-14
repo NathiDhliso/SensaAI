@@ -141,6 +141,7 @@ export function SessionGoalManager({
     // Auto-select recommended on mount
     useEffect(() => {
         if (!selectedGoal && recommendedGoal) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid initialization on mount
             setSelectedGoal(recommendedGoal);
             setCountdown(autoStartCountdown);
         }

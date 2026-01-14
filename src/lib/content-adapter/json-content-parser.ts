@@ -169,7 +169,6 @@ function parseConcepts(content: string): ParsedConcept[] {
     // Find JSON blocks containing concepts array
     // Find JSON blocks containing concepts array
     // We strictly look for blocks that look like JSON arrays or objects
-    // eslint-disable-next-line no-control-regex
     const jsonBlockRegex = /```(?:json)?\s*(\{[\s\S]*?"concepts"[\s\S]*?\})\s*```/g;
     let match;
     let blockCount = 0;
@@ -234,6 +233,7 @@ function parseConcepts(content: string): ParsedConcept[] {
             jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
 
             // Sanitize control characters that aren't valid in JSON strings
+            // eslint-disable-next-line no-control-regex
             jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F-\u009F]/g, (char) => {
                 // Preserve actual newlines and tabs for re-escaping
                 if (char === '\n') return '\\n';
@@ -550,7 +550,7 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
 
         let m;
         while ((m = jsonBlockRegex.exec(content)) !== null) {
-            try { processMnemonicData(JSON.parse(m[1])); } catch (_e) { }
+            try { processMnemonicData(JSON.parse(m[1])); } catch (_e) { /* Parse failures expected for non-mnemonic blocks */ }
         }
 
         while ((m = jsonObjectRegex.exec(content)) !== null) {
@@ -558,7 +558,7 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
                 const obj = JSON.parse(m[1]);
                 if (obj.mnemonics) processMnemonicData(obj.mnemonics);
                 // Some prompts output { "mnemonic": ... } per concept, but usually it's a list
-            } catch (_e) { }
+            } catch (_e) { /* Parse failures expected for non-mnemonic blocks */ }
         }
 
     } catch (e) {

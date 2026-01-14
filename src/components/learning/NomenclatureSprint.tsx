@@ -69,17 +69,34 @@ export function NomenclatureSprint({
 
     // Current pair and shuffled options
     const currentPair = matchPairs[currentPairIndex];
-    const shuffledOptions = useMemo(() => {
-        if (!currentPair) return [];
 
+    // Helper to shuffle an array (using Fisher-Yates for consistency)
+    const shuffleArray = <T,>(arr: T[]): T[] => {
+        const result = [...arr];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    };
+
+    // Generate shuffled options - computed once per pair change via state
+    const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (!currentPair) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid initialization when currentPair changes
+            setShuffledOptions([]);
+            return;
+        }
         // Get 3 wrong options + 1 correct
-        const wrongOptions = matchPairs
-            .filter(p => p.id !== currentPair.id)
-            .sort(() => Math.random() - 0.5)
+        const wrongOptions = shuffleArray(
+            matchPairs.filter(p => p.id !== currentPair.id)
+        )
             .slice(0, 3)
             .map(p => p.metaphor);
 
-        return [...wrongOptions, currentPair.metaphor].sort(() => Math.random() - 0.5);
+        setShuffledOptions(shuffleArray([...wrongOptions, currentPair.metaphor]));
     }, [currentPair, matchPairs]);
 
     const handleTimeUp = useCallback(() => {
