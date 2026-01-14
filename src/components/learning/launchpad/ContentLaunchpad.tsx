@@ -16,6 +16,7 @@ import {
     Brain
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLearningStore } from '@/store/learning-store';
 
 import { storageManager } from '@/lib/storage';
 import { analyzeContentQuality, type ContentAnalytics } from '@/lib/ai/content-analytics';
@@ -58,6 +59,20 @@ export default function ContentLaunchpad() {
     const [repairPlan, setRepairPlan] = useState<RepairPlan | null>(null);
     const [concepts, setConcepts] = useState<ParsedConcept[]>([]);
     const [isRepairing, setIsRepairing] = useState(false);
+
+    // Get real progress from store
+    const { currentSession } = useLearningStore();
+
+    // Calculate mastery counts by tier
+    const getMasteredCount = (tier: string) => {
+        if (!currentSession || !currentSession.progress) return 0;
+        const completedIds = currentSession.progress.completedConcepts;
+        return currentSession.concepts.filter(c => c.tier === tier && completedIds.includes(c.id)).length;
+    };
+
+    const foundationMastered = getMasteredCount('foundation');
+    const keystoneMastered = getMasteredCount('keystone');
+    const utilityMastered = getMasteredCount('utility');
 
     // Tutorial & Credibility State
 
@@ -384,7 +399,7 @@ export default function ContentLaunchpad() {
                     title="Mastery Index"
                     value={`${systemPromptMetrics.equationMetadata?.I_baseline
                         ? Math.round(systemPromptMetrics.equationMetadata.I_baseline.value * 100)
-                        : metrics.qualityScore}%`}
+                        : (currentSession ? Math.round((currentSession.progress.completedConcepts.length / Math.max(1, currentSession.concepts.length)) * 100) : 0)}%`}
                     icon={Brain}
                     status={metrics.qualityScore > 80 ? 'good' : metrics.qualityScore > 60 ? 'neutral' : 'warning'}
                     delay={0.1}
@@ -443,15 +458,15 @@ export default function ContentLaunchpad() {
                         <BucketReadinessChecklist
                             foundation={{
                                 total: systemPromptMetrics.tierDistribution.foundation,
-                                mastered: 0 // TODO: Connect to actual mastery tracking
+                                mastered: foundationMastered
                             }}
                             keystone={{
                                 total: systemPromptMetrics.tierDistribution.keystone,
-                                mastered: 0
+                                mastered: keystoneMastered
                             }}
                             utility={{
                                 total: systemPromptMetrics.tierDistribution.utility,
-                                mastered: 0
+                                mastered: utilityMastered
                             }}
                             delay={0.4}
                         />

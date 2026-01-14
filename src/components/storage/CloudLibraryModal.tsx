@@ -578,6 +578,10 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
                                                 <Calendar size={12} />
                                                 {new Date(result.generatedAt).toLocaleDateString()}
                                             </span>
+                                            <span className={styles.metaDivider}>•</span>
+                                            <span className={styles.metaAuthor} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
+                                                ✨ Sensa AI
+                                            </span>
                                         </div>
 
                                         {/* Expanded details on hover */}

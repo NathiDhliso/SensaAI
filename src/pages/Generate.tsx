@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 
 import { AgentCore } from '@/components/generation/AgentCore';
 import { CognitiveStream } from '@/components/generation/CognitiveStream';
 
+import { generateAlias } from '@/lib/utils/alias-generator';
+import { conceptsApi } from '@/lib/api/concepts';
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
 import { generateWithBackend, uploadExamBlueprint } from '@/lib/generation/backend-generator';
@@ -53,6 +56,14 @@ export default function Generate() {
     setConstructionPhase,
     setExpectedConceptCount,
   } = useGenerationStore();
+
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  // Collision / Alias State
+  const [isCheckingCollision, setIsCheckingCollision] = useState(true);
+  const [collisionJobId, setCollisionJobId] = useState<string | null>(null);
+  const [showOverwriteModal, setShowOverwriteModal] = useState(false);
+  const [generatedAlias, setGeneratedAlias] = useState<string>('');
 
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -151,8 +162,33 @@ export default function Generate() {
     };
   }, [updateGenerationProgress, saveCheckpoint, addStreamedConcept, setConstructionPhase, setExpectedConceptCount]);
 
-  // Start generation
+  // Proceed with overwrite
+  const handleOverwrite = async () => {
+    if (collisionJobId) {
+      // Optimistic delete - don't block UI too long, but ideally wait for success
+      try {
+        await conceptsApi.deleteJob(collisionJobId);
+      } catch (e) {
+        console.warn("Failed to delete old job, continuing anyway");
+      }
+    }
+    setShowOverwriteModal(false);
+    if (subject) {
+      startGenerationProcess(decodeURIComponent(subject));
+    }
+  };
+
+  // Cancel overwrite -> go back
+  const handleCancelOverwrite = () => {
+    navigate('/');
+  };
+
+  // Start generation logic
   const startGenerationProcess = useCallback((decodedSubject: string, resumeData?: ReturnType<typeof getCheckpointResumeData>) => {
+    // Generate new alias for this session
+    const alias = generateAlias();
+    setGeneratedAlias(alias);
+
     const controller = new AbortController();
     setAbortController(controller);
     abortControllerRef.current = controller;
@@ -176,6 +212,7 @@ export default function Generate() {
         const savedResult = {
           id: resultId,
           subject: decodedSubject,
+          alias: alias, // Save key alias
           generatedAt: new Date().toISOString(),
           fullDocument: result.fullDocument,
           pass1Data: {
@@ -193,7 +230,8 @@ export default function Generate() {
           await storageManager.saveResult(savedResult);
           const loadResult = parseAndLoadContent(result.fullDocument, resultId);
           if (loadResult.success) {
-            setTimeout(() => navigate(`/study/${resultId}?tab=learn`), UI_TIMINGS.DELAY_SHORT);
+            // Navigate to Dashboard instead of straight to Velocity Learning
+            setTimeout(() => navigate(`/study/${resultId}`), UI_TIMINGS.DELAY_SHORT);
           } else {
             navigate(`/study/${resultId}`);
           }
@@ -272,47 +310,85 @@ export default function Generate() {
 
     const decodedSubject = decodeURIComponent(subject);
 
-    if (!hasStartedRef.current && !canResumeFromCheckpoint(decodedSubject)) {
-      hasStartedRef.current = true;
-      const checkForExisting = async () => {
-        try {
-          const { storageManager } = await import('@/lib/storage');
-          const existing = await storageManager.findLatestBySubject(decodedSubject);
-          if (existing) {
-            const shouldLoad = window.confirm(
-              `Shared Intelligence Found! 🧠\n\n` +
-              `We found an existing version of "${decodedSubject}" generated on ${new Date(existing.generatedAt).toLocaleDateString()}.\n\n` +
-              `Would you like to load this shared knowledge instead of generating from scratch?`
-            );
-            if (shouldLoad) {
-              navigate(`/study/${existing.id}`);
-              return;
-            }
-          }
-        } catch (e) {
-          console.warn('Failed to check shared intelligence:', e);
-        }
+    // Initial Check for Duplicates
+    const checkDuplicates = async () => {
+      if (!subject) return;
 
-        if (canResumeFromCheckpoint(decodedSubject)) {
-          hasStartedRef.current = false;
-          setShowResumeDialog(true);
+      const user = useAuthStore.getState().user;
+
+      if (!user) {
+        setIsCheckingCollision(false);
+        // If no user, can't check for duplicates, proceed with generation
+        startGenerationProcess(decodedSubject);
+        return;
+      }
+
+      try {
+        const result = await conceptsApi.listJobs(user.id);
+
+        // Smart collision detection using normalized subjects + fuzzy matching
+        const { normalizeSubject, levenshtein } = await import('@/lib/utils/alias-generator');
+        const normalizedInput = normalizeSubject(decodedSubject);
+
+        const duplicate = result.jobs.find(j => {
+          if (j.status !== 'completed') return false;
+          const normalizedJob = normalizeSubject(j.subject);
+          // Exact match after normalization?
+          if (normalizedJob === normalizedInput) return true;
+          // Fuzzy match (distance <= 2)?
+          const dist = levenshtein(normalizedJob, normalizedInput);
+          return dist <= 2;
+        });
+
+        if (duplicate) {
+          setCollisionJobId(duplicate.jobId);
+          setShowOverwriteModal(true);
         } else {
-          startGenerationProcess(decodedSubject);
+          // No duplicate, check for local existing or checkpoint
+          checkForExistingAndCheckpoint();
         }
-      };
-      checkForExisting();
-      return;
-    }
+      } catch (err) {
+        console.error("Failed to check duplicates:", err);
+        // Fail open - just start
+        checkForExistingAndCheckpoint();
+      } finally {
+        setIsCheckingCollision(false);
+      }
+    };
 
-    if (canResumeFromCheckpoint(decodedSubject)) {
-      setShowResumeDialog(true);
-      return;
-    }
+    const checkForExistingAndCheckpoint = async () => {
+      try {
+        const { storageManager } = await import('@/lib/storage');
+        const existing = await storageManager.findLatestBySubject(decodedSubject);
+        if (existing) {
+          const shouldLoad = window.confirm(
+            `Shared Intelligence Found! 🧠\n\n` +
+            `We found an existing version of "${decodedSubject}" generated on ${new Date(existing.generatedAt).toLocaleDateString()}.\n\n` +
+            `Would you like to load this shared knowledge instead of generating from scratch?`
+          );
+          if (shouldLoad) {
+            navigate(`/study/${existing.id}`);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to check shared intelligence:', e);
+      }
 
-    hasStartedRef.current = true;
-    startGenerationProcess(decodedSubject);
+      if (canResumeFromCheckpoint(decodedSubject)) {
+        hasStartedRef.current = false; // Reset to allow resume dialog to show
+        setShowResumeDialog(true);
+      } else {
+        startGenerationProcess(decodedSubject);
+      }
+    };
+
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      checkDuplicates();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subject, bedrockConfig, context]);
+  }, [subject, bedrockConfig, context, navigate, canResumeFromCheckpoint, startGenerationProcess]);
 
 
   useEffect(() => {
@@ -450,7 +526,14 @@ export default function Generate() {
           <div className={styles.outputPanel}>
             <span className={styles.hudLabel}>Nodes Synthesized</span>
             <div className={styles.nodeCounter}>
-              {streamedConcepts.length} <span style={{ fontSize: '0.9rem', opacity: 0.5 }}>/ {expectedConceptCount || 'ESTIMATING...'}</span>
+              {streamedConcepts.length} <span style={{ fontSize: '0.9rem', opacity: 0.5 }}>/ {expectedConceptCount || (
+                <motion.span
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  CALCULATING...
+                </motion.span>
+              )}</span>
             </div>
             <span className={styles.nodeLabel}>Knowledge Graph Density</span>
           </div>
@@ -539,6 +622,46 @@ export default function Generate() {
         </div>
       )}
 
+      {/* Overwrite Confirmation Modal */}
+      {showOverwriteModal && createPortal(
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className={styles.modalOverlay}
+        >
+          <div className={styles.modalContent} style={{ borderColor: 'var(--color-warning)' }}>
+            <div className={styles.modalHeader}>
+              <AlertCircle size={24} color="var(--color-warning)" />
+              <h3>Duplicate Subject Detected</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <p>
+                You already have a generated results for <strong>{decodeURIComponent(subject || '')}</strong>.
+              </p>
+              <p>
+                Generating again will <strong>permanently delete</strong> the previous version to keep your library clean.
+              </p>
+            </div>
+            <div className={styles.modalActions}>
+              <button
+                onClick={handleCancelOverwrite}
+                className={styles.cancelButton}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleOverwrite}
+                className={styles.dangerButton}
+                style={{ backgroundColor: 'var(--color-warning)', color: 'black' }}
+              >
+                <Trash2 size={16} />
+                Overwrite & Start
+              </button>
+            </div>
+          </div>
+        </motion.div>,
+        document.body
+      )}
     </div>
   );
 }

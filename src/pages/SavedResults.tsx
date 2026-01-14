@@ -7,7 +7,8 @@ import {
   Upload,
   ArrowLeft,
   Eye,
-  Cloud
+  Cloud,
+  Sparkles
 } from 'lucide-react';
 import { storageManager, importFromFile } from '@/lib/storage';
 import type { SavedResult } from '@/lib/storage/types';
@@ -60,6 +61,56 @@ export default function SavedResults() {
 
 
 
+
+  const handleCleanupDuplicates = async () => {
+    if (!confirm('This will keep only the latest version of each subject and DELETE all older duplicates. Continue?')) return;
+
+    setLoading(true);
+    let deletedCount = 0;
+
+    try {
+      // Group by normalized subject
+      const groups = new Map<string, SavedResult[]>();
+
+      results.forEach(r => {
+        const key = r.subject.trim().toLowerCase();
+        const group = groups.get(key) || [];
+        group.push(r);
+        groups.set(key, group);
+      });
+
+      // Find duplicates
+      const removalPromises: Promise<boolean>[] = [];
+
+      for (const [_, group] of groups.entries()) {
+        if (group.length > 1) {
+          // Sort by date descending (newest first)
+          group.sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
+
+          // Keep the first (newest), delete the rest
+          const toDelete = group.slice(1);
+          toDelete.forEach(item => {
+            removalPromises.push(storageManager.deleteResult(item.id));
+          });
+          deletedCount += toDelete.length;
+        }
+      }
+
+      if (deletedCount > 0) {
+        await Promise.all(removalPromises);
+        await loadResults(); // Reload fresh list
+        alert(`Cleanup complete! Removed ${deletedCount} duplicate(s).`);
+      } else {
+        alert('Your library is already clean! No duplicates found.');
+      }
+
+    } catch (err) {
+      console.error('Cleanup failed:', err);
+      alert('Failed to clean up duplicates.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -157,6 +208,15 @@ export default function SavedResults() {
           </div>
           <div className={styles.headerActions}>
             <button
+              onClick={handleCleanupDuplicates}
+              className={styles.importButton} // reusing style for now, or create new one
+              style={{ backgroundColor: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', marginRight: '0.5rem' }}
+              title="Remove duplicate subjects"
+            >
+              <Sparkles size={16} />
+              Cleanup
+            </button>
+            <button
               onClick={handleImportClick}
               className={styles.importButton}
               disabled={importing}
@@ -241,7 +301,22 @@ export default function SavedResults() {
               <div key={result.id} className={styles.resultCard}>
                 <div className={styles.cardHeader}>
                   <div>
-                    <h3 className={styles.cardTitle}>{result.subject}</h3>
+                    <h3 className={styles.cardTitle}>
+                      {result.subject}
+                      {result.alias && (
+                        <span style={{
+                          marginLeft: '0.5rem',
+                          fontSize: '0.7rem',
+                          padding: '2px 6px',
+                          background: 'var(--color-accent-muted)',
+                          borderRadius: '4px',
+                          fontFamily: 'monospace',
+                          color: 'var(--color-accent)'
+                        }}>
+                          {result.alias}
+                        </span>
+                      )}
+                    </h3>
                     <p className={styles.cardDate}>{formatDate(result.generatedAt)}</p>
                   </div>
                 </div>

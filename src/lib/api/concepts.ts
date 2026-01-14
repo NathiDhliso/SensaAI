@@ -95,6 +95,20 @@ export const conceptsApi = {
     },
 
     /**
+     * Delete a generation job and its concepts
+     */
+    async deleteJob(jobId: string): Promise<boolean> {
+        console.log('[ConceptsAPI] deleteJob() called:', jobId);
+        try {
+            await apiClient.delete(`/concepts/${jobId}`);
+            return true;
+        } catch (error) {
+            console.error('[ConceptsAPI] Failed to delete job:', error);
+            return false;
+        }
+    },
+
+    /**
      * List all generation jobs for a user
      */
     async listJobs(userId: string): Promise<{ jobs: JobSummary[] }> {

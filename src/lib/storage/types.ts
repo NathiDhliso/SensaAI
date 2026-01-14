@@ -1,6 +1,7 @@
 export interface SavedResult {
   id: string;
   subject: string;
+  alias?: string; // 3 letters + 2 digits version identifier
   generatedAt: string;
   fullDocument: string;
   pass1Data: {

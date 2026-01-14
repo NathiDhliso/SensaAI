@@ -254,3 +254,31 @@ conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Respon
     }
 });
 
+// Delete a job and its concepts
+conceptsRouter.delete('/:jobId', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { jobId } = req.params;
+        const userId = req.user?.sub || req.query.userId as string;
+
+        if (!userId) {
+            res.status(400).json({ error: 'userId is required' });
+            return;
+        }
+
+        console.log('[Backend DELETE /concepts/:jobId] Deleting:', { jobId, userId });
+
+        // Delete from jobs table
+        const { DeleteCommand } = await import('@aws-sdk/lib-dynamodb');
+        await docClient.send(new DeleteCommand({
+            TableName: JOBS_TABLE,
+            Key: { jobId, userId },
+        }));
+
+        console.log('[Backend DELETE /concepts/:jobId] ✅ Job deleted:', jobId);
+        res.json({ success: true, deletedJobId: jobId });
+    } catch (error) {
+        console.error('[Backend DELETE /concepts/:jobId] ERROR:', error);
+        res.status(500).json({ error: 'Failed to delete job' });
+    }
+});
+

@@ -66,14 +66,28 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
                 </motion.div>
             </AnimatePresence>
 
-            {/* Decorative Scramble Line */}
+            {/* Dynamic Wave Animation */}
             <div className={styles.streamDecoration}>
-                {Array.from({ length: 20 }).map((_, i) => (
+                {Array.from({ length: 48 }).map((_, i) => (
                     <motion.div
                         key={i}
                         className={styles.streamBit}
-                        animate={{ opacity: [0.1, 0.5, 0.1] }}
-                        transition={{ duration: Math.random() * 2, repeat: Infinity }}
+                        animate={{
+                            height: [2, 12, 2],
+                            opacity: [0.3, 1, 0.3],
+                            backgroundColor: intensity > 80 ? '#ef4444' : '#8b5cf6'
+                        }}
+                        transition={{
+                            duration: 0.8,
+                            repeat: Infinity,
+                            delay: i * 0.05,
+                            ease: "easeInOut"
+                        }}
+                        style={{
+                            height: '2px',
+                            width: '4px',
+                            borderRadius: '2px'
+                        }}
                     />
                 ))}
             </div>
