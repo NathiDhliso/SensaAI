@@ -10,5 +10,6 @@ export type { SensaIconProps, SensaIconSize, SensaIconVariant, SensaIconAnimatio
 // Other UI components
 export { default as HelpModal } from './HelpModal';
 export { default as SpeedReaderBar } from './SpeedReaderBar';
-export { SensaShape, renderShapeOrIcon } from './SensaShape';
+export { SensaShape } from './SensaShape';
+export { renderShapeOrIcon } from './SensaShape.utils';
 export type { SensaShapeType, SensaShapeSize, SensaShapeProps } from './SensaShape';
