@@ -1,8 +1,8 @@
 {
     "UserPoolClients": [
         {
-            "ClientId": "5krssa43aq6gjaev84al0qp2te",
-            "UserPoolId": "us-east-1_ldLKZ5Tp0",
+            "ClientId": "1f2i3813o3f1jdet7j6ifo1eea",
+            "UserPoolId": "us-east-1_nNdVox578",
             "ClientName": "sensapbl-pilot-client"
         }
     ]

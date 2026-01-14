@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, GetCommand, QueryCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, QueryCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -115,6 +115,23 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
         }
 
         const jobId = uuidv4();
+
+        // Fix race condition: Write initial job status BEFORE invoking Lambda
+        // This ensures the client doesn't get a 404 when polling immediately
+        await docClient.send(new PutCommand({
+            TableName: JOBS_TABLE,
+            Item: {
+                jobId,
+                userId,
+                sessionId,
+                subject,
+                status: 'in_progress',
+                message: 'Generation queued',
+                createdAt: Math.floor(Date.now() / 1000),
+                expiresAt: Math.floor(Date.now() / 1000) + 86400, // 24h TTL
+            }
+        }));
+
         const payload = JSON.stringify({
             body: JSON.stringify({
                 subject,

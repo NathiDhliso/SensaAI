@@ -75,3 +75,134 @@ resource "aws_cognito_user_pool_domain" "main" {
   domain       = var.domain_prefix
   user_pool_id = aws_cognito_user_pool.main.id
 }
+
+# =============================================================================
+# Cognito Identity Pool - For AWS SDK Authentication (S3, DynamoDB access)
+# =============================================================================
+
+resource "aws_cognito_identity_pool" "main" {
+  identity_pool_name               = "sensapbl-${var.environment}-identity-pool"
+  allow_unauthenticated_identities = true # Allow guest access for basic operations
+
+  cognito_identity_providers {
+    client_id               = aws_cognito_user_pool_client.main.id
+    provider_name           = aws_cognito_user_pool.main.endpoint
+    server_side_token_check = false
+  }
+
+  tags = {
+    Name = "sensapbl-${var.environment}-identity-pool"
+  }
+}
+
+# IAM Role for Authenticated Users
+resource "aws_iam_role" "authenticated" {
+  name = "sensapbl-${var.environment}-cognito-authenticated"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = "cognito-identity.amazonaws.com"
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "cognito-identity.amazonaws.com:aud" = aws_cognito_identity_pool.main.id
+        }
+        "ForAnyValue:StringLike" = {
+          "cognito-identity.amazonaws.com:amr" = "authenticated"
+        }
+      }
+    }]
+  })
+}
+
+# IAM Role for Unauthenticated (Guest) Users
+resource "aws_iam_role" "unauthenticated" {
+  name = "sensapbl-${var.environment}-cognito-unauthenticated"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = "cognito-identity.amazonaws.com"
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "cognito-identity.amazonaws.com:aud" = aws_cognito_identity_pool.main.id
+        }
+        "ForAnyValue:StringLike" = {
+          "cognito-identity.amazonaws.com:amr" = "unauthenticated"
+        }
+      }
+    }]
+  })
+}
+
+# IAM Policy for Authenticated Users - S3 and DynamoDB access
+resource "aws_iam_role_policy" "authenticated_policy" {
+  name = "sensapbl-${var.environment}-authenticated-policy"
+  role = aws_iam_role.authenticated.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "arn:aws:s3:::sensapbl-${var.environment}-content-*/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Scan",
+          "dynamodb:Query"
+        ]
+        Resource = [
+          "arn:aws:dynamodb:*:*:table/sensapbl-concepts-${var.environment}",
+          "arn:aws:dynamodb:*:*:table/sensapbl-jobs-${var.environment}"
+        ]
+      }
+    ]
+  })
+}
+
+# IAM Policy for Unauthenticated Users - Read only
+resource "aws_iam_role_policy" "unauthenticated_policy" {
+  name = "sensapbl-${var.environment}-unauthenticated-policy"
+  role = aws_iam_role.unauthenticated.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Resource = "arn:aws:s3:::sensapbl-${var.environment}-content/public/*"
+      }
+    ]
+  })
+}
+
+# Attach roles to Identity Pool
+resource "aws_cognito_identity_pool_roles_attachment" "main" {
+  identity_pool_id = aws_cognito_identity_pool.main.id
+
+  roles = {
+    "authenticated"   = aws_iam_role.authenticated.arn
+    "unauthenticated" = aws_iam_role.unauthenticated.arn
+  }
+}

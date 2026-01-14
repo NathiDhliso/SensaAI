@@ -15,6 +15,11 @@ output "cognito_domain" {
   value       = module.cognito.domain
 }
 
+output "cognito_identity_pool_id" {
+  description = "Cognito Identity Pool ID"
+  value       = module.cognito.identity_pool_id
+}
+
 output "s3_content_bucket" {
   description = "S3 bucket for content storage"
   value       = module.s3.content_bucket_name

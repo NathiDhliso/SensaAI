@@ -75,7 +75,8 @@ export async function generateWithBackend(
         // Skip polling if already completed (which it should be for sync lambda)
         if (generateResponse.status !== 'completed') {
             let progressValue = 55;
-            const pollInterval = 2000;
+            let pollInterval = 2000; // Start at 2s
+            const maxPollInterval = 10000; // Max 10s
             const maxPollTime = 15 * 60 * 1000;
             const startTime = Date.now();
 
@@ -83,15 +84,25 @@ export async function generateWithBackend(
                 if (abortSignal?.aborted) throw new Error('Generation cancelled by user');
                 if (Date.now() - startTime > maxPollTime) throw new Error('Generation timed out');
 
-                const status = await conceptsApi.getJobStatus(jobId);
-                if (status.status === 'completed') {
-                    onProgress(2, 'complete', { message: 'AI generation complete!', progress: 60 });
-                    break;
-                }
-                if (status.status === 'failed') throw new Error(status.error || 'Generation failed on server');
+                try {
+                    const status = await conceptsApi.getJobStatus(jobId);
+                    if (status.status === 'completed') {
+                        onProgress(2, 'complete', { message: 'AI generation complete!', progress: 60 });
+                        break;
+                    }
+                    if (status.status === 'failed') throw new Error(status.error || 'Generation failed on server');
 
-                progressValue = Math.min(59, progressValue + 1);
-                onProgress(2, 'in-progress', { message: 'AI is finalizing...', progress: progressValue });
+                    // Reset interval on successful status check
+                    pollInterval = 2000;
+                } catch (err) {
+                    // Exponential backoff on error (including 429)
+                    console.warn(`Polling error, backing off for ${pollInterval}ms`, err);
+                    pollInterval = Math.min(maxPollInterval, pollInterval * 1.5);
+                }
+
+                progressValue = Math.min(59, progressValue + (Math.random() > 0.7 ? 1 : 0)); // Slower, jittery increment
+                onProgress(2, 'in-progress', { message: 'AI is finalizing content...', progress: progressValue });
+
                 await new Promise(resolve => setTimeout(resolve, pollInterval));
             }
         }

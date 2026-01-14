@@ -42,7 +42,52 @@ interface AuthActions {
     getAccessToken: () => Promise<string | null>;
     isSessionValid: () => boolean;
     clearError: () => void;
+    /** Clears all auth state and local storage - use when switching infrastructure */
+    clearAllAuthData: () => void;
 }
+
+/**
+ * Maps AWS Cognito error messages and exception types to friendly user messages.
+ */
+const formatAuthError = (error: unknown): string => {
+    if (!(error instanceof Error)) return 'An unexpected error occurred';
+
+    const message = error.message;
+    const name = (error as any).name || '';
+
+    // Already confirmed case
+    if (message.includes('Current status is CONFIRMED')) {
+        return 'This account is already verified. You can sign in now.';
+    }
+
+    // Map by exception name or message content
+    switch (name) {
+        case 'NotAuthorizedException':
+            return 'Incorrect email or password.';
+        case 'UserNotFoundException':
+            return 'No account found with this email.';
+        case 'UsernameExistsException':
+            return 'An account with this email already exists.';
+        case 'CodeMismatchException':
+            return 'The verification code is incorrect. Please check and try again.';
+        case 'ExpiredCodeException':
+            return 'This code has expired. Please request a new one.';
+        case 'LimitExceededException':
+            return 'Too many attempts. Please try again later.';
+        case 'UserNotConfirmedException':
+            return 'Your account is not verified. Please check your email for a code.';
+        case 'InvalidPasswordException':
+            return 'Password does not meet requirements (minimum length/complexity).';
+        case 'InvalidParameterException':
+            if (message.includes('password')) return 'Password does not meet requirements.';
+            return 'Please check your input and try again.';
+        case 'TooManyRequestsException':
+            return 'Too many requests. Please wait a moment.';
+        default:
+            // Strip the exception name if present (e.g. "Exception: Message" -> "Message")
+            return message.replace(/^[a-zA-Z]+: /, '');
+    }
+};
 
 const initialState: AuthState = {
     user: null,
@@ -171,11 +216,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                     return Promise.resolve();
                 } catch (error) {
                     console.error('Login error:', error);
-                    let errorMessage = 'Authentication failed';
-                    if (error instanceof Error) {
-                        // Clean up AWS error messages typically like "NotAuthorizedException: Incorrect username or password."
-                        errorMessage = error.message.replace(/^[a-zA-Z]+: /, '');
-                    }
+                    const errorMessage = formatAuthError(error);
                     set({
                         error: errorMessage,
                         isLoading: false,
@@ -204,10 +245,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                     set({ isLoading: false, error: null });
                 } catch (error) {
                     console.error('Sign up error:', error);
-                    let errorMessage = 'Sign up failed';
-                    if (error instanceof Error) {
-                        errorMessage = error.message.replace(/^[a-zA-Z]+: /, '');
-                    }
+                    const errorMessage = formatAuthError(error);
                     set({ error: errorMessage, isLoading: false });
                     throw error;
                 }
@@ -229,10 +267,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                     set({ isLoading: false, error: null });
                 } catch (error) {
                     console.error('Confirm sign up error:', error);
-                    let errorMessage = 'Verification failed';
-                    if (error instanceof Error) {
-                        errorMessage = error.message.replace(/^[a-zA-Z]+: /, '');
-                    }
+                    const errorMessage = formatAuthError(error);
                     set({ error: errorMessage, isLoading: false });
                     throw error;
                 }
@@ -251,10 +286,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                     await client.send(command);
                 } catch (error) {
                     console.error('Resend code error:', error);
-                    let errorMessage = 'Failed to resend code';
-                    if (error instanceof Error) {
-                        errorMessage = error.message.replace(/^[a-zA-Z]+: /, '');
-                    }
+                    const errorMessage = formatAuthError(error);
                     set({ error: errorMessage });
                     throw error;
                 }
@@ -422,6 +454,17 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             },
 
             clearError: () => set({ error: null }),
+
+            clearAllAuthData: () => {
+                // Clear zustand persisted state
+                set({ user: null, tokens: null, isAuthenticated: false, error: null });
+                // Clear localStorage items
+                localStorage.removeItem(CODE_VERIFIER_KEY);
+                localStorage.removeItem('sensapbl-auth');
+                // Clear any session storage
+                sessionStorage.clear();
+                console.log('[Auth] All auth data cleared. Please re-login.');
+            },
         }),
         {
             name: 'sensapbl-auth',

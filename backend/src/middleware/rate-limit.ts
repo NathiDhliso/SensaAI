@@ -8,7 +8,7 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 100; // 100 requests per minute
+const RATE_LIMIT_MAX_REQUESTS = 300; // 300 requests per minute (5 req/sec avg)
 
 export function rateLimiter(
     req: Request,
