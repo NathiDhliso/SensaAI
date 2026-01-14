@@ -68,7 +68,7 @@ export async function loadSensaAIContent(
         // Create diagnostic assessment
         diagnosticAssessment = createDiagnosticAssessment(transformed.concepts, enhancedDiagnostics);
 
-      } catch (error) {
+      } catch (_error) {
         // Continue with built-in assessments
       }
     }
@@ -159,13 +159,13 @@ export function getTierDistribution(concepts: SensaAILearningConcept[]): {
  */
 export function createReadyDiagnosticAssessment(
   concepts: SensaAILearningConcept[],
-  enhancedQuestions?: Map<string, any>
+  enhancedQuestions?: Map<string, unknown>
 ): {
   assessment: ReturnType<typeof createDiagnosticAssessment>;
   validation: ReturnType<typeof validateDiagnosticAssessment>;
   isReady: boolean;
 } {
-  const assessment = createDiagnosticAssessment(concepts, enhancedQuestions);
+  const assessment = createDiagnosticAssessment(concepts, enhancedQuestions as unknown as Map<string, any>);
   const validation = validateDiagnosticAssessment(assessment);
 
   return {

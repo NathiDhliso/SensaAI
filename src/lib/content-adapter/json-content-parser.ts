@@ -169,6 +169,7 @@ function parseConcepts(content: string): ParsedConcept[] {
     // Find JSON blocks containing concepts array
     // Find JSON blocks containing concepts array
     // We strictly look for blocks that look like JSON arrays or objects
+    // eslint-disable-next-line no-control-regex
     const jsonBlockRegex = /```(?:json)?\s*(\{[\s\S]*?"concepts"[\s\S]*?\})\s*```/g;
     let match;
     let blockCount = 0;
@@ -232,6 +233,7 @@ function parseConcepts(content: string): ParsedConcept[] {
             jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
 
             // Sanitize control characters that aren't valid in JSON strings
+            // eslint-disable-next-line no-control-regex
             jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F-\u009F]/g, (char) => {
                 // Preserve actual newlines and tabs for re-escaping
                 if (char === '\n') return '\\n';

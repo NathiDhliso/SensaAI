@@ -28,6 +28,7 @@ function sanitizeJsonString(jsonStr: string): string {
     let sanitized = jsonStr.replace(/,(\s*[}\]])/g, '$1');
 
     // Sanitize control characters that aren't valid in JSON strings
+    // eslint-disable-next-line no-control-regex
     sanitized = sanitized.replace(/[\u0000-\u001F\u007F-\u009F]/g, (char) => {
         if (char === '\n') return '\\n';
         if (char === '\r') return '\\r';

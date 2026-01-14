@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { COLORS } from '@/constants/theme-colors';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, AlertCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -506,7 +507,7 @@ export default function Generate() {
             <span className={styles.hudLabel}>Input Vector</span>
             <span className={styles.sourceTitle}>{decodeURIComponent(subject || 'Unknown Source')}</span>
             <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', opacity: 0.6 }}>
-              <div style={{ width: '8px', height: '8px', background: '#34d399', borderRadius: '50%' }}></div>
+              <div style={{ width: '8px', height: '8px', background: COLORS.success, borderRadius: '50%' }}></div>
               <span style={{ fontSize: '0.7rem' }}>SIGNAL_LOCKED</span>
             </div>
           </div>
@@ -607,14 +608,14 @@ export default function Generate() {
       {/* Error Overlay */}
       {error && (
         <div className={styles.confirmOverlay}>
-          <div className={styles.confirmDialog} style={{ border: '1px solid #ef4444' }}>
-            <h3 style={{ color: '#ef4444' }}>Critical Logic Failure</h3>
+          <div className={styles.confirmDialog} style={{ border: `1px solid ${COLORS.error}` }}>
+            <h3 style={{ color: COLORS.error }}>Critical Logic Failure</h3>
             <p>{error}</p>
             <div className={styles.confirmActions}>
               <button onClick={() => navigate('/')} className={styles.secondaryButton}>
                 Abort
               </button>
-              <button onClick={handleRetry} className={styles.primaryButton} style={{ background: '#ef4444', borderColor: '#ef4444' }}>
+              <button onClick={handleRetry} className={styles.primaryButton} style={{ background: COLORS.error, borderColor: COLORS.error }}>
                 Re-Initialize
               </button>
             </div>

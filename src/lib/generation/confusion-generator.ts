@@ -42,21 +42,18 @@ export function calculateConceptSimilarity(
   concept2: LearningConcept
 ): number {
   let score = 0;
-   
-  let factors = 0;
+
 
   // Name similarity
   const name1Words = concept1.name.toLowerCase().split(/\s+/);
   const name2Words = concept2.name.toLowerCase().split(/\s+/);
   const nameOverlap = name1Words.filter(w => name2Words.includes(w)).length;
   score += (nameOverlap / Math.max(name1Words.length, name2Words.length)) * VELOCITY_CONFIG.CONFUSION.NAME_WEIGHT;
-  factors++;
 
   // Category/stage similarity
   if (concept1.stageId === concept2.stageId) {
     score += VELOCITY_CONFIG.CONFUSION.CATEGORY_WEIGHT;
   }
-  factors++;
 
   // Hook sentence word overlap
   if (concept1.hookSentence && concept2.hookSentence) {
@@ -65,7 +62,6 @@ export function calculateConceptSimilarity(
     const hookOverlap = hook1Words.filter(w => hook2Words.some(hw => hw.includes(w))).length;
     score += (hookOverlap / Math.max(hook1Words.length, hook2Words.length, 1)) * VELOCITY_CONFIG.CONFUSION.HOOK_WEIGHT;
   }
-  factors++;
 
   // How-to-use overlap
   if (concept1.howToUse?.length && concept2.howToUse?.length) {
@@ -76,7 +72,6 @@ export function calculateConceptSimilarity(
     const useOverlap = use1Words.filter(w => use2Words.some(uw => uw.includes(w))).length;
     score += (useOverlap / Math.max(use1Words.length, use2Words.length, 1)) * VELOCITY_CONFIG.CONFUSION.USAGE_WEIGHT;
   }
-  factors++;
 
   return Math.min(1, score);
 }

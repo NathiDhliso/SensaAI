@@ -147,7 +147,7 @@ function splitIntoSemanticChunks(text: string): SemanticChunk[] {
         let type: SemanticChunk['type'] = 'TEXT';
 
         // Header detection (Caps or numbering)
-        if (/^[A-Z0-9\s\.\:\-]{5,100}$/.test(content) || /^(Chapter|Module|Section|Domain) \d+/.test(content)) {
+        if (/^[A-Z0-9\s.:-]{5,100}$/.test(content) || /^(Chapter|Module|Section|Domain) \d+/.test(content)) {
             type = 'HEADER';
         }
         // Question detection
