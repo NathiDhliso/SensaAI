@@ -180,6 +180,7 @@ function parseConcepts(content: string): ParsedConcept[] {
         let cleanContent = content.replace(/^\uFEFF/, '');
 
         // Remove control characters EXCEPT valid whitespace (newline, carriage return, tab)
+        // eslint-disable-next-line no-control-regex
         cleanContent = cleanContent.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
 
         // AGGRESSIVE CLEANUP: Remove common non-JSON headers that LLMs leak

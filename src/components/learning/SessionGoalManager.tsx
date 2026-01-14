@@ -146,22 +146,6 @@ export function SessionGoalManager({
         }
     }, [recommendedGoal, selectedGoal, autoStartCountdown]);
 
-    // Countdown timer
-    useEffect(() => {
-        if (countdown === null || isPaused) return;
-
-        if (countdown <= 0) {
-            handleStartSession();
-            return;
-        }
-
-        const timer = setTimeout(() => {
-            setCountdown(countdown - 1);
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, [countdown, isPaused]);
-
     // Start session with selected goal
     const handleStartSession = useCallback(() => {
         if (!selectedGoal) return;
@@ -187,6 +171,23 @@ export function SessionGoalManager({
 
         onSessionStart(selectedGoal, sessionConcepts);
     }, [selectedGoal, availableConcepts, onSessionStart]);
+
+    // Countdown timer
+    useEffect(() => {
+        if (countdown === null || isPaused) return;
+
+        if (countdown <= 0) {
+            handleStartSession();
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setCountdown(countdown - 1);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [countdown, isPaused, handleStartSession]);
+
 
     // Handle goal selection (user override)
     const handleGoalSelect = useCallback((goal: SessionGoal) => {

@@ -93,7 +93,7 @@ export default function MasteryChallenge({
     const [flowDrills, setFlowDrills] = useState<FlowDrill[]>([]);
     const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
     const [drillTimeRemaining, setDrillTimeRemaining] = useState(FLOW_DRILL_TIME);
-    const [drillAnswers, setDrillAnswers] = useState<string[]>([]);
+    const [_drillAnswers, setDrillAnswers] = useState<string[]>([]);
     const [flowScore, setFlowScore] = useState(0);
 
     // Pause global focus session timer during challenge

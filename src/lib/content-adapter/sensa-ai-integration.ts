@@ -165,7 +165,8 @@ export function createReadyDiagnosticAssessment(
   validation: ReturnType<typeof validateDiagnosticAssessment>;
   isReady: boolean;
 } {
-  const assessment = createDiagnosticAssessment(concepts, enhancedQuestions as unknown as Map<string, any>);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const assessment = createDiagnosticAssessment(concepts, enhancedQuestions as Map<string, any>);
   const validation = validateDiagnosticAssessment(assessment);
 
   return {

@@ -777,7 +777,7 @@ export function MicroLearningLoopController({
         }
 
         onLoopComplete(outcome, finalTimeSpent);
-    }, [testResult, totalTimeSpent, onLoopComplete, recordInteraction, hasConfusionPairs, phase]);
+    }, [testResult, totalTimeSpent, onLoopComplete, recordInteraction, hasConfusionPairs, phase, concept, allConcepts]);
 
     return (
         <div className={styles.container}>
