@@ -113,7 +113,7 @@ export default function ContentLaunchpad() {
                     const criticalGaps = allGaps.filter(g => g.severity === 'critical');
 
                     if (criticalGaps.length > 0) {
-                        const plan = strategies.generateRepairPlan(criticalGaps, concepts);
+                        const plan = strategies.generateRepairPlan(criticalGaps, loadedConcepts);
                         if (plan.actions.length > 0) {
                             setRepairPlan(plan);
                         }

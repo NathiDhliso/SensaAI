@@ -8,7 +8,8 @@ export { UnifiedSessionBar } from './UnifiedSessionBar';
 export { SessionSummary } from './SessionSummary';
 
 // SENSA Phase 3: Study - Prerequisite Gates
-export { PrerequisiteCheck, usePrerequisiteCheck } from './PrerequisiteCheck';
+export { PrerequisiteCheck } from './PrerequisiteCheck';
+export { usePrerequisiteCheck } from '@/hooks/usePrerequisiteCheck';
 
 // Phase 5: Session Start Modal
 export { SessionStartModal } from './SessionStartModal';
@@ -37,5 +38,6 @@ export { SessionGoalManager } from './SessionGoalManager';
 export type { SessionGoalType, SessionGoal, SessionGoalManagerProps } from './SessionGoalManager';
 
 // SensaAI Learning Velocity Engine: Onboarding Flow
-export { OnboardingFlow, HelpTooltip, LEARNING_SCIENCE } from './OnboardingFlow';
+export { OnboardingFlow, HelpTooltip } from './OnboardingFlow';
+export { LEARNING_SCIENCE } from '@/constants/learning-science';
 export type { OnboardingStep, OnboardingFlowProps, HelpTooltipProps } from './OnboardingFlow';

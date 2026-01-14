@@ -16,6 +16,14 @@ console.log(`📋 Target Table: ${JOBS_TABLE}`);
 const client = new DynamoDBClient({ region });
 const docClient = DynamoDBDocumentClient.from(client);
 
+interface Job {
+    jobId: string;
+    userId: string;
+    subject: string;
+    createdAt?: number;
+    [key: string]: unknown;
+}
+
 async function cleanupDuplicates() {
     try {
         console.log('🔍 Scanning for jobs...');
@@ -29,7 +37,7 @@ async function cleanupDuplicates() {
         console.log(`found ${jobs.length} total jobs.`);
 
         // Group by Subject + User
-        const groups = new Map<string, any[]>();
+        const groups = new Map<string, Job[]>();
 
         // Helper: Levenshtein Distance
         const levenshtein = (a: string, b: string): number => {
@@ -71,7 +79,7 @@ async function cleanupDuplicates() {
 
         // Phase 2: Fuzzy Merge Groups
         const keys = Array.from(groups.keys());
-        const mergedGroups = new Map<string, any[]>();
+        const mergedGroups = new Map<string, Job[]>();
         const processedKeys = new Set<string>();
 
         for (const keyA of keys) {
@@ -107,7 +115,7 @@ async function cleanupDuplicates() {
         console.log('\n--- Duplicate Candidates (After Smart Merge) ---');
         for (const [key, group] of mergedGroups.entries()) {
             if (group.length > 1) {
-                const [_, subject] = key.split('|');
+                const [, subject] = key.split('|');
                 console.log(`Group "${subject}" -> Count: ${group.length}`);
                 group.forEach(j => console.log(`  - "${j.subject}"`));
             }
@@ -116,7 +124,7 @@ async function cleanupDuplicates() {
 
         let deletedCount = 0;
 
-        for (const [_, group] of mergedGroups.entries()) {
+        for (const group of mergedGroups.values()) {
             if (group.length > 1) {
                 // Sort by createdAt descending (newest first)
                 // Handle missing createdAt by treating as 0 (very old)

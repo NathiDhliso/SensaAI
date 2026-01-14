@@ -8,6 +8,7 @@
  */
 import { AlertTriangle, ChevronRight, Lock, CheckCircle2 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
+import { resolvePrerequisites, type PrerequisiteConcept } from '@/lib/learning/prerequisite-utils';
 import styles from './PrerequisiteCheck.module.css';
 
 interface PrerequisiteCheckProps {
@@ -25,36 +26,7 @@ interface PrerequisiteCheckProps {
   warningMessage?: string;
 }
 
-interface PrerequisiteConcept {
-  id: string;
-  name: string;
-  completed: boolean;
-}
 
-/**
- * Resolves prerequisite names/IDs to actual concept data.
- */
-function resolvePrerequisites(
-  prerequisites: string[],
-  allConcepts: LearningConcept[],
-  completedConcepts: string[]
-): PrerequisiteConcept[] {
-  return prerequisites.map(prereq => {
-    // Try to find by name first (prerequisites are stored as names)
-    const concept = allConcepts.find(c =>
-      c.name.toLowerCase() === prereq.toLowerCase() ||
-      c.id === prereq
-    );
-
-    return {
-      id: concept?.id || prereq,
-      name: concept?.name || prereq,
-      completed: concept
-        ? completedConcepts.includes(concept.id)
-        : false,
-    };
-  });
-}
 
 export function PrerequisiteCheck({
   concept,
@@ -132,35 +104,6 @@ export function PrerequisiteCheck({
   );
 }
 
-/**
- * Hook to check if a concept's prerequisites are met.
- */
-export function usePrerequisiteCheck(
-  concept: LearningConcept | null,
-  allConcepts: LearningConcept[],
-  completedConcepts: string[]
-): {
-  isReady: boolean;
-  missingCount: number;
-  missingNames: string[];
-} {
-  if (!concept || !concept.prerequisites || concept.prerequisites.length === 0) {
-    return { isReady: true, missingCount: 0, missingNames: [] };
-  }
 
-  const resolved = resolvePrerequisites(
-    concept.prerequisites,
-    allConcepts,
-    completedConcepts
-  );
-
-  const missing = resolved.filter(p => !p.completed);
-
-  return {
-    isReady: missing.length === 0,
-    missingCount: missing.length,
-    missingNames: missing.map(p => p.name),
-  };
-}
 
 export default PrerequisiteCheck;

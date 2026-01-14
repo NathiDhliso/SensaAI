@@ -58,7 +58,6 @@ const STEPS_ORDER: ExploreStep[] = ['structure', 'sprint', 'prime'];
 
 export function SessionScoutPreview({
     concepts,
-    dependencyGraph: _dependencyGraph, // Reserved for future use
     onComplete
 }: SessionScoutPreviewProps) {
     const [step, setStep] = useState<ExploreStep>('structure');

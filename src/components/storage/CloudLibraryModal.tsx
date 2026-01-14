@@ -66,23 +66,6 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
     // Keyboard accessibility - Escape to close
     useEscapeKey(onClose, isOpen);
 
-    // Focus search input when modal opens
-    useEffect(() => {
-        if (isOpen) {
-            loadResults();
-            // Focus search after a brief delay for animation
-            const timer = setTimeout(() => {
-                searchInputRef.current?.focus();
-            }, UI_TIMINGS.BLUR_DELAY);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen]);
-
-    // Reset selection when filter changes
-    useEffect(() => {
-        setSelectedItems(new Set());
-    }, [activeFilter]);
-
     const showToast = useCallback((message: string, type: 'success' | 'error') => {
         setToast({ message, type, visible: true });
         setTimeout(() => {
@@ -90,7 +73,9 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
         }, UI_TIMINGS.TOAST_MEDIUM);
     }, []);
 
-    const loadResults = async () => {
+    // Focus search input when modal opens
+    // Defined before useEffect to satisfy block-scoped variable usage
+    const loadResults = useCallback(async () => {
         setLoading(true);
         try {
             const allResults = await storageManager.listResults();
@@ -101,7 +86,25 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
         } finally {
             setLoading(false);
         }
-    };
+    }, [showToast]);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadResults();
+            // Focus search after a brief delay for animation
+            const timer = setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, UI_TIMINGS.BLUR_DELAY);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen, loadResults]);
+    // Reset selection when filter changes
+    useEffect(() => {
+        setSelectedItems(new Set());
+    }, [activeFilter]);
+
+
+
 
     const handleRefresh = async () => {
         setLoading(true);
