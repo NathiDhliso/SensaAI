@@ -7,7 +7,7 @@
  * Flow state is protected - we suppress interruptions when detected.
  */
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import { useLearningStore } from '@/store/learning-store';
 import { FLOW_STATE } from '@/constants/ui-constants';
 
@@ -29,11 +29,24 @@ export interface FlowStateInfo {
 export function useFlowState(): FlowStateInfo {
     const { studySession } = useLearningStore();
 
-    const sessionDurationMs = useMemo(() => {
-        if (!studySession?.startedAt) return 0;
+    const [sessionDurationMs, setSessionDurationMs] = useState(0);
+    const [now, setNow] = useState(Date.now());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setNow(Date.now());
+        }, 1000); // Update every second to keep duration accurate
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        if (!studySession?.startedAt) {
+            setSessionDurationMs(0);
+            return;
+        }
         const startTime = new Date(studySession.startedAt).getTime();
-        return Date.now() - startTime;
-    }, [studySession?.startedAt]);
+        setSessionDurationMs(now - startTime);
+    }, [now, studySession?.startedAt]);
 
     const targetDurationMs = useMemo(() => {
         return (studySession?.targetDuration || 30) * 60 * 1000;
@@ -88,7 +101,7 @@ export function useFlowState(): FlowStateInfo {
         // Don't show if we recently offered one and they declined
         const lastCheckpoint = studySession?.lastCheckpointAt;
         if (lastCheckpoint) {
-            const timeSinceCheckpoint = Date.now() - new Date(lastCheckpoint).getTime();
+            const timeSinceCheckpoint = now - new Date(lastCheckpoint).getTime();
             if (timeSinceCheckpoint < FLOW_STATE.CHECKPOINT_BUFFER_MS) {
                 return false;
             }
