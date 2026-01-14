@@ -217,7 +217,7 @@ export function SessionScoutPreview({
     // Step 2: Sprint — Nomenclature Sprint (REPLACES Predict Links)
     // ========================================================================
     const renderSprintStep = () => {
-        const handleSprintComplete = (passed: boolean, _accuracy: number) => {
+        const handleSprintComplete = (passed: boolean) => {
             if (passed) {
                 // Move to next step
                 setStep('prime');

@@ -17,7 +17,7 @@ contentRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
 
         // Filter content by user
         const userContent = Array.from(contentStore.entries())
-            .filter(([_, content]: [string, { userId?: string }]) => content.userId === userId)
+            .filter(([, content]: [string, { userId?: string }]) => content.userId === userId)
             .map(([id, content]) => ({ id, ...content as object }));
 
         res.json({ content: userContent });

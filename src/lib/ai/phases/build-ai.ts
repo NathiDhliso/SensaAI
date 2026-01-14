@@ -273,7 +273,7 @@ export function validateConnectionLabel(
     if (labelLower === '?' || labelLower === '' || labelLower === 'connects to') {
         return {
             isValid: false,
-            suggestion: suggestLabel(fromConcept, toConcept),
+            suggestion: suggestLabel(),
             reasoning: 'Please describe HOW these concepts relate',
         };
     }
@@ -283,7 +283,8 @@ export function validateConnectionLabel(
     if (vagueLabels.includes(labelLower)) {
         return {
             isValid: false,
-            suggestion: suggestLabel(fromConcept, toConcept),
+            isValid: false,
+            suggestion: suggestLabel(),
             reasoning: 'Try to be more specific. What type of relationship?',
         };
     }
@@ -297,7 +298,7 @@ export function validateConnectionLabel(
 /**
  * Suggest a label for a connection
  */
-function suggestLabel(_from: LearningConcept, _to: LearningConcept): string {
+function suggestLabel(): string {
     const suggestions = [
         'uses',
         'requires',

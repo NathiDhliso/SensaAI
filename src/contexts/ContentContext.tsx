@@ -10,6 +10,9 @@ interface ContentContextType {
     reloadContent: () => Promise<void>;
 }
 
+// In a real app, this filename might be configurable via env vars or another config
+const CONTENT_URL = '/PL_300_1766515561801-c6ara0akv.json';
+
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export function ContentProvider({ children }: { children: ReactNode }) {
@@ -19,9 +22,6 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     const [error, setError] = useState<string | null>(null);
 
     // Initial content load
-    // In a real app, this filename might be configurable via env vars or another config
-    const CONTENT_URL = '/PL_300_1766515561801-c6ara0akv.json';
-
     const fetchContent = async () => {
         setIsLoading(true);
         setError(null);

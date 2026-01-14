@@ -8,8 +8,7 @@ interface ErrorWithStatus extends Error {
 export function errorHandler(
     err: ErrorWithStatus,
     req: Request,
-    res: Response,
-    _next: NextFunction
+    res: Response
 ): void {
     const statusCode = err.statusCode || 500;
     const message = err.isOperational ? err.message : 'Internal server error';

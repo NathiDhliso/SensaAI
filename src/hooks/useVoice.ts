@@ -50,7 +50,7 @@ export function useVoice(): UseVoiceResult {
         setIsPlaying(false);
     }, []);
 
-    const play = useCallback(async (text: string, _overridePersonaId?: PersonaId) => {
+    const play = useCallback(async (text: string) => {
         // Validation
         if (!coachVoiceEnabled) return;
 
@@ -93,11 +93,11 @@ export function useVoice(): UseVoiceResult {
         setIsLoading(false);
     }, [coachVoiceEnabled, stop]);
 
-    const toggle = useCallback(async (text: string, overridePersonaId?: PersonaId) => {
+    const toggle = useCallback(async (text: string) => {
         if (isPlaying) {
             stop();
         } else {
-            await play(text, overridePersonaId);
+            await play(text);
         }
     }, [isPlaying, play, stop]);
 

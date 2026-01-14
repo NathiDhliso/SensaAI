@@ -8,7 +8,7 @@
  * for unified session analytics.
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Clock, Zap, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { formatTime } from '@/lib/utils';
@@ -42,10 +42,10 @@ export default function SpeedReaderBar({
     const { isSessionActive, recordConceptStart, recordConceptEnd, getConcepts } = useLearningStore();
 
     // Get concept name for session tracking
-    const getConceptName = (id: string) => {
+    const getConceptName = useCallback((id: string) => {
         const concepts = getConcepts();
         return concepts.find(c => c.id === id)?.name || id;
-    };
+    }, [getConcepts]);
 
     // Report concept start when concept changes and session is active
     useEffect(() => {
@@ -66,7 +66,7 @@ export default function SpeedReaderBar({
 
             prevConceptId.current = conceptId;
         }
-    }, [conceptId, isSessionActive, recordConceptStart, recordConceptEnd]);
+    }, [conceptId, isSessionActive, recordConceptStart, recordConceptEnd, getConceptName]);
 
     // Start tracking on mount if session already active
     useEffect(() => {

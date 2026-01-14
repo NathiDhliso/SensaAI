@@ -472,14 +472,14 @@ export default function ConceptMapBuilder({
     // HELPERS
     // =========================================================================
 
-    const getConceptName = (conceptId: string) => {
+    const getConceptName = useCallback((conceptId: string) => {
         // First try to find the concept in the passed array
         const concept = concepts.find(c => c.id === conceptId);
         if (concept) return concept.name;
         // Fallback: check if the node itself has the stored name
         const node = nodes.find(n => n.conceptId === conceptId);
         return node?.conceptName || 'Unknown';
-    };
+    }, [concepts, nodes]);
 
     // =========================================================================
     // SENSA v2.0: GUESS VALIDATION

@@ -83,7 +83,7 @@ export default function VelocityLearning() {
         if (studySession) {
             sensaFlow.syncFromStore(studySession);
         }
-    }, [studySession?.id, sensaFlow.syncFromStore]);
+    }, [studySession, sensaFlow]);
 
     // 3. Local UI State
     const [lockedIn, setLockedIn] = useState(false);

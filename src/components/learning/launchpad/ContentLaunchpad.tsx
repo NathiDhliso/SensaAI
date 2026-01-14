@@ -24,7 +24,7 @@ import { parseGeneratedContent } from '@/lib/content-adapter';
 import type { SavedResult } from '@/lib/storage/types';
 import { RepairStrategyRouter } from '@/lib/generation/repair-orchestrator';
 import type { RepairPlan } from '@/lib/types/generation';
-import { validateConceptContent } from '@/lib/validation/content-quality';
+import { validateConceptContent, type VerifiableConcept } from '@/lib/validation/content-quality';
 import { buildDocumentFromConcepts } from '@/lib/generation/backend-generator';
 import type { ParsedConcept } from '@/lib/content-adapter/types';
 
@@ -109,7 +109,7 @@ export default function ContentLaunchpad() {
                     const loadedConcepts = parseResult.success && parseResult.data ? parseResult.data.concepts : [];
                     setConcepts(loadedConcepts);
 
-                    const allGaps = loadedConcepts.flatMap(c => validateConceptContent(c as any));
+                    const allGaps = loadedConcepts.flatMap(c => validateConceptContent(c as unknown as VerifiableConcept));
                     const criticalGaps = allGaps.filter(g => g.severity === 'critical');
 
                     if (criticalGaps.length > 0) {
