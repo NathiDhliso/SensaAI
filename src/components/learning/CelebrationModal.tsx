@@ -1,9 +1,9 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Share2, Check } from 'lucide-react';
-import { useContent } from '@/contexts/ContentContext';
+import { useContent } from '@/hooks/useContent';
 import { CONFETTI_COLORS } from '@/constants/theme-colors';
 import { UI_TIMINGS } from '@/constants/ui-constants';
-import type { CelebrationData } from '@/lib/types/learning';
+import type { CelebrationData, LearningConcept } from '@/lib/types/learning';
 import styles from './CelebrationModal.module.css';
 
 interface CelebrationModalProps {
@@ -64,7 +64,7 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
   const completedConceptNames = useMemo(() => {
     if (!data.conceptsCompleted) return [];
     return data.conceptsCompleted
-      .map(id => concepts.find(c => c.id === id)?.name)
+      .map(id => concepts.find((c: LearningConcept) => c.id === id)?.name)
       .filter(Boolean)
       .slice(0, 6);
   }, [data.conceptsCompleted, concepts]);

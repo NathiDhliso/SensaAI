@@ -73,7 +73,7 @@ export default function SavedResults() {
       const groups = new Map<string, SavedResult[]>();
 
       results.forEach(r => {
-        const key = r.subject.trim().toLowerCase();
+        const key = (r.subject || 'untitled').trim().toLowerCase();
         const group = groups.get(key) || [];
         group.push(r);
         groups.set(key, group);
