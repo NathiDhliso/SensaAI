@@ -1,12 +1,11 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, Zap, Cloud, Calendar, Paperclip, FileText, AlertTriangle, X } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGenerationStore } from '@/store/generation-store';
 import { useUIStore } from '@/store/ui-store';
-import { usePersonalizationStore } from '@/store/personalization-store';
 import { CloudLibraryModal } from '@/components/storage/CloudLibraryModal';
 import { CATEGORY_COLORS, DIFFICULTY_COLORS } from '@/constants/theme-colors';
 import { UI_TIMINGS } from '@/constants/ui-constants';
@@ -19,11 +18,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'nebula' as SensaShapeType,
     color: CATEGORY_COLORS.cloud,
     subjects: [
-      { name: 'Cloud Architecture', difficulty: 'Advanced', hours: 40 },
-      { name: 'Container Orchestration', difficulty: 'Advanced', hours: 30 },
-      { name: 'Infrastructure as Code', difficulty: 'Intermediate', hours: 25 },
-      { name: 'CI/CD Pipelines', difficulty: 'Intermediate', hours: 20 },
-      { name: 'Serverless Computing', difficulty: 'Beginner', hours: 15 },
+      { name: 'AWS Solutions Architect', difficulty: 'Advanced', hours: 40 },
+      { name: 'Azure Administrator', difficulty: 'Intermediate', hours: 35 },
+      { name: 'Kubernetes', difficulty: 'Advanced', hours: 30 },
+      { name: 'Docker Fundamentals', difficulty: 'Beginner', hours: 15 },
+      { name: 'Terraform', difficulty: 'Intermediate', hours: 25 },
     ],
   },
   {
@@ -32,11 +31,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'synapse' as SensaShapeType,
     color: CATEGORY_COLORS.data,
     subjects: [
-      { name: 'Machine Learning', difficulty: 'Intermediate', hours: 35 },
-      { name: 'Data Visualization', difficulty: 'Beginner', hours: 20 },
-      { name: 'Database Design', difficulty: 'Intermediate', hours: 25 },
-      { name: 'Big Data Analytics', difficulty: 'Advanced', hours: 40 },
-      { name: 'Artificial Intelligence', difficulty: 'Advanced', hours: 45 },
+      { name: 'Machine Learning Fundamentals', difficulty: 'Intermediate', hours: 35 },
+      { name: 'Python for Data Science', difficulty: 'Beginner', hours: 20 },
+      { name: 'SQL Mastery', difficulty: 'Beginner', hours: 15 },
+      { name: 'Power BI', difficulty: 'Intermediate', hours: 20 },
+      { name: 'Data Engineering', difficulty: 'Advanced', hours: 40 },
     ],
   },
   {
@@ -45,11 +44,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'construct' as SensaShapeType,
     color: CATEGORY_COLORS.dev,
     subjects: [
-      { name: 'Frontend Frameworks', difficulty: 'Intermediate', hours: 30 },
-      { name: 'Backend Systems', difficulty: 'Intermediate', hours: 25 },
-      { name: 'System Architecture', difficulty: 'Advanced', hours: 35 },
-      { name: 'API Design', difficulty: 'Beginner', hours: 15 },
-      { name: 'Mobile Development', difficulty: 'Intermediate', hours: 25 },
+      { name: 'React & TypeScript', difficulty: 'Intermediate', hours: 30 },
+      { name: 'Node.js Backend', difficulty: 'Intermediate', hours: 25 },
+      { name: 'System Design', difficulty: 'Advanced', hours: 35 },
+      { name: 'REST API Design', difficulty: 'Beginner', hours: 15 },
+      { name: 'GraphQL', difficulty: 'Intermediate', hours: 20 },
     ],
   },
   {
@@ -58,11 +57,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'bastion' as SensaShapeType,
     color: CATEGORY_COLORS.security,
     subjects: [
-      { name: 'Network Security', difficulty: 'Intermediate', hours: 30 },
-      { name: 'Penetration Testing', difficulty: 'Advanced', hours: 40 },
-      { name: 'Security Compliance', difficulty: 'Advanced', hours: 35 },
-      { name: 'Cryptography', difficulty: 'Advanced', hours: 25 },
-      { name: 'Incident Response', difficulty: 'Intermediate', hours: 20 },
+      { name: 'CompTIA Security+', difficulty: 'Intermediate', hours: 30 },
+      { name: 'Network Security', difficulty: 'Advanced', hours: 35 },
+      { name: 'Ethical Hacking', difficulty: 'Advanced', hours: 40 },
+      { name: 'CISSP Fundamentals', difficulty: 'Expert', hours: 60 },
+      { name: 'Penetration Testing', difficulty: 'Advanced', hours: 45 },
     ],
   },
   {
@@ -71,11 +70,11 @@ const SUBJECT_CATEGORIES = [
     shapeType: 'prism' as SensaShapeType,
     color: CATEGORY_COLORS.business,
     subjects: [
-      { name: 'Project Management', difficulty: 'Advanced', hours: 40 },
+      { name: 'PMP Certification', difficulty: 'Advanced', hours: 40 },
+      { name: 'Agile & Scrum', difficulty: 'Beginner', hours: 15 },
       { name: 'Business Analysis', difficulty: 'Intermediate', hours: 25 },
-      { name: 'Product Strategy', difficulty: 'Intermediate', hours: 30 },
-      { name: 'Financial Modeling', difficulty: 'Advanced', hours: 35 },
-      { name: 'Agile Methodologies', difficulty: 'Beginner', hours: 15 },
+      { name: 'Product Management', difficulty: 'Intermediate', hours: 30 },
+      { name: 'Financial Analysis', difficulty: 'Advanced', hours: 35 },
     ],
   }
 ];
@@ -89,18 +88,15 @@ const DIFFICULTY_LEVELS = {
 
 export default function Home() {
   const [subject, setSubject] = useState('');
-  // const [context, setContext] = useState(''); // Removed in favor of file-only context
+  const [context, setContext] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showCloudLibrary, setShowCloudLibrary] = useState(false);
-  const [isProcessingFile, setIsProcessingFile] = useState(false);
-  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   /* Hooks & Store */
   const { openSettingsPanel } = useUIStore();
-  const { recentSubjects, setFileContext, currentFileContext, setPendingFile } = useGenerationStore();
-  const { semesterStartDate } = usePersonalizationStore();
+  // Using explicit cast to avoid type inference issues with store intersection types
+  const { recentSubjects } = useGenerationStore() as any;
 
   /* Derived State */
   const allSubjects = useMemo(() => {
@@ -122,52 +118,12 @@ export default function Home() {
     setShowSuggestions(false);
   };
 
-  /* Effects */
-  // Reactive Relevance Check
-  /* Effects */
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsProcessingFile(true);
-    setUploadWarning(null); // Clear previous errors immediately
-
-    try {
-      // 1. Prepare for Server-Side Upload (Phase 1 Silver Bullet)
-      setPendingFile(file);
-
-      // 2. Set Context UI State (without local text extraction)
-      // Note: We default to BLUEPRINT mode for PDF uploads as per spec 8.1
-      setFileContext('Raw PDF pending upload', file.name, 'BLUEPRINT');
-
-    } catch (err) {
-      console.error('File processing failed:', err);
-      setUploadWarning('Failed to process file.');
-    } finally {
-      setIsProcessingFile(false);
-      // Reset input
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const clearFile = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setFileContext('', '', 'GENERAL'); // Clear
-    setUploadWarning(null);
-  };
-
-
   const handleGenerate = () => {
     if (subject.trim()) {
       setShowSuggestions(false);
-      // Navigate directly to Generate page
-      // Note: context query param is now redundant if we rely solely on file context, 
-      // but we keep the mechanism in case we want to re-enable text input later or pass logic.
-      // For now, passing empty context unless we want to serialize the file content here (not recommended).
-      // The store has the file content. Generate page retrieves context from URL OR Store.
-      // So we just navigate.
-      navigate(`/generate/${encodeURIComponent(subject)}`);
+      // Navigate directly to Generate page with optional context
+      const queryParams = context.trim() ? `?context=${encodeURIComponent(context.trim())}` : '';
+      navigate(`/generate/${encodeURIComponent(subject)}${queryParams}`);
     }
   };
 
@@ -178,58 +134,6 @@ export default function Home() {
           <SensaShape type="nebula" size="xl" className={styles.heroIcon} />
 
           <div className={styles.inputSection}>
-            <div className={styles.contextInputWrapper}>
-
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept=".pdf,.txt,.md"
-                style={{ display: 'none' }}
-              />
-
-              {currentFileContext?.content ? (
-                <div className={styles.fileBadge} title={currentFileContext.fileName}>
-                  <FileText size={14} className={styles.fileIcon} />
-                  <span className={styles.fileName}>
-                    {currentFileContext.fileName.length > 20
-                      ? currentFileContext.fileName.substring(0, 18) + '...'
-                      : currentFileContext.fileName}
-                  </span>
-                  {currentFileContext.mode !== 'GENERAL' && (
-                    <span className={styles.modeBadge}>{currentFileContext.mode}</span>
-                  )}
-                  <button onClick={clearFile} className={styles.clearFileButton}>
-                    <X size={12} />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  className={styles.uploadTrigger}
-                  onClick={() => fileInputRef.current?.click()}
-                  title="Upload verified exam or syllabus (PDF/TXT)"
-                >
-                  <span className={styles.uploadInstruction}>
-                    REQUIRED: Upload Verified Exam Paper / Syllabus
-                  </span>
-                  {isProcessingFile ? (
-                    <div className={styles.spinner} />
-                  ) : (
-                    <div className={styles.uploadButton}>
-                      <Paperclip size={18} />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {uploadWarning && (
-              <div className={styles.uploadWarning}>
-                <AlertTriangle size={12} />
-                <span>{uploadWarning}</span>
-              </div>
-            )}
-
             <div className={styles.inputWrapper}>
               <Search className={styles.searchIcon} />
               <input
@@ -288,14 +192,23 @@ export default function Home() {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* [NEW] Context Input */}
+            <div className={styles.contextInputWrapper}>
+              <input
+                type="text"
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                placeholder="Target Exam / Context (Optional) - e.g. AZ-104, NCLEX, High School AP"
+                className={styles.contextInput}
+              />
+            </div>
           </div>
 
           <button
             onClick={handleGenerate}
-            disabled={!subject.trim() || !currentFileContext}
-            title={!currentFileContext ? "Please upload a verified exam paper to proceed" : "Generate Learning System"}
+            disabled={!subject.trim()}
             className={styles.generateButton}
-            style={{ opacity: (!subject.trim() || !currentFileContext) ? 0.5 : 1 }}
           >
             <Zap size={18} />
             Generate Learning System
@@ -319,65 +232,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Semester Countdown Widget */}
-        <div className={styles.semesterCountdown}>
-          <div className={styles.countdownHeader}>
-            <Calendar size={18} />
-            <span>Semester Progress</span>
-          </div>
-
-          {(() => {
-
-            if (!semesterStartDate) {
-              return (
-                <div className={styles.countdownContent} style={{ alignItems: 'center', textAlign: 'center' }}>
-                  <p className={styles.countdownMessage} style={{ marginBottom: '0.5rem' }}>
-                    Set your semester start date to track progress.
-                  </p>
-                  <button
-                    onClick={openSettingsPanel}
-                    style={{
-                      fontSize: '0.8rem',
-                      color: 'var(--color-accent)',
-                      background: 'none',
-                      border: '1px solid var(--color-accent)',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '1rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Configure Schedule
-                  </button>
-                </div>
-              );
-            }
-
-            const start = new Date(semesterStartDate);
-            const now = new Date();
-            const diffTime = Math.abs(now.getTime() - start.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const currentWeek = Math.ceil(diffDays / 7);
-            const totalWeeks = 16; // Standard semester
-            const weeksLeft = Math.max(0, totalWeeks - currentWeek);
-            const progressPercent = Math.min(100, Math.max(0, (currentWeek / totalWeeks) * 100));
-
-            return (
-              <div className={styles.countdownContent}>
-                <div className={styles.countdownStat}>
-                  <span className={styles.countdownNumber}>{weeksLeft}</span>
-                  <span className={styles.countdownLabel}>weeks left</span>
-                </div>
-                <div className={styles.countdownBar}>
-                  <div className={styles.countdownFill} style={{ width: `${progressPercent}%` }} />
-                </div>
-                <p className={styles.countdownMessage}>
-                  📅 Week {currentWeek} of {totalWeeks} — {currentWeek < 8 ? 'Build your foundations!' : 'Time to consolidate!'}
-                </p>
-              </div>
-            );
-          })()}
-        </div>
-
         <div className={styles.actionButtons}>
           <button onClick={() => setShowCloudLibrary(true)} className={styles.cloudLibraryButton}>
             <Cloud size={18} />
@@ -396,7 +250,7 @@ export default function Home() {
         <CloudLibraryModal
           isOpen={showCloudLibrary}
           onClose={() => setShowCloudLibrary(false)}
-          onUpdate={() => { }}
+          onUpdate={() => {}}
         />
       </div>
     </div>

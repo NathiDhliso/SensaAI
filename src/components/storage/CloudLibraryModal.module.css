@@ -404,45 +404,6 @@
     text-overflow: ellipsis;
 }
 
-.itemTitleRow {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.25rem;
-}
-
-.itemTitleRow h3 {
-    margin: 0;
-}
-
-/* Knowledge Warmth Badges */
-.warmthBadge {
-    font-size: 0.875rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: var(--radius-sm);
-    flex-shrink: 0;
-}
-
-.warmthHot {
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.warmthWarm {
-    background: rgba(245, 158, 11, 0.1);
-}
-
-.warmthCool {
-    background: rgba(59, 130, 246, 0.1);
-}
-
-.warmthCold {
-    background: rgba(147, 197, 253, 0.15);
-}
-
 .itemMeta {
     display: flex;
     flex-wrap: wrap;

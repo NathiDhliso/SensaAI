@@ -117,7 +117,7 @@ function QuickKnowledgeCheck({
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [textAnswer, setTextAnswer] = useState('');
     const [confidence, setConfidence] = useState(3); // 1-5 scale
-    const [startTime] = useState(() => Date.now());
+    const [startTime] = useState(Date.now());
     const [showFeedback, setShowFeedback] = useState(false);
     const [wasCorrect, setWasCorrect] = useState(false);
 
