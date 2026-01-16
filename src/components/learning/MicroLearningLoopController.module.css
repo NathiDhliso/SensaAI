@@ -691,6 +691,15 @@
     cursor: not-allowed;
 }
 
+/* ARCHITECT ENHANCEMENT: Navigation Actions */
+.navigationActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
 .skipButton {
     display: flex;
     align-items: center;
@@ -707,6 +716,25 @@
 
 .skipButton:hover {
     color: var(--color-text-light);
+}
+
+.backToMapButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.backToMapButton:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.5);
 }
 
 /* Laptop/Compact Mode Optimization - Aggressive No-Scroll */

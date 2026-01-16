@@ -38,6 +38,7 @@ import {
 } from '@/lib/ai/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { UI_TIMINGS } from '@/constants/ui-constants';
+import ConnectionTypeModal, { type ConnectionTypeData } from './ConnectionTypeModal';
 import styles from './ConceptMapBuilder.module.css';
 
 // ============================================================================
@@ -139,6 +140,10 @@ export default function ConceptMapBuilder({
     const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
     const [labelInput, setLabelInput] = useState('');
     const labelInputRef = useRef<HTMLInputElement>(null);
+    
+    // ARCHITECT ENHANCEMENT: Connection Type Validation
+    const [pendingConnection, setPendingConnection] = useState<{ fromId: string; toId: string } | null>(null);
+    const [showConnectionTypeModal, setShowConnectionTypeModal] = useState(false);
 
     // Refs
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -419,6 +424,7 @@ export default function ConceptMapBuilder({
         setSelectedConnectionId(null);
     };
 
+    // ARCHITECT ENHANCEMENT: Show connection type modal before creating
     const finishConnection = (fromId: string, toId: string) => {
         if (readOnly) return;
 
@@ -428,20 +434,31 @@ export default function ConceptMapBuilder({
             return;
         }
 
+        // Store pending connection and show type selection modal
+        setPendingConnection({ fromId, toId });
+        setShowConnectionTypeModal(true);
+        setConnectingFromId(null);
+    };
+    
+    const handleConnectionTypeConfirm = (data: ConnectionTypeData) => {
+        if (!pendingConnection) return;
+        
         pushHistory();
         const newConnection: Connection = {
             id: `conn-${Date.now()}`,
-            fromId,
-            toId,
-            label: ''
+            fromId: pendingConnection.fromId,
+            toId: pendingConnection.toId,
+            label: data.customLabel || data.type
         };
 
         setConnections(prev => [...prev, newConnection]);
-        setConnectingFromId(null);
-
-        // Open inline editor instead of prompt()
-        setEditingConnectionId(newConnection.id);
-        setLabelInput('');
+        setShowConnectionTypeModal(false);
+        setPendingConnection(null);
+    };
+    
+    const handleConnectionTypeCancel = () => {
+        setShowConnectionTypeModal(false);
+        setPendingConnection(null);
     };
 
     // =========================================================================
@@ -1040,6 +1057,18 @@ export default function ConceptMapBuilder({
                 {/* Validation Panel */}
                 {renderValidationPanel()}
             </div>
+            
+            {/* ARCHITECT ENHANCEMENT: Connection Type Modal */}
+            <AnimatePresence>
+                {showConnectionTypeModal && pendingConnection && (
+                    <ConnectionTypeModal
+                        fromConcept={getConceptName(pendingConnection.fromId)}
+                        toConcept={getConceptName(pendingConnection.toId)}
+                        onConfirm={handleConnectionTypeConfirm}
+                        onCancel={handleConnectionTypeCancel}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

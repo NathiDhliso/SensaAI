@@ -545,16 +545,24 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
         // 2. Fallback: Generate from key points
         const randomPoint = keyPoints[Math.floor(Math.random() * keyPoints.length)] || keyPoints[0] || concept.name;
 
-        // Smart Distractors: Pick key points from OTHER concepts to make real-looking options
+        // ARCHITECT ENHANCEMENT: Smart Distractors using tier-based semantic similarity
         const otherConcepts = allConcepts?.filter(c => c.id !== concept.id) || [];
         const distractors: string[] = [];
 
-        // Try to get 3 distractors from other concepts
+        // Try to get 3 distractors from SAME TIER for semantic similarity
         if (otherConcepts.length >= 3) {
-            // Shuffle other concepts
-            const shuffled = shuffleArray(otherConcepts);
+            // Prioritize concepts from the same tier (better semantic similarity)
+            const sameTierConcepts = otherConcepts.filter(c => 
+                (c.tier || c.mnemonic?.tier) === (concept.tier || concept.mnemonic?.tier)
+            );
+            
+            const sourceConcepts = sameTierConcepts.length >= 3 
+                ? sameTierConcepts 
+                : otherConcepts;
+                
+            const shuffled = shuffleArray(sourceConcepts);
 
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < Math.min(3, shuffled.length); i++) {
                 const c = shuffled[i];
                 // Try to get a hook sentence or a key point
                 const distractorText = c.hookSentence || (c.howToUse && c.howToUse[0]) || `Related to ${c.name}`;
@@ -889,11 +897,28 @@ export function MicroLearningLoopController({
                     )}
                 </AnimatePresence>
 
-                {/* Skip button - positioned at bottom of content */}
-                <button className={styles.skipButton} onClick={onSkip}>
-                    <RotateCcw size={16} />
-                    Skip this concept
-                </button>
+                {/* ARCHITECT ENHANCEMENT: Navigation Flexibility */}
+                <div className={styles.navigationActions}>
+                    <button 
+                        className={styles.skipButton} 
+                        onClick={onSkip}
+                        title="Skip to next concept"
+                    >
+                        <RotateCcw size={16} />
+                        Skip this concept
+                    </button>
+                    
+                    <button 
+                        className={styles.backToMapButton}
+                        onClick={() => {
+                            // Navigate back to map to correct schema misunderstanding
+                            window.history.back();
+                        }}
+                        title="Return to concept map to revise connections"
+                    >
+                        Return to Map
+                    </button>
+                </div>
             </div>
         </div>
     );
