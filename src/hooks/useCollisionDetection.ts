@@ -99,7 +99,8 @@ export function useCollisionDetection(
         return false;
       }
     },
-    [options, checkForLocalExisting]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [options]
   );
 
   /**
