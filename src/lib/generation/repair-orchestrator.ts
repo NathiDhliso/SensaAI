@@ -88,6 +88,7 @@ export class RepairStrategyRouter {
             'phase1.prerequisite', // Can default to "None"
             'phase3.thresholds', // Can default to "Verify in standard"
             'technicalDetails', // Sometimes we can just emit a generic "See documentation" if desperate
+            'blueprintMapping', // Can default to "Verify against exam objectives"
         ];
         return templateFields.includes(field);
     }
@@ -103,7 +104,8 @@ export class RepairStrategyRouter {
             'shape.analogicalModel',
             'shape.highStakesExample', // Hallucinated examples are bad
             'hookSentence',
-            'whyYouNeed'
+            'whyYouNeed',
+            'officialSource', // AI can generate correct documentation URL based on concept
         ];
         // Check for exact match or suffix match (e.g. 'shape.simpleCore')
         return aiFields.some(f => field.endsWith(f));

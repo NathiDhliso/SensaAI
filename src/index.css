@@ -467,6 +467,9 @@
 html {
   /* Base: 16px at 1920px, scales down to ~13px at 1280px */
   font-size: clamp(13px, 0.833vw, 16px);
+  /* Prevent horizontal overflow globally */
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Laptop screens (1280px - 1536px) */
@@ -494,6 +497,10 @@ body {
   min-height: 100vh;
   background: var(--gradient-paper);
   position: relative;
+  /* Prevent horizontal overflow globally */
+  overflow-x: hidden;
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 
 body::before {
@@ -525,6 +532,55 @@ body::before {
   position: relative;
   z-index: 1;
   isolation: isolate;
+  /* Ensure all child content respects container bounds */
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   GLOBAL RESPONSIVE UTILITIES
+   ============================================ */
+
+/* Ensure all elements use border-box sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Prevent any element from causing horizontal scroll */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive padding utility */
+.container-padding {
+  padding-left: clamp(1rem, 2.5vw, 3rem);
+  padding-right: clamp(1rem, 2.5vw, 3rem);
+}
+
+/* Mobile-friendly grid utilities */
+@media (max-width: 1024px) {
+  .grid-responsive-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .grid-responsive-1 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-responsive-2,
+  .grid-responsive-1 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Reduce padding on mobile */
+  .container-padding {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
 }
 
 /* ============================================

@@ -1,10 +1,13 @@
 .container {
   height: 100vh;
   overflow-y: auto;
+  overflow-x: hidden;
   background: transparent;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 
 .wrapper {
@@ -817,4 +820,56 @@
 .previewStartButton:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
+}
+
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .wrapper {
+    gap: 1rem;
+  }
+  
+  .filterBar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .resultsGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0.75rem;
+  }
+  
+  .filterBar {
+    padding: 0.75rem;
+  }
+  
+  .cardHeader h3 {
+    font-size: 1rem;
+  }
+  
+  .cardMeta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .cardActions {
+    flex-direction: column;
+  }
+  
+  .previewActions {
+    flex-direction: column;
+    padding: 1rem;
+  }
 }

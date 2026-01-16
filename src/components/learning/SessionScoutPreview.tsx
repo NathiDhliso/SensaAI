@@ -90,7 +90,8 @@ export function SessionScoutPreview({
     const isLastStep = currentStepIndex === STEPS_ORDER.length - 1;
 
     const handleBack = useCallback(() => {
-        navigate(-1);
+        // Go to home instead of back (prevents returning to generate page)
+        navigate('/');
     }, [navigate]);
 
     const handleAcknowledgeGap = useCallback((conceptId: string) => {

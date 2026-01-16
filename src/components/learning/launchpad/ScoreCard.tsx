@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { SCORE_COLORS } from '@/constants/theme-colors';
 import styles from './ScoreCard.module.css';
 
@@ -24,9 +25,11 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
     unit,
     icon: Icon,
     status = 'neutral',
+    tooltip,
     delay = 0
 }) => {
     const color = SCORE_COLORS[status];
+    const [showTooltip, setShowTooltip] = useState(false);
 
     return (
         <motion.div
@@ -39,8 +42,31 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
         >
             <div className={styles.header}>
                 <span className={styles.title}>{title}</span>
-                <div className={styles.iconWrapper}>
-                    <Icon size={18} color={color} strokeWidth={2} />
+                <div className={styles.iconGroup}>
+                    {tooltip && (
+                        <div 
+                            className={styles.infoIcon}
+                            onMouseEnter={() => setShowTooltip(true)}
+                            onMouseLeave={() => setShowTooltip(false)}
+                        >
+                            <Info size={14} />
+                            <AnimatePresence>
+                                {showTooltip && (
+                                    <motion.div 
+                                        className={styles.tooltip}
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 5 }}
+                                    >
+                                        {tooltip}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
+                    <div className={styles.iconWrapper}>
+                        <Icon size={18} color={color} strokeWidth={2} />
+                    </div>
                 </div>
             </div>
 

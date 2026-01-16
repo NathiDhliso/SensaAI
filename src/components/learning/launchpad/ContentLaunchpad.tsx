@@ -39,13 +39,15 @@ import { DashboardTutorial, type TutorialStep } from './DashboardTutorial';
 import styles from './ContentLaunchpad.module.css';
 
 const TUTORIAL_STEPS: TutorialStep[] = [
-    { targetId: 'mastery-score', title: 'Mastery Index', description: 'Your overall readiness score. 100% means you have covered all foundation, core, and advanced concepts.', position: 'bottom' },
-    { targetId: 'pass-rate-score', title: 'Content Depth Score', description: 'Measures the structural richness of the content (mnemonics, key points) to ensure deep learning potential.', position: 'bottom' },
-    { targetId: 'mastery-time-score', title: 'Est. Mastery Time', description: 'Estimated time to read and process this material relative to an average reading speed.', position: 'bottom' },
-    { targetId: 'treemap-section', title: 'Concept Coverage', description: 'A visual map of the topic. Green blocks are foundational (start here), Purple are Keystones (core logic).', position: 'right' },
-    { targetId: 'health-section', title: 'AI Quality Health', description: 'Checks if the AI generated deep content (Mnemonics, Decision Trees) rather than just surface-level text.', position: 'left' },
-    { targetId: 'verification-section', title: 'Trust but Verify', description: 'Links to official docs and community discussions. Use these to cross-reference AI content with the real world.', position: 'left' },
-    { targetId: 'insights-section', title: 'Actionable Insights', description: 'Personalized study tips based on the analysis. Use "Verify Credibility" here to check against exam topics.', position: 'left' }
+    { targetId: 'content-quality-score', title: 'Content Quality', description: 'AI baseline score measuring content structure quality - not your mastery. Higher scores mean better mnemonics, examples, and decision frameworks.', position: 'bottom' },
+    { targetId: 'structural-completeness-score', title: 'Structural Completeness', description: 'Checks if AI generated all required fields: SHAPE sections, mnemonics, and decision trees. Missing elements trigger auto-repair.', position: 'bottom' },
+    { targetId: 'difficulty-score', title: 'Difficulty', description: 'Cognitive load rating based on concept density. Shows Beginner/Moderate/Advanced/Expert to help you plan study intensity.', position: 'bottom' },
+    { targetId: 'mastery-time-score', title: 'Est. Time', description: 'Time range to read and process this material. Accounts for different learning speeds (faster learners → lower end, methodical learners → upper end).', position: 'bottom' },
+    { targetId: 'treemap-section', title: 'Content Coverage', description: 'Visual map of concepts organized by tier. Green = Foundation (start here), Purple = Keystone (core exam logic), Amber = Utility (supporting).', position: 'bottom' },
+    { targetId: 'bucket-readiness-section', title: 'Bucket Readiness', description: 'Your progress through the three tiers of concepts. Foundation (green) → Keystone (purple) → Utility (amber). Shows concepts to learn before starting, or your completion % after.', position: 'bottom' },
+    { targetId: 'health-section', title: 'Content Health', description: 'Checks if AI generated deep learning elements (SHAPE sections, Mnemonics, Confusion Pairs, Decision Trees) instead of just surface text.', position: 'bottom' },
+    { targetId: 'insights-section', title: 'Study Insights', description: 'Personalized study recommendations generated from content analysis. Shows specific gaps or strengths to focus on.', position: 'bottom' },
+    { targetId: 'verification-section', title: 'Study Tip', description: 'Helpful guidance on using AI-generated content effectively. Links to official exam docs, reference materials, and real-world community discussions for cross-referencing.', position: 'bottom' }
 ];
 
 export default function ContentLaunchpad() {
@@ -74,20 +76,21 @@ export default function ContentLaunchpad() {
     const keystoneMastered = getMasteredCount('keystone');
     const utilityMastered = getMasteredCount('utility');
 
-    // Tutorial & Credibility State
-
-    // Tutorial & Credibility State
+    // Tutorial State
     const [showTutorial, setShowTutorial] = useState(false);
-    const [verifyingCredibility, setVerifyingCredibility] = useState(false);
-    const [credibilityScore, setCredibilityScore] = useState<number | null>(null);
 
-    const handleVerifyCredibility = () => {
-        setVerifyingCredibility(true);
-        // Simulate analysis scan time, but use REAL calculated data
-        setTimeout(() => {
-            setVerifyingCredibility(false);
-            setCredibilityScore(analytics?.metrics.predictedPassRate || 0);
-        }, 2000);
+    // Calculate staleness (days since generation)
+    const daysSinceGeneration = result ? Math.floor(
+        (Date.now() - new Date(result.generatedAt).getTime()) / (1000 * 60 * 60 * 24)
+    ) : 0;
+    const isStale = daysSinceGeneration > 90;
+
+    // Difficulty level based on cognitive load
+    const getDifficultyLabel = (score: number): string => {
+        if (score <= 3) return 'Beginner';
+        if (score <= 5) return 'Moderate';
+        if (score <= 7) return 'Advanced';
+        return 'Expert';
     };
 
     // 1. Fetch Data
@@ -392,34 +395,46 @@ export default function ContentLaunchpad() {
                 steps={TUTORIAL_STEPS}
             />
 
-            {/* SCORECARDS - SENSA v2.0 Equation-centric */}
+            {/* SCORECARDS - Renamed for clarity */}
             <div className={styles.scoreRow}>
                 <ScoreCard
-                    id="mastery-score"
-                    title="Mastery Index"
+                    id="content-quality-score"
+                    title="Content Quality"
                     value={`${systemPromptMetrics.equationMetadata?.I_baseline
                         ? Math.round(systemPromptMetrics.equationMetadata.I_baseline.value * 100)
-                        : (currentSession ? Math.round((currentSession.progress.completedConcepts.length / Math.max(1, currentSession.concepts.length)) * 100) : 0)}%`}
+                        : Math.round(metrics.qualityScore)}%`}
                     icon={Brain}
                     status={metrics.qualityScore > 80 ? 'good' : metrics.qualityScore > 60 ? 'neutral' : 'warning'}
+                    tooltip="AI baseline score - measures content structure quality, not your mastery"
                     delay={0.1}
                 />
                 <ScoreCard
-                    id="pass-rate-score"
-                    title="Content Depth Score"
+                    id="structural-completeness-score"
+                    title="Structural Completeness"
                     value={`${metrics.predictedPassRate}%`}
                     icon={Activity}
                     status={metrics.predictedPassRate > 75 ? 'good' : metrics.predictedPassRate > 50 ? 'neutral' : 'warning'}
+                    tooltip="Measures if AI generated all required fields: SHAPE sections, mnemonics, decision trees"
                     delay={0.15}
                 />
                 <ScoreCard
+                    id="difficulty-score"
+                    title="Difficulty"
+                    value={getDifficultyLabel(metrics.cognitiveLoadScore)}
+                    icon={Layers}
+                    status={metrics.cognitiveLoadScore > 7 ? 'warning' : metrics.cognitiveLoadScore > 4 ? 'neutral' : 'good'}
+                    tooltip={`Cognitive load: ${metrics.cognitiveLoadScore}/10 - based on concept density`}
+                    delay={0.2}
+                />
+                <ScoreCard
                     id="mastery-time-score"
-                    title="Est. Mastery Time"
-                    value={metrics.masteryTimeMinutes}
+                    title="Est. Time"
+                    value={`${Math.round(metrics.masteryTimeMinutes * 0.7)}-${Math.round(metrics.masteryTimeMinutes * 1.3)}`}
                     unit="mins"
                     icon={Clock}
                     status="neutral"
-                    delay={0.2}
+                    tooltip="Time range accounts for different learning speeds"
+                    delay={0.25}
                 />
             </div>
 
@@ -439,17 +454,21 @@ export default function ContentLaunchpad() {
                             <span>Content Coverage</span>
                             <LayoutGrid size={18} />
                         </div>
-                        <div style={{ flexGrow: 1, height: '100%', minHeight: '300px' }}>
+                        <div style={{ flexGrow: 1, height: '100%', minHeight: '200px' }}>
                             <CoverageTreemap data={coverageMap} />
                         </div>
                     </motion.div>
+                </div>
 
+                {/* RIGHT COLUMN */}
+                <div className={styles.rightColumn}>
                     {/* BUCKET READINESS CHECKLIST - Mental Filing Cabinet */}
                     <motion.div
+                        id="bucket-readiness-section"
                         className={styles.tierSection}
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.35, duration: 0.4 }}
+                        transition={{ delay: 0.25, duration: 0.4 }}
                     >
                         <div className={styles.sectionTitle}>
                             <span>Bucket Readiness</span>
@@ -468,13 +487,10 @@ export default function ContentLaunchpad() {
                                 total: systemPromptMetrics.tierDistribution.utility,
                                 mastered: utilityMastered
                             }}
-                            delay={0.4}
+                            delay={0.3}
                         />
                     </motion.div>
-                </div>
 
-                {/* RIGHT COLUMN */}
-                <div className={styles.rightColumn}>
                     {/* SENSA v2.0: EQUATION METADATA CARD */}
                     {systemPromptMetrics.equationMetadata && (
                         <motion.div
@@ -507,7 +523,7 @@ export default function ContentLaunchpad() {
                         />
                     </motion.div>
 
-                    {/* RECOMMENDATIONS / INSIGHTS */}
+                    {/* STUDY INSIGHTS */}
                     <motion.div
                         id="insights-section"
                         className={styles.recommendationsSection}
@@ -515,64 +531,11 @@ export default function ContentLaunchpad() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4, duration: 0.4 }}
                     >
-                        <div className={styles.sectionTitle} style={{ justifyContent: 'space-between' }}>
+                        <div className={styles.sectionTitle}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span>Insights</span>
+                                <span>Study Insights</span>
                                 <Sparkles size={18} />
                             </div>
-
-                            {/* CREDIBILITY VERIFICATION ACTION */}
-                            {!credibilityScore ? (
-                                <button
-                                    onClick={handleVerifyCredibility}
-                                    disabled={verifyingCredibility}
-                                    style={{
-                                        background: 'none',
-                                        border: '1px solid var(--color-border)',
-                                        padding: '0.25rem 0.75rem',
-                                        borderRadius: '1rem',
-                                        fontSize: '0.75rem',
-                                        color: verifyingCredibility ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
-                                        cursor: verifyingCredibility ? 'wait' : 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem'
-                                    }}
-                                >
-                                    {verifyingCredibility ? (
-                                        <>
-                                            <motion.div
-                                                animate={{ rotate: 360 }}
-                                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                            >
-                                                <Layers size={14} />
-                                            </motion.div>
-                                            Verifying Syllabus Alignment...
-                                        </>
-                                    ) : (
-                                        <>Verify Credibility</>
-                                    )}
-                                </button>
-                            ) : (
-                                <motion.div
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    style={{
-                                        background: 'var(--color-success-bg)',
-                                        color: COLORS.success,
-                                        padding: '0.25rem 0.75rem',
-                                        borderRadius: '1rem',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 600,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        border: '1px solid var(--color-success-border)'
-                                    }}
-                                >
-                                    <Sparkles size={14} /> 98% Exams Match
-                                </motion.div>
-                            )}
                         </div>
 
                         <div className={styles.recList}>
@@ -596,7 +559,12 @@ export default function ContentLaunchpad() {
 
                     {/* VERIFICATION SECTION - NEW */}
                     <div id="verification-section">
-                        <SourceVerification subject={result.subject} delay={0.45} />
+                        <SourceVerification 
+                            subject={result.subject} 
+                            generatedAt={result.generatedAt}
+                            isStale={isStale}
+                            delay={0.45} 
+                        />
                     </div>
 
                     {/* CONFUSION PAIRS PREVIEW - STEP 5.5 */}

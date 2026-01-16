@@ -44,6 +44,14 @@ export class SelfHealingEngine {
       case 'phase3.metrics':
         return ['Implementation Success', 'Operational Status'];
 
+      // Grounding fields
+      case 'blueprintMapping':
+        return `Verify ${conceptName} mapping against official exam objectives`;
+
+      case 'officialSource':
+        // This should ideally be handled by SURGICAL_AI, but as a fallback:
+        return ''; // Empty so validation continues to flag this for AI repair
+
       default:
         return 'Content to be verified';
     }

@@ -22,6 +22,9 @@ export interface VerifiableConcept {
     technicalDetails?: string;
     realWorldExample?: string;
     metaphor?: string;
+    // Grounding fields (Hybrid Grounding System)
+    officialSource?: string;      // URL to official documentation
+    blueprintMapping?: string;    // Exam objective mapping
     mnemonic?: { anchor?: string; story?: string;[key: string]: unknown };
     shape?: {
         simpleCore?: string;
@@ -32,6 +35,33 @@ export interface VerifiableConcept {
     };
     [key: string]: unknown;
 }
+
+// Official documentation domains for grounding validation
+const OFFICIAL_DOMAINS = [
+    'learn.microsoft.com',
+    'docs.microsoft.com',
+    'docs.aws.amazon.com',
+    'cloud.google.com',
+    'docs.oracle.com',
+    'kubernetes.io',
+    'developer.hashicorp.com',
+    'docs.docker.com',
+];
+
+/**
+ * Check if URL is from an official documentation domain
+ */
+export function isValidOfficialUrl(url: string | undefined): boolean {
+    if (!url || url.trim() === '') return false;
+    
+    try {
+        const parsedUrl = new URL(url);
+        return OFFICIAL_DOMAINS.some(domain => parsedUrl.hostname.includes(domain));
+    } catch {
+        return false;
+    }
+}
+
 const PLACEHOLDER_PATTERNS = [
     'pending generation',
     'is a core concept',
@@ -216,6 +246,28 @@ export function validateConceptContent(concept: VerifiableConcept): ContentGap[]
             conceptName: concept.name,
             severity: 'critical',
             message: 'Missing SHAPE high-stakes example'
+        });
+    }
+
+    // ===== GROUNDING FIELDS (Hybrid Grounding System) =====
+    // These are warnings, not critical - content can exist without grounding
+    if (!concept.officialSource || !isValidOfficialUrl(concept.officialSource)) {
+        gaps.push({
+            field: 'officialSource',
+            conceptId: concept.id,
+            conceptName: concept.name,
+            severity: 'warning',
+            message: 'Missing official documentation URL'
+        });
+    }
+
+    if (!concept.blueprintMapping || concept.blueprintMapping.length < 10) {
+        gaps.push({
+            field: 'blueprintMapping',
+            conceptId: concept.id,
+            conceptName: concept.name,
+            severity: 'warning',
+            message: 'Missing exam blueprint objective mapping'
         });
     }
 

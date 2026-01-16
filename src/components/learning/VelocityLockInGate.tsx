@@ -21,7 +21,8 @@ export default function VelocityLockInGate({
     const navigate = useNavigate();
 
     const handleGoBack = () => {
-        navigate(-1);
+        // Go to home instead of back (prevents returning to generate page)
+        navigate('/');
     };
 
     return (

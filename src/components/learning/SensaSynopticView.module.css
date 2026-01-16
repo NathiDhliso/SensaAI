@@ -176,8 +176,7 @@
 /* Nodes */
 .node {
     position: absolute;
-    width: 120px;
-    height: 120px;
+    /* Width and height now set inline via JavaScript for responsiveness */
     border-radius: 50%;
     background: var(--color-surface);
     border: 2px solid var(--color-border);
@@ -189,18 +188,20 @@
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 5;
-    /* transform: translate(-50%, -50%); handled by center calc now? No, positions are center based. Need translate -50 -50 if x/y are center */
-    margin-left: -60px;
-    /* Centering hack if using top/left directly */
-    margin-top: -60px;
+    /* Centering handled by inline marginLeft/marginTop */
+    transition: width 0.3s ease, height 0.3s ease, border-color 0.2s ease;
 }
 
 .nodeLabel {
-    font-size: var(--font-xs);
+    /* Font size now set inline via JavaScript for responsiveness */
     font-weight: 500;
     color: var(--color-text-primary);
     line-height: 1.2;
     pointer-events: none;
+    transition: font-size 0.3s ease;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 /* Tier Specific Styles */
@@ -212,28 +213,12 @@
 .node.keystone {
     border-color: var(--color-primary);
     background: radial-gradient(circle at 30% 30%, rgba(var(--color-primary-rgb), 0.2), var(--color-surface));
-    width: 140px;
-    height: 140px;
-    margin-left: -70px;
-    margin-top: -70px;
     z-index: 6;
-}
-
-.nodeLabel {
-    font-size: var(--font-sm);
 }
 
 .node.utility {
     border-color: var(--color-success);
     background: radial-gradient(circle at 30% 30%, rgba(var(--color-success-rgb), 0.2), var(--color-surface));
-    width: 100px;
-    height: 100px;
-    margin-left: -50px;
-    margin-top: -50px;
-}
-
-.node.utility .nodeLabel {
-    font-size: 11px;
 }
 
 .node.hub {

@@ -24,6 +24,9 @@ import {
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
 import { isRealContent, auditConceptContent } from '@/lib/validation/content-quality';
+import { useOrientationAwareZoom } from '@/hooks/useOrientationAwareZoom';
+import { useAllNodeSizes } from '@/hooks/useResponsiveNodeSize';
+import { resolveOverlaps, type NodePosition as LayoutNodePosition } from '@/lib/utils/layout-utils';
 import styles from './SensaSynopticView.module.css';
 
 interface SensaSynopticViewProps {
@@ -41,6 +44,7 @@ interface NodePosition {
 // CONSTANTS
 const CANVAS_SIZE = 2400; // Fixed "Virtual World" size
 const CENTER = { x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 };
+const MIN_NODE_SPACING = 150; // Minimum spacing between node edges (in pixels)
 
 export default function SensaSynopticView({ concepts, subjectName }: SensaSynopticViewProps) {
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -49,9 +53,12 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
     // Viewport Refs
     const mapContainerRef = useRef<HTMLDivElement>(null);
 
-    // Camera State
-    const [view, setView] = useState({ x: 0, y: 0, scale: 0.35 }); // Initial zoom out to fit
+    // Orientation-aware zoom controls (replaces manual view state)
+    const { view, zoomIn: handleZoomIn, zoomOut: handleZoomOut, resetZoom: handleSnapToFit } = useOrientationAwareZoom();
     const [isFullScreen, setIsFullScreen] = useState(false);
+
+    // Responsive node sizes based on current zoom and orientation
+    const nodeSizes = useAllNodeSizes(view.scale);
 
     // DEV: Audit content gaps when a concept is selected (logs to console)
     useEffect(() => {
@@ -74,7 +81,7 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
         );
     }, [concepts]);
 
-    // Calculate node positions on FIXED CANVAS
+    // Calculate node positions on FIXED CANVAS with collision detection
     const nodePositions = useMemo(() => {
         const positions = new Map<string, NodePosition>();
 
@@ -89,11 +96,11 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
             DELIVER: { start: (5 * Math.PI) / 6, end: (3 * Math.PI) / 2 } // 150 to 270
         };
 
-        // Radii per Tier (EXPANDED for visual clarity)
+        // Radii per Tier (INCREASED for better spacing)
         const radii = {
-            foundation: 220, // Inner
-            keystone: 450,   // Middle (Clear gap)
-            utility: 680     // Outer (Far out)
+            foundation: 280, // Inner (increased from 220)
+            keystone: 520,   // Middle (increased from 450)
+            utility: 760     // Outer (increased from 680)
         };
 
         // Group concepts by Phase AND Tier
@@ -112,34 +119,37 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
             }
         });
 
-        // Helper to place nodes within a sector arc with ZIG-ZAG to prevent overlap
-        const placeInSector = (nodes: LearningConcept[], sectorStart: number, sectorEnd: number, radius: number) => {
+        // Helper to place nodes within a sector arc with ENHANCED spacing
+        const placeInSector = (nodes: LearningConcept[], sectorStart: number, sectorEnd: number, radius: number, tier: 'foundation' | 'keystone' | 'utility') => {
             if (nodes.length === 0) return;
 
             // Sort by order
             nodes.sort((a, b) => (a.order || 0) - (b.order || 0));
 
+            // Get node size for this tier to calculate proper spacing
+            const nodeSize = nodeSizes[tier];
+            const nodeDiameter = Math.max(nodeSize.width, nodeSize.height);
+
             // Determine if we need to zig-zag (if too many nodes for this arc)
             const sectorSpan = sectorEnd - sectorStart;
             const arcLength = radius * sectorSpan;
-            const nodeDiameter = 120; // Assume larger node size
-            const maxNodesLinear = arcLength / nodeDiameter;
-            const useZigZag = nodes.length > (maxNodesLinear * 0.8); // Be aggressive with zig-zag
+            const maxNodesLinear = arcLength / (nodeDiameter + MIN_NODE_SPACING);
+            const useZigZag = nodes.length > (maxNodesLinear * 0.7); // More aggressive threshold
 
-            // Usable span (85%)
-            const usableSpan = sectorSpan * 0.85;
-            const offset = sectorStart + (sectorSpan * 0.075);
+            // Usable span (80% to leave margins)
+            const usableSpan = sectorSpan * 0.8;
+            const offset = sectorStart + (sectorSpan * 0.1);
 
             const step = nodes.length > 1 ? usableSpan / (nodes.length - 1) : 0;
 
             nodes.forEach((node, index) => {
                 const angle = nodes.length > 1 ? offset + (index * step) : sectorStart + (sectorSpan / 2);
 
-                // Zig-Zag Logic: Alternate radius AGGRESSIVELY
+                // Enhanced Zig-Zag Logic: Alternate radius MORE AGGRESSIVELY
                 let finalRadius = radius;
                 if (useZigZag) {
                     // Even indices pull in, Odd indices push out
-                    const zigZagAmount = 80; // Massive offset to clear neighbors
+                    const zigZagAmount = 120; // Increased from 80 for better separation
                     finalRadius = index % 2 === 0 ? radius - zigZagAmount : radius + zigZagAmount;
                 }
 
@@ -155,24 +165,46 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
         // Process all groups
         (['PREPARE', 'MODEL', 'DELIVER'] as const).forEach(phase => {
             const { start, end } = sectors[phase];
-            placeInSector(grouped[phase].foundation, start, end, radii.foundation);
-            placeInSector(grouped[phase].keystone, start, end, radii.keystone);
-            placeInSector(grouped[phase].utility, start, end, radii.utility);
+            placeInSector(grouped[phase].foundation, start, end, radii.foundation, 'foundation');
+            placeInSector(grouped[phase].keystone, start, end, radii.keystone, 'keystone');
+            placeInSector(grouped[phase].utility, start, end, radii.utility, 'utility');
+        });
+
+        // Apply collision detection and resolution
+        const positionsArray: LayoutNodePosition[] = Array.from(positions.entries()).map(([id, pos]) => {
+            const concept = validConcepts.find(c => c.id === id);
+            const tier = (concept?.tier || 'utility') as 'foundation' | 'keystone' | 'utility';
+            const nodeSize = nodeSizes[tier];
+            // Use half of max dimension as radius for collision detection
+            const radius = Math.max(nodeSize.width, nodeSize.height) / 2;
+
+            return {
+                id,
+                x: pos.x,
+                y: pos.y,
+                radius
+            };
+        });
+
+        // Resolve overlaps
+        const resolvedPositions = resolveOverlaps(positionsArray, 50, MIN_NODE_SPACING);
+
+        // Update positions map with resolved coordinates
+        resolvedPositions.forEach(resolved => {
+            const existing = positions.get(resolved.id);
+            if (existing) {
+                positions.set(resolved.id, {
+                    ...existing,
+                    x: resolved.x,
+                    y: resolved.y
+                });
+            }
         });
 
         return positions;
-    }, [validConcepts]); // Removed containerSize dependency
+    }, [validConcepts, nodeSizes]); // Added nodeSizes dependency
 
-    // Snap to Fit
-    const handleSnapToFit = () => {
-        if (!mapContainerRef.current) return;
-        // Simple center logic
-        setView({ x: 0, y: 0, scale: 0.35 }); // Reset to default "Overview" zoom
-    };
 
-    // Zoom Handlers
-    const handleZoomIn = () => setView(v => ({ ...v, scale: Math.min(v.scale * 1.2, 1.5) }));
-    const handleZoomOut = () => setView(v => ({ ...v, scale: Math.max(v.scale / 1.2, 0.1) }));
 
     const selectedConcept = useMemo(() =>
         validConcepts.find(c => c.id === selectedId),
@@ -262,23 +294,19 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
         }
     };
 
-    // Render connection lines (Golden Path + Hub Links)
+    // Render connection lines (Golden Path + Semantic Deep Connections)
     const renderLines = () => {
         const lines = [];
+        const drawnConnections = new Set<string>(); // Prevent duplicates
 
-        // 1. GOLDEN PATH: Sequential Line connecting all nodes in order
-        // Only show if not focusing on a specific tier/node (or if focusing on path?)
-        // Let's always show it faintly as the "backbone"
+        // 1. GOLDEN PATH (Sequence Context)
+        // Kept faint as a background "learning journey" indicator
         let pathD = '';
         sortedConcepts.forEach((concept, i) => {
             const pos = nodePositions.get(concept.id);
             if (!pos) return;
-
-            if (i === 0) {
-                pathD += `M ${pos.x} ${pos.y}`;
-            } else {
-                pathD += ` L ${pos.x} ${pos.y}`;
-            }
+            if (i === 0) pathD += `M ${pos.x} ${pos.y}`;
+            else pathD += ` L ${pos.x} ${pos.y}`;
         });
 
         if (pathD) {
@@ -287,57 +315,92 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                     key="golden-path"
                     d={pathD}
                     fill="none"
-                    stroke="var(--color-primary)" // Use primary color
-                    strokeWidth="2"
-                    strokeDasharray="6 4" // Dashed line
-                    opacity="0.6" // Increased visibility
+                    stroke="var(--color-primary)"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                    opacity="0.3" // Faint background context
                     className={styles.goldenPath}
                 />
             );
         }
 
-        // 2. Hub Links (Foundation Only)
-        Array.from(nodePositions.entries()).forEach(([id, pos]) => {
-            const concept = concepts.find(c => c.id === id);
-            if (concept?.tier === 'foundation') {
-                lines.push(
-                    <line
-                        key={`line-hub-${id}`}
-                        x1={CENTER.x}
-                        y1={CENTER.y}
-                        x2={pos.x}
-                        y2={pos.y}
-                        stroke="var(--color-text-muted)"
-                        strokeWidth="1" // Thinner
-                        opacity="0.5"
-                    />
-                );
-            }
-        });
+        // 2. SEMANTIC CONNECTIONS (Deep Structure)
+        // Iterate through all concepts and draw their explicit connections
+        validConcepts.forEach(concept => {
+            const startPos = nodePositions.get(concept.id);
+            if (!startPos || !concept.connections) return;
 
-        // 3. Selection Highlighting (Dependencies)
-        if (selectedId && focusedDefaults) {
-            const selectedPos = nodePositions.get(selectedId);
-            if (selectedPos) {
-                focusedDefaults.forEach(depId => {
-                    const depPos = nodePositions.get(depId);
-                    if (depPos) {
-                        lines.push(
-                            <line
-                                key={`focus-line-${selectedId}-${depId}`}
-                                x1={selectedPos.x}
-                                y1={selectedPos.y}
-                                x2={depPos.x}
-                                y2={depPos.y}
-                                stroke="var(--color-accent)"
-                                strokeWidth="2"
-                                opacity="0.8"
-                            />
-                        );
-                    }
-                });
-            }
-        }
+            concept.connections.forEach(conn => {
+                // Find target ID by name (since connections store target name)
+                const targetConcept = validConcepts.find(c => c.name.toLowerCase() === conn.target.toLowerCase());
+                if (!targetConcept) return;
+
+                const endPos = nodePositions.get(targetConcept.id);
+                if (!endPos) return;
+
+                // Create unique key for this pair to avoid double-drawing if bidirectional
+                // (Though directional arrows might be nice, for now standard lines)
+                const pairKey = [concept.id, targetConcept.id].sort().join('-');
+                if (drawnConnections.has(pairKey)) return;
+                drawnConnections.add(pairKey);
+
+                // Determine Concept Style
+                let strokeColor = 'var(--color-text-muted)';
+                let strokeWidth = '1.5';
+                let strokeDasharray = 'none';
+                let opacity = '0.6';
+
+                switch (conn.type) {
+                    case 'requires': // Hard Dependency
+                        strokeColor = 'var(--color-accent)'; // Highlight dependencies
+                        strokeWidth = '2';
+                        opacity = '0.9';
+                        break;
+                    case 'extends': // Enhancement
+                        strokeColor = 'var(--color-text-primary)';
+                        strokeDasharray = '6 3'; // Dashed
+                        break;
+                    case 'enables': // Capability Flow
+                        strokeColor = 'var(--color-function)'; // Function/Action color
+                        strokeDasharray = '2 2'; // Dotted
+                        break;
+                    case 'contains': // Composition
+                        strokeColor = 'var(--color-text-primary)';
+                        strokeWidth = '3'; // Thick
+                        opacity = '0.5';
+                        break;
+                    default: // related-to
+                        opacity = '0.4';
+                        break;
+                }
+
+                // Interaction: If focusing/selecting, dim unrelated lines
+                const isRelevant = !selectedId ||
+                    selectedId === concept.id ||
+                    selectedId === targetConcept.id;
+
+                if (!isRelevant) {
+                    opacity = '0.1';
+                }
+
+                lines.push(
+                    <g key={`conn-${concept.id}-${targetConcept.id}`}>
+                        <line
+                            x1={startPos.x}
+                            y1={startPos.y}
+                            x2={endPos.x}
+                            y2={endPos.y}
+                            stroke={strokeColor}
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={strokeDasharray}
+                            opacity={opacity}
+                            style={{ cursor: 'help' }}
+                        />
+                        <title>{`${concept.name} ${conn.type} ${targetConcept.name}`}</title>
+                    </g>
+                );
+            });
+        });
 
         return lines;
     };
@@ -430,6 +493,9 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                             const isFocusVisible = !selectedId || selectedId === concept.id || (focusedDefaults && focusedDefaults.has(concept.id));
                             const isVisible = isTierVisible && isFocusVisible;
 
+                            // Get responsive size for this tier
+                            const nodeSize = nodeSizes[tier as 'foundation' | 'keystone' | 'utility'];
+
                             return (
                                 <motion.div
                                     key={concept.id}
@@ -437,6 +503,10 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                                     style={{
                                         left: pos.x,
                                         top: pos.y,
+                                        width: nodeSize.width,
+                                        height: nodeSize.height,
+                                        marginLeft: -nodeSize.width / 2,
+                                        marginTop: -nodeSize.height / 2,
                                         opacity: isVisible ? 1 : 0.1,
                                         filter: isVisible ? 'none' : 'grayscale(100%) blur(2px)',
                                         pointerEvents: isVisible ? 'auto' : 'none'
@@ -455,7 +525,7 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                                     // [REMOVED] Hover handlers to eliminate popups
                                     whileHover={{ scale: isVisible ? 1.15 : 1 }}
                                 >
-                                    <span className={styles.nodeLabel}>{concept.name}</span>
+                                    <span className={styles.nodeLabel} style={{ fontSize: nodeSize.fontSize }}>{concept.name}</span>
                                 </motion.div>
                             );
                         })}

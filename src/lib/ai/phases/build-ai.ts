@@ -44,7 +44,38 @@ export interface LabelValidation {
 }
 
 /**
+ * Check if a concept has an AI-generated connection to another concept
+ * Returns the connection type (requires, extends, enables, contains) or null
+ */
+function getAIConnection(conceptA: LearningConcept, conceptB: LearningConcept): { type: string; isReverse: boolean } | null {
+    // Check if conceptA has a connection to conceptB
+    if (conceptA.connections && Array.isArray(conceptA.connections)) {
+        const match = conceptA.connections.find(
+            (c: { target?: string; type?: string }) =>
+                c.target && c.target.toLowerCase() === conceptB.name.toLowerCase()
+        );
+        if (match && match.type) {
+            return { type: match.type, isReverse: false };
+        }
+    }
+
+    // Check reverse: if conceptB has a connection to conceptA
+    if (conceptB.connections && Array.isArray(conceptB.connections)) {
+        const match = conceptB.connections.find(
+            (c: { target?: string; type?: string }) =>
+                c.target && c.target.toLowerCase() === conceptA.name.toLowerCase()
+        );
+        if (match && match.type) {
+            return { type: match.type, isReverse: true };
+        }
+    }
+
+    return null;
+}
+
+/**
  * Suggest connections between concepts based on their relationships
+ * PRIORITY: AI-generated connections > Keyword matching
  */
 export function suggestConnections(
     concepts: LearningConcept[],
@@ -78,10 +109,25 @@ export function suggestConnections(
                 continue;
             }
 
-            // Check for keyword overlap
+            // PRIORITY 1: Check for AI-generated connections
+            const aiConnection = getAIConnection(conceptA, conceptB);
+            if (aiConnection) {
+                // Use AI connection with high confidence
+                suggestions.push({
+                    id: `suggestion-${Date.now()}-${i}-${j}`,
+                    fromConceptId: aiConnection.isReverse ? conceptB.id : conceptA.id,
+                    toConceptId: aiConnection.isReverse ? conceptA.id : conceptB.id,
+                    suggestedLabel: aiConnection.type,
+                    confidence: 0.95, // High confidence for AI-generated connections
+                    reasoning: `AI-generated: "${conceptA.name}" ${aiConnection.type} "${conceptB.name}"`,
+                });
+                continue;
+            }
+
+            // PRIORITY 2: Fall back to keyword matching
             const connection = findConnectionType(conceptA, conceptB, effectiveStopWords);
 
-            // STRICTER THRESHOLD:
+            // STRICTER THRESHOLD for keyword-based connections:
             // Generic 'relates to' requires >0.65 (approx 3 shared words)
             // Specific labels (uses, requires) require >0.55 (2 shared words)
             if (connection) {

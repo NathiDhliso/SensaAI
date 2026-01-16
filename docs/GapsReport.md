@@ -919,6 +919,72 @@ async function processFeedback(flag: ContentFlag): Promise<void> {
 
 ---
 
+### 6.5 Generation UI Updates (Trust-Focused UX)
+
+**Context:** The current "Sci-Fi/Gaming" UI in `Generate.tsx` communicates "Magic" but professional users need "Accuracy." Keep the cockpit aesthetic but update labeling to build trust.
+
+**Required Changes:**
+
+| Area | Current State | New State | Purpose |
+|------|---------------|-----------|---------|
+| **HUD Source Panel** | "Input Vector" / "SIGNAL_LOCKED" | "Exam Blueprint" / "OBJECTIVES_LOCKED" or "UNGROUNDED_MODE" | Show grounding status |
+| **Agent State Labels** | Generic: scanning → thinking → writing → verifying | Specific: "Parsing Objectives..." → "Mapping to Blueprint..." → "Synthesizing..." → "Validating Docs..." | Communicate real work |
+| **Slow Network Indicator** | None | Toast warning after 10s on "Verifying" | Prevent user panic |
+
+**Implementation:**
+
+```tsx
+// 1. Update HUD Source Panel (src/pages/Generate.tsx)
+<div className={styles.sourcePanel}>
+  <span className={styles.hudLabel}>Exam Blueprint</span>
+  <span className={styles.sourceTitle}>
+    {pendingFile ? pendingFile.name : 'Standard Parametric Knowledge'}
+  </span>
+  <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', opacity: 0.6 }}>
+    <div style={{ 
+      width: '8px', height: '8px', 
+      background: pendingFile ? COLORS.success : COLORS.warning, 
+      borderRadius: '50%' 
+    }} />
+    <span style={{ fontSize: '0.7rem' }}>
+      {pendingFile ? 'OBJECTIVES_LOCKED' : 'UNGROUNDED_MODE'}
+    </span>
+  </div>
+</div>
+
+// 2. Update Progress Callback Messages
+if (pass === 1) update.activity = 'Parsing Blueprint Objectives...';
+if (pass === 2) update.activity = 'Mapping Concepts to Blueprint...';
+if (pass === 3) update.activity = 'Synthesizing Grounded Content...';
+if (pass === 4) update.activity = 'Validating Official Documentation Links...';
+
+// 3. Add Slow Network Detection
+const [verifyingStartTime, setVerifyingStartTime] = useState<number | null>(null);
+useEffect(() => {
+  if (passes[4] === 'in-progress' && !verifyingStartTime) {
+    setVerifyingStartTime(Date.now());
+  }
+  if (passes[4] !== 'in-progress') {
+    setVerifyingStartTime(null);
+  }
+}, [passes[4]]);
+
+useEffect(() => {
+  if (!verifyingStartTime) return;
+  const timeout = setTimeout(() => {
+    toast.info('Link validation in progress. This may take longer on slow networks.', {
+      duration: 5000,
+      icon: '🔗'
+    });
+  }, 10000);
+  return () => clearTimeout(timeout);
+}, [verifyingStartTime]);
+```
+
+**UX Principle:** Trust is the new currency. Every label should answer: "What is the system doing to ensure accuracy?"
+
+---
+
 ## Conclusion
 
 Your content generation architecture is solid. The critical gap is **grounding**. Implementing **Hybrid Grounding (Blueprint-First + Documentation Linking)** will:

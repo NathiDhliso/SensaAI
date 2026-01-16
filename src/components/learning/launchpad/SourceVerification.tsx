@@ -1,14 +1,67 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Book, Globe, Users, ShieldCheck } from 'lucide-react';
+import { ExternalLink, Book, Globe, Users, Lightbulb } from 'lucide-react';
 import styles from './SourceVerification.module.css';
 
 interface SourceVerificationProps {
     subject: string;
+    generatedAt?: string;
+    isStale?: boolean;
     delay?: number;
 }
 
-export const SourceVerification: React.FC<SourceVerificationProps> = ({ subject, delay = 0 }) => {
+export const SourceVerification: React.FC<SourceVerificationProps> = ({ 
+    subject, 
+    generatedAt,
+    isStale = false,
+    delay = 0 
+}) => {
+
+    // Safe date formatting
+    const formattedDate = generatedAt 
+        ? (() => {
+            const date = new Date(generatedAt);
+            return isNaN(date.getTime()) 
+                ? null 
+                : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+          })()
+        : null;
+
+    // Generate accurate official documentation URL
+    const getOfficialDocsUrl = (topic: string): string => {
+        const normalized = topic.toUpperCase().replace(/[\s-]/g, '');
+        
+        // Microsoft Azure certifications (AZ-###)
+        if (/^AZ\d{3}/.test(normalized)) {
+            const certCode = topic.match(/AZ-?\d{3}/i)?.[0].toUpperCase() || topic;
+            return `https://learn.microsoft.com/en-us/credentials/certifications/exams/${certCode.toLowerCase()}`;
+        }
+        
+        // Microsoft Power Platform (PL-###)
+        if (/^PL\d{3}/.test(normalized)) {
+            const certCode = topic.match(/PL-?\d{3}/i)?.[0].toUpperCase() || topic;
+            return `https://learn.microsoft.com/en-us/credentials/certifications/exams/${certCode.toLowerCase()}`;
+        }
+        
+        // Microsoft Dynamics (MB-###)
+        if (/^MB\d{3}/.test(normalized)) {
+            const certCode = topic.match(/MB-?\d{3}/i)?.[0].toUpperCase() || topic;
+            return `https://learn.microsoft.com/en-us/credentials/certifications/exams/${certCode.toLowerCase()}`;
+        }
+        
+        // AWS certifications
+        if (topic.toLowerCase().includes('aws')) {
+            return `https://aws.amazon.com/certification/`;
+        }
+        
+        // Google Cloud
+        if (topic.toLowerCase().includes('gcp') || topic.toLowerCase().includes('google cloud')) {
+            return `https://cloud.google.com/learn/certification`;
+        }
+        
+        // Fallback to general search
+        return `https://www.google.com/search?q=${encodeURIComponent(topic)}+official+exam+guide`;
+    };
 
     // Heuristic: Build smart search URLs based on the subject
     const getLinks = (term: string) => [
@@ -16,7 +69,7 @@ export const SourceVerification: React.FC<SourceVerificationProps> = ({ subject,
             id: 'docs',
             label: 'Official Docs',
             icon: Book,
-            url: `https://www.google.com/search?q=${encodeURIComponent(term)}+official+documentation`,
+            url: getOfficialDocsUrl(term),
             color: 'var(--color-accent)',
             desc: 'The ground truth'
         },
@@ -51,14 +104,17 @@ export const SourceVerification: React.FC<SourceVerificationProps> = ({ subject,
         >
             <div className={styles.header}>
                 <div className={styles.titleGroup}>
-                    <ShieldCheck size={18} className={styles.icon} />
-                    <h3>Verify Content</h3>
+                    <Lightbulb size={16} className={styles.icon} />
+                    <h3>Study Tip</h3>
                 </div>
-                <span className={styles.badge}>Live Web Check</span>
+                {formattedDate && (
+                    <span className={styles.badge}>{formattedDate}</span>
+                )}
             </div>
 
             <p className={styles.description}>
-                Solidify your confidence. Cross-reference this AI-generated plan with authorized real-world sources.
+                This AI-generated content covers key concepts{formattedDate ? ` (created ${formattedDate})` : ''}. 
+                For the latest details, cross-reference with official docs and real-world discussions.
             </p>
 
             <div className={styles.linkGrid}>

@@ -1,0 +1,245 @@
+{
+  "examCode": "SAA-C03",
+  "examName": "AWS Certified Solutions Architect - Associate",
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "https://aws.amazon.com/certification/certified-solutions-architect-associate/",
+  "version": "SAA-C03-v2026.01",
+  "objectives": [
+    {
+      "id": "1",
+      "title": "Design Secure Architectures",
+      "weight": "30%",
+      "skills": [
+        "Design secure access to AWS resources",
+        "Design secure workloads and applications",
+        "Determine appropriate data security controls"
+      ],
+      "subObjectives": [
+        {
+          "id": "1.1",
+          "title": "Design secure access to AWS resources",
+          "skills": [
+            "Access controls and management across multiple accounts",
+            "AWS federated access and identity services",
+            "AWS global infrastructure",
+            "AWS security best practices",
+            "The AWS shared responsibility model"
+          ]
+        },
+        {
+          "id": "1.2",
+          "title": "Design secure workloads and applications",
+          "skills": [
+            "Application configuration and credentials security",
+            "AWS service endpoints",
+            "Control ports, protocols, and network traffic on AWS",
+            "Secure application access",
+            "Security services with appropriate use cases"
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Determine appropriate data security controls",
+          "skills": [
+            "Data access and governance",
+            "Data recovery",
+            "Data retention and classification",
+            "Encryption and appropriate key management"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Design Resilient Architectures",
+      "weight": "26%",
+      "skills": [
+        "Design scalable and loosely coupled architectures",
+        "Design highly available and/or fault-tolerant architectures"
+      ],
+      "subObjectives": [
+        {
+          "id": "2.1",
+          "title": "Design scalable and loosely coupled architectures",
+          "skills": [
+            "API creation and management",
+            "AWS managed services with appropriate use cases",
+            "Caching strategies",
+            "Design principles for microservices",
+            "Event-driven architectures",
+            "Horizontal and vertical scaling",
+            "How to appropriately use edge accelerators",
+            "How to migrate applications into containers",
+            "Load balancing concepts",
+            "Multi-tier architectures",
+            "Queuing and messaging concepts",
+            "Serverless technologies and patterns",
+            "Storage types with associated characteristics",
+            "When to use read replicas",
+            "Workflow orchestration"
+          ]
+        },
+        {
+          "id": "2.2",
+          "title": "Design highly available and/or fault-tolerant architectures",
+          "skills": [
+            "AWS global infrastructure",
+            "AWS managed services with appropriate use cases",
+            "Basic networking concepts",
+            "Disaster recovery (DR) strategies",
+            "Distributed design patterns",
+            "Failover strategies",
+            "Immutable infrastructure",
+            "Load balancing concepts",
+            "Proxy concepts",
+            "Service quotas and throttling",
+            "Storage options and characteristics",
+            "Workload visibility"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Design High-Performing Architectures",
+      "weight": "24%",
+      "skills": [
+        "Determine high-performing and/or scalable storage solutions",
+        "Design high-performing and elastic compute solutions",
+        "Determine high-performing database solutions",
+        "Determine high-performing and/or scalable network architectures",
+        "Determine high-performing data ingestion and transformation solutions"
+      ],
+      "subObjectives": [
+        {
+          "id": "3.1",
+          "title": "Determine high-performing and/or scalable storage solutions",
+          "skills": [
+            "Hybrid storage solutions to meet business requirements",
+            "Storage services with appropriate use cases",
+            "Storage types with associated characteristics"
+          ]
+        },
+        {
+          "id": "3.2",
+          "title": "Design high-performing and elastic compute solutions",
+          "skills": [
+            "AWS compute services with appropriate use cases",
+            "Distributed computing concepts supported by AWS global infrastructure",
+            "Queuing and messaging concepts",
+            "Scalability capabilities with appropriate use cases",
+            "Serverless technologies and patterns",
+            "The orchestration of containers"
+          ]
+        },
+        {
+          "id": "3.3",
+          "title": "Determine high-performing database solutions",
+          "skills": [
+            "AWS global infrastructure",
+            "Caching strategies and services",
+            "Data access patterns",
+            "Database capacity planning",
+            "Database connections and proxies",
+            "Database engines with appropriate use cases",
+            "Database replication"
+          ]
+        },
+        {
+          "id": "3.4",
+          "title": "Determine high-performing and/or scalable network architectures",
+          "skills": [
+            "Edge networking services with appropriate use cases",
+            "How to design network architecture",
+            "Load balancing concepts",
+            "Network connection options"
+          ]
+        },
+        {
+          "id": "3.5",
+          "title": "Determine high-performing data ingestion and transformation solutions",
+          "skills": [
+            "Data analytics and visualization services with appropriate use cases",
+            "Data ingestion patterns",
+            "Data transfer services with appropriate use cases",
+            "Data transformation services with appropriate use cases",
+            "Secure access to ingestion access points"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Design Cost-Optimized Architectures",
+      "weight": "20%",
+      "skills": [
+        "Design cost-optimized storage solutions",
+        "Design cost-optimized compute solutions",
+        "Design cost-optimized database solutions",
+        "Design cost-optimized network architectures"
+      ],
+      "subObjectives": [
+        {
+          "id": "4.1",
+          "title": "Design cost-optimized storage solutions",
+          "skills": [
+            "Access options",
+            "AWS cost management service features",
+            "AWS cost management tools with appropriate use cases",
+            "AWS storage services with appropriate use cases",
+            "Backup strategies",
+            "Block storage options",
+            "Data lifecycles",
+            "Hybrid storage options",
+            "Storage access patterns",
+            "Storage tiering",
+            "Storage types with associated characteristics"
+          ]
+        },
+        {
+          "id": "4.2",
+          "title": "Design cost-optimized compute solutions",
+          "skills": [
+            "AWS cost management service features",
+            "AWS cost management tools with appropriate use cases",
+            "AWS global infrastructure",
+            "AWS purchasing options",
+            "Distributed compute strategies",
+            "Hybrid compute options",
+            "Instance types, families, and sizes",
+            "Memory optimization",
+            "Scaling strategies"
+          ]
+        },
+        {
+          "id": "4.3",
+          "title": "Design cost-optimized database solutions",
+          "skills": [
+            "AWS cost management service features",
+            "AWS cost management tools with appropriate use cases",
+            "Caching strategies",
+            "Data retention policies",
+            "Database capacity planning",
+            "Database connections and proxies",
+            "Database engines with appropriate use cases",
+            "Database replication",
+            "Database types and services"
+          ]
+        },
+        {
+          "id": "4.4",
+          "title": "Design cost-optimized network architectures",
+          "skills": [
+            "AWS cost management service features",
+            "AWS cost management tools with appropriate use cases",
+            "Load balancing concepts",
+            "NAT gateways",
+            "Network connectivity",
+            "Network routing, topology, and peering",
+            "Network services with appropriate use cases"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -9,7 +9,7 @@
  */
 
 import { useState, useCallback, type ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -107,16 +107,10 @@ export function StudyLayout({
     setIsTabMenuOpen(false);
   }, [onTabChange]);
 
-  const location = useLocation();
-
   const handleBack = useCallback(() => {
-    // Check if there is history to go back to
-    if (location.key !== 'default') {
-      navigate(-1);
-    } else {
-      navigate('/');
-    }
-  }, [navigate, location]);
+    // Always go home - prevents returning to generate page which causes duplicates
+    navigate('/');
+  }, [navigate]);
 
   const activeTabConfig = TABS.find(t => t.id === activeTab) || TABS[0];
 

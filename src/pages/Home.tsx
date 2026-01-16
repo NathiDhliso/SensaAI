@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, Zap, Cloud } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud, Upload, ShieldCheck, FileText, X } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -88,15 +88,15 @@ const DIFFICULTY_LEVELS = {
 
 export default function Home() {
   const [subject, setSubject] = useState('');
-  const [context, setContext] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showCloudLibrary, setShowCloudLibrary] = useState(false);
+  const [blueprintFile, setBlueprintFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   /* Hooks & Store */
   const { openSettingsPanel } = useUIStore();
-  // Using explicit cast to avoid type inference issues with store intersection types
-  const { recentSubjects } = useGenerationStore() as any;
+  const { recentSubjects, setPendingFile } = useGenerationStore() as any;
 
   /* Derived State */
   const allSubjects = useMemo(() => {
@@ -118,12 +118,26 @@ export default function Home() {
     setShowSuggestions(false);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBlueprintFile(file);
+      setPendingFile(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setBlueprintFile(null);
+    setPendingFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleGenerate = () => {
     if (subject.trim()) {
       setShowSuggestions(false);
-      // Navigate directly to Generate page with optional context
-      const queryParams = context.trim() ? `?context=${encodeURIComponent(context.trim())}` : '';
-      navigate(`/generate/${encodeURIComponent(subject)}${queryParams}`);
+      navigate(`/generate/${encodeURIComponent(subject)}`);
     }
   };
 
@@ -193,16 +207,58 @@ export default function Home() {
               </AnimatePresence>
             </div>
 
-            {/* [NEW] Context Input */}
-            <div className={styles.contextInputWrapper}>
+            {/* Blueprint Upload Section */}
+            <div className={styles.blueprintSection}>
               <input
-                type="text"
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
-                placeholder="Target Exam / Context (Optional) - e.g. AZ-104, NCLEX, High School AP"
-                className={styles.contextInput}
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.json,.txt"
+                onChange={handleFileUpload}
+                style={{ display: 'none' }}
+                id="blueprint-upload"
               />
+              
+              {blueprintFile ? (
+                <div className={styles.blueprintAttached}>
+                  <div className={styles.blueprintInfo}>
+                    <ShieldCheck size={16} className={styles.verifiedIcon} />
+                    <FileText size={14} />
+                    <span className={styles.blueprintName}>{blueprintFile.name}</span>
+                    <span className={styles.groundedBadge}>GROUNDED</span>
+                  </div>
+                  <button 
+                    onClick={handleRemoveFile}
+                    className={styles.removeBlueprint}
+                    aria-label="Remove blueprint"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className={styles.uploadBlueprintButton}
+                >
+                  <Upload size={14} />
+                  <span>Attach Exam Blueprint (Optional)</span>
+                  <span className={styles.uploadHint}>PDF or JSON for verified content</span>
+                </button>
+              )}
             </div>
+          </div>
+
+          {/* Grounding Status Indicator */}
+          <div className={styles.groundingStatus}>
+            {blueprintFile ? (
+              <div className={styles.groundedStatus}>
+                <ShieldCheck size={14} />
+                <span>Blueprint Grounded — Content will be verified against official objectives</span>
+              </div>
+            ) : (
+              <div className={styles.ungroundedStatus}>
+                <span>Standard Mode — AI knowledge only, verify against official docs</span>
+              </div>
+            )}
           </div>
 
           <button

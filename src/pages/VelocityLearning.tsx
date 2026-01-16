@@ -21,6 +21,7 @@ import { UI_TIMINGS } from '@/constants/ui-constants';
 // import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
 import { EquationTracker } from '@/components/ui/EquationTracker';
 import { FlowProgressBar } from '@/components/ui/FlowProgressBar';
+import { ConceptProgressIndicator } from '@/components/ui/ConceptProgressIndicator';
 import MomentumCheckpoint from '@/components/ui/MomentumCheckpoint';
 import SessionTimeToast from '@/components/ui/SessionTimeToast';
 import MicroLearningLoopController from '@/components/learning/MicroLearningLoopController';
@@ -225,6 +226,15 @@ export default function VelocityLearning() {
                     {/* SENSA v2.0: Equation Tracker - Hide in Explore Mode */}
                     {studySession?.goal !== 'explore' && (
                         <>
+                            {/* Concept Progress Indicator - Shows "Concept X of Y" */}
+                            {currentSession && currentPhase === 'LEARN' && (
+                                <ConceptProgressIndicator
+                                    current={currentSession.progress.completedConcepts.length + 1}
+                                    total={currentSession.concepts.length}
+                                    compact={true}
+                                />
+                            )}
+
                             <EquationTracker
                                 G={sensaFlow.G}
                                 Q_P={sensaFlow.Q_P}
@@ -401,6 +411,7 @@ export default function VelocityLearning() {
                         exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
                     >
                         <MicroLearningLoopController
+                            key={activeConcept.id}
                             concept={activeConcept}
                             allConcepts={currentSession!.concepts}
                             complexityScore={(activeConcept as LearningConcept & { complexityScore?: number }).complexityScore || 5}

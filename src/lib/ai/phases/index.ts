@@ -35,3 +35,11 @@ export {
     type CoachFeedback,
     type SpacingRecommendation,
 } from './retain-ai';
+
+// Map Scoring (Build Phase Validation)
+export {
+    scoreConceptMap,
+    getScoreCoachMessage,
+    type MapScore,
+    type MapScoreBreakdown,
+} from './score-map';

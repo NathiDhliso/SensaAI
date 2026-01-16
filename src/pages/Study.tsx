@@ -65,7 +65,7 @@ export default function Study() {
   const [searchParams] = useSearchParams();
 
   // Initialize tab from URL query param or default to overview
-  const initialTab = (searchParams.get('tab') as StudyTab) || 'learn';
+  const initialTab = (searchParams.get('tab') as StudyTab) || 'overview';
   const [activeTab, setActiveTab] = useState<StudyTab>(initialTab);
   const [learningConceptId, setLearningConceptId] = useState<string | null>(null);
   const [isHydrating, setIsHydrating] = useState(false);

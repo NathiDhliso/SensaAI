@@ -24,7 +24,9 @@ import {
     Undo2,
     Redo2,
     X,
-    LayoutGrid
+    LayoutGrid,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import type { LearningConcept, ConceptMapData } from '@/lib/types/learning';
 import type { DependencyGraph, ValidationResult } from '@/lib/types/sensa-flow.types';
@@ -146,6 +148,9 @@ export default function ConceptMapBuilder({
     const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
     const [detectedGaps, setDetectedGaps] = useState<GapDetection[]>([]);
     const [showAiPanel, setShowAiPanel] = useState(true);
+
+    // Sidebar State
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // =========================================================================
     // HISTORY MANAGEMENT (Undo/Redo)
@@ -794,92 +799,109 @@ export default function ConceptMapBuilder({
         <div className={styles.container}>
             {/* Sidebar with Visual Bucket Zones */}
             {!readOnly && (
-                <div className={styles.sidebar}>
-                    <div className={styles.sidebarHeader}>
-                        <h3 className={styles.sidebarTitle}>Concepts by Tier</h3>
-                        <p className={styles.sidebarHint}>Click to add to canvas</p>
-                    </div>
+                <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+                    {/* Collapse Toggle Button */}
+                    <button
+                        className={styles.sidebarToggle}
+                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                        title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                        {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                    </button>
 
-                    {/* Foundation Zone */}
-                    <div className={styles.bucketZone}>
-                        <div className={`${styles.bucketHeader} ${styles.bucketFoundation}`}>
-                            <span className={styles.bucketIcon}>🔷</span>
-                            <span>Foundation</span>
-                            <span className={styles.bucketCount}>
-                                {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation').length}
-                            </span>
+                    {/* Header - only show when expanded */}
+                    {!sidebarCollapsed && (
+                        <div className={styles.sidebarHeader}>
+                            <h3 className={styles.sidebarTitle}>Concepts by Tier</h3>
+                            <p className={styles.sidebarHint}>Click to add to canvas</p>
                         </div>
-                        <div className={styles.bucketConcepts}>
-                            {concepts
-                                .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation')
-                                .map(c => (
-                                    <div
-                                        key={c.id}
-                                        className={`${styles.sidebarItem} ${styles.foundationItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
-                                        onClick={() => handleAddConcept(c)}
-                                    >
-                                        {c.name}
-                                        {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
-                                    </div>
-                                ))}
-                        </div>
-                    </div>
+                    )}
 
-                    {/* Keystone Zone */}
-                    <div className={styles.bucketZone}>
-                        <div className={`${styles.bucketHeader} ${styles.bucketKeystone}`}>
-                            <span className={styles.bucketIcon}>🔶</span>
-                            <span>Keystone</span>
-                            <span className={styles.bucketCount}>
-                                {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone').length}
-                            </span>
-                        </div>
-                        <div className={styles.bucketConcepts}>
-                            {concepts
-                                .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone')
-                                .map(c => (
-                                    <div
-                                        key={c.id}
-                                        className={`${styles.sidebarItem} ${styles.keystoneItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
-                                        onClick={() => handleAddConcept(c)}
-                                    >
-                                        {c.name}
-                                        {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
-                                    </div>
-                                ))}
-                        </div>
-                    </div>
+                    {/* Bucket Zones - only show when expanded */}
+                    {!sidebarCollapsed && (
+                        <>
+                            {/* Foundation Zone */}
+                            <div className={styles.bucketZone}>
+                                <div className={`${styles.bucketHeader} ${styles.bucketFoundation}`}>
+                                    <span className={styles.bucketIcon}>🔷</span>
+                                    <span>Foundation</span>
+                                    <span className={styles.bucketCount}>
+                                        {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation').length}
+                                    </span>
+                                </div>
+                                <div className={styles.bucketConcepts}>
+                                    {concepts
+                                        .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation')
+                                        .map(c => (
+                                            <div
+                                                key={c.id}
+                                                className={`${styles.sidebarItem} ${styles.foundationItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                onClick={() => handleAddConcept(c)}
+                                            >
+                                                {c.name}
+                                                {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
 
-                    {/* Utility Zone */}
-                    <div className={styles.bucketZone}>
-                        <div className={`${styles.bucketHeader} ${styles.bucketUtility}`}>
-                            <span className={styles.bucketIcon}>🔹</span>
-                            <span>Utility</span>
-                            <span className={styles.bucketCount}>
-                                {concepts.filter(c => {
-                                    const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
-                                    return t !== 'foundation' && t !== 'keystone';
-                                }).length}
-                            </span>
-                        </div>
-                        <div className={styles.bucketConcepts}>
-                            {concepts
-                                .filter(c => {
-                                    const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
-                                    return t !== 'foundation' && t !== 'keystone';
-                                })
-                                .map(c => (
-                                    <div
-                                        key={c.id}
-                                        className={`${styles.sidebarItem} ${styles.utilityItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
-                                        onClick={() => handleAddConcept(c)}
-                                    >
-                                        {c.name}
-                                        {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
-                                    </div>
-                                ))}
-                        </div>
-                    </div>
+                            {/* Keystone Zone */}
+                            <div className={styles.bucketZone}>
+                                <div className={`${styles.bucketHeader} ${styles.bucketKeystone}`}>
+                                    <span className={styles.bucketIcon}>🔶</span>
+                                    <span>Keystone</span>
+                                    <span className={styles.bucketCount}>
+                                        {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone').length}
+                                    </span>
+                                </div>
+                                <div className={styles.bucketConcepts}>
+                                    {concepts
+                                        .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone')
+                                        .map(c => (
+                                            <div
+                                                key={c.id}
+                                                className={`${styles.sidebarItem} ${styles.keystoneItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                onClick={() => handleAddConcept(c)}
+                                            >
+                                                {c.name}
+                                                {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+
+                            {/* Utility Zone */}
+                            <div className={styles.bucketZone}>
+                                <div className={`${styles.bucketHeader} ${styles.bucketUtility}`}>
+                                    <span className={styles.bucketIcon}>🔹</span>
+                                    <span>Utility</span>
+                                    <span className={styles.bucketCount}>
+                                        {concepts.filter(c => {
+                                            const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
+                                            return t !== 'foundation' && t !== 'keystone';
+                                        }).length}
+                                    </span>
+                                </div>
+                                <div className={styles.bucketConcepts}>
+                                    {concepts
+                                        .filter(c => {
+                                            const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
+                                            return t !== 'foundation' && t !== 'keystone';
+                                        })
+                                        .map(c => (
+                                            <div
+                                                key={c.id}
+                                                className={`${styles.sidebarItem} ${styles.utilityItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                onClick={() => handleAddConcept(c)}
+                                            >
+                                                {c.name}
+                                                {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
 

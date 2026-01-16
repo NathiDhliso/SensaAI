@@ -44,6 +44,8 @@ export default function Generate() {
     isGenerating,
     streamedConcepts,
     expectedConceptCount,
+    pendingFile,
+    progress,
     startGeneration,
     completeGeneration,
     setError,
@@ -77,6 +79,10 @@ export default function Generate() {
   const lastProgressUpdateRef = useRef<number>(0);
   const PROGRESS_THROTTLE_MS = 250;
 
+  // Slow network detection for link validation phase
+  const [verifyingStartTime, setVerifyingStartTime] = useState<number | null>(null);
+  const slowNetworkToastShown = useRef(false);
+
   // Shared callback function to handle progress updates
   const createProgressCallback = useCallback(() => {
     return (pass: number, status: PassStatus, data?: ProgressData) => {
@@ -100,9 +106,17 @@ export default function Generate() {
         validation?: ValidationResult;
       } = { pass, status };
 
-      // Set activity message
+      // Set activity message - Use verification-aware labels for trust
       if (data?.message) {
         update.activity = data.message;
+      } else if (pass === 1 && status === 'in-progress') {
+        update.activity = 'Parsing Blueprint Objectives...';
+      } else if (pass === 2 && status === 'in-progress') {
+        update.activity = 'Mapping Concepts to Blueprint...';
+      } else if (pass === 3 && status === 'in-progress') {
+        update.activity = data?.partial ? 'Synthesizing Grounded Content...' : 'Generating detailed content...';
+      } else if (pass === 4 && status === 'in-progress') {
+        update.activity = 'Validating Official Documentation Links...';
       } else if (data?.partial) {
         update.activity = 'Generating detailed content...';
       }
@@ -231,17 +245,17 @@ export default function Generate() {
           await storageManager.saveResult(savedResult);
           const loadResult = parseAndLoadContent(result.fullDocument, resultId);
           if (loadResult.success) {
-            // Navigate to Dashboard instead of straight to Velocity Learning
-            setTimeout(() => navigate(`/study/${resultId}`), UI_TIMINGS.DELAY_SHORT);
+            // Navigate to Dashboard - use replace to prevent back navigation to generate
+            setTimeout(() => navigate(`/study/${resultId}`, { replace: true }), UI_TIMINGS.DELAY_SHORT);
           } else {
-            navigate(`/study/${resultId}`);
+            navigate(`/study/${resultId}`, { replace: true });
           }
         } catch (storageError) {
           console.error('[Generate] Storage save failed:', storageError);
-          navigate(`/study/${resultId}`);
+          navigate(`/study/${resultId}`, { replace: true });
         }
       } else {
-        navigate(`/study/${Date.now()}`);
+        navigate(`/study/${Date.now()}`, { replace: true });
       }
     };
 
@@ -468,6 +482,29 @@ export default function Generate() {
       passes[3] === 'in-progress' ? 3 :
         passes[4] === 'in-progress' ? 4 : 0;
 
+  // Slow network detection for link validation phase
+  useEffect(() => {
+    if (passes[4] === 'in-progress' && !verifyingStartTime) {
+      setVerifyingStartTime(Date.now());
+      slowNetworkToastShown.current = false;
+    }
+    if (passes[4] !== 'in-progress') {
+      setVerifyingStartTime(null);
+    }
+  }, [passes, verifyingStartTime]);
+
+  useEffect(() => {
+    if (!verifyingStartTime || slowNetworkToastShown.current) return;
+    const timeout = setTimeout(() => {
+      if (!slowNetworkToastShown.current) {
+        // Slow network warning - could add a UI indicator here
+        console.log('Link validation taking longer than expected...');
+        slowNetworkToastShown.current = true;
+      }
+    }, 10000); // Show after 10 seconds on verification phase
+    return () => clearTimeout(timeout);
+  }, [verifyingStartTime]);
+
   return (
     <div className={styles.container}>
 
@@ -502,13 +539,22 @@ export default function Generate() {
         {/* HUD: Data & Stats */}
         <div className={styles.hudContainer}>
 
-          {/* Left: Source Data */}
+          {/* Left: Grounding Context */}
           <div className={styles.sourcePanel}>
-            <span className={styles.hudLabel}>Input Vector</span>
-            <span className={styles.sourceTitle}>{decodeURIComponent(subject || 'Unknown Source')}</span>
+            <span className={styles.hudLabel}>Exam Blueprint</span>
+            <span className={styles.sourceTitle}>
+              {pendingFile ? pendingFile.name : 'Standard Parametric Knowledge'}
+            </span>
             <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', opacity: 0.6 }}>
-              <div style={{ width: '8px', height: '8px', background: COLORS.success, borderRadius: '50%' }}></div>
-              <span style={{ fontSize: '0.7rem' }}>SIGNAL_LOCKED</span>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                background: pendingFile ? COLORS.success : COLORS.warning, 
+                borderRadius: '50%' 
+              }} />
+              <span style={{ fontSize: '0.7rem' }}>
+                {pendingFile ? 'OBJECTIVES_LOCKED' : 'UNGROUNDED_MODE'}
+              </span>
             </div>
           </div>
 
@@ -516,10 +562,10 @@ export default function Generate() {
           <div className={styles.progressPanel}>
             <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
               <span className={styles.hudLabel}>Construct Integrity</span>
-              <span className={styles.hudLabel}>{Math.round(useGenerationStore.getState().progress)}%</span>
+              <span className={styles.hudLabel}>{Math.round(progress)}%</span>
             </div>
             <div className={styles.progressLine}>
-              <div className={styles.progressFill} style={{ width: `${useGenerationStore.getState().progress}%` }}></div>
+              <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
             </div>
           </div>
 

@@ -176,6 +176,15 @@ export interface LearningConcept {
    * Common Pitfalls / Critical Distinguishements (Phase 2)
    */
   commonPitfalls?: string[];
+
+  /**
+   * AI-generated semantic connections to other concepts.
+   * Types: requires, extends, enables, contains, related-to
+   */
+  connections?: Array<{
+    target: string;
+    type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to';
+  }>;
   // ========== END SENSA v2.0 ==========
 
   // Core Content
