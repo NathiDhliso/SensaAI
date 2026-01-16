@@ -115,7 +115,7 @@ export default function GuidedPrimer({
             audioManager.fadeOutBackgroundMusic(1000);
             audioManager.stopNarration();
         };
-    }, [musicEnabled]);
+    }, []);
 
     // Play narration when step changes (with proper sequencing)
     useEffect(() => {
@@ -194,14 +194,12 @@ export default function GuidedPrimer({
     };
 
     const handleComplete = () => {
-        audioManager.fadeOutBackgroundMusic(1500).catch(() => { });
+        audioManager.fadeOutBackgroundMusic(1500);
         onComplete({ reason, action, reward });
     };
 
     const handleSkipConfirm = () => {
-        // Fire and forget audio fade - don't block UI navigation
-        audioManager.fadeOutBackgroundMusic(500).catch(() => { });
-
+        audioManager.fadeOutBackgroundMusic(500);
         // Use sensible defaults for skipped priming
         onComplete({
             reason: 'Quick start',

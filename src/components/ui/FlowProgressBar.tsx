@@ -26,6 +26,8 @@ interface FlowProgressBarProps {
     completedPhases: SensaPhase[];
     orientation?: 'horizontal' | 'vertical';
     compact?: boolean;
+    /** Sub-progress within the current phase (0-1) for micro-learning loops */
+    subProgress?: number;
 }
 
 // ============================================================================
@@ -49,6 +51,7 @@ export function FlowProgressBar({
     completedPhases,
     orientation = 'horizontal',
     compact = false,
+    subProgress = 0,
 }: FlowProgressBarProps) {
     const getStepStatus = (stepId: SensaPhase): 'completed' | 'active' | 'upcoming' => {
         if (completedPhases.includes(stepId)) return 'completed';
@@ -57,6 +60,11 @@ export function FlowProgressBar({
     };
 
     const currentIndex = FLOW_STEPS.findIndex(s => s.id === currentPhase);
+
+    // Calculate total progress including sub-progress
+    // Each phase is worth 1.0, sub-progress adds fractional progress within current phase
+    const totalProgress = currentIndex + Math.min(Math.max(subProgress, 0), 1);
+    const progressPercent = ((totalProgress) / FLOW_STEPS.length) * 100;
 
     return (
         <div
@@ -68,7 +76,7 @@ export function FlowProgressBar({
                     className={styles.progressFill}
                     initial={{ width: 0 }}
                     animate={{
-                        width: `${((currentIndex + 0.5) / FLOW_STEPS.length) * 100}%`
+                        width: `${progressPercent}%`
                     }}
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
                 />

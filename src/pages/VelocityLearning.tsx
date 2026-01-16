@@ -7,8 +7,9 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Brain } from 'lucide-react';
+import { AlertCircle, Brain, Home, BookOpen } from 'lucide-react';
 
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/hooks/useLearningFlow';
@@ -39,6 +40,9 @@ import type { SensaAILearningConcept } from '@/lib/content-adapter/transformer';
 import styles from './VelocityLearning.module.css';
 
 export default function VelocityLearning() {
+    // 0. Navigation
+    const navigate = useNavigate();
+
     // 1. Core State & Actions
     const {
         currentSession,
@@ -53,7 +57,8 @@ export default function VelocityLearning() {
         markSessionScouted,
         markSessionPreviewed,
         markSessionMapBuilt,
-        markSessionMastered
+        markSessionMastered,
+        clearSession,
     } = useLearningStore();
 
 
@@ -132,9 +137,10 @@ export default function VelocityLearning() {
 
         // "Sonic Boom" Effect for Mastery
         if (outcome === 'mastered') {
-            const audio = new Audio('/audio/voice/sage_master_success.mp3');
-            audio.volume = 0.5;
-            audio.play().catch(e => console.warn('Audio play failed', e));
+            // Use AudioService singleton instead of creating new Audio instances
+            import('@/services/AudioService').then(({ AudioService }) => {
+                AudioService.play('mastery', '/audio/voice/sage_master_success.mp3');
+            });
         }
 
         completeConcept(activeConcept.id);
@@ -149,6 +155,17 @@ export default function VelocityLearning() {
 
     const handleDiagnosticComplete = (results: DiagnosticResults) => {
         completeDiagnostic(results);
+    };
+
+    // Navigation Handlers (Dead-End Fixes)
+    const handleReturnToDashboard = () => {
+        // Critical: Clear session state to prevent zombie sessions
+        clearSession();
+        navigate('/');
+    };
+
+    const handleGoToLibrary = () => {
+        navigate('/');
     };
 
     // 6. Rendering Logic
@@ -179,6 +196,14 @@ export default function VelocityLearning() {
                     <AlertCircle size={48} className={styles.emptyIcon} />
                     <h2>No Active Learning Session</h2>
                     <p>Please generate or load content from the Home screen to begin.</p>
+                    <button
+                        onClick={handleGoToLibrary}
+                        className={styles.primaryButton}
+                        aria-label="Go to library to generate or load content"
+                    >
+                        <Home size={20} />
+                        Go to Library
+                    </button>
                 </div>
             </div>
         );
@@ -210,11 +235,17 @@ export default function VelocityLearning() {
                                 compact={true}
                             />
 
-                            {/* SENSA v2.0: Flow Progress Bar */}
+                            {/* SENSA v2.0: Flow Progress Bar with Sub-Progress */}
                             <FlowProgressBar
                                 currentPhase={sensaFlow.phase}
                                 completedPhases={sensaFlow.completedSteps}
                                 compact={true}
+                                subProgress={
+                                    // Calculate sub-progress during STUDY phase (micro-learning loop)
+                                    sensaFlow.phase === 'study' && currentSession
+                                        ? currentSession.progress.completedConcepts.length / currentSession.concepts.length
+                                        : 0
+                                }
                             />
                         </>
                     )}
@@ -424,6 +455,24 @@ export default function VelocityLearning() {
                         <Brain size={48} className={styles.emptyIcon} />
                         <h2>All Caught Up!</h2>
                         <p>You've completed all available concepts for now.</p>
+                        <div className={styles.buttonGroup}>
+                            <button
+                                onClick={handleReturnToDashboard}
+                                className={styles.primaryButton}
+                                aria-label="Return to dashboard"
+                            >
+                                <Home size={20} />
+                                Return to Dashboard
+                            </button>
+                            <button
+                                onClick={handleReturnToDashboard}
+                                className={styles.secondaryButton}
+                                aria-label="Review session summary"
+                            >
+                                <BookOpen size={20} />
+                                Review Session
+                            </button>
+                        </div>
                     </div>
                 );
         }

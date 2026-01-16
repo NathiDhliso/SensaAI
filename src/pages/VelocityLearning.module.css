@@ -104,6 +104,35 @@
     box-shadow: var(--shadow-glow-primary-hover);
 }
 
+.secondaryButton {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    color: var(--color-text-primary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all var(--transition-fast);
+}
+
+.secondaryButton:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 .dashboardContainer {
     margin-bottom: 0;
     width: 100%;

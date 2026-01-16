@@ -1,184 +1,57 @@
-import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
-import { Mail, Lock, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LogIn, Loader2, ArrowRight, Sparkles } from 'lucide-react';
 import styles from './Login.module.css';
 
 export function Login() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { loginWithCredentials, isAuthenticated } = useAuthStore();
-
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    // Access store error to display it (as it cleans up AWS error messages)
-    // NOTE: Must be before any conditional returns to follow React hooks rules
-    const storeError = useAuthStore(state => state.error);
+    const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
 
     // Redirect if already authenticated
-    useEffect(() => {
-        if (isAuthenticated) {
-            const from = (location.state as { from?: string })?.from || '/';
-            navigate(from, { replace: true });
-        }
-    }, [isAuthenticated, navigate, location]);
+    if (isAuthenticated) {
+        const from = (location.state as { from?: string })?.from || '/';
+        navigate(from, { replace: true });
+        return null;
+    }
 
-    // Early return AFTER all hooks
-    if (isAuthenticated) return null;
-
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!email || !password) {
-            setError('Please fill in all fields');
-            return;
-        }
-
-        setError(null);
-        setIsLoading(true);
-
-        try {
-            await loginWithCredentials(email, password);
-            // Navigation handled by auth check effect or manual redirect here
-            navigate('/');
-        } catch (err: unknown) {
-            // Error is also set in store, but we can set local state too if preferred
-            // For now relying on local state for immediate feedback control
-            console.error(err);
-            // The store sets the error, but we want to ensure we display it.
-            // We can check store error or just use the caught error.
-        } finally {
-            setIsLoading(false);
-        }
+    const handleCognitoLogin = () => {
+        clearError();
+        login();
     };
-
 
     return (
         <div className={styles.container}>
-            <motion.div
-                className={styles.glassCard}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-            >
-                {/* Visual Side (Left) - Prime Directive */}
-                <div className={styles.visualSide}>
-                    <div className={styles.visualContent}>
-                        <div className={styles.logoIcon} style={{ background: 'var(--overlay-white-20)' }}>
-                            <Sparkles size={24} />
-                        </div>
-
-                        {/* Prime Directive Banner */}
-                        <div className={styles.primeDirective}>
-                            <h2 className={styles.primeTitle}>🎯 Prime Directive</h2>
-                            <p className={styles.primeStatement}>
-                                <strong>Own your learning.</strong> Don't just pass exams—build mental architecture that lasts a lifetime.
-                            </p>
-                            <div className={styles.primePrinciples}>
-                                <span>🧠 Understand First</span>
-                                <span>🔗 Connect Always</span>
-                                <span>🔥 Apply Relentlessly</span>
-                            </div>
-                        </div>
-
-                        <div style={{ marginTop: 'auto' }}>
-                            <p className={styles.quote}>
-                                "Learning is not attained by chance, it must be sought for with ardor and attended to with diligence."
-                            </p>
-                            <span className={styles.author}>— Abigail Adams</span>
-                        </div>
+            <div className={styles.card}>
+                <div className={styles.header}>
+                    <div className={styles.logo}>
+                        <Sparkles size={32} />
                     </div>
-                    {/* Decorative Shapes */}
-                    <div className={`${styles.visualShape} ${styles.shape1}`} />
-                    <div className={`${styles.visualShape} ${styles.shape2}`} />
+                    <h1 className={styles.title}>Welcome to SensaPBL</h1>
                 </div>
 
-                {/* Form Side (Right) */}
-                <div className={styles.formSide}>
-                    <div className={styles.header}>
-                        <div className={styles.logoIcon}>
-                            <Sparkles size={28} />
-                        </div>
-                        <h1 className={styles.title}>Welcome Back</h1>
-                        <p className={styles.subtitle}>Sign in to continue your learning journey</p>
+                {error && (
+                    <div className={styles.error}>
+                        {error}
                     </div>
+                )}
 
-                    <AnimatePresence mode="wait">
-                        {(error || storeError) && (
-                            <motion.div
-                                className={styles.errorBox}
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                            >
-                                <AlertCircle size={18} />
-                                <span>{error || storeError}</span>
-                            </motion.div>
+                <div className={styles.content}>
+                    <button
+                        className={styles.primaryButton}
+                        onClick={handleCognitoLogin}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <Loader2 className={styles.spinner} size={20} />
+                        ) : (
+                            <LogIn size={20} />
                         )}
-                    </AnimatePresence>
-
-                    <form className={styles.form} onSubmit={handleSubmit}>
-                        <div className={styles.inputGroup}>
-                            <label className={styles.label} htmlFor="email">Email Address</label>
-                            <div className={styles.inputWrapper}>
-                                <Mail size={18} className={styles.inputIcon} />
-                                <input
-                                    id="email"
-                                    type="email"
-                                    className={styles.input}
-                                    placeholder="name@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    disabled={isLoading}
-                                />
-                            </div>
-                        </div>
-
-                        <div className={styles.inputGroup}>
-                            <label className={styles.label} htmlFor="password">Password</label>
-                            <div className={styles.inputWrapper}>
-                                <Lock size={18} className={styles.inputIcon} />
-                                <input
-                                    id="password"
-                                    type="password"
-                                    className={styles.input}
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    disabled={isLoading}
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            className={styles.submitButton}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <Loader2 className={styles.spinner} size={20} />
-                            ) : (
-                                <>
-                                    <span>Sign In</span>
-                                    <ArrowRight size={18} />
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    <div className={styles.footer}>
-                        <p>
-                            Don't have an account?
-                            <span className={styles.link} onClick={() => navigate('/signup')}>
-                                Sign up
-                            </span>
-                        </p>
-                    </div>
+                        <span>Sign In / Sign Up</span>
+                        <ArrowRight size={16} />
+                    </button>
                 </div>
-            </motion.div>
+            </div>
         </div>
     );
 }

@@ -26,6 +26,7 @@ import {
   NeuralResetBanner,
   SessionSummary,
 } from '@/components/learning';
+import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
 
 
 // ... (existing imports)
@@ -190,9 +191,21 @@ export default function Study() {
         // Silver Bullet: VelocityLearning replaces legacy list view
         return (
           <Suspense fallback={<div className={styles.loading}>Loading Velocity Engine...</div>}>
-            <div style={{ height: '100%', minHeight: '600px' }}>
-              <VelocityLearning />
-            </div>
+            <LearningErrorBoundary
+              onRecover={() => {
+                // Attempt to recover by reloading the session
+                console.log('[ErrorBoundary] Attempting session recovery');
+              }}
+              onAbandon={() => {
+                // Clear corrupted state and navigate to dashboard
+                useLearningStore.getState().clearSession();
+                navigate('/');
+              }}
+            >
+              <div style={{ height: '100%', minHeight: '600px' }}>
+                <VelocityLearning />
+              </div>
+            </LearningErrorBoundary>
           </Suspense>
         );
 
