@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { COLORS } from '@/constants/theme-colors';
 import {
     Activity,
     Clock,

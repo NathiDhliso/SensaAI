@@ -13,7 +13,7 @@ interface SourceVerificationProps {
 export const SourceVerification: React.FC<SourceVerificationProps> = ({ 
     subject, 
     generatedAt,
-    isStale = false,
+    isStale: _isStale = false,
     delay = 0 
 }) => {
 

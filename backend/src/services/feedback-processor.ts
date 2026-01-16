@@ -8,7 +8,7 @@
  * - broken-link: Auto-search for updated URL
  */
 
-import type { ContentFlag, FlagType, ExamBlueprint } from '../types/grounding';
+import type { ContentFlag, FlagType, ExamBlueprint as _ExamBlueprint } from '../types/grounding';
 
 // ============================================================================
 // TYPES

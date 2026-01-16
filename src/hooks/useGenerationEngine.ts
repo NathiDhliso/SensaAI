@@ -377,7 +377,6 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
       addRecentSubject,
       handleGenerationSuccess,
       handleGenerationError,
-      getCheckpointResumeData,
     ]
   );
 

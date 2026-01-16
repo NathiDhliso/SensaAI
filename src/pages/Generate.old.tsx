@@ -14,7 +14,7 @@
  * @module pages/Generate
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { COLORS } from '@/constants/theme-colors';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, AlertCircle, Trash2 } from 'lucide-react';
@@ -94,16 +94,14 @@ export default function Generate() {
     expectedConceptCount,
     pendingFile,
     progress,
-    setError,
+    setError: _setError,
     canResumeFromCheckpoint,
   } = useGenerationStore();
 
   // Refs
   const hasStartedRef = useRef(false);
   const slowNetworkToastShown = useRef(false);
-
-  // Local UI state
-  const [verifyingStartTime, setVerifyingStartTime] = useState<number | null>(null);
+  const verifyingStartTimeRef = useRef<number | null>(null);
 
   // Generation engine hook
   const {
@@ -179,17 +177,17 @@ export default function Generate() {
 
   // Slow network detection for link validation phase
   useEffect(() => {
-    if (passes[4] === 'in-progress' && !verifyingStartTime) {
-      setVerifyingStartTime(Date.now());
+    if (passes[4] === 'in-progress' && !verifyingStartTimeRef.current) {
+      verifyingStartTimeRef.current = Date.now();
       slowNetworkToastShown.current = false;
     }
     if (passes[4] !== 'in-progress') {
-      setVerifyingStartTime(null);
+      verifyingStartTimeRef.current = null;
     }
-  }, [passes, verifyingStartTime]);
+  }, [passes]);
 
   useEffect(() => {
-    if (!verifyingStartTime || slowNetworkToastShown.current) return;
+    if (!verifyingStartTimeRef.current || slowNetworkToastShown.current) return;
     const timeout = setTimeout(() => {
       if (!slowNetworkToastShown.current) {
         console.log('Link validation taking longer than expected...');
@@ -197,7 +195,7 @@ export default function Generate() {
       }
     }, 10000);
     return () => clearTimeout(timeout);
-  }, [verifyingStartTime]);
+  }, [passes]);
 
   // ============================================================================
   // COMPUTED VALUES
@@ -330,14 +328,7 @@ export default function Generate() {
           <div className={styles.resumeDialog}>
             <h2>Resume Cognitive Trace?</h2>
             <p>
-              Found residual memory signature from{' '}
-              {(() => {
-                const checkpoint = useGenerationStore.getState().checkpoint;
-                if (!checkpoint) return 'earlier';
-                const age = Date.now() - checkpoint.timestamp;
-                const minutes = Math.floor(age / 60000);
-                return minutes < 1 ? 'just now' : `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-              })()}
+              Found residual memory signature from earlier
             </p>
             <div className={styles.dialogActions}>
               <button

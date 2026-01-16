@@ -99,7 +99,7 @@ export function useCollisionDetection(
         return false;
       }
     },
-    [options]
+    [options, checkForLocalExisting]
   );
 
   /**

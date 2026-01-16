@@ -19,7 +19,7 @@ import type {
   LinkValidationResult,
   GroundingMetadata,
   ExamBlueprint,
-  ExamObjective,
+  ExamObjective as _ExamObjective,
 } from '../types/grounding';
 import { CONFIDENCE_WEIGHTS } from '../types/grounding';
 
