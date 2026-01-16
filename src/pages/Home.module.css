@@ -2,10 +2,14 @@
 
 .container {
   min-height: 100vh;
-  background-color: var(--color-bg-primary);
+  /* Fix: Use gradient instead of flat color to avoid "too solid" look */
+  background: var(--gradient-paper);
+  /* Technical Grid - made subtler to blend with gradient */
   background-image:
-    radial-gradient(circle at 15% 50%, var(--overlay-accent-05) 0%, transparent 25%),
-    radial-gradient(circle at 85% 30%, var(--overlay-sage-05) 0%, transparent 25%);
+    radial-gradient(var(--color-border) 1px, transparent 1px),
+    var(--gradient-paper);
+  background-size: 40px 40px, 100% 100%;
+  background-repeat: repeat, no-repeat;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -13,6 +17,40 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
+}
+
+/* Paper Texture - Controlled via Pseudo-element */
+/* Paper Texture - Controlled via Pseudo-element */
+.container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/paper-texture.png');
+  background-size: cover;
+  /* Default (Light Mode): Multiply to see texture on light paper */
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Dark Mode Texture Handling (Crucial for "Not Solid" feel) */
+:global(.dark) .container::before,
+:global([data-theme="dark"]) .container::before {
+  mix-blend-mode: overlay;
+  opacity: 0.15;
+  filter: invert(1) contrast(1.2);
+}
+
+/* Vignette */
+.container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 40%, var(--color-bg-primary) 100%);
+  pointer-events: none;
+  z-index: 1;
+  /* Above texture */
 }
 
 .heroWrapper {
@@ -30,21 +68,42 @@
 /* Glass Card - The Container */
 .heroContent {
   /* Adaptive Glass: White in light mode, Dark in dark mode */
-  background: color-mix(in srgb, var(--color-surface), transparent 40%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid color-mix(in srgb, var(--color-border), transparent 60%);
+  /* New Reactive Container Styles */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
   border-radius: 2rem;
-  padding: 3rem;
+  padding: 4rem 3rem;
+  /* More vertical space */
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  box-shadow:
-    var(--shadow-xl),
-    0 0 0 1px color-mix(in srgb, var(--color-surface), transparent 70%) inset;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Base shadow - will be animated in JS via Framer Motion */
+  box-shadow: var(--shadow-xl);
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   align-items: center;
   /* Center content */
+  position: relative;
+  z-index: 10;
+  /* Ensure content is above texture */
+}
+
+/* The "Heartbeat" Pulse Animation */
+@keyframes heartbeat {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0);
+  }
+
+  50% {
+    box-shadow: 0 0 20px 0 rgba(var(--color-primary-rgb), 0.1);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0);
+  }
+}
+
+.heroContent.idle {
+  animation: heartbeat 4s infinite ease-in-out;
 }
 
 .heroContent:hover {
@@ -54,8 +113,9 @@
 }
 
 .heroIcon {
-  filter: drop-shadow(0 0 15px var(--color-accent));
-  margin-bottom: 0.5rem;
+  /* Icon is now handled by Framer Motion for full reactivity */
+  margin-bottom: 2rem;
+  z-index: 10;
 }
 
 .title {
@@ -116,7 +176,10 @@
   width: 100%;
   padding: 1.25rem 1.5rem 1.25rem 4rem;
   border-radius: 1.5rem;
-  border: 2px solid transparent;
+  border-radius: 1.5rem;
+  /* Fix: Use explicit visible border color initially */
+  border: 2px solid var(--color-border-light);
+  background: var(--color-surface);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
   font-size: 1.125rem;
@@ -128,8 +191,8 @@
 .input:focus {
   outline: none;
   background: var(--color-surface);
-  box-shadow: var(--shadow-glow-primary);
-  border-color: var(--color-accent-light);
+  border-color: var(--color-primary);
+  /* Glow handled by container now */
 }
 
 .input::placeholder {
@@ -176,7 +239,10 @@
   gap: 0.5rem;
   padding: 0.875rem 1.25rem;
   border-radius: 1rem;
-  border: 1px dashed var(--color-border);
+  border-radius: 1rem;
+  /* Fix: Use stronger border color for visibility */
+  border: 1px dashed var(--color-border-emphasis);
+  background: transparent;
   background: transparent;
   color: var(--color-text-muted);
   font-size: 0.9rem;

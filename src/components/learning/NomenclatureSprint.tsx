@@ -48,6 +48,7 @@ export function NomenclatureSprint({
 }: NomenclatureSprintProps) {
     // Game state
     const [isStarted, setIsStarted] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
     const [timeLeft, setTimeLeft] = useState(SPRINT_DURATION_SECONDS);
     const [currentPairIndex, setCurrentPairIndex] = useState(0);
     const [score, setScore] = useState({ correct: 0, total: 0 });
@@ -155,6 +156,7 @@ export function NomenclatureSprint({
     }, [currentPair, currentPairIndex, matchPairs.length, feedback]);
 
     const handleRetry = useCallback(() => {
+        setRetryCount(prev => prev + 1);
         setIsComplete(false);
         setIsStarted(false);
         setTimeLeft(SPRINT_DURATION_SECONDS);
@@ -166,11 +168,13 @@ export function NomenclatureSprint({
 
     const handleContinue = useCallback(() => {
         const accuracy = score.total > 0 ? score.correct / score.total : 0;
-        onComplete(accuracy >= PASS_THRESHOLD, accuracy);
-    }, [score, onComplete]);
+        const effectiveThreshold = retryCount >= 2 ? 0.5 : PASS_THRESHOLD;
+        onComplete(accuracy >= effectiveThreshold, accuracy);
+    }, [score, onComplete, retryCount]);
 
     const accuracy = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
-    const passed = accuracy >= PASS_THRESHOLD * 100;
+    const effectiveThreshold = retryCount >= 2 ? 0.5 : PASS_THRESHOLD;
+    const passed = accuracy >= effectiveThreshold * 100;
 
     // ========================================================================
     // Pre-start view

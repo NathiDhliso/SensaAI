@@ -96,7 +96,7 @@ export default function Home() {
 
   /* Hooks & Store */
   const { openSettingsPanel } = useUIStore();
-  const { recentSubjects, setPendingFile } = useGenerationStore() as any;
+  const { recentSubjects, setPendingFile } = useGenerationStore();
 
   /* Derived State */
   const allSubjects = useMemo(() => {
@@ -144,12 +144,33 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <div className={styles.heroWrapper}>
-        <div className={styles.heroContent}>
-          <SensaShape type="nebula" size="xl" className={styles.heroIcon} />
+        <motion.div
+          className={`${styles.heroContent} ${!subject ? styles.idle : ''}`}
+          animate={{
+            boxShadow: subject.length > 0
+              ? `0 0 ${20 + subject.length * 2}px ${subject.length * 0.5}px rgba(124, 58, 237, ${Math.min(subject.length * 0.05, 0.6)})`
+              : "0 4px 24px rgba(0,0,0,0.1)" // Fallback/Base shadow
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          {/* Reactive Sensa Shape - Wakes up on input */}
+          <div className={styles.heroIcon}>
+            <SensaShape
+              type="nebula"
+              size="xl"
+              animate={true}
+            />
+          </div>
 
           <div className={styles.inputSection}>
             <div className={styles.inputWrapper}>
-              <Search className={styles.searchIcon} />
+              <Search
+                className={styles.searchIcon}
+                style={{
+                  color: subject.length > 0 ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  filter: subject.length > 0 ? 'drop-shadow(0 0 8px var(--color-primary))' : 'none'
+                }}
+              />
               <input
                 type="text"
                 value={subject}
@@ -160,8 +181,9 @@ export default function Home() {
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), UI_TIMINGS.BLUR_DELAY)}
                 onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                placeholder="e.g., AWS Solutions Architect, Python, PMP..."
+                placeholder="Initialize Learning System..." // Technical placeholder
                 className={styles.input}
+                autoFocus
               />
               <AnimatePresence>
                 {showSuggestions && filteredSuggestions.length > 0 && (
@@ -217,7 +239,7 @@ export default function Home() {
                 style={{ display: 'none' }}
                 id="blueprint-upload"
               />
-              
+
               {blueprintFile ? (
                 <div className={styles.blueprintAttached}>
                   <div className={styles.blueprintInfo}>
@@ -226,7 +248,7 @@ export default function Home() {
                     <span className={styles.blueprintName}>{blueprintFile.name}</span>
                     <span className={styles.groundedBadge}>GROUNDED</span>
                   </div>
-                  <button 
+                  <button
                     onClick={handleRemoveFile}
                     className={styles.removeBlueprint}
                     aria-label="Remove blueprint"
@@ -286,7 +308,7 @@ export default function Home() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
 
         <div className={styles.actionButtons}>
           <button onClick={() => setShowCloudLibrary(true)} className={styles.cloudLibraryButton}>
@@ -306,9 +328,9 @@ export default function Home() {
         <CloudLibraryModal
           isOpen={showCloudLibrary}
           onClose={() => setShowCloudLibrary(false)}
-          onUpdate={() => {}}
+          onUpdate={() => { }}
         />
       </div>
-    </div>
+    </div >
   );
 }

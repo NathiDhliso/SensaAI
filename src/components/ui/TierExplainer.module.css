@@ -5,7 +5,7 @@
 .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--overlay-black-60);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -14,10 +14,8 @@
 }
 
 .container {
-    background: linear-gradient(145deg,
-            rgba(15, 23, 42, 0.98),
-            rgba(30, 41, 59, 0.95));
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--gradient-paper);
+    border: 1px solid var(--color-border);
     border-radius: 16px;
     padding: 1.5rem;
     max-width: 480px;
@@ -45,8 +43,8 @@
     height: 32px;
     border-radius: 8px;
     border: none;
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
+    background: var(--color-surface-subtle);
+    color: var(--color-text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -62,7 +60,7 @@
 /* Intro */
 .intro {
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-text-medium);
     line-height: 1.5;
     margin-bottom: 1.5rem;
 }
@@ -80,7 +78,7 @@
     align-items: flex-start;
     gap: 1rem;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-surface-subtle);
     border-radius: 12px;
     border-left: 3px solid var(--tier-color);
     position: relative;
@@ -112,21 +110,21 @@
 
 .tierDescription {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-text-light);
     margin-bottom: 0.5rem;
 }
 
 .tierOutdegree {
     display: block;
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text-muted);
     font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .tierExample {
     display: block;
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--color-text-muted);
     font-style: italic;
     margin-top: 0.25rem;
 }
@@ -136,7 +134,7 @@
     bottom: -0.75rem;
     left: 50%;
     transform: translateX(-50%);
-    color: rgba(255, 255, 255, 0.2);
+    color: var(--color-border);
     z-index: 1;
 }
 
@@ -147,10 +145,10 @@
 
 .footerNote {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text-muted);
     margin-bottom: 1rem;
     padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-surface-subtle);
     border-radius: 8px;
 }
 

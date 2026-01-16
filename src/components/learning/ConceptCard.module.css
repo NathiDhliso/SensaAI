@@ -51,27 +51,27 @@
 }
 
 .bloomBadge.remember {
-  background-color: #4CAF50;
+  background-color: var(--color-bloom-remember);
 }
 
 .bloomBadge.understand {
-  background-color: #2196F3;
+  background-color: var(--color-bloom-understand);
 }
 
 .bloomBadge.apply {
-  background-color: #9C27B0;
+  background-color: var(--color-bloom-apply);
 }
 
 .bloomBadge.analyze {
-  background-color: #FF9800;
+  background-color: var(--color-bloom-analyze);
 }
 
 .bloomBadge.evaluate {
-  background-color: #F44336;
+  background-color: var(--color-bloom-evaluate);
 }
 
 .bloomBadge.create {
-  background-color: #FFD700;
+  background-color: var(--color-bloom-create);
   color: #333;
 }
 

@@ -270,7 +270,8 @@
     width: 100%;
     padding: 1rem 1.25rem;
     background: var(--color-surface-base);
-    border: 1px dashed var(--color-primary-subtle);
+    /* Fix: Use a visible border color instead of faint overlay */
+    border: 1px dashed var(--color-border-emphasis);
     border-radius: var(--radius-md);
     color: var(--color-text-secondary);
     font-weight: 500;

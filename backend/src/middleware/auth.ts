@@ -32,19 +32,37 @@ function getKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) {
     });
 }
 
+/**
+ * Extract token from request - supports both HttpOnly cookies and Authorization header
+ * Cookie-based auth is preferred for security (XSS protection)
+ */
+function extractToken(req: Request): string | null {
+    // First, try to get token from HttpOnly cookie
+    const cookieToken = req.cookies?.access_token;
+    if (cookieToken) {
+        return cookieToken;
+    }
+
+    // Fallback to Authorization header for backward compatibility
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        return authHeader.split(' ')[1];
+    }
+
+    return null;
+}
+
 export async function authMiddleware(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ): Promise<void> {
-    const authHeader = req.headers.authorization;
+    const token = extractToken(req);
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
         res.status(401).json({ error: 'No authorization token provided' });
         return;
     }
-
-    const token = authHeader.split(' ')[1];
 
     // Skip verification in development mode
     if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { generationRouter } from './routes/generation.js';
 import { contentRouter } from './routes/content.js';
 import { healthRouter } from './routes/health.js';
@@ -21,6 +22,7 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser()); // Parse cookies for HttpOnly token storage
 
 // Rate limiting
 app.use(rateLimiter);

@@ -462,13 +462,25 @@ Assign one to `cognitiveLevel`: `remember`, `understand`, `apply`, `analyze`, `e
 ### CRITICAL CLARIFICATIONS (Common Pitfalls):
 Provide 2-3 items in `commonPitfalls` that resolve typical learner confusion. Frame POSITIVELY as precision checks.
 
-### STRICT CONNECTION RULES (Sensa v2.0):
-Define connections using only these Semantic Relationship verbs:
-1. **requires**: Hard dependency (Prerequisite). "A cannot function without B."
+### STRICT CONNECTION RULES (Sensa v2.0) - MANDATORY:
+Every concept MUST have a `connections` array with at least 1-2 semantic relationships.
+Define connections using ONLY these Semantic Relationship verbs:
+1. **requires**: Hard dependency (Prerequisite). "A cannot function without B." (Most common)
 2. **extends**: Enhancement/Specialization. "A adds features or specificity to B."
 3. **enables**: Capability Flow. "A provides the power/access that B uses."
 4. **contains**: Composition. "A includes B as a sub-component."
-5. **related-to**: Soft association (Use sparingly, <5% of connections).
+5. **related-to**: Soft association (Use SPARINGLY - max 5% of all connections).
+
+⚠️ QUALITY GATE: Generic "related-to" connections indicate shallow understanding.
+Prefer SPECIFIC relationships (requires, extends, enables, contains) that describe HOW concepts interact.
+
+Example of GOOD connections:
+- "Data Source Connectors" enables "Query Folding" (capability flow)
+- "Star Schema Design" requires "Dimension Table Patterns" (hard dependency)
+- "Workspace" contains "Datasets" (composition)
+
+Example of BAD connections (AVOID):
+- "Concept A" related-to "Concept B" (too vague - WHY are they related?)
 
 ### MANDATORY DOMAIN DIMENSIONS [Must be covered across the curriculum]
 regardless of the subject, you must explicitly include concepts that address these universal professional standards:

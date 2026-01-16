@@ -115,7 +115,7 @@ export default function GuidedPrimer({
             audioManager.fadeOutBackgroundMusic(1000);
             audioManager.stopNarration();
         };
-    }, []);
+    }, [musicEnabled]);
 
     // Play narration when step changes (with proper sequencing)
     useEffect(() => {

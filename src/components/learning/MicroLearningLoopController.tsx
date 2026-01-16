@@ -552,14 +552,14 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
         // Try to get 3 distractors from SAME TIER for semantic similarity
         if (otherConcepts.length >= 3) {
             // Prioritize concepts from the same tier (better semantic similarity)
-            const sameTierConcepts = otherConcepts.filter(c => 
+            const sameTierConcepts = otherConcepts.filter(c =>
                 (c.tier || c.mnemonic?.tier) === (concept.tier || concept.mnemonic?.tier)
             );
-            
-            const sourceConcepts = sameTierConcepts.length >= 3 
-                ? sameTierConcepts 
+
+            const sourceConcepts = sameTierConcepts.length >= 3
+                ? sameTierConcepts
                 : otherConcepts;
-                
+
             const shuffled = shuffleArray(sourceConcepts);
 
             for (let i = 0; i < Math.min(3, shuffled.length); i++) {
@@ -808,7 +808,7 @@ export function MicroLearningLoopController({
                 <div className={styles.phaseLine} />
                 <div className={`${styles.phaseStep} ${phase === 'test' ? styles.active : ''} ${['learn', 'verify', 'confusion'].includes(phase) ? styles.complete : ''}`}>
                     <Brain size={18} />
-                    <span>Test</span>
+                    <span>Recall</span>
                 </div>
                 <div className={styles.phaseLine} />
                 <div className={`${styles.phaseStep} ${phase === 'learn' ? styles.active : ''} ${['verify', 'confusion'].includes(phase) ? styles.complete : ''}`}>
@@ -899,16 +899,16 @@ export function MicroLearningLoopController({
 
                 {/* ARCHITECT ENHANCEMENT: Navigation Flexibility */}
                 <div className={styles.navigationActions}>
-                    <button 
-                        className={styles.skipButton} 
+                    <button
+                        className={styles.skipButton}
                         onClick={onSkip}
                         title="Skip to next concept"
                     >
                         <RotateCcw size={16} />
                         Skip this concept
                     </button>
-                    
-                    <button 
+
+                    <button
                         className={styles.backToMapButton}
                         onClick={() => {
                             // Navigate back to map to correct schema misunderstanding

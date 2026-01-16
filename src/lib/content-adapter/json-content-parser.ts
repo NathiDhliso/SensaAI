@@ -711,6 +711,74 @@ function determineStageId(order: number): string {
     return `stage-${Math.min(stageNum, 6)}`;
 }
 
+/**
+ * SILVER BULLET: Extract semantic connections from AI-generated concept JSON.
+ * 
+ * This function handles both naming conventions:
+ * - `strictConnections` (frontend surgical prompt)
+ * - `connections` (Lambda batch prompt)
+ * 
+ * It normalizes the output to the ParsedConcept.strictConnections format.
+ */
+function extractStrictConnections(
+    c: Record<string, unknown>
+): Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> | undefined {
+    const connections: Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> = [];
+    
+    // Priority 1: strictConnections (frontend prompt format)
+    if (Array.isArray(c.strictConnections)) {
+        for (const conn of c.strictConnections) {
+            if (typeof conn === 'object' && conn && typeof (conn as Record<string, unknown>).target === 'string') {
+                const connObj = conn as Record<string, unknown>;
+                const type = normalizeConnectionType(connObj.type as string);
+                connections.push({
+                    target: connObj.target as string,
+                    type,
+                });
+            }
+        }
+    }
+    
+    // Priority 2: connections (Lambda prompt format)
+    if (connections.length === 0 && Array.isArray(c.connections)) {
+        for (const conn of c.connections) {
+            if (typeof conn === 'object' && conn && typeof (conn as Record<string, unknown>).target === 'string') {
+                const connObj = conn as Record<string, unknown>;
+                const type = normalizeConnectionType(connObj.type as string);
+                connections.push({
+                    target: connObj.target as string,
+                    type,
+                });
+            }
+        }
+    }
+    
+    return connections.length > 0 ? connections : undefined;
+}
+
+/**
+ * Normalize connection type to one of the valid semantic types.
+ * Prevents generic/invalid types from slipping through.
+ */
+function normalizeConnectionType(type: string | undefined): 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' {
+    if (!type) return 'related-to';
+    
+    const t = type.toLowerCase().trim();
+    
+    // Exact matches
+    if (t === 'requires' || t === 'prerequisite' || t === 'depends-on' || t === 'depends_on') return 'requires';
+    if (t === 'extends' || t === 'enhances' || t === 'specializes') return 'extends';
+    if (t === 'enables' || t === 'provides' || t === 'powers') return 'enables';
+    if (t === 'contains' || t === 'includes' || t === 'comprises') return 'contains';
+    
+    // Fallback - but log a warning for investigation
+    if (t !== 'related-to' && t !== 'relates-to' && t !== 'relates to') {
+        console.warn(`[ConnectionParser] Unknown connection type "${type}" normalized to "related-to"`);
+    }
+    
+    return 'related-to';
+}
+
 function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | null {
     if (!concept || typeof concept !== 'object') return null;
 
@@ -903,6 +971,9 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
         commonPitfalls,
         // NEW: Extract dependsOn from root level (Sensa v2.0 compliance)
         dependsOn: Array.isArray(c.dependsOn) ? c.dependsOn as string[] : [],
+        // SILVER BULLET: Extract semantic connections from AI output
+        // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
+        strictConnections: extractStrictConnections(c),
         // Also store tier at root for transformer
         tier: tier,
     };

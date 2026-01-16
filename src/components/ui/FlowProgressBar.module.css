@@ -29,7 +29,7 @@
     left: 2rem;
     right: 2rem;
     height: 4px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-border);
     border-radius: 2px;
     transform: translateY(-50%);
     z-index: 0;
@@ -47,9 +47,7 @@
 
 .progressFill {
     height: 100%;
-    background: linear-gradient(90deg,
-            var(--color-primary, #8b5cf6),
-            var(--color-accent, #22d3ee));
+    background: var(--gradient-accent);
     border-radius: 2px;
 }
 
@@ -91,8 +89,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-surface, #1e293b);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
     color: rgba(255, 255, 255, 0.5);
     transition: all 0.3s ease;
 }
@@ -104,14 +102,14 @@
 
 /* States */
 .completed .stepIcon {
-    background: var(--color-success, #22c55e);
-    border-color: var(--color-success, #22c55e);
+    background: var(--color-success);
+    border-color: var(--color-success);
     color: white;
 }
 
 .active .stepIcon {
-    background: var(--color-primary, #8b5cf6);
-    border-color: var(--color-primary, #8b5cf6);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
     color: white;
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
     animation: pulse 2s ease-in-out infinite;

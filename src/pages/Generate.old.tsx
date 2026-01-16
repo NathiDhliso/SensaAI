@@ -94,7 +94,7 @@ export default function Generate() {
     expectedConceptCount,
     pendingFile,
     progress,
-    setError: _setError,
+    setError,
     canResumeFromCheckpoint,
   } = useGenerationStore();
 

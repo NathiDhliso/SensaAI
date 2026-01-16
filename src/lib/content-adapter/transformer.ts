@@ -472,6 +472,79 @@ function extractPrerequisites(concept: ParsedConcept, allConcepts: ParsedConcept
   return prerequisites;
 }
 
+/**
+ * SILVER BULLET: Extract semantic connections from AI-generated content.
+ * 
+ * This function maps the AI-generated relationship types (requires, extends, enables, contains)
+ * to the LearningConcept.connections format, ensuring rich visualization instead of generic "relates to".
+ * 
+ * Priority order:
+ * 1. strictConnections (from frontend surgical prompt)
+ * 2. connections array (from Lambda batch prompt - as raw connections data)
+ * 3. Infer from mnemonic.dependsOn (fallback for older content)
+ */
+function extractSemanticConnections(
+  concept: ParsedConcept,
+  allConcepts: ParsedConcept[]
+): Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> {
+  const connections: Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> = [];
+  const addedTargets = new Set<string>(); // Prevent duplicates
+  
+  // Helper to validate target exists in curriculum
+  const validateTarget = (targetName: string): boolean => {
+    return allConcepts.some(c => 
+      c.name.toLowerCase() === targetName.toLowerCase() &&
+      c.id !== concept.id
+    );
+  };
+  
+  // Priority 1: strictConnections (AI-generated semantic relationships)
+  if (concept.strictConnections && concept.strictConnections.length > 0) {
+    for (const conn of concept.strictConnections) {
+      if (conn.target && validateTarget(conn.target) && !addedTargets.has(conn.target.toLowerCase())) {
+        connections.push({
+          target: conn.target,
+          type: conn.type || 'related-to',
+        });
+        addedTargets.add(conn.target.toLowerCase());
+      }
+    }
+  }
+  
+  // Priority 2: Infer "requires" from mnemonic.dependsOn (explicit dependencies)
+  if (concept.mnemonic?.dependsOn && concept.mnemonic.dependsOn.length > 0) {
+    for (const dep of concept.mnemonic.dependsOn) {
+      if (validateTarget(dep) && !addedTargets.has(dep.toLowerCase())) {
+        connections.push({
+          target: dep,
+          type: 'requires', // Dependencies are always "requires" relationships
+        });
+        addedTargets.add(dep.toLowerCase());
+      }
+    }
+  }
+  
+  // Priority 3: Infer "requires" from prerequisite text (semantic extraction)
+  const prereqText = concept.phase1?.prerequisite?.toLowerCase() || '';
+  if (prereqText && !prereqText.includes('none') && prereqText.length > 5) {
+    for (const other of allConcepts) {
+      if (other.id === concept.id) continue;
+      if (addedTargets.has(other.name.toLowerCase())) continue;
+      
+      const otherNameLower = other.name.toLowerCase();
+      if (prereqText.includes(otherNameLower)) {
+        connections.push({
+          target: other.name,
+          type: 'requires',
+        });
+        addedTargets.add(otherNameLower);
+      }
+    }
+  }
+  
+  return connections;
+}
+
 function generateWhyYouNeed(concept: ParsedConcept): string {
   // FULL THROTTLE: Only return AI-generated content, NO FALLBACKS
   return concept.whyYouNeed || '';
@@ -747,6 +820,9 @@ export function transformToLearningConcepts(
         (other.phase1.prerequisite?.toLowerCase().includes(parsedConcept.name.toLowerCase()) ||
           other.phase1.execution?.toLowerCase().includes(parsedConcept.name.toLowerCase()))
       ).length,
+      // SILVER BULLET: Map AI-generated semantic connections to LearningConcept.connections
+      // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
+      connections: extractSemanticConnections(parsedConcept, parsed.concepts),
     });
   }
 
@@ -786,7 +862,8 @@ export function transformToLearningConcepts(
           tier: tier,
           lifecyclePhase: 'PREPARE', // Default for skeletons
           dependencies: [],
-          outdegree: 0
+          outdegree: 0,
+          connections: [], // Empty - skeleton concepts have no semantic connections
         });
       }
     });

@@ -19,9 +19,6 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
-  FRONTEND_IMAGE: sensapbl-pilot-frontend
-  BACKEND_IMAGE: sensapbl-pilot-backend
 
 jobs:
   setup:
@@ -160,25 +157,23 @@ jobs:
         with:
           sarif_file: snyk.sarif
 
-  build-and-push:
+  build-frontend:
     runs-on: ubuntu-latest
     needs: [setup, lint, test, security-scan]
+    environment: ${{ needs.setup.outputs.environment }}
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       id-token: write
       contents: read
-    strategy:
-      matrix:
-        include:
-          - image: sensapbl-pilot-frontend
-            dockerfile: Dockerfile
-            context: .
-          - image: sensapbl-pilot-backend
-            dockerfile: backend/Dockerfile
-            context: backend
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -199,98 +194,29 @@ jobs:
           echo "S3_BUCKET=$(echo $SECRETS | jq -r .VITE_AWS_S3_BUCKET_NAME)" >> $GITHUB_OUTPUT
           echo "DDB_TABLE=$(echo $SECRETS | jq -r .VITE_AWS_DYNAMODB_TABLE_NAME)" >> $GITHUB_OUTPUT
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+      - name: Install Dependencies
+        run: npm ci
 
-      - name: Build, Tag, and Push Docker Image
+      - name: Build Frontend
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ needs.setup.outputs.build-version }}
-        run: |
-          docker build \
-            --build-arg VITE_COGNITO_IDENTITY_POOL_ID=${{ steps.secrets.outputs.IDENTITY_POOL_ID }} \
-            --build-arg VITE_COGNITO_USER_POOL_ID=${{ steps.secrets.outputs.USER_POOL_ID }} \
-            --build-arg VITE_AWS_S3_BUCKET_NAME=${{ steps.secrets.outputs.S3_BUCKET }} \
-            --build-arg VITE_AWS_DYNAMODB_TABLE_NAME=${{ steps.secrets.outputs.DDB_TABLE }} \
-            --cache-from ${ECR_REGISTRY}/${{ matrix.image }}:latest \
-            -t ${ECR_REGISTRY}/${{ matrix.image }}:${IMAGE_TAG} \
-            -t ${ECR_REGISTRY}/${{ matrix.image }}:latest \
-            -f ${{ matrix.dockerfile }} \
-            ${{ matrix.context }}
-          
-          docker push ${ECR_REGISTRY}/${{ matrix.image }}:${IMAGE_TAG}
-          docker push ${ECR_REGISTRY}/${{ matrix.image }}:latest
+          VITE_COGNITO_IDENTITY_POOL_ID: ${{ steps.secrets.outputs.IDENTITY_POOL_ID }}
+          VITE_COGNITO_USER_POOL_ID: ${{ steps.secrets.outputs.USER_POOL_ID }}
+          VITE_AWS_S3_BUCKET_NAME: ${{ steps.secrets.outputs.S3_BUCKET }}
+          VITE_AWS_DYNAMODB_TABLE_NAME: ${{ steps.secrets.outputs.DDB_TABLE }}
+          VITE_AWS_REGION: ${{ env.AWS_REGION }}
+        run: npm run build
 
-      - name: Scan Image with Trivy
-        uses: aquasecurity/trivy-action@master
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          image-ref: ${{ env.ECR_REGISTRY }}/${{ matrix.image }}:${{ needs.setup.outputs.build-version }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'HIGH,CRITICAL'
-
-      - name: Upload Trivy Results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [setup, build-and-push]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig \
-            --region ${{ env.AWS_REGION }} \
-            --name sensapbl-cluster
-
-      - name: Update Kubernetes Manifests
-        env:
-          IMAGE_TAG: ${{ needs.setup.outputs.build-version }}
-        run: |
-          sed -i "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/deployment.yaml
-          sed -i "s|REGISTRY|${ECR_REGISTRY}|g" k8s/deployment.yaml
-          sed -i "s|ENVIRONMENT|${{ needs.setup.outputs.environment }}|g" k8s/deployment.yaml
-
-      - name: Apply Kubernetes Configuration
-        run: |
-          kubectl apply -f k8s/config.yaml -n sensapbl
-          kubectl apply -f k8s/deployment.yaml -n sensapbl
-
-      - name: Wait for Rollout
-        run: |
-          kubectl rollout status deployment/sensapbl-frontend -n sensapbl --timeout=5m
-          kubectl rollout status deployment/sensapbl-backend -n sensapbl --timeout=5m
-
-      - name: Run Smoke Tests
-        run: |
-          echo "Testing frontend health..."
-          curl -f http://sensapbl-frontend.sensapbl.svc.cluster.local/health || exit 1
-          
-          echo "Testing backend health..."
-          curl -f http://sensapbl-backend.sensapbl.svc.cluster.local/health || exit 1
-
-      - name: Get Deployment Status
-        run: kubectl get pods -n sensapbl -o wide
+          name: frontend-build-${{ needs.setup.outputs.build-version }}
+          path: dist/
+          retention-days: 30
 
   notify:
     runs-on: ubuntu-latest
-    needs: [setup, build-and-push, deploy]
+    needs: [setup, build-frontend]
+    environment: ${{ needs.setup.outputs.environment }}
     if: always()
     permissions:
       deployments: write
@@ -313,7 +239,6 @@ jobs:
         uses: slackapi/slack-github-action@v1
         if: always() && env.SLACK_WEBHOOK_URL != ''
         with:
-          webhook-url: ${{ env.SLACK_WEBHOOK_URL }}
           payload: |
             {
               "blocks": [

@@ -7,37 +7,66 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Fix: Use gradient instead of flat color */
     background: var(--gradient-paper);
+    /* Technical Grid - made subtler */
+    background-image:
+        radial-gradient(var(--color-border) 1px, transparent 1px),
+        var(--gradient-paper);
+    background-size: 40px 40px, 100% 100%;
+    background-repeat: repeat, no-repeat;
     padding: var(--spacing-4);
     position: relative;
     overflow: hidden;
 }
 
-/* Background embellishments */
+/* Paper Texture - Controlled via Pseudo-element */
+/* Paper Texture - Controlled via Pseudo-element */
 .container::before {
     content: '';
     position: absolute;
-    top: -10%;
-    left: -10%;
-    width: 50%;
-    height: 50%;
-    background: radial-gradient(circle, var(--color-primary-subtle) 0%, transparent 70%);
-    filter: blur(80px);
+    inset: 0;
+    background-image: url('/assets/paper-texture.png');
+    background-size: cover;
+    /* Default (Light Mode): Multiply to see texture on light paper */
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+    pointer-events: none;
     z-index: 0;
-    animation: drift 20s ease-in-out infinite alternate;
 }
 
+/* Dark Mode Texture Handling */
+:global(.dark) .container::before,
+:global([data-theme="dark"]) .container::before {
+    mix-blend-mode: overlay;
+    opacity: 0.15;
+    filter: invert(1) contrast(1.2);
+}
+
+/* Vignette */
 .container::after {
     content: '';
     position: absolute;
-    bottom: -10%;
-    right: -10%;
-    width: 50%;
-    height: 50%;
-    background: radial-gradient(circle, var(--color-accent-subtle) 0%, transparent 70%);
-    filter: blur(80px);
-    z-index: 0;
-    animation: drift 25s ease-in-out infinite alternate-reverse;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 40%, var(--color-bg-primary) 100%);
+    pointer-events: none;
+    z-index: 1;
+    /* Above texture */
+}
+
+/* Heartbeat Animation for Card */
+@keyframes heartbeat {
+    0% {
+        box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 0 rgba(var(--color-primary-rgb), 0.1);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0);
+    }
 }
 
 @keyframes drift {
@@ -61,11 +90,12 @@
     background: var(--color-surface-subtle);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--overlay-white-40);
+    border: 1px solid var(--color-border-light);
     border-radius: var(--radius-3xl);
-    box-shadow: var(--shadow-xl), var(--shadow-glow-primary);
+    box-shadow: var(--shadow-xl);
     overflow: hidden;
     transition: transform 0.3s ease;
+    animation: heartbeat 4s infinite ease-in-out;
 }
 
 /* Desktop layout: Two columns */
@@ -318,6 +348,126 @@
 
 .link:hover {
     text-decoration: underline;
+}
+
+/* Password Toggle Button */
+.passwordToggle {
+    position: absolute;
+    right: var(--spacing-3);
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: var(--spacing-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.passwordToggle:hover {
+    color: var(--color-text-medium);
+}
+
+/* Forgot Password */
+.forgotPassword {
+    text-align: right;
+    margin-top: calc(-1 * var(--spacing-2));
+}
+
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+}
+
+/* SSO Button */
+.ssoButton {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    color: var(--color-text-dark);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    transition: all 0.2s ease;
+}
+
+.ssoButton:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-dark);
+}
+
+.ssoButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.ssoIcon {
+    opacity: 0.8;
+}
+
+/* Sign Up Prompt */
+.signupPrompt {
+    text-align: center;
+    margin-top: var(--spacing-6);
+    font-size: var(--font-size-base);
+    color: var(--color-text-medium);
+}
+
+.signupLink {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+    margin-left: var(--spacing-1);
+}
+
+.signupLink:hover {
+    text-decoration: underline;
+}
+
+/* Brand Mark on Visual Side */
+.brandMark {
+    width: 80px;
+    height: 80px;
+    margin-bottom: var(--spacing-6);
+}
+
+/* Feature List on Visual Side */
+.featureList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    margin-top: auto;
+}
+
+.featureItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.featureItem svg {
+    opacity: 0.8;
 }
 
 .spinner {

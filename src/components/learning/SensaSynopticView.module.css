@@ -1,19 +1,19 @@
 .container {
     padding: var(--spacing-6);
-    background: var(--color-surface);
-    /* Corrected from --surface-primary */
+    background: var(--color-bg-primary);
+    /* Updated to new darker cream */
     border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border-light);
-    /* Corrected from --border-neutral-subtle */
+    border: 1px solid var(--color-border);
+    /* Stronger border */
     min-height: 900px;
-    /* Increased height */
     display: flex;
     flex-direction: column;
     position: relative;
     overflow: hidden;
     /* Optional: Subtle grid pattern for technical feel */
     background-image:
-        radial-gradient(var(--color-border-light) 1px, transparent 1px);
+        radial-gradient(var(--color-border) 1.5px, transparent 1.5px);
+    /* Darker dots */
     background-size: 40px 40px;
 }
 
@@ -134,7 +134,9 @@
 /* Orbit Rings */
 .orbitRing {
     position: absolute;
-    border: 1px dashed rgba(255, 255, 255, 0.15);
+    position: absolute;
+    border: 1px dashed var(--color-border-emphasis);
+    /* Visible structure */
     border-radius: 50%;
     transition: all 0.3s ease;
     pointer-events: auto;
@@ -162,7 +164,10 @@
     font-size: var(--font-xs);
     font-weight: 600;
     letter-spacing: 0.1em;
-    color: var(--color-text-muted);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--color-text-light);
+    /* Readable label */
     opacity: 0.7;
     pointer-events: none;
     text-transform: uppercase;
@@ -255,8 +260,10 @@
 .sidebar {
     width: 400px;
     /* Fixed width when open */
-    background: var(--color-surface-secondary);
-    /* Darker background */
+    width: 400px;
+    /* Fixed width when open */
+    background: var(--color-surface);
+    /* Distinct card surface */
     border-left: 1px solid var(--color-border);
     display: flex;
     flex-direction: column;
@@ -272,7 +279,9 @@
 
 .drawerHeader {
     padding: var(--spacing-md);
-    background: rgba(255, 255, 255, 0.03);
+    padding: var(--spacing-md);
+    background: var(--color-bg-secondary);
+    /* Header distinction */
     border-bottom: 1px solid var(--color-border);
     display: flex;
     justify-content: space-between;
@@ -444,13 +453,13 @@
     bottom: var(--spacing-6);
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.9);
-    /* Dark slate background */
+    background: var(--color-surface-elevated);
+    /* Theme compliant background */
     backdrop-filter: blur(8px);
     padding: var(--spacing-4) var(--spacing-6);
     border-radius: var(--radius-full);
-    border: 1px solid var(--color-border-light);
-    color: white;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
     text-align: center;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     z-index: 20;
@@ -470,7 +479,7 @@
 
 .tierDesc {
     font-size: var(--font-sm);
-    color: var(--color-text-primary-inverse);
-    /* Ensure readable on dark bg */
+    color: var(--color-text-secondary);
+    /* Ensure readable */
     line-height: 1.4;
 }
