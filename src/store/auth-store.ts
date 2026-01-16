@@ -457,8 +457,6 @@ export const useAuthStore = create<AuthStore>()(
 
                 // Clear session storage
                 sessionStorage.clear();
-
-                console.log('[Auth] All auth data cleared. Please re-login.');
             },
 
             // ----------------------------------------------------------------

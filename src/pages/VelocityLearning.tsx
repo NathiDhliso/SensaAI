@@ -165,13 +165,6 @@ export default function VelocityLearning() {
     const handleSkipReasonConfirm = (data: SkipReasonData) => {
         setShowSkipModal(false);
         
-        // Log diagnostic information (could be stored in analytics later)
-        console.log('[Skip Diagnostic]', {
-            conceptId: pendingSkipConcept,
-            reason: data.reason,
-            timestamp: new Date().toISOString()
-        });
-
         // Adaptive routing based on skip reason
         if (data.reason === 'too-hard') {
             // TODO: Route to prerequisite check

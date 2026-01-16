@@ -53,14 +53,12 @@ export async function generateWithBackend(
     }, UI_TIMINGS.ONE_SECOND);
 
     try {
-        console.log('[Backend Generator] Starting generation request...', { subject, userId });
         const generateResponse = await conceptsApi.generate({
             subject,
             userId,
             context,
         });
         clearInterval(simInterval);
-        console.log('[Backend Generator] Generation response received:', generateResponse);
 
         if (generateResponse.status === 'failed') {
             console.error('[Backend Generator] Generation failed:', generateResponse.error);
@@ -74,11 +72,9 @@ export async function generateWithBackend(
         });
 
         const { jobId, sessionId } = generateResponse;
-        console.log('[Backend Generator] Job details:', { jobId, sessionId, status: generateResponse.status });
 
         // Skip polling if already completed (which it should be for sync lambda)
         if (generateResponse.status !== 'completed') {
-            console.log('[Backend Generator] Entering polling loop - status not completed:', generateResponse.status);
             let progressValue = 10;
             let pollInterval = 2000; // Start at 2s
             const maxPollInterval = 10000; // Max 10s
@@ -86,12 +82,6 @@ export async function generateWithBackend(
             const startTime = Date.now();
 
             while (true) {
-                console.log('[Backend Generator] Polling iteration:', {
-                    elapsed: Date.now() - startTime,
-                    maxPollTime,
-                    progressValue,
-                    pollInterval
-                });
                 if (abortSignal?.aborted) throw new Error('Generation cancelled by user');
                 if (Date.now() - startTime > maxPollTime) {
                     console.error('[Backend Generator] TIMEOUT! Exceeded max poll time');
@@ -99,19 +89,9 @@ export async function generateWithBackend(
                 }
 
                 try {
-                    console.log('[Backend Generator] Checking job status for:', jobId);
                     const status = await conceptsApi.getJobStatus(jobId, userId);
 
-                    // Detailed logging for user visibility
-                    if (status.status === 'failed') {
-                        console.error('[Backend Generator] ❌ JOB FAILED:', JSON.stringify(status, null, 2));
-                    } else if (status.status === 'completed') {
-                        console.log('[Backend Generator] ✅ JOB COMPLETED:', JSON.stringify(status, null, 2));
-                    } else {
-                        console.log('[Backend Generator] ⏳ Job Status:', status.status, JSON.stringify(status, null, 2));
-                    }
                     if (status.status === 'completed') {
-                        console.log('[Backend Generator] Job completed! Exiting poll loop.');
                         onProgress(2, 'complete', { message: 'AI generation complete!', progress: 60 });
                         break;
                     }
@@ -134,18 +114,16 @@ export async function generateWithBackend(
                 await new Promise(resolve => setTimeout(resolve, pollInterval));
             }
         } else {
-            console.log('[Backend Generator] Generation already completed (sync response) - skipping poll loop');
+            // Already completed
         }
 
         // Pass 3: Fetch generated concepts from DynamoDB
-        console.log('[Backend Generator] Starting to fetch concepts from DynamoDB...', { userId, sessionId });
         onProgress(3, 'in-progress', {
             message: 'Loading generated concepts...',
             progress: 60,
         });
 
         // Fetch all tiers
-        console.log('[Backend Generator] Fetching concepts by tier...');
         const [foundationConcepts, keystoneConcepts, utilityConcepts] = await Promise.all([
             conceptsApi.getAllByTier(userId, sessionId, 'foundation'),
             conceptsApi.getAllByTier(userId, sessionId, 'keystone'),
@@ -153,7 +131,6 @@ export async function generateWithBackend(
         ]);
 
         const allConcepts = [...(foundationConcepts || []), ...(keystoneConcepts || []), ...(utilityConcepts || [])];
-        console.log('[Backend Generator] Total concepts to stream:', allConcepts.length);
 
         // SILVER BULLET UI: Stream concepts to the frontend
         // This simulates the "live generation" feel even if we fetched them in bulk

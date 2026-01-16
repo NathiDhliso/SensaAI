@@ -77,9 +77,7 @@ export const conceptsApi = {
      * Generation happens server-side, concepts stored in DynamoDB
      */
     async generate(request: GenerateConceptsRequest): Promise<GenerateConceptsResponse> {
-        console.log('[ConceptsAPI] generate() called:', request);
         const response = await apiClient.post<GenerateConceptsResponse>('/concepts/generate', request);
-        console.log('[ConceptsAPI] generate() response:', response);
         return response;
     },
 
@@ -87,7 +85,7 @@ export const conceptsApi = {
      * Surgically repair a specific concept
      */
     async repair(request: { subject: string; conceptName: string; issue: string; userId: string }): Promise<ParsedConcept> {
-        console.log('[ConceptsAPI] repair() called:', request);
+        return await apiClient.post<ParsedConcept>('/concepts/repair', request);
         return apiClient.post<ParsedConcept>('/concepts/generate', {
             ...request,
             action: 'repair'
@@ -98,7 +96,6 @@ export const conceptsApi = {
      * Delete a generation job and its concepts
      */
     async deleteJob(jobId: string): Promise<boolean> {
-        console.log('[ConceptsAPI] deleteJob() called:', jobId);
         try {
             await apiClient.delete(`/concepts/${jobId}`);
             return true;
@@ -119,10 +116,8 @@ export const conceptsApi = {
      * Check status of a generation job
      */
     async getJobStatus(jobId: string, userId?: string): Promise<JobStatus> {
-        console.log('[ConceptsAPI] getJobStatus() called for jobId:', jobId);
         const query = userId ? `?userId=${encodeURIComponent(userId)}` : '';
         const response = await apiClient.get<JobStatus>(`/concepts/jobs/${jobId}${query}`);
-        console.log('[ConceptsAPI] getJobStatus() response:', response);
         return response;
     },
 

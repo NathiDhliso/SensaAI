@@ -23,7 +23,6 @@ export class StorageManager {
 
   constructor() {
     // Cloud storage disabled - Lambda handles concept storage
-    console.log('[StorageManager] Initialized - using API-based concept storage');
   }
 
   isCloudEnabled(): boolean {
@@ -35,12 +34,10 @@ export class StorageManager {
     // DISABLED: Concept storage is now handled by Lambda → DynamoDB
     // The Generate.tsx flow saves concepts via the /concepts/generate API,
     // which triggers Lambda to store in sensapbl-concepts-pilot (PK/SK schema)
-    console.log('[StorageManager] saveResult SKIPPED - concepts stored via Lambda');
     return { success: true, path: 'lambda-managed' };
   }
 
   async loadResult(id: string): Promise<SavedResult | null> {
-    console.log('[StorageManager] loadResult called for:', id);
     try {
       // 1. Get job status to know subject and session
       const authUserId = useAuthStore.getState().user?.id;
@@ -120,12 +117,10 @@ export class StorageManager {
 
   async findLatestBySubject(_subject: string): Promise<SavedResult | null> {
     // Could be re-enabled if needed, but currently concepts are session-based
-    console.log('[StorageManager] findLatestBySubject SKIPPED');
     return null;
   }
 
   async deleteResult(id: string): Promise<boolean> {
-    console.log('[StorageManager] deleteResult called for:', id);
     try {
       const success = await conceptsApi.deleteJob(id);
       return success;
@@ -136,7 +131,6 @@ export class StorageManager {
   }
 
   async listResults(): Promise<SavedResult[]> {
-    console.log('[StorageManager] listResults called - fetching from API');
     try {
       const user = useAuthStore.getState().user;
       if (!user?.id) {

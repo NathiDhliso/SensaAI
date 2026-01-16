@@ -34,7 +34,6 @@ export const AgentCore: React.FC<AgentCoreProps> = ({ state, intensity = 0, glit
                 animate={{ rotate: 360 }}
                 transition={{ duration: Math.max(2, 20 - (intensity / 5)), repeat: Infinity, ease: 'linear' }}
                 style={{
-                    borderColor: glitch ? 'rgba(255, 0, 0, 0.5)' : undefined,
                     borderStyle: glitch ? 'solid' : 'dashed'
                 }}
             />
@@ -71,7 +70,6 @@ export const AgentCore: React.FC<AgentCoreProps> = ({ state, intensity = 0, glit
                         className={styles.agentPulse}
                         animate={{ scale: [1, 1.5 + (intensity / 100)], opacity: [0.5, 0] }}
                         transition={{ duration: pulseDuration, repeat: Infinity }}
-                        style={{ borderColor: glitch ? '#ef4444' : undefined }}
                     />
                 )}
             </div>

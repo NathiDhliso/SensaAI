@@ -132,8 +132,6 @@ class OfflineQueueManager {
             fn,
             timestamp: Date.now(),
         });
-
-        console.log(`[OfflineQueue] Enqueued ${id}, queue size: ${this.queue.length}`);
     }
 
     /**
@@ -145,7 +143,6 @@ class OfflineQueueManager {
         }
 
         this.isProcessing = true;
-        console.log(`[OfflineQueue] Processing ${this.queue.length} queued items`);
 
         while (this.queue.length > 0 && isOnline()) {
             const item = this.queue.shift();
@@ -153,7 +150,6 @@ class OfflineQueueManager {
 
             try {
                 await item.fn();
-                console.log(`[OfflineQueue] Successfully processed ${item.id}`);
             } catch (error) {
                 console.error(`[OfflineQueue] Failed to process ${item.id}`, error);
                 // Re-queue if still offline

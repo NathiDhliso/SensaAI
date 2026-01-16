@@ -463,7 +463,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 localStorage.removeItem('sensapbl-auth');
                 // Clear any session storage
                 sessionStorage.clear();
-                console.log('[Auth] All auth data cleared. Please re-login.');
             },
         }),
         {

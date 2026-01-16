@@ -194,7 +194,6 @@ export default function Study() {
             <LearningErrorBoundary
               onRecover={() => {
                 // Attempt to recover by reloading the session
-                console.log('[ErrorBoundary] Attempting session recovery');
               }}
               onAbandon={() => {
                 // Clear corrupted state and navigate to dashboard

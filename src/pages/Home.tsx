@@ -146,11 +146,6 @@ export default function Home() {
       <div className={styles.heroWrapper}>
         <motion.div
           className={`${styles.heroContent} ${!subject ? styles.idle : ''}`}
-          animate={{
-            boxShadow: subject.length > 0
-              ? `0 0 ${20 + subject.length * 2}px ${subject.length * 0.5}px rgba(124, 58, 237, ${Math.min(subject.length * 0.05, 0.6)})`
-              : "0 4px 24px rgba(0,0,0,0.1)" // Fallback/Base shadow
-          }}
           transition={{ duration: 0.3 }}
         >
           {/* Reactive Sensa Shape - Wakes up on input */}

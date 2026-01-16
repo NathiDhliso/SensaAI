@@ -190,7 +190,6 @@ export default function Generate() {
     if (!verifyingStartTimeRef.current || slowNetworkToastShown.current) return;
     const timeout = setTimeout(() => {
       if (!slowNetworkToastShown.current) {
-        console.log('Link validation taking longer than expected...');
         slowNetworkToastShown.current = true;
       }
     }, 10000);

@@ -10,6 +10,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Flag, X, AlertTriangle, Clock, Link2Off, BookX, Send, CheckCircle } from 'lucide-react';
+import { UI_TIMINGS } from '@/constants/ui-constants';
 
 // Types
 type FlagType = 'outdated' | 'incorrect' | 'not-on-exam' | 'broken-link';
@@ -329,7 +330,7 @@ export function FlagInaccuracyButton({
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     // Reset submitted state after animation
-    setTimeout(() => setIsSubmitted(false), 300);
+    setTimeout(() => setIsSubmitted(false), UI_TIMINGS.PANEL_EXIT_DELAY);
   }, []);
 
   return (
