@@ -63,23 +63,61 @@ Analyze the subject and derive a logical 3-phase operational cycle that authenti
 
 ## STEP 3: GENERATE THE MASTER HIERARCHICAL CHART
 
-Create a Single Code Block containing a structured outline. You must follow these STRICT FORMATTING & POSITIVE FRAMING RULES:
+Create a SINGLE JSON CODE BLOCK containing the complete concept structure. Do NOT output a text/markdown outline.
+You must use the following JSON schema for every concept. Ensure "tier" and "lifecycle" are strictly defined.
 
-**VISUAL RULES:**
-1. Use hierarchical bullet points with consistent indentation (2-4 spaces per level).
-2. Use clear visual hierarchy: # for main sections, ## for Core Concepts
-3. **PHASE MARKERS (Critical for Parser):** Use bracketed tags for lifecycle phases that NEVER change format:
-   - \`[LIFECYCLE_PHASE_1]\` for Phase 1 content (e.g., [PROVISION], [LEARN], [ASSESS])
-   - \`[LIFECYCLE_PHASE_2]\` for Phase 2 content (e.g., [CONFIGURE], [APPLY], [DIAGNOSE])
-   - \`[LIFECYCLE_PHASE_3]\` for Phase 3 content (e.g., [MONITOR], [VERIFY], [DOCUMENT])
-4. Quality Standard: The format used for Concept 1 MUST be IDENTICAL to Concept 37. Copy-paste the structure template for each concept.
-5. **NARRATIVE CONTINUITY:** For every Core Concept (except the first), include a brief "Logical Connection" sentence at the start explaining how this concept relates to or builds upon the immediately preceding concept. Format: **[Logical Connection]:** followed by the connection statement.
+\`\`\`json
+{
+  "concepts": [
+    {
+      "id": "concept-slug-id",
+      "name": "Concept Name",
+      "tier": "foundation", // Must match Step 3.1 rules
+      "tierJustification": "Reasoning based on dependencies...",
+      "cognitiveLevel": "apply", // Must match Step 3.2 rules
+      "commonPitfalls": ["Pitfall 1", "Pitfall 2"],
+      "whyYouNeed": "Professional justification for this concept...",
+      "technicalDetails": "Deep technical specification or implementation detail...",
+      "workedExample": {
+        "problem": "Specific scenario...",
+        "solution": "How this concept solves it...",
+        "steps": ["Step 1", "Step 2"]
+      },
+      "lifecycle": {
+        "phase1": {
+          "hookSentence": "...",
+          "microMetaphor": "...",
+          "prerequisite": "...",
+          "execution": "..."
+        },
+        "phase2": ["Action Step 1", "Action Step 2"], // Action/Configuration steps
+        "phase3": {
+          "tool": "...",
+          "metrics": ["Metric 1", "Metric 2"],
+          "thresholds": "..."
+        }
+      },
+      "shape": {
+        "simpleCore": "...",
+        "highStakesExample": "...",
+        "analogicalModel": "...",
+        "patternRecognition": { "question": "...", "answer": "..." },
+        "eliminationLogic": "..."
+      },
+      "mnemonic": {
+        "tier": "foundation",
+        "anchor": "...",
+        "story": "...",
+        "parentConcept": "..."
+      },
+      "dependencies": ["dep-1", "dep-2"],
+      "outdegree": 5
+    }
+  ]
+}
+\`\`\`
 
-**CRITICAL STRUCTURAL RULE:**
-Every concept that is NOT a "Foundation" concept must explicitly identify which Foundation concept it belongs to.
-Structure your JSON output so that "Utility" concepts are nested or explicitly linked via a "parent_id" or "belongs_to" field.
-
-**PHASE 3 TOOL REQUIREMENTS:**
+**PHASE 3 TOOL REQUIREMENTS (Fill the \`lifecycle.phase3.tool\` field according to these rules):**
 
 **IF Category A (Professional Certification):**
 - MANDATORY: Use exact tool/feature names from official documentation
@@ -96,31 +134,18 @@ Structure your JSON output so that "Utility" concepts are nested or explicitly l
 - EXAMPLE: "VS Code or any code editor with syntax highlighting"
 - FOCUS: Tool-agnostic transferable skills
 
+**CRITICAL:**
+1. Output MUST be valid JSON.
+2. Include ALL concepts in this single block.
+3. Strict adherence to the schema above is required for the parser.
+
 ---
 
 ## STEP 3.1: TIER CLASSIFICATION [MANDATORY - CONCEPT ROOT LEVEL]
 
 ⚠️ **CRITICAL FOR SENSA v2.0:** The \`tier\` field MUST appear at the TOP LEVEL of each concept object, NOT just inside the \`mnemonic\` object.
 
-**TOP-LEVEL CONCEPT STRUCTURE:**
-
-\`\`\`json
-{
-  "id": "concept-foundation-001",
-  "name": "Core Foundation Concept",
-  "tier": "foundation",
-  "cognitiveLevel": "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create",
-  "commonPitfalls": ["Confusing X with Y", "Assuming Z is automatic"],
-  "lifecycle": "PHASE_1",
-  "stageId": "stage-1",
-  "order": 1,
-  "dependencies": [],
-  "outdegree": 8,
-  "mnemonic": { "tier": "Foundation", "anchor": "...", "story": "..." },
-  "shape": { /* SHAPE content */ },
-  "hookSentence": "..."
-}
-\`\`\`
+**(Refer to the JSON Schema in Step 3 for the structure)**
 
 **TIER CLASSIFICATION RULES:**
 
@@ -174,14 +199,14 @@ Before generating each concept, verify ALL of these fields are present and SUBST
 
 **CONTENT DENSITY & POSITIVE FRAMING RULES:**
 
-* **Foundation Level (Phase 1): The "Blueprint Pattern"** — Use \`[LIFECYCLE_PHASE_1]\` marker
+* **Foundation Level (Phase 1): The "Blueprint Pattern"** — Fill \`lifecycle.phase1\` object
    - **Hook Sentence**: A compelling 10-15 word sentence that makes the learner want to know more
    - **Micro-Metaphor**: A 3-5 word physical analogy (e.g., "The traffic cop at the intersection", "The security guard at the door")
    - Prerequisite: (What enables this? Use format: "[ConceptName]" for internal dependencies, "[None]" if first concept or no dependencies)
    - Selection: (Which type/approach best serves the goal? Include specific capabilities/thresholds where known)
    - Execution: (The specific Tool/Form/Process/Document to begin)
 
-* **Configuration Level (Phase 2): The "Capability Pattern"** — Use \`[LIFECYCLE_PHASE_2]\` marker
+* **Configuration Level (Phase 2): The "Capability Pattern"** — Fill \`lifecycle.phase2\` array
    • Use specific action verbs: "Enable", "Configure", "Define", "Establish", "Set", "Apply"
    • Mark important comparisons using **[Critical Distinction]:** followed by the two concepts and their key difference in capabilities
    • Include design boundaries and prerequisites using POSITIVE framing:
@@ -201,25 +226,13 @@ Before generating each concept, verify ALL of these fields are present and SUBST
 | "Cannot delete" | "[Design Boundary]: Protected by design (remove protection via [method] when needed)" |
 | "Does not inherit" | "[Design Boundary]: Applied directly to each resource (use policy for automated assignment)" |
 
-* **Verification Level (Phase 3): The "Evidence Pattern"** — Use \`[LIFECYCLE_PHASE_3]\` marker
+* **Verification Level (Phase 3): The "Evidence Pattern"** — Fill \`lifecycle.phase3\` object
    ○ Name the exact tool, document, metric, test, or procedure (e.g., "Westlaw Citator", "Blood Gas Analysis", "Azure Monitor Logs", "IRS Form 8879")
    ○ Do not invent tool/document names
    ○ Include specific metrics, deadlines, or thresholds to monitor where relevant
    ○ Frame as "what to observe" rather than "what to watch out for"
 
 * **Verification Protocol:** If a specific design boundary, limit, statutory cite, or tool name is unknown, state **[Verify in Docs]** or **[Check Official Source]**. Do not fabricate data to fill the space.
-
-**FORMAT CONSISTENCY CHECKPOINT:**
-⚠️ Every 10 concepts, verify your phase markers match this exact pattern:
-\`\`\`
-## [N]. [Concept Name]
-[LIFECYCLE_PHASE_1]
-  ...content...
-[LIFECYCLE_PHASE_2]
-  ...content...
-[LIFECYCLE_PHASE_3]
-  ...content...
-\`\`\`
 
 ---
 
@@ -315,18 +328,7 @@ Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
 - Utility (Access Key as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
 
 **MNEMONIC OUTPUT FORMAT:**
-Include a \`mnemonic\` object for each concept in structured output:
-\`\`\`json
-{
-  "mnemonic": {
-    "tier": "Foundation" | "Keystone" | "Utility",
-    "anchor": "Concrete Object + Emoji (e.g., 'Volcano 🌋')",
-    "story": "The 2-3 sentence bizarre scene...",
-    "parentConcept": "Exact Name of Parent Concept" | null,
-    "depends_on": ["Prerequisite Concept 1", "Prerequisite Concept 2"]
-  }
-}
-\`\`\`
+(Integrated into \`concepts\` JSON in Step 3). Ensure the \`mnemonic\` object strictly follows the schema defined there.
 
 **DEPENDENCY TRACKING RULES:**
 For the \`depends_on\` array, identify concepts that must be understood BEFORE this concept:
@@ -652,7 +654,7 @@ Deliver ALL sections in order:
 2. **Lifecycle Definition** (3 phases with justification)
 3. **Master Hierarchical Chart** (Concepts with **tier at root level**)
    - [CONDITIONAL FIELD] `environment`: Include ONLY if Category A with distinct environments
-4. **Mnemonic Anchors** (JSON - every concept)
+4. **Mnemonic Anchors** (Integrated into Step 3 JSON)
 5. **Dependency Graph** (JSON - nodes + edges) **[NEW - REQUIRED]**
 6. **Decision Framework Trees** (2-3 X vs Y)
 7. **Visual Mental Anchors** (3 visualizations)

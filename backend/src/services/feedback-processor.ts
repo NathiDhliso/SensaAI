@@ -8,7 +8,7 @@
  * - broken-link: Auto-search for updated URL
  */
 
-import type { ContentFlag, FlagType, ExamBlueprint as _ExamBlueprint } from '../types/grounding';
+import type { ContentFlag, FlagType, ExamBlueprint as _ExamBlueprint } from '../types/grounding.js';
 
 // ============================================================================
 // TYPES
@@ -44,9 +44,11 @@ interface FlagStats {
 interface StoredFlag extends ContentFlag {
   id: string;
   triageResult?: TriageResult;
-  status: 'pending' | 'triaged' | 'in-progress' | 'resolved' | 'rejected';
   resolvedAt?: string;
-  resolution?: string;
+  // Additional properties used in processing
+  officialSourceUrl?: string;
+  blueprintVersion?: string;
+  conceptTitle: string;
 }
 
 // ============================================================================
@@ -148,7 +150,8 @@ export async function processFlag(flag: ContentFlag): Promise<TriageResult> {
     ...flag,
     id: flagId,
     triageResult,
-    status: 'triaged',
+    status: 'processing',
+    conceptTitle: flag.conceptName,
   };
   flagStore.set(flagId, storedFlag);
 
@@ -220,7 +223,7 @@ async function handleBrokenLink(flag: StoredFlag): Promise<void> {
   );
 
   // For now, mark as needing manual review if auto-fix fails
-  updateFlagStatus(flag.id, 'in-progress', 'Auto-search initiated');
+  updateFlagStatus(flag.id, 'processing', 'Auto-search initiated');
 }
 
 /**
@@ -233,7 +236,7 @@ async function verifyBlueprintCoverage(flag: StoredFlag): Promise<void> {
     `Blueprint version: ${flag.blueprintVersion || 'unknown'}`
   );
 
-  updateFlagStatus(flag.id, 'in-progress', 'Blueprint verification scheduled');
+  updateFlagStatus(flag.id, 'processing', 'Blueprint verification scheduled');
 }
 
 /**
@@ -246,7 +249,7 @@ async function queueBlueprintSync(flag: StoredFlag): Promise<void> {
     `Concept will be regenerated with latest blueprint data`
   );
 
-  updateFlagStatus(flag.id, 'in-progress', 'Queued for regeneration');
+  updateFlagStatus(flag.id, 'processing', 'Queued for regeneration');
 }
 
 /**
@@ -261,9 +264,16 @@ export function updateFlagStatus(
   if (!flag) return null;
 
   flag.status = status;
-  if (status === 'resolved' || status === 'rejected') {
+  if (status === 'resolved' || status === 'dismissed') {
     flag.resolvedAt = new Date().toISOString();
-    flag.resolution = resolution;
+    if (resolution && status === 'resolved') {
+      flag.resolution = {
+        resolvedAt: new Date().toISOString(),
+        resolvedBy: 'system',
+        action: 'no-action',
+        notes: resolution,
+      };
+    }
   }
   
   flagStore.set(flagId, flag);
@@ -301,7 +311,7 @@ export function getCriticalFlags(): StoredFlag[] {
     .filter(f => 
       f.triageResult?.priority === 'critical' && 
       f.status !== 'resolved' && 
-      f.status !== 'rejected'
+      f.status !== 'dismissed'
     );
 }
 
@@ -336,11 +346,11 @@ export function getFlagStats(): FlagStats {
       stats.byPriority[flag.triageResult.priority]++;
     }
 
-    if (flag.status !== 'resolved' && flag.status !== 'rejected') {
+    if (flag.status !== 'resolved' && flag.status !== 'dismissed') {
       stats.pendingResolution++;
     }
 
-    if (flag.resolution?.startsWith('Auto-')) {
+    if (flag.resolution?.notes?.startsWith('Auto-')) {
       stats.autoResolved++;
     }
   }
@@ -415,7 +425,7 @@ export function purgeOldFlags(olderThanDays: number = 30): number {
   
   for (const [id, flag] of flagStore.entries()) {
     if (
-      (flag.status === 'resolved' || flag.status === 'rejected') &&
+      (flag.status === 'resolved' || flag.status === 'dismissed') &&
       flag.resolvedAt &&
       new Date(flag.resolvedAt) < cutoff
     ) {

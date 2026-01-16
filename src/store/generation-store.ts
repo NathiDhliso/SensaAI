@@ -23,6 +23,17 @@ type GenerationCheckpoint = {
   timestamp: number;
 };
 
+// Track active server-side jobs so we can resume after tab close
+type ActiveJob = {
+  jobId: string;
+  sessionId: string;
+  userId: string;
+  subject: string;
+  context?: string | null;
+  startedAt: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+};
+
 export type GenerationState = {
   bedrockConfig: BedrockConfig | null;
   currentSubject: string | null;
@@ -45,6 +56,8 @@ export type GenerationState = {
   isGenerating: boolean;
   error: string | null;
   checkpoint: GenerationCheckpoint | null;
+  // Active job tracking for background processing
+  activeJob: ActiveJob | null;
   // Progressive rendering state
   streamedConcepts: ParsedConcept[];
   constructionPhase: ConstructionPhase;
@@ -101,6 +114,12 @@ type GenerationActions = {
   snapshotState: () => void;
   rollbackState: () => void;
   setRepairProgress: (progress: { total: number; completed: number; currentAction: string } | null) => void;
+  // Active Job Tracking (for background processing)
+  setActiveJob: (job: ActiveJob | null) => void;
+  updateActiveJobStatus: (status: ActiveJob['status']) => void;
+  hasActiveJob: () => boolean;
+  getActiveJob: () => ActiveJob | null;
+  clearActiveJob: () => void;
 };
 
 const getEnvBedrockConfig = (): BedrockConfig | null => {
@@ -147,6 +166,7 @@ const initialState: GenerationState = {
   isGenerating: false,
   error: null,
   checkpoint: null,
+  activeJob: null,
   streamedConcepts: [],
   constructionPhase: 'idle',
   expectedConceptCount: 0,
@@ -341,6 +361,30 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
         }),
 
       setRepairProgress: (progress) => set({ repairProgress: progress }),
+
+      // Active Job Tracking Actions
+      setActiveJob: (job) => set({ activeJob: job }),
+
+      updateActiveJobStatus: (status) =>
+        set((state) => {
+          if (!state.activeJob) return {};
+          return {
+            activeJob: { ...state.activeJob, status },
+          };
+        }),
+
+      hasActiveJob: () => {
+        const { activeJob } = get();
+        if (!activeJob) return false;
+        // Jobs older than 30 minutes are considered stale
+        const maxAge = 30 * 60 * 1000;
+        const age = Date.now() - activeJob.startedAt;
+        return age < maxAge && (activeJob.status === 'pending' || activeJob.status === 'processing');
+      },
+
+      getActiveJob: () => get().activeJob,
+
+      clearActiveJob: () => set({ activeJob: null }),
     }),
     {
       name: 'chart-generator-storage',
@@ -348,6 +392,7 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
         recentSubjects: state.recentSubjects,
         results: state.results,
         checkpoint: state.checkpoint,
+        activeJob: state.activeJob, // Persist active job for background recovery
       }),
     }
   )

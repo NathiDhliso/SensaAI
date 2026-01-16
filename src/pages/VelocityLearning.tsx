@@ -33,6 +33,7 @@ import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
 import MasteryChallenge from '@/components/learning/MasteryChallenge';
 import SensaSynopticView from '@/components/learning/SensaSynopticView';
 import SkipReasonModal, { type SkipReasonData } from '@/components/learning/SkipReasonModal';
+import PhaseNavigator from '@/components/learning/PhaseNavigator';
 
 import type {
     StudyGoal,
@@ -85,15 +86,9 @@ export default function VelocityLearning() {
     // 2c. Flow State Detection (Momentum Checkpoints)
     const flowState = useFlowState();
 
-    // Sync SENSA flow state from persisted study session on mount/change
-    useEffect(() => {
-        if (studySession) {
-            sensaFlow.syncFromStore(studySession);
-        }
-    }, [studySession, sensaFlow]);
-
-    // 3. Local UI State
+    // 3. Local UI State (MUST be declared before useEffects that reference them)
     const [lockedIn, setLockedIn] = useState(false);
+    const [completedPhases, setCompletedPhases] = useState<Set<string>>(new Set());
     
     // ARCHITECT ENHANCEMENT: Skip Diagnostics
     const [showSkipModal, setShowSkipModal] = useState(false);
@@ -101,6 +96,26 @@ export default function VelocityLearning() {
     const [showTimeToast, setShowTimeToast] = useState(false);
     const [showCheckpoint, setShowCheckpoint] = useState(false);
     const [timeToastDismissed, setTimeToastDismissed] = useState(false);
+
+    // Sync SENSA flow state from persisted study session on mount/change
+    useEffect(() => {
+        if (studySession) {
+            sensaFlow.syncFromStore(studySession);
+        }
+    }, [studySession, sensaFlow]);
+
+    // Auto-transition from PRIME to BUILD after lock-in
+    useEffect(() => {
+        if (currentPhase === 'PRIME' && lockedIn) {
+            // Small delay to allow lock-in animation to complete
+            const timer = setTimeout(() => {
+                // Skip SCOUT/PREVIEW phase since user already did Overview tab
+                // Go directly to BUILD phase
+                startStudySession(currentSession!.concepts[0].id);
+            }, UI_TIMINGS.DELAY_SHORT);
+            return () => clearTimeout(timer);
+        }
+    }, [currentPhase, lockedIn, startStudySession, currentSession]);
 
     // Momentum Checkpoint: Show time toast when goal exceeded
     useEffect(() => {
@@ -262,6 +277,14 @@ export default function VelocityLearning() {
             <main className={styles.content}>
                 <div className={styles.mainArea}>
 
+                    {/* Phase Navigator */}
+                    {currentSession && currentPhase !== 'IDLE' && (
+                        <PhaseNavigator
+                            currentPhase={currentPhase}
+                            completedPhases={Array.from(completedPhases) as any}
+                        />
+                    )}
+
                     {/* SENSA v2.0: Equation Tracker - Hide in Explore Mode */}
                     {studySession?.goal !== 'explore' && (
                         <>
@@ -383,35 +406,17 @@ export default function VelocityLearning() {
                         <motion.div key="gate" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                             <VelocityLockInGate
                                 subjectName={currentSession!.subject}
-                                onConfirm={() => setLockedIn(true)}
+                                onConfirm={() => {
+                                    setLockedIn(true);
+                                    setCompletedPhases(prev => new Set(prev).add('PRIME'));
+                                }}
                             />
                         </motion.div>
                     );
                 }
-                // If locked in, the Modal is rendered outside this switch (portal/overlay style), 
-                // but we can render a placeholder or the dashboard behind it.
-                return <div key="prime-placeholder" />;
-
-            case 'SCOUT':
-            case 'PREVIEW':
-                return (
-                    <motion.div
-                        key="scout"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 1.05 }}
-                        className={styles.fullWidthContainer}
-                    >
-                        <SessionScoutPreview
-                            concepts={currentSession!.concepts}
-                            onComplete={() => {
-                                handleScoutComplete();
-                                // Update SENSA flow
-                                sensaFlow.completeExplore(new Map());
-                            }}
-                        />
-                    </motion.div>
-                );
+                // If locked in, automatically transition to BUILD phase
+                // (Skip SCOUT/PREVIEW since user already did Overview tab)
+                return null; // Will auto-advance to BUILD
 
             case 'BUILD':
                 return (
@@ -427,6 +432,7 @@ export default function VelocityLearning() {
                             subjectName={currentSession!.subject}
                             onComplete={(data) => {
                                 markSessionMapBuilt(data);
+                                setCompletedPhases(prev => new Set(prev).add('BUILD'));
                                 // SENSA v2.0: Update equation (Note phase)
                                 sensaFlow.completeNote(data);
                             }}
@@ -446,7 +452,10 @@ export default function VelocityLearning() {
                             concepts={currentSession!.concepts as unknown as SensaAILearningConcept[]}
                             domain={currentSession!.subject}
                             diagnosticReady={currentSession!.metadata?.diagnosticReady ?? false}
-                            onStartLearning={() => { startDiagnostic(); }}
+                            onStartLearning={() => { 
+                                startDiagnostic();
+                                setCompletedPhases(prev => new Set(prev).add('DIAGNOSE'));
+                            }}
                             onDiagnosticComplete={handleDiagnosticComplete}
                         />
                     </motion.div>

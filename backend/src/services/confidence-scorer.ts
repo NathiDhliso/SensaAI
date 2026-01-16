@@ -20,8 +20,8 @@ import type {
   GroundingMetadata,
   ExamBlueprint,
   ExamObjective as _ExamObjective,
-} from '../types/grounding';
-import { CONFIDENCE_WEIGHTS } from '../types/grounding';
+} from '../types/grounding.js';
+import { CONFIDENCE_WEIGHTS } from '../types/grounding.js';
 
 // ============================================================================
 // TYPES
@@ -75,22 +75,22 @@ function scoreOfficialLink(
   if (!validation) {
     // Link exists but not validated yet - give partial credit
     return { 
-      score: Math.floor(CONFIDENCE_WEIGHTS.OFFICIAL_LINK * 0.5), 
+      score: Math.floor(CONFIDENCE_WEIGHTS.officialLink * 0.5), 
       detail: 'Official source linked (validation pending)' 
     };
   }
 
-  if (validation.isValid && validation.isOfficialDomain) {
+  if (validation.valid) {
     return { 
-      score: CONFIDENCE_WEIGHTS.OFFICIAL_LINK, 
-      detail: `Verified official source: ${validation.domain}` 
+      score: CONFIDENCE_WEIGHTS.officialLink, 
+      detail: `Verified official source: ${validation.url}` 
     };
   }
 
-  if (validation.isOfficialDomain && !validation.isValid) {
+  if (!validation.valid && validation.statusCode) {
     return { 
-      score: Math.floor(CONFIDENCE_WEIGHTS.OFFICIAL_LINK * 0.3), 
-      detail: 'Official domain but link may be stale' 
+      score: Math.floor(CONFIDENCE_WEIGHTS.officialLink * 0.3), 
+      detail: `Link validation failed (HTTP ${validation.statusCode})` 
     };
   }
 
@@ -126,8 +126,8 @@ function scoreBlueprintMapping(
   }
 
   return {
-    score: CONFIDENCE_WEIGHTS.BLUEPRINT_MATCH,
-    detail: `Mapped to: ${match.objectiveId} - ${match.objectiveTitle}`,
+    score: CONFIDENCE_WEIGHTS.blueprintMapping,
+    detail: `Mapped to: ${match.objective.id} - ${match.objective.title}`,
     match,
   };
 }
@@ -170,7 +170,7 @@ function scoreVerifiableData(concept: ConceptData): { score: number; detail: str
   }
 
   // Cap at max weight
-  score = Math.min(score, CONFIDENCE_WEIGHTS.VERIFIABLE_DATA);
+  score = Math.min(score, CONFIDENCE_WEIGHTS.verifiableData);
 
   return {
     score,
@@ -191,10 +191,10 @@ function findBlueprintMatch(
   for (const objective of blueprint.objectives) {
     if (objective.id === objectiveId) {
       return {
-        objectiveId: objective.id,
-        objectiveTitle: objective.title,
-        weight: objective.weight,
-        skills: objective.skills || [],
+        objective: objective,
+        relevanceScore: 100,
+        matchedSkills: objective.skills || [],
+        isDirectMatch: true,
       };
     }
 
@@ -203,12 +203,10 @@ function findBlueprintMatch(
       for (const sub of objective.subObjectives) {
         if (sub.id === objectiveId) {
           return {
-            objectiveId: sub.id,
-            objectiveTitle: sub.title,
-            parentObjectiveId: objective.id,
-            parentObjectiveTitle: objective.title,
-            weight: sub.weight || objective.weight,
-            skills: sub.skills || [],
+            objective: sub,
+            relevanceScore: 90,
+            matchedSkills: sub.skills || [],
+            isDirectMatch: false,
           };
         }
       }
@@ -222,9 +220,9 @@ function findBlueprintMatch(
  * Convert numeric score to confidence level
  */
 function scoreToLevel(score: number): ConfidenceLevel {
-  if (score >= 80) return 'HIGH';
-  if (score >= 50) return 'MEDIUM';
-  return 'LOW';
+  if (score >= 80) return 'high';
+  if (score >= 50) return 'medium';
+  return 'low';
 }
 
 /**
@@ -232,9 +230,9 @@ function scoreToLevel(score: number): ConfidenceLevel {
  */
 function levelToColor(level: ConfidenceLevel): string {
   switch (level) {
-    case 'HIGH': return '#22c55e'; // green-500
-    case 'MEDIUM': return '#eab308'; // yellow-500
-    case 'LOW': return '#ef4444'; // red-500
+    case 'high': return '#22c55e'; // green-500
+    case 'medium': return '#eab308'; // yellow-500
+    case 'low': return '#ef4444'; // red-500
     default: return '#6b7280'; // gray-500
   }
 }
@@ -283,29 +281,26 @@ export function calculateConfidence(
   const level = scoreToLevel(breakdown.total);
 
   return {
-    level,
-    score: breakdown.total,
+    total: breakdown.total,
     breakdown: {
       officialLink: breakdown.officialLinkScore,
-      blueprintMatch: breakdown.blueprintMatchScore,
+      blueprintMapping: breakdown.blueprintMatchScore,
       verifiableData: breakdown.verifiableDataScore,
     },
-    details: breakdown.details,
-    color: levelToColor(level),
-    tooltipText: buildTooltip(breakdown, level),
+    level,
   };
 }
 
 /**
  * Build tooltip text for confidence badge
  */
-function buildTooltip(breakdown: ScoreBreakdown, level: ConfidenceLevel): string {
+function _buildTooltip(breakdown: ScoreBreakdown, level: ConfidenceLevel): string {
   const lines = [
     `Confidence: ${level} (${breakdown.total}/100)`,
     '',
-    `📎 Official Source: ${breakdown.officialLinkScore}/${CONFIDENCE_WEIGHTS.OFFICIAL_LINK}`,
-    `📋 Blueprint Match: ${breakdown.blueprintMatchScore}/${CONFIDENCE_WEIGHTS.BLUEPRINT_MATCH}`,
-    `✓ Verifiable Data: ${breakdown.verifiableDataScore}/${CONFIDENCE_WEIGHTS.VERIFIABLE_DATA}`,
+    `📎 Official Source: ${breakdown.officialLinkScore}/${CONFIDENCE_WEIGHTS.officialLink}`,
+    `📋 Blueprint Match: ${breakdown.blueprintMatchScore}/${CONFIDENCE_WEIGHTS.blueprintMapping}`,
+    `✓ Verifiable Data: ${breakdown.verifiableDataScore}/${CONFIDENCE_WEIGHTS.verifiableData}`,
   ];
 
   return lines.join('\n');
@@ -341,18 +336,18 @@ export function getAggregateConfidence(
   if (scores.length === 0) {
     return { 
       average: 0, 
-      level: 'LOW', 
-      distribution: { HIGH: 0, MEDIUM: 0, LOW: 0 } 
+      level: 'low', 
+      distribution: { high: 0, medium: 0, low: 0 } 
     };
   }
 
-  const total = scores.reduce((sum, s) => sum + s.score, 0);
+  const total = scores.reduce((sum, s) => sum + s.total, 0);
   const average = Math.round(total / scores.length);
 
   const distribution: Record<ConfidenceLevel, number> = {
-    HIGH: scores.filter(s => s.level === 'HIGH').length,
-    MEDIUM: scores.filter(s => s.level === 'MEDIUM').length,
-    LOW: scores.filter(s => s.level === 'LOW').length,
+    high: scores.filter(s => s.level === 'high').length,
+    medium: scores.filter(s => s.level === 'medium').length,
+    low: scores.filter(s => s.level === 'low').length,
   };
 
   return {
@@ -393,11 +388,14 @@ export function buildGroundingMetadata(
   return {
     generatedAt: new Date().toISOString(),
     blueprintVersion: blueprint?.version || 'unknown',
-    confidence,
-    blueprintMatch,
-    officialSourceUrl: concept.officialSourceUrl,
-    linkValidation,
-    isStale: false, // Will be updated by staleness checker
+    blueprintSource: blueprint?.sourceUrl || '',
+    officialSource: concept.officialSourceUrl || '',
+    blueprintMapping: blueprintMatch 
+      ? `${blueprintMatch.objective.id} - ${blueprintMatch.objective.title}`
+      : 'No mapping',
+    confidenceScore: confidence,
+    verificationStatus: linkValidation?.valid ? 'verified' : 'unverified',
+    warnings: linkValidation?.valid ? undefined : ['Link validation pending or failed'],
   };
 }
 

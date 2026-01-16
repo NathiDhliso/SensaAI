@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
+import BackgroundJobToast from './components/ui/BackgroundJobToast';
 
 import { useBionicReading } from './hooks/useBionicReading';
 
@@ -138,6 +139,7 @@ function App() {
           } />
         </Routes>
         <SettingsPanel />
+        <BackgroundJobToast />
       </Suspense>
     </BrowserRouter>
   );

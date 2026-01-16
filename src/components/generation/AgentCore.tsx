@@ -56,12 +56,12 @@ export const AgentCore: React.FC<AgentCoreProps> = ({ state, intensity = 0, glit
                         ease: 'easeInOut'
                     }}
                 >
-                    {state === 'idle' && <Brain className="w-12 h-12 text-blue-400" />}
-                    {state === 'scanning' && <Cpu className="w-12 h-12 text-violet-400" />}
-                    {state === 'thinking' && <Zap className="w-12 h-12 text-purple-400" />}
-                    {state === 'writing' && <Sparkles className="w-12 h-12 text-amber-400" />}
-                    {state === 'verifying' && <CheckCircle className="w-12 h-12 text-emerald-400" />}
-                    {state === 'complete' && <CheckCircle className="w-16 h-16 text-emerald-400" />}
+                    {state === 'idle' && <Brain className={`${styles.coreIcon} ${styles.iconIdle}`} />}
+                    {state === 'scanning' && <Cpu className={`${styles.coreIcon} ${styles.iconScanning}`} />}
+                    {state === 'thinking' && <Zap className={`${styles.coreIcon} ${styles.iconThinking}`} />}
+                    {state === 'writing' && <Sparkles className={`${styles.coreIcon} ${styles.iconWriting}`} />}
+                    {state === 'verifying' && <CheckCircle className={`${styles.coreIcon} ${styles.iconVerifying}`} />}
+                    {state === 'complete' && <CheckCircle className={`${styles.coreIcon} ${styles.coreIconLarge} ${styles.iconComplete}`} />}
                 </motion.div>
 
                 {/* Pulse Effect for Thinking/Verifying - Scale based on intensity */}

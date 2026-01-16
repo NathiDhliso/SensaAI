@@ -41,3 +41,6 @@ export type { SessionGoalType, SessionGoal, SessionGoalManagerProps } from './Se
 export { OnboardingFlow, HelpTooltip } from './OnboardingFlow';
 export { LEARNING_SCIENCE } from '@/constants/learning-science';
 export type { OnboardingStep, OnboardingFlowProps, HelpTooltipProps } from './OnboardingFlow';
+
+// Phase Navigator
+export { default as PhaseNavigator } from './PhaseNavigator';

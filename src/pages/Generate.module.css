@@ -78,7 +78,7 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 1.5rem;
   font-weight: 300;
-  color: var(--color-text-on-accent);
+  color: var(--color-text-dark);
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -97,6 +97,11 @@
   height: 100%;
   background: var(--color-accent-light);
   border-radius: 1px;
+  transition: background-color 0.3s ease;
+}
+
+.streamBitHigh {
+  background: var(--color-error);
 }
 
 /* --- HUD: SOURCE & OUTPUT --- */
@@ -113,10 +118,11 @@
 
 /* Left HUD: Source Info */
 .sourcePanel {
-  background: rgba(10, 10, 15, 0.8);
-  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-border);
   padding: 1rem;
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-md);
 }
 
 .hudLabel {
@@ -131,7 +137,7 @@
 .sourceTitle {
   font-family: 'Inter', sans-serif;
   font-size: 0.9rem;
-  color: var(--color-text-on-accent);
+  color: var(--color-text-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -149,7 +155,7 @@
 .progressLine {
   width: 100%;
   height: 2px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-border-light);
   position: relative;
   overflow: hidden;
 }
@@ -167,10 +173,11 @@
 
 /* Right HUD: Output Ticker */
 .outputPanel {
-  background: rgba(10, 10, 15, 0.8);
-  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-border);
   padding: 1rem;
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -179,7 +186,7 @@
 .nodeCounter {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1.2rem;
-  color: var(--color-text-on-accent);
+  color: var(--color-text-dark);
   font-weight: 700;
 }
 
@@ -197,7 +204,7 @@
   border: 1px solid var(--overlay-accent-15);
   padding: 0.75rem 1.5rem;
   border-radius: 99px;
-  color: var(--color-text-on-accent);
+  color: var(--color-text-dark);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9rem;
   display: flex;
@@ -219,7 +226,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(10, 10, 15, 0.6);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-text-medium);
   padding: 0.5rem 1rem;
@@ -230,6 +237,7 @@
   text-transform: uppercase;
   transition: all 0.2s;
   z-index: 20;
+  box-shadow: var(--shadow-sm);
 }
 
 .abortButton:hover {
@@ -242,7 +250,7 @@
 .confirmOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--overlay-black-60);
   backdrop-filter: blur(10px);
   z-index: 100;
   display: flex;
@@ -356,4 +364,39 @@
   border: 2px solid var(--color-primary);
   opacity: 0;
   z-index: 5;
+}
+
+/* ========== Agent Core Icon Styles ========== */
+.coreIcon {
+  width: 3rem;
+  height: 3rem;
+}
+
+.coreIconLarge {
+  width: 4rem;
+  height: 4rem;
+}
+
+.iconIdle {
+  color: var(--color-info);
+}
+
+.iconScanning {
+  color: var(--color-accent-light);
+}
+
+.iconThinking {
+  color: var(--color-primary);
+}
+
+.iconWriting {
+  color: var(--color-warning);
+}
+
+.iconVerifying {
+  color: var(--color-success);
+}
+
+.iconComplete {
+  color: var(--color-success);
 }

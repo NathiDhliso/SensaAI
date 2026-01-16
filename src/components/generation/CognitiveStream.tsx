@@ -1,4 +1,3 @@
-import { COLORS } from '@/constants/theme-colors';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { COGNITIVE_THOUGHTS } from '@/constants/ui-constants';
@@ -73,11 +72,10 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
                 {Array.from({ length: 48 }).map((_, i) => (
                     <motion.div
                         key={i}
-                        className={styles.streamBit}
+                        className={`${styles.streamBit} ${intensity > 80 ? styles.streamBitHigh : ''}`}
                         animate={{
                             height: [2, 12, 2],
-                            opacity: [0.3, 1, 0.3],
-                            backgroundColor: intensity > 80 ? COLORS.error : COLORS.accent.light
+                            opacity: [0.3, 1, 0.3]
                         }}
                         transition={{
                             duration: 0.8,

@@ -1,5 +1,6 @@
 import { conceptsApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
+import { useGenerationStore } from '@/store/generation-store';
 import type { ProgressCallback, GenerationResult, ValidationResult } from '@/lib/types/generation';
 import type { ParsedConcept } from '@/lib/content-adapter/types';
 import { UI_TIMINGS } from '@/constants/ui-constants';
@@ -22,6 +23,9 @@ export async function uploadExamBlueprint(file: File): Promise<string> {
 /**
  * Generate content using the serverless Lambda + DynamoDB pipeline.
  * All heavy lifting happens server-side - browser only polls for status.
+ * 
+ * The active job is persisted to localStorage so generation can continue
+ * even if the user closes the tab and returns later.
  */
 export async function generateWithBackend(
     subject: string,
@@ -33,6 +37,9 @@ export async function generateWithBackend(
     // Get user ID from auth store
     const { user } = useAuthStore.getState();
     const userId = user?.id || 'anonymous';
+
+    // Get active job tracking functions
+    const { setActiveJob, updateActiveJobStatus, clearActiveJob } = useGenerationStore.getState();
 
     // Pass 1: Start serverless generation
     onProgress(1, 'in-progress', {
@@ -62,6 +69,7 @@ export async function generateWithBackend(
 
         if (generateResponse.status === 'failed') {
             console.error('[Backend Generator] Generation failed:', generateResponse.error);
+            clearActiveJob(); // Clear failed job
             throw new Error(generateResponse.error || 'Generation failed');
         }
 
@@ -73,8 +81,20 @@ export async function generateWithBackend(
 
         const { jobId, sessionId } = generateResponse;
 
+        // Track the active job in persistent storage for background recovery
+        setActiveJob({
+            jobId,
+            sessionId,
+            userId,
+            subject,
+            context,
+            startedAt: Date.now(),
+            status: 'processing',
+        });
+
         // Skip polling if already completed (which it should be for sync lambda)
         if (generateResponse.status !== 'completed') {
+            updateActiveJobStatus('processing');
             let progressValue = 10;
             let pollInterval = 2000; // Start at 2s
             const maxPollInterval = 10000; // Max 10s
@@ -195,6 +215,10 @@ export async function generateWithBackend(
 
         const conceptNames = allConcepts.map(c => c.name);
 
+        // Mark job as completed and clear from tracking
+        updateActiveJobStatus('completed');
+        clearActiveJob();
+
         return {
             pass1: {
                 domain: subject,
@@ -224,6 +248,8 @@ export async function generateWithBackend(
 
     } catch (error) {
         clearInterval(simInterval);
+        // Mark job as failed
+        updateActiveJobStatus('failed');
         throw error;
     }
 }
