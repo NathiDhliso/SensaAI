@@ -100,6 +100,9 @@ interface AnalysisResult {
 /**
  * Analyze user response against key points
  * Returns score and identification of gaps
+ * 
+ * ARCHITECT FIX: Now includes negation detection to prevent "keyword stuffing" exploit.
+ * Penalizes responses containing negation words near key terms unless the key point itself is negative.
  */
 function analyzeResponse(
     response: string,
@@ -112,6 +115,9 @@ function analyzeResponse(
     const responseWords = response.toLowerCase().split(/\s+/);
     const responsePhrases = extractPhrases(response.toLowerCase());
     const results: AnalysisResult[] = [];
+
+    // Negation markers for semantic accuracy check
+    const negationWords = ['not', 'never', 'no', 'cannot', 'cant', "can't", 'wont', "won't", 'dont', "don't", 'isnt', "isn't"];
 
     for (const point of keyPoints) {
         const pointWords = point.toLowerCase().split(/\s+/).filter(w => w.length > 3);
@@ -127,11 +133,39 @@ function analyzeResponse(
             responsePhrases.some(rp => rp.includes(pp) || pp.includes(rp))
         );
 
+        // ARCHITECT FIX: Negation Detection
+        // Check if key point contains negation (e.g., "cannot be null")
+        const keyPointIsNegative = negationWords.some(neg => point.toLowerCase().includes(neg));
+        
+        // Check if user response contains negation near matched keywords (within 3 words)
+        let negationPenalty = 0;
+        if (wordMatches.length > 0 && !keyPointIsNegative) {
+            const responseText = response.toLowerCase();
+            for (const match of wordMatches) {
+                const matchIndex = responseText.indexOf(match);
+                if (matchIndex === -1) continue;
+                
+                // Extract window of ±3 words around the match
+                const beforeText = responseText.slice(Math.max(0, matchIndex - 30), matchIndex);
+                const afterText = responseText.slice(matchIndex, matchIndex + match.length + 30);
+                
+                // Check if negation appears near the keyword
+                const hasNegationNearby = negationWords.some(neg => 
+                    beforeText.includes(neg) || afterText.includes(neg)
+                );
+                
+                if (hasNegationNearby) {
+                    negationPenalty += 0.3; // Reduce confidence by 30% per negated keyword
+                }
+            }
+        }
+
         const wordMatchRatio = pointWords.length > 0 ? wordMatches.length / pointWords.length : 0;
         const phraseMatchRatio = pointPhrases.length > 0 ? phraseMatches.length / pointPhrases.length : 0;
 
-        // Combined confidence score
-        const confidence = (wordMatchRatio * VELOCITY_CONFIG.BLANK_SHEET.CONFIDENCE_WORD_WEIGHT) + (phraseMatchRatio * VELOCITY_CONFIG.BLANK_SHEET.CONFIDENCE_PHRASE_WEIGHT);
+        // Combined confidence score (with negation penalty applied)
+        const rawConfidence = (wordMatchRatio * VELOCITY_CONFIG.BLANK_SHEET.CONFIDENCE_WORD_WEIGHT) + (phraseMatchRatio * VELOCITY_CONFIG.BLANK_SHEET.CONFIDENCE_PHRASE_WEIGHT);
+        const confidence = Math.max(0, rawConfidence - negationPenalty);
 
         let status: 'identified' | 'missed' | 'uncertain';
         if (confidence >= VELOCITY_CONFIG.BLANK_SHEET.IDENTIFIED_THRESHOLD) {

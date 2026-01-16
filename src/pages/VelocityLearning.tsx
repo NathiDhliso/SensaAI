@@ -32,6 +32,7 @@ import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
 import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
 import MasteryChallenge from '@/components/learning/MasteryChallenge';
 import SensaSynopticView from '@/components/learning/SensaSynopticView';
+import SkipReasonModal, { type SkipReasonData } from '@/components/learning/SkipReasonModal';
 
 import type {
     StudyGoal,
@@ -93,6 +94,10 @@ export default function VelocityLearning() {
 
     // 3. Local UI State
     const [lockedIn, setLockedIn] = useState(false);
+    
+    // ARCHITECT ENHANCEMENT: Skip Diagnostics
+    const [showSkipModal, setShowSkipModal] = useState(false);
+    const [pendingSkipConcept, setPendingSkipConcept] = useState<string | null>(null);
     const [showTimeToast, setShowTimeToast] = useState(false);
     const [showCheckpoint, setShowCheckpoint] = useState(false);
     const [timeToastDismissed, setTimeToastDismissed] = useState(false);
@@ -149,9 +154,50 @@ export default function VelocityLearning() {
         // useLearningFlow will recalculate activeConcept on next render
     };
 
+    // ARCHITECT ENHANCEMENT: Diagnostic Skip with Reason Capture
     const handleSkipConcept = () => {
-        const nextId = getNextConcept();
-        if (nextId) setCurrentConcept(nextId);
+        // Get the current concept name before showing modal
+        const currentConceptId = activeConcept?.id || '';
+        setPendingSkipConcept(currentConceptId);
+        setShowSkipModal(true);
+    };
+
+    const handleSkipReasonConfirm = (data: SkipReasonData) => {
+        setShowSkipModal(false);
+        
+        // Log diagnostic information (could be stored in analytics later)
+        console.log('[Skip Diagnostic]', {
+            conceptId: pendingSkipConcept,
+            reason: data.reason,
+            timestamp: new Date().toISOString()
+        });
+
+        // Adaptive routing based on skip reason
+        if (data.reason === 'too-hard') {
+            // TODO: Route to prerequisite check
+            // For now, just advance to next concept
+            const nextId = getNextConcept();
+            if (nextId) setCurrentConcept(nextId);
+        } else if (data.reason === 'too-easy') {
+            // TODO: Route to high-stakes verification
+            // For now, mark as mastered and advance
+            if (pendingSkipConcept) {
+                completeConcept(pendingSkipConcept, 'mastered', 0);
+            }
+            const nextId = getNextConcept();
+            if (nextId) setCurrentConcept(nextId);
+        } else {
+            // Default: Just skip to next
+            const nextId = getNextConcept();
+            if (nextId) setCurrentConcept(nextId);
+        }
+        
+        setPendingSkipConcept(null);
+    };
+
+    const handleSkipReasonCancel = () => {
+        setShowSkipModal(false);
+        setPendingSkipConcept(null);
     };
 
     const handleDiagnosticComplete = (results: DiagnosticResults) => {
@@ -243,6 +289,11 @@ export default function VelocityLearning() {
                                 I={sensaFlow.I}
                                 weakestVariable={sensaFlow.weakestVariable.variable}
                                 compact={true}
+                                currentPhase={sensaFlow.phase}
+                                onSuggestBacktrack={() => {
+                                    // Navigate back to Explore phase if Q_P is critically low
+                                    sensaFlow.setPhase('explore');
+                                }}
                             />
 
                             {/* SENSA v2.0: Flow Progress Bar with Sub-Progress */}
@@ -275,6 +326,15 @@ export default function VelocityLearning() {
                         totalConcepts={currentSession.concepts.length}
                         completedConcepts={currentSession.progress.completedConcepts.length}
                         onStart={handleStartSession}
+                    />
+                )}
+                
+                {/* ARCHITECT ENHANCEMENT: Skip Reason Modal */}
+                {showSkipModal && activeConcept && (
+                    <SkipReasonModal
+                        conceptName={activeConcept.name}
+                        onConfirm={handleSkipReasonConfirm}
+                        onCancel={handleSkipReasonCancel}
                     />
                 )}
             </AnimatePresence>

@@ -185,3 +185,43 @@
 .masteryIcon {
     color: var(--color-success, #22c55e);
 }
+
+/* Proactive Intervention Warning - "Grinding Futile" Alert */
+.interventionWarning {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-md, 8px);
+    margin-top: 0.75rem;
+    font-size: 0.7rem;
+}
+
+.interventionWarning .warningIcon {
+    color: #ef4444;
+    flex-shrink: 0;
+}
+
+.interventionWarning .warningText {
+    color: rgba(255, 255, 255, 0.8);
+    flex: 1;
+}
+
+.backtrackButton {
+    padding: 0.25rem 0.5rem;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: var(--radius-sm, 4px);
+    color: #fca5a5;
+    font-size: 0.65rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.backtrackButton:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: #fecaca;
+}

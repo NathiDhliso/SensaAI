@@ -5,10 +5,11 @@
  * I = min(h, G × Q_f × Q_M × Q_P)
  * 
  * Shows current values and highlights the weakest variable.
+ * NEW: Proactive intervention when Q_P is critically low (< 0.2) during Study phase.
  */
 
-import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, TrendingDown, Target, AlertTriangle } from 'lucide-react';
 import { Z_INDEX } from '@/constants/z-index';
 import { EQUATION_COLORS_HEX, MASTERY_THRESHOLD } from '@/constants/sensa-flow-constants';
 import styles from './EquationTracker.module.css';
@@ -16,6 +17,9 @@ import styles from './EquationTracker.module.css';
 // ============================================================================
 // Types
 // ============================================================================
+
+/** Threshold below which grinding is mathematically futile */
+const LOW_PREP_THRESHOLD = 0.2;
 
 interface EquationTrackerProps {
     G: number;
@@ -26,6 +30,10 @@ interface EquationTrackerProps {
     weakestVariable?: 'G' | 'Q_P' | 'Q_M' | 'Q_f';
     position?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left';
     compact?: boolean;
+    /** Current learning phase - enables proactive intervention warnings */
+    currentPhase?: 'see' | 'explore' | 'note' | 'study' | 'apply' | 'complete';
+    /** Callback when user should go back to Explore phase */
+    onSuggestBacktrack?: () => void;
 }
 
 // ============================================================================
@@ -41,8 +49,16 @@ export function EquationTracker({
     weakestVariable,
     position = 'top-right',
     compact = false,
+    currentPhase,
+    onSuggestBacktrack,
 }: EquationTrackerProps) {
     const hasMastery = I >= MASTERY_THRESHOLD;
+    
+    // Proactive intervention: Detect when grinding is futile
+    // If Q_P < 0.2 during Study/Apply phase, the math ensures mastery is impossible
+    const isGrindingFutile = currentPhase && 
+        ['study', 'apply'].includes(currentPhase) && 
+        Q_P < LOW_PREP_THRESHOLD;
 
     const positionStyles = {
         'top-right': { top: '1rem', right: '1rem' },
@@ -157,6 +173,31 @@ export function EquationTracker({
                     )}
                 </span>
             </div>
+
+            {/* Proactive Intervention: Low Q_P Warning */}
+            <AnimatePresence>
+                {isGrindingFutile && (
+                    <motion.div
+                        className={styles.interventionWarning}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                    >
+                        <AlertTriangle size={14} className={styles.warningIcon} />
+                        <span className={styles.warningText}>
+                            Low prep score ({(Q_P * 100).toFixed(0)}%) — consider revisiting Explore phase
+                        </span>
+                        {onSuggestBacktrack && (
+                            <button 
+                                className={styles.backtrackButton}
+                                onClick={onSuggestBacktrack}
+                            >
+                                Go Back
+                            </button>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
