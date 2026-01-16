@@ -145,6 +145,9 @@ export default function ConceptMapBuilder({
     const [pendingConnection, setPendingConnection] = useState<{ fromId: string; toId: string } | null>(null);
     const [showConnectionTypeModal, setShowConnectionTypeModal] = useState(false);
 
+    // Onboarding/Help State
+    const [showOnboarding, setShowOnboarding] = useState(true);
+
     // Refs
     const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -809,11 +812,123 @@ export default function ConceptMapBuilder({
     };
 
     // =========================================================================
+    // PHASE HEADER
+    // =========================================================================
+
+    const renderPhaseHeader = () => {
+        if (readOnly) return null;
+
+        const minNodesRequired = 2;
+        const minConnectionsRequired = 1;
+        const nodesComplete = nodes.length >= minNodesRequired;
+        const connectionsComplete = connections.length >= minConnectionsRequired;
+        const canComplete = nodesComplete && connectionsComplete;
+
+        return (
+            <div className={styles.phaseHeader}>
+                <div className={styles.phaseHeaderContent}>
+                    <div className={styles.phaseInfo}>
+                        <h1 className={styles.phaseTitle}>Step 3: Note - Build Your Concept Map</h1>
+                        <p className={styles.phaseDescription}>
+                            Connect concepts to show relationships. Click concepts from the sidebar, then use tools to arrange and link them.
+                        </p>
+                    </div>
+                    <div className={styles.phaseProgress}>
+                        <div className={styles.progressItem}>
+                            <span className={styles.progressLabel}>Phase Progress</span>
+                            <span className={styles.progressValue}>3 of 6</span>
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.completionRequirements}>
+                    <div className={`${styles.requirement} ${nodesComplete ? styles.requirementComplete : ''}`}>
+                        <span className={styles.requirementIcon}>{nodesComplete ? '✓' : '○'}</span>
+                        <span className={styles.requirementText}>
+                            Add {minNodesRequired}+ concepts ({nodes.length}/{minNodesRequired})
+                        </span>
+                    </div>
+                    <div className={`${styles.requirement} ${connectionsComplete ? styles.requirementComplete : ''}`}>
+                        <span className={styles.requirementIcon}>{connectionsComplete ? '✓' : '○'}</span>
+                        <span className={styles.requirementText}>
+                            Create {minConnectionsRequired}+ connection{minConnectionsRequired > 1 ? 's' : ''} ({connections.length}/{minConnectionsRequired})
+                        </span>
+                    </div>
+                    {canComplete && (
+                        <div className={styles.requirementSuccess}>
+                            <Check size={14} />
+                            <span>Ready to continue!</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    // =========================================================================
+    // ONBOARDING TOAST
+    // =========================================================================
+
+    const renderOnboardingToast = () => {
+        if (readOnly || !showOnboarding || nodes.length > 0) return null;
+
+        return (
+            <motion.div
+                className={styles.onboardingToast}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+            >
+                <div className={styles.onboardingHeader}>
+                    <Lightbulb size={20} className={styles.onboardingIcon} />
+                    <h3>Getting Started with Concept Mapping</h3>
+                    <button
+                        onClick={() => setShowOnboarding(false)}
+                        className={styles.onboardingClose}
+                        title="Close instructions"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+                <div className={styles.onboardingContent}>
+                    <ol className={styles.onboardingSteps}>
+                        <li>
+                            <strong>Add Concepts:</strong> Click any concept in the left sidebar to place it on the canvas
+                        </li>
+                        <li>
+                            <strong>Position Nodes:</strong> Use the <Move size={14} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> Move tool to drag and arrange nodes
+                        </li>
+                        <li>
+                            <strong>Create Links:</strong> Use the <ArrowRight size={14} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> Connect tool to draw relationships between concepts
+                        </li>
+                        <li>
+                            <strong>Label Connections:</strong> Click a connection to add a relationship label (e.g., "causes", "enables")
+                        </li>
+                        <li>
+                            <strong>Complete:</strong> Add at least 2 concepts and 1 connection to finish this phase
+                        </li>
+                    </ol>
+                    <button
+                        onClick={() => setShowOnboarding(false)}
+                        className={styles.onboardingButton}
+                    >
+                        Got it, let's start!
+                    </button>
+                </div>
+            </motion.div>
+        );
+    };
+
+    // =========================================================================
     // MAIN RENDER
     // =========================================================================
 
     return (
         <div className={styles.container}>
+            {/* Phase Header */}
+            {renderPhaseHeader()}
+
+            {/* Map Builder Content (Sidebar + Canvas) */}
+            <div className={styles.mapBuilderContent}>
             {/* Sidebar with Visual Bucket Zones */}
             {!readOnly && (
                 <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
@@ -1041,6 +1156,11 @@ export default function ConceptMapBuilder({
                 {/* AI Panel */}
                 {!readOnly && renderAiPanel()}
 
+                {/* Onboarding Toast */}
+                <AnimatePresence>
+                    {renderOnboardingToast()}
+                </AnimatePresence>
+
                 {/* Complete Button */}
                 {!readOnly && mapPhase === 'build' && nodes.length >= 2 && connections.length >= 1 && onComplete && (
                     <motion.button
@@ -1056,6 +1176,9 @@ export default function ConceptMapBuilder({
 
                 {/* Validation Panel */}
                 {renderValidationPanel()}
+            </div>
+            
+            {/* End Map Builder Content */}
             </div>
             
             {/* ARCHITECT ENHANCEMENT: Connection Type Modal */}

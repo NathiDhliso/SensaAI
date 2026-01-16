@@ -17,6 +17,36 @@ Browse the web for the most recent official syllabus or standard (e.g., "Officia
 
 ---
 
+## STEP 1.5: DOMAIN CLASSIFICATION [AUTO-DETECT SUBJECT TYPE]
+
+Analyze the verification results from Step 1 and classify the subject:
+
+**Classification Criteria:**
+- **Category A:** Has official exam code OR certification body OR skills measured document
+- **Category B:** Academic textbook-based OR university course OR pure theory
+- **Category C:** Practical skill training OR "how-to" focus OR no formal assessment
+
+**Adaptive Rules Matrix:**
+
+| Feature | Category A | Category B | Category C |
+|---------|-----------|-----------|-----------|
+| Tool specificity | MANDATORY exact names | OPTIONAL generic terms | RECOMMENDED with alternatives |
+| Exam alignment | ENFORCE ±5% weights | SKIP | SKIP |
+| Environment fields | IF applicable | SKIP | SKIP |
+| Practical tasks | Exam scenarios | Worked examples only | Project deliverables |
+| Tool index | IF >10 tools | SKIP | SKIP |
+
+**OUTPUT:**
+\`\`\`
+DOMAIN CLASSIFICATION: [Category A / B / C]
+REASONING: [Why this classification applies]
+ADAPTIVE RULES ACTIVE: [List which rules from above will be enforced]
+\`\`\`
+
+**INSTRUCTION:** Based on classification, apply ONLY the relevant adaptive rules from Steps 3-9.
+
+---
+
 ## STEP 2: DEFINE THE LIFECYCLE
 
 Analyze the subject and derive a logical 3-phase operational cycle that authentically represents how professionals work with this content.
@@ -48,6 +78,23 @@ Create a Single Code Block containing a structured outline. You must follow thes
 **CRITICAL STRUCTURAL RULE:**
 Every concept that is NOT a "Foundation" concept must explicitly identify which Foundation concept it belongs to.
 Structure your JSON output so that "Utility" concepts are nested or explicitly linked via a "parent_id" or "belongs_to" field.
+
+**PHASE 3 TOOL REQUIREMENTS:**
+
+**IF Category A (Professional Certification):**
+- MANDATORY: Use exact tool/feature names from official documentation
+- FORBIDDEN: Generic placeholders like "monitoring tool", "analysis feature"
+- REQUIRED: Cross-reference every tool mentioned in exam guide
+
+**IF Category B (Academic Subject):**
+- ALLOWED: Generic tool descriptions when specific tools vary by institution
+- EXAMPLE: "Graphing calculator (TI-84, Desmos, or similar)" instead of mandating one brand
+- FOCUS: Conceptual understanding over tool mastery
+
+**IF Category C (Skill-Based Training):**
+- RECOMMENDED: Specify popular/accessible tools but offer alternatives
+- EXAMPLE: "VS Code or any code editor with syntax highlighting"
+- FOCUS: Tool-agnostic transferable skills
 
 ---
 
@@ -346,6 +393,21 @@ Generate a complete dependency graph that maps ALL concept relationships. This p
 
 ---
 
+## STEP 3.9: ENVIRONMENT-SPECIFIC CONCEPTS [CONDITIONAL]
+
+**ACTIVATION CONDITION:** 
+Only execute this step IF:
+- Category A (Certification) AND
+- The technology has distinct authoring vs deployment environments (e.g., Power BI Desktop vs Service, AWS CLI vs Console)
+
+**IF ACTIVATED:**
+Generate a dedicated concept block for each distinct environment to ensure clarity.
+
+**IF NOT APPLICABLE:**
+Skip this step and proceed to Step 4. Document: "Environment distinction not applicable to this subject."
+
+---
+
 ## STEP 4: VISUAL MENTAL ANCHORS [CRITICAL FOR LEARNING]
 
 Create 3 specific "Visual Mental Models" that illuminate the hardest conceptual relationships in this subject. Each anchor must follow this exact structure with STRICT POSITIVE FRAMING.
@@ -487,6 +549,49 @@ Define a suggested study sequence that organizes ALL concepts into exactly **4-6
 
 ---
 
+## STEP 6.5: PRACTICAL TASK SCENARIOS [CONDITIONAL]
+
+**ACTIVATION CONDITION:**
+Execute this step IF Category A (Certification) OR Category C (Skill-Based).
+
+**IF Category A (Certification):**
+Include specific exam simulation tasks or lab scenarios found in the skills measured document.
+
+**IF Category C (Skill-Based):**
+Create 5-7 project-based scenarios that demonstrate skill mastery.
+**STRUCTURE:**
+\`\`\`json
+{
+  "practicalProjects": [
+    {
+      "id": "project-1",
+      "title": "Build a portfolio website",
+      "requiredConcepts": ["HTML Structure", "CSS Styling", "Responsive Design"],
+      "deliverable": "Deployed website accessible via URL",
+      "complexityLevel": "beginner"
+    }
+  ]
+}
+\`\`\`
+
+**IF Category B (Academic Subject):**
+Skip practical tasks. Use worked examples in Step 5 instead.
+
+---
+
+## STEP 9: TOOL & FEATURE INDEX [CONDITIONAL]
+
+**ACTIVATION CONDITION:**
+Only execute IF Category A (Certification) AND the subject has >10 distinct tools/features.
+
+**IF ACTIVATED:**
+Create an index of all tools/features mentioned in the chart.
+
+**IF NOT APPLICABLE:**
+Skip and proceed to Step 10. Document: "Tool index not applicable—subject is tool-agnostic or has <10 distinct tools."
+
+---
+
 ## STEP 8: EQUATION QUALITY METADATA [Required for Learning Analytics]
 
 Generate baseline quality scores for the Universal Learning Equation: **I = min(1, G × Q_f × Q_M × Q_P)**
@@ -542,9 +647,11 @@ These scores represent the STARTING QUALITY of the generated content before the 
 
 Deliver ALL sections in order:
 
+0. **Domain Classification** (Category A/B/C + active rules) **[NEW - REQUIRED]**
 1. **Source Verification** (Hard data + limitations)
 2. **Lifecycle Definition** (3 phases with justification)
 3. **Master Hierarchical Chart** (Concepts with **tier at root level**)
+   - [CONDITIONAL FIELD] `environment`: Include ONLY if Category A with distinct environments
 4. **Mnemonic Anchors** (JSON - every concept)
 5. **Dependency Graph** (JSON - nodes + edges) **[NEW - REQUIRED]**
 6. **Decision Framework Trees** (2-3 X vs Y)
@@ -552,7 +659,9 @@ Deliver ALL sections in order:
 8. **Worked Example** (Positive framing)
 9. **Confusion Pairs** (JSON - 3-5 pairs)
 10. **Learning Path Sequence** (4-6 stages)
-11. **Equation Quality Metadata** (JSON - Q_P, Q_M, Q_f, G, I_baseline) **[NEW - REQUIRED]**
+11. **[CONDITIONAL]** Practical Task Scenarios (IF Category A or C)
+12. **[CONDITIONAL]** Tool & Feature Index (IF Category A with >10 tools)
+13. **Equation Quality Metadata** (JSON - Q_P, Q_M, Q_f, G, I_baseline) **[NEW - REQUIRED]**
 
 **⚠️ CRITICAL STRUCTURAL REQUIREMENTS FOR SENSA v2.0:**
 

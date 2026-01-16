@@ -1,10 +1,18 @@
 .container {
     display: flex;
-    height: 700px;
-    gap: 1rem;
+    flex-direction: column;
+    height: 100%;
+    min-height: 700px;
     background: var(--color-surface-base);
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.mapBuilderContent {
+    display: flex;
+    flex: 1;
+    gap: 1rem;
     overflow: hidden;
 }
 
@@ -599,4 +607,236 @@
 
 .utilityItem:hover {
     background: var(--overlay-sage-10);
+}
+
+/* ============================================================================
+   PHASE HEADER
+   ============================================================================ */
+
+.phaseHeader {
+    background: var(--color-surface-base);
+    border-bottom: 2px solid var(--color-border);
+    padding: 1.5rem 2rem;
+    margin-bottom: 0;
+}
+
+.phaseHeaderContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.phaseInfo {
+    flex: 1;
+}
+
+.phaseTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.phaseDescription {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.phaseProgress {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.progressItem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.progressLabel {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-tertiary);
+    font-weight: 600;
+}
+
+.progressValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.completionRequirements {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    transition: color 0.2s ease;
+}
+
+.requirement.requirementComplete {
+    color: var(--color-success);
+}
+
+.requirementIcon {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.requirementText {
+    font-weight: 500;
+}
+
+.requirementSuccess {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-left: auto;
+}
+
+/* ============================================================================
+   ONBOARDING TOAST
+   ============================================================================ */
+
+.onboardingToast {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: var(--color-surface-base);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.onboardingHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--color-primary-transparent);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.onboardingIcon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.onboardingHeader h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.onboardingClose {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.onboardingClose:hover {
+    background: var(--overlay-black-10);
+    color: var(--color-text-primary);
+}
+
+.onboardingContent {
+    padding: 1.5rem;
+}
+
+.onboardingSteps {
+    margin: 0 0 1.5rem 0;
+    padding-left: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.onboardingSteps li {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+}
+
+.onboardingSteps strong {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.onboardingButton {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-primary);
+    color: var(--color-text-on-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.onboardingButton:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .phaseHeader {
+        padding: 1rem;
+    }
+
+    .phaseHeaderContent {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .completionRequirements {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .onboardingToast {
+        width: 95%;
+        max-width: none;
+    }
 }
