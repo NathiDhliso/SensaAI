@@ -255,7 +255,7 @@ export default function Generate() {
                   borderRadius: '50%',
                 }}
               />
-              <span style={{ fontSize: '0.7rem' }}>
+              <span style={{ fontSize: '0.7rem', opacity: 0.9 }}>
                 {pendingFile ? 'OBJECTIVES_LOCKED' : 'UNGROUNDED_MODE'}
               </span>
             </div>
@@ -284,7 +284,7 @@ export default function Generate() {
             <span className={styles.hudLabel}>Nodes Synthesized</span>
             <div className={styles.nodeCounter}>
               {streamedConcepts.length}{' '}
-              <span style={{ fontSize: '0.9rem', opacity: 0.5 }}>
+              <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>
                 /{' '}
                 {expectedConceptCount || (
                   <motion.span
