@@ -118,9 +118,10 @@ export const conceptsApi = {
     /**
      * Check status of a generation job
      */
-    async getJobStatus(jobId: string): Promise<JobStatus> {
+    async getJobStatus(jobId: string, userId?: string): Promise<JobStatus> {
         console.log('[ConceptsAPI] getJobStatus() called for jobId:', jobId);
-        const response = await apiClient.get<JobStatus>(`/concepts/jobs/${jobId}`);
+        const query = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+        const response = await apiClient.get<JobStatus>(`/concepts/jobs/${jobId}${query}`);
         console.log('[ConceptsAPI] getJobStatus() response:', response);
         return response;
     },

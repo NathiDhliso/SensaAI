@@ -100,7 +100,7 @@ export async function generateWithBackend(
 
                 try {
                     console.log('[Backend Generator] Checking job status for:', jobId);
-                    const status = await conceptsApi.getJobStatus(jobId);
+                    const status = await conceptsApi.getJobStatus(jobId, userId);
 
                     // Detailed logging for user visibility
                     if (status.status === 'failed') {

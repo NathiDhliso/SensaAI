@@ -18,6 +18,7 @@ import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tansta
 import { conceptsApi } from '@/lib/api';
 import type { ParsedConcept } from '@/lib/content-adapter/types';
 import { IndexedDBStorage } from '@/lib/storage/indexed-db-storage';
+import { useAuthStore } from '@/store/auth-store';
 
 // Query keys for cache invalidation
 export const conceptsQueryKeys = {
@@ -173,11 +174,12 @@ export function useGenerateConcepts(options: UseGenerateConceptsOptions = {}) {
  * Hook to poll generation job status
  */
 export function useJobStatus(jobId: string | null, options: { enabled?: boolean } = {}) {
+    const userId = useAuthStore.getState().user?.id;
     return useQuery({
         queryKey: conceptsQueryKeys.job(jobId ?? ''),
         queryFn: async () => {
             if (!jobId) throw new Error('Job ID is required');
-            return conceptsApi.getJobStatus(jobId);
+            return conceptsApi.getJobStatus(jobId, userId);
         },
         enabled: !!jobId && (options.enabled ?? true),
         refetchInterval: (query) => {

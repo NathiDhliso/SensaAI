@@ -113,8 +113,8 @@ export const CoverageTreemap: React.FC<CoverageTreemapProps> = ({ data }) => {
             }}
         >
             {/* Direct parent of ResponsiveContainer needs established dimensions */}
-            <div style={{ flex: 1, width: '100%', minHeight: 0 }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+            <div style={{ flex: 1, width: '100%', minHeight: 220 }}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={220} minHeight={220}>
                     <Treemap
                         data={data}
                         dataKey="size"

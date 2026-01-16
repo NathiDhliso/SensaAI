@@ -43,41 +43,59 @@ export class StorageManager {
     console.log('[StorageManager] loadResult called for:', id);
     try {
       // 1. Get job status to know subject and session
-      const jobStatus = await conceptsApi.getJobStatus(id);
+      const authUserId = useAuthStore.getState().user?.id;
+      const jobStatus = await conceptsApi.getJobStatus(id, authUserId);
 
       if (!jobStatus || jobStatus.status === 'failed') {
         console.error('[StorageManager] Job not found or failed:', id);
         return null;
       }
 
-      const { userId, sessionId, subject } = jobStatus;
+      const resolvedUserId = jobStatus.userId || authUserId;
+      const resolvedSessionId = jobStatus.sessionId || jobStatus.jobId || id;
+      const resolvedSubject = jobStatus.subject || 'Study Session';
+
+      if (!resolvedUserId) {
+        console.warn('[StorageManager] No userId available for loadResult:', id);
+      }
 
       // 2. Fetch all concepts
       // We need to fetch all tiers to reconstruct the document
       const [foundation, keystone, utility] = await Promise.all([
-        conceptsApi.getAllByTier(userId, sessionId, 'foundation'),
-        conceptsApi.getAllByTier(userId, sessionId, 'keystone'),
-        conceptsApi.getAllByTier(userId, sessionId, 'utility'),
+        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'foundation'),
+        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'keystone'),
+        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'utility'),
       ]);
 
       const allConcepts = [...foundation, ...keystone, ...utility];
 
       if (allConcepts.length === 0) {
         console.warn('[StorageManager] No concepts found for result:', id);
-        // We might still want to return a result if the job exists, but it's empty
+
+        if (jobStatus.conceptCount && jobStatus.conceptCount > 0) {
+          console.warn('[StorageManager] Retrying concept fetch with jobId as sessionId fallback:', id);
+          const fallbackSessionId = jobStatus.jobId || id;
+          const [fFoundation, fKeystone, fUtility] = await Promise.all([
+            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'foundation'),
+            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'keystone'),
+            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'utility'),
+          ]);
+
+          allConcepts.push(...fFoundation, ...fKeystone, ...fUtility);
+        }
       }
 
       // 3. Reconstruct the document
-      const fullDocument = buildDocumentFromConcepts(subject, allConcepts);
+      const fullDocument = buildDocumentFromConcepts(resolvedSubject, allConcepts);
 
       // 4. Return SavedResult
       return {
         id: jobStatus.jobId,
-        subject: jobStatus.subject,
+        subject: resolvedSubject,
         generatedAt: Date.now().toString(), // Helper uses Date.now(), we could convert from jobStatus.createdAt
         fullDocument,
         pass1Data: {
-          domain: subject, // Usually same as subject if not stored separately
+          domain: resolvedSubject, // Usually same as subject if not stored separately
           roleScope: 'General',
           lifecycle: { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' },
           concepts: allConcepts.map(c => c.name),
