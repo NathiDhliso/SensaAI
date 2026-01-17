@@ -155,6 +155,13 @@ export default function Generate() {
       return;
     }
 
+    // If generation is already in progress, don't show dialogs - just display progress
+    const { isGenerating: currentlyGenerating } = useGenerationStore.getState();
+    if (currentlyGenerating) {
+      hasStartedRef.current = true;
+      return;
+    }
+
     if (hasStartedRef.current) return;
     hasStartedRef.current = true;
 

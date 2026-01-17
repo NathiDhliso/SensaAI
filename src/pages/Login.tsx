@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
@@ -23,11 +23,12 @@ export function Login() {
     const [showPassword, setShowPassword] = useState(false);
 
     // Redirect if already authenticated
-    if (isAuthenticated) {
-        const from = (location.state as { from?: string })?.from || '/';
-        navigate(from, { replace: true });
-        return null;
-    }
+    useEffect(() => {
+        if (isAuthenticated) {
+            const from = (location.state as { from?: string })?.from || '/';
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, navigate, location]);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();

@@ -102,8 +102,53 @@ export function parseContent(rawContent: string): ParseResult {
 // ============================================================================
 
 function parseDomainAnalysis(content: string): ParsedDomainAnalysis {
-    // Extract lifecycle phases from content
-    const lifecycleMatch = content.match(/Lifecycle:\s*([A-Z]+)\s*→\s*([A-Z]+)\s*→\s*([A-Z]+)/i);
+    // Try to extract domain from JSON format first (e.g., {"domain": "Subject Name", ...})
+    let domain: string | undefined;
+    let lifecycle: { phase1: string; phase2: string; phase3: string } | undefined;
+
+    try {
+        // Remove BOM and control characters
+        let cleanContent = content.replace(/^\uFEFF/, '');
+        // eslint-disable-next-line no-control-regex
+        cleanContent = cleanContent.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+
+        const firstBrace = cleanContent.indexOf('{');
+        if (firstBrace !== -1) {
+            const possibleJson = cleanContent.substring(firstBrace).trim();
+            const parsed = JSON.parse(possibleJson);
+            
+            // Extract domain from JSON
+            if (parsed.domain) {
+                domain = parsed.domain;
+            }
+            
+            // Extract lifecycle from JSON
+            if (parsed.lifecycle) {
+                lifecycle = {
+                    phase1: parsed.lifecycle.phase1 || 'PREPARE',
+                    phase2: parsed.lifecycle.phase2 || 'MODEL',
+                    phase3: parsed.lifecycle.phase3 || 'DELIVER',
+                };
+            }
+        }
+    } catch {
+        // Not valid JSON, fall back to text extraction
+    }
+
+    // Fallback: Extract lifecycle phases from text content
+    if (!lifecycle) {
+        const lifecycleMatch = content.match(/Lifecycle:\s*([A-Z]+)\s*→\s*([A-Z]+)\s*→\s*([A-Z]+)/i);
+        lifecycle = {
+            phase1: lifecycleMatch?.[1] || 'PREPARE',
+            phase2: lifecycleMatch?.[2] || 'MODEL',
+            phase3: lifecycleMatch?.[3] || 'DELIVER',
+        };
+    }
+
+    // Fallback: Extract domain from text marker
+    if (!domain) {
+        domain = extractValue(content, 'Domain:') || 'General Domain';
+    }
 
     // Try to extract concept names
     const conceptNames: string[] = [];
@@ -116,13 +161,9 @@ function parseDomainAnalysis(content: string): ParsedDomainAnalysis {
     }
 
     return {
-        domain: extractValue(content, 'Domain:') || 'General Domain',
+        domain,
         professionalRole: extractValue(content, 'Professional Role:') || 'Learner',
-        lifecycle: {
-            phase1: lifecycleMatch?.[1] || 'PREPARE',
-            phase2: lifecycleMatch?.[2] || 'MODEL',
-            phase3: lifecycleMatch?.[3] || 'DELIVER',
-        },
+        lifecycle,
         sourceVerification: 'Documentation',
         recentUpdates: extractListItems(content, 'Recent Updates:'),
         numericalLimits: extractListItems(content, 'Numerical Limits:'),

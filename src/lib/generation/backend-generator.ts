@@ -137,51 +137,52 @@ export async function generateWithBackend(
             // Already completed
         }
 
-        // Pass 3: Fetch generated concepts from DynamoDB
+        // =====================================================================
+        // Pass 3: LOAD GENERATED CONCEPTS
+        // =====================================================================
+        // Parallel generation happens server-side. Once complete, we fetch
+        // all concepts from DynamoDB organized by tier.
+        
         onProgress(3, 'in-progress', {
             message: 'Loading generated concepts...',
             progress: 60,
         });
 
-        // Fetch all tiers
-        const [foundationConcepts, keystoneConcepts, utilityConcepts] = await Promise.all([
-            conceptsApi.getAllByTier(userId, sessionId, 'foundation'),
-            conceptsApi.getAllByTier(userId, sessionId, 'keystone'),
-            conceptsApi.getAllByTier(userId, sessionId, 'utility'),
-        ]);
-
-        const allConcepts = [...(foundationConcepts || []), ...(keystoneConcepts || []), ...(utilityConcepts || [])];
-
-        // SILVER BULLET UI: Stream concepts to the frontend
-        // This simulates the "live generation" feel even if we fetched them in bulk
         const STREAM_START_PROGRESS = 60;
         const STREAM_END_PROGRESS = 90;
+        let allConcepts: ParsedConcept[] = [];
 
-        for (let i = 0; i < allConcepts.length; i++) {
-            const concept = allConcepts[i];
-            const percentComplete = (i / allConcepts.length);
-            const currentProgress = STREAM_START_PROGRESS + (percentComplete * (STREAM_END_PROGRESS - STREAM_START_PROGRESS));
-
-            // Emit the concept to the UI
+        // Fetch concepts from all tiers in parallel
+        try {
             onProgress(3, 'in-progress', {
-                message: `Synthesizing concept: ${concept.name}...`,
-                progress: currentProgress,
-                streamedConcepts: [{
-                    order: i + 1,
-                    name: concept.name,
-                    anchor: concept.mnemonic?.anchor
-                }]
+                message: 'Fetching foundation concepts...',
+                progress: 65,
             });
 
-            // Variable delay to make it feel organic (faster for utility, slower for foundation)
-            const delay = concept.tier === 'foundation' ? 600 : concept.tier === 'keystone' ? 300 : 100;
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
+            const [foundationConcepts, keystoneConcepts, utilityConcepts] = await Promise.all([
+                conceptsApi.getAllByTier(userId, sessionId, 'foundation'),
+                conceptsApi.getAllByTier(userId, sessionId, 'keystone'),
+                conceptsApi.getAllByTier(userId, sessionId, 'utility'),
+            ]);
 
-        onProgress(3, 'complete', {
-            message: `Loaded ${allConcepts.length} concepts!`,
-            progress: 90,
-        });
+            allConcepts = [
+                ...(foundationConcepts || []),
+                ...(keystoneConcepts || []),
+                ...(utilityConcepts || []),
+            ];
+
+            // Sort by order if available
+            allConcepts.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+
+            onProgress(3, 'complete', {
+                message: `Loaded ${allConcepts.length} concepts!`,
+                progress: 90,
+            });
+
+        } catch (fetchError) {
+            console.error('[Backend Generator] Failed to fetch concepts:', fetchError);
+            throw new Error('Failed to load generated concepts');
+        }
 
         // Pass 4: Build result document
         onProgress(4, 'in-progress', {
@@ -228,7 +229,7 @@ export async function generateWithBackend(
                 concepts: conceptNames,
                 numericalLimits: [],
                 recentUpdates: [],
-                sourceVerification: 'Lambda + DynamoDB Generated',
+                sourceVerification: 'Lambda + Bedrock (Parallel Generation)',
             },
             pass2: fullDocument,
             pass3: fullDocument,

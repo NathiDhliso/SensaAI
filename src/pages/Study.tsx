@@ -86,6 +86,8 @@ export default function Study() {
   const session = getSession();
   const concepts = getConcepts();
 
+  const [hydrationError, setHydrationError] = useState<string | null>(null);
+
   // Hydration Effect: Load data from storage if store is empty or IDs mismatch
   useEffect(() => {
     const hydrateFromStorage = async () => {
@@ -98,19 +100,33 @@ export default function Study() {
 
       // Need to hydrate from storage
       setIsHydrating(true);
+      setHydrationError(null);
       try {
         const result = await storageManager.loadResult(subjectId);
-        if (result?.fullDocument) {
-          // Pass fallback concepts from pass1Data to ensure full coverage
-          const fallbackConcepts = result.pass1Data?.concepts || [];
-          const loadResult = parseAndLoadContent(result.fullDocument, subjectId, fallbackConcepts);
 
-          if (!loadResult.success) {
-            console.error('Failed to hydrate session:', loadResult.error);
-          }
+        if (!result) {
+          console.error('Failed to load result from storage - result is null');
+          setHydrationError('Could not load study session. The content may still be generating or has expired.');
+          return;
+        }
+
+        if (!result.fullDocument) {
+          console.error('Failed to load result from storage - no fullDocument');
+          setHydrationError('Content is empty. Try regenerating this subject.');
+          return;
+        }
+
+        // Pass fallback concepts from pass1Data to ensure full coverage
+        const fallbackConcepts = result.pass1Data?.concepts || [];
+        const loadResult = parseAndLoadContent(result.fullDocument, subjectId, fallbackConcepts);
+
+        if (!loadResult.success) {
+          console.error('Failed to hydrate session:', loadResult.error);
+          setHydrationError(`Failed to parse content: ${loadResult.error}`);
         }
       } catch (error) {
         console.error('Failed to load from storage:', error);
+        setHydrationError('An error occurred while loading. Please try again.');
       } finally {
         setIsHydrating(false);
       }
@@ -169,6 +185,30 @@ export default function Study() {
         <div className={styles.loading}>
           <div className={styles.spinner} />
           <p>Loading session...</p>
+        </div>
+      );
+    }
+
+    // Show error state if hydration failed
+    if (hydrationError) {
+      return (
+        <div className={styles.loading}>
+          <p style={{ color: 'var(--color-error, #ef4444)', marginBottom: '1rem' }}>
+            ⚠️ {hydrationError}
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              padding: '0.5rem 1.5rem',
+              borderRadius: '8px',
+              background: 'var(--color-primary, #3b82f6)',
+              color: 'white',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Back to Dashboard
+          </button>
         </div>
       );
     }

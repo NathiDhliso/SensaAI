@@ -20,7 +20,10 @@ import {
     Maximize,
     Minimize,
     Focus,
-    Zap // [NEW] For Core Insight
+    Zap,
+    HelpCircle,
+    MousePointer,
+    CircleDot
 } from 'lucide-react';
 import type { LearningConcept } from '@/lib/types/learning';
 import { isRealContent, auditConceptContent } from '@/lib/validation/content-quality';
@@ -49,6 +52,7 @@ const MIN_NODE_SPACING = 150; // Minimum spacing between node edges (in pixels)
 export default function SensaSynopticView({ concepts, subjectName }: SensaSynopticViewProps) {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [focusedTier, setFocusedTier] = useState<'foundation' | 'keystone' | 'utility' | null>(null);
+    const [showHelp, setShowHelp] = useState(false);
 
     // Viewport Refs
     const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -423,6 +427,9 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                     </div>
                 </div>
                 <div className={styles.controls}>
+                    <button onClick={() => setShowHelp(!showHelp)} title="Help & Legend" className={showHelp ? styles.activeButton : ''}>
+                        <HelpCircle size={16} />
+                    </button>
                     <button onClick={handleZoomOut} title="Zoom Out"><ZoomOut size={16} /></button>
                     <button onClick={handleSnapToFit} title="Snap to Fit"><Focus size={16} /></button>
                     <button onClick={handleZoomIn} title="Zoom In"><ZoomIn size={16} /></button>
@@ -431,6 +438,55 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                     </button>
                 </div>
             </div>
+
+            {/* Help Legend Overlay */}
+            <AnimatePresence>
+                {showHelp && (
+                    <motion.div
+                        className={styles.helpOverlay}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <div className={styles.helpHeader}>
+                            <h3>How to Navigate</h3>
+                            <button onClick={() => setShowHelp(false)} className={styles.helpClose}>
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        <div className={styles.helpSection}>
+                            <h4><CircleDot size={14} /> Understanding the Zones</h4>
+                            <ul className={styles.tierLegend}>
+                                <li><span className={styles.tierDot} data-tier="foundation" /> <strong>Foundation</strong> — Core concepts everything else builds upon</li>
+                                <li><span className={styles.tierDot} data-tier="keystone" /> <strong>Keystone</strong> — Bridge concepts connecting ideas together</li>
+                                <li><span className={styles.tierDot} data-tier="utility" /> <strong>Utility</strong> — Specialized tools for specific problems</li>
+                            </ul>
+                        </div>
+
+                        <div className={styles.helpSection}>
+                            <h4>Connection Lines</h4>
+                            <ul className={styles.connectionLegend}>
+                                <li><span className={styles.lineExample} data-type="requires" /> <strong>Solid</strong> — Requires (hard dependency)</li>
+                                <li><span className={styles.lineExample} data-type="extends" /> <strong>Dashed</strong> — Extends (enhancement)</li>
+                                <li><span className={styles.lineExample} data-type="enables" /> <strong>Dotted</strong> — Enables (capability flow)</li>
+                            </ul>
+                        </div>
+
+                        <div className={styles.helpSection}>
+                            <h4><MousePointer size={14} /> Interactions</h4>
+                            <ul className={styles.interactionHints}>
+                                <li><strong>Click node</strong> — View concept details</li>
+                                <li><strong>Click ring</strong> — Filter by zone</li>
+                                <li><strong>Drag</strong> — Pan around the map</li>
+                                <li><strong>Scroll / Pinch</strong> — Zoom in/out</li>
+                                <li><strong>Escape</strong> — Clear selection</li>
+                            </ul>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className={styles.contentWrapper}>
                 {/* Map Area */}

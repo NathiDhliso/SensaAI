@@ -41,7 +41,10 @@ export class StorageManager {
     try {
       // 1. Get job status to know subject and session
       const authUserId = useAuthStore.getState().user?.id;
+      console.log('[StorageManager] loadResult called with id:', id, 'authUserId:', authUserId);
+
       const jobStatus = await conceptsApi.getJobStatus(id, authUserId);
+      console.log('[StorageManager] Job status response:', JSON.stringify(jobStatus, null, 2));
 
       if (!jobStatus || jobStatus.status === 'failed') {
         console.error('[StorageManager] Job not found or failed:', id);
@@ -52,32 +55,42 @@ export class StorageManager {
       const resolvedSessionId = jobStatus.sessionId || jobStatus.jobId || id;
       const resolvedSubject = jobStatus.subject || 'Study Session';
 
+      console.log('[StorageManager] Resolved IDs - userId:', resolvedUserId, 'sessionId:', resolvedSessionId, 'subject:', resolvedSubject);
+
       if (!resolvedUserId) {
         console.warn('[StorageManager] No userId available for loadResult:', id);
       }
 
       // 2. Fetch all concepts
       // We need to fetch all tiers to reconstruct the document
+      console.log(`[StorageManager] Fetching concepts for userId="${resolvedUserId}" sessionId="${resolvedSessionId}"`);
+
       const [foundation, keystone, utility] = await Promise.all([
         conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'foundation'),
         conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'keystone'),
         conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'utility'),
       ]);
 
+      console.log(`[StorageManager] Tier counts - foundation: ${foundation.length}, keystone: ${keystone.length}, utility: ${utility.length}`);
+
       const allConcepts = [...foundation, ...keystone, ...utility];
 
       if (allConcepts.length === 0) {
         console.warn('[StorageManager] No concepts found for result:', id);
+        console.warn('[StorageManager] JobStatus conceptCount:', jobStatus.conceptCount);
 
         if (jobStatus.conceptCount && jobStatus.conceptCount > 0) {
           console.warn('[StorageManager] Retrying concept fetch with jobId as sessionId fallback:', id);
           const fallbackSessionId = jobStatus.jobId || id;
+          console.log(`[StorageManager] Fallback query - userId="${resolvedUserId}" sessionId="${fallbackSessionId}"`);
+
           const [fFoundation, fKeystone, fUtility] = await Promise.all([
             conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'foundation'),
             conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'keystone'),
             conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'utility'),
           ]);
 
+          console.log(`[StorageManager] Fallback tier counts - foundation: ${fFoundation.length}, keystone: ${fKeystone.length}, utility: ${fUtility.length}`);
           allConcepts.push(...fFoundation, ...fKeystone, ...fUtility);
         }
       }

@@ -1,16 +1,23 @@
 /**
  * BackgroundJobToast Component
  * 
- * Displays a notification when the user returns to the app
- * and a generation job completed while they were away.
+ * Displays a subtle notification when the user navigates AWAY from the
+ * generation page while a job is still running. Only appears when:
+ * 1. There's an active generation job
+ * 2. User is NOT currently on the /generate page
+ * 
+ * This lets users know their generation continues in the background.
  */
 import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, AlertCircle, Loader2, X, ArrowRight } from 'lucide-react';
 import { useBackgroundJobRecovery } from '@/hooks/useBackgroundJobRecovery';
 import styles from './BackgroundJobToast.module.css';
 
 export default function BackgroundJobToast() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const {
     hasActiveJob,
     job,
@@ -23,16 +30,32 @@ export default function BackgroundJobToast() {
   } = useBackgroundJobRecovery();
 
   const [dismissed, setDismissed] = useState(false);
+  const [lastPath, setLastPath] = useState(location.pathname);
 
-  // Auto-check status when we detect an active job
+  // Check if user is currently on the generation page (with or without subject param)
+  const isOnGeneratePage = location.pathname.startsWith('/generate');
+
+  // Reset dismissed state when user leaves and returns to a non-generate page
+  if (location.pathname !== lastPath) {
+    setLastPath(location.pathname);
+    // If leaving generate page, reset dismissed so toast can show
+    if (lastPath.startsWith('/generate') && !isOnGeneratePage) {
+      setDismissed(false);
+    }
+  }
+
+  // Auto-check status when we detect an active job (and not on generate page)
   useEffect(() => {
-    if (hasActiveJob && !dismissed) {
+    if (hasActiveJob && !dismissed && !isOnGeneratePage) {
       checkJobStatus();
     }
-  }, [hasActiveJob, dismissed, checkJobStatus]);
+  }, [hasActiveJob, dismissed, isOnGeneratePage, checkJobStatus]);
 
-  // Don't show if no job or already dismissed
-  if (!hasActiveJob || dismissed || !job) return null;
+  // Don't show if:
+  // - No active job
+  // - Already dismissed  
+  // - User is currently ON the generate page (they can see the full UI)
+  if (!hasActiveJob || dismissed || !job || isOnGeneratePage) return null;
 
   const handleDismiss = () => {
     setDismissed(true);
@@ -44,6 +67,13 @@ export default function BackgroundJobToast() {
     setDismissed(true);
   };
 
+  // Navigate to generation page when toast is clicked
+  const handleGoToGenerate = () => {
+    if (job?.subject) {
+      navigate(`/generate/${encodeURIComponent(job.subject)}`);
+    }
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -52,6 +82,11 @@ export default function BackgroundJobToast() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 50, scale: 0.9 }}
         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+        onClick={handleGoToGenerate}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && handleGoToGenerate()}
+        style={{ cursor: 'pointer' }}
       >
         {/* Status Icon */}
         <div className={styles.iconContainer}>
@@ -82,7 +117,7 @@ export default function BackgroundJobToast() {
         </div>
 
         {/* Actions */}
-        <div className={styles.actions}>
+        <div className={styles.actions} onClick={(e) => e.stopPropagation()}>
           {isCompleted && (
             <button
               className={styles.viewButton}

@@ -89,7 +89,7 @@ export default function VelocityLearning() {
     // 3. Local UI State (MUST be declared before useEffects that reference them)
     const [lockedIn, setLockedIn] = useState(false);
     const [completedPhases, setCompletedPhases] = useState<Set<string>>(new Set());
-    
+
     // ARCHITECT ENHANCEMENT: Skip Diagnostics
     const [showSkipModal, setShowSkipModal] = useState(false);
     const [pendingSkipConcept, setPendingSkipConcept] = useState<string | null>(null);
@@ -179,7 +179,7 @@ export default function VelocityLearning() {
 
     const handleSkipReasonConfirm = (data: SkipReasonData) => {
         setShowSkipModal(false);
-        
+
         // Adaptive routing based on skip reason
         if (data.reason === 'too-hard') {
             // TODO: Route to prerequisite check
@@ -199,7 +199,7 @@ export default function VelocityLearning() {
             const nextId = getNextConcept();
             if (nextId) setCurrentConcept(nextId);
         }
-        
+
         setPendingSkipConcept(null);
     };
 
@@ -277,12 +277,24 @@ export default function VelocityLearning() {
             <main className={styles.content}>
                 <div className={styles.mainArea}>
 
-                    {/* Phase Navigator */}
-                    {currentSession && currentPhase !== 'IDLE' && (
+                    {/* Phase Navigator - Hidden in Explore Mode */}
+                    {currentSession && currentPhase !== 'IDLE' && studySession?.goal !== 'explore' && (
                         <PhaseNavigator
                             currentPhase={currentPhase}
                             completedPhases={Array.from(completedPhases) as any}
                         />
+                    )}
+
+                    {/* Explore Mode: Calming Header (replaces PhaseNavigator) */}
+                    {studySession?.goal === 'explore' && (
+                        <motion.div
+                            className={styles.exploreHeader}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: 'easeOut' }}
+                        >
+                            <span className={styles.exploreTagline}>Breathe. Browse. No pressure.</span>
+                        </motion.div>
                     )}
 
                     {/* SENSA v2.0: Equation Tracker - Hide in Explore Mode */}
@@ -344,7 +356,7 @@ export default function VelocityLearning() {
                         onStart={handleStartSession}
                     />
                 )}
-                
+
                 {/* ARCHITECT ENHANCEMENT: Skip Reason Modal */}
                 {showSkipModal && activeConcept && (
                     <SkipReasonModal
@@ -452,7 +464,7 @@ export default function VelocityLearning() {
                             concepts={currentSession!.concepts as unknown as SensaAILearningConcept[]}
                             domain={currentSession!.subject}
                             diagnosticReady={currentSession!.metadata?.diagnosticReady ?? false}
-                            onStartLearning={() => { 
+                            onStartLearning={() => {
                                 startDiagnostic();
                                 setCompletedPhases(prev => new Set(prev).add('DIAGNOSE'));
                             }}

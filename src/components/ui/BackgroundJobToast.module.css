@@ -19,6 +19,14 @@
   box-shadow: var(--shadow-lg);
   
   max-width: 400px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.toast:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary);
 }
 
 .iconContainer {
