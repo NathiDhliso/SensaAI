@@ -65,7 +65,7 @@
     ]
   },
   "validation": {
-    "lifecycleConsistency": 98,
+    "lifecycleConsistency": 94,
     "positiveFraming": 98,
     "formatConsistency": 100,
     "completeness": 100

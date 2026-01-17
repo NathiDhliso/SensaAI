@@ -49,6 +49,13 @@ const GOAL_OPTIONS: Array<{
       color: 'var(--color-primary)',
     },
     {
+      value: 'velocity',
+      label: 'Velocity Mode',
+      description: 'High-intensity speed drills',
+      icon: Zap,
+      color: 'var(--color-accent-purple)',
+    },
+    {
       value: 'review',
       label: 'Review Completed',
       description: 'Spaced repetition for retention',
@@ -198,7 +205,7 @@ export function SessionStartModal({
                           // Smart Defaults (Curated Session)
                           switch (mood.id) {
                             case 'energized':
-                              setSelectedGoal('learn-new');
+                              setSelectedGoal('velocity'); // Redirected to new Velocity Mode
                               setSelectedDuration(45);
                               break;
                             case 'neutral':
@@ -342,8 +349,8 @@ export function SessionStartModal({
             />
           )}
         </AnimatePresence>
-      </motion.div>
-    </div>
+      </motion.div >
+    </div >
   );
 }
 

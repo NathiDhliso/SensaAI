@@ -109,12 +109,13 @@ export function performLocalValidation(content: string, pass1Data: Pass1Result):
   const expectedConcepts = pass1Data.concepts.length;
 
   // Count concept headers - look for various patterns used in generation
-  // Patterns: "## 1. ConceptName", "## ConceptName", "1. ConceptName" at line start
+  // Enhanced patterns to catch more formats including comprehensive documents
   const conceptPatterns = [
     /^##\s*\d+\.\s+.+$/gm,           // ## 1. ConceptName
     /^##\s+[A-Z][^#\n]+$/gm,         // ## ConceptName (capitalized)
     /^###\s*\d+\.\s+.+$/gm,          // ### 1. ConceptName
     /^\d+\.\s+[A-Z][^\n]+$/gm,       // 1. ConceptName at line start
+    /^```\s*##\s*\d+\.\s+.+$/gm,    // Inside code blocks: ## 1. ConceptName
   ];
 
   let conceptsFound = 0;
@@ -124,7 +125,7 @@ export function performLocalValidation(content: string, pass1Data: Pass1Result):
     const matches = content.match(pattern) || [];
     for (const match of matches) {
       // Normalize to avoid double counting
-      const normalized = match.replace(/^[#\s\d.]+/, '').trim().toLowerCase();
+      const normalized = match.replace(/^[`#\s\d.]+/, '').trim().toLowerCase();
       if (!foundHeaders.has(normalized) && normalized.length > 3) {
         foundHeaders.add(normalized);
         conceptsFound++;
@@ -132,12 +133,17 @@ export function performLocalValidation(content: string, pass1Data: Pass1Result):
     }
   }
 
-  // Also check for concept names from pass1Data appearing in the content
+  // Also check for concept names from pass1Data appearing as structured headers
   let conceptsMentioned = 0;
   for (const concept of pass1Data.concepts) {
-    // Check if concept name appears as a header or in the content
+    // More precise check: look for concept name as actual header (not just anywhere)
     const conceptLower = concept.toLowerCase();
-    if (content.toLowerCase().includes(conceptLower)) {
+    // Check if it appears as a header (with ## or ### or number prefix)
+    const headerPattern = new RegExp(
+      `^(?:#{2,3}\s*\d+\.\s*|\d+\.\s+|^\s*#{2,3}\s+)${conceptLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+      'im'
+    );
+    if (headerPattern.test(content)) {
       conceptsMentioned++;
     }
   }
@@ -146,14 +152,26 @@ export function performLocalValidation(content: string, pass1Data: Pass1Result):
   conceptsFound = Math.max(conceptsFound, conceptsMentioned);
 
   // Calculate completeness as percentage of concepts found vs expected
-  // Be generous - if content is long enough, assume most concepts are there
-  const minExpectedCharsPerConcept = 300; // ~15-25 lines * 15-20 chars
-  const expectedMinLength = expectedConcepts * minExpectedCharsPerConcept;
-  const lengthRatio = Math.min(content.length / expectedMinLength, 1);
+  // For comprehensive documents (>100KB), use smarter heuristics
+  const isComprehensiveDoc = content.length > 100000; // >100KB suggests detailed content
+  
+  let completeness: number;
+  
+  if (isComprehensiveDoc && conceptsMentioned >= expectedConcepts * 0.8) {
+    // If it's a large document and 80%+ concepts mentioned as headers, use higher completeness
+    // This handles comprehensive curriculum documents with detailed explanations
+    const mentionRatio = conceptsMentioned / expectedConcepts;
+    completeness = Math.min(Math.round(mentionRatio * 100), 100);
+  } else {
+    // Standard completeness calculation for normal documents
+    const minExpectedCharsPerConcept = 300; // ~15-25 lines * 15-20 chars
+    const expectedMinLength = expectedConcepts * minExpectedCharsPerConcept;
+    const lengthRatio = Math.min(content.length / expectedMinLength, 1);
 
-  // Blend concept count ratio with length ratio for more accurate completeness
-  const conceptRatio = expectedConcepts > 0 ? conceptsFound / expectedConcepts : 0;
-  const completeness = Math.round(Math.max(conceptRatio, lengthRatio * 0.9) * 100);
+    // Blend concept count ratio with length ratio for more accurate completeness
+    const conceptRatio = expectedConcepts > 0 ? conceptsFound / expectedConcepts : 0;
+    completeness = Math.round(Math.max(conceptRatio, lengthRatio * 0.9) * 100);
+  }
 
   // Check for lifecycle marker consistency
   // Support multiple format variations due to AI format drift:
@@ -210,7 +228,9 @@ export function performLocalValidation(content: string, pass1Data: Pass1Result):
   const formatConsistency = Math.max(formatScore, 70); // Minimum 70% if bullets exist
 
   return {
-    conceptsFound: Math.min(conceptsFound, expectedConcepts), // Cap at expected
+    conceptsFound: isComprehensiveDoc && conceptsMentioned >= expectedConcepts * 0.8 
+      ? conceptsMentioned 
+      : Math.min(conceptsFound, expectedConcepts), // Cap at expected
     completeness: Math.min(completeness, 100),
     formatConsistency,
     lifecycleConsistency,

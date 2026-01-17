@@ -653,7 +653,7 @@ Deliver ALL sections in order:
 1. **Source Verification** (Hard data + limitations)
 2. **Lifecycle Definition** (3 phases with justification)
 3. **Master Hierarchical Chart** (Concepts with **tier at root level**)
-   - [CONDITIONAL FIELD] `environment`: Include ONLY if Category A with distinct environments
+   - [CONDITIONAL FIELD] "environment": Include ONLY if Category A with distinct environments
 4. **Mnemonic Anchors** (Integrated into Step 3 JSON)
 5. **Dependency Graph** (JSON - nodes + edges) **[NEW - REQUIRED]**
 6. **Decision Framework Trees** (2-3 X vs Y)
@@ -717,7 +717,7 @@ Return ONLY the raw JSON object for this concept.
 {
   "name": "{concept_name}",
   "tier": "foundation|keystone|utility",
-  "cognitiveLevel": "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create",
+  "cognitiveLevel": "remember",  // Options: remember, understand, apply, analyze, evaluate, create
   "commonPitfalls": ["Pitfall 1", "Pitfall 2"],
   "tierJustification": "Reason...",
   "order": 1,

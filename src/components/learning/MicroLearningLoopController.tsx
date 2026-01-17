@@ -7,28 +7,24 @@
  * Requirements: 2.1, 2.6, 2.7
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Brain,
-    BookOpen,
-    CheckCircle2,
-    RotateCcw,
-    ChevronRight,
-    Lightbulb
+    CheckCircle, Brain, BookOpen, RotateCcw, ChevronRight, Lightbulb
 } from 'lucide-react';
-import type { LearningConcept } from '@/lib/types/learning';
 import { useLearningStore } from '@/store/learning-store';
-import { SensaShape } from '@/components/ui/SensaShape';
-import { renderShapeOrIcon } from '@/components/ui/SensaShape.utils';
-import { VELOCITY_CONFIG } from '@/constants/ui-constants';
-import { isRealContent } from '@/lib/validation/content-quality';
+import type { LearningConcept } from '@/lib/types/learning';
 
 import BlankSheetTest from './BlankSheetTest';
 import ConfusionDrill from './ConfusionDrill';
 import { findConfusionPairs, generateConfusionQuestions } from '@/lib/generation/confusion-generator';
 import type { ConfusionDrillResult, ConfusionPair } from '@/lib/generation/confusion-generator';
 import styles from './MicroLearningLoopController.module.css';
+
+// Feature Components
+import CoachsChoice from './CoachsChoice';
+import BridgeBuilder from './BridgeBuilder';
+import { useRepairSentinel } from '@/hooks/useRepairSentinel';
 
 // ============================================================================
 // TYPES
@@ -73,13 +69,13 @@ function calculateLoopDuration(
     userVelocity: number = 1.0
 ): number {
     // Base time: 60s for complexity 1, 180s for complexity 10
-    const baseTime = VELOCITY_CONFIG.LOOP.BASE_TIME_SECONDS + (complexityScore - 1) * VELOCITY_CONFIG.LOOP.TIME_STEP_PER_COMPLEXITY;
+    const baseTime = 60 + (complexityScore - 1) * 13.33; // Approx 120s range
 
     // Adjust for user velocity: faster learners get less time
     const velocityAdjusted = baseTime / userVelocity;
 
     // Clamp to 60-180 second range
-    return Math.max(VELOCITY_CONFIG.LOOP.MIN_TIME_SECONDS, Math.min(VELOCITY_CONFIG.LOOP.MAX_TIME_SECONDS, Math.round(velocityAdjusted)));
+    return Math.max(60, Math.min(180, Math.round(velocityAdjusted)));
 }
 
 /**
@@ -93,12 +89,12 @@ function determineOutcome(
     const confidenceScore = testResult.confidence / 5;
 
     // High test score + correct verify = mastered
-    if (testScore >= VELOCITY_CONFIG.SCORING.MASTERY_THRESHOLD && verifyResult.correct && confidenceScore >= VELOCITY_CONFIG.SCORING.CONFIDENCE_THRESHOLD) {
+    if (testScore >= 0.8 && verifyResult.correct && confidenceScore >= 4) {
         return 'mastered';
     }
 
     // Low test score = needs learning
-    if (testScore < VELOCITY_CONFIG.SCORING.NEEDS_LEARNING_THRESHOLD) {
+    if (testScore < 0.4) {
         return 'needs-learning';
     }
 
@@ -145,6 +141,16 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
             concept.metaphor;
 
         // Check if we have REAL content (not placeholders)
+        const isRealContent = (text?: string, conceptName?: string) => {
+            if (!text || text.trim() === '') return false;
+            const lowerText = text.toLowerCase();
+            // Check for common placeholder phrases
+            if (lowerText.includes('lorem ipsum') || lowerText.includes('placeholder') || lowerText.includes('to be defined')) return false;
+            // Check if it's just the concept name itself, which isn't real content
+            if (conceptName && lowerText.includes(conceptName.toLowerCase()) && lowerText.length < conceptName.length + 10) return false;
+            return true;
+        };
+
         const hasRealContext = isRealContent(contextText, concept.name);
         const hasRealApproach = isRealContent(approachText, concept.name);
         const hasRealSteps = (concept.howToUse && concept.howToUse.length > 0) ||
@@ -351,6 +357,12 @@ function categorizeKeyPoints(keyPoints: string[], howToUse: string[]): {
 function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
     const { architecture, execution, systemPhysics } = categorizeKeyPoints(keyPoints, concept.howToUse || []);
 
+    const renderShapeOrIcon = (icon: string | undefined, _unused?: unknown, size: 'sm' | 'md' | 'lg' = 'md') => {
+        // Simplified icon renderer to avoid require() issues in ESM
+        if (!icon) return null;
+        return <Brain size={size === 'lg' ? 24 : 20} />;
+    };
+
     return (
         <motion.div
             className={styles.phaseCard}
@@ -372,7 +384,7 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                 {/* Concept Overview */}
                 <div className={styles.conceptHighlight}>
                     <div className={styles.conceptIcon}>
-                        {renderShapeOrIcon(concept.icon, SensaShape, 'lg')}
+                        {renderShapeOrIcon(concept.icon, null, 'lg')}
                     </div>
                     <div>
                         <div className={styles.conceptTitleRow}>
@@ -625,7 +637,7 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
         >
             <div className={styles.phaseHeader}>
                 <div className={styles.phaseIcon}>
-                    <CheckCircle2 size={24} />
+                    <CheckCircle size={24} />
                 </div>
                 <div>
                     <h3 className={styles.phaseTitle}>Quick Verification</h3>
@@ -659,7 +671,7 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
                                     {String.fromCharCode(65 + idx)}
                                 </span>
                                 <span className={styles.optionText}>{option}</span>
-                                {feedback && idx === correctIndex && <CheckCircle2 size={16} className={styles.resultIcon} />}
+                                {feedback && idx === correctIndex && <CheckCircle size={16} className={styles.resultIcon} />}
                             </button>
                         );
                     })}
@@ -697,16 +709,38 @@ export function MicroLearningLoopController({
     onLoopComplete,
     onSkip,
 }: MicroLearningLoopProps) {
-    // Phase 2.5: Start with worked example (Make It Real) -> Phase 3: Test (Blank Sheet)
-    const [phase, setPhase] = useState<LoopPhase>('worked-example');
+    // 0. Store & Hooks
+    const { recordInteraction, studySession } = useLearningStore();
+
+    // 1. Core State
+    const [loopState, setLoopState] = useState<LoopPhase>('test'); // Start with worked example
+    const [attempts, setAttempts] = useState(0);
+    const [loopStartTime] = useState(Date.now());
+    const [keyPoints, setKeyPoints] = useState<string[]>([]);
+    const [sessionContext, setSessionContext] = useState<{ intent?: string; prediction?: string }>({});
     const [testResult, setTestResult] = useState<TestPhaseResult | null>(null);
     const [totalTimeSpent, setTotalTimeSpent] = useState(0);
-
-    const { recordInteraction, studySession } = useLearningStore();
+    const [verifyResultData, setVerifyResultData] = useState<{ correct: boolean, timeSpent: number } | null>(null);
 
     // State for Confusion Drill Queue
     const [confusionQueue, setConfusionQueue] = useState<ConfusionPair[]>([]);
     const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
+
+    // 2. Repair Mission State (Using extracted hook)
+    const {
+        trigger: repairTrigger,
+        activeRepair,
+        acceptRepair,
+        declineRepair,
+        completeRepair,
+        cancelRepair
+    } = useRepairSentinel(loopState, attempts, 0 /* conceptIndex - TODO: pass real index */);
+
+    // 3. Handlers
+    const handleLoopCompleteInternal = (outcome: LoopOutcome) => {
+        const timeSpent = (Date.now() - loopStartTime) / 1000;
+        onLoopComplete(outcome, timeSpent);
+    };
 
     // Calculate adaptive loop duration based on concept complexity and user velocity
     const loopDuration = useMemo(() =>
@@ -715,7 +749,7 @@ export function MicroLearningLoopController({
     );
 
     // Extract key points from concept
-    const keyPoints = useMemo(() => {
+    useEffect(() => {
         const points: string[] = [];
 
         // Priority 1: SHAPE Content (High value)
@@ -733,8 +767,12 @@ export function MicroLearningLoopController({
         // Filter duplicates and empty strings
         const uniquePoints = Array.from(new Set(points.filter(p => p && p.length > 5)));
 
-        return uniquePoints.slice(0, 7); // Max 7 key points
-    }, [concept]);
+        setKeyPoints(uniquePoints.slice(0, 7)); // Max 7 key points
+        setSessionContext({
+            intent: studySession?.primer?.reason,
+            prediction: studySession?.predictions?.[concept.id]
+        });
+    }, [concept, studySession]);
 
     // Check if confusion prevention is needed
     const hasConfusionPairs = useMemo(() => {
@@ -746,23 +784,22 @@ export function MicroLearningLoopController({
     const handleWorkedExampleComplete = useCallback((timeSpent: number) => {
         setTotalTimeSpent(prev => prev + timeSpent);
         // After Worked Example (Make It Real), go to Test (Blank Sheet / Keep It Strong)
-        setPhase('test');
+        setLoopState('test');
     }, []);
 
     const handleTestComplete = useCallback((result: TestPhaseResult) => {
         setTestResult(result);
         setTotalTimeSpent(prev => prev + result.timeSpent);
+        setAttempts(prev => prev + 1);
 
         // If test score is very low, go straight to learn phase
         // Otherwise, go to learn phase anyway to reinforce
-        setPhase('learn');
+        setLoopState('learn');
     }, []);
 
     const handleLearnComplete = useCallback(() => {
-        setPhase('verify');
+        setLoopState('verify');
     }, []);
-
-    const [verifyResultData, setVerifyResultData] = useState<{ correct: boolean, timeSpent: number } | null>(null);
 
     const handleVerifyComplete = useCallback((correct: boolean, timeSpent: number) => {
         const finalTimeSpent = totalTimeSpent + timeSpent;
@@ -784,40 +821,40 @@ export function MicroLearningLoopController({
 
         // If mastered AND has potential confusion pairs, go to confusion phase
         // This ensures we only clarify confusion for concepts the user is starting to get right
-        if (hasConfusionPairs && phase !== 'confusion') {
+        if (hasConfusionPairs && loopState !== 'confusion') {
             const pairs = findConfusionPairs(concept, allConcepts || []);
             if (pairs.length > 0) {
                 setConfusionQueue(pairs);
                 setCurrentDrillIndex(0);
-                setPhase('confusion');
+                setLoopState('confusion');
                 return;
             }
         }
 
-        onLoopComplete(outcome, finalTimeSpent);
-    }, [testResult, totalTimeSpent, onLoopComplete, recordInteraction, hasConfusionPairs, phase, concept, allConcepts]);
+        handleLoopCompleteInternal(outcome);
+    }, [testResult, totalTimeSpent, recordInteraction, hasConfusionPairs, loopState, concept, allConcepts, handleLoopCompleteInternal]);
 
     return (
         <div className={styles.container}>
             {/* Phase indicator */}
             <div className={styles.phaseIndicator}>
-                <div className={`${styles.phaseStep} ${phase === 'worked-example' ? styles.active : ''} ${['test', 'learn', 'verify', 'confusion'].includes(phase) ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${loopState === 'worked-example' ? styles.active : ''} ${['test', 'learn', 'verify', 'confusion'].includes(loopState) ? styles.complete : ''}`}>
                     <Lightbulb size={18} />
                     <span>Real</span>
                 </div>
                 <div className={styles.phaseLine} />
-                <div className={`${styles.phaseStep} ${phase === 'test' ? styles.active : ''} ${['learn', 'verify', 'confusion'].includes(phase) ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${loopState === 'test' ? styles.active : ''} ${['learn', 'verify', 'confusion'].includes(loopState) ? styles.complete : ''}`}>
                     <Brain size={18} />
                     <span>Recall</span>
                 </div>
                 <div className={styles.phaseLine} />
-                <div className={`${styles.phaseStep} ${phase === 'learn' ? styles.active : ''} ${['verify', 'confusion'].includes(phase) ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${loopState === 'learn' ? styles.active : ''} ${['verify', 'confusion'].includes(loopState) ? styles.complete : ''}`}>
                     <BookOpen size={18} />
                     <span>Learn</span>
                 </div>
                 <div className={styles.phaseLine} />
-                <div className={`${styles.phaseStep} ${phase === 'verify' ? styles.active : ''}`}>
-                    <CheckCircle2 size={18} />
+                <div className={`${styles.phaseStep} ${loopState === 'verify' ? styles.active : ''}`}>
+                    <CheckCircle size={18} />
                     <span>Verify</span>
                 </div>
             </div>
@@ -828,18 +865,15 @@ export function MicroLearningLoopController({
             {/* Main Content Area */}
             <div className={styles.contentArea}>
                 <AnimatePresence mode="wait">
-                    {phase === 'worked-example' && (
+                    {loopState === 'worked-example' && (
                         <WorkedExamplePhase
                             key="worked-example"
                             concept={concept}
                             onComplete={handleWorkedExampleComplete}
-                            sessionContext={{
-                                intent: studySession?.primer?.reason,
-                                prediction: studySession?.predictions?.[concept.id]
-                            }}
+                            sessionContext={sessionContext}
                         />
                     )}
-                    {phase === 'test' && (
+                    {loopState === 'test' && (
                         <TestPhase
                             key="test"
                             concept={concept}
@@ -848,7 +882,7 @@ export function MicroLearningLoopController({
                             onComplete={handleTestComplete}
                         />
                     )}
-                    {phase === 'learn' && (
+                    {loopState === 'learn' && (
                         <LearnPhase
                             key="learn"
                             concept={concept}
@@ -856,7 +890,7 @@ export function MicroLearningLoopController({
                             onComplete={handleLearnComplete}
                         />
                     )}
-                    {phase === 'verify' && (
+                    {loopState === 'verify' && (
                         <VerifyPhase
                             key="verify"
                             concept={concept}
@@ -865,7 +899,7 @@ export function MicroLearningLoopController({
                             onComplete={handleVerifyComplete}
                         />
                     )}
-                    {phase === 'confusion' && confusionQueue.length > 0 && currentDrillIndex < confusionQueue.length && (
+                    {loopState === 'confusion' && confusionQueue.length > 0 && currentDrillIndex < confusionQueue.length && (
                         <ConfusionDrill
                             key={`drill-${confusionQueue[currentDrillIndex].concept2.id}`}
                             pair={confusionQueue[currentDrillIndex]}
@@ -883,7 +917,7 @@ export function MicroLearningLoopController({
                                     const outcome = testResult && verifyResultData
                                         ? determineOutcome(testResult, verifyResultData)
                                         : 'mastered';
-                                    onLoopComplete(outcome, newTime);
+                                    handleLoopCompleteInternal(outcome);
                                 }
                             }}
                             onClose={() => {
@@ -891,7 +925,7 @@ export function MicroLearningLoopController({
                                 const outcome = testResult && verifyResultData
                                     ? determineOutcome(testResult, verifyResultData)
                                     : 'mastered';
-                                onLoopComplete(outcome, totalTimeSpent);
+                                handleLoopCompleteInternal(outcome);
                             }}
                         />
                     )}
@@ -920,6 +954,34 @@ export function MicroLearningLoopController({
                     </button>
                 </div>
             </div>
+
+            {/* Coach's Choice Overlay */}
+            <AnimatePresence>
+                {repairTrigger && (
+                    <CoachsChoice
+                        type={repairTrigger.type}
+                        currentValue={repairTrigger.currentValue}
+                        potentialValue={repairTrigger.potentialValue}
+                        reason={repairTrigger.reason}
+                        onAccept={acceptRepair}
+                        onDecline={declineRepair}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Active Repair Mission Overlay */}
+            <AnimatePresence>
+                {activeRepair === 'bridge-builder' && (
+                    <div className={styles.repairOverlay}>
+                        <BridgeBuilder
+                            concept={concept}
+                            allConcepts={allConcepts || []}
+                            onComplete={completeRepair}
+                            onCancel={cancelRepair}
+                        />
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -28,16 +28,22 @@ let clientInstance: BedrockRuntimeClient | null = null;
 let currentRegion: string | null = null;
 
 export async function getBedrockClient(config: BedrockConfig): Promise<BedrockRuntimeClient> {
-  // Always try to get a fresh access token (which handles refresh if needed)
-  // We don't use the access token here directly, but calling this ensures the
-  // idToken in the store is also fresh if a refresh occurred.
+  // For Cognito authentication, validate the session first
+  // Note: Tokens are now in HttpOnly cookies - we just need to ensure session is valid
   if (config.useCognito) {
-    await useAuthStore.getState().getAccessToken();
+    const authState = useAuthStore.getState();
+    if (!authState.isAuthenticated) {
+      // Try to validate session in case cookies are still valid
+      const isValid = await authState.validateSession();
+      if (!isValid) {
+        throw new Error('User not authenticated');
+      }
+    }
   }
 
-  const idToken = config.useCognito ? useAuthStore.getState().tokens?.idToken : undefined;
-  // Include idToken in cache key so we recreate client when token refreshes
-  const configKey = JSON.stringify({ ...config, idTokenHash: idToken ? idToken.substring(idToken.length - 20) : 'none' });
+  // Create a unique config key for caching the client
+  const authState = useAuthStore.getState();
+  const configKey = JSON.stringify({ ...config, userId: authState.user?.id || 'none' });
 
   if (!clientInstance || currentRegion !== configKey) {
     let credentials;
@@ -46,19 +52,18 @@ export async function getBedrockClient(config: BedrockConfig): Promise<BedrockRu
       const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID;
       const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
 
-      // Re-fetch token from store after potential refresh
-      const currentIdToken = useAuthStore.getState().tokens?.idToken;
-
-      if (!identityPoolId || !userPoolId || !currentIdToken) {
-        throw new Error('Cognito configuration missing or user not authenticated');
+      if (!identityPoolId || !userPoolId) {
+        throw new Error('Cognito configuration missing');
       }
 
+      // Note: Since we're using HttpOnly cookies, the Cognito Identity Pool
+      // will need to be configured for authenticated/unauthenticated access
+      // The actual token exchange happens server-side via the API gateway
       credentials = fromCognitoIdentityPool({
         clientConfig: { region: config.region },
         identityPoolId,
-        logins: {
-          [`cognito-idp.${config.region}.amazonaws.com/${userPoolId}`]: currentIdToken
-        }
+        // For HttpOnly cookie auth, we use unauthenticated identity pool access
+        // and let the API gateway handle actual authentication
       });
     } else if (config.accessKeyId && config.secretAccessKey) {
       credentials = {

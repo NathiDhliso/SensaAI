@@ -15,6 +15,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateAlias } from '@/lib/utils/alias-generator';
 import { useGenerationStore } from '@/store/generation-store';
+import { useAuthStore } from '@/store/auth-store';
 import { generateWithBackend, uploadExamBlueprint } from '@/lib/generation/backend-generator';
 import { parseAndLoadContent } from '@/lib/content-loader';
 import { UI_TIMINGS } from '@/constants/ui-constants';
@@ -44,26 +45,16 @@ type ProgressData = {
   Partial<ValidationResult>;
 
 interface GenerationEngineState {
-  abortController: AbortController | null;
   generatedAlias: string;
-  showResumeDialog: boolean;
-  showConfirmCancel: boolean;
+  isGenerating: boolean;
 }
 
 interface GenerationEngineActions {
   startGenerationProcess: (
     subject: string,
-    context?: string | null,
-    resumeData?: ReturnType<typeof useGenerationStore.getState>['getCheckpointResumeData'] extends () => infer R ? R : never
+    context?: string | null
   ) => void;
-  handleResumeFromCheckpoint: (subject: string) => void;
-  handleStartFresh: () => void;
   handleRetry: (subject: string) => void;
-  handleConfirmCancel: () => void;
-  handleCancelClick: () => void;
-  setShowResumeDialog: (show: boolean) => void;
-  setShowConfirmCancel: (show: boolean) => void;
-  checkForCheckpoint: (subject: string) => boolean;
 }
 
 // ============================================================================
@@ -73,19 +64,19 @@ interface GenerationEngineActions {
 /**
  * Hook for managing the content generation engine
  * 
+ * IMPORTANT: Generation is UNSTOPPABLE once started.
+ * Jobs run on the backend and will complete regardless of frontend state.
+ * 
  * @returns State and actions for generation management
  */
 export function useGenerationEngine(): GenerationEngineState & GenerationEngineActions {
   const navigate = useNavigate();
 
-  // Local state
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  // Local state - NO abort controller (generation is unstoppable)
   const [generatedAlias, setGeneratedAlias] = useState<string>('');
-  const [showResumeDialog, setShowResumeDialog] = useState(false);
-  const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Refs for stable references
-  const abortControllerRef = useRef<AbortController | null>(null);
   const resultIdRef = useRef<string | null>(null);
   const lastProgressUpdateRef = useRef<number>(0);
 
@@ -95,14 +86,10 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
     completeGeneration,
     setError,
     addRecentSubject,
-    clearCheckpoint,
-    saveCheckpoint,
     updateGenerationProgress,
     addStreamedConcept,
     setConstructionPhase,
     setExpectedConceptCount,
-    canResumeFromCheckpoint,
-    getCheckpointResumeData,
   } = useGenerationStore();
 
   // Constants
@@ -206,14 +193,9 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
       }
 
       updateGenerationProgress(update);
-
-      if (status === 'complete') {
-        saveCheckpoint(pass);
-      }
     };
   }, [
     updateGenerationProgress,
-    saveCheckpoint,
     addStreamedConcept,
     setConstructionPhase,
     setExpectedConceptCount,
@@ -225,7 +207,6 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
   const handleGenerationSuccess = useCallback(
     async (result: GenerationResult, subject: string, alias: string) => {
       completeGeneration(result);
-      clearCheckpoint();
 
       const currentState = useGenerationStore.getState();
       const currentPass1 = currentState.pass1Data;
@@ -271,7 +252,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
         navigate(`/study/${Date.now()}`, { replace: true });
       }
     },
-    [completeGeneration, clearCheckpoint, navigate]
+    [completeGeneration, navigate]
   );
 
   /**
@@ -281,8 +262,13 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
     (err: unknown) => {
       console.error('Generation error:', err);
       const message = err instanceof Error ? err.message : String(err);
+      
+      // Handle specific error types
       if (message === 'Generation cancelled by user') {
         navigate('/');
+      } else if (message.includes('401') || message.includes('Unauthorized') || message.includes('Session expired')) {
+        setError('Session expired. Redirecting to login...');
+        setTimeout(() => navigate('/login'), 1000);
       } else {
         setError(message || 'Generation failed.');
       }
@@ -292,45 +278,32 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
 
   /**
    * Start the generation process
+   * 
+   * IMPORTANT: Once started, generation CANNOT be cancelled.
+   * The job runs on the backend and will complete regardless of frontend state.
    */
   const startGenerationProcess = useCallback(
     (
       subject: string,
-      context?: string | null,
-      resumeData?: ReturnType<typeof getCheckpointResumeData>
+      context?: string | null
     ) => {
+      // AUTH GUARD: Check if user is logged in before attempting generation
+      const { user } = useAuthStore.getState();
+      if (!user?.id) {
+        console.error('[Generation] No authenticated user - redirecting to login');
+        setError('Please log in to generate content');
+        setTimeout(() => navigate('/login'), 1000);
+        return;
+      }
+
       const alias = generateAlias();
       setGeneratedAlias(alias);
-
-      const controller = new AbortController();
-      setAbortController(controller);
-      abortControllerRef.current = controller;
+      setIsGenerating(true);
 
       const progressCallback = createProgressCallback();
       const { currentFileContext, pendingFile, setPendingFile } =
         useGenerationStore.getState();
       let effectiveContext = context || '';
-
-      // Handle resume from checkpoint
-      if (resumeData) {
-        useGenerationStore.setState({
-          ...resumeData.restoredState,
-          currentSubject: subject,
-          isGenerating: true,
-          error: null,
-        });
-
-        generateWithBackend(
-          subject,
-          progressCallback,
-          controller.signal,
-          effectiveContext || undefined,
-          resumeData.startFromPass
-        )
-          .then((result) => handleGenerationSuccess(result, subject, alias))
-          .catch(handleGenerationError);
-        return;
-      }
 
       // Handle file upload
       if (pendingFile) {
@@ -345,10 +318,11 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
           .then((s3Url) => {
             const blueprintContext = `[BLUEPRINT_ID]: ${s3Url}\n[FILENAME]: ${pendingFile.name}`;
             setPendingFile(null);
-            return generateWithBackend(subject, progressCallback, controller.signal, blueprintContext);
+            return generateWithBackend(subject, progressCallback, undefined, blueprintContext);
           })
           .then((result) => handleGenerationSuccess(result, subject, alias))
-          .catch(handleGenerationError);
+          .catch(handleGenerationError)
+          .finally(() => setIsGenerating(false));
         return;
       }
 
@@ -358,18 +332,19 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
         effectiveContext += fileHeader;
       }
 
-      // Standard generation
+      // Standard generation - UNSTOPPABLE once started
       startGeneration(subject, effectiveContext || undefined);
       addRecentSubject(subject);
 
       generateWithBackend(
         subject,
         progressCallback,
-        controller.signal,
+        undefined, // No abort signal - generation is unstoppable
         effectiveContext || undefined
       )
         .then((result) => handleGenerationSuccess(result, subject, alias))
-        .catch(handleGenerationError);
+        .catch(handleGenerationError)
+        .finally(() => setIsGenerating(false));
     },
     [
       createProgressCallback,
@@ -379,38 +354,6 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
       handleGenerationError,
     ]
   );
-
-  /**
-   * Check if checkpoint exists for subject
-   */
-  const checkForCheckpoint = useCallback(
-    (subject: string): boolean => {
-      return canResumeFromCheckpoint(subject);
-    },
-    [canResumeFromCheckpoint]
-  );
-
-  /**
-   * Resume from checkpoint
-   */
-  const handleResumeFromCheckpoint = useCallback(
-    (subject: string) => {
-      const resumeData = getCheckpointResumeData();
-      if (!resumeData) return;
-      setShowResumeDialog(false);
-      startGenerationProcess(subject, null, resumeData);
-    },
-    [getCheckpointResumeData, startGenerationProcess]
-  );
-
-  /**
-   * Start fresh, clearing checkpoint
-   */
-  const handleStartFresh = useCallback(() => {
-    clearCheckpoint();
-    setShowResumeDialog(false);
-    window.location.reload();
-  }, [clearCheckpoint]);
 
   /**
    * Retry failed generation
@@ -423,37 +366,12 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
     [setError, startGenerationProcess]
   );
 
-  /**
-   * Confirm cancel and abort
-   */
-  const handleConfirmCancel = useCallback(() => {
-    setShowConfirmCancel(false);
-    abortController?.abort();
-    navigate('/');
-  }, [abortController, navigate]);
-
-  /**
-   * Show cancel confirmation
-   */
-  const handleCancelClick = useCallback(() => {
-    setShowConfirmCancel(true);
-  }, []);
-
   return {
     // State
-    abortController,
+    isGenerating,
     generatedAlias,
-    showResumeDialog,
-    showConfirmCancel,
     // Actions
     startGenerationProcess,
-    handleResumeFromCheckpoint,
-    handleStartFresh,
     handleRetry,
-    handleConfirmCancel,
-    handleCancelClick,
-    setShowResumeDialog,
-    setShowConfirmCancel,
-    checkForCheckpoint,
   };
 }

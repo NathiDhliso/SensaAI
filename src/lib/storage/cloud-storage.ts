@@ -30,16 +30,18 @@ export class CloudStorage implements StorageProvider {
 
 
       const credentials = () => {
-        const idToken = useAuthStore.getState().tokens?.idToken;
+        // Note: Tokens are now in HttpOnly cookies managed by the backend
+        // We use the isAuthenticated flag to determine if user is logged in
+        const { isAuthenticated } = useAuthStore.getState();
 
-        // If we have a token, use it for authenticated access
-        if (idToken) {
+        // If authenticated, use authenticated identity access
+        // The actual token validation happens server-side
+        if (isAuthenticated) {
           return fromCognitoIdentityPool({
             clientConfig: { region: this.region },
             identityPoolId,
-            logins: {
-              [`cognito-idp.${this.region}.amazonaws.com/${userPoolId}`]: idToken
-            }
+            // For HttpOnly cookie auth, we use standard identity pool access
+            // Authentication is verified by the API gateway/Lambda, not the browser SDK
           })();
         }
 

@@ -1,0 +1,296 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.container {
+    background: var(--surface-card);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 32px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.iconBadge {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--surface-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--color-text-primary);
+}
+
+.subtitle {
+    margin: 4px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+}
+
+.comparisonGrid {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 8px 0;
+}
+
+.pathCard {
+    flex: 1;
+    background: var(--surface-hover);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.currentPath {
+    border-color: var(--color-warning-dim);
+    background: linear-gradient(to bottom, rgba(255, 170, 0, 0.05), transparent);
+}
+
+.repairedPath {
+    border-color: var(--color-success-dim);
+    background: linear-gradient(to bottom, rgba(0, 255, 150, 0.05), transparent);
+    box-shadow: 0 4px 20px rgba(0, 255, 150, 0.1);
+}
+
+.pathHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.currentPath .pathHeader {
+    color: var(--color-warning);
+}
+
+.repairedPath .pathHeader {
+    color: var(--color-success);
+}
+
+.scoreDisplay {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.scoreLabel {
+    font-family: var(--font-mono);
+    color: var(--color-text-tertiary);
+    font-size: 0.9rem;
+}
+
+.badge {
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badgeWeak {
+    background: rgba(255, 100, 100, 0.15);
+    color: var(--color-error);
+}
+
+.badgeOkay {
+    background: rgba(255, 200, 100, 0.15);
+    color: var(--color-warning);
+}
+
+.badgeStrong {
+    background: rgba(100, 255, 150, 0.15);
+    color: var(--color-success);
+}
+
+.scoreValue {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.detailsToggle {
+    background: transparent;
+    border: none;
+    color: var(--color-text-tertiary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 8px auto 0;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.detailsToggle:hover {
+    opacity: 1;
+}
+
+.detailsPanel {
+    background: var(--surface-hover);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    text-align: center;
+}
+
+.statRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    padding: 4px 0;
+    color: var(--color-text-secondary);
+}
+
+.statRow strong {
+    color: var(--color-text-primary);
+}
+
+.arrowDivider {
+    color: var(--color-text-tertiary);
+    opacity: 0.5;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.declineButton {
+    flex: 1;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.declineButton:hover {
+    background: var(--surface-hover);
+    color: var(--color-text-primary);
+}
+
+.acceptButton {
+    flex: 1.5;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.acceptButton:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* =============================================================================
+   PERFORMANCE OPTIMIZATIONS
+   Disable heavy effects on low-power devices and when reduced motion is preferred
+   ============================================================================= */
+
+/* Mobile devices (touch-primary) - reduce blur for performance */
+@media (hover: none) and (pointer: coarse) {
+    .overlay {
+        backdrop-filter: blur(4px);
+        /* Reduced from 8px */
+    }
+
+    .repairedPath {
+        box-shadow: 0 2px 10px rgba(0, 255, 150, 0.08);
+        /* Lighter shadow */
+    }
+}
+
+/* Reduced motion preference - disable animations and blur entirely */
+@media (prefers-reduced-motion: reduce) {
+    .overlay {
+        backdrop-filter: none;
+        background: rgba(0, 0, 0, 0.85);
+        /* Solid fallback */
+    }
+
+    .acceptButton:hover {
+        transform: none;
+    }
+
+    .declineButton,
+    .acceptButton,
+    .pathCard {
+        transition: none;
+    }
+}
+
+/* Very low-end devices (narrow screens) - remove blur entirely */
+@media (max-width: 480px) and (hover: none) {
+    .overlay {
+        backdrop-filter: none;
+        background: rgba(0, 0, 0, 0.9);
+    }
+
+    .container {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .comparisonGrid {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .arrowDivider {
+        transform: rotate(90deg);
+    }
+}

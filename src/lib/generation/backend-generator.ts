@@ -24,13 +24,14 @@ export async function uploadExamBlueprint(file: File): Promise<string> {
  * Generate content using the serverless Lambda + DynamoDB pipeline.
  * All heavy lifting happens server-side - browser only polls for status.
  * 
- * The active job is persisted to localStorage so generation can continue
- * even if the user closes the tab and returns later.
+ * CRITICAL: Generation is UNSTOPPABLE once started.
+ * The job runs on the backend regardless of frontend state.
+ * Frontend can navigate away - job will complete in background.
  */
 export async function generateWithBackend(
     subject: string,
     onProgress: ProgressCallback,
-    abortSignal?: AbortSignal,
+    _abortSignal?: AbortSignal, // DEPRECATED: Kept for API compatibility, but ignored
     context?: string,
     _startFromPass: number = 1
 ): Promise<GenerationResult> {
@@ -53,18 +54,27 @@ export async function generateWithBackend(
         simProgress += 1; // Slow increment
         if (simProgress > 90) simProgress = 90; // Cap at 90%
 
-        onProgress(2, 'in-progress', {
-            message: `Crafting curriculum... (${Math.round(simProgress)}%)`,
+        onProgress(1, 'in-progress', {
+            message: `Connecting to AI engine... (${Math.round(simProgress)}%)`,
             progress: simProgress,
         });
     }, UI_TIMINGS.ONE_SECOND);
 
+    // Add timeout for the initial generation call (5 minutes)
+    const GENERATE_TIMEOUT = 5 * 60 * 1000;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Generation request timed out. The server may be busy - please try again.')), GENERATE_TIMEOUT);
+    });
+
     try {
-        const generateResponse = await conceptsApi.generate({
-            subject,
-            userId,
-            context,
-        });
+        const generateResponse = await Promise.race([
+            conceptsApi.generate({
+                subject,
+                userId,
+                context,
+            }),
+            timeoutPromise
+        ]);
         clearInterval(simInterval);
 
         if (generateResponse.status === 'failed') {
@@ -102,10 +112,15 @@ export async function generateWithBackend(
             const startTime = Date.now();
 
             while (true) {
-                if (abortSignal?.aborted) throw new Error('Generation cancelled by user');
+                // NOTE: We intentionally DO NOT check abortSignal here
+                // Generation is unstoppable once started - it runs on the backend
+
                 if (Date.now() - startTime > maxPollTime) {
                     console.error('[Backend Generator] TIMEOUT! Exceeded max poll time');
-                    throw new Error('Generation timed out');
+                    // Don't throw - job may still complete on backend
+                    // Mark as timed out but allow recovery
+                    updateActiveJobStatus('failed');
+                    throw new Error('Generation timed out - but job may still complete. Check back later.');
                 }
 
                 try {
@@ -123,6 +138,21 @@ export async function generateWithBackend(
                     // Reset interval on successful status check
                     pollInterval = 2000;
                 } catch (err) {
+                    // Check if it's an auth error (401)
+                    const errorMessage = err instanceof Error ? err.message : String(err);
+                    if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('Session expired')) {
+                        console.error('[Backend Generator] Authentication failed during polling');
+                        clearActiveJob();
+                        throw new Error('Session expired. Please log in again.');
+                    }
+                    
+                    // Check if we've been backing off too long (> 30 seconds of errors)
+                    if (pollInterval >= 8000) {
+                        console.error('[Backend Generator] Polling failing repeatedly, giving up');
+                        clearActiveJob();
+                        throw new Error('Unable to connect to server. Please check your connection and try again.');
+                    }
+                    
                     // Exponential backoff on error (including 429)
                     console.warn('[Backend Generator] Polling error, backing off:', { pollInterval, error: err });
                     pollInterval = Math.min(maxPollInterval, pollInterval * 1.5);
@@ -142,14 +172,13 @@ export async function generateWithBackend(
         // =====================================================================
         // Parallel generation happens server-side. Once complete, we fetch
         // all concepts from DynamoDB organized by tier.
-        
+
         onProgress(3, 'in-progress', {
             message: 'Loading generated concepts...',
             progress: 60,
         });
 
-        const STREAM_START_PROGRESS = 60;
-        const STREAM_END_PROGRESS = 90;
+        // Progress tracking: 60% = start loading, 90% = end loading
         let allConcepts: ParsedConcept[] = [];
 
         // Fetch concepts from all tiers in parallel

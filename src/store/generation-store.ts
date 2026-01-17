@@ -13,16 +13,6 @@ export type BedrockConfig = {
 // Construction phases for optimistic UI
 export type ConstructionPhase = 'idle' | 'foundation' | 'framing' | 'detailing' | 'complete';
 
-type GenerationCheckpoint = {
-  subject: string;
-  context?: string | null;
-  pass1Data: Pass1Result | null;
-  pass2Content: string | null;
-  pass3Content: string | null;
-  lastSuccessfulPass: number;
-  timestamp: number;
-};
-
 // Track active server-side jobs so we can resume after tab close
 type ActiveJob = {
   jobId: string;
@@ -55,7 +45,6 @@ export type GenerationState = {
   recentSubjects: string[];
   isGenerating: boolean;
   error: string | null;
-  checkpoint: GenerationCheckpoint | null;
   // Active job tracking for background processing
   activeJob: ActiveJob | null;
   // Progressive rendering state
@@ -101,10 +90,6 @@ type GenerationActions = {
   setError: (error: string | null) => void;
   reset: () => void;
   addRecentSubject: (subject: string) => void;
-  saveCheckpoint: (pass: number) => void;
-  canResumeFromCheckpoint: (subject: string) => boolean;
-  getCheckpointResumeData: () => { startFromPass: number; restoredState: Partial<GenerationState> } | null;
-  clearCheckpoint: () => void;
   // Progressive rendering actions
   addStreamedConcept: (concept: ParsedConcept) => void;
   setConstructionPhase: (phase: ConstructionPhase) => void;
@@ -165,7 +150,6 @@ const initialState: GenerationState = {
   recentSubjects: ['AZ-104 Azure Admin', 'AWS Solutions Architect', 'PL-300 Power BI'],
   isGenerating: false,
   error: null,
-  checkpoint: null,
   activeJob: null,
   streamedConcepts: [],
   constructionPhase: 'idle',
@@ -291,46 +275,6 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
           };
         }),
 
-      saveCheckpoint: (pass) => {
-        const state = get();
-        set({
-          checkpoint: {
-            subject: state.currentSubject!,
-            context: state.currentContext,
-            pass1Data: state.pass1Data,
-            pass2Content: state.pass2Content,
-            pass3Content: state.pass3Content,
-            lastSuccessfulPass: pass,
-            timestamp: Date.now(),
-          },
-        });
-      },
-
-      canResumeFromCheckpoint: (subject) => {
-        const { checkpoint } = get();
-        if (!checkpoint) return false;
-        if (checkpoint.subject !== subject) return false;
-
-        const age = Date.now() - checkpoint.timestamp;
-        return age < 3600000;
-      },
-
-      getCheckpointResumeData: () => {
-        const { checkpoint } = get();
-        if (!checkpoint) return null;
-
-        return {
-          startFromPass: checkpoint.lastSuccessfulPass + 1,
-          restoredState: {
-            pass1Data: checkpoint.pass1Data,
-            pass2Content: checkpoint.pass2Content,
-            pass3Content: checkpoint.pass3Content,
-          },
-        };
-      },
-
-      clearCheckpoint: () => set({ checkpoint: null }),
-
       addStreamedConcept: (concept) =>
         set((state) => ({
           streamedConcepts: [...state.streamedConcepts, concept],
@@ -391,7 +335,6 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
       partialize: (state) => ({
         recentSubjects: state.recentSubjects,
         results: state.results,
-        checkpoint: state.checkpoint,
         activeJob: state.activeJob, // Persist active job for background recovery
       }),
     }

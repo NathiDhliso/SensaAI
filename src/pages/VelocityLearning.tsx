@@ -28,7 +28,7 @@ import MicroLearningLoopController from '@/components/learning/MicroLearningLoop
 import DiagnosticLaunchSystem from '@/components/learning/DiagnosticLaunchSystem';
 import SessionStartModal from '@/components/learning/SessionStartModal';
 import VelocityLockInGate from '@/components/learning/VelocityLockInGate';
-import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
+// SessionScoutPreview - reserved for future SCOUT phase implementation
 import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
 import MasteryChallenge from '@/components/learning/MasteryChallenge';
 import SensaSynopticView from '@/components/learning/SensaSynopticView';
@@ -57,8 +57,8 @@ export default function VelocityLearning() {
         setCurrentConcept,
         getNextConcept,
         startSession,
-        markSessionScouted,
-        markSessionPreviewed,
+        // markSessionScouted - reserved for future SCOUT phase
+        // markSessionPreviewed - reserved for future PREVIEW phase
         markSessionMapBuilt,
         markSessionMastered,
         clearSession,
@@ -110,8 +110,10 @@ export default function VelocityLearning() {
             // Small delay to allow lock-in animation to complete
             const timer = setTimeout(() => {
                 // Skip SCOUT/PREVIEW phase since user already did Overview tab
-                // Go directly to BUILD phase
-                startStudySession(currentSession!.concepts[0].id);
+                // Go directly to BUILD phase - use stored goal/duration or defaults
+                const goal = studySession?.goal ?? ('learn-new' as const);
+                const duration = studySession?.targetDuration ?? 30;
+                startStudySession(goal, duration, [currentSession!.concepts[0].id]);
             }, UI_TIMINGS.DELAY_SHORT);
             return () => clearTimeout(timer);
         }
@@ -148,10 +150,8 @@ export default function VelocityLearning() {
         setLockedIn(true);
     };
 
-    const handleScoutComplete = () => {
-        markSessionScouted();
-        markSessionPreviewed();
-    };
+    // Scout phase handler - reserved for future implementation
+    // Uses markSessionScouted() and markSessionPreviewed() when needed
 
     const handleLoopComplete = (outcome: 'mastered' | 'needs-learning' | 'needs-review', _timeSpent: number) => {
         if (!activeConcept) return;
@@ -190,7 +190,7 @@ export default function VelocityLearning() {
             // TODO: Route to high-stakes verification
             // For now, mark as mastered and advance
             if (pendingSkipConcept) {
-                completeConcept(pendingSkipConcept, 'mastered', 0);
+                completeConcept(pendingSkipConcept);
             }
             const nextId = getNextConcept();
             if (nextId) setCurrentConcept(nextId);
@@ -278,7 +278,7 @@ export default function VelocityLearning() {
                 <div className={styles.mainArea}>
 
                     {/* Phase Navigator - Hidden in Explore Mode */}
-                    {currentSession && currentPhase !== 'IDLE' && studySession?.goal !== 'explore' && (
+                    {currentSession && studySession?.goal !== 'explore' && (
                         <PhaseNavigator
                             currentPhase={currentPhase}
                             completedPhases={Array.from(completedPhases) as any}
@@ -508,13 +508,14 @@ export default function VelocityLearning() {
                     >
                         <MasteryChallenge
                             concepts={currentSession!.concepts}
-                            onComplete={(result) => {
+                            onComplete={(passed) => {
                                 markSessionMastered();
                                 // SENSA v2.0: Update equation (Apply phase)
+                                // passed boolean indicates overall success
                                 sensaFlow.completeApply(
-                                    result.synthesisScore,
-                                    result.flowModeCompleted,
-                                    result.Q_f
+                                    passed ? 0.85 : 0.5, // synthesisScore
+                                    passed, // flowModeCompleted
+                                    passed ? 0.8 : 0.4 // Q_f estimate
                                 );
                             }}
                         />

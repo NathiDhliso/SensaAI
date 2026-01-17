@@ -120,9 +120,9 @@ export default function VelocityLockInGate({
                 >
                     <AlertTriangle size={20} className={styles.warningIcon} />
                     <div className={styles.warningContent}>
-                        <span className={styles.warningTitle}>Point of No Return</span>
+                        <span className={styles.warningTitle}>Session Commitment</span>
                         <p className={styles.warningText}>
-                            Session locked until complete.
+                            Focus locked until complete.
                         </p>
                     </div>
                 </motion.div>
@@ -168,7 +168,7 @@ export default function VelocityLockInGate({
                         onClick={onConfirm}
                     >
                         <Rocket size={18} />
-                        Lock In & Launch
+                        I'm Ready
                     </button>
                 </motion.div>
             </div>

@@ -28,6 +28,7 @@ import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useCollisionDetection } from '@/hooks/useCollisionDetection';
 import { useGenerationEngine } from '@/hooks/useGenerationEngine';
+import { useGenerationRecovery } from '@/hooks/useGenerationRecovery';
 import styles from './Generate.module.css';
 
 // ============================================================================
@@ -95,7 +96,6 @@ export default function Generate() {
     pendingFile,
     progress,
     setError: _setError,
-    canResumeFromCheckpoint,
   } = useGenerationStore();
 
   // Refs
@@ -105,17 +105,12 @@ export default function Generate() {
 
   // Generation engine hook
   const {
-    showResumeDialog,
-    showConfirmCancel,
     startGenerationProcess,
-    handleResumeFromCheckpoint,
-    handleStartFresh,
     handleRetry,
-    handleConfirmCancel,
-    handleCancelClick,
-    setShowResumeDialog,
-    setShowConfirmCancel,
   } = useGenerationEngine();
+
+  // Recovery hook - reconnects to active jobs after page refresh
+  useGenerationRecovery();
 
   // Collision detection hook
   const {
@@ -127,13 +122,8 @@ export default function Generate() {
     onNoDuplicate: () => {
       if (!subject) return;
       const decodedSubject = decodeURIComponent(subject);
-
-      // Check for checkpoint after collision check passes
-      if (canResumeFromCheckpoint(decodedSubject)) {
-        setShowResumeDialog(true);
-      } else {
-        startGenerationProcess(decodedSubject, context);
-      }
+      // Generation is unstoppable - just start it
+      startGenerationProcess(decodedSubject, context);
     },
     onExistingFound: (resultId) => {
       navigate(`/study/${resultId}`);
@@ -167,7 +157,7 @@ export default function Generate() {
 
     const decodedSubject = decodeURIComponent(subject);
     checkForDuplicates(decodedSubject);
-  }, [subject, bedrockConfig, navigate, checkForDuplicates, canResumeFromCheckpoint]);
+  }, [subject, bedrockConfig, navigate, checkForDuplicates]);
 
   // Beforeunload warning
   useEffect(() => {
@@ -220,9 +210,9 @@ export default function Generate() {
     <div className={styles.container}>
       {/* Cinematic Cockpit */}
       <div className={styles.cockpit}>
-        {/* Top Left: Abort */}
-        <button onClick={handleCancelClick} className={styles.abortButton}>
-          <ArrowLeft size={14} /> Abort Link
+        {/* Top Left: Navigate Home (generation continues in background) */}
+        <button onClick={() => navigate('/')} className={styles.abortButton}>
+          <ArrowLeft size={14} /> Hide Generation
         </button>
 
         {/* Center Stage: The Entity */}
@@ -241,6 +231,7 @@ export default function Generate() {
               pass={currentPass}
               intensity={intensity}
               isGenerating={isGenerating}
+              subject={subject ? decodeURIComponent(subject) : undefined}
             />
           </div>
         </div>
@@ -327,50 +318,6 @@ export default function Generate() {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Resume Dialog */}
-      {showResumeDialog && (
-        <div className={styles.confirmOverlay}>
-          <div className={styles.resumeDialog}>
-            <h2>Resume Cognitive Trace?</h2>
-            <p>
-              Found residual memory signature from earlier
-            </p>
-            <div className={styles.dialogActions}>
-              <button
-                onClick={() => handleResumeFromCheckpoint(decodedSubject)}
-                className={styles.primaryButton}
-              >
-                Re-Integrate
-              </button>
-              <button onClick={handleStartFresh} className={styles.secondaryButton}>
-                Purge & Restart
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Cancel Dialog */}
-      {showConfirmCancel && (
-        <div className={styles.confirmOverlay}>
-          <div className={styles.confirmDialog}>
-            <h3>Disengage Neural Link?</h3>
-            <p>Warning: Premature disconnection will result in concept fragmentation.</p>
-            <div className={styles.confirmActions}>
-              <button
-                onClick={() => setShowConfirmCancel(false)}
-                className={styles.secondaryButton}
-              >
-                Maintain Link
-              </button>
-              <button onClick={handleConfirmCancel} className={styles.cancelConfirmButton}>
-                Disengage
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Error Overlay */}
       {error && (

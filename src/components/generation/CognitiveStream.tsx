@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { COGNITIVE_THOUGHTS } from '@/constants/ui-constants';
+import { getRandomTerm, getDomainName } from '@/lib/utils/subject-domain-detector';
 import styles from '@/pages/Generate.module.css';
 
 interface CognitiveStreamProps {
     pass: number;
     intensity: number;
     isGenerating: boolean;
+    subject?: string;
 }
 
-export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensity, isGenerating }) => {
+export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensity, isGenerating, subject }) => {
     const [thought, setThought] = useState('');
 
     // Cycle thoughts based on pass and intensity
@@ -21,11 +23,63 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
         }
 
         const getThoughts = () => {
-            if (pass === 1) return COGNITIVE_THOUGHTS.pass1;
-            if (pass === 2) return COGNITIVE_THOUGHTS.pass2;
-            if (pass === 3) return COGNITIVE_THOUGHTS.pass3;
-            if (pass === 4) return COGNITIVE_THOUGHTS.pass4;
-            return ["PROCESSING..."];
+            const subjectName = subject || 'content';
+            const domainName = getDomainName(subjectName);
+            
+            // Generate domain-specific terms on each call
+            const nodes = getRandomTerm(subjectName, 'nodes');
+            const concepts = getRandomTerm(subjectName, 'concepts');
+            const structures = getRandomTerm(subjectName, 'structures');
+            const processes = getRandomTerm(subjectName, 'processes');
+            
+            const thoughtsWithContext = {
+                pass1: [
+                    `SCANNING ${subjectName.toUpperCase()} ${nodes.toUpperCase()}...`,
+                    `PARSING ${nodes.toUpperCase()} FOR RELEVANCE...`,
+                    `DETECTING ${domainName.toUpperCase()} SEMANTIC DENSITY...`,
+                    `ANALYZING ${structures.toUpperCase()}...`,
+                    `ISOLATING KEY ${concepts.toUpperCase()}...`,
+                    `CROSS-REFERENCING ${nodes.toUpperCase()}...`,
+                    "FILTERING IRRELEVANT DATA...",
+                    "FOCUSING ON CORE PATTERNS..."
+                ],
+                pass2: [
+                    `MAPPING ${subjectName.toUpperCase()} ${structures.toUpperCase()}...`,
+                    `TRACING ${processes.toUpperCase()}...`,
+                    `VALIDATING ${concepts.toUpperCase()}...`,
+                    `CONNECTING ${nodes.toUpperCase()}...`,
+                    `IDENTIFYING ${domainName.toUpperCase()} DEPENDENCIES...`,
+                    "WEAVING CONTEXTUAL RELATIONSHIPS...",
+                    `CALCULATING ${concepts.toUpperCase()} ENTROPY...`,
+                    "OPTIMIZING KNOWLEDGE PATHWAYS..."
+                ],
+                pass3: [
+                    `SYNTHESIZING ${concepts.toUpperCase()}...`,
+                    `STRUCTURING ${nodes.toUpperCase()}...`,
+                    `ORGANIZING ${structures.toUpperCase()}...`,
+                    "GENERATING RETENTION ANCHORS...",
+                    `CRYSTALLIZING ${domainName.toUpperCase()} INSIGHTS...`,
+                    `ENCODING ${processes.toUpperCase()}...`,
+                    "VALIDATING LEARNING HIERARCHY...",
+                    "FINALIZING COGNITIVE ARCHITECTURE..."
+                ],
+                pass4: [
+                    "RUNNING FINAL DIAGNOSTICS...",
+                    `VERIFYING ${concepts.toUpperCase()} INTEGRITY...`,
+                    `CHECKING ${nodes.toUpperCase()} COHERENCE...`,
+                    `VALIDATING ${structures.toUpperCase()}...`,
+                    "OPTIMIZING TRANSFER EFFICIENCY...",
+                    `CALIBRATING ${domainName.toUpperCase()} COMPLEXITY...`,
+                    "FINALIZING KNOWLEDGE MAP...",
+                    "PREPARING DELIVERY SEQUENCE..."
+                ]
+            };
+            
+            if (pass === 1) return thoughtsWithContext.pass1;
+            if (pass === 2) return thoughtsWithContext.pass2;
+            if (pass === 3) return thoughtsWithContext.pass3;
+            if (pass === 4) return thoughtsWithContext.pass4;
+            return [`PROCESSING ${subjectName.toUpperCase()}...`];
         };
 
         const thoughts = getThoughts();

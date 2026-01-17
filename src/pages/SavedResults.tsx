@@ -336,14 +336,26 @@ export default function SavedResults() {
                   <div className={styles.qualityMetrics}>
                     <div className={styles.metricBadge}>
                       <span className={styles.metricLabel}>Quality</span>
-                      <span className={`${styles.metricValue} ${getQualityColor(result.validation.completeness)}`}>
-                        {result.validation.completeness}%
+                      <span className={`${styles.metricValue} ${getQualityColor(
+                        Math.round(
+                          (result.validation.completeness * 0.3 +
+                           result.validation.lifecycleConsistency * 0.3 +
+                           result.validation.formatConsistency * 0.2 +
+                           result.validation.positiveFraming * 0.2)
+                        )
+                      )}`}>
+                        {Math.round(
+                          (result.validation.completeness * 0.3 +
+                           result.validation.lifecycleConsistency * 0.3 +
+                           result.validation.formatConsistency * 0.2 +
+                           result.validation.positiveFraming * 0.2)
+                        )}%
                       </span>
                     </div>
                     <div className={styles.metricBadge}>
-                      <span className={styles.metricLabel}>Lifecycle</span>
-                      <span className={`${styles.metricValue} ${getQualityColor(result.validation.lifecycleConsistency)}`}>
-                        {result.validation.lifecycleConsistency}%
+                      <span className={styles.metricLabel}>Completeness</span>
+                      <span className={`${styles.metricValue} ${getQualityColor(result.validation.completeness)}`}>
+                        {result.validation.completeness}%
                       </span>
                     </div>
                   </div>
