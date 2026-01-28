@@ -1,7 +1,7 @@
 # Quick Reference - What Was Fixed
 
-**Last Updated:** January 28, 2026  
-**Status:** 7/11 items complete (64%)
+**Last Updated:** January 29, 2026  
+**Status:** 8/11 items complete (73%)
 
 ---
 
@@ -42,11 +42,17 @@
 **Solution:** Auto-save after every concept, 24h expiry, resume on mount  
 **Files:** `src/lib/storage/session-progress.ts` (NEW), `src/store/slices/createNavigationSlice.ts`
 
+### 8. Repair Prompts Enhanced ✅
+**Problem:** AI repairs failed validation, too generic  
+**Solution:** Comprehensive field-specific requirements (15+ templates), examples, anti-patterns  
+**File:** `src/lib/generation/repair-orchestrator.ts`  
+**Impact:** AI repairs should pass validation more consistently
+
 ---
 
 ## ⏳ What's Remaining
 
-### 8. Generation Cancellation (8 hours)
+### 9. Generation Cancellation (8 hours)
 **Problem:** Can't cancel if mistake made  
 **Solution:** Add cancel button, wire to backend endpoint  
 **Priority:** HIGH - Most requested feature

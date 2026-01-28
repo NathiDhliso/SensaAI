@@ -59,7 +59,7 @@ export class RepairStrategyRouter {
                 strategy: 'SELF_HEAL',
                 conceptId: gap.conceptId,
                 field: gap.field,
-                reason: 'Missing standard field - applying template',
+                reason: `Missing ${gap.field}: ${gap.message}`,
                 priority: 'low'
             };
         }
@@ -67,16 +67,164 @@ export class RepairStrategyRouter {
         // STRATEGY 2: SURGICAL AI
         // Use for "Fluff", Circular Logic, or core content (Mnemonics, Analogies)
         if (isFluff || this.requiresIntelligence(gap.field)) {
+            // Build detailed reason with gap information
+            let reason = `Field: ${gap.field}\n`;
+            reason += `Issue: ${gap.message}\n`;
+            reason += `Severity: ${gap.severity}\n`;
+
+            if (isFluff) {
+                reason += `Problem: Detected placeholder/circular content\n`;
+                reason += `Current: "${String(fieldContent).substring(0, 100)}..."\n`;
+            } else {
+                reason += `Problem: Missing core intelligent content\n`;
+            }
+
+            // Add field-specific requirements
+            reason += this.getFieldRequirements(gap.field);
+
             return {
                 strategy: 'SURGICAL_AI',
                 conceptId: gap.conceptId,
                 field: gap.field,
-                reason: isFluff ? 'Detected placeholder/circular content' : 'Missing core intelligent content',
-                priority: 'high'
+                reason,
+                priority: gap.severity === 'critical' ? 'high' : 'medium'
             };
         }
 
         return null;
+    }
+
+    /**
+     * Get field-specific requirements for AI repair
+     */
+    private getFieldRequirements(field: string): string {
+        const requirements: Record<string, string> = {
+            'phase1.hookSentence': `
+Requirements for hookSentence:
+- Must be 1-2 sentences that grab attention
+- Should explain what the concept is in simple terms
+- Must NOT be circular (don't just repeat the concept name)
+- Should make the reader curious to learn more
+- Example: "Imagine controlling who sees which rows in a database table - that's Row-Level Security"`,
+
+            'phase1.microMetaphor': `
+Requirements for microMetaphor:
+- Must be a concrete, relatable analogy
+- Should compare the technical concept to something familiar
+- Must NOT be circular or generic
+- Should illuminate how the concept works
+- Example: "Like a bouncer checking IDs at a club - RLS checks user credentials before showing data"`,
+
+            'phase1.prerequisite': `
+Requirements for prerequisite:
+- List specific concepts/skills needed before learning this
+- If truly none, say "Basic understanding of [domain]"
+- Must be specific, not generic
+- Example: "Understanding of database tables and user authentication"`,
+
+            'phase2.items': `
+Requirements for phase2 items:
+- Must have at least 3 concrete learning points
+- Each item should be specific and actionable
+- Should build on each other logically
+- Must NOT be vague or circular
+- Example: "How RLS policies filter rows", "Creating RLS predicates", "Testing RLS with different users"`,
+
+            'phase3.tool': `
+Requirements for tool:
+- Specific tool, command, or resource for practice
+- Must be actionable (user can actually use it)
+- Include where to find it if not obvious
+- Example: "SQL Server Management Studio - CREATE SECURITY POLICY command"`,
+
+            'phase3.thresholds': `
+Requirements for thresholds:
+- Specific criteria for mastery
+- Should be measurable or observable
+- Must relate to the concept being learned
+- Example: "Can create RLS policies that correctly filter data for different user roles"`,
+
+            'mnemonic.story': `
+Requirements for mnemonic story:
+- Must be memorable and vivid
+- Should encode key information about the concept
+- Must NOT be circular or just repeat the concept name
+- Should use concrete imagery
+- Example: "Remember RLS as 'Row Lock Security' - imagine each row has a tiny lock that only opens for authorized users"`,
+
+            'mnemonic.anchor': `
+Requirements for mnemonic anchor:
+- Short memorable phrase or acronym
+- Should trigger recall of the full concept
+- Must be unique and distinctive
+- Example: "RLS = Rows Lock Selectively"`,
+
+            'shape.simpleCore': `
+Requirements for simpleCore:
+- Explain the concept in the simplest possible terms
+- Use plain language, avoid jargon
+- Must NOT be circular
+- Should be understandable by a beginner
+- Example: "RLS lets you control which rows different users can see in a table, based on rules you define"`,
+
+            'shape.analogicalModel': `
+Requirements for analogicalModel:
+- Detailed analogy that maps to the technical concept
+- Should explain how the concept works through the analogy
+- Must be concrete and relatable
+- Example: "Think of a database table as an apartment building. RLS is like giving each tenant a key that only opens their own apartment door - they can't see into other apartments even though they're in the same building"`,
+
+            'shape.highStakesExample': `
+Requirements for highStakesExample:
+- Real-world scenario where this concept matters
+- Should show consequences of getting it wrong
+- Must be specific and concrete
+- Should motivate learning the concept
+- Example: "A healthcare app without RLS could let patients see each other's medical records - a HIPAA violation with massive fines"`,
+
+            'whyYouNeed': `
+Requirements for whyYouNeed:
+- Explain the practical value of learning this
+- Should answer "Why should I care?"
+- Must be specific to this concept
+- Should motivate the learner
+- Example: "RLS is critical for multi-tenant applications where data isolation is a security requirement - it's tested on the exam and used in production systems"`,
+
+            'officialSource': `
+Requirements for officialSource:
+- Must be a URL to official documentation
+- Should be from Microsoft, AWS, Google, or other official source
+- Must be a valid, working URL
+- Example: "https://learn.microsoft.com/en-us/sql/relational-databases/security/row-level-security"`,
+
+            'blueprintMapping': `
+Requirements for blueprintMapping:
+- Map to specific exam objectives
+- Should reference the official exam blueprint
+- Must be specific, not generic
+- Example: "Maps to PL-300 objective: Implement row-level security (Exam weight: 10-15%)"`,
+
+            'technicalDetails': `
+Requirements for technicalDetails:
+- Specific technical information about the concept
+- Should include syntax, commands, or configuration
+- Must be accurate and actionable
+- Example: "CREATE SECURITY POLICY [PolicyName] ADD FILTER PREDICATE [SchemaName].[FunctionName]([Column]) ON [SchemaName].[TableName]"`,
+
+            'realWorldExample': `
+Requirements for realWorldExample:
+- Concrete example from real-world usage
+- Should show the concept in action
+- Must be specific and relatable
+- Example: "Salesforce uses RLS to ensure sales reps only see their own customer data, even though all data is in the same table"`
+        };
+
+        return requirements[field] || `
+Requirements:
+- Must be specific and concrete
+- Must NOT be circular or generic
+- Should provide real value to the learner
+- Must pass validation after repair`;
     }
 
     /**
