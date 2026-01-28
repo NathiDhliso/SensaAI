@@ -57,14 +57,7 @@ export async function authMiddleware(
     res: Response,
     next: NextFunction
 ): Promise<void> {
-    const token = extractToken(req);
-
-    if (!token) {
-        res.status(401).json({ error: 'No authorization token provided' });
-        return;
-    }
-
-    // Skip verification in development mode
+    // Skip auth entirely in development mode
     if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
         req.user = {
             sub: 'dev-user',
@@ -72,6 +65,13 @@ export async function authMiddleware(
             name: 'Developer',
         };
         next();
+        return;
+    }
+
+    const token = extractToken(req);
+
+    if (!token) {
+        res.status(401).json({ error: 'No authorization token provided' });
         return;
     }
 

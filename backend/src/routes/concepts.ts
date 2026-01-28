@@ -158,7 +158,35 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
         });
 
         console.log('[Backend /generate] Invoking Lambda:', GENERATE_FUNCTION);
-        await lambdaClient.send(invokeCommand);
+        try {
+            const invokeResponse = await lambdaClient.send(invokeCommand);
+            console.log('[Backend /generate] Lambda invoke response:', {
+                StatusCode: invokeResponse.StatusCode,
+                FunctionError: invokeResponse.FunctionError,
+            });
+
+            if (invokeResponse.FunctionError) {
+                console.error('[Backend /generate] Lambda returned error:', invokeResponse.FunctionError);
+                throw new Error(`Lambda invocation failed: ${invokeResponse.FunctionError}`);
+            }
+        } catch (lambdaError: any) {
+            console.error('[Backend /generate] Lambda invocation error:', lambdaError);
+            // Mark job as failed
+            await docClient.send(new PutCommand({
+                TableName: JOBS_TABLE,
+                Item: {
+                    jobId,
+                    userId,
+                    sessionId,
+                    subject,
+                    status: 'failed',
+                    error: `Lambda invocation failed: ${lambdaError.message}`,
+                    createdAt: Math.floor(Date.now() / 1000),
+                    expiresAt: Math.floor(Date.now() / 1000) + 86400,
+                }
+            }));
+            throw lambdaError;
+        }
 
         console.log(`[Backend /generate] ✅ Lambda invoked asynchronously for jobId: ${jobId}, sessionId: ${sessionId}`);
 
@@ -251,6 +279,72 @@ conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Respon
     } catch (error) {
         console.error('[Backend /jobs/:jobId] ERROR:', error);
         res.status(500).json({ error: 'Failed to get job status' });
+    }
+});
+
+// Repair a single concept via Lambda
+conceptsRouter.post('/repair', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.sub || 'anonymous';
+        const { subject, conceptName, issue } = req.body;
+
+        console.log('[Backend /repair] Request received:', { subject, conceptName, issue, userId });
+
+        if (!subject || !conceptName || !issue) {
+            console.log('[Backend /repair] ERROR: subject, conceptName, and issue are required');
+            res.status(400).json({ error: 'subject, conceptName, and issue are required' });
+            return;
+        }
+
+        const payload = JSON.stringify({
+            body: JSON.stringify({
+                action: 'repair',
+                subject,
+                conceptName,
+                issue,
+                userId,
+            }),
+        });
+
+        const invokeCommand = new InvokeCommand({
+            FunctionName: GENERATE_FUNCTION,
+            InvocationType: 'RequestResponse', // Synchronous: wait for Lambda to finish
+            Payload: Buffer.from(payload),
+        });
+
+        console.log('[Backend /repair] Invoking Lambda:', GENERATE_FUNCTION);
+        try {
+            const invokeResponse = await lambdaClient.send(invokeCommand);
+            console.log('[Backend /repair] Lambda invoke response:', {
+                StatusCode: invokeResponse.StatusCode,
+                FunctionError: invokeResponse.FunctionError,
+            });
+
+            if (invokeResponse.FunctionError) {
+                console.error('[Backend /repair] Lambda returned error:', invokeResponse.FunctionError);
+                throw new Error(`Lambda repair failed: ${invokeResponse.FunctionError}`);
+            }
+
+            // Parse Lambda response
+            const responsePayload = invokeResponse.Payload ? 
+                JSON.parse(Buffer.from(invokeResponse.Payload).toString()) : null;
+
+            if (!responsePayload || responsePayload.statusCode !== 200) {
+                console.error('[Backend /repair] Lambda returned non-200:', responsePayload);
+                throw new Error(`Lambda repair failed with status: ${responsePayload?.statusCode}`);
+            }
+
+            const lambdaBody = JSON.parse(responsePayload.body);
+            console.log('[Backend /repair] ✅ Repair completed successfully');
+
+            res.json(lambdaBody.concept);
+        } catch (lambdaError: any) {
+            console.error('[Backend /repair] Lambda invocation error:', lambdaError);
+            throw lambdaError;
+        }
+    } catch (error) {
+        console.error('[Backend /repair] ERROR:', error);
+        res.status(500).json({ error: 'Failed to repair concept' });
     }
 });
 

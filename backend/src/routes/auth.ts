@@ -10,8 +10,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { 
-    CognitoIdentityProviderClient, 
+import {
+    CognitoIdentityProviderClient,
     GlobalSignOutCommand,
     InitiateAuthCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
@@ -39,7 +39,7 @@ interface CookieOptions {
 function getCookieOptions(isAccessToken: boolean = true): CookieOptions {
     const isProduction = process.env.NODE_ENV === 'production';
     const cookieDomain = process.env.COOKIE_DOMAIN; // e.g., '.sensapbl.com'
-    
+
     const options: CookieOptions = {
         httpOnly: true,
         secure: isProduction, // HTTPS only in production
@@ -58,9 +58,9 @@ function getCookieOptions(isAccessToken: boolean = true): CookieOptions {
  * Set authentication cookies on response
  */
 function setAuthCookies(
-    res: Response, 
-    accessToken: string, 
-    refreshToken: string, 
+    res: Response,
+    accessToken: string,
+    refreshToken: string,
     expiresIn: number
 ): void {
     // Access token cookie - accessible by all API routes
@@ -246,9 +246,9 @@ authRouter.post('/session/login', async (req: Request, res: Response) => {
 
         // Set HttpOnly cookies
         setAuthCookies(
-            res, 
-            authResult.AccessToken, 
-            authResult.RefreshToken, 
+            res,
+            authResult.AccessToken,
+            authResult.RefreshToken,
             authResult.ExpiresIn || 3600
         );
 
@@ -257,7 +257,7 @@ authRouter.post('/session/login', async (req: Request, res: Response) => {
 
     } catch (error: unknown) {
         console.error('[Auth] Login error:', error);
-        
+
         // Map Cognito errors to user-friendly messages
         const errorName = (error as { name?: string })?.name;
         if (errorName === 'NotAuthorizedException') {
@@ -312,7 +312,7 @@ authRouter.post('/session/refresh', async (req: Request, res: Response) => {
     } catch (error: unknown) {
         console.error('[Auth] Refresh error:', error);
         const errorName = (error as { name?: string })?.name;
-        
+
         if (errorName === 'NotAuthorizedException') {
             clearAuthCookies(res);
             res.status(401).json({ error: 'Session expired' });
@@ -335,12 +335,49 @@ authRouter.get('/session/validate', async (req: Request, res: Response) => {
             return;
         }
 
+        // Development mode bypass - use same hardcoded user as authMiddleware
+        if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+            res.json({
+                valid: true,
+                user: {
+                    id: 'dev-user',
+                    email: 'dev@sensapbl.com',
+                    name: 'Developer',
+                }
+            });
+            return;
+        }
+
         // Decode the token to extract user info (we don't verify signature here,
         // that happens when the token is used for API calls)
         // For a more secure validation, you could call Cognito's GetUser API
+
+        // Validate JWT structure before parsing (must have 3 parts: header.payload.signature)
+        const tokenParts = accessToken.split('.');
+        if (tokenParts.length !== 3 || !tokenParts[1]) {
+            console.warn('[Auth] Invalid JWT structure');
+            res.json({ valid: false });
+            return;
+        }
+
         try {
-            const payload = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString());
-            
+            // Attempt to decode the payload
+            const base64Payload = tokenParts[1];
+            // Handle URL-safe base64 encoding
+            const normalizedPayload = base64Payload
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+
+            const decodedPayload = Buffer.from(normalizedPayload, 'base64').toString('utf8');
+            const payload = JSON.parse(decodedPayload);
+
+            // Check if token has required fields
+            if (!payload || typeof payload !== 'object' || !payload.exp || !payload.sub) {
+                console.warn('[Auth] JWT missing required fields');
+                res.json({ valid: false });
+                return;
+            }
+
             // Check if token is expired
             const exp = payload.exp * 1000; // Convert to milliseconds
             if (Date.now() >= exp) {
@@ -355,7 +392,8 @@ authRouter.get('/session/validate', async (req: Request, res: Response) => {
             };
 
             res.json({ valid: true, user });
-        } catch {
+        } catch (decodeError) {
+            console.warn('[Auth] Failed to decode JWT payload:', decodeError);
             res.json({ valid: false });
         }
 
