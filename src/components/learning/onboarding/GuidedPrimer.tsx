@@ -23,7 +23,7 @@ import {
     SkipForward
 } from 'lucide-react';
 import { useVoice } from '@/hooks/useVoice';
-import { audioManager } from '@/lib/audio';
+import { audioManager } from '@/lib/media/audio';
 import {
     getMoodAdjustedIntro,
     getRecommendedBreathing,

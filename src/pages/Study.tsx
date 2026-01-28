@@ -19,14 +19,11 @@ import { useGenerationStore } from '@/store/generation-store';
 import { storageManager } from '@/lib/storage';
 import { parseAndLoadContent } from '@/lib/content-loader';
 import { StudyLayout, type StudyTab } from '@/components/layout';
-import {
-  CelebrationModal,
-  CognitiveGauge,
-  NeuralResetBanner,
-  SessionSummary,
-} from '@/components/learning';
+import CelebrationModal from '@/components/learning/feedback/CelebrationModal';
+import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
+import { SessionSummary } from '@/components/learning/session/SessionSummary';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
-import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
+import { SessionScoutPreview } from '@/components/learning/session/SessionScoutPreview';
 import { toast } from '@/lib/utils/toast';
 import styles from './Study.module.css';
 
@@ -88,7 +85,7 @@ export default function Study() {
       // Need to hydrate from storage
       setIsHydrating(true);
       setHydrationError(null);
-      
+
       try {
         // Attempt 1: Load from storage using the ID directly
         let result = await storageManager.loadResult(subjectId);
@@ -139,7 +136,7 @@ export default function Study() {
         if (!loadResult.success) {
           console.error('[Study] Failed to hydrate session:', loadResult.error);
           setHydrationError(`PARSE_ERROR: ${loadResult.error}`);
-          
+
           // Retry logic for transient errors
           if (retryCount < MAX_RETRIES) {
             console.log(`[Study] Retrying hydration (${retryCount + 1}/${MAX_RETRIES})...`);
@@ -155,7 +152,7 @@ export default function Study() {
         }
       } catch (error) {
         console.error('[Study] Failed to load from storage:', error);
-        
+
         // Retry logic for network/storage errors
         if (retryCount < MAX_RETRIES) {
           console.log(`[Study] Retrying after error (${retryCount + 1}/${MAX_RETRIES})...`);
@@ -165,7 +162,7 @@ export default function Study() {
           }, 1000 * (retryCount + 1)); // Exponential backoff
           return;
         }
-        
+
         setHydrationError('UNKNOWN_ERROR');
       } finally {
         setIsHydrating(false);
@@ -184,7 +181,7 @@ export default function Study() {
   // Handle tab changes with prerequisite validation
   const handleTabChange = useCallback((tab: StudyTab) => {
     const { studySession } = useLearningStore.getState();
-    
+
     // Validate prerequisites before allowing tab navigation
     if (tab === 'learn') {
       // Check if overview/scouting is complete
@@ -192,7 +189,7 @@ export default function Study() {
         toast.warning('Please complete the overview first to understand the concepts');
         return;
       }
-      
+
       // Check if study session has started
       if (!studySession) {
         toast.info('Start a learning session from the overview tab first');
@@ -200,7 +197,7 @@ export default function Study() {
         return;
       }
     }
-    
+
     setActiveTab(tab);
   }, [concepts]);
 
@@ -288,7 +285,7 @@ export default function Study() {
 
       const errorInfo = errorMessages[hydrationError] || errorMessages.UNKNOWN_ERROR;
       const isParseError = hydrationError.startsWith('PARSE_ERROR:');
-      
+
       if (isParseError) {
         errorInfo.title = 'Parse Error';
         errorInfo.message = hydrationError.replace('PARSE_ERROR: ', '');
@@ -299,13 +296,13 @@ export default function Study() {
           <div className={styles.errorIcon}>⚠️</div>
           <h2 className={styles.errorTitle}>{errorInfo.title}</h2>
           <p className={styles.errorMessage}>{errorInfo.message}</p>
-          
+
           {retryCount > 0 && retryCount < MAX_RETRIES && (
             <p className={styles.retryInfo}>
               Retried {retryCount} time{retryCount > 1 ? 's' : ''}. Retrying...
             </p>
           )}
-          
+
           <div className={styles.errorActions}>
             {hydrationError === 'GENERATION_IN_PROGRESS' ? (
               <button
@@ -403,7 +400,7 @@ export default function Study() {
       <SessionSummary />
 
       {/* Neural Reset Banner */}
-      <NeuralResetBanner />
+
     </>
   );
 }

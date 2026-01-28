@@ -16,15 +16,15 @@ import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/lib/types/learning';
 import { normalizeScore, determineStatus } from '@/lib/utils/score-utils';
 
-import BlankSheetTest from './BlankSheetTest';
-import ConfusionDrill from './ConfusionDrill';
+import BlankSheetTest from '@/components/learning/activities/BlankSheetTest';
+import ConfusionDrill from '@/components/learning/activities/ConfusionDrill';
 import { findConfusionPairs, generateConfusionQuestions } from '@/lib/generation/confusion-generator';
 import type { ConfusionDrillResult, ConfusionPair } from '@/lib/generation/confusion-generator';
 import styles from './MicroLearningLoopController.module.css';
 
 // Feature Components
-import CoachsChoice from './CoachsChoice';
-import BridgeBuilder from './BridgeBuilder';
+import CoachsChoice from '@/components/learning/activities/CoachsChoice';
+import BridgeBuilder from '@/components/learning/activities/BridgeBuilder';
 import { useRepairSentinel } from '@/hooks/useRepairSentinel';
 
 // ============================================================================
@@ -89,8 +89,8 @@ function determineOutcome(
 ): LoopOutcome {
     // Normalize all scores to [0, 1] range
     const testScore = normalizeScore(
-        testResult.totalPoints > 0 
-            ? testResult.recalledPoints / testResult.totalPoints 
+        testResult.totalPoints > 0
+            ? testResult.recalledPoints / testResult.totalPoints
             : 0
     );
     const confidenceScore = normalizeScore(testResult.confidence / 5);

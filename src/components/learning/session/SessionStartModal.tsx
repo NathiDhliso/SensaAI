@@ -9,7 +9,7 @@ import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/ty
 import { MOOD_OPTIONS, type Mood } from '@/lib/ai/coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { MOOD_COLORS } from '@/constants/theme-colors';
-import GuidedPrimer from './GuidedPrimer';
+import GuidedPrimer from '@/components/learning/onboarding/GuidedPrimer';
 import styles from './SessionStartModal.module.css';
 
 interface SessionStartModalProps {

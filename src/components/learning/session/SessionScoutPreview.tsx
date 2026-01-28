@@ -28,7 +28,7 @@ import type { LearningConcept } from '@/lib/types/learning';
 import type { DependencyGraph } from '@/lib/types/sensa-flow.types';
 import { generatePreviewAnalysis } from '@/lib/ai/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { NomenclatureSprint } from './NomenclatureSprint';
+import { NomenclatureSprint } from '@/components/learning/activities/NomenclatureSprint';
 import styles from './SessionScoutPreview.module.css';
 
 // ============================================================================

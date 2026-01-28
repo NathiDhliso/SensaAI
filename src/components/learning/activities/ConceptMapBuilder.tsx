@@ -38,7 +38,7 @@ import {
 } from '@/lib/ai/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { UI_TIMINGS } from '@/constants/ui-constants';
-import ConnectionTypeModal, { type ConnectionTypeData } from './ConnectionTypeModal';
+import ConnectionTypeModal, { type ConnectionTypeData } from '@/components/learning/feedback/ConnectionTypeModal';
 import styles from './ConceptMapBuilder.module.css';
 
 // ============================================================================
@@ -140,7 +140,7 @@ export default function ConceptMapBuilder({
     const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
     const [labelInput, setLabelInput] = useState('');
     const labelInputRef = useRef<HTMLInputElement>(null);
-    
+
     // ARCHITECT ENHANCEMENT: Connection Type Validation
     const [pendingConnection, setPendingConnection] = useState<{ fromId: string; toId: string } | null>(null);
     const [showConnectionTypeModal, setShowConnectionTypeModal] = useState(false);
@@ -442,10 +442,10 @@ export default function ConceptMapBuilder({
         setShowConnectionTypeModal(true);
         setConnectingFromId(null);
     };
-    
+
     const handleConnectionTypeConfirm = (data: ConnectionTypeData) => {
         if (!pendingConnection) return;
-        
+
         pushHistory();
         const newConnection: Connection = {
             id: `conn-${Date.now()}`,
@@ -458,7 +458,7 @@ export default function ConceptMapBuilder({
         setShowConnectionTypeModal(false);
         setPendingConnection(null);
     };
-    
+
     const handleConnectionTypeCancel = () => {
         setShowConnectionTypeModal(false);
         setPendingConnection(null);
@@ -929,258 +929,258 @@ export default function ConceptMapBuilder({
 
             {/* Map Builder Content (Sidebar + Canvas) */}
             <div className={styles.mapBuilderContent}>
-            {/* Sidebar with Visual Bucket Zones */}
-            {!readOnly && (
-                <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-                    {/* Collapse Toggle Button */}
-                    <button
-                        className={styles.sidebarToggle}
-                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    >
-                        {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-                    </button>
+                {/* Sidebar with Visual Bucket Zones */}
+                {!readOnly && (
+                    <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+                        {/* Collapse Toggle Button */}
+                        <button
+                            className={styles.sidebarToggle}
+                            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                        >
+                            {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                        </button>
 
-                    {/* Header - only show when expanded */}
-                    {!sidebarCollapsed && (
-                        <div className={styles.sidebarHeader}>
-                            <h3 className={styles.sidebarTitle}>Concepts by Tier</h3>
-                            <p className={styles.sidebarHint}>Click to add to canvas</p>
+                        {/* Header - only show when expanded */}
+                        {!sidebarCollapsed && (
+                            <div className={styles.sidebarHeader}>
+                                <h3 className={styles.sidebarTitle}>Concepts by Tier</h3>
+                                <p className={styles.sidebarHint}>Click to add to canvas</p>
+                            </div>
+                        )}
+
+                        {/* Bucket Zones - only show when expanded */}
+                        {!sidebarCollapsed && (
+                            <>
+                                {/* Foundation Zone */}
+                                <div className={styles.bucketZone}>
+                                    <div className={`${styles.bucketHeader} ${styles.bucketFoundation}`}>
+                                        <span className={styles.bucketIcon}>🔷</span>
+                                        <span>Foundation</span>
+                                        <span className={styles.bucketCount}>
+                                            {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation').length}
+                                        </span>
+                                    </div>
+                                    <div className={styles.bucketConcepts}>
+                                        {concepts
+                                            .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation')
+                                            .map(c => (
+                                                <div
+                                                    key={c.id}
+                                                    className={`${styles.sidebarItem} ${styles.foundationItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                    onClick={() => handleAddConcept(c)}
+                                                >
+                                                    {c.name}
+                                                    {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+
+                                {/* Keystone Zone */}
+                                <div className={styles.bucketZone}>
+                                    <div className={`${styles.bucketHeader} ${styles.bucketKeystone}`}>
+                                        <span className={styles.bucketIcon}>🔶</span>
+                                        <span>Keystone</span>
+                                        <span className={styles.bucketCount}>
+                                            {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone').length}
+                                        </span>
+                                    </div>
+                                    <div className={styles.bucketConcepts}>
+                                        {concepts
+                                            .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone')
+                                            .map(c => (
+                                                <div
+                                                    key={c.id}
+                                                    className={`${styles.sidebarItem} ${styles.keystoneItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                    onClick={() => handleAddConcept(c)}
+                                                >
+                                                    {c.name}
+                                                    {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+
+                                {/* Utility Zone */}
+                                <div className={styles.bucketZone}>
+                                    <div className={`${styles.bucketHeader} ${styles.bucketUtility}`}>
+                                        <span className={styles.bucketIcon}>🔹</span>
+                                        <span>Utility</span>
+                                        <span className={styles.bucketCount}>
+                                            {concepts.filter(c => {
+                                                const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
+                                                return t !== 'foundation' && t !== 'keystone';
+                                            }).length}
+                                        </span>
+                                    </div>
+                                    <div className={styles.bucketConcepts}>
+                                        {concepts
+                                            .filter(c => {
+                                                const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
+                                                return t !== 'foundation' && t !== 'keystone';
+                                            })
+                                            .map(c => (
+                                                <div
+                                                    key={c.id}
+                                                    className={`${styles.sidebarItem} ${styles.utilityItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                    onClick={() => handleAddConcept(c)}
+                                                >
+                                                    {c.name}
+                                                    {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {/* Canvas */}
+                <div
+                    ref={canvasRef}
+                    className={styles.canvasArea}
+                    style={readOnly ? { left: 0, width: '100%' } : {}}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseUp={handleCanvasMouseUp}
+                    onMouseLeave={handleCanvasMouseUp}
+                    onClick={handleCanvasClick}
+                >
+                    {/* Toolbar */}
+                    {!readOnly && (
+                        <div className={styles.toolbar}>
+                            {onBack && (
+                                <button
+                                    className={styles.toolButton}
+                                    onClick={onBack}
+                                    title="Go back / Exit"
+                                >
+                                    <ArrowLeft size={20} />
+                                </button>
+                            )}
+                            {onBack && <div className={styles.toolbarDivider} />}
+                            <button
+                                className={`${styles.toolButton} ${activeTool === 'select' ? styles.active : ''}`}
+                                onClick={() => setActiveTool('select')}
+                                title="Move Mode (drag nodes)"
+                            >
+                                <Move size={20} />
+                            </button>
+                            <button
+                                className={`${styles.toolButton} ${activeTool === 'connect' ? styles.active : ''}`}
+                                onClick={() => setActiveTool('connect')}
+                                title="Connect Mode (draw lines)"
+                            >
+                                <ArrowRight size={20} />
+                            </button>
+                            <div className={styles.toolbarDivider} />
+                            <button
+                                className={`${styles.toolButton} ${!canUndo ? styles.disabled : ''}`}
+                                onClick={undo}
+                                disabled={!canUndo}
+                                title="Undo (Ctrl+Z)"
+                            >
+                                <Undo2 size={20} />
+                            </button>
+                            <button
+                                className={`${styles.toolButton} ${!canRedo ? styles.disabled : ''}`}
+                                onClick={redo}
+                                disabled={!canRedo}
+                                title="Redo (Ctrl+Y)"
+                            >
+                                <Redo2 size={20} />
+                            </button>
+                            <div className={styles.toolbarDivider} />
+                            <button
+                                className={styles.toolButton}
+                                onClick={autoLayout}
+                                title="Auto-layout nodes"
+                            >
+                                <LayoutGrid size={20} />
+                            </button>
                         </div>
                     )}
 
-                    {/* Bucket Zones - only show when expanded */}
-                    {!sidebarCollapsed && (
-                        <>
-                            {/* Foundation Zone */}
-                            <div className={styles.bucketZone}>
-                                <div className={`${styles.bucketHeader} ${styles.bucketFoundation}`}>
-                                    <span className={styles.bucketIcon}>🔷</span>
-                                    <span>Foundation</span>
-                                    <span className={styles.bucketCount}>
-                                        {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation').length}
-                                    </span>
-                                </div>
-                                <div className={styles.bucketConcepts}>
-                                    {concepts
-                                        .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation')
-                                        .map(c => (
-                                            <div
-                                                key={c.id}
-                                                className={`${styles.sidebarItem} ${styles.foundationItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
-                                                onClick={() => handleAddConcept(c)}
-                                            >
-                                                {c.name}
-                                                {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
-                                            </div>
-                                        ))}
-                                </div>
-                            </div>
-
-                            {/* Keystone Zone */}
-                            <div className={styles.bucketZone}>
-                                <div className={`${styles.bucketHeader} ${styles.bucketKeystone}`}>
-                                    <span className={styles.bucketIcon}>🔶</span>
-                                    <span>Keystone</span>
-                                    <span className={styles.bucketCount}>
-                                        {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone').length}
-                                    </span>
-                                </div>
-                                <div className={styles.bucketConcepts}>
-                                    {concepts
-                                        .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone')
-                                        .map(c => (
-                                            <div
-                                                key={c.id}
-                                                className={`${styles.sidebarItem} ${styles.keystoneItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
-                                                onClick={() => handleAddConcept(c)}
-                                            >
-                                                {c.name}
-                                                {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
-                                            </div>
-                                        ))}
-                                </div>
-                            </div>
-
-                            {/* Utility Zone */}
-                            <div className={styles.bucketZone}>
-                                <div className={`${styles.bucketHeader} ${styles.bucketUtility}`}>
-                                    <span className={styles.bucketIcon}>🔹</span>
-                                    <span>Utility</span>
-                                    <span className={styles.bucketCount}>
-                                        {concepts.filter(c => {
-                                            const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
-                                            return t !== 'foundation' && t !== 'keystone';
-                                        }).length}
-                                    </span>
-                                </div>
-                                <div className={styles.bucketConcepts}>
-                                    {concepts
-                                        .filter(c => {
-                                            const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
-                                            return t !== 'foundation' && t !== 'keystone';
-                                        })
-                                        .map(c => (
-                                            <div
-                                                key={c.id}
-                                                className={`${styles.sidebarItem} ${styles.utilityItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
-                                                onClick={() => handleAddConcept(c)}
-                                            >
-                                                {c.name}
-                                                {addedConceptIds.has(c.id) && <Check size={14} className={styles.addedCheck} />}
-                                            </div>
-                                        ))}
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            )}
-
-            {/* Canvas */}
-            <div
-                ref={canvasRef}
-                className={styles.canvasArea}
-                style={readOnly ? { left: 0, width: '100%' } : {}}
-                onMouseMove={handleCanvasMouseMove}
-                onMouseUp={handleCanvasMouseUp}
-                onMouseLeave={handleCanvasMouseUp}
-                onClick={handleCanvasClick}
-            >
-                {/* Toolbar */}
-                {!readOnly && (
-                    <div className={styles.toolbar}>
-                        {onBack && (
-                            <button
-                                className={styles.toolButton}
-                                onClick={onBack}
-                                title="Go back / Exit"
+                    {/* Connect Mode Hint */}
+                    <AnimatePresence>
+                        {activeTool === 'connect' && !readOnly && (
+                            <motion.div
+                                className={styles.connectModeHint}
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
                             >
-                                <ArrowLeft size={20} />
-                            </button>
+                                {connectingFromId ? '👆 Click target node' : '👆 Click starting node'}
+                            </motion.div>
                         )}
-                        {onBack && <div className={styles.toolbarDivider} />}
-                        <button
-                            className={`${styles.toolButton} ${activeTool === 'select' ? styles.active : ''}`}
-                            onClick={() => setActiveTool('select')}
-                            title="Move Mode (drag nodes)"
-                        >
-                            <Move size={20} />
-                        </button>
-                        <button
-                            className={`${styles.toolButton} ${activeTool === 'connect' ? styles.active : ''}`}
-                            onClick={() => setActiveTool('connect')}
-                            title="Connect Mode (draw lines)"
-                        >
-                            <ArrowRight size={20} />
-                        </button>
-                        <div className={styles.toolbarDivider} />
-                        <button
-                            className={`${styles.toolButton} ${!canUndo ? styles.disabled : ''}`}
-                            onClick={undo}
-                            disabled={!canUndo}
-                            title="Undo (Ctrl+Z)"
-                        >
-                            <Undo2 size={20} />
-                        </button>
-                        <button
-                            className={`${styles.toolButton} ${!canRedo ? styles.disabled : ''}`}
-                            onClick={redo}
-                            disabled={!canRedo}
-                            title="Redo (Ctrl+Y)"
-                        >
-                            <Redo2 size={20} />
-                        </button>
-                        <div className={styles.toolbarDivider} />
-                        <button
-                            className={styles.toolButton}
-                            onClick={autoLayout}
-                            title="Auto-layout nodes"
-                        >
-                            <LayoutGrid size={20} />
-                        </button>
-                    </div>
-                )}
+                    </AnimatePresence>
 
-                {/* Connect Mode Hint */}
-                <AnimatePresence>
-                    {activeTool === 'connect' && !readOnly && (
-                        <motion.div
-                            className={styles.connectModeHint}
-                            initial={{ opacity: 0, y: -10 }}
+                    {/* Nodes */}
+                    {nodes.map(node => (
+                        <div
+                            key={node.id}
+                            className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''}`}
+                            style={{ left: node.x, top: node.y }}
+                            onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+                        >
+                            {getConceptName(node.conceptId)}
+                            {!readOnly && (
+                                <button
+                                    className={styles.deleteNodeButton}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeNode(node.id);
+                                    }}
+                                    title="Delete node (Delete key)"
+                                >
+                                    <X size={12} />
+                                </button>
+                            )}
+                        </div>
+                    ))}
+
+                    {/* Connections SVG Layer */}
+                    <svg className={styles.svgLayer}>
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-accent-light)" />
+                            </marker>
+                        </defs>
+                        {renderConnections()}
+                    </svg>
+
+                    {/* HTML Labels */}
+                    {renderConnectionLabels()}
+
+                    {/* AI Panel */}
+                    {!readOnly && renderAiPanel()}
+
+                    {/* Onboarding Toast */}
+                    <AnimatePresence>
+                        {renderOnboardingToast()}
+                    </AnimatePresence>
+
+                    {/* Complete Button */}
+                    {!readOnly && mapPhase === 'build' && nodes.length >= 2 && connections.length >= 1 && onComplete && (
+                        <motion.button
+                            className={styles.completeButton}
+                            initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
+                            onClick={handleFinishMap}
                         >
-                            {connectingFromId ? '👆 Click target node' : '👆 Click starting node'}
-                        </motion.div>
+                            {userGuesses ? 'Check Predictions →' : 'Finished Map'}
+                            <Check size={20} />
+                        </motion.button>
                     )}
-                </AnimatePresence>
 
-                {/* Nodes */}
-                {nodes.map(node => (
-                    <div
-                        key={node.id}
-                        className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''}`}
-                        style={{ left: node.x, top: node.y }}
-                        onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
-                    >
-                        {getConceptName(node.conceptId)}
-                        {!readOnly && (
-                            <button
-                                className={styles.deleteNodeButton}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeNode(node.id);
-                                }}
-                                title="Delete node (Delete key)"
-                            >
-                                <X size={12} />
-                            </button>
-                        )}
-                    </div>
-                ))}
+                    {/* Validation Panel */}
+                    {renderValidationPanel()}
+                </div>
 
-                {/* Connections SVG Layer */}
-                <svg className={styles.svgLayer}>
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-accent-light)" />
-                        </marker>
-                    </defs>
-                    {renderConnections()}
-                </svg>
-
-                {/* HTML Labels */}
-                {renderConnectionLabels()}
-
-                {/* AI Panel */}
-                {!readOnly && renderAiPanel()}
-
-                {/* Onboarding Toast */}
-                <AnimatePresence>
-                    {renderOnboardingToast()}
-                </AnimatePresence>
-
-                {/* Complete Button */}
-                {!readOnly && mapPhase === 'build' && nodes.length >= 2 && connections.length >= 1 && onComplete && (
-                    <motion.button
-                        className={styles.completeButton}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        onClick={handleFinishMap}
-                    >
-                        {userGuesses ? 'Check Predictions →' : 'Finished Map'}
-                        <Check size={20} />
-                    </motion.button>
-                )}
-
-                {/* Validation Panel */}
-                {renderValidationPanel()}
+                {/* End Map Builder Content */}
             </div>
-            
-            {/* End Map Builder Content */}
-            </div>
-            
+
             {/* ARCHITECT ENHANCEMENT: Connection Type Modal */}
             <AnimatePresence>
                 {showConnectionTypeModal && pendingConnection && (

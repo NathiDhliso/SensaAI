@@ -22,6 +22,7 @@ export default defineConfig({
     },
   },
   server: {
+    // Forced restart comment
     port: 5173,
     proxy: {
       '/api': {

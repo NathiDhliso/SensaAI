@@ -489,15 +489,15 @@ function extractSemanticConnections(
 ): Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> {
   const connections: Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> = [];
   const addedTargets = new Set<string>(); // Prevent duplicates
-  
+
   // Helper to validate target exists in curriculum
   const validateTarget = (targetName: string): boolean => {
-    return allConcepts.some(c => 
+    return allConcepts.some(c =>
       c.name.toLowerCase() === targetName.toLowerCase() &&
       c.id !== concept.id
     );
   };
-  
+
   // Priority 1: strictConnections (AI-generated semantic relationships)
   if (concept.strictConnections && concept.strictConnections.length > 0) {
     for (const conn of concept.strictConnections) {
@@ -510,7 +510,7 @@ function extractSemanticConnections(
       }
     }
   }
-  
+
   // Priority 2: Infer "requires" from mnemonic.dependsOn (explicit dependencies)
   if (concept.mnemonic?.dependsOn && concept.mnemonic.dependsOn.length > 0) {
     for (const dep of concept.mnemonic.dependsOn) {
@@ -523,14 +523,14 @@ function extractSemanticConnections(
       }
     }
   }
-  
+
   // Priority 3: Infer "requires" from prerequisite text (semantic extraction)
   const prereqText = concept.phase1?.prerequisite?.toLowerCase() || '';
   if (prereqText && !prereqText.includes('none') && prereqText.length > 5) {
     for (const other of allConcepts) {
       if (other.id === concept.id) continue;
       if (addedTargets.has(other.name.toLowerCase())) continue;
-      
+
       const otherNameLower = other.name.toLowerCase();
       if (prereqText.includes(otherNameLower)) {
         connections.push({
@@ -541,7 +541,7 @@ function extractSemanticConnections(
       }
     }
   }
-  
+
   return connections;
 }
 
@@ -905,7 +905,7 @@ function balanceLifecycleDistribution(concepts: LearningConcept[]) {
     (counts.MODEL / total > 0.7);
 
   if (isSkewed) {
-    console.warn('⚠️ Lifecycle Distribution Skewed. Force Balancing by Order.');
+    // console.log('ℹ️ Lifecycle Distribution Skewed. Force Balancing by Order.');
     // Sort a copy to determine rank
     const sortedIds = [...concepts].sort((a, b) => (a.order || 0) - (b.order || 0)).map(c => c.id);
 

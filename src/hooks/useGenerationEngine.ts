@@ -18,7 +18,7 @@ import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
 import { generateWithBackend, uploadExamBlueprint } from '@/lib/generation/backend-generator';
 import { parseAndLoadContent } from '@/lib/content-loader';
-import { UI_TIMINGS } from '@/constants/ui-constants';
+
 
 import type {
   PassStatus,
@@ -205,7 +205,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
    * Handle successful generation completion
    */
   const handleGenerationSuccess = useCallback(
-    async (result: GenerationResult, subject: string, alias: string) => {
+    async (result: GenerationResult) => {
       completeGeneration(result);
 
       const currentState = useGenerationStore.getState();
@@ -217,29 +217,19 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
         const resultId = result.jobId;
         resultIdRef.current = resultId;
 
-        const savedResult = {
-          id: resultId,
-          subject,
-          alias,
-          generatedAt: new Date().toISOString(),
-          fullDocument: result.fullDocument,
-          pass1Data: {
-            domain: currentPass1.domain,
-            roleScope: currentPass1.roleScope,
-            lifecycle: currentPass1.lifecycle,
-            concepts: currentPass1.concepts,
-          },
-          validation: currentValidation,
-          savedLocally: true,
-        };
 
-        const { storageManager } = await import('@/lib/storage');
+
+
+        // STORAGE: Handled by Lambda backend automatically during generation.
+        // const { storageManager } = await import('@/lib/storage');
+        // await storageManager.saveResult(savedResult); // Deprecated
         try {
-          await storageManager.saveResult(savedResult);
+          // STORAGE: Handled by Lambda backend automatically during generation.
+          // await storageManager.saveResult(savedResult); // Deprecated
           const loadResult = parseAndLoadContent(result.fullDocument, resultId);
           if (loadResult.success) {
             // Navigate immediately - no artificial delay needed
-            navigate(`/study/${resultId}`, { 
+            navigate(`/study/${resultId}`, {
               replace: true,
               state: { freshGeneration: true } // Signal that content is already loaded
             });
@@ -254,7 +244,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
           // Still try to load into memory if storage failed but we have data
           const loadResult = parseAndLoadContent(result.fullDocument, resultId);
           if (loadResult.success) {
-            navigate(`/study/${resultId}`, { 
+            navigate(`/study/${resultId}`, {
               replace: true,
               state: { freshGeneration: true }
             });
@@ -266,7 +256,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
       } else {
         // Fallback: use backend jobId if available, otherwise timestamp
         const fallbackId = result.jobId || `${Date.now()}`;
-        navigate(`/study/${fallbackId}`, { 
+        navigate(`/study/${fallbackId}`, {
           replace: true,
           state: { freshGeneration: true }
         });
@@ -340,7 +330,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
             setPendingFile(null);
             return generateWithBackend(subject, progressCallback, blueprintContext);
           })
-          .then((result) => handleGenerationSuccess(result, subject, alias))
+          .then((result) => handleGenerationSuccess(result))
           .catch(handleGenerationError)
           .finally(() => setIsGenerating(false));
         return;
@@ -348,7 +338,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
 
       // Handle file context
       if (currentFileContext) {
-        const fileHeader = `\n\n[VERIFIED_SOURCE_MATERIAL]:\nProcessing Mode: ${currentFileContext.mode}\nSource: ${currentFileContext.fileName}\n\n${currentFileContext.content}`;
+        const fileHeader = `\n\n[VERIFIED_SOURCE_MATERIAL]: \nProcessing Mode: ${currentFileContext.mode}\nSource: ${currentFileContext.fileName}\n\n${currentFileContext.content}`;
         effectiveContext += fileHeader;
       }
 
@@ -361,7 +351,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
         progressCallback,
         effectiveContext || undefined
       )
-        .then((result) => handleGenerationSuccess(result, subject, alias))
+        .then((result) => handleGenerationSuccess(result))
         .catch(handleGenerationError)
         .finally(() => setIsGenerating(false));
     },

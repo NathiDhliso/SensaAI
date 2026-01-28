@@ -27,15 +27,15 @@ import { ConceptProgressIndicator } from '@/components/ui/ConceptProgressIndicat
 import MomentumCheckpoint from '@/components/ui/MomentumCheckpoint';
 import SessionTimeToast from '@/components/ui/SessionTimeToast';
 import MicroLearningLoopController from '@/components/learning/MicroLearningLoopController';
-import DiagnosticLaunchSystem from '@/components/learning/DiagnosticLaunchSystem';
-import SessionStartModal from '@/components/learning/SessionStartModal';
-import VelocityLockInGate from '@/components/learning/VelocityLockInGate';
+import DiagnosticLaunchSystem from '@/components/learning/onboarding/DiagnosticLaunchSystem';
+import SessionStartModal from '@/components/learning/session/SessionStartModal';
+import VelocityLockInGate from '@/components/learning/session/VelocityLockInGate';
 // SessionScoutPreview - reserved for future SCOUT phase implementation
-import ConceptMapBuilder from '@/components/learning/ConceptMapBuilder';
-import MasteryChallenge from '@/components/learning/MasteryChallenge';
-import SensaSynopticView from '@/components/learning/SensaSynopticView';
-import SkipReasonModal, { type SkipReasonData } from '@/components/learning/SkipReasonModal';
-import PhaseNavigator from '@/components/learning/PhaseNavigator';
+import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
+import MasteryChallenge from '@/components/learning/activities/MasteryChallenge';
+import SensaSynopticView from '@/components/learning/ui/SensaSynopticView';
+import SkipReasonModal, { type SkipReasonData } from '@/components/learning/feedback/SkipReasonModal';
+import PhaseNavigator from '@/components/learning/ui/PhaseNavigator';
 
 import type {
     StudyGoal,
@@ -180,7 +180,7 @@ export default function VelocityLearning() {
             if (currentSession) {
                 const { progress } = currentSession;
                 const nextConcept = getNextConcept();
-                
+
                 try {
                     import('@/lib/storage/session-progress').then(({ saveSessionProgress: saveProgress }) => {
                         saveProgress({
