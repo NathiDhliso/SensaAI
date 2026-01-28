@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/lib/types/learning';
+import { normalizeScore, determineStatus } from '@/lib/utils/score-utils';
 
 import BlankSheetTest from './BlankSheetTest';
 import ConfusionDrill from './ConfusionDrill';
@@ -80,26 +81,28 @@ function calculateLoopDuration(
 
 /**
  * Determine loop outcome based on test and verify phases
+ * Uses robust score normalization and explicit boundary handling
  */
 function determineOutcome(
     testResult: TestPhaseResult,
     verifyResult: { correct: boolean; timeSpent: number }
 ): LoopOutcome {
-    const testScore = testResult.recalledPoints / testResult.totalPoints;
-    const confidenceScore = testResult.confidence / 5;
+    // Normalize all scores to [0, 1] range
+    const testScore = normalizeScore(
+        testResult.totalPoints > 0 
+            ? testResult.recalledPoints / testResult.totalPoints 
+            : 0
+    );
+    const confidenceScore = normalizeScore(testResult.confidence / 5);
 
-    // High test score + correct verify = mastered
-    if (testScore >= 0.8 && verifyResult.correct && confidenceScore >= 4) {
-        return 'mastered';
-    }
+    // Calculate composite score (weighted average)
+    const compositeScore = (testScore * 0.7) + (confidenceScore * 0.3);
 
-    // Low test score = needs learning
-    if (testScore < 0.4) {
-        return 'needs-learning';
-    }
+    // Use utility function for status determination
+    const status = determineStatus(compositeScore, verifyResult.correct);
 
-    // Medium performance or wrong verify = needs review
-    return 'needs-review';
+    // Map status to outcome
+    return status as LoopOutcome;
 }
 
 // ============================================================================

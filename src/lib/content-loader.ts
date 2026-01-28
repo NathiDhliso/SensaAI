@@ -37,6 +37,15 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string, fall
         }
 
         const transformed = transformGeneratedContent(parseResult.data, subjectId, fallbackConcepts);
+
+        // FIX: Validate that we actually have concepts to learn
+        if (!transformed.concepts || transformed.concepts.length === 0) {
+            return {
+                success: false,
+                error: 'Generation incomplete: No learning concepts were created. Please try again.',
+            };
+        }
+
         const effectiveSubjectId = subjectId || `subject-${Date.now()}`;
 
         // CRITICAL: Cache parsed concepts to IndexedDB for lazy loading

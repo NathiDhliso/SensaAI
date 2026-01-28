@@ -1,0 +1,164 @@
+/**
+ * Session Progress Storage
+ * 
+ * Persists learning session progress to localStorage for recovery after
+ * browser refresh, tab close, or navigation away.
+ * 
+ * Automatically expires progress after 24 hours to prevent stale data.
+ */
+
+import type { UserProgress } from '@/lib/types/learning';
+
+const STORAGE_KEY = 'sensa-session-progress';
+const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+export interface SessionProgressData {
+  sessionId: string;
+  subjectId: string;
+  progress: UserProgress;
+  currentPhase: string;
+  activeConcept: string | null;
+  timestamp: number;
+  version: string; // For future schema migrations
+}
+
+/**
+ * Save session progress to localStorage
+ */
+export function saveSessionProgress(data: Omit<SessionProgressData, 'timestamp' | 'version'>): void {
+  try {
+    const progressData: SessionProgressData = {
+      ...data,
+      timestamp: Date.now(),
+      version: '1.0',
+    };
+
+    localStorage.setItem(
+      `${STORAGE_KEY}:${data.sessionId}`,
+      JSON.stringify(progressData)
+    );
+
+    console.log('[SessionProgress] Saved progress for session:', data.sessionId);
+  } catch (error) {
+    console.error('[SessionProgress] Failed to save progress:', error);
+    // Don't throw - progress saving is non-critical
+  }
+}
+
+/**
+ * Load session progress from localStorage
+ * Returns null if not found or expired
+ */
+export function loadSessionProgress(sessionId: string): SessionProgressData | null {
+  try {
+    const stored = localStorage.getItem(`${STORAGE_KEY}:${sessionId}`);
+    if (!stored) {
+      console.log('[SessionProgress] No saved progress found for session:', sessionId);
+      return null;
+    }
+
+    const data: SessionProgressData = JSON.parse(stored);
+
+    // Check expiry
+    const age = Date.now() - data.timestamp;
+    if (age > EXPIRY_MS) {
+      console.log('[SessionProgress] Progress expired (age:', Math.round(age / 1000 / 60), 'minutes)');
+      deleteSessionProgress(sessionId);
+      return null;
+    }
+
+    console.log('[SessionProgress] Loaded progress for session:', sessionId, 'age:', Math.round(age / 1000 / 60), 'minutes');
+    return data;
+  } catch (error) {
+    console.error('[SessionProgress] Failed to load progress:', error);
+    return null;
+  }
+}
+
+/**
+ * Delete session progress from localStorage
+ */
+export function deleteSessionProgress(sessionId: string): void {
+  try {
+    localStorage.removeItem(`${STORAGE_KEY}:${sessionId}`);
+    console.log('[SessionProgress] Deleted progress for session:', sessionId);
+  } catch (error) {
+    console.error('[SessionProgress] Failed to delete progress:', error);
+  }
+}
+
+/**
+ * List all saved session progress (for debugging/cleanup)
+ */
+export function listAllSessionProgress(): SessionProgressData[] {
+  const sessions: SessionProgressData[] = [];
+
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(STORAGE_KEY)) {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          try {
+            const data: SessionProgressData = JSON.parse(stored);
+            sessions.push(data);
+          } catch {
+            // Skip invalid entries
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[SessionProgress] Failed to list sessions:', error);
+  }
+
+  return sessions;
+}
+
+/**
+ * Clean up expired session progress
+ */
+export function cleanupExpiredProgress(): number {
+  let cleaned = 0;
+
+  try {
+    const sessions = listAllSessionProgress();
+    const now = Date.now();
+
+    for (const session of sessions) {
+      const age = now - session.timestamp;
+      if (age > EXPIRY_MS) {
+        deleteSessionProgress(session.sessionId);
+        cleaned++;
+      }
+    }
+
+    if (cleaned > 0) {
+      console.log('[SessionProgress] Cleaned up', cleaned, 'expired sessions');
+    }
+  } catch (error) {
+    console.error('[SessionProgress] Failed to cleanup:', error);
+  }
+
+  return cleaned;
+}
+
+/**
+ * Get human-readable age of saved progress
+ */
+export function getProgressAge(sessionId: string): string | null {
+  const progress = loadSessionProgress(sessionId);
+  if (!progress) return null;
+
+  const ageMs = Date.now() - progress.timestamp;
+  const ageMinutes = Math.floor(ageMs / 1000 / 60);
+
+  if (ageMinutes < 1) return 'just now';
+  if (ageMinutes < 60) return `${ageMinutes} minute${ageMinutes > 1 ? 's' : ''} ago`;
+
+  const ageHours = Math.floor(ageMinutes / 60);
+  if (ageHours < 24) return `${ageHours} hour${ageHours > 1 ? 's' : ''} ago`;
+
+  const ageDays = Math.floor(ageHours / 24);
+  return `${ageDays} day${ageDays > 1 ? 's' : ''} ago`;
+}

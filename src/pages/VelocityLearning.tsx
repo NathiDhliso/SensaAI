@@ -16,6 +16,8 @@ import { useLearningFlow } from '@/hooks/useLearningFlow';
 import { useSensaFlow } from '@/hooks/useSensaFlow';
 import { useFlowState } from '@/hooks/useFlowState';
 import { UI_TIMINGS } from '@/constants/ui-constants';
+import { loadSessionProgress, getProgressAge, cleanupExpiredProgress } from '@/lib/storage/session-progress';
+import { toast } from '@/lib/utils/toast';
 
 // SENSA v2.0: MasteryDashboard will be used in COMPLETE phase - future implementation
 // import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
@@ -104,6 +106,36 @@ export default function VelocityLearning() {
         }
     }, [studySession, sensaFlow]);
 
+    // Progress Recovery: Restore from localStorage on mount
+    useEffect(() => {
+        if (!currentSession) return;
+
+        // Clean up expired progress on mount
+        cleanupExpiredProgress();
+
+        // Try to load saved progress
+        const savedProgress = loadSessionProgress(currentSession.id);
+        if (savedProgress) {
+            const age = getProgressAge(currentSession.id);
+            console.log('[VelocityLearning] Found saved progress:', age);
+
+            // Restore progress if it matches current session
+            if (savedProgress.subjectId === currentSession.subjectId) {
+                // Update store with saved progress
+                const { updateSessionProgress, setCurrentConcept } = useLearningStore.getState();
+                updateSessionProgress(savedProgress.progress);
+
+                // Restore active concept if available
+                if (savedProgress.activeConcept) {
+                    setCurrentConcept(savedProgress.activeConcept);
+                }
+
+                // Show toast notification
+                toast.success(`Resumed from where you left off (${age})`, { duration: 4000 });
+            }
+        }
+    }, [currentSession?.id]); // Only run when session ID changes
+
     // Auto-transition from PRIME to BUILD after lock-in
     useEffect(() => {
         if (currentPhase === 'PRIME' && lockedIn) {
@@ -141,6 +173,32 @@ export default function VelocityLearning() {
         }
     }, [currentPhase, startDiagnostic]);
 
+    // Cleanup: Save final progress on unmount
+    useEffect(() => {
+        return () => {
+            // Save progress one last time when component unmounts
+            if (currentSession) {
+                const { progress } = currentSession;
+                const nextConcept = getNextConcept();
+                
+                try {
+                    import('@/lib/storage/session-progress').then(({ saveSessionProgress: saveProgress }) => {
+                        saveProgress({
+                            sessionId: currentSession.id,
+                            subjectId: currentSession.subjectId,
+                            progress,
+                            currentPhase: currentPhase || 'IDLE',
+                            activeConcept: nextConcept,
+                        });
+                        console.log('[VelocityLearning] Saved progress on unmount');
+                    });
+                } catch (error) {
+                    console.error('[VelocityLearning] Failed to save progress on unmount:', error);
+                }
+            }
+        };
+    }, [currentSession, currentPhase, getNextConcept]);
+
     // 5. Handlers
     const handleStartSession = (goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
         // Pass primer atomically to ensure correct initial phase state (avoids PRIME phase sticking)
@@ -164,7 +222,10 @@ export default function VelocityLearning() {
             });
         }
 
-        completeConcept(activeConcept.id);
+        // Pass score and outcome to completeConcept for attempt tracking
+        // Score is derived from outcome for now (can be enhanced later)
+        const score = outcome === 'mastered' ? 1.0 : outcome === 'needs-review' ? 0.6 : 0.3;
+        completeConcept(activeConcept.id, score, outcome);
         // Next concept is auto-selected by store logic usually, but let's be safe
         // useLearningFlow will recalculate activeConcept on next render
     };
@@ -190,7 +251,7 @@ export default function VelocityLearning() {
             // TODO: Route to high-stakes verification
             // For now, mark as mastered and advance
             if (pendingSkipConcept) {
-                completeConcept(pendingSkipConcept);
+                completeConcept(pendingSkipConcept, 1.0, 'mastered');
             }
             const nextId = getNextConcept();
             if (nextId) setCurrentConcept(nextId);
@@ -524,6 +585,10 @@ export default function VelocityLearning() {
 
             case 'COMPLETE':
             default:
+                // Check if user has actually completed any concepts
+                const hasCompletedConcepts = (currentSession?.progress?.completedConcepts?.length ?? 0) > 0;
+                const hasStartedSession = studySession !== null;
+
                 // For explore mode (stressed users): Show calming browse experience
                 if (studySession?.goal === 'explore') {
                     // Stressed Mode: Show "Sensa Synoptic View" (Mind Map)
@@ -535,7 +600,84 @@ export default function VelocityLearning() {
                     );
                 }
 
-                // Default: All caught up message
+                // Case 1: User hasn't started learning yet (no session, no completed concepts)
+                if (!hasStartedSession && !hasCompletedConcepts) {
+                    return (
+                        <div className={styles.emptyState}>
+                            <Brain size={48} className={styles.emptyIcon} />
+                            <h2>Ready to Begin?</h2>
+                            <p>Start your learning session to master {currentSession?.concepts.length || 0} concepts in {currentSession?.subject}.</p>
+                            <div className={styles.buttonGroup}>
+                                <button
+                                    onClick={() => setLockedIn(true)}
+                                    className={styles.primaryButton}
+                                    aria-label="Start learning session"
+                                >
+                                    <Brain size={20} />
+                                    Start Learning
+                                </button>
+                                <button
+                                    onClick={handleReturnToDashboard}
+                                    className={styles.secondaryButton}
+                                    aria-label="Return to dashboard"
+                                >
+                                    <Home size={20} />
+                                    Back to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
+
+                // Case 2: User has completed concepts - show completion summary
+                if (hasCompletedConcepts) {
+                    const completedCount = currentSession?.progress?.completedConcepts?.length || 0;
+                    const totalCount = currentSession?.concepts.length || 0;
+                    const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+                    return (
+                        <div className={styles.emptyState}>
+                            <Brain size={48} className={styles.emptyIcon} style={{ color: 'var(--color-success, #10b981)' }} />
+                            <h2>Session Complete! 🎉</h2>
+                            <p>You've mastered {completedCount} of {totalCount} concepts ({completionPercentage}%)</p>
+                            <div className={styles.sessionStats}>
+                                <div className={styles.stat}>
+                                    <span className={styles.statLabel}>Time Spent</span>
+                                    <span className={styles.statValue}>
+                                        {Math.floor((Date.now() - (currentSession?.progress?.sessionStartTime || Date.now())) / 60000)} min
+                                    </span>
+                                </div>
+                                <div className={styles.stat}>
+                                    <span className={styles.statLabel}>Concepts Mastered</span>
+                                    <span className={styles.statValue}>{completedCount}</span>
+                                </div>
+                            </div>
+                            <div className={styles.buttonGroup}>
+                                <button
+                                    onClick={handleReturnToDashboard}
+                                    className={styles.primaryButton}
+                                    aria-label="Return to dashboard"
+                                >
+                                    <Home size={20} />
+                                    Return to Dashboard
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        // Reset to overview to review concepts
+                                        navigate(`/study/${currentSession?.id}?tab=overview`);
+                                    }}
+                                    className={styles.secondaryButton}
+                                    aria-label="Review concepts"
+                                >
+                                    <BookOpen size={20} />
+                                    Review Concepts
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
+
+                // Case 3: Fallback - All caught up (shouldn't normally reach here)
                 return (
                     <div className={styles.emptyState}>
                         <Brain size={48} className={styles.emptyIcon} />
@@ -549,14 +691,6 @@ export default function VelocityLearning() {
                             >
                                 <Home size={20} />
                                 Return to Dashboard
-                            </button>
-                            <button
-                                onClick={handleReturnToDashboard}
-                                className={styles.secondaryButton}
-                                aria-label="Review session summary"
-                            >
-                                <BookOpen size={20} />
-                                Review Session
                             </button>
                         </div>
                     </div>

@@ -203,6 +203,22 @@ export async function generateWithBackend(
             // Sort by order if available
             allConcepts.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
+            // CRITICAL: Check for empty generation
+            if (allConcepts.length === 0) {
+                console.error('[Backend Generator] No concepts generated');
+                clearActiveJob();
+                throw new Error(
+                    'No concepts were generated. This usually means:\n\n' +
+                    '1. The subject is too vague - try being more specific\n' +
+                    '   Example: Instead of "Azure", try "Azure Virtual Machines"\n\n' +
+                    '2. The content file was empty or unreadable\n' +
+                    '   Check that your file contains valid text content\n\n' +
+                    '3. The AI service is experiencing issues\n' +
+                    '   Try again in a few moments\n\n' +
+                    'Please try again with a clearer subject or different content.'
+                );
+            }
+
             onProgress(3, 'complete', {
                 message: `Loaded ${allConcepts.length} concepts!`,
                 progress: 90,

@@ -46,6 +46,11 @@ const getInitialProgress = (stages: LearningStage[], concepts: LearningConcept[]
     lastSessionDate: new Date().toISOString().split('T')[0],
     totalTimeSpentMinutes: 0,
     sessionStartTime: null,
+    // Attempt tracking for infinite loop prevention
+    conceptAttempts: {},
+    conceptScores: {},
+    conceptStatuses: {},
+    maxAttemptsPerConcept: 3,
   };
 };
 

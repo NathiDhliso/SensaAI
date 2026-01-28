@@ -6,6 +6,8 @@
 import type { StateCreator } from 'zustand';
 import type { LearningStore, NavigationSliceActions, UserProgress } from './types';
 import { getInitialProgress } from './createSessionSlice';
+import { normalizeScore, determineStatus } from '@/lib/utils/score-utils';
+import { saveSessionProgress } from '@/lib/storage/session-progress';
 
 // ============================================================================
 // SLICE CREATOR
@@ -17,7 +19,7 @@ export const createNavigationSlice: StateCreator<
   [],
   NavigationSliceActions
 > = (set, get) => ({
-  completeConcept: (conceptId: string) => {
+  completeConcept: (conceptId: string, score?: number, outcome?: 'mastered' | 'needs-learning' | 'needs-review') => {
     const state = get();
     if (!state.currentSession) return;
 
@@ -31,12 +33,51 @@ export const createNavigationSlice: StateCreator<
     const stage = stages.find((s) => s.id === concept.stageId);
     if (!stage) return;
 
-    const newCompletedConcepts = [...currentProgress.completedConcepts, conceptId];
+    // Track attempts
+    const attempts = (currentProgress.conceptAttempts[conceptId] || 0) + 1;
+    const maxAttempts = currentProgress.maxAttemptsPerConcept || 3;
+    
+    // Normalize score to handle edge cases (null, NaN, out of range)
+    const normalizedScore = normalizeScore(score, 0);
+    
+    // Determine status using utility function (handles boundaries explicitly)
+    let status: 'not-started' | 'in-progress' | 'needs-review' | 'mastered' | 'skipped' = 'in-progress';
+    
+    if (attempts >= maxAttempts) {
+      // Max attempts reached - skip this concept
+      status = 'skipped';
+      console.warn(`[Navigation] Concept ${conceptId} skipped after ${attempts} attempts`);
+    } else if (outcome) {
+      // Use provided outcome
+      if (outcome === 'mastered') {
+        status = 'mastered';
+      } else if (outcome === 'needs-review') {
+        status = 'needs-review';
+      } else {
+        status = 'in-progress'; // needs-learning -> keep trying
+      }
+    } else if (score !== undefined) {
+      // Derive status from score using utility function
+      const derivedStatus = determineStatus(normalizedScore);
+      status = derivedStatus === 'needs-learning' ? 'in-progress' : derivedStatus;
+    }
+
+    // Update attempts and scores
+    const newConceptAttempts = { ...currentProgress.conceptAttempts, [conceptId]: attempts };
+    const newConceptScores = { ...currentProgress.conceptScores, [conceptId]: normalizedScore };
+    const newConceptStatuses = { ...currentProgress.conceptStatuses, [conceptId]: status };
+
+    // Only add to completed if mastered or skipped
+    const shouldComplete = status === 'mastered' || status === 'skipped';
+    const newCompletedConcepts = shouldComplete && !currentProgress.completedConcepts.includes(conceptId)
+      ? [...currentProgress.completedConcepts, conceptId]
+      : currentProgress.completedConcepts;
+
     const today = new Date().toISOString().split('T')[0];
     const conceptsToday =
       currentProgress.lastSessionDate === today
-        ? currentProgress.conceptsLearnedToday + 1
-        : 1;
+        ? currentProgress.conceptsLearnedToday + (shouldComplete ? 1 : 0)
+        : (shouldComplete ? 1 : 0);
 
     const stageConceptIds = concepts.filter((c) => c.stageId === stage.id).map((c) => c.id);
     const allStageConceptsComplete = stageConceptIds.every((id) =>
@@ -60,6 +101,9 @@ export const createNavigationSlice: StateCreator<
       currentStageId: nextStageId,
       conceptsLearnedToday: conceptsToday,
       lastSessionDate: today,
+      conceptAttempts: newConceptAttempts,
+      conceptScores: newConceptScores,
+      conceptStatuses: newConceptStatuses,
     };
 
     set({
@@ -68,6 +112,27 @@ export const createNavigationSlice: StateCreator<
         progress: newProgress,
       },
     });
+
+    // CRITICAL: Persist progress to localStorage immediately
+    // This allows recovery after browser refresh or tab close
+    try {
+      saveSessionProgress({
+        sessionId: state.currentSession.id,
+        subjectId: state.currentSession.subjectId,
+        progress: newProgress,
+        currentPhase: 'LEARN', // TODO: Get actual phase from state
+        activeConcept: nextConcept,
+      });
+    } catch (error) {
+      console.error('[Navigation] Failed to persist progress:', error);
+      // Don't throw - progress saving is non-critical
+    }
+
+    // Show intervention modal if max attempts reached
+    if (status === 'skipped') {
+      // TODO: Trigger intervention modal
+      console.log(`[Navigation] Intervention needed for concept ${conceptId} (score: ${normalizedScore.toFixed(2)})`);
+    }
 
     // Trigger celebrations
     if (allStageConceptsComplete) {
@@ -156,16 +221,27 @@ export const createNavigationSlice: StateCreator<
     if (!state.currentSession) return null;
 
     const { concepts, stages, progress } = state.currentSession;
+    const maxAttempts = progress.maxAttemptsPerConcept || 3;
 
     const currentConcept = concepts.find((c) => c.id === progress.currentConceptId);
     if (!currentConcept) return null;
+
+    // Filter out concepts that are completed or have reached max attempts
+    const isAvailable = (conceptId: string) => {
+      if (progress.completedConcepts.includes(conceptId)) return false;
+      const attempts = progress.conceptAttempts[conceptId] || 0;
+      const status = progress.conceptStatuses[conceptId];
+      if (status === 'skipped') return false;
+      if (attempts >= maxAttempts && status !== 'mastered') return false;
+      return true;
+    };
 
     const sameStageConcepts = concepts
       .filter((c) => c.stageId === currentConcept.stageId)
       .sort((a, b) => a.order - b.order);
 
     const nextInStage = sameStageConcepts.find(
-      (c) => c.order > currentConcept.order && !progress.completedConcepts.includes(c.id)
+      (c) => c.order > currentConcept.order && isAvailable(c.id)
     );
 
     if (nextInStage) return nextInStage.id;
@@ -178,11 +254,14 @@ export const createNavigationSlice: StateCreator<
         .filter((c) => c.stageId === nextStage.id)
         .sort((a, b) => a.order - b.order)[0];
 
-      if (firstConcept && !progress.completedConcepts.includes(firstConcept.id)) {
+      if (firstConcept && isAvailable(firstConcept.id)) {
         return firstConcept.id;
       }
     }
 
+    // EXIT CONDITION: No more available concepts
+    // All concepts are either completed or have reached max attempts
+    console.log('[Navigation] No more available concepts - all completed or max attempts reached');
     return null;
   },
 

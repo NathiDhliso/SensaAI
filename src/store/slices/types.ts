@@ -183,7 +183,7 @@ export type StudySliceActions = {
 };
 
 export type NavigationSliceActions = {
-  completeConcept: (conceptId: string) => void;
+  completeConcept: (conceptId: string, score?: number, outcome?: 'mastered' | 'needs-learning' | 'needs-review') => void;
   setCurrentConcept: (conceptId: string) => void;
   getConceptStatus: (conceptId: string) => 'locked' | 'available' | 'current' | 'completed';
   getStageStatus: (stageId: string) => 'locked' | 'available' | 'current' | 'completed';

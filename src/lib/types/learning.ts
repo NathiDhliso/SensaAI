@@ -241,6 +241,12 @@ export interface UserProgress {
   lastSessionDate: string;
   totalTimeSpentMinutes: number;
   sessionStartTime: number | null;
+  
+  // Attempt tracking for infinite loop prevention
+  conceptAttempts: Record<string, number>; // conceptId -> attempt count
+  conceptScores: Record<string, number>; // conceptId -> last score
+  conceptStatuses: Record<string, 'not-started' | 'in-progress' | 'needs-review' | 'mastered' | 'skipped'>;
+  maxAttemptsPerConcept: number; // Default: 3
 }
 
 export interface CelebrationData {

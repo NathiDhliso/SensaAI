@@ -17,7 +17,7 @@ The handler is responsible for:
 from typing import Any, Dict
 
 from shared.utils import generate_id, api_response
-from services import BedrockService, DynamoService
+from .services import BedrockService, DynamoService
 
 
 # Initialize services (cold start optimization)

@@ -242,17 +242,27 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
               UI_TIMINGS.DELAY_SHORT
             );
           } else {
-            navigate(`/study/${resultId}`, { replace: true });
+            // FIX: Don't navigate if loading failed. Report error.
+            console.error('[Generate] Content load failed:', loadResult.error);
+            setError(loadResult.error || 'Failed to load generated content.');
+            setIsGenerating(false);
           }
         } catch (storageError) {
           console.error('[Generate] Storage save failed:', storageError);
-          navigate(`/study/${resultId}`, { replace: true });
+          // Still try to load into memory if storage failed but we have data
+          const loadResult = parseAndLoadContent(result.fullDocument, resultId);
+          if (loadResult.success) {
+            navigate(`/study/${resultId}`, { replace: true });
+          } else {
+            setError('Failed to save or load generated content.');
+            setIsGenerating(false);
+          }
         }
       } else {
         navigate(`/study/${Date.now()}`, { replace: true });
       }
     },
-    [completeGeneration, navigate]
+    [completeGeneration, navigate, setError]
   );
 
   /**
@@ -262,7 +272,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
     (err: unknown) => {
       console.error('Generation error:', err);
       const message = err instanceof Error ? err.message : String(err);
-      
+
       // Handle specific error types
       if (message === 'Generation cancelled by user') {
         navigate('/');
