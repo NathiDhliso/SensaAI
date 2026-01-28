@@ -31,9 +31,10 @@ export class StorageManager {
   }
 
   async saveResult(_result: SavedResult): Promise<{ success: boolean; path?: string; error?: string }> {
-    // DISABLED: Concept storage is now handled by Lambda → DynamoDB
+    // NO-OP: Concept storage is now handled by Lambda → DynamoDB
     // The Generate.tsx flow saves concepts via the /concepts/generate API,
     // which triggers Lambda to store in sensapbl-concepts-pilot (PK/SK schema)
+    console.warn('[StorageManager] saveResult is deprecated - Lambda handles all storage');
     return { success: true, path: 'lambda-managed' };
   }
 

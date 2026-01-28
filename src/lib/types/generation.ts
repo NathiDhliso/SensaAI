@@ -123,6 +123,8 @@ export type GenerationResult = {
   pass3: string;
   validation: ValidationResult;
   fullDocument: string;
+  jobId: string; // Backend job ID (source of truth)
+  sessionId: string; // DynamoDB session ID
 
   dependencyGraph?: SubjectGraph;
   metadata: {

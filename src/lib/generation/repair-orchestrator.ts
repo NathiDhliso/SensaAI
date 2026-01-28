@@ -7,7 +7,7 @@
 
 import type { ContentGap } from '@/lib/validation/content-quality.ts';
 import type { RepairPlan, RepairAction } from '@/lib/types/generation';
-import { verifyRepair, type VerifiableConcept } from '@/lib/validation/content-quality';
+import { verifyRepair, validateConceptContent, type VerifiableConcept } from '@/lib/validation/content-quality';
 import { SelfHealingEngine } from './lifecycle-engine';
 import { surgicallyRepairConcept } from './backend-generator';
 import type { ParsedConcept } from '@/lib/content-adapter/types';
@@ -188,9 +188,13 @@ export class RepairStrategyRouter {
                             } as ParsedConcept;
                         } else {
                             // Re-run validation to log specific errors
-                            // We don't import validateConceptContent here to avoid circular deps if possible
-                            // But for now, just log generic failure
-                            console.warn(`[Refused Repair] ${concept.name}: Validation failed after repair.`);
+                            const gaps = validateConceptContent(repaired as unknown as VerifiableConcept);
+                            const criticalGaps = gaps.filter(g => g.severity === 'critical');
+
+                            console.warn(`[Refused Repair] ${concept.name}: Validation failed after repair.`, {
+                                criticalGaps: criticalGaps.map(g => g.message),
+                                allGaps: gaps
+                            });
                         }
                     }
                 }

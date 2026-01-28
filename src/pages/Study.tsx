@@ -12,11 +12,10 @@
  * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md
  */
 
-import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
+import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
-
 import { storageManager } from '@/lib/storage';
 import { parseAndLoadContent } from '@/lib/content-loader';
 import { StudyLayout, type StudyTab } from '@/components/layout';
@@ -27,48 +26,22 @@ import {
   SessionSummary,
 } from '@/components/learning';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
-
-
-// ... (existing imports)
-
-
+import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
+import { toast } from '@/lib/utils/toast';
 import styles from './Study.module.css';
 
 // Lazy load heavy components
-
 const VelocityLearning = lazy(() => import('./VelocityLearning'));
-
-// ═══════════════════════════════════════════════════════════════════════════
-// TAB CONTENT COMPONENTS
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════════════
-// TAB CONTENT COMPONENTS
-// ═══════════════════════════════════════════════════════════════════════════
-
-
-
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// MAIN STUDY PAGE
-// ═══════════════════════════════════════════════════════════════════════════
-
-// Import Velocity Engine components locally to avoid circular deps if any
-import { SessionScoutPreview } from '@/components/learning/SessionScoutPreview';
-import { MicroLearningLoopController } from '@/components/learning';
-import { AnimatePresence, motion } from 'framer-motion';
-import { toast } from '@/lib/utils/toast';
 
 export default function Study() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { subjectId } = useParams<{ subjectId: string }>();
   const [searchParams] = useSearchParams();
 
   // Initialize tab from URL query param or default to overview
   const initialTab = (searchParams.get('tab') as StudyTab) || 'overview';
   const [activeTab, setActiveTab] = useState<StudyTab>(initialTab);
-  const [learningConceptId, setLearningConceptId] = useState<string | null>(null);
   const [isHydrating, setIsHydrating] = useState(false);
 
   const {
@@ -101,6 +74,14 @@ export default function Study() {
 
       // Check if we already have the correct session loaded
       if (currentSession?.id === subjectId || currentSession?.subjectId === subjectId) {
+        console.log('[Study] Session already loaded, skipping hydration');
+        return;
+      }
+
+      // Check if this is a fresh generation (content already parsed and loaded)
+      const navigationState = location.state as { freshGeneration?: boolean } | null;
+      if (navigationState?.freshGeneration && currentSession) {
+        console.log('[Study] Fresh generation detected, content already loaded');
         return;
       }
 
@@ -109,7 +90,7 @@ export default function Study() {
       setHydrationError(null);
       
       try {
-        // Attempt 1: Load from storage
+        // Attempt 1: Load from storage using the ID directly
         let result = await storageManager.loadResult(subjectId);
 
         // Attempt 2: Check if it's an active job (generation in progress)
@@ -122,21 +103,6 @@ export default function Study() {
               setHydrationError('GENERATION_IN_PROGRESS');
               return;
             }
-          }
-        }
-
-        // Attempt 3: Check recent results (maybe ID mismatch)
-        if (!result) {
-          const recentResults = await storageManager.listResults();
-          result = recentResults.find(r => 
-            r.id === subjectId || 
-            r.subject === subjectId ||
-            r.id.includes(subjectId) ||
-            subjectId.includes(r.id)
-          ) || null;
-          
-          if (result) {
-            console.log('[Study] Found result by fuzzy match:', result.id);
           }
         }
 
@@ -236,7 +202,6 @@ export default function Study() {
     }
     
     setActiveTab(tab);
-    setLearningConceptId(null); // Exit learning mode on tab change
   }, [concepts]);
 
   // URL guard: Validate tab from URL params
@@ -256,18 +221,6 @@ export default function Study() {
     }
   }, [searchParams, concepts, subjectId, navigate]);
 
-
-
-  // Handle concept completion in Micro-Loop
-  const handleLoopComplete = useCallback((outcome: string, _time: number) => {
-    // Optional: Play a sound or mini-celebration
-    // Then close the loop or go to next recommended concept
-    if (outcome === 'mastered') {
-      // Find next concept logic could go here
-    }
-    setLearningConceptId(null); // Zoom back out
-  }, []);
-
   // Handle celebration modal
   const handleCelebrationContinue = useCallback(() => {
     dismissCelebration();
@@ -280,11 +233,6 @@ export default function Study() {
 
   // Determine subject name for header
   const subjectName = session?.subject || currentSubject || pass1Data?.domain || 'Study Session';
-
-  // Get active concept object
-  const activeConcept = useMemo(() =>
-    concepts.find(c => c.id === learningConceptId),
-    [concepts, learningConceptId]);
 
   // Render active tab content
   const renderTabContent = () => {
@@ -393,8 +341,6 @@ export default function Study() {
     }
 
     switch (activeTab) {
-
-
       case 'overview':
         return (
           <div style={{ height: '100%', minHeight: '600px' }}>
@@ -407,7 +353,6 @@ export default function Study() {
         );
 
       case 'learn':
-        // Silver Bullet: VelocityLearning replaces legacy list view
         return (
           <Suspense fallback={<div className={styles.loading}>Loading Velocity Engine...</div>}>
             <LearningErrorBoundary
@@ -427,21 +372,6 @@ export default function Study() {
           </Suspense>
         );
 
-
-
-      case 'reference':
-        // New Reference tab: shows raw fullDocument
-        return (
-          <div className={styles.referenceTab}>
-            <h3 className={styles.referenceTitle}>Source Document</h3>
-            <pre className={styles.referenceContent}>
-              {currentSession?.metadata?.fullDocument || 'No document content available.'}
-            </pre>
-          </div>
-        );
-
-
-
       default:
         return null;
     }
@@ -453,47 +383,12 @@ export default function Study() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         subjectName={subjectName}
-
         headerActions={
           <CognitiveGauge compact />
         }
       >
         {renderTabContent()}
       </StudyLayout>
-
-      {/* 
-        SILVER BULLET: Cinematic Learning Bridge
-        This overlay provides the "Zoom-to-Learn" experience.
-        It sits on top of the Graph, creating a seamless transition.
-      */}
-      <AnimatePresence>
-        {learningConceptId && activeConcept && (
-          <motion.div
-            key="learning-overlay"
-            initial={{ opacity: 0, scale: 0.8, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, scale: 1, backdropFilter: 'blur(10px)' }}
-            exit={{ opacity: 0, scale: 0.8, backdropFilter: 'blur(0px)' }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className={styles.overlayModal}
-          >
-            <div className={styles.overlayContainer}>
-              <button
-                onClick={() => setLearningConceptId(null)}
-                className={styles.overlayCloseButton}
-              >
-                ✕ Close Interaction
-              </button>
-
-              <MicroLearningLoopController
-                concept={activeConcept}
-                complexityScore={5}
-                onLoopComplete={handleLoopComplete}
-                onSkip={() => setLearningConceptId(null)}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Celebration Modal */}
       {showCelebration && celebrationData && (

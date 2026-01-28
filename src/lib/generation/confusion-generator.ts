@@ -175,16 +175,16 @@ export function generateConfusionQuestions(pair: ConfusionPair): ConfusionQuesti
 
   // 3. Aspect-based Question (if aspects exist)
   if (confusingAspects.length > 0) {
+    // Randomize which option is the "correct" one (Concept 1) to avoid 'A' bias
+    const isConcept1OptionA = Math.random() > 0.5;
+
     questions.push({
       id: `q-${pair.concept1.id}-${pair.concept2.id}-3`,
       scenario: `Consider the aspect of "${confusingAspects[0]}". Which concept handles this more directly?`,
-      // Simple heuristic randomization for the "correct" one based on name length to avoid pattern? 
-      // Better: just pick A for now as 'Correct' if it matches the aspect better? 
-      // Since we don't have deep knowledge, we'll make a generic comparison question.
-      optionA: concept1.name,
-      optionB: concept2.name,
-      correctChoice: 'A', // Fallback
-      explanation: `This is a nuanced difference. ${concept1.name} often addresses ${confusingAspects[0]} in a specific way.`
+      optionA: isConcept1OptionA ? concept1.name : concept2.name,
+      optionB: isConcept1OptionA ? concept2.name : concept1.name,
+      correctChoice: isConcept1OptionA ? 'A' : 'B',
+      explanation: `This is a nuanced difference. ${concept1.name} often addresses ${confusingAspects[0]} in a specific way that differs from ${concept2.name}.`
     });
   }
 

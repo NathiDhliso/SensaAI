@@ -53,7 +53,7 @@ const OFFICIAL_DOMAINS = [
  */
 export function isValidOfficialUrl(url: string | undefined): boolean {
     if (!url || url.trim() === '') return false;
-    
+
     try {
         const parsedUrl = new URL(url);
         return OFFICIAL_DOMAINS.some(domain => parsedUrl.hostname.includes(domain));
@@ -65,13 +65,14 @@ export function isValidOfficialUrl(url: string | undefined): boolean {
 const PLACEHOLDER_PATTERNS = [
     'pending generation',
     'is a core concept',
-    'understanding',
-    'in the context of',
+    // 'understanding' - REMOVED: too generic, causes false positives in valid content
+    // 'in the context of' - REMOVED: common valid phrase
     'is essential for mastering',
     'makes it possible',
     'is a key component',
     'fills a gap',
     'improve efficiency',
+
 ];
 
 /**

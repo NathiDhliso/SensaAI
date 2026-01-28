@@ -213,7 +213,8 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
       const currentValidation = currentState.validation;
 
       if (currentPass1 && currentValidation) {
-        const resultId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        // Use backend jobId as the source of truth (no more frontend-generated IDs)
+        const resultId = result.jobId;
         resultIdRef.current = resultId;
 
         const savedResult = {
@@ -237,10 +238,11 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
           await storageManager.saveResult(savedResult);
           const loadResult = parseAndLoadContent(result.fullDocument, resultId);
           if (loadResult.success) {
-            setTimeout(
-              () => navigate(`/study/${resultId}`, { replace: true }),
-              UI_TIMINGS.DELAY_SHORT
-            );
+            // Navigate immediately - no artificial delay needed
+            navigate(`/study/${resultId}`, { 
+              replace: true,
+              state: { freshGeneration: true } // Signal that content is already loaded
+            });
           } else {
             // FIX: Don't navigate if loading failed. Report error.
             console.error('[Generate] Content load failed:', loadResult.error);
@@ -252,14 +254,22 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
           // Still try to load into memory if storage failed but we have data
           const loadResult = parseAndLoadContent(result.fullDocument, resultId);
           if (loadResult.success) {
-            navigate(`/study/${resultId}`, { replace: true });
+            navigate(`/study/${resultId}`, { 
+              replace: true,
+              state: { freshGeneration: true }
+            });
           } else {
             setError('Failed to save or load generated content.');
             setIsGenerating(false);
           }
         }
       } else {
-        navigate(`/study/${Date.now()}`, { replace: true });
+        // Fallback: use backend jobId if available, otherwise timestamp
+        const fallbackId = result.jobId || `${Date.now()}`;
+        navigate(`/study/${fallbackId}`, { 
+          replace: true,
+          state: { freshGeneration: true }
+        });
       }
     },
     [completeGeneration, navigate, setError]
@@ -328,7 +338,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
           .then((s3Url) => {
             const blueprintContext = `[BLUEPRINT_ID]: ${s3Url}\n[FILENAME]: ${pendingFile.name}`;
             setPendingFile(null);
-            return generateWithBackend(subject, progressCallback, undefined, blueprintContext);
+            return generateWithBackend(subject, progressCallback, blueprintContext);
           })
           .then((result) => handleGenerationSuccess(result, subject, alias))
           .catch(handleGenerationError)
@@ -349,7 +359,6 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
       generateWithBackend(
         subject,
         progressCallback,
-        undefined, // No abort signal - generation is unstoppable
         effectiveContext || undefined
       )
         .then((result) => handleGenerationSuccess(result, subject, alias))

@@ -11,9 +11,7 @@ const Generate = lazy(() => import('./pages/Generate'));
 const Settings = lazy(() => import('./pages/Settings'));
 const SavedResults = lazy(() => import('./pages/SavedResults'));
 
-
 const Study = lazy(() => import('./pages/Study'));
-const VelocityLearning = lazy(() => import('./pages/VelocityLearning'));
 const ContentLaunchpad = lazy(() => import('./components/learning/launchpad/ContentLaunchpad'));
 const DocumentView = lazy(() => import('./pages/DocumentView'));
 
@@ -81,21 +79,11 @@ function App() {
            * Unified Study Command Center
            * Combines Overview and Learning modes into tabbed interface
            * Phase 2.1 of Silver Bullet Architecture
+           * 
+           * VelocityLearning is embedded in the Learn tab, not a standalone route
            */}
           <Route path="/study/:subjectId" element={
             <ProtectedRoute><Study /></ProtectedRoute>
-          } />
-
-
-
-
-
-
-          {/* 
-           * Velocity Learning - SensaAI Learning Velocity Engine experience
-           */}
-          <Route path="/velocity/:subjectId" element={
-            <ProtectedRoute><VelocityLearning /></ProtectedRoute>
           } />
 
           {/* 
@@ -107,18 +95,6 @@ function App() {
           } />
 
           {/* ═══════════════════════════════════════════════════════════════
-              LEGACY REDIRECTS - Backward compatibility
-              ═══════════════════════════════════════════════════════════════ */}
-
-          {/* Redirect old /learn to unified Study page */}
-          <Route path="/learn" element={<Navigate to="/study/current" replace />} />
-
-
-
-          {/* Redirect old /saved to /library */}
-          <Route path="/saved" element={<Navigate to="/library" replace />} />
-
-          {/* ═══════════════════════════════════════════════════════════════
               SETTINGS & LIBRARY
               ═══════════════════════════════════════════════════════════════ */}
           <Route path="/settings" element={
@@ -127,7 +103,6 @@ function App() {
 
           {/* 
            * Library - Saved/bookmarked generation results
-           * Renamed from /saved for clarity
            */}
           <Route path="/library" element={
             <ProtectedRoute><SavedResults /></ProtectedRoute>

@@ -79,39 +79,11 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   REFERENCE TAB
+   REFERENCE TAB (REMOVED - was never accessible)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.referenceTab {
-  padding: 1.5rem;
-  height: 100%;
-  overflow: auto;
-}
-
-.referenceTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text-dark);
-  margin-bottom: 1rem;
-}
-
-.referenceContent {
-  padding: 1.5rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  font-family: 'Fira Code', 'Consolas', monospace;
-  font-size: 0.8rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--color-text-light);
-  overflow-x: auto;
-  max-height: calc(100vh - 200px);
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════
-   OVERVIEW TAB
+   OVERVIEW TAB (styles used by SessionScoutPreview component)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .overviewTab {
@@ -351,55 +323,12 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   LEARN TAB
+   LEARN TAB (styles used by VelocityLearning component)
    ═══════════════════════════════════════════════════════════════════════════ */
-
-.learnTab {
-  display: grid;
-  grid-template-columns: minmax(280px, 320px) 1fr;
-  height: 100%;
-  overflow: hidden;
-}
-
-.journeyPanel {
-  border-right: 1px solid var(--color-border);
-  background: var(--color-surface);
-  overflow-y: auto;
-  padding: 1rem;
-}
-
-.conceptPanel {
-  overflow-y: auto;
-  padding: 1.5rem;
-  background: var(--color-bg-neutral);
-}
-
-.selectPrompt {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--color-text-muted);
-  font-style: italic;
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   EMBEDDED PAGES (Palace, Sprint)
+   EMBEDDED PAGES (REMOVED - not used)
    ═══════════════════════════════════════════════════════════════════════════ */
-
-.embeddedPage {
-  height: 100%;
-  overflow: hidden;
-}
-
-/* Override embedded page styles to remove redundant headers */
-.embeddedPage :global(.container) {
-  height: 100%;
-}
-
-.embeddedPage :global(.header) {
-  display: none;
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RESPONSIVE

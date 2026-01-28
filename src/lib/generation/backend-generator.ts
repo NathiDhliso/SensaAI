@@ -20,6 +20,8 @@ export async function uploadExamBlueprint(file: File): Promise<string> {
     return `s3://sensa-blueprints/${Date.now()}/${file.name}`;
 }
 
+import { enhanceWithVisuals } from './visual-enhancer';
+
 /**
  * Generate content using the serverless Lambda + DynamoDB pipeline.
  * All heavy lifting happens server-side - browser only polls for status.
@@ -31,7 +33,6 @@ export async function uploadExamBlueprint(file: File): Promise<string> {
 export async function generateWithBackend(
     subject: string,
     onProgress: ProgressCallback,
-    _abortSignal?: AbortSignal, // DEPRECATED: Kept for API compatibility, but ignored
     context?: string,
     _startFromPass: number = 1
 ): Promise<GenerationResult> {
@@ -67,6 +68,7 @@ export async function generateWithBackend(
     });
 
     try {
+        // [BLOCK: Generate Call]
         const generateResponse = await Promise.race([
             conceptsApi.generate({
                 subject,
@@ -102,6 +104,7 @@ export async function generateWithBackend(
             status: 'processing',
         });
 
+        // [BLOCK: Polling Loop]
         // Skip polling if already completed (which it should be for sync lambda)
         if (generateResponse.status !== 'completed') {
             updateActiveJobStatus('processing');
@@ -112,7 +115,7 @@ export async function generateWithBackend(
             const startTime = Date.now();
 
             while (true) {
-                // NOTE: We intentionally DO NOT check abortSignal here
+                // NOTE: We intentionally DO NOT use abort signals here
                 // Generation is unstoppable once started - it runs on the backend
 
                 if (Date.now() - startTime > maxPollTime) {
@@ -145,14 +148,14 @@ export async function generateWithBackend(
                         clearActiveJob();
                         throw new Error('Session expired. Please log in again.');
                     }
-                    
+
                     // Check if we've been backing off too long (> 30 seconds of errors)
                     if (pollInterval >= 8000) {
                         console.error('[Backend Generator] Polling failing repeatedly, giving up');
                         clearActiveJob();
                         throw new Error('Unable to connect to server. Please check your connection and try again.');
                     }
-                    
+
                     // Exponential backoff on error (including 429)
                     console.warn('[Backend Generator] Polling error, backing off:', { pollInterval, error: err });
                     pollInterval = Math.min(maxPollInterval, pollInterval * 1.5);
@@ -236,10 +239,40 @@ export async function generateWithBackend(
         });
 
         // Convert concepts to the full document format
-        const fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
+        let fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
             ...c,
             tier: c.tier || 'utility' // Ensure tier is always defined
         })));
+
+
+        // =====================================================================
+        // VISUAL ENHANCEMENT (Image Generation for Foundation Anchors)
+        // =====================================================================
+        if (import.meta.env.VITE_ENABLE_IMAGE_GEN === 'true') {
+            onProgress(4, 'in-progress', {
+                message: 'Painting Memory Anchors (Visual Enhancement)...',
+                progress: 95,
+            });
+
+            try {
+                // Use default config region
+                const options = {
+                    region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
+                    useCognito: true
+                };
+
+                // Enhance content inplace
+                fullDocument = await enhanceWithVisuals(
+                    fullDocument,
+                    options,
+                    (status) => onProgress(4, 'in-progress', { message: status, progress: 95 })
+                );
+
+            } catch (visualError) {
+                console.warn('[Backend Generator] Visual enhancement skipped:', visualError);
+                // Non-critical failure, continue without images
+            }
+        }
 
         const validation: ValidationResult = {
             valid: true,
@@ -280,6 +313,8 @@ export async function generateWithBackend(
             pass3: fullDocument,
             validation,
             fullDocument,
+            jobId, // Backend job ID (source of truth)
+            sessionId, // DynamoDB session ID
             metadata: {
                 subject,
                 generatedAt: new Date().toISOString(),
