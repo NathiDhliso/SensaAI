@@ -22,11 +22,6 @@ import { findConfusionPairs, generateConfusionQuestions } from '@/lib/generation
 import type { ConfusionDrillResult, ConfusionPair } from '@/lib/generation/confusion-generator';
 import styles from './MicroLearningLoopController.module.css';
 
-// Feature Components
-import CoachsChoice from '@/components/learning/activities/CoachsChoice';
-import BridgeBuilder from '@/components/learning/activities/BridgeBuilder';
-import { useRepairSentinel } from '@/hooks/useRepairSentinel';
-
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -717,7 +712,6 @@ export function MicroLearningLoopController({
 
     // 1. Core State
     const [loopState, setLoopState] = useState<LoopPhase>('test'); // Start with worked example
-    const [attempts, setAttempts] = useState(0);
     const [loopStartTime] = useState(Date.now());
     const [keyPoints, setKeyPoints] = useState<string[]>([]);
     const [sessionContext, setSessionContext] = useState<{ intent?: string; prediction?: string }>({});
@@ -728,16 +722,6 @@ export function MicroLearningLoopController({
     // State for Confusion Drill Queue
     const [confusionQueue, setConfusionQueue] = useState<ConfusionPair[]>([]);
     const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
-
-    // 2. Repair Mission State (Using extracted hook)
-    const {
-        trigger: repairTrigger,
-        activeRepair,
-        acceptRepair,
-        declineRepair,
-        completeRepair,
-        cancelRepair
-    } = useRepairSentinel(loopState, attempts, 0 /* conceptIndex - TODO: pass real index */);
 
     // 3. Handlers
     const handleLoopCompleteInternal = (outcome: LoopOutcome) => {
@@ -793,7 +777,6 @@ export function MicroLearningLoopController({
     const handleTestComplete = useCallback((result: TestPhaseResult) => {
         setTestResult(result);
         setTotalTimeSpent(prev => prev + result.timeSpent);
-        setAttempts(prev => prev + 1);
 
         // If test score is very low, go straight to learn phase
         // Otherwise, go to learn phase anyway to reinforce
@@ -957,34 +940,6 @@ export function MicroLearningLoopController({
                     </button>
                 </div>
             </div>
-
-            {/* Coach's Choice Overlay */}
-            <AnimatePresence>
-                {repairTrigger && (
-                    <CoachsChoice
-                        type={repairTrigger.type}
-                        currentValue={repairTrigger.currentValue}
-                        potentialValue={repairTrigger.potentialValue}
-                        reason={repairTrigger.reason}
-                        onAccept={acceptRepair}
-                        onDecline={declineRepair}
-                    />
-                )}
-            </AnimatePresence>
-
-            {/* Active Repair Mission Overlay */}
-            <AnimatePresence>
-                {activeRepair === 'bridge-builder' && (
-                    <div className={styles.repairOverlay}>
-                        <BridgeBuilder
-                            concept={concept}
-                            allConcepts={allConcepts || []}
-                            onComplete={completeRepair}
-                            onCancel={cancelRepair}
-                        />
-                    </div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }

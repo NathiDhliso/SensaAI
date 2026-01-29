@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { GRAPH_COLORS } from '@/constants/theme-colors';
-import type { TierDistribution } from '@/lib/ai/content-analytics';
+import type { TierDistribution } from '@/lib/ai/content-analytics-types';
 import styles from './TierDistributionChart.module.css';
 
 interface TierDistributionChartProps {

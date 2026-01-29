@@ -15,7 +15,7 @@ import {
 import type { LearningConcept } from '@/lib/types/learning';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import { DEFAULT_MASTERY_SCENARIO } from '@/constants/learning-content';
-import { usePauseGlobalTimer } from '@/hooks';
+import { usePauseGlobalTimer } from '@/hooks/usePauseGlobalTimer';
 import styles from './MasteryChallenge.module.css';
 
 interface MasteryChallengeProps {

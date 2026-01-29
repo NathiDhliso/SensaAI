@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Circle, AlertCircle } from 'lucide-react';
 import { COLORS } from '@/constants/theme-colors';
-import type { ShapeCoverage, MnemonicCoverage } from '@/lib/ai/content-analytics';
+import type { ShapeCoverage, MnemonicCoverage } from '@/lib/ai/content-analytics-types';
 import styles from './ContentHealthIndicators.module.css';
 
 interface ContentHealthIndicatorsProps {

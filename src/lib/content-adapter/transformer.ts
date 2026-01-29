@@ -59,6 +59,26 @@ const DEFAULT_STAGE_ICONS = ['shape:seed', 'shape:sprout', 'shape:bloom', 'shape
 // ============================================================================
 
 /**
+ * Clean up concept names that are just placeholder IDs (e.g., "concept-P2-019")
+ * Uses mnemonic anchor or formatted order as fallback
+ */
+function cleanConceptName(concept: ParsedConcept): string {
+  // If name is NOT a placeholder, return it as is
+  if (!concept.name.match(/^concept-P\d+/i) && !concept.name.includes('placeholder')) {
+    return concept.name;
+  }
+
+  // Fallback 1: Use Mnemonic Anchor (usually a punchy visual name)
+  if (concept.mnemonic?.anchor && concept.mnemonic.anchor.length < 50) {
+    // Remove emojis for the clean name if present
+    return concept.mnemonic.anchor.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+  }
+
+  // Fallback 2: Use Stage + Order
+  return `Concept ${concept.order}`; // Simple fallback
+}
+
+/**
  * Extract key points from concept content for blank sheet test scoring
  */
 function extractKeyPoints(concept: ParsedConcept): string[] {
@@ -784,7 +804,7 @@ export function transformToLearningConcepts(
       id: parsedConcept.id,
       stageId: stage?.id || 'stage-1-foundation',
       order: stageConceptIndex + 1,
-      name: parsedConcept.name,
+      name: cleanConceptName(parsedConcept),
       icon,
       metaphor,
       hookSentence: generateHookSentence(parsedConcept, metaphor),

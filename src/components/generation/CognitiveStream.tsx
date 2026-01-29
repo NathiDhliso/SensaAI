@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { COGNITIVE_THOUGHTS } from '@/constants/ui-constants';
 import { getRandomTerm, getDomainName } from '@/lib/utils/subject-domain-detector';
 import styles from '@/pages/Generate.module.css';
 

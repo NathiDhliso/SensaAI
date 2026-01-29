@@ -2,7 +2,7 @@
 import { ResponsiveContainer, Treemap, Tooltip } from 'recharts';
 import { motion } from 'framer-motion';
 import { COLORS, GRAPH_COLORS } from '@/constants/theme-colors';
-import type { TreePacket } from '@/lib/ai/content-analytics';
+import type { TreePacket } from '@/lib/ai/content-analytics-types';
 
 interface CoverageTreemapProps {
     data: TreePacket[];

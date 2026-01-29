@@ -1,3 +1,19 @@
+/**
+ * Cloud Storage - SOURCE OF TRUTH
+ * 
+ * All generated content is stored in AWS S3 (fullDocument) and DynamoDB (metadata).
+ * This is the authoritative storage layer - all other storage is just caching.
+ * 
+ * Storage Hierarchy:
+ * - Cloud Storage (S3 + DynamoDB) = SOURCE OF TRUTH
+ * - IndexedDB = Offline cache for faster loading
+ * - LocalStorage = UI preferences only (theme, settings)
+ * 
+ * When to use:
+ * - Saving new generated content
+ * - Loading content when online
+ * - Syncing across devices
+ */
 
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';

@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { UI_TIMINGS } from '@/constants/ui-constants';
 import { useLearningStore } from '@/store/learning-store';
-import { usePauseGlobalTimer } from '@/hooks';
+import { usePauseGlobalTimer } from '@/hooks/usePauseGlobalTimer';
 import { calculateConfusionDrillResult } from '@/lib/generation/confusion-generator';
 import type { ConfusionPair, ConfusionQuestion, ConfusionAnswer, ConfusionDrillResult } from '@/lib/generation/confusion-generator';
 import styles from './ConfusionDrill.module.css';

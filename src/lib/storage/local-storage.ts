@@ -1,3 +1,29 @@
+/**
+ * LocalStorage - UI PREFERENCES ONLY
+ * 
+ * Browser localStorage for small, non-critical data like UI preferences.
+ * DO NOT use for generated content - it has a 5-10MB limit.
+ * 
+ * Storage Hierarchy:
+ * - Cloud Storage (S3 + DynamoDB) = SOURCE OF TRUTH for content
+ * - IndexedDB = Offline cache for content
+ * - LocalStorage = UI preferences ONLY (THIS FILE)
+ * 
+ * What belongs here:
+ * - Theme preferences (dark/light mode)
+ * - UI settings (sidebar collapsed, etc.)
+ * - User preferences (bionic reading, voice enabled)
+ * - Small metadata lists
+ * 
+ * What does NOT belong here:
+ * - Generated content (use Cloud Storage)
+ * - Large concept data (use IndexedDB)
+ * - Session state (use zustand)
+ * 
+ * Note: This class is named "LocalFileStorage" for historical reasons
+ * but it actually uses localStorage, not files.
+ */
+
 import type { SavedResult, StorageProvider } from './types';
 import { STORAGE_KEYS } from '@/constants/storage-keys';
 

@@ -20,8 +20,6 @@ export async function uploadExamBlueprint(file: File): Promise<string> {
     return `s3://sensa-blueprints/${Date.now()}/${file.name}`;
 }
 
-import { enhanceWithVisuals } from './visual-enhancer';
-
 /**
  * Generate content using the serverless Lambda + DynamoDB pipeline.
  * All heavy lifting happens server-side - browser only polls for status.
@@ -247,32 +245,7 @@ export async function generateWithBackend(
 
         // =====================================================================
         // VISUAL ENHANCEMENT (Image Generation for Foundation Anchors)
-        // =====================================================================
-        if (import.meta.env.VITE_ENABLE_IMAGE_GEN === 'true') {
-            onProgress(4, 'in-progress', {
-                message: 'Painting Memory Anchors (Visual Enhancement)...',
-                progress: 95,
-            });
-
-            try {
-                // Use default config region
-                const options = {
-                    region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
-                    useCognito: true
-                };
-
-                // Enhance content inplace
-                fullDocument = await enhanceWithVisuals(
-                    fullDocument,
-                    options,
-                    (status) => onProgress(4, 'in-progress', { message: status, progress: 95 })
-                );
-
-            } catch (visualError) {
-                console.warn('[Backend Generator] Visual enhancement skipped:', visualError);
-                // Non-critical failure, continue without images
-            }
-        }
+        // Visual enhancement removed - feature not implemented
 
         const validation: ValidationResult = {
             valid: true,

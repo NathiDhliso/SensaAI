@@ -1,3 +1,25 @@
+/**
+ * IndexedDB Storage - OFFLINE CACHE
+ * 
+ * Browser-based cache for offline access and faster loading.
+ * This is NOT the source of truth - it's a local copy of cloud data.
+ * 
+ * Storage Hierarchy:
+ * - Cloud Storage (S3 + DynamoDB) = SOURCE OF TRUTH
+ * - IndexedDB = Offline cache (THIS FILE)
+ * - LocalStorage = UI preferences only
+ * 
+ * When to use:
+ * - Caching content for offline access
+ * - Faster initial load (check cache first, then cloud)
+ * - Storing large concept data that doesn't fit in localStorage
+ * 
+ * When NOT to use:
+ * - As primary storage (always sync to cloud)
+ * - For UI preferences (use localStorage)
+ * - For session state (use zustand)
+ */
+
 import type { SavedResult, StorageProvider } from './types';
 import type { ParsedConcept } from '../content-adapter/types';
 
