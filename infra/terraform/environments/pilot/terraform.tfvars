@@ -24,6 +24,8 @@ redis_node_type = "cache.t3.micro"
 cognito_callback_urls = [
   "http://localhost:5173/callback",
   "http://localhost:5173/auth/callback",
+  "http://localhost:5174/callback",
+  "http://localhost:5175/callback",
   "https://sensapbl.com/callback",
   "https://sensapbl.com/auth/callback"
 ]
@@ -31,6 +33,16 @@ cognito_callback_urls = [
 cognito_logout_urls = [
   "http://localhost:5173",
   "http://localhost:5173/",
+  "http://localhost:5174",
+  "http://localhost:5175",
   "https://sensapbl.com",
   "https://sensapbl.com/"
+]
+
+# API Gateway CORS - Allow local dev and production
+cors_allowed_origins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "https://sensapbl.com"
 ]

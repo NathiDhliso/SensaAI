@@ -46,3 +46,28 @@ output "lambda_query_function" {
   value       = module.lambda.query_concepts_function_name
 }
 
+# API Gateway Outputs
+output "api_gateway_endpoint" {
+  description = "API Gateway endpoint URL for frontend configuration"
+  value       = module.api_gateway.api_endpoint
+}
+
+output "api_gateway_stage_url" {
+  description = "API Gateway stage invoke URL"
+  value       = module.api_gateway.stage_invoke_url
+}
+
+output "api_generate_endpoint" {
+  description = "Full URL for the generate concepts endpoint"
+  value       = module.api_gateway.generate_endpoint
+}
+
+output "api_concepts_endpoint" {
+  description = "Base URL for the concepts query endpoint"
+  value       = module.api_gateway.concepts_endpoint
+}
+
+output "api_jobs_endpoint" {
+  description = "Base URL for the jobs status endpoint"
+  value       = module.api_gateway.jobs_endpoint
+}

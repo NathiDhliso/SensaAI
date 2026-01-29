@@ -265,17 +265,114 @@ class BedrockService:
             if "mnemonic" not in concept:
                 concept["mnemonic"] = {}
 
+            # Ensure scoring field exists with defaults
+            if "scoring" not in concept:
+                concept["scoring"] = {"keywords": [], "aliases": []}
+            elif not isinstance(concept.get("scoring"), dict):
+                concept["scoring"] = {"keywords": [], "aliases": []}
+
         return concepts
+
+    def _repair_json(self, raw_text: str) -> str:
+        """
+        Repair malformed JSON from LLM output.
+        
+        DEFENSIVE REPAIRS:
+        1. Remove markdown code fences (```json, ```)
+        2. Strip control characters that break parsing
+        3. Fix trailing commas before ] or }
+        4. Attempt to close unclosed brackets/braces
+        5. Remove BOM and other invisible characters
+        
+        Args:
+            raw_text: Raw text that may contain malformed JSON
+            
+        Returns:
+            Repaired text ready for json.loads()
+        """
+        if not raw_text:
+            return ""
+
+        text = raw_text.strip()
+        repairs_made = []
+
+        # 1. Remove BOM and invisible characters
+        text = text.lstrip('\ufeff')
+        
+        # 2. Remove markdown code fences
+        # Pattern: ```json ... ``` or ``` ... ```
+        if text.startswith("```json"):
+            text = text[7:]
+            repairs_made.append("removed_json_fence_start")
+        elif text.startswith("```"):
+            text = text[3:]
+            repairs_made.append("removed_fence_start")
+            
+        if text.endswith("```"):
+            text = text[:-3]
+            repairs_made.append("removed_fence_end")
+            
+        text = text.strip()
+
+        # 3. Remove control characters (except newlines and tabs)
+        original_len = len(text)
+        text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
+        if len(text) != original_len:
+            repairs_made.append("removed_control_chars")
+
+        # 4. Fix trailing commas before ] or }
+        # Pattern: ,\s*] or ,\s*}
+        original = text
+        text = re.sub(r',\s*\]', ']', text)
+        text = re.sub(r',\s*\}', '}', text)
+        if text != original:
+            repairs_made.append("fixed_trailing_commas")
+
+        # 5. Fix missing commas between objects in arrays
+        # Pattern: }\s*{ should be },\s*{
+        original = text
+        text = re.sub(r'\}\s*\{', '},{', text)
+        if text != original:
+            repairs_made.append("added_missing_commas")
+
+        # 6. Attempt to close unclosed brackets/braces
+        # Count brackets to detect imbalance
+        open_braces = text.count('{') - text.count('}')
+        open_brackets = text.count('[') - text.count(']')
+        
+        if open_braces > 0 or open_brackets > 0:
+            # Add closing characters
+            text += '}' * open_braces
+            text += ']' * open_brackets
+            repairs_made.append(f"closed_brackets:{open_braces}b,{open_brackets}a")
+
+        # 7. Handle truncated strings (unclosed quotes)
+        # This is a heuristic - find last complete object
+        if open_braces < 0 or open_brackets < 0:
+            # Too many closing brackets - likely truncated input
+            # Try to find the last valid array boundary
+            last_bracket = text.rfind(']')
+            if last_bracket > 0:
+                # Check if there's content after that looks incomplete
+                after = text[last_bracket+1:].strip()
+                if after and not after.startswith(',') and not after.startswith('}'):
+                    text = text[:last_bracket+1]
+                    repairs_made.append("truncated_after_array")
+
+        if repairs_made:
+            print(f"[BedrockService] JSON repairs: {', '.join(repairs_made)}")
+
+        return text
 
     def _parse_concepts_from_response(self, content: str) -> List[Dict[str, Any]]:
         """
         Robustly parse JSON content, handling common LLM formatting issues.
         
-        Handles:
-        - Markdown code blocks
-        - Trailing commas
-        - Truncated JSON
-        - Mixed content
+        MULTI-STAGE PIPELINE:
+        1. Repair: Apply _repair_json() to fix common issues
+        2. Extract: Try regex to find JSON array
+        3. Parse: Attempt direct json.loads()
+        4. Recover: Incremental parsing for truncated content
         
         Args:
             content: Raw response content from LLM
@@ -284,62 +381,114 @@ class BedrockService:
             List of parsed concept dictionaries
         """
         try:
-            # 1. Strip markdown
-            content = content.strip()
-            if content.startswith("```json"):
-                content = content[7:]
-            if content.startswith("```"):
-                content = content[3:]
-            if content.endswith("```"):
-                content = content[:-3]
-            content = content.strip()
+            # Stage 0: Basic validation
+            if not content or not content.strip():
+                print("[BedrockService] Empty content received")
+                return []
 
-            # 2. Try Regex Extraction first (most reliable for mixed content)
-            json_array_pattern = r'\[\s*\{.*?\}\s*\]'
+            # Stage 1: Apply repairs
+            content = self._repair_json(content)
+
+            # Stage 2: Try Regex Extraction first (most reliable for mixed content)
+            # Match array containing objects
+            json_array_pattern = r'\[\s*\{.*\}\s*\]'
             match = re.search(json_array_pattern, content, re.DOTALL)
 
             if match:
                 json_str = match.group(0)
                 try:
                     result = json.loads(json_str)
-                    return result
-                except json.JSONDecodeError:
-                    pass
+                    if isinstance(result, list):
+                        print(f"[BedrockService] Stage 2 success: {len(result)} concepts via regex")
+                        return result
+                except json.JSONDecodeError as e:
+                    print(f"[BedrockService] Stage 2 partial: regex found but parse failed: {e}")
+                    # Continue to next stage
 
-            # 3. Try Direct Parse
+            # Stage 3: Try Direct Parse
             try:
                 result = json.loads(content)
                 if isinstance(result, list):
+                    print(f"[BedrockService] Stage 3 success: {len(result)} concepts via direct parse")
                     return result
                 elif isinstance(result, dict) and "concepts" in result:
-                    return result["concepts"]
+                    concepts = result["concepts"]
+                    print(f"[BedrockService] Stage 3 success: {len(concepts)} concepts from wrapper")
+                    return concepts
+                elif isinstance(result, dict):
+                    # Single concept returned instead of array
+                    print("[BedrockService] Stage 3: Single object, wrapping in array")
+                    return [result]
             except json.JSONDecodeError:
                 pass
 
-            # 4. Try robust extraction for truncated JSON
+            # Stage 4: Incremental recovery for truncated JSON
+            # Try to extract individual complete objects
             concepts = []
             decoder = json.JSONDecoder()
             idx = 0
             
+            # Find the start of the array
+            array_start = content.find('[')
+            if array_start >= 0:
+                idx = array_start + 1
+
+            recovered_count = 0
             while idx < len(content):
+                # Skip whitespace and array syntax
+                while idx < len(content) and content[idx] in ' \t\n\r,[]':
+                    idx += 1
+                
+                if idx >= len(content):
+                    break
+
                 try:
                     obj, end_idx = decoder.raw_decode(content, idx)
                     if isinstance(obj, dict) and "name" in obj:
                         concepts.append(obj)
+                        recovered_count += 1
                     elif isinstance(obj, list):
                         concepts.extend(obj)
+                        recovered_count += len(obj)
                     idx = end_idx
-                    # Skip whitespace/commas
-                    while idx < len(content) and content[idx] in ' \t\n\r,[]':
-                        idx += 1
                 except json.JSONDecodeError:
+                    # Skip this character and try next position
                     idx += 1
 
             if concepts:
+                print(f"[BedrockService] Stage 4 recovery: {recovered_count} concepts extracted incrementally")
                 return concepts
 
+            print("[BedrockService] All parsing stages failed")
             return []
 
         except Exception as e:
             print(f"[ERROR] Error parsing concepts: {e}")
             return []
+
+    def _validate_scoring_field(self, concept: Dict[str, Any]) -> bool:
+        """
+        Validate that a concept has proper scoring metadata.
+        
+        Args:
+            concept: Concept dictionary to validate
+            
+        Returns:
+            True if scoring is valid, False otherwise
+        """
+        scoring = concept.get("scoring", {})
+        if not isinstance(scoring, dict):
+            return False
+        
+        keywords = scoring.get("keywords", [])
+        aliases = scoring.get("aliases", [])
+        
+        # Must have at least some keywords for scoring
+        if not isinstance(keywords, list) or len(keywords) < 1:
+            return False
+        
+        # Aliases are optional but must be a list if present
+        if not isinstance(aliases, list):
+            return False
+        
+        return True

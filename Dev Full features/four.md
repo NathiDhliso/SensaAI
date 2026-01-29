@@ -1,46 +1,3 @@
-## Product Vision & Market Position
-
-### Core Value Proposition
-SensaPBL is an AI-powered learning retention platform that helps professionals master complex technical subjects through active recall, spaced repetition, and structured learning phases. Unlike passive note-taking tools or basic flashcard apps, SensaPBL ensures knowledge transfer from recognition to real-world application.
-
-### Target Market (Priority Order)
-1. **Primary (Launch Focus):** Technical certification learners (AWS, Azure, GCP, Kubernetes) - 2M+ annual exam takers, willing to pay $15-20/mo
-2. **Secondary:** Medical students (USMLE, licensing exams) - 500K+ students, proven Anki users seeking better UX
-3. **Tertiary:** Graduate students (MBA, Law, Engineering) - 3M+ students
-4. **Future:** Corporate training and compliance (B2B enterprise contracts)
-
-### Business Model
-**Free Tier:**
-- 3 subjects maximum
-- 3 AI generations/month
-- Manual content entry unlimited
-- Basic spaced repetition
-- Text-only coach
-
-**Pro Tier ($15-20/month):**
-- Unlimited subjects
-- 25 AI generations/month
-- All coach personalities + voice
-- Cloud sync across devices
-- Advanced analytics
-- Priority generation speed
-- Export features (PDF, Anki, Markdown)
-
-**Team/Enterprise ($50-100/user/month):**
-- Custom knowledge bases
-- Team progress tracking
-- Admin dashboard
-- SSO integration
-- API access
-- Compliance reporting
-
-### Success Metrics
-**Activation:** 60% of signups create first subject within 24 hours
-**Engagement:** 40% WAU/MAU ratio, 15+ min average session
-**Retention:** 40% D30 retention, 25% D90 retention
-**Monetization:** 8% free→paid conversion, $18 ARPU, <5% monthly churn
-
----
 Complete End-to-End Feature Specifications
 1. AI Coach Feature (Complete Implementation)
 Overview
@@ -155,21 +112,22 @@ Coach responds based on situation:
 - Success: After submission
 - Transition: Moving to next phase
 
-PHASE 2 - SCOUT (Explore)
+PHASE 2 - BUILD (Construct Knowledge)
+Step 1: SCOUT (Explore)
 ┌─────────────────────────────────────────────────────┐
 │ 🔥 Coach                                  [🔊 Play] │
 │ "Survey the battlefield. Know what you're          │
 │  up against."                                       │
 └─────────────────────────────────────────────────────┘
 
-PHASE 1.5 - PREVIEW (Problem Preview)
+Step 2: PREVIEW (Problem Preview)
 ┌─────────────────────────────────────────────────────┐
 │ 🔥 Coach                                  [🔊 Play] │
 │ "Look at these problems. These are your TARGETS.   │
 │  Study them."                                       │
 └─────────────────────────────────────────────────────┘
 
-PHASE 2 - BUILD (Concept Map)
+Step 3: CONNECT (Concept Map)
 ┌─────────────────────────────────────────────────────┐
 │ 🔥 Coach                                  [🔊 Play] │
 │ "Concept map time. Connect the dots. Find the      │
@@ -188,7 +146,7 @@ When user struggles (no connections added in 3 min):
 │ [Hint: Look for shared keywords]                   │
 └─────────────────────────────────────────────────────┘
 
-PHASE 2.5 - APPLY (Work Problems)
+Step 4: APPLY (Work Problems)
 ┌─────────────────────────────────────────────────────┐
 │ 🔥 Coach                                  [🔊 Play] │
 │ "Theory is nothing without practice.               │
@@ -508,7 +466,7 @@ Generation starts (BACKEND JOB - cannot be cancelled):
 ┌─────────────────────────────────────────────────────┐
 │ Generating Content for "Azure Virtual Machines"     │
 │                                                      │
-│ Pass 1: Domain Analysis                             │
+│ Step 1: Processing Request                          │
 │ ████████████████████░░░░ 85%                        │
 │ Analyzing subject domain and identifying concepts... │
 │                                                      │
@@ -518,34 +476,24 @@ Generation starts (BACKEND JOB - cannot be cancelled):
 │ [View in Background]                                 │
 └─────────────────────────────────────────────────────┘
 
-After Pass 1 completes (Domain Analysis):
+After Step 1 completes (Analysis):
 ┌─────────────────────────────────────────────────────┐
-│ Pass 1: Complete ✓                                  │
+│ Step 1: Complete ✓                                  │
 │ Found 47 core concepts across 3 tiers               │
 │                                                      │
-│ Pass 2: Dependency Mapping                          │
+│ Step 2: Content Generation                          │
 │ ████████████░░░░░░░░░░░░ 50%                        │
-│ Mapping relationships between concepts...            │
+│ Generating detailed content and connections...      │
 └─────────────────────────────────────────────────────┘
 
-After Pass 2 completes (Dependency Mapping):
+After Step 2 completes (Generation):
 ┌─────────────────────────────────────────────────────┐
-│ Pass 2: Complete ✓                                  │
-│ Mapped 127 concept relationships                    │
-│                                                      │
-│ Pass 3: Content Generation                          │
-│ ████████████████████████ 100%                       │
-│ Generating detailed content for all concepts...     │
-└─────────────────────────────────────────────────────┘
-
-After Pass 3 completes (Content Generation):
-┌─────────────────────────────────────────────────────┐
-│ Pass 3: Complete ✓                                  │
+│ Step 2: Complete ✓                                  │
 │ Generated full content with SHAPE framework         │
 │                                                      │
-│ Pass 4: Quality Validation                          │
+│ Step 3: Finalizing                                  │
 │ ████████████████████████ 100%                       │
-│ Validating content quality...                       │
+│ Formatting and validating quality...                │
 └─────────────────────────────────────────────────────┘
 
 Progress Updates Via Polling:
@@ -631,7 +579,7 @@ User arrives at `/generate` and sees:
 
 #### F. Generation Complete
 ```
-All 4 passes complete:
+All steps complete:
 
 ┌─────────────────────────────────────────────────────┐
 │ 🎉 Generation Complete!                              │
@@ -693,7 +641,7 @@ if (activeJob && activeJob.status === 'processing') {
   │ You have an unfinished generation:              │
   │ Subject: Azure Virtual Machines                 │
   │ Started: 15 minutes ago                         │
-  │ Status: Processing (Pass 3 of 4)               │
+  │ Status: Processing (Step 2 of 3)                 │
   │                                                  │
   │ [Resume] [Cancel Job] [Check Status]           │
   └─────────────────────────────────────────────────┘
@@ -714,6 +662,16 @@ Server-Side Job Management:
 ```
 
 ### Generation Architecture
+
+#### Single-Pass Generation (Current)
+The current implementation uses a streamlined single-pass approach to minimize cost and latency while maintaining quality.
+
+1. **Combined Prompting**: A single, comprehensive prompt structure is used to generate concepts, their relationships, and detailed educational content (SHAPE framework) in one go.
+2. **Post-Processing**: The raw output is parsed, validated, and structured into the application's data model on the backend.
+3. **Validation**: Basic completeness checks ensure all required fields are present.
+
+### Future Enhancements: Multi-Pass Architecture (Planned)
+For higher complexity subjects or premium tiers, we will implement a 4-pass architecture:
 
 #### Pass 1: Domain Analysis
 ```
@@ -1013,7 +971,7 @@ NOT for:
 
 ### Error Scenarios & Recovery
 
-#### 1. Generation Fails (Pass 1-3)
+#### 1. Generation Fails (Step 1-3)
 ```
 Backend returns: { status: 'failed', error: 'API rate limit exceeded' }
 
@@ -1042,7 +1000,7 @@ Recovery:
 
 #### 2. Partial Generation (Incomplete Concepts)
 ```
-Pass 3 generates 40/47 concepts, then fails
+Step 2 generates 40/47 concepts, then fails
 
 System detects gap:
 const expectedCount = pass1Data.concepts.length // 47
@@ -1167,710 +1125,6 @@ Affects generation:
 - focusAreas → Filters what Claude emphasizes
 - learningStyle → Includes/excludes SHAPE sections
 - qualitySlider → Adjusts validation thresholds in Pass 4
-
-Complete End-to-End Feature Specifications 
-## 2.5 Content Marketplace & Sharing
-
-### Overview
-Transform SensaPBL from a personal learning tool into a collaborative platform where users can discover, use, and improve content created by others. This creates network effects, reduces AI costs by 90%+, and enables viral growth.
-
-### Business Impact
-**Cost Reduction:** 95% fewer AI generations needed (most users use existing content)
-**Growth Mechanism:** Shared content = free marketing (users share links)
-**Retention:** Users return to update/improve their published content
-**Monetization:** Premium content marketplace (users sell expert content)
-
----
-
-### Complete User Flow
-
-#### A. Discover Existing Content (New User Experience)
-
-User arrives at `/generate` and sees:
-
-[See Section 2.E for UI Details]
-
-**Key Features:**
-
-1. **Search & Discovery:**
-   - Real-time search as user types
-   - Shows most popular/highest rated first
-   - Filter by: Rating, Learner count, Recent, Expert verified
-   - Tags: #certification, #exam, #beginner, #advanced
-
-2. **Social Proof:**
-   - Learner count (how many people used this)
-   - Star rating + review count
-   - Recent reviews with actual quotes
-   - "Expert Verified" badge (manual review by team/community experts)
-
-3. **Version Tracking:**
-   - Last updated timestamp
-   - Version number
-   - Change log available on preview
-
-4. **Content Preview:**
-```
-┌─────────────────────────────────────────────────────┐
-│ Preview: AWS Solutions Architect Associate          │
-│ By: @sarah_cloud_guru                               │
-│                                                      │
-│ Stage 1: Foundation (12 concepts)                   │
-│ • EC2 Instances                                     │
-│ • VPCs and Subnets                                  │
-│ • S3 Buckets                                        │
-│ ... 9 more                                          │
-│                                                      │
-│ Stage 2: Core Services (15 concepts)                │
-│ • Load Balancers                                    │
-│ • Auto Scaling Groups                               │
-│ • RDS Databases                                     │
-│ ... 12 more                                         │
-│                                                      │
-│ Sample Concept: EC2 Instances                       │
-│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│
-│ Simple Core: Virtual servers in the cloud          │
-│                                                      │
-│ Metaphor: Like renting an apartment - you get a    │
-│ space with resources (CPU, RAM), but AWS owns the  │
-│ building (physical hardware).                       │
-│                                                      │
-│ High-Stakes Example: Company chose t2.micro for    │
-│ production database. Ran out of CPU credits during │
-│ Black Friday. Site went down. Lost $50K in sales.  │
-│ Lesson: Match instance type to workload.           │
-│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│
-│                                                      │
-│ Sample Practice Question:                           │
-│ Your app needs burst performance occasionally but   │
-│ low baseline. Which instance type?                  │
-│ A) t3 (Burstable) ✓                                │
-│ B) m5 (General Purpose)                            │
-│ C) c5 (Compute Optimized)                          │
-│                                                      │
-│ Quality Metrics:                                     │
-│ • Completeness: 95/100 (all concepts have SHAPE)   │
-│ • Accuracy: 4.8/5.0 (user-reported)                │
-│ • Freshness: Updated 2 days ago                    │
-│                                                      │
-│ [Use This Content] [Close Preview]                 │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-#### B. Use Existing Content (Instant Learning)
-
-User clicks [Use This Content]:
-```
-┌─────────────────────────────────────────────────────┐
-│ Add to Your Library                                  │
-│                                                      │
-│ Content: AWS Solutions Architect Associate          │
-│ By: @sarah_cloud_guru                               │
-│                                                      │
-│ This content will be added to your library.         │
-│ You can:                                             │
-│ • Start learning immediately                        │
-│ • Track your progress independently                 │
-│ • Make personal notes (not shared)                  │
-│ • Rate and review after studying                    │
-│                                                      │
-│ [Add to Library] [Cancel]                           │
-└─────────────────────────────────────────────────────┘
-```
-
-**Backend Implementation:**
-```typescript
-// No duplication - just reference
-await createContentReference({
-  userId: currentUserId,
-  contentId: 'sarah-aws-saa-v3.2',
-  sourceUserId: '@sarah_cloud_guru',
-  addedAt: Date.now()
-})
-
-// Track usage for creator
-await incrementContentUsage({
-  contentId: 'sarah-aws-saa-v3.2',
-  metric: 'learners'
-})
-```
-
-**Storage Efficiency:**
-```
-Without sharing: 
-- Each user has full copy
-- 1000 users × 2MB = 2GB storage
-
-With sharing:
-- Content stored once (2MB)
-- 1000 users reference it
-- 1000 × 100 bytes (reference) = 100KB
-Total: 2MB + 100KB (99.5% reduction!)
-```
-
----
-
-#### C. Clone & Edit (Customization)
-
-User clicks [Clone & Edit]:
-```
-┌─────────────────────────────────────────────────────┐
-│ Clone Content for Editing                           │
-│                                                      │
-│ Original: AWS Solutions Architect Associate         │
-│ By: @sarah_cloud_guru                               │
-│                                                      │
-│ You'll get a personal copy that you can modify.     │
-│                                                      │
-│ Your changes:                                        │
-│ ( ) Private - Only visible to you                   │
-│ (•) Public - Share your improvements                │
-│                                                      │
-│ Attribution:                                         │
-│ [x] Credit original creator                         │
-│ Your version will show:                             │
-│ "Based on @sarah_cloud_guru's AWS SAA content"      │
-│                                                      │
-│ [Clone & Start Editing] [Cancel]                    │
-└─────────────────────────────────────────────────────┘
-```
-
-**Use Cases:**
-1. **Personalization:** Add your own notes, examples
-2. **Updates:** Original is outdated, you update for 2026 exam
-3. **Specialization:** Focus on specific area (e.g., "AWS SAA - Security Focus")
-4. **Translation:** Same concepts, different language
-5. **Remixing:** Combine multiple sources into custom curriculum
-
-**Version Tree:**
-```
-Original: @sarah_cloud_guru/AWS-SAA v3.2 (2,847 learners)
-  ├─ Fork: @john_doe/AWS-SAA-Updated v1.0 (143 learners)
-  ├─ Fork: @maria/AWS-SAA-Security-Focus v2.1 (891 learners)
-  └─ Fork: @alex/AWS-SAA-Simplified v1.3 (67 learners)
-```
-
----
-
-#### D. Publish Your Content (Creator Flow)
-
-After user generates or creates content, show:
-```
-┌─────────────────────────────────────────────────────┐
-│ 🎉 Content Created: Kubernetes Fundamentals         │
-│                                                      │
-│ 42 concepts • 5 stages • Generated by AI            │
-│                                                      │
-│ Share with the community?                           │
-│                                                      │
-│ Benefits of publishing:                             │
-│ ✓ Help other learners (pay it forward)             │
-│ ✓ Get feedback and improvements                     │
-│ ✓ Build reputation (leaderboard ranking)           │
-│ ✓ Earn credits for future AI generations           │
-│                                                      │
-│ Visibility:                                          │
-│ ( ) Private - Only me                               │
-│ ( ) Unlisted - Anyone with link                     │
-│ (•) Public - Searchable by everyone                 │
-│                                                      │
-│ Licensing:                                           │
-│ (•) Free - Anyone can use                           │
-│ ( ) Premium - $5-20 one-time purchase (coming soon) │
-│                                                      │
-│ [Publish] [Keep Private] [Decide Later]            │
-└─────────────────────────────────────────────────────┘
-```
-
-**Incentive System:**
-```typescript
-interface CreatorRewards {
-  // Immediate rewards
-  generationCredits: number // 1 credit per 100 learners
-  
-  // Reputation
-  contributorBadge: boolean // Unlocked at 5 published subjects
-  expertBadge: boolean // Unlocked at 1000+ learners
-  
-  // Future: Monetary
-  earnings: number // From premium content sales
-}
-
-// Example: Sarah's AWS SAA content
-{
-  learners: 2847,
-  generationCredits: 28, // 2847 / 100
-  contributorBadge: true,
-  expertBadge: true,
-  averageRating: 4.8,
-  leaderboardRank: 12
-}
-```
-
----
-
-#### E. Community Quality Control
-
-**Rating & Reviews:**
-```
-┌─────────────────────────────────────────────────────┐
-│ Rate This Content                                    │
-│                                                      │
-│ AWS Solutions Architect Associate                   │
-│ By: @sarah_cloud_guru                               │
-│                                                      │
-│ Overall Quality: ⭐⭐⭐⭐⭐                           │
-│                                                      │
-│ Accuracy: ⭐⭐⭐⭐⭐                                   │
-│ How accurate is the content?                        │
-│                                                      │
-│ Completeness: ⭐⭐⭐⭐☆                               │
-│ Does it cover everything needed?                    │
-│                                                      │
-│ Clarity: ⭐⭐⭐⭐⭐                                    │
-│ Is it easy to understand?                           │
-│                                                      │
-│ Up-to-date: ⭐⭐⭐⭐⭐                                 │
-│ Is information current?                             │
-│                                                      │
-│ Comments (optional):                                 │
-│ ┌────────────────────────────────────────────────┐ │
-│ │ This is the best AWS SAA prep I've found.      │ │
-│ │ Passed my exam first try! The high-stakes      │ │
-│ │ examples really helped me remember key points. │ │
-│ └────────────────────────────────────────────────┘ │
-│                                                      │
-│ [Submit Review] [Skip]                              │
-└─────────────────────────────────────────────────────┘
-```
-
-**Report Issues:**
-```
-┌─────────────────────────────────────────────────────┐
-│ Report Issue                                         │
-│                                                      │
-│ Concept: EC2 Instance Types                        │
-│                                                      │
-│ Issue Type:                                          │
-│ (•) Inaccurate information                          │
-│ ( ) Outdated (exam changed)                         │
-│ ( ) Confusing explanation                           │
-│ ( ) Missing critical info                           │
-│ ( ) Inappropriate content                           │
-│                                                      │
-│ Details:                                             │
-│ ┌────────────────────────────────────────────────┐ │
-│ │ The content says t2.micro has 2 GB RAM, but    │ │
-│ │ it actually has 1 GB. This is a critical error │ │
-│ │ for exam prep.                                  │ │
-│ └────────────────────────────────────────────────┘ │
-│                                                      │
-│ [Submit Report] [Cancel]                            │
-└─────────────────────────────────────────────────────┘
-```
-
-**Creator Response:**
-```
-Creator gets notification:
-"Your content 'AWS SAA' has a new issue report"
-
-Creator can:
-1. Fix the issue (update content)
-2. Respond to clarify
-3. Mark as invalid
-
-If ignored for 7 days:
-- Issue becomes visible to all users
-- Rating may be affected
-- "Unresolved issues" badge shows
-```
-
-**Expert Verification:**
-```
-For high-value content:
-1. Community nominates for verification
-2. SensaPBL team or verified experts review
-3. If accurate: Add "✓ Expert Verified" badge
-4. Content gets boosted in search rankings
-
-Criteria for expert review:
-- 500+ learners
-- 4.5+ average rating
-- Active creator (responds to issues)
-- High-stakes domain (certifications, medical)
-```
-
----
-
-#### F. Content Discovery Features
-
-**Browse by Category:**
-```
-┌─────────────────────────────────────────────────────┐
-│ Browse Learning Content                             │
-│                                                      │
-│ 🏆 Most Popular                                     │
-│ • AWS Solutions Architect (2,847 learners)          │
-│ • Kubernetes CKA (1,923 learners)                   │
-│ • Azure Administrator (1,654 learners)              │
-│                                                      │
-│ 🔥 Trending This Week                               │
-│ • ChatGPT Prompt Engineering (+891 learners)        │
-│ • Python Data Science (+673 learners)               │
-│                                                      │
-│ ⭐ Highest Rated                                     │
-│ • AWS SAA Official (4.9/5.0, 891 reviews)           │
-│ • Docker Deep Dive (4.8/5.0, 432 reviews)           │
-│                                                      │
-│ 🆕 Recently Added                                    │
-│ • GitHub Actions CI/CD (2 days ago)                 │
-│ • Terraform Certification (5 days ago)              │
-│                                                      │
-│ 📚 Categories:                                       │
-│ [Cloud Computing] [Kubernetes] [Security]           │
-│ [Databases] [DevOps] [Programming]                  │
-│ [Medical] [Business] [Languages]                    │
-└─────────────────────────────────────────────────────┘
-```
-
-**Personalized Recommendations:**
-```
-┌─────────────────────────────────────────────────────┐
-│ Recommended for You                                  │
-│                                                      │
-│ Based on your learning:                             │
-│ • AWS Solutions Architect                           │
-│ • Docker Fundamentals                               │
-│                                                      │
-│ You might like:                                      │
-│                                                      │
-│ ┌──────────────────────────────────────────────────┐│
-│ │ Kubernetes CKA Certification                     ││
-│ │ Natural next step after Docker                   ││
-│ │ ⭐ 4.7/5.0 • 1,923 learners                      ││
-│ │ [Add to Library]                                 ││
-│ └──────────────────────────────────────────────────┘│
-│                                                      │
-│ ┌──────────────────────────────────────────────────┐│
-│ │ AWS EKS Deep Dive                                ││
-│ │ Combines AWS + Kubernetes knowledge              ││
-│ │ ⭐ 4.6/5.0 • 542 learners                        ││
-│ │ [Add to Library]                                 ││
-│ └──────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-### Technical Implementation
-
-**Data Models:**
-```typescript
-interface SharedContent {
-  id: string
-  title: string
-  description: string
-  creatorId: string
-  creatorUsername: string
-  
-  // Content
-  concepts: Concept[]
-  stages: Stage[]
-  practiceQuestions: Question[]
-  
-  // Metadata
-  createdAt: string
-  updatedAt: string
-  version: string
-  
-  // Visibility
-  visibility: 'private' | 'unlisted' | 'public'
-  license: 'free' | 'premium'
-  price?: number // For premium content
-  
-  // Social
-  learnerCount: number // How many people using this
-  rating: number // Average rating
-  reviewCount: number
-  forkCount: number // How many clones
-  
-  // Attribution
-  forkedFrom?: string // Original content ID
-  
-  // Quality
-  expertVerified: boolean
-  issueCount: number
-  lastQualityReview?: string
-  
-  // Search
-  tags: string[] // ['aws', 'certification', '2026']
-  category: string // 'Cloud Computing'
-  difficulty: 'beginner' | 'intermediate' | 'advanced'
-}
-
-interface ContentReference {
-  userId: string
-  contentId: string
-  addedAt: string
-  
-  // Personal data (not shared)
-  progress: {
-    completed: number
-    total: number
-    lastStudied: string
-  }
-  personalNotes: string
-  rated: boolean
-}
-
-interface ContentReview {
-  id: string
-  contentId: string
-  userId: string
-  username: string
-  
-  ratings: {
-    overall: number // 1-5
-    accuracy: number
-    completeness: number
-    clarity: number
-    upToDate: number
-  }
-  
-  comment: string
-  createdAt: string
-  
-  // Moderation
-  helpful: number // Upvotes
-  reported: boolean
-}
-
-interface ContentIssue {
-  id: string
-  contentId: string
-  conceptId?: string // Specific concept if applicable
-  reporterId: string
-  
-  type: 'inaccurate' | 'outdated' | 'confusing' | 'missing' | 'inappropriate'
-  description: string
-  
-  status: 'open' | 'acknowledged' | 'resolved' | 'invalid'
-  creatorResponse?: string
-  resolvedAt?: string
-  
-  createdAt: string
-}
-```
-
-**DynamoDB Schema:**
-```typescript
-// Table: sensa-shared-content
-PK: contentId
-SK: 'METADATA'
-Attributes: SharedContent
-
-// GSI1: Search by creator
-GSI1-PK: creatorId
-GSI1-SK: createdAt
-
-// GSI2: Search by category
-GSI2-PK: category
-GSI2-SK: learnerCount (for sorting by popularity)
-
-// GSI3: Search by tags
-GSI3-PK: tag
-GSI3-SK: rating (for sorting by quality)
-
-// Table: sensa-content-references
-PK: userId
-SK: contentId
-Attributes: ContentReference
-
-// Table: sensa-content-reviews
-PK: contentId
-SK: reviewId
-Attributes: ContentReview
-
-// Table: sensa-content-issues
-PK: contentId
-SK: issueId
-Attributes: ContentIssue
-```
-
-**Search Implementation:**
-```typescript
-// Algolia or ElasticSearch for fast full-text search
-async function searchContent(query: string, filters?: Filters) {
-  const results = await algolia.search('shared_content', {
-    query,
-    filters: [
-      filters.category && `category:${filters.category}`,
-      filters.minRating && `rating>=${filters.minRating}`,
-      filters.verified && `expertVerified:true`
-    ].filter(Boolean).join(' AND '),
-    
-    // Ranking
-    customRanking: [
-      'desc(learnerCount)', // Most popular first
-      'desc(rating)',       // Highest rated
-      'desc(updatedAt)'     // Most recent
-    ]
-  })
-  
-  return results.hits
-}
-
-// On content publish/update
-async function indexContent(content: SharedContent) {
-  await algolia.saveObject('shared_content', {
-    objectID: content.id,
-    title: content.title,
-    description: content.description,
-    creator: content.creatorUsername,
-    category: content.category,
-    tags: content.tags,
-    learnerCount: content.learnerCount,
-    rating: content.rating,
-    expertVerified: content.expertVerified,
-    updatedAt: content.updatedAt
-  })
-}
-```
-
----
-
-### Monetization Opportunities
-
-**1. Freemium Model (Enhanced):**
-```
-Free:
-- Use any free community content (unlimited)
-- Create 3 subjects (AI or manual)
-- Share unlimited content
-
-Pro ($15-20/mo):
-- Generate 25 subjects with AI
-- Access premium community content
-- Sell your own premium content (SensaPBL takes 30%)
-- Priority support for your published content
-- Analytics on who's using your content
-```
-
-**2. Creator Marketplace (Future):**
-```
-Creators can sell premium content:
-- Expert-created certification prep: $20-50
-- Specialized medical content: $50-200
-- Corporate training modules: $100-500
-
-Revenue split:
-- Creator: 70%
-- SensaPBL: 30%
-
-Quality bar:
-- Must be expert verified
-- Minimum 4.8 rating
-- Active maintenance commitment
-```
-
-**3. Enterprise Features:**
-```
-Company Knowledge Base:
-- Company publishes internal training content
-- Only visible to company employees
-- Track team-wide completion rates
-- Custom branding
-
-Pricing: $50-100/user/month
-```
-
----
-
-### Growth Loops
-
-**Loop 1: Content Sharing**
-```
-1. User generates great content with AI
-2. User publishes to help others
-3. 100 people use it (notification to user)
-4. Those 100 tell their friends
-5. Traffic to SensaPBL increases
-6. Some of those 100 publish their own content
-7. Repeat
-```
-
-**Loop 2: Search Engine Traffic**
-```
-1. User publishes "AWS SAA Study Guide"
-2. Content page is public & SEO-optimized
-3. Google indexes it
-4. Someone searches "AWS SAA study guide"
-5. Finds SensaPBL result
-6. Signs up to use it
-7. Creates their own content
-8. More indexed pages → more SEO traffic
-```
-
-**Loop 3: Social Proof**
-```
-1. Content gets 1000+ learners
-2. Shows up in "Most Popular"
-3. New users see social proof
-4. More likely to trust and use platform
-5. More users = more content
-6. More content = more users
-```
-
----
-
-### Moderation & Safety
-
-**Automated Checks:**
-```typescript
-// On content publish
-async function moderateContent(content: SharedContent) {
-  // Check for spam/inappropriate content
-  const toxicityScore = await perspectiveAPI.analyze(content.description)
-  if (toxicityScore > 0.8) {
-    return { approved: false, reason: 'inappropriate' }
-  }
-  
-  // Check for plagiarism (against known sources)
-  const similarity = await checkPlagiarism(content)
-  if (similarity > 0.9) {
-    return { approved: false, reason: 'duplicate' }
-  }
-  
-  // Check quality
-  const qualityScore = calculateQualityScore(content)
-  if (qualityScore < 50) {
-    return { approved: false, reason: 'low_quality' }
-  }
-  
-  return { approved: true }
-}
-```
-
-**Community Moderation:**
-```
-1. Users can report issues
-2. Content with 10+ reports gets auto-hidden
-3. Creator has 7 days to respond
-4. SensaPBL team does final review
-5. Repeated violations → Creator ban
-```
-
-**Quality Standards:**
-```
-Minimum to publish:
-- At least 10 concepts
-- All concepts have SHAPE framework
-- At least 5 practice questions
-- Pass plagiarism check
-- Pass toxicity check
-```
 
 ---
 
@@ -2685,22 +1939,7 @@ Attributes: {
 - IndexedDB: ~50MB per subject (browser limit: 500MB-1GB)
 
 ---
-### F. Shared Content Storage
-
-Content references instead of duplication:
-
-**Storage Efficiency:**
-```
-Without sharing: 
-- Each user has full copy
-- 1000 users × 2MB = 2GB storage
-
-With sharing:
-- Content stored once (2MB)
-- 1000 users reference it
-- 1000 × 100 bytes (reference) = 100KB
-Total: 2MB + 100KB (99.5% reduction!)
-```
+---
 
 4. Learning Session Feature (Complete Implementation)
 Overview
@@ -3658,165 +2897,3 @@ After 24 hours, stale progress is deleted:
 cleanupExpiredProgress() // Runs on app init
 
 ---
-
-## 5. Development Roadmap & Phasing
-
-### Phase 1: MVP (Months 1-3)
-**Goal:** Validate core value proposition with 100-500 users
-
-**Features:**
-- Single-pass AI content generation (Standard depth only)
-- Manual content entry (fallback option)
-- 4-phase learning session (Learn → Connect → Recall → Apply)
-- Text-only coach (2 personalities)
-- Basic spaced repetition (fixed intervals: 1, 3, 7, 14, 30 days)
-- localStorage + IndexedDB only (no cloud yet)
-- Web app only (no mobile apps)
-
-**Metrics to validate:**
-- Do users complete at least 1 full learning session? (Target: 40%)
-- Do users return for reviews? (Target: 30% D7 retention)
-- Would users pay? (Survey: 50%+ say "definitely yes")
-
-### Phase 2: Cloud & Polish (Months 4-5)
-**Goal:** Make it production-ready for paid launch
-
-**Features:**
-- User authentication (Clerk or Supabase Auth)
-- Cloud storage (DynamoDB + S3)
-- Cross-device sync
-- Improved UI/UX based on feedback
-- Basic analytics dashboard
-- Stripe payment integration
-- Email notifications for reviews
-
-### Phase 3: Premium Features (Months 6-7)
-**Goal:** Justify $15-20/month pricing
-
-**Features:**
-- Browser TTS voice coach
-- Advanced analytics (retention curves, concept mastery)
-- Export features (PDF, Anki, Markdown)
-- Team features (share subjects, track team progress)
-- Mobile PWA (not native apps yet)
-- 3rd coach personality based on user requests
-
-### Phase 4: Scale & Optimize (Months 8-12)
-**Goal:** Get to 1,000+ paying users
-
-**Features:**
-- Pre-recorded coach voice (20 key messages)
-- Native mobile apps (iOS, Android)
-- Content marketplace (users share/sell subjects)
-- API for integrations
-- Advanced concept mapping (auto-suggestions)
-- White-label option for B2B
-
-### Not Building (At Least Year 1):
-- ❌ Multi-language support
-- ❌ Video content integration
-- ❌ Live tutoring/coaching
-- ❌ Social features (forums, chat)
-- ❌ Custom AI model training
-
----
-
-## 5. Development Roadmap & Phasing
-
-### Phase 1: MVP Launch (Month 1-3)
-**Goal:** Prove the "Learn faster with SHAPE" value proposition
-**Features:**
-- AI Generation (AWS Bedrock) - Single user
-- AI Coach (Text-only)
-- Learning Sessions (4 phases)
-- Basic spaced repetition cards
-
-### Phase 2: Cloud & Polish (Months 4-5)
-**Goal:** Make it production-ready for paid launch
-**Features:**
-- User authentication
-- Cloud storage (DynamoDB + S3)
-- Cross-device sync
-- Stripe payment integration
-
-### Phase 2.5: Community Platform (Months 6-7)
-**Goal:** Transform into collaborative platform
-
-**Features:**
-- Content sharing & discovery
-- Search & browse published content
-- Rating & review system
-- Creator profiles & reputation
-- Content forking & remixing
-- Basic moderation tools
-
-### Phase 3: Premium Features (Months 8-9)
-**Goal:** Justify higher pricing tiers
-**Features:**
-- Browser TTS voice coach
-- Advanced analytics
-- Team features
-- Mobile PWA
-
-### Phase 4: Marketplace (Year 2)
-**Goal:** Scale with Creator Economy
-**Features:**
-- Premium content sales
-- Creator monetization
-- Expert verification program
-- Advanced analytics for creators
-- Native mobile apps
-
----
-
-## 6. Technical & Business Risks
-
-### Risk 1: AI Costs Spiral
-**Mitigation:**
-- Aggressive caching (30-day TTL for common subjects)
-- Pre-generate top 50 certification subjects
-- Use cheaper models (Haiku) for validation
-- Rate limiting per tier (Free: 3/mo, Pro: 25/mo)
-- Monitor cost per generation, alert if >$0.20
-
-**Budget:** $500-2000/month for 1000-5000 generations
-
-### Risk 2: Low Engagement (Users Don't Return)
-**Mitigation:**
-- Email reminders for reviews (not too spammy)
-- Push notifications (with user permission)
-- Streak tracking (gamification)
-- Make reviews quick (5-10 min sessions)
-- Flexible scheduling (not militant like Anki)
-
-**Target:** 30% D7 retention, 20% D30 retention
-
-### Risk 3: Content Quality Issues
-**Mitigation:**
-- Validation scoring in generation pipeline
-- User reporting ("This seems wrong")
-- Human QA for top 50 subjects
-- Community voting on accuracy
-- "AI-generated" badge + disclaimer
-
-**Process:** Review flagged content weekly, fix within 48 hours
-
-### Risk 4: Users Won't Pay
-**Mitigation:**
-- Start with generous free tier (validate value first)
-- Clear upgrade prompts when limits hit
-- 7-day free trial of Pro features
-- Target users who already pay (cert exam prep)
-- Show ROI: "This costs less than 1 practice exam"
-
-**Pricing research:** Survey 100 beta users before launch
-
-### Risk 5: Technical Complexity
-**Mitigation:**
-- Use proven tech stack (Next.js, Tailwind, AWS)
-- Simplify Phase 1 scope ruthlessly
-- Buy vs build (Auth: Clerk, Payments: Stripe, Email: Resend)
-- Hire contractor for complex pieces (if needed)
-- Budget 20% extra time for unknowns
-
-**Complexity score:** Medium (AI integration is hardest part)

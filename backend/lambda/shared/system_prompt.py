@@ -30,6 +30,10 @@ To support the "NO FALLBACKS" policy, EVERY concept must be fully fleshed out wi
 - **Understanding**: description, keyPoints, whyYouNeed, technicalDetails, shape (simpleCore, highStakesExample, analogicalModel)
 - **Application**: phase2 (content), phase3 (tool, metrics)
 - **Relationship**: connections (MUST be strictly typed: requires, extends, enables, contains), criticalDistinctions, designBoundaries
+- **Scoring**: scoring (MANDATORY for Blank Sheet Test support)
+  - `keywords`: Array of 3-5 essential terms required for a correct definition
+  - `aliases`: Array of 3-5 synonyms or alternative phrasings for fuzzy matching
+  - Do NOT include the concept name itself in keywords
 
 ### COGNITIVE CLASSIFICATION (Bloom's Taxonomy):
 Assign one to `cognitiveLevel`: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`.
@@ -109,6 +113,10 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
       "eliminationLogic": "[A] for [X], [B] for [Y]."
     }},
     "keyPoints": ["Point 1", "Point 2", "Point 3"],
+    "scoring": {{
+      "keywords": ["essential_term_1", "essential_term_2", "essential_term_3"],
+      "aliases": ["synonym_1", "synonym_2", "alternative_phrasing"]
+    }},
     "criticalDistinctions": [{{ "correct": "...", "incorrect": "..." }}],
     "designBoundaries": [{{ "boundary": "...", "rationale": "..." }}],
     "connections": [

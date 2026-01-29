@@ -82,3 +82,35 @@ module "lambda" {
   depends_on = [module.dynamodb]
 }
 
+# API Gateway v2 (HTTP API) for Lambda Functions
+module "api_gateway" {
+  source = "./modules/api_gateway"
+
+  environment  = var.environment
+  project_name = "sensapbl"
+  aws_region   = var.aws_region
+
+  # Lambda integration
+  generate_concepts_function_name = module.lambda.generate_concepts_function_name
+  generate_concepts_invoke_arn    = module.lambda.generate_concepts_invoke_arn
+  query_concepts_function_name    = module.lambda.query_concepts_function_name
+  query_concepts_invoke_arn       = module.lambda.query_concepts_invoke_arn
+
+  # CORS for frontend
+  cors_allowed_origins = var.cors_allowed_origins
+
+  # Throttling - conservative for pilot
+  throttling_burst_limit = var.environment == "pilot" ? 50 : 200
+  throttling_rate_limit  = var.environment == "pilot" ? 25 : 100
+
+  # JWT Authorization - disabled for pilot, enable in prod
+  enable_jwt_authorizer = var.environment == "prod"
+  cognito_user_pool_id  = module.cognito.user_pool_id
+  cognito_client_id     = module.cognito.client_id
+
+  tags = {
+    Component = "ServerlessLearning"
+  }
+
+  depends_on = [module.lambda]
+}

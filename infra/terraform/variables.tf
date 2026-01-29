@@ -24,3 +24,14 @@ variable "cognito_logout_urls" {
   type        = list(string)
   default     = ["http://localhost:5173"]
 }
+
+# API Gateway CORS
+variable "cors_allowed_origins" {
+  description = "Allowed CORS origins for API Gateway"
+  type        = list(string)
+  default     = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175"
+  ]
+}

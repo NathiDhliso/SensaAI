@@ -1,8 +1,13 @@
 /**
  * BlankSheetTestComponent
  * 
+ * PRODUCTION-HARDENED VERSION
+ * 
  * Implements the blank sheet test for measuring knowledge retention.
  * Clean, distraction-free interface with real-time typing metrics.
+ * 
+ * Now integrates with BlankSheetScorer for fuzzy keyword matching when
+ * concept has scoring metadata (keywords/aliases from LLM generation).
  * 
  * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
  */
@@ -31,6 +36,7 @@ import {
     type BlankSheetScore
 } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { calculateRecallScore } from '@/lib/learning/scoring/blank-sheet-scorer';
 import styles from './BlankSheetTest.module.css';
 
 // ============================================================================
@@ -69,6 +75,12 @@ export interface BlankSheetResult {
     needsRemediation: boolean;
     /** Remediation attempts count */
     remediationAttempts?: number;
+    /** Keywords matched by BlankSheetScorer (when available) */
+    matchedKeywords?: string[];
+    /** Alias matches from BlankSheetScorer (when available) */
+    aliasMatches?: string[];
+    /** Feedback from BlankSheetScorer (when available) */
+    scoringFeedback?: string;
 }
 
 export interface TypingMetrics {
@@ -136,7 +148,7 @@ function analyzeResponse(
         // ARCHITECT FIX: Negation Detection
         // Check if key point contains negation (e.g., "cannot be null")
         const keyPointIsNegative = negationWords.some(neg => point.toLowerCase().includes(neg));
-        
+
         // Check if user response contains negation near matched keywords (within 3 words)
         let negationPenalty = 0;
         if (wordMatches.length > 0 && !keyPointIsNegative) {
@@ -144,16 +156,16 @@ function analyzeResponse(
             for (const match of wordMatches) {
                 const matchIndex = responseText.indexOf(match);
                 if (matchIndex === -1) continue;
-                
+
                 // Extract window of ±3 words around the match
                 const beforeText = responseText.slice(Math.max(0, matchIndex - 30), matchIndex);
                 const afterText = responseText.slice(matchIndex, matchIndex + match.length + 30);
-                
+
                 // Check if negation appears near the keyword
-                const hasNegationNearby = negationWords.some(neg => 
+                const hasNegationNearby = negationWords.some(neg =>
                     beforeText.includes(neg) || afterText.includes(neg)
                 );
-                
+
                 if (hasNegationNearby) {
                     negationPenalty += 0.3; // Reduce confidence by 30% per negated keyword
                 }
@@ -302,33 +314,64 @@ export function BlankSheetTest({
 
         setIsSubmitting(true);
 
-        // Analyze response
-        const analysis = analyzeResponse(response, keyPoints);
-
         // Get final metrics at submit time
         const finalMetrics = getMetrics();
 
-        const blankSheetResult: BlankSheetResult = {
-            responseText: response,
-            score: analysis.score,
-            identifiedPoints: analysis.results
-                .filter(r => r.status === 'identified')
-                .map(r => r.point),
-            missedPoints: analysis.results
-                .filter(r => r.status === 'missed')
-                .map(r => r.point),
-            uncertainPoints: analysis.results
-                .filter(r => r.status === 'uncertain')
-                .map(r => r.point),
-            scoringConfidence: analysis.confidence,
-            metrics: finalMetrics,
-            needsRemediation: analysis.score < 60,
-        };
+        // Check if concept has scoring metadata for enhanced scoring
+        const conceptScoring = (concept as { scoring?: { keywords?: string[]; aliases?: string[] } }).scoring;
+        const hasScoring = conceptScoring?.keywords && conceptScoring.keywords.length > 0;
+
+        let blankSheetResult: BlankSheetResult;
+
+        if (hasScoring) {
+            // Use enhanced BlankSheetScorer with keyword matching
+            // Type is narrowed by hasScoring check above
+            const scorerResult = calculateRecallScore(response, {
+                scoring: {
+                    keywords: conceptScoring!.keywords!,
+                    aliases: conceptScoring!.aliases || []
+                }
+            });
+
+            blankSheetResult = {
+                responseText: response,
+                score: scorerResult.score,
+                identifiedPoints: scorerResult.matchedKeywords,
+                missedPoints: scorerResult.missedKeywords,
+                uncertainPoints: [], // Scorer doesn't have uncertain state
+                scoringConfidence: scorerResult.confidence,
+                metrics: finalMetrics,
+                needsRemediation: scorerResult.score < 60,
+                matchedKeywords: scorerResult.matchedKeywords,
+                aliasMatches: scorerResult.aliasMatches,
+                scoringFeedback: scorerResult.feedback,
+            };
+        } else {
+            // Fallback to key-point analysis
+            const analysis = analyzeResponse(response, keyPoints);
+
+            blankSheetResult = {
+                responseText: response,
+                score: analysis.score,
+                identifiedPoints: analysis.results
+                    .filter(r => r.status === 'identified')
+                    .map(r => r.point),
+                missedPoints: analysis.results
+                    .filter(r => r.status === 'missed')
+                    .map(r => r.point),
+                uncertainPoints: analysis.results
+                    .filter(r => r.status === 'uncertain')
+                    .map(r => r.point),
+                scoringConfidence: analysis.confidence,
+                metrics: finalMetrics,
+                needsRemediation: analysis.score < 60,
+            };
+        }
 
         // Generate AI Coach Feedback (single concept mode)
         const scoreAdapter: BlankSheetScore = {
             conceptsRecalled: blankSheetResult.identifiedPoints.length,
-            conceptsTotal: keyPoints.length,
+            conceptsTotal: hasScoring ? conceptScoring!.keywords!.length : keyPoints.length,
             connectionsRecalled: 0,
             connectionsTotal: 0,
             labelsAccuracy: 0,
@@ -343,7 +386,7 @@ export function BlankSheetTest({
         setResult(blankSheetResult);
         setShowResults(true);
         setIsSubmitting(false);
-    }, [response, keyPoints, isValid, getMetrics, selectedPersona]);
+    }, [response, keyPoints, concept, isValid, getMetrics, selectedPersona]);
 
     // Handle continue after results
     const handleContinue = useCallback(() => {
