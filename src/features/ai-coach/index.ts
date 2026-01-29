@@ -3,7 +3,9 @@
  * AI coach personalities, voice, and mood-based adjustments
  */
 
-export * from './personas';
+import { getPersona, getPersonaResponse, type PersonaId } from './personas';
+
+export { getPersona, getPersonaResponse, getAllPersonas, PERSONAS, type PersonaId, type PhaseKey, type PhaseResponses } from './personas';
 export * from './voice/static-lines';
 export * from './voice/useVoice';
 
@@ -52,7 +54,7 @@ export const MOOD_OPTIONS: MoodOption[] = [
 /**
  * Get mood-adjusted intro from persona
  */
-export function getMoodAdjustedIntro(personaId: string, mood: Mood): string {
+export function getMoodAdjustedIntro(personaId: PersonaId, mood: Mood): string {
     const persona = getPersona(personaId);
     const baseIntro = getPersonaResponse(personaId, 'prime', 'intro');
 
@@ -60,25 +62,25 @@ export function getMoodAdjustedIntro(personaId: string, mood: Mood): string {
     switch (mood) {
         case 'tired':
             if (persona.traits.warmth >= 4) {
-                return `I see you're tired today. That's okay—showing up is what matters. ``;
+                return `I see you're tired today. That's okay—showing up is what matters. ${baseIntro}`;
             } else if (persona.traits.intensity >= 4) {
-                return `Tired? That's when champions separate themselves. ``;
+                return `Tired? That's when champions separate themselves. ${baseIntro}`;
             }
             return baseIntro;
 
         case 'stressed':
             if (persona.traits.warmth >= 4) {
-                return `Take a moment. Breathe. Learning will help clear your mind. ``;
+                return `Take a moment. Breathe. Learning will help clear your mind. ${baseIntro}`;
             } else if (personaId === 'socratic') {
-                return `What's causing the stress? Perhaps focused learning can provide clarity. ``;
+                return `What's causing the stress? Perhaps focused learning can provide clarity. ${baseIntro}`;
             }
             return baseIntro;
 
         case 'energized':
             if (persona.traits.intensity >= 4) {
-                return `I like that energy! Let's channel it. ``;
+                return `I like that energy! Let's channel it. ${baseIntro}`;
             }
-            return `Great energy today! ``;
+            return `Great energy today! ${baseIntro}`;
 
         default:
             return baseIntro;
@@ -185,17 +187,14 @@ class AICoachService {
         return this.sessionMood;
     }
 
-    getResponse(personaId: string, situation: string, phase?: string): string {
+    getResponse(personaId: PersonaId, situation: string, phase?: string): string {
         const targetPhase = phase || this.currentPhase;
-        return getPersonaResponse(personaId, targetPhase, situation);
+        return getPersonaResponse(personaId, targetPhase as any, situation as any);
     }
 
-    getIntro(personaId: string, mood?: Mood): string {
+    getIntro(personaId: PersonaId, mood?: Mood): string {
         return getMoodAdjustedIntro(personaId, mood || this.sessionMood);
     }
 }
 
 export const aiCoach = AICoachService.getInstance();
-
-// Import from personas for the functions used above
-import { getPersona, getPersonaResponse } from './personas';
