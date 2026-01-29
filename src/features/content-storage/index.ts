@@ -8,4 +8,5 @@ export * from './local/browser-storage';
 export * from './sync/import';
 
 // Re-export storageManager from old location for backwards compatibility
-export { storageManager } from '@/lib/storage';
+export { storageManager } from './manager';
+

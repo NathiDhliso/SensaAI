@@ -36,7 +36,7 @@ import {
     type BlankSheetScore
 } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { calculateRecallScore } from '@/lib/learning/scoring/blank-sheet-scorer';
+import { calculateRecallScore } from '@/features/learning-session/scoring/blank-sheet-scorer';
 import styles from './BlankSheetTest.module.css';
 
 // ============================================================================
@@ -592,3 +592,4 @@ export function BlankSheetTest({
 }
 
 export default BlankSheetTest;
+

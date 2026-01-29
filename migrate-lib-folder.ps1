@@ -1,3 +1,18 @@
+# Full Migration Script: src/lib/ → src/features/ and src/shared/
+# This script completes the folder reorganization
+
+Write-Host "Starting full migration of src/lib/ folder..." -ForegroundColor Cyan
+Write-Host ""
+
+# Step 1: Move AI Coach files
+Write-Host "Step 1: Migrating AI Coach..." -ForegroundColor Yellow
+
+# Read the old coach index.ts content
+$oldCoachContent = Get-Content "src/lib/ai/coach/index.ts" -Raw
+
+# Merge it into the new ai-coach index.ts
+$newCoachPath = "src/features/ai-coach/index.ts"
+$newCoachContent = @"
 /**
  * AI Coach Feature
  * AI coach personalities, voice, and mood-based adjustments
@@ -60,25 +75,25 @@ export function getMoodAdjustedIntro(personaId: string, mood: Mood): string {
     switch (mood) {
         case 'tired':
             if (persona.traits.warmth >= 4) {
-                return `I see you're tired today. That's okay—showing up is what matters. ``;
+                return ``I see you're tired today. That's okay—showing up is what matters. ``${baseIntro}``;
             } else if (persona.traits.intensity >= 4) {
-                return `Tired? That's when champions separate themselves. ``;
+                return ``Tired? That's when champions separate themselves. ``${baseIntro}``;
             }
             return baseIntro;
 
         case 'stressed':
             if (persona.traits.warmth >= 4) {
-                return `Take a moment. Breathe. Learning will help clear your mind. ``;
+                return ``Take a moment. Breathe. Learning will help clear your mind. ``${baseIntro}``;
             } else if (personaId === 'socratic') {
-                return `What's causing the stress? Perhaps focused learning can provide clarity. ``;
+                return ``What's causing the stress? Perhaps focused learning can provide clarity. ``${baseIntro}``;
             }
             return baseIntro;
 
         case 'energized':
             if (persona.traits.intensity >= 4) {
-                return `I like that energy! Let's channel it. ``;
+                return ``I like that energy! Let's channel it. ``${baseIntro}``;
             }
-            return `Great energy today! ``;
+            return ``Great energy today! ``${baseIntro}``;
 
         default:
             return baseIntro;
@@ -199,3 +214,88 @@ export const aiCoach = AICoachService.getInstance();
 
 // Import from personas for the functions used above
 import { getPersona, getPersonaResponse } from './personas';
+"@
+
+Set-Content -Path $newCoachPath -Value $newCoachContent
+Write-Host "✓ Merged AI Coach files" -ForegroundColor Green
+
+# Step 2: Move Storage files
+Write-Host ""
+Write-Host "Step 2: Migrating Storage files..." -ForegroundColor Yellow
+
+# Create storage manager in content-storage
+$storageManagerPath = "src/features/content-storage/manager.ts"
+Copy-Item "src/lib/storage/index.ts" $storageManagerPath -Force
+Write-Host "✓ Moved storage manager" -ForegroundColor Green
+
+# Move sync-engine to shared/storage
+New-Item -ItemType Directory -Path "src/shared/storage" -Force | Out-Null
+Copy-Item "src/lib/storage/sync-engine.ts" "src/shared/storage/sync-engine.ts" -Force
+Write-Host "✓ Moved sync-engine to shared" -ForegroundColor Green
+
+# Step 3: Move Learning Scoring
+Write-Host ""
+Write-Host "Step 3: Migrating Learning Scoring..." -ForegroundColor Yellow
+
+New-Item -ItemType Directory -Path "src/features/learning-session/scoring" -Force | Out-Null
+Copy-Item "src/lib/learning/scoring/blank-sheet-scorer.ts" "src/features/learning-session/scoring/blank-sheet-scorer.ts" -Force
+Write-Host "✓ Moved blank-sheet-scorer" -ForegroundColor Green
+
+# Step 4: Update imports
+Write-Host ""
+Write-Host "Step 4: Updating imports..." -ForegroundColor Yellow
+
+# Update ai-coach index.ts (already done above)
+
+# Update content-storage index.ts
+$contentStorageIndex = Get-Content "src/features/content-storage/index.ts" -Raw
+$contentStorageIndex = $contentStorageIndex -replace "export \{ storageManager \} from '@/lib/storage';", "export { storageManager } from './manager';"
+Set-Content -Path "src/features/content-storage/index.ts" -Value $contentStorageIndex
+Write-Host "✓ Updated content-storage index" -ForegroundColor Green
+
+# Update s3-dynamodb.ts
+$s3Content = Get-Content "src/features/content-storage/cloud/s3-dynamodb.ts" -Raw
+$s3Content = $s3Content -replace "import \{ SyncEngine \} from '@/lib/storage/sync-engine';", "import { SyncEngine } from '@/shared/storage/sync-engine';"
+$s3Content = $s3Content -replace "import type \{ UserProgress, QuizScores \} from '@/lib/storage/sync-engine';", "import type { UserProgress, QuizScores } from '@/shared/storage/sync-engine';"
+Set-Content -Path "src/features/content-storage/cloud/s3-dynamodb.ts" -Value $s3Content
+Write-Host "✓ Updated s3-dynamodb imports" -ForegroundColor Green
+
+# Update BlankSheetTest.tsx
+$blankSheetContent = Get-Content "src/components/learning/activities/BlankSheetTest.tsx" -Raw
+$blankSheetContent = $blankSheetContent -replace "import \{ calculateRecallScore \} from '@/lib/learning/scoring/blank-sheet-scorer';", "import { calculateRecallScore } from '@/features/learning-session/scoring/blank-sheet-scorer';"
+Set-Content -Path "src/components/learning/activities/BlankSheetTest.tsx" -Value $blankSheetContent
+Write-Host "✓ Updated BlankSheetTest imports" -ForegroundColor Green
+
+# Step 5: Delete old src/lib folder
+Write-Host ""
+Write-Host "Step 5: Deleting old src/lib/ folder..." -ForegroundColor Yellow
+Remove-Item -Path "src/lib" -Recurse -Force
+Write-Host "✓ Deleted src/lib/" -ForegroundColor Green
+
+# Step 6: Delete old src/hooks and src/constants if they exist
+Write-Host ""
+Write-Host "Step 6: Cleaning up other deprecated folders..." -ForegroundColor Yellow
+
+if (Test-Path "src/hooks") {
+    Remove-Item -Path "src/hooks" -Recurse -Force
+    Write-Host "✓ Deleted src/hooks/" -ForegroundColor Green
+}
+
+if (Test-Path "src/constants") {
+    Remove-Item -Path "src/constants" -Recurse -Force
+    Write-Host "✓ Deleted src/constants/" -ForegroundColor Green
+}
+
+if (Test-Path "src/services") {
+    Remove-Item -Path "src/services" -Recurse -Force
+    Write-Host "✓ Deleted src/services/" -ForegroundColor Green
+}
+
+Write-Host ""
+Write-Host "Migration complete! ✨" -ForegroundColor Green
+Write-Host ""
+Write-Host "Next steps:" -ForegroundColor Cyan
+Write-Host "1. Run: npm run build" -ForegroundColor White
+Write-Host "2. Fix any TypeScript errors" -ForegroundColor White
+Write-Host "3. Test the application" -ForegroundColor White
+Write-Host "4. Commit the changes" -ForegroundColor White
