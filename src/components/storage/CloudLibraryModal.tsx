@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Cloud, X, Check, Download, Calendar, BookOpen, RefreshCw, CheckCircle2, AlertCircle, Layers, FileJson, FileText } from 'lucide-react';
-import { storageManager } from '@/lib/storage';
-import type { SavedResult } from '@/lib/storage/types';
-import type { ParsedConcept } from '@/lib/content-adapter/types';
-import { parseContent } from '@/lib/content-adapter/json-content-parser';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
-import { UI_TIMINGS } from '@/constants/ui-constants';
-import { getMetricsTracker } from '@/lib/learning/metrics-tracker';
+import { storageManager } from '@/features/content-storage';
+import type { SavedResult } from '@/features/content-storage/types';
+import type { ParsedConcept } from '@/features/content-generation/parsers/types';
+import { parseContent } from '@/features/content-generation/parsers/json-parser';
+import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { getMetricsTracker } from '@/features/learning-session/progress/metrics-tracker';
 import styles from './CloudLibraryModal.module.css';
 
 interface CloudLibraryModalProps {

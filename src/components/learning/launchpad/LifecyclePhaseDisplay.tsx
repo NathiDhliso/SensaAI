@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { LIFECYCLE_COLORS } from '@/constants/theme-colors';
+import { LIFECYCLE_COLORS } from '@/shared/constants/theme-colors';
 import styles from './LifecyclePhaseDisplay.module.css';
 
 interface LifecyclePhaseDisplayProps {

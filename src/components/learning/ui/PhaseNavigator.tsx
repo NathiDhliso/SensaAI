@@ -13,7 +13,7 @@ import {
     Trophy,
     CheckCircle2
 } from 'lucide-react';
-import type { LearningPhase } from '@/hooks/useLearningFlow';
+import type { LearningPhase } from '@/shared/hooks/useLearningFlow';
 import styles from './PhaseNavigator.module.css';
 
 // ============================================================================

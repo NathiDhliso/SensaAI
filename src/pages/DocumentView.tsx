@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Lightbulb, Map, FileText, Download } from 'lucide-react';
-import { storageManager } from '@/lib/storage';
-import { parseContent } from '@/lib/content-adapter/json-content-parser';
-import type { ParsedConcept } from '@/lib/content-adapter/types';
+import { storageManager } from '@/features/content-storage';
+import { parseContent } from '@/features/content-generation/parsers/json-parser';
+import type { ParsedConcept } from '@/features/content-generation/parsers/types';
 import styles from './DocumentView.module.css';
 
 export default function DocumentView() {

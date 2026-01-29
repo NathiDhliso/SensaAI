@@ -17,8 +17,8 @@ import {
     Clock,
     Sparkles
 } from 'lucide-react';
-import type { LearningConcept } from '@/lib/types/learning';
-import { MOMENTUM_CHECKPOINT } from '@/constants/ui-constants';
+import type { LearningConcept } from '@/shared/types/learning';
+import { MOMENTUM_CHECKPOINT } from '@/shared/constants/ui-constants';
 import styles from './MomentumCheckpoint.module.css';
 
 interface MomentumCheckpointProps {

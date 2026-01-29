@@ -1,5 +1,5 @@
 import { createContext, useState, type ReactNode } from 'react';
-import type { LearningStage, LearningConcept } from '@/lib/types/learning';
+import type { LearningStage, LearningConcept } from '@/shared/types/learning';
 
 interface ContentContextType {
     stages: LearningStage[];

@@ -17,7 +17,7 @@ import {
     Trophy,
     AlertTriangle,
 } from 'lucide-react';
-import type { LearningConcept } from '@/lib/types/learning';
+import type { LearningConcept } from '@/shared/types/learning';
 import styles from './NomenclatureSprint.module.css';
 
 // ============================================================================

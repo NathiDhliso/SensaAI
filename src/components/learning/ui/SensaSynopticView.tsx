@@ -25,11 +25,11 @@ import {
     MousePointer,
     CircleDot
 } from 'lucide-react';
-import type { LearningConcept } from '@/lib/types/learning';
-import { isRealContent, auditConceptContent } from '@/lib/validation/content-quality';
-import { useOrientationAwareZoom } from '@/hooks/useOrientationAwareZoom';
-import { useAllNodeSizes } from '@/hooks/useResponsiveNodeSize';
-import { resolveOverlaps, type NodePosition as LayoutNodePosition } from '@/lib/utils/layout-utils';
+import type { LearningConcept } from '@/shared/types/learning';
+import { isRealContent, auditConceptContent } from '@/features/content-generation/validators/content-quality';
+import { useOrientationAwareZoom } from '@/shared/hooks/useOrientationAwareZoom';
+import { useAllNodeSizes } from '@/shared/hooks/useResponsiveNodeSize';
+import { resolveOverlaps, type NodePosition as LayoutNodePosition } from '@/shared/utils/layout-utils';
 import styles from './SensaSynopticView.module.css';
 
 interface SensaSynopticViewProps {

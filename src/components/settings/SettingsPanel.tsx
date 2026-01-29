@@ -8,12 +8,12 @@ import {
     Palette,
     Settings,
 } from 'lucide-react';
-import { useClickOutside } from '@/hooks/useClickOutside';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { useClickOutside } from '@/shared/hooks/useClickOutside';
+import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
 import { useUIStore } from '@/store/ui-store';
 import { useThemeStore, type Theme } from '@/store/theme-store';
 // import { usePersonalizationStore, type FamiliarSystem } from '@/store/personalization-store'; // Keeping for now if needed, but likely unused
-import { UI_TIMINGS } from '@/constants/ui-constants';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './SettingsPanel.module.css';
 
 

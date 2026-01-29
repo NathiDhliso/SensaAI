@@ -15,7 +15,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { COLORS } from '@/constants/theme-colors';
+import { COLORS } from '@/shared/constants/theme-colors';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, AlertCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,9 +26,9 @@ import { CognitiveStream } from '@/components/generation/CognitiveStream';
 
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
-import { useCollisionDetection } from '@/hooks/useCollisionDetection';
-import { useGenerationEngine } from '@/hooks/useGenerationEngine';
-import { useGenerationRecovery } from '@/hooks/useGenerationRecovery';
+import { useCollisionDetection } from '@/shared/hooks/useCollisionDetection';
+import { useGenerationEngine } from '@/shared/hooks/useGenerationEngine';
+import { useGenerationRecovery } from '@/shared/hooks/useGenerationRecovery';
 import styles from './Generate.module.css';
 
 // ============================================================================

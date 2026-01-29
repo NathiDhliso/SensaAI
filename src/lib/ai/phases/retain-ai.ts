@@ -7,7 +7,7 @@
  * - Suggest optimal review timing (spacing)
  */
 
-import type { LearningConcept } from '@/lib/types/learning';
+import type { LearningConcept } from '@/shared/types/learning';
 import { getPersonaResponse, type PersonaId } from '../coach';
 
 export interface BlankSheetScore {

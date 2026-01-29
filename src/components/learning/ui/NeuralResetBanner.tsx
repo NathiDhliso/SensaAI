@@ -8,7 +8,7 @@
 
 import { motion } from 'framer-motion';
 import { Brain, Lightbulb, RefreshCw } from 'lucide-react';
-import type { LearningConcept } from '@/lib/types/learning';
+import type { LearningConcept } from '@/shared/types/learning';
 import styles from './NeuralResetBanner.module.css';
 
 interface NeuralResetBannerProps {

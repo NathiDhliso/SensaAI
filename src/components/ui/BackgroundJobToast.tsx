@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, AlertCircle, Loader2, X, ArrowRight } from 'lucide-react';
-import { useBackgroundJobRecovery } from '@/hooks/useBackgroundJobRecovery';
+import { useBackgroundJobRecovery } from '@/shared/hooks/useBackgroundJobRecovery';
 import styles from './BackgroundJobToast.module.css';
 
 export default function BackgroundJobToast() {

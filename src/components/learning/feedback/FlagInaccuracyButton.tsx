@@ -10,7 +10,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Flag, X, AlertTriangle, Clock, Link2Off, BookX, Send, CheckCircle } from 'lucide-react';
-import { UI_TIMINGS } from '@/constants/ui-constants';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 
 // Types
 type FlagType = 'outdated' | 'incorrect' | 'not-on-exam' | 'broken-link';

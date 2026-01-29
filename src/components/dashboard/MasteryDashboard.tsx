@@ -20,10 +20,10 @@ import {
     Clock,
     Sparkles
 } from 'lucide-react';
-import type { LearningConcept } from '@/lib/types/learning';
-import { calculateMasteryIndex, findWeakestVariable, MASTERY_THRESHOLD } from '@/constants/sensa-flow-constants';
-import { EQUATION_COLORS_HEX } from '@/constants/sensa-flow-constants';
-import { GRAPH_COLORS } from '@/constants/theme-colors';
+import type { LearningConcept } from '@/shared/types/learning';
+import { calculateMasteryIndex, findWeakestVariable, MASTERY_THRESHOLD } from '@/shared/constants/sensa-flow-constants';
+import { EQUATION_COLORS_HEX } from '@/shared/constants/sensa-flow-constants';
+import { GRAPH_COLORS } from '@/shared/constants/theme-colors';
 import styles from './MasteryDashboard.module.css';
 
 // ============================================================================

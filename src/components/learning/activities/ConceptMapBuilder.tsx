@@ -28,16 +28,16 @@ import {
     ChevronLeft,
     ChevronRight
 } from 'lucide-react';
-import type { LearningConcept, ConceptMapData } from '@/lib/types/learning';
-import type { DependencyGraph, ValidationResult } from '@/lib/types/sensa-flow.types';
+import type { LearningConcept, ConceptMapData } from '@/shared/types/learning';
+import type { DependencyGraph, ValidationResult } from '@/shared/types/sensa-flow';
 import {
     suggestConnections,
     detectGaps,
     type ConnectionSuggestion,
     type GapDetection
-} from '@/lib/ai/phases';
+} from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { UI_TIMINGS } from '@/constants/ui-constants';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import ConnectionTypeModal, { type ConnectionTypeData } from '@/components/learning/feedback/ConnectionTypeModal';
 import styles from './ConceptMapBuilder.module.css';
 

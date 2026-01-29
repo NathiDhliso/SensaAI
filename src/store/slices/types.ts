@@ -14,7 +14,7 @@ import type {
   EnhancedCognitiveMetrics,
   SessionPrimer,
   ConceptMapData,
-} from '@/lib/types/learning';
+} from '@/shared/types/learning';
 
 // ============================================================================
 // SHARED TYPES

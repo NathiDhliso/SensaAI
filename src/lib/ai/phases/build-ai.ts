@@ -7,7 +7,7 @@
  * - Label validation for connection descriptions
  */
 
-import type { LearningConcept } from '@/lib/types/learning';
+import type { LearningConcept } from '@/shared/types/learning';
 import { getPersonaResponse, type PersonaId } from '../coach';
 
 const GENERIC_STOP_WORDS = new Set([

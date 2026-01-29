@@ -9,7 +9,7 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle2, Flame, Circle, BookOpen } from 'lucide-react';
-import { FEEDBACK_COLORS, GRAPH_COLORS } from '@/constants/theme-colors';
+import { FEEDBACK_COLORS, GRAPH_COLORS } from '@/shared/constants/theme-colors';
 import styles from './BucketReadinessChecklist.module.css';
 
 interface BucketProgress {

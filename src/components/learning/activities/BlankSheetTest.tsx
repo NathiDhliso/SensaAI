@@ -22,14 +22,14 @@ import {
     Square,
     Activity
 } from 'lucide-react';
-import { useVoice } from '@/hooks/useVoice';
-import type { LearningConcept } from '@/lib/types/learning';
-import { VELOCITY_CONFIG } from '@/constants/ui-constants';
+import { useVoice } from '@/features/ai-coach/voice/useVoice';
+import type { LearningConcept } from '@/shared/types/learning';
+import { VELOCITY_CONFIG } from '@/shared/constants/ui-constants';
 import {
     generateCoachFeedback,
     type CoachFeedback,
     type BlankSheetScore
-} from '@/lib/ai/phases';
+} from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import styles from './BlankSheetTest.module.css';
 

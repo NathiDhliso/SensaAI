@@ -2,8 +2,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Circle, AlertCircle } from 'lucide-react';
-import { COLORS } from '@/constants/theme-colors';
-import type { ShapeCoverage, MnemonicCoverage } from '@/lib/ai/content-analytics-types';
+import { COLORS } from '@/shared/constants/theme-colors';
+import type { ShapeCoverage, MnemonicCoverage } from '@/shared/types/content-analytics';
 import styles from './ContentHealthIndicators.module.css';
 
 interface ContentHealthIndicatorsProps {

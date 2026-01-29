@@ -1,13 +1,13 @@
 export * from './types';
 export { CloudStorage, cloudStorage } from './cloud-storage';
-import { buildDocumentFromConcepts } from '@/lib/generation/backend-generator';
+import { buildDocumentFromConcepts } from '@/features/content-generation/api/backend-client';
 export { importFromFile, createFileInput } from './import';
 export type { ImportResult } from './import';
 
 // Note: CloudStorage class is still exported for potential future use,
 // but StorageManager no longer uses it - concepts are stored via Lambda
 import type { SavedResult } from './types';
-import { conceptsApi } from '@/lib/api/concepts';
+import { conceptsApi } from '@/shared/api/concepts';
 import { useAuthStore } from '@/store/auth-store';
 
 /**

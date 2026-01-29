@@ -12,7 +12,7 @@ import type {
   SessionSummary,
   PaceRating,
 } from './types';
-import { FOCUS_SESSION_CONFIG, UI_TIMINGS } from '@/constants/ui-constants';
+import { FOCUS_SESSION_CONFIG, UI_TIMINGS } from '@/shared/constants/ui-constants';
 
 // ============================================================================
 // INITIAL STATE

@@ -8,7 +8,7 @@
 import { useEffect } from 'react';
 import { X, Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
-import { FOCUS_SESSION_CONFIG } from '@/constants/ui-constants';
+import { FOCUS_SESSION_CONFIG } from '@/shared/constants/ui-constants';
 import styles from './LearningToolbar.module.css';
 
 interface FocusTimerProps {

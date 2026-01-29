@@ -19,9 +19,9 @@ import {
     Zap,
     ArrowRight
 } from 'lucide-react';
-import type { LearningConcept } from '@/lib/types/learning';
-import { getInterleavingAlgorithm } from '@/lib/learning/interleaving-algorithm';
-import { getSpacingEngine } from '@/lib/learning/spacing-engine';
+import type { LearningConcept } from '@/shared/types/learning';
+import { getInterleavingAlgorithm } from '@/features/learning-session/algorithms/interleaving';
+import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
 import styles from './SessionGoalManager.module.css';
 
 // ============================================================================

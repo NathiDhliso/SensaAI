@@ -8,11 +8,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
-import { UI_TIMINGS } from '@/constants/ui-constants';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { useLearningStore } from '@/store/learning-store';
-import { usePauseGlobalTimer } from '@/hooks/usePauseGlobalTimer';
-import { calculateConfusionDrillResult } from '@/lib/generation/confusion-generator';
-import type { ConfusionPair, ConfusionQuestion, ConfusionAnswer, ConfusionDrillResult } from '@/lib/generation/confusion-generator';
+import { usePauseGlobalTimer } from '@/shared/hooks/usePauseGlobalTimer';
+import { calculateConfusionDrillResult } from '@/features/learning-session/activities/confusion-generator';
+import type { ConfusionPair, ConfusionQuestion, ConfusionAnswer, ConfusionDrillResult } from '@/features/learning-session/activities/confusion-generator';
 import styles from './ConfusionDrill.module.css';
 
 const TIME_PER_QUESTION_MS = UI_TIMINGS.CONFUSION_QUESTION_MS;

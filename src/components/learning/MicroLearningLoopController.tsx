@@ -13,13 +13,13 @@ import {
     CheckCircle, Brain, BookOpen, RotateCcw, ChevronRight, Lightbulb
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
-import type { LearningConcept } from '@/lib/types/learning';
-import { normalizeScore, determineStatus } from '@/lib/utils/score-utils';
+import type { LearningConcept } from '@/shared/types/learning';
+import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
 
 import BlankSheetTest from '@/components/learning/activities/BlankSheetTest';
 import ConfusionDrill from '@/components/learning/activities/ConfusionDrill';
-import { findConfusionPairs, generateConfusionQuestions } from '@/lib/generation/confusion-generator';
-import type { ConfusionDrillResult, ConfusionPair } from '@/lib/generation/confusion-generator';
+import { findConfusionPairs, generateConfusionQuestions } from '@/features/learning-session/activities/confusion-generator';
+import type { ConfusionDrillResult, ConfusionPair } from '@/features/learning-session/activities/confusion-generator';
 import styles from './MicroLearningLoopController.module.css';
 
 // ============================================================================

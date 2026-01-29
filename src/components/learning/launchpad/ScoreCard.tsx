@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { Info } from 'lucide-react';
-import { SCORE_COLORS } from '@/constants/theme-colors';
+import { SCORE_COLORS } from '@/shared/constants/theme-colors';
 import styles from './ScoreCard.module.css';
 
 interface ScoreCardProps {

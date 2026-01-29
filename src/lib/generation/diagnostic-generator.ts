@@ -8,8 +8,8 @@
  */
 
 import { getBedrockClient, invokeClaudeModel, type BedrockConfig } from './claude-client';
-import { UI_TIMINGS } from '@/constants/ui-constants';
-import type { SensaAILearningConcept, DiagnosticQuestion } from '@/lib/content-adapter/transformer';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import type { SensaAILearningConcept, DiagnosticQuestion } from '@/features/content-generation/parsers/transformer';
 
 const BATCH_GENERATION_TOKENS = 3000;
 

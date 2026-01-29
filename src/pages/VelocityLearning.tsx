@@ -12,12 +12,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Brain, Home, BookOpen } from 'lucide-react';
 
 import { useLearningStore } from '@/store/learning-store';
-import { useLearningFlow } from '@/hooks/useLearningFlow';
-import { useSensaFlow } from '@/hooks/useSensaFlow';
-import { useFlowState } from '@/hooks/useFlowState';
-import { UI_TIMINGS } from '@/constants/ui-constants';
-import { loadSessionProgress, getProgressAge, cleanupExpiredProgress } from '@/lib/storage/session-progress';
-import { toast } from '@/lib/utils/toast';
+import { useLearningFlow } from '@/shared/hooks/useLearningFlow';
+import { useSensaFlow } from '@/shared/hooks/useSensaFlow';
+import { useFlowState } from '@/shared/hooks/useFlowState';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { loadSessionProgress, getProgressAge, cleanupExpiredProgress } from '@/features/learning-session/progress/session-tracker';
+import { toast } from '@/shared/utils/toast';
 
 // SENSA v2.0: MasteryDashboard will be used in COMPLETE phase - future implementation
 // import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
@@ -40,8 +40,8 @@ import PhaseNavigator from '@/components/learning/ui/PhaseNavigator';
 import type {
     StudyGoal,
     LearningConcept
-} from '@/lib/types/learning';
-import type { SensaAILearningConcept } from '@/lib/content-adapter/transformer';
+} from '@/shared/types/learning';
+import type { SensaAILearningConcept } from '@/features/content-generation/parsers/transformer';
 import styles from './VelocityLearning.module.css';
 
 export default function VelocityLearning() {
@@ -182,7 +182,7 @@ export default function VelocityLearning() {
                 const nextConcept = getNextConcept();
 
                 try {
-                    import('@/lib/storage/session-progress').then(({ saveSessionProgress: saveProgress }) => {
+                    import('@/features/learning-session/progress/session-tracker').then(({ saveSessionProgress: saveProgress }) => {
                         saveProgress({
                             sessionId: currentSession.id,
                             subjectId: currentSession.subjectId,
@@ -217,7 +217,7 @@ export default function VelocityLearning() {
         // "Sonic Boom" Effect for Mastery
         if (outcome === 'mastered') {
             // Use AudioService singleton instead of creating new Audio instances
-            import('@/services/AudioService').then(({ AudioService }) => {
+            import('@/shared/services/AudioService').then(({ AudioService }) => {
                 AudioService.play('mastery', '/audio/voice/sage_master_success.mp3');
             });
         }

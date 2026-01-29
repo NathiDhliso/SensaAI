@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { transformToLearningConcepts } from '../transformer';
 import type { ParsedGeneratedContent } from '../types';
-import type { LearningStage } from '@/lib/types/learning';
+import type { LearningStage } from '@/shared/types/learning';
 
 describe('transformer', () => {
     const mockStages: LearningStage[] = [

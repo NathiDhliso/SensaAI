@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Pass1Result, PassStatus, ValidationResult, GenerationResult } from '@/lib/types/generation';
-import type { ParsedConcept } from '@/lib/content-adapter/types';
+import type { Pass1Result, PassStatus, ValidationResult, GenerationResult } from '@/shared/types/generation';
+import type { ParsedConcept } from '@/features/content-generation/parsers/types';
 
 export type BedrockConfig = {
   region: string;

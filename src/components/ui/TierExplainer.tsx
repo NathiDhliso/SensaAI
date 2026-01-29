@@ -9,7 +9,7 @@
 
 import { motion } from 'framer-motion';
 import { Layers, Gem, Wrench, X, ArrowDown } from 'lucide-react';
-import { TIER_CONFIG } from '@/lib/content-adapter/validate-tier-progression';
+import { TIER_CONFIG } from '@/features/content-generation/validators/tier-progression';
 import styles from './TierExplainer.module.css';
 
 // ============================================================================

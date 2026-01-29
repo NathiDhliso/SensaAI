@@ -6,8 +6,8 @@
 import type { StateCreator } from 'zustand';
 import type { LearningStore, NavigationSliceActions, UserProgress } from './types';
 import { getInitialProgress } from './createSessionSlice';
-import { normalizeScore, determineStatus } from '@/lib/utils/score-utils';
-import { saveSessionProgress } from '@/lib/storage/session-progress';
+import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
+import { saveSessionProgress } from '@/features/learning-session/progress/session-tracker';
 
 // ============================================================================
 // SLICE CREATOR

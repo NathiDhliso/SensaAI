@@ -10,9 +10,9 @@
 import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, CheckCircle2, Clock, Play, Target, Zap, ChevronRight, RotateCcw, ArrowLeft } from 'lucide-react';
-import type { SensaAILearningConcept, DiagnosticQuestion } from '@/lib/content-adapter/transformer';
-import { getFoundationConcepts } from '@/lib/content-adapter/sensa-ai-integration';
-import { UI_TIMINGS, VELOCITY_CONFIG } from '@/constants/ui-constants';
+import type { SensaAILearningConcept, DiagnosticQuestion } from '@/features/content-generation/parsers/transformer';
+import { getFoundationConcepts } from '@/features/content-generation/parsers/ai-integration';
+import { UI_TIMINGS, VELOCITY_CONFIG } from '@/shared/constants/ui-constants';
 import styles from './DiagnosticLaunchSystem.module.css';
 
 // ============================================================================

@@ -5,10 +5,10 @@ import {
   ChevronRight, Brain, Sparkles, Heart, ArrowLeft,
   Zap, BatteryLow, Activity, AlertCircle, GraduationCap
 } from 'lucide-react';
-import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/lib/types/learning';
-import { MOOD_OPTIONS, type Mood } from '@/lib/ai/coach';
+import type { StudyGoal, SessionDuration, SessionRecommendation } from '@/shared/types/learning';
+import { MOOD_OPTIONS, type Mood } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { MOOD_COLORS } from '@/constants/theme-colors';
+import { MOOD_COLORS } from '@/shared/constants/theme-colors';
 import GuidedPrimer from '@/components/learning/onboarding/GuidedPrimer';
 import styles from './SessionStartModal.module.css';
 

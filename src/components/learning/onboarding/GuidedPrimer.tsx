@@ -22,16 +22,16 @@ import {
     Square,
     SkipForward
 } from 'lucide-react';
-import { useVoice } from '@/hooks/useVoice';
-import { audioManager } from '@/lib/media/audio';
+import { useVoice } from '@/features/ai-coach/voice/useVoice';
+import { audioManager } from '@/shared/services/audio';
 import {
     getMoodAdjustedIntro,
     getRecommendedBreathing,
     BREATHING_EXERCISES,
     type Mood
-} from '@/lib/ai/coach';
+} from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { VELOCITY_CONFIG } from '@/constants/ui-constants';
+import { VELOCITY_CONFIG } from '@/shared/constants/ui-constants';
 import styles from './GuidedPrimer.module.css';
 
 interface GuidedPrimerProps {

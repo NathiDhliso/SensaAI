@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getRandomTerm, getDomainName } from '@/lib/utils/subject-domain-detector';
+import { getRandomTerm, getDomainName } from '@/shared/utils/subject-domain-detector';
 import styles from '@/pages/Generate.module.css';
 
 interface CognitiveStreamProps {

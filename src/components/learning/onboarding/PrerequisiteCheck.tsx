@@ -7,8 +7,8 @@
  * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Phase 3.B
  */
 import { AlertTriangle, ChevronRight, Lock, CheckCircle2 } from 'lucide-react';
-import type { LearningConcept } from '@/lib/types/learning';
-import { resolvePrerequisites } from '@/lib/learning/prerequisite-utils';
+import type { LearningConcept } from '@/shared/types/learning';
+import { resolvePrerequisites } from '@/features/learning-session/algorithms/prerequisite-utils';
 import styles from './PrerequisiteCheck.module.css';
 
 interface PrerequisiteCheckProps {

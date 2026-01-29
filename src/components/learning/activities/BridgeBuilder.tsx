@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Share2, ArrowRight, CheckCircle, X } from 'lucide-react';
 import styles from './BridgeBuilder.module.css';
-import type { LearningConcept } from '@/lib/types/learning';
+import type { LearningConcept } from '@/shared/types/learning';
 
 export interface BridgeBuilderProps {
     concept: LearningConcept;

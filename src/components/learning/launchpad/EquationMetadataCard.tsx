@@ -7,8 +7,8 @@
 
 import { motion } from 'framer-motion';
 import { Sparkles, Info } from 'lucide-react';
-import type { EquationMetadata } from '@/lib/types/sensa-flow.types';
-import { EQUATION_COLORS_HEX } from '@/constants/sensa-flow-constants';
+import type { EquationMetadata } from '@/shared/types/sensa-flow';
+import { EQUATION_COLORS_HEX } from '@/shared/constants/sensa-flow-constants';
 import styles from './EquationMetadataCard.module.css';
 
 // ============================================================================

@@ -7,8 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGenerationStore } from '@/store/generation-store';
 import { useUIStore } from '@/store/ui-store';
 import { CloudLibraryModal } from '@/components/storage/CloudLibraryModal';
-import { CATEGORY_COLORS, DIFFICULTY_COLORS } from '@/constants/theme-colors';
-import { UI_TIMINGS } from '@/constants/ui-constants';
+import { CATEGORY_COLORS, DIFFICULTY_COLORS } from '@/shared/constants/theme-colors';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './Home.module.css';
 
 const SUBJECT_CATEGORIES = [

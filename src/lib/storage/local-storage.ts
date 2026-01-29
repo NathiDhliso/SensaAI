@@ -25,7 +25,7 @@
  */
 
 import type { SavedResult, StorageProvider } from './types';
-import { STORAGE_KEYS } from '@/constants/storage-keys';
+import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
 export class LocalFileStorage implements StorageProvider {
   private readonly STORAGE_KEY = STORAGE_KEYS.SAVED_RESULTS;

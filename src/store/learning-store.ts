@@ -15,7 +15,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { STORAGE_KEYS } from '@/constants/storage-keys';
+import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
 // Import slice creators
 import {

@@ -24,8 +24,8 @@ import { usePersonalizationStore } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 
-import { UI_TIMINGS } from '@/constants/ui-constants';
-import { getAllPersonas } from '@/lib/ai/coach';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { getAllPersonas } from '@/features/ai-coach';
 import styles from './Settings.module.css';
 
 

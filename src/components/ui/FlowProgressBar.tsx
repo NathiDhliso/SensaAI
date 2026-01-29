@@ -7,7 +7,7 @@
 
 import { motion } from 'framer-motion';
 import { Eye, Compass, Edit3, BookOpen, Zap, CheckCircle } from 'lucide-react';
-import type { SensaPhase } from '@/lib/types/sensa-flow.types';
+import type { SensaPhase } from '@/shared/types/sensa-flow';
 import styles from './FlowProgressBar.module.css';
 
 // ============================================================================

@@ -16,15 +16,15 @@ import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
-import { storageManager } from '@/lib/storage';
-import { parseAndLoadContent } from '@/lib/content-loader';
+import { storageManager } from '@/features/content-storage';
+import { parseAndLoadContent } from '@/shared/utils/content-loader';
 import { StudyLayout, type StudyTab } from '@/components/layout';
 import CelebrationModal from '@/components/learning/feedback/CelebrationModal';
 import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
 import { SessionSummary } from '@/components/learning/session/SessionSummary';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
 import { SessionScoutPreview } from '@/components/learning/session/SessionScoutPreview';
-import { toast } from '@/lib/utils/toast';
+import { toast } from '@/shared/utils/toast';
 import styles from './Study.module.css';
 
 // Lazy load heavy components
@@ -129,9 +129,7 @@ export default function Study() {
           return;
         }
 
-        // Pass fallback concepts from pass1Data to ensure full coverage
-        const fallbackConcepts = result.pass1Data?.concepts || [];
-        const loadResult = parseAndLoadContent(result.fullDocument, subjectId, fallbackConcepts);
+        const loadResult = parseAndLoadContent(result.fullDocument, subjectId);
 
         if (!loadResult.success) {
           console.error('[Study] Failed to hydrate session:', loadResult.error);

@@ -8,10 +8,10 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-import { storageManager } from '@/lib/storage';
-import { parseGeneratedContent } from '@/lib/content-adapter';
-import type { SavedResult } from '@/lib/storage/types';
-import { validateConceptContent, type VerifiableConcept } from '@/lib/validation/content-quality';
+import { storageManager } from '@/features/content-storage';
+import { parseGeneratedContent } from '@/features/content-generation/parsers';
+import type { SavedResult } from '@/features/content-storage/types';
+import { validateConceptContent, type VerifiableConcept } from '@/features/content-generation/validators/content-quality';
 
 import styles from './ContentLaunchpad.module.css';
 

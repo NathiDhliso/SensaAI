@@ -5,7 +5,7 @@
  * "What would I need to know?" hints with coach persona framing.
  */
 
-import type { LearningConcept } from '@/lib/types/learning';
+import type { LearningConcept } from '@/shared/types/learning';
 import { getPersonaResponse, type PersonaId } from '../coach';
 
 export interface PracticeQuestion {

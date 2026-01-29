@@ -11,9 +11,9 @@ import {
   generateEnhancedDiagnosticQuestions,
   createDiagnosticAssessment,
   validateDiagnosticAssessment
-} from '@/lib/generation/diagnostic-generator';
-import { generateSensaAIConfusionPairs } from '@/lib/generation/confusion-generator';
-import type { BedrockConfig } from '@/lib/generation/claude-client';
+} from '@/features/learning-session/activities/diagnostic-generator';
+import { generateSensaAIConfusionPairs } from '@/features/learning-session/activities/confusion-generator';
+import type { BedrockConfig } from '@/features/content-generation/api/claude-client';
 
 /**
  * Enhanced content loading with SensaAI Learning Velocity Engine metadata

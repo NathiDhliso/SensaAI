@@ -10,8 +10,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Target, AlertTriangle } from 'lucide-react';
-import { Z_INDEX } from '@/constants/z-index';
-import { EQUATION_COLORS_HEX, MASTERY_THRESHOLD } from '@/constants/sensa-flow-constants';
+import { Z_INDEX } from '@/shared/constants/z-index';
+import { EQUATION_COLORS_HEX, MASTERY_THRESHOLD } from '@/shared/constants/sensa-flow-constants';
 import styles from './EquationTracker.module.css';
 
 // ============================================================================

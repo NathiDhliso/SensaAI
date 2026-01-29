@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { PersonaId } from '@/lib/ai/coach';
-import type { Mood } from '@/lib/ai/coach';
+import type { PersonaId } from '@/features/ai-coach';
+import type { Mood } from '@/features/ai-coach';
 
 export type UserRole = 'architect' | 'operator' | 'specialist' | 'learner';
 export type FamiliarSystem = 'construction' | 'cooking' | 'travel' | 'healthcare' | 'sports' | 'nature';

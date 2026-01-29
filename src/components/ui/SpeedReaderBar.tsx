@@ -11,7 +11,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Clock, Zap, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
-import { formatTime } from '@/lib/utils';
+import { formatTime } from '@/shared/utils/utils';
 import styles from './SpeedReaderBar.module.css';
 
 interface SpeedReaderBarProps {

@@ -9,7 +9,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Coffee, Play, Clock, BookOpen, Zap, CheckCircle2, Circle, TrendingUp } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
-import { formatDuration, formatPace } from '@/lib/utils';
+import { formatDuration, formatPace } from '@/shared/utils/utils';
 import styles from './SessionSummary.module.css';
 
 export function SessionSummary() {

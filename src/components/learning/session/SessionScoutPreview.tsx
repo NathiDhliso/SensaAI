@@ -23,10 +23,10 @@ import {
     Layers,
     ChevronRight,
 } from 'lucide-react';
-import { useVoice } from '@/hooks/useVoice';
-import type { LearningConcept } from '@/lib/types/learning';
-import type { DependencyGraph } from '@/lib/types/sensa-flow.types';
-import { generatePreviewAnalysis } from '@/lib/ai/phases';
+import { useVoice } from '@/features/ai-coach/voice/useVoice';
+import type { LearningConcept } from '@/shared/types/learning';
+import type { DependencyGraph } from '@/shared/types/sensa-flow';
+import { generatePreviewAnalysis } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { NomenclatureSprint } from '@/components/learning/activities/NomenclatureSprint';
 import styles from './SessionScoutPreview.module.css';

@@ -12,7 +12,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authSessionApi } from '@/lib/api/client';
+import { authSessionApi } from '@/shared/api/client';
 
 // Configuration from environment
 const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || '').replace(/^(https?:\/\/)?/, 'https://');

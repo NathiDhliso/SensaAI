@@ -1,9 +1,9 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Share2, Check } from 'lucide-react';
-import { useContent } from '@/hooks/useContent';
-import { CONFETTI_COLORS } from '@/constants/theme-colors';
-import { UI_TIMINGS } from '@/constants/ui-constants';
-import type { CelebrationData, LearningConcept } from '@/lib/types/learning';
+import { useContent } from '@/shared/hooks/useContent';
+import { CONFETTI_COLORS } from '@/shared/constants/theme-colors';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import type { CelebrationData, LearningConcept } from '@/shared/types/learning';
 import styles from './CelebrationModal.module.css';
 
 interface CelebrationModalProps {

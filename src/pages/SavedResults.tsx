@@ -10,11 +10,11 @@ import {
   Cloud,
   Sparkles
 } from 'lucide-react';
-import { storageManager, importFromFile } from '@/lib/storage';
-import type { SavedResult } from '@/lib/storage/types';
-// import type { SavedResult } from '@/lib/storage'; // Assuming types are exported from index or specifically
+import { storageManager, importFromFile } from '@/features/content-storage';
+import type { SavedResult } from '@/features/content-storage/types';
+// import type { SavedResult } from '@/features/content-storage'; // Assuming types are exported from index or specifically
 
-import { UI_TIMINGS } from '@/constants/ui-constants';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './SavedResults.module.css';
 
 export default function SavedResults() {

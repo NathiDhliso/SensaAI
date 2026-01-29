@@ -19,7 +19,7 @@ import {
     HelpCircle,
     Lightbulb
 } from 'lucide-react';
-import { UI_TIMINGS } from '@/constants/ui-constants';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './OnboardingFlow.module.css';
 
 // ============================================================================
