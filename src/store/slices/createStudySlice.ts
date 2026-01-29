@@ -102,6 +102,28 @@ export const createStudySlice: StateCreator<
     });
   },
 
+  setMood: (mood) => {
+    const state = get();
+    if (!state.studySession) return;
+    set({
+      studySession: {
+        ...state.studySession,
+        mood,
+      },
+    });
+  },
+
+  setSessionGoal: (goal: StudyGoal) => {
+    const state = get();
+    if (!state.studySession) return;
+    set({
+      studySession: {
+        ...state.studySession,
+        goal,
+      },
+    });
+  },
+
   markSessionScouted: () => {
     set((state) => ({
       studySession: state.studySession

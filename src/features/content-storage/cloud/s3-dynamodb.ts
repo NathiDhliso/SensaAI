@@ -20,7 +20,9 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
 import { useAuthStore } from '@/store/auth-store';
+import { SyncEngine } from '@/lib/storage/sync-engine';
 import type { SavedResult, StorageProvider } from '../types';
+import type { UserProgress, QuizScores } from '@/lib/storage/sync-engine';
 
 export class CloudStorage implements StorageProvider {
   private s3Client: S3Client | null = null;
@@ -255,6 +257,188 @@ export class CloudStorage implements StorageProvider {
     } catch (error) {
       console.error('Cloud list failed:', error);
       return [];
+    }
+  }
+
+  // ========================================================================
+  // SYNC ENGINE INTEGRATION - User Progress Syncing
+  // ========================================================================
+
+  /**
+   * Sync user progress between local and cloud storage.
+   * Uses SyncEngine to merge data without loss.
+   * 
+   * @param userId - User identifier
+   * @param subjectId - Subject identifier
+   * @param localProgress - Local user progress from IndexedDB
+   * @returns Merged progress data
+   */
+  async syncUserProgress(
+    userId: string,
+    subjectId: string,
+    localProgress: UserProgress | null
+  ): Promise<UserProgress | null> {
+    if (!this.isConfigured()) {
+      console.warn('[CloudStorage] Cannot sync - not configured');
+      return localProgress;
+    }
+
+    try {
+      // 1. Load cloud progress
+      const cloudProgress = await this.loadUserProgress(userId, subjectId);
+
+      // 2. If no local data, return cloud data
+      if (!localProgress) {
+        return cloudProgress;
+      }
+
+      // 3. If no cloud data, upload local data
+      if (!cloudProgress) {
+        await this.saveUserProgress(userId, subjectId, localProgress);
+        return localProgress;
+      }
+
+      // 4. Merge using SyncEngine
+      const { merged, conflicts } = SyncEngine.mergeUserData(localProgress, cloudProgress);
+
+      // Log conflicts for debugging
+      if (conflicts.length > 0) {
+        console.log('[CloudStorage] Sync conflicts resolved:', conflicts);
+      }
+
+      // 5. Save merged data back to cloud
+      await this.saveUserProgress(userId, subjectId, merged);
+
+      return merged;
+    } catch (error) {
+      console.error('[CloudStorage] Sync failed:', error);
+      // Return local data as fallback
+      return localProgress;
+    }
+  }
+
+  /**
+   * Load user progress from DynamoDB
+   */
+  private async loadUserProgress(
+    userId: string,
+    subjectId: string
+  ): Promise<UserProgress | null> {
+    if (!this.isConfigured()) return null;
+
+    try {
+      const result = await this.ddbClient!.send(new GetCommand({
+        TableName: this.tableName!,
+        Key: {
+          pk: `USER#${userId}`,
+          sk: `PROGRESS#${subjectId}`
+        }
+      }));
+
+      return result.Item as UserProgress | null;
+    } catch (error) {
+      console.error('[CloudStorage] Load progress failed:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Save user progress to DynamoDB
+   */
+  private async saveUserProgress(
+    userId: string,
+    subjectId: string,
+    progress: UserProgress
+  ): Promise<void> {
+    if (!this.isConfigured()) return;
+
+    try {
+      await this.ddbClient!.send(new PutCommand({
+        TableName: this.tableName!,
+        Item: {
+          pk: `USER#${userId}`,
+          sk: `PROGRESS#${subjectId}`,
+          ...progress,
+          updatedAt: new Date().toISOString()
+        }
+      }));
+    } catch (error) {
+      console.error('[CloudStorage] Save progress failed:', error);
+    }
+  }
+
+  /**
+   * Sync quiz scores between local and cloud
+   */
+  async syncQuizScores(
+    userId: string,
+    subjectId: string,
+    localScores: QuizScores | null
+  ): Promise<QuizScores | null> {
+    if (!this.isConfigured()) {
+      return localScores;
+    }
+
+    try {
+      const cloudScores = await this.loadQuizScores(userId, subjectId);
+
+      if (!localScores) return cloudScores;
+      if (!cloudScores) {
+        await this.saveQuizScores(userId, subjectId, localScores);
+        return localScores;
+      }
+
+      const { merged } = SyncEngine.mergeScores(localScores, cloudScores);
+      await this.saveQuizScores(userId, subjectId, merged);
+
+      return merged;
+    } catch (error) {
+      console.error('[CloudStorage] Score sync failed:', error);
+      return localScores;
+    }
+  }
+
+  private async loadQuizScores(
+    userId: string,
+    subjectId: string
+  ): Promise<QuizScores | null> {
+    if (!this.isConfigured()) return null;
+
+    try {
+      const result = await this.ddbClient!.send(new GetCommand({
+        TableName: this.tableName!,
+        Key: {
+          pk: `USER#${userId}`,
+          sk: `SCORES#${subjectId}`
+        }
+      }));
+
+      return result.Item as QuizScores | null;
+    } catch (error) {
+      console.error('[CloudStorage] Load scores failed:', error);
+      return null;
+    }
+  }
+
+  private async saveQuizScores(
+    userId: string,
+    subjectId: string,
+    scores: QuizScores
+  ): Promise<void> {
+    if (!this.isConfigured()) return;
+
+    try {
+      await this.ddbClient!.send(new PutCommand({
+        TableName: this.tableName!,
+        Item: {
+          pk: `USER#${userId}`,
+          sk: `SCORES#${subjectId}`,
+          ...scores,
+          updatedAt: new Date().toISOString()
+        }
+      }));
+    } catch (error) {
+      console.error('[CloudStorage] Save scores failed:', error);
     }
   }
 }

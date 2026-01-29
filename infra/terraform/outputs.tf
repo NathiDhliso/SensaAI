@@ -1,12 +1,17 @@
-# Terraform Outputs
+# SensaPBL Infrastructure Outputs
+# Frontend configuration values
+
+# ==============================================================================
+# COGNITO - Authentication
+# ==============================================================================
 
 output "cognito_user_pool_id" {
-  description = "Cognito User Pool ID"
+  description = "Cognito User Pool ID - use in frontend AWS config"
   value       = module.cognito.user_pool_id
 }
 
 output "cognito_client_id" {
-  description = "Cognito App Client ID"
+  description = "Cognito App Client ID - use in frontend AWS config"
   value       = module.cognito.client_id
 }
 
@@ -20,12 +25,19 @@ output "cognito_identity_pool_id" {
   value       = module.cognito.identity_pool_id
 }
 
+# ==============================================================================
+# S3 - Content Storage
+# ==============================================================================
+
 output "s3_content_bucket" {
   description = "S3 bucket for content storage"
   value       = module.s3.content_bucket_name
 }
 
-# Serverless Learning Pipeline Outputs
+# ==============================================================================
+# DYNAMODB - Data Storage
+# ==============================================================================
+
 output "dynamodb_concepts_table" {
   description = "DynamoDB table name for concepts"
   value       = module.dynamodb.concepts_table_name
@@ -35,6 +47,10 @@ output "dynamodb_jobs_table" {
   description = "DynamoDB table name for generation jobs"
   value       = module.dynamodb.jobs_table_name
 }
+
+# ==============================================================================
+# LAMBDA - Functions
+# ==============================================================================
 
 output "lambda_generate_function" {
   description = "Lambda function name for concept generation"
@@ -46,28 +62,26 @@ output "lambda_query_function" {
   value       = module.lambda.query_concepts_function_name
 }
 
-# API Gateway Outputs
-output "api_gateway_endpoint" {
-  description = "API Gateway endpoint URL for frontend configuration"
+# ==============================================================================
+# API GATEWAY - Endpoints (USE THESE IN FRONTEND)
+# ==============================================================================
+
+output "api_endpoint" {
+  description = "API Gateway base endpoint - set as VITE_API_ENDPOINT in .env"
   value       = module.api_gateway.api_endpoint
 }
 
-output "api_gateway_stage_url" {
-  description = "API Gateway stage invoke URL"
-  value       = module.api_gateway.stage_invoke_url
-}
-
-output "api_generate_endpoint" {
-  description = "Full URL for the generate concepts endpoint"
+output "api_generate_url" {
+  description = "Full URL for POST /generate endpoint"
   value       = module.api_gateway.generate_endpoint
 }
 
-output "api_concepts_endpoint" {
-  description = "Base URL for the concepts query endpoint"
+output "api_concepts_url" {
+  description = "Base URL for GET /concepts/{subjectId} endpoint"
   value       = module.api_gateway.concepts_endpoint
 }
 
-output "api_jobs_endpoint" {
-  description = "Base URL for the jobs status endpoint"
+output "api_jobs_url" {
+  description = "Base URL for GET /jobs/{jobId} endpoint"
   value       = module.api_gateway.jobs_endpoint
 }

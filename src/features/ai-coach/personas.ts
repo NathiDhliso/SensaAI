@@ -400,14 +400,66 @@ export const PHASE_RESPONSES: Record<PersonaId, Record<PhaseKey, PhaseResponses>
 
 /**
  * Get a response from the selected persona for a given phase and situation
+ * Optionally adjusted for user's current mood
  */
 export function getPersonaResponse(
     personaId: PersonaId,
     phase: PhaseKey,
-    situation: keyof PhaseResponses
+    situation: keyof PhaseResponses,
+    mood?: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired'
 ): string {
-    return PHASE_RESPONSES[personaId]?.[phase]?.[situation] ||
+    const baseResponse = PHASE_RESPONSES[personaId]?.[phase]?.[situation] ||
         PHASE_RESPONSES.buddy[phase][situation];
+    
+    // If no mood specified, return base response
+    if (!mood) return baseResponse;
+    
+    // Adjust response based on mood
+    return getMoodAdjustedResponse(personaId, baseResponse, mood);
+}
+
+/**
+ * Adjust a coach response based on user's current mood
+ */
+function getMoodAdjustedResponse(
+    personaId: PersonaId,
+    baseResponse: string,
+    mood: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired'
+): string {
+    const persona = PERSONAS[personaId];
+    
+    // Mood adjustments by persona type
+    switch (mood) {
+        case 'pumped':
+            // User is energized - match their energy
+            if (persona.traits.intensity >= 4) {
+                return baseResponse; // Already intense
+            }
+            return `Great energy! ${baseResponse}`;
+            
+        case 'tired':
+            // User is tired - be gentler
+            if (persona.traits.intensity >= 4) {
+                return `Tired? That's just your body lying to you. Let's start small. ${baseResponse}`;
+            }
+            return `Take it easy. ${baseResponse}`;
+            
+        case 'struggling':
+            // User is struggling - more encouragement
+            if (persona.traits.warmth >= 4) {
+                return `I see you're having a tough time. That's okay. ${baseResponse}`;
+            }
+            return `Struggling is part of growth. ${baseResponse}`;
+            
+        case 'okay':
+            // User is neutral - gentle motivation
+            return `Let's build some momentum. ${baseResponse}`;
+            
+        case 'good':
+        default:
+            // User is in good state - standard response
+            return baseResponse;
+    }
 }
 
 /**

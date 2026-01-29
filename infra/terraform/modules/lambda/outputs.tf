@@ -1,3 +1,5 @@
+# Lambda Module Outputs
+
 output "generate_concepts_function_name" {
   description = "Name of the generate concepts Lambda function"
   value       = aws_lambda_function.generate_concepts.function_name
@@ -31,4 +33,9 @@ output "query_concepts_invoke_arn" {
 output "lambda_execution_role_arn" {
   description = "ARN of the Lambda execution role"
   value       = aws_iam_role.lambda_execution.arn
+}
+
+output "lambda_layer_arn" {
+  description = "ARN of the Python dependencies layer (if created)"
+  value       = length(aws_lambda_layer_version.python_deps) > 0 ? aws_lambda_layer_version.python_deps[0].arn : null
 }

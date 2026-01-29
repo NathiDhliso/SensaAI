@@ -1,7 +1,8 @@
-# Input Variables for SensaPBL Infrastructure
+# SensaPBL Infrastructure Variables
+# Serverless-only configuration
 
 variable "environment" {
-  description = "Environment name (pilot, growth, production)"
+  description = "Environment name (pilot, staging, prod)"
   type        = string
   default     = "pilot"
 }
@@ -12,9 +13,9 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-# Cognito Variables
+# Cognito
 variable "cognito_callback_urls" {
-  description = "Allowed callback URLs for Cognito"
+  description = "Allowed callback URLs for Cognito OAuth"
   type        = list(string)
   default     = ["http://localhost:5173/callback"]
 }

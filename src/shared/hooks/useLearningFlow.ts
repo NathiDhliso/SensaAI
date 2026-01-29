@@ -94,26 +94,46 @@ export function useLearningFlow(): LearningFlow {
         }
 
         // ================================================================
-        // GOAL-SPECIFIC FLOW ROUTING
+        // GOAL-SPECIFIC FLOW ROUTING (Flexible - Accumulates Mastery)
         // ================================================================
+        // Key Principle: All completed concepts count toward mastery journey
+        // regardless of which goal/mood was active when they were learned.
+        // Users can switch between goals and still make progress.
 
         // --- EXPLORE MODE (Stressed users) ---
         // Zero pressure, calming browse-only experience
-        // NO testing, NO active recall, just passive reading
+        // Shows SensaSynopticView for passive reading
+        // BUT: If user has already started learning, let them continue
         if (studySession.goal === 'explore') {
-            // Skip everything — go straight to COMPLETE which shows a calm browse view
-            // The user can read concepts at their own pace without any assessments
-            return 'COMPLETE';
+            // If user has already completed some concepts, they can continue learning
+            // This allows switching from tired → energized mid-session
+            const hasStartedLearning = currentSession.progress.completedConcepts.length > 0;
+            
+            if (hasStartedLearning) {
+                // User started learning in a previous session, let them continue
+                // Follow the normal flow based on what's completed
+                // (Will fall through to standard flow below)
+            } else {
+                // Fresh explore session - show calm browse view
+                return 'COMPLETE';
+            }
         }
 
         // --- REVIEW MODE (Tired users) ---
         // Light refresher, minimal cognitive load
-        // Skip exploration phases, just light map review then complete
+        // Focuses on reviewing already-learned concepts
         if (studySession.goal === 'review') {
-            // Optional: light map review, but skip all testing
-            if (!studySession.mapBuilt) return 'BUILD';
-            // After map, go straight to COMPLETE (no Learn phase, no Blank Sheet)
-            return 'COMPLETE';
+            const hasStartedLearning = currentSession.progress.completedConcepts.length > 0;
+            
+            if (hasStartedLearning) {
+                // User has progress, let them continue the full flow
+                // (Will fall through to standard flow below)
+            } else {
+                // Fresh review session - light map review only
+                if (!studySession.mapBuilt) return 'BUILD';
+                // After map, show review interface (COMPLETE with review mode)
+                return 'COMPLETE';
+            }
         }
 
         // --- LEARN-NEW MODE (Energized/Neutral users) ---
@@ -124,12 +144,17 @@ export function useLearningFlow(): LearningFlow {
             if (!studySession.previewed) return 'PREVIEW';
         }
 
+        // ================================================================
+        // STANDARD FLOW (All Goals Can Progress Through These Phases)
+        // ================================================================
+        // This allows users to switch moods/goals and still accumulate mastery
+
         // --- Level 3: Build (Structure) ---
-        // After scouting, build the map
+        // After scouting, build the map (or skip if already built)
         if (!studySession.mapBuilt) return 'BUILD';
 
         // --- Level 4: Diagnose (Optional) ---
-        // Priority: If explicit active diagnostic exists -> DIAGNOSE
+        // Priority: If explicit active diagnostic exists → DIAGNOSE
         if (diagnosticSession && !diagnosticSession.isComplete) {
             return 'DIAGNOSE';
         }
@@ -143,12 +168,15 @@ export function useLearningFlow(): LearningFlow {
         }
 
         // --- Level 5: Learn (The Loop) ---
+        // If there are concepts to learn, show them regardless of goal
+        // This allows tired → energized transitions to continue learning
         if (activeConcept) {
             return 'LEARN';
         }
 
-
-
+        // --- Level 6: Master (Final Challenge) ---
+        // After all concepts learned, if map was reconstructed, do mastery challenge
+        // This is available to all goals once they've completed learning
         if (studySession.mapReconstructed && !studySession.mastered) {
             return 'MASTER';
         }

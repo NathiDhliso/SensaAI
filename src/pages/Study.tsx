@@ -16,6 +16,8 @@ import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
+import { usePersonalizationStore } from '@/store/personalization-store';
+import type { StudyGoal } from '@/shared/types/learning';
 import { storageManager } from '@/features/content-storage';
 import { parseAndLoadContent } from '@/shared/utils/content-loader';
 import { StudyLayout, type StudyTab } from '@/components/layout';
@@ -24,6 +26,10 @@ import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
 import { SessionSummary } from '@/components/learning/session/SessionSummary';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
 import { SessionScoutPreview } from '@/components/learning/session/SessionScoutPreview';
+import { CoachMessage } from '@/features/ai-coach/components';
+import { SessionStartModal } from '@/components/learning/session';
+import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
+import { useCoachMessage } from '@/shared/hooks/useCoachMessage';
 import { toast } from '@/shared/utils/toast';
 import styles from './Study.module.css';
 
@@ -40,6 +46,16 @@ export default function Study() {
   const initialTab = (searchParams.get('tab') as StudyTab) || 'overview';
   const [activeTab, setActiveTab] = useState<StudyTab>(initialTab);
   const [isHydrating, setIsHydrating] = useState(false);
+  
+  // Session configuration state
+  const [showSessionConfig, setShowSessionConfig] = useState(false);
+  
+  // Coach message hook with 30s cooldown
+  const { currentMessage: coachMessage, showMessage: showCoachMessage } = useCoachMessage({
+    autoDismissMs: 8000,
+    useMoodAdjustment: true,
+    cooldownMs: 30000, // 30 seconds between messages
+  });
 
   const {
     getSession,
@@ -60,6 +76,20 @@ export default function Study() {
   const [hydrationError, setHydrationError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
+
+  // Struggle detection with adjusted thresholds
+  useStruggleDetector({
+    idleThresholdSeconds: 90, // Increased from 45s - less aggressive
+    errorThreshold: 3,         // Increased from 2 - less sensitive
+    backspaceThreshold: 40,    // Increased from 30 - less sensitive
+    onStruggleChange: (state) => {
+      // Only show if confidence is high and user is genuinely struggling
+      if (state.isStruggling && state.strugglingReason && state.confidence > 0.6) {
+        // Show encouraging coach message (10s timeout for struggle messages)
+        showCoachMessage('build', 'struggle', 10000);
+      }
+    },
+  });
 
   // Hydration Effect: Load data from storage if store is empty or IDs mismatch
   useEffect(() => {
@@ -175,6 +205,38 @@ export default function Study() {
     startSession();
     return () => endSession();
   }, [startSession, endSession]);
+
+  // Handle session start (after user completes session configuration)
+  const handleSessionStart = useCallback((goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
+    const { startStudySession, setMood } = useLearningStore.getState();
+    
+    // Start the study session with selected parameters
+    startStudySession(goal, duration, [], primer);
+    
+    // Map SessionStartModal mood to learning store mood
+    // SessionStartModal mood is already saved to personalization store by the modal
+    const { lastSessionMood } = usePersonalizationStore.getState();
+    if (lastSessionMood) {
+      // Map: energized->pumped, neutral->good, tired->tired, stressed->struggling
+      const moodMap: Record<string, 'pumped' | 'good' | 'okay' | 'struggling' | 'tired'> = {
+        'energized': 'pumped',
+        'neutral': 'good',
+        'tired': 'tired',
+        'stressed': 'struggling',
+      };
+      const mappedMood = moodMap[lastSessionMood] || 'good';
+      setMood(mappedMood);
+    }
+    
+    // Close modal
+    setShowSessionConfig(false);
+    
+    // Show coach intro message (mood-adjusted)
+    showCoachMessage('prime', 'intro', 8000);
+    
+    // Navigate to learn tab
+    setActiveTab('learn');
+  }, [showCoachMessage]);
 
   // Handle tab changes with prerequisite validation
   const handleTabChange = useCallback((tab: StudyTab) => {
@@ -342,7 +404,11 @@ export default function Study() {
             <SessionScoutPreview
               concepts={concepts}
               initialPhase="scout"
-              onComplete={() => setActiveTab('learn')}
+              onComplete={() => {
+                // When user completes overview and clicks "Start Learning"
+                // Show full session configuration modal
+                setShowSessionConfig(true);
+              }}
             />
           </div>
         );
@@ -384,6 +450,28 @@ export default function Study() {
       >
         {renderTabContent()}
       </StudyLayout>
+
+      {/* Coach Message Toast - Fixed Bottom Right */}
+      {coachMessage && (
+        <div className={styles.coachToast}>
+          <CoachMessage 
+            message={coachMessage}
+            compact
+            showVoiceButton={true}
+          />
+        </div>
+      )}
+
+      {/* Session Configuration Modal - Shows when user clicks "Start Learning" */}
+      {showSessionConfig && (
+        <SessionStartModal
+          subjectName={subjectName}
+          totalConcepts={concepts.length}
+          completedConcepts={session?.progress?.completedConcepts?.length || 0}
+          onStart={handleSessionStart}
+          onBack={() => setShowSessionConfig(false)}
+        />
+      )}
 
       {/* Celebration Modal */}
       {showCelebration && celebrationData && (

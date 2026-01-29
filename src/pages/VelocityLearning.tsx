@@ -62,6 +62,7 @@ export default function VelocityLearning() {
         // markSessionScouted - reserved for future SCOUT phase
         // markSessionPreviewed - reserved for future PREVIEW phase
         markSessionMapBuilt,
+        markSessionMapReconstructed,
         markSessionMastered,
         clearSession,
     } = useLearningStore();
@@ -226,6 +227,21 @@ export default function VelocityLearning() {
         // Score is derived from outcome for now (can be enhanced later)
         const score = outcome === 'mastered' ? 1.0 : outcome === 'needs-review' ? 0.6 : 0.3;
         completeConcept(activeConcept.id, score, outcome);
+        
+        // Check if all concepts are now completed
+        if (currentSession && studySession) {
+            const completedCount = currentSession.progress.completedConcepts.length + 1; // +1 for the one we just completed
+            const totalCount = currentSession.concepts.length;
+            
+            // If all concepts completed, mark map as reconstructed to trigger MASTER phase
+            if (completedCount >= totalCount && !studySession.mapReconstructed) {
+                console.log('[VelocityLearning] All concepts completed, transitioning to MASTER phase');
+                markSessionMapReconstructed(true);
+                // Update SENSA flow
+                sensaFlow.completeStudy(1.0); // Full reconstruction score
+            }
+        }
+        
         // Next concept is auto-selected by store logic usually, but let's be safe
         // useLearningFlow will recalculate activeConcept on next render
     };
@@ -571,6 +587,7 @@ export default function VelocityLearning() {
                             concepts={currentSession!.concepts}
                             onComplete={(passed) => {
                                 markSessionMastered();
+                                setCompletedPhases(prev => new Set(prev).add('MASTER'));
                                 // SENSA v2.0: Update equation (Apply phase)
                                 // passed boolean indicates overall success
                                 sensaFlow.completeApply(

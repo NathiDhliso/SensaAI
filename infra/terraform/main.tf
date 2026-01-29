@@ -1,4 +1,11 @@
 # SensaPBL Infrastructure - Terraform Root Module
+# 
+# Serverless-first architecture for the learning platform:
+# - Cognito: User authentication
+# - DynamoDB: Data storage (concepts, jobs)
+# - Lambda: Compute (generate, query)
+# - API Gateway: HTTP API endpoints
+# - S3: Static content storage
 
 terraform {
   required_version = ">= 1.6.0"
@@ -11,6 +18,10 @@ terraform {
     random = {
       source  = "hashicorp/random"
       version = "~> 3.6"
+    }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4"
     }
   }
 }
@@ -27,7 +38,10 @@ provider "aws" {
   }
 }
 
-# Cognito User Pool
+# ==============================================================================
+# COGNITO - User Authentication
+# ==============================================================================
+
 module "cognito" {
   source = "./modules/cognito"
 
@@ -38,14 +52,20 @@ module "cognito" {
   domain_prefix  = "sensapbl-${var.environment}"
 }
 
-# S3 Buckets
+# ==============================================================================
+# S3 - Content Storage
+# ==============================================================================
+
 module "s3" {
   source = "./modules/s3"
 
   environment = var.environment
 }
 
-# DynamoDB Tables for Concepts Storage
+# ==============================================================================
+# DYNAMODB - Data Storage
+# ==============================================================================
+
 module "dynamodb" {
   source = "./modules/dynamodb"
 
@@ -53,36 +73,50 @@ module "dynamodb" {
   project_name = "sensapbl"
 
   tags = {
-    Component = "ServerlessLearning"
+    Component = "DataStorage"
   }
 }
 
-# Lambda Functions for Concept Generation and Queries
+# ==============================================================================
+# LAMBDA - Serverless Compute
+# ==============================================================================
+
 module "lambda" {
   source = "./modules/lambda"
 
-  environment         = var.environment
-  project_name        = "sensapbl"
+  environment  = var.environment
+  project_name = "sensapbl"
+
+  # DynamoDB integration
   concepts_table_arn  = module.dynamodb.concepts_table_arn
   concepts_table_name = module.dynamodb.concepts_table_name
-
   jobs_table_arn      = module.dynamodb.jobs_table_arn
   jobs_table_name     = module.dynamodb.jobs_table_name
 
+  # Lambda source code
   source_dir = "${path.module}/../../backend/lambda"
 
-  # Optional: Enable for production to eliminate cold starts
+  # Configuration (adjusted for pilot)
+  generate_timeout     = var.environment == "pilot" ? 900 : 900
+  generate_memory_size = var.environment == "pilot" ? 3008 : 10240
+  query_timeout        = 30
+  query_memory_size    = 512
+
+  # Provisioned concurrency (production only)
   enable_provisioned_concurrency    = var.environment == "prod"
   provisioned_concurrent_executions = 1
 
   tags = {
-    Component = "ServerlessLearning"
+    Component = "Compute"
   }
 
   depends_on = [module.dynamodb]
 }
 
-# API Gateway v2 (HTTP API) for Lambda Functions
+# ==============================================================================
+# API GATEWAY - HTTP API Endpoints
+# ==============================================================================
+
 module "api_gateway" {
   source = "./modules/api_gateway"
 
@@ -96,20 +130,20 @@ module "api_gateway" {
   query_concepts_function_name    = module.lambda.query_concepts_function_name
   query_concepts_invoke_arn       = module.lambda.query_concepts_invoke_arn
 
-  # CORS for frontend
+  # CORS configuration
   cors_allowed_origins = var.cors_allowed_origins
 
-  # Throttling - conservative for pilot
+  # Throttling (conservative for pilot)
   throttling_burst_limit = var.environment == "pilot" ? 50 : 200
   throttling_rate_limit  = var.environment == "pilot" ? 25 : 100
 
-  # JWT Authorization - disabled for pilot, enable in prod
-  enable_jwt_authorizer = var.environment == "prod"
+  # JWT Authorization (disabled for pilot)
+  enable_jwt_authorizer = false
   cognito_user_pool_id  = module.cognito.user_pool_id
   cognito_client_id     = module.cognito.client_id
 
   tags = {
-    Component = "ServerlessLearning"
+    Component = "API"
   }
 
   depends_on = [module.lambda]

@@ -25,7 +25,7 @@ import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
-import { getAllPersonas } from '@/features/ai-coach';
+import { getAllPersonas, getPersonaResponse } from '@/features/ai-coach';
 import styles from './Settings.module.css';
 
 
@@ -256,6 +256,17 @@ export default function Settings() {
                   >
                     {coachVoiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
                     <span>Voice</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const sampleMessage = getPersonaResponse(selectedPersona, 'prime', 'intro');
+                      // TODO: Play voice sample using useVoice hook
+                      toast.info('Voice preview: ' + sampleMessage);
+                    }}
+                    className={styles.linkButton}
+                    style={{ marginLeft: '0.5rem' }}
+                  >
+                    Preview Voice
                   </button>
                 </div>
                 <div className={styles.intensityRow}>

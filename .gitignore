@@ -36,9 +36,17 @@ terraform.tfstate
 terraform.tfstate.backup
 tfplan
 *.tfplan
+*.tfstate.*
 
 # Backend compiled JS (build output, not source)
 backend/src/**/*.js
 backend/src/**/*.js.map
 backend/dist/
 
+# Build artifacts
+.build/
+*.zip
+
+# Temporary files
+*.tmp
+*.temp

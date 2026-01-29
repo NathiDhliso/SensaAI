@@ -1,0 +1,142 @@
+.container {
+  background: var(--color-surface-secondary);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1rem 0;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.compact {
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.personaInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.emoji {
+  font-size: 1.5rem;
+}
+
+.compact .emoji {
+  font-size: 1.25rem;
+}
+
+.name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.voiceButton {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voiceButton:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.voiceButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voiceButtonActive {
+  background: var(--color-primary-alpha);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.messageContent {
+  color: var(--color-text-primary);
+}
+
+.message {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.compact .message {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Quote styling */
+.message::before {
+  content: '"';
+  color: var(--color-primary);
+  font-size: 1.5em;
+  line-height: 0;
+  vertical-align: -0.4em;
+  margin-right: 0.1em;
+}
+
+.message::after {
+  content: '"';
+  color: var(--color-primary);
+  font-size: 1.5em;
+  line-height: 0;
+  vertical-align: -0.4em;
+  margin-left: 0.1em;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0.875rem;
+  }
+
+  .emoji {
+    font-size: 1.25rem;
+  }
+
+  .message {
+    font-size: 0.9375rem;
+  }
+}

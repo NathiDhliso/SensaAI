@@ -303,6 +303,10 @@ export interface StudySession {
   isInFlowState: boolean;
   /** Timestamp when time toast was shown (to prevent re-showing) */
   timeToastShownAt: string | null;
+  
+  // ========== AI COACH PERSONALIZATION ==========
+  /** User's current mood for AI Coach response adjustment */
+  mood?: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired';
 }
 
 export interface ConceptMapData {

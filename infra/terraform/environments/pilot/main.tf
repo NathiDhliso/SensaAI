@@ -1,10 +1,10 @@
-# Pilot Environment Main Configuration
-# Serverless-first architecture for pilot phase
+# Pilot Environment Configuration
+# Serverless-only for initial deployment
 
 terraform {
   required_version = ">= 1.6.0"
 
-  # For pilot, use local state (migrate to S3 for production)
+  # Local state for pilot - uncomment S3 backend when ready for team use
   # backend "s3" {
   #   bucket         = "sensapbl-terraform-state"
   #   key            = "pilot/terraform.tfstate"
@@ -14,83 +14,61 @@ terraform {
   # }
 }
 
-# Load the root module
+# Load the root module with pilot-specific configuration
 module "sensapbl" {
   source = "../../"
 
   environment = var.environment
   aws_region  = var.aws_region
 
+  # Cognito
   cognito_callback_urls = var.cognito_callback_urls
   cognito_logout_urls   = var.cognito_logout_urls
-  cors_allowed_origins  = var.cors_allowed_origins
+
+  # API Gateway CORS
+  cors_allowed_origins = var.cors_allowed_origins
 }
 
-# Cognito outputs
+# ==============================================================================
+# OUTPUTS - Use these to configure your frontend .env
+# ==============================================================================
+
 output "cognito_user_pool_id" {
-  description = "Cognito User Pool ID for authentication"
+  description = "VITE_COGNITO_USER_POOL_ID"
   value       = module.sensapbl.cognito_user_pool_id
 }
 
 output "cognito_client_id" {
-  description = "Cognito App Client ID"
+  description = "VITE_COGNITO_CLIENT_ID"
   value       = module.sensapbl.cognito_client_id
 }
 
 output "cognito_domain" {
-  description = "Cognito hosted UI domain"
+  description = "Cognito domain for OAuth"
   value       = module.sensapbl.cognito_domain
 }
 
-output "cognito_identity_pool_id" {
-  description = "Cognito Identity Pool ID"
-  value       = module.sensapbl.cognito_identity_pool_id
+output "api_endpoint" {
+  description = "VITE_API_ENDPOINT - Base URL for all API calls"
+  value       = module.sensapbl.api_endpoint
 }
 
-# Storage outputs
+output "api_generate_url" {
+  description = "POST endpoint for concept generation"
+  value       = module.sensapbl.api_generate_url
+}
+
+output "api_concepts_url" {
+  description = "GET endpoint for concept queries"
+  value       = module.sensapbl.api_concepts_url
+}
+
 output "s3_content_bucket" {
-  description = "S3 bucket for content storage"
+  description = "S3 bucket for content"
   value       = module.sensapbl.s3_content_bucket
 }
 
 output "dynamodb_concepts_table" {
-  description = "DynamoDB table name for concepts"
+  description = "DynamoDB concepts table name"
   value       = module.sensapbl.dynamodb_concepts_table
-}
-
-output "dynamodb_jobs_table" {
-  description = "DynamoDB table name for generation jobs"
-  value       = module.sensapbl.dynamodb_jobs_table
-}
-
-# Lambda outputs
-output "lambda_generate_function" {
-  description = "Lambda function name for concept generation"
-  value       = module.sensapbl.lambda_generate_function
-}
-
-output "lambda_query_function" {
-  description = "Lambda function name for concept queries"
-  value       = module.sensapbl.lambda_query_function
-}
-
-# API Gateway outputs for frontend configuration
-output "api_gateway_endpoint" {
-  description = "API Gateway endpoint URL - use this in frontend .env"
-  value       = module.sensapbl.api_gateway_endpoint
-}
-
-output "api_generate_endpoint" {
-  description = "Full URL for the generate concepts endpoint"
-  value       = module.sensapbl.api_generate_endpoint
-}
-
-output "api_concepts_endpoint" {
-  description = "Base URL for the concepts query endpoint"
-  value       = module.sensapbl.api_concepts_endpoint
-}
-
-output "api_jobs_endpoint" {
-  description = "Base URL for the jobs status endpoint"
-  value       = module.sensapbl.api_jobs_endpoint
 }
