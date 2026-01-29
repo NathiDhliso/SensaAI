@@ -4,7 +4,7 @@ import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
 import BackgroundJobToast from './components/ui/BackgroundJobToast';
 
-import { useBionicReading } from './hooks/useBionicReading';
+
 
 const Home = lazy(() => import('./pages/Home'));
 const Generate = lazy(() => import('./pages/Generate'));
@@ -46,7 +46,7 @@ function App() {
   // }, [bionicReading]);
 
   // Apply bionic reading text processing
-  useBionicReading();
+
 
   return (
     <BrowserRouter>

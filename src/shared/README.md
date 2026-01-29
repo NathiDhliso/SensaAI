@@ -89,7 +89,7 @@ API client and endpoint definitions.
 Reusable React hooks used across features.
 
 **Categories:**
-- **UI Hooks** - `useClickOutside`, `useEscapeKey`, `useBionicReading`
+- **UI Hooks** - `useClickOutside`, `useEscapeKey`
 - **Layout Hooks** - `useOrientationAwareZoom`, `useResponsiveNodeSize`
 - **Flow Hooks** - `useFlowState`, `useLearningFlow`, `useSensaFlow`
 - **Generation Hooks** - `useGenerationEngine`, `useGenerationRecovery`

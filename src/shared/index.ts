@@ -18,14 +18,14 @@ export * from './utils/content-loader';
 export * from './utils/context-optimizer';
 
 // Layout utils (has TierType)
-export { 
-  calculateNodeSize, 
-  getScreenOrientation, 
-  type ScreenOrientation 
+export {
+  calculateNodeSize,
+  getScreenOrientation,
+  type ScreenOrientation
 } from './utils/layout-utils';
 
 // Types (use type-only exports to avoid conflicts)
-export type { 
+export type {
   LearningConcept,
   LearningStage,
   LifecyclePhaseKey,
@@ -66,7 +66,7 @@ export type {
 
 // Hooks (some export types that conflict)
 export * from './hooks/useBackgroundJobRecovery';
-export * from './hooks/useBionicReading';
+
 export * from './hooks/useClickOutside';
 export * from './hooks/useCollisionDetection';
 export * from './hooks/useContent';
