@@ -31,7 +31,7 @@ dist-ssr
 *.timestamp-*.mjs
 
 # Terraform
-infra/terraform/.terraform/
+**/.terraform/
 terraform.tfstate
 terraform.tfstate.backup
 tfplan
