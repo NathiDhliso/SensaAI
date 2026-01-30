@@ -17,10 +17,11 @@ import {
   Volume2, VolumeX, Bot,
   Edit2,
   Zap,
-  Calendar
+  Calendar,
+  Shuffle
 } from 'lucide-react';
 import { useThemeStore, type Theme } from '@/store/theme-store';
-import { usePersonalizationStore } from '@/store/personalization-store';
+import { usePersonalizationStore, type PracticeMode } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { MetaphorToggle } from '@/features/personalization';
@@ -50,7 +51,9 @@ export default function Settings() {
     stressFreeMode,
     setStressFreeMode,
     semesterStartDate,
-    setSemesterStartDate
+    setSemesterStartDate,
+    practiceMode,
+    setPracticeMode
   } = usePersonalizationStore();
   const personas = getAllPersonas();
   const activePersona = personas.find(p => p.id === selectedPersona) || personas[0];
@@ -284,6 +287,39 @@ export default function Settings() {
                   <span className={styles.intensityValue}>{coachIntensity}</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Practice Mode Section */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <Shuffle className={styles.sectionIcon} />
+              <h2 className={styles.sectionTitle}>Practice Mode</h2>
+            </div>
+
+            <div className={styles.settingRow}>
+              <div className={styles.settingInfo}>
+                <span className={styles.settingLabel}>Concept Sequencing</span>
+                <span className={styles.settingDesc}>
+                  How concepts are mixed during practice sessions.
+                </span>
+              </div>
+            </div>
+            <div className={styles.themeToggle}>
+              {[
+                { value: 'blocked' as PracticeMode, label: 'Blocked', desc: 'One topic at a time' },
+                { value: 'mixed' as PracticeMode, label: 'Mixed', desc: 'Random topics' },
+                { value: 'progressive' as PracticeMode, label: 'Progressive', desc: 'Start blocked, add mixing' },
+              ].map(({ value, label, desc }) => (
+                <button
+                  key={value}
+                  onClick={() => setPracticeMode(value)}
+                  className={`${styles.themeOption} ${practiceMode === value ? styles.themeOptionActive : ''}`}
+                  title={desc}
+                >
+                  <span>{label}</span>
+                </button>
+              ))}
             </div>
           </div>
 

@@ -148,6 +148,14 @@ export const createStudySlice: StateCreator<
     }));
   },
 
+  returnToMapBuilding: () => {
+    set((state) => ({
+      studySession: state.studySession
+        ? { ...state.studySession, mapBuilt: false }
+        : null,
+    }));
+  },
+
   markSessionMapReconstructed: (_passed: boolean) => {
     set((state) => ({
       studySession: state.studySession
@@ -168,12 +176,12 @@ export const createStudySlice: StateCreator<
     set((state) => ({
       studySession: state.studySession
         ? {
-            ...state.studySession,
-            predictions: {
-              ...state.studySession.predictions,
-              [conceptId]: prediction,
-            },
-          }
+          ...state.studySession,
+          predictions: {
+            ...state.studySession.predictions,
+            [conceptId]: prediction,
+          },
+        }
         : null,
     }));
   },

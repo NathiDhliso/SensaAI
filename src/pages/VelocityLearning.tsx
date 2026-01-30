@@ -36,6 +36,7 @@ import MasteryChallenge from '@/components/learning/activities/MasteryChallenge'
 import SensaSynopticView from '@/components/learning/ui/SensaSynopticView';
 import SkipReasonModal, { type SkipReasonData } from '@/components/learning/feedback/SkipReasonModal';
 import PhaseNavigator from '@/components/learning/ui/PhaseNavigator';
+import { LearningToolbar } from '@/components/learning/LearningToolbar';
 
 import type {
     StudyGoal,
@@ -64,6 +65,7 @@ export default function VelocityLearning() {
         markSessionMapBuilt,
         markSessionMapReconstructed,
         markSessionMastered,
+        returnToMapBuilding,
         clearSession,
     } = useLearningStore();
 
@@ -300,7 +302,7 @@ export default function VelocityLearning() {
     const handleReturnToMap = () => {
         // Transition back to 'note' phase (concept map building)
         // This allows user to revise connections if they realize misunderstanding
-        sensaFlow.setPhase('note');
+        returnToMapBuilding();
     };
 
     const handleGoToLibrary = () => {
@@ -360,6 +362,11 @@ export default function VelocityLearning() {
         <div className={styles.container} style={{ '--cognitive-load': cognitiveLoad } as React.CSSProperties}>
             <main className={styles.content}>
                 <div className={styles.mainArea}>
+
+                    {/* Learning Toolbar - Stats, Quiz, Timer, Reset */}
+                    {currentSession && (
+                        <LearningToolbar />
+                    )}
 
                     {/* Phase Navigator - Hidden in Explore Mode */}
                     {currentSession && studySession?.goal !== 'explore' && (

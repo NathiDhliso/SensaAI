@@ -5,6 +5,7 @@ import type { Mood } from '@/features/ai-coach';
 
 export type UserRole = 'architect' | 'operator' | 'specialist' | 'learner';
 export type FamiliarSystem = 'construction' | 'cooking' | 'travel' | 'healthcare' | 'sports' | 'nature';
+export type PracticeMode = 'blocked' | 'mixed' | 'progressive';
 
 export type BehavioralSignals = {
   avgTimePerConcept: number;  // seconds
@@ -39,6 +40,9 @@ type PersonalizationState = {
   // Metaphor Settings
   metaphorSettings: MetaphorSettings;
 
+  // Practice Mode (Learning Science)
+  practiceMode: PracticeMode;
+
   // Academic Schedule
   semesterStartDate: string | null; // ISO Date String
 };
@@ -61,6 +65,9 @@ type PersonalizationActions = {
   // Metaphor Actions
   updateMetaphorSettings: (settings: MetaphorSettings) => void;
   trackMetaphorUsage: (action: string, value: string) => void;
+
+  // Practice Mode Actions
+  setPracticeMode: (mode: PracticeMode) => void;
 
   // Academic Schedule Actions
   setSemesterStartDate: (date: string | null) => void;
@@ -89,6 +96,9 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
         metaphorComplexity: 'simple',
         allowCustomMetaphors: false,
       },
+
+      // Practice Mode Defaults
+      practiceMode: 'progressive',
 
       // Academic Schedule Defaults
       semesterStartDate: null,
@@ -148,6 +158,11 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
       trackMetaphorUsage: (action, value) => {
         // For now, just log to console. In production, this would send to analytics
         console.log('Metaphor usage:', { action, value, timestamp: new Date().toISOString() });
+      },
+
+      // Practice Mode Actions
+      setPracticeMode: (mode) => {
+        set({ practiceMode: mode });
       },
 
       // Academic Schedule Actions

@@ -33,6 +33,10 @@ import { MetaphorToggle } from '@/features/personalization';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
 import { useCoachMessage } from '@/shared/hooks/useCoachMessage';
 import { toast } from '@/shared/utils/toast';
+import { getInterleavingAlgorithm } from '@/features/learning-session/algorithms/interleaving';
+import { getZPDConcepts } from '@/features/learning-session/algorithms/concept-selection';
+import HelpModal from '@/components/ui/HelpModal';
+import NeuralResetBanner from '@/components/learning/feedback/NeuralResetModal';
 import styles from './Study.module.css';
 
 // Lazy load heavy components
@@ -51,6 +55,7 @@ export default function Study() {
 
   // Session configuration state
   const [showSessionConfig, setShowSessionConfig] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Coach message hook with 30s cooldown
   const { currentMessage: coachMessage, showMessage: showCoachMessage } = useCoachMessage({
@@ -237,8 +242,39 @@ export default function Study() {
   const handleSessionStart = useCallback((goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
     const { startStudySession, setMood } = useLearningStore.getState();
 
-    // Start the study session with selected parameters
-    startStudySession(goal, duration, [], primer);
+    // Get current personalization settings
+    const { practiceMode } = usePersonalizationStore.getState();
+    const { getConcepts } = useLearningStore.getState();
+    const concepts = getConcepts();
+
+    // Calculate target number of concepts (approx 5 min per concept)
+    const sessionSize = Math.max(3, Math.ceil(duration / 5));
+    let targetConcepts: string[] = [];
+
+    // Select concepts based on Practice Mode
+    try {
+      if (practiceMode === 'mixed') {
+        const interleaver = getInterleavingAlgorithm();
+        // Use existing concepts if already loaded
+        targetConcepts = interleaver.getMixedPracticeSession(concepts, sessionSize).map(c => c.id);
+      } else if (practiceMode === 'progressive') {
+        const interleaver = getInterleavingAlgorithm();
+        targetConcepts = interleaver.getProgressiveSession(concepts, sessionSize).concepts.map(c => c.id);
+      } else {
+        // Blocked mode: Use ZPD selection to find optimal next concepts
+        // Note: Passing empty performance map for now - will be enhanced with real metrics later
+        const zpdConcepts = getZPDConcepts(concepts, new Map(), { minConcepts: sessionSize });
+        targetConcepts = zpdConcepts.map(r => r.concept.id);
+      }
+    } catch (err) {
+      console.warn('Algorithm selection failed, falling back to sequential:', err);
+      // Fallback: take next N incomplete concepts
+      // targetConcepts = ... (handled by core logic if empty array passed?)
+      // We'll pass empty to let backend/store decide if algo fails
+    }
+
+    // Start the study session with selected parameters and concepts
+    startStudySession(goal, duration, targetConcepts, primer);
 
     // Map SessionStartModal mood to learning store mood
     // SessionStartModal mood is already saved to personalization store by the modal
@@ -473,6 +509,20 @@ export default function Study() {
         subjectName={subjectName}
         headerActions={
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              onClick={() => setShowHelpModal(true)}
+              title="Help & Shortcuts"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0.5rem',
+                borderRadius: '50%',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              ❓
+            </button>
             <MetaphorToggle compact showSettings />
             <CognitiveGauge compact />
           </div>
@@ -515,7 +565,11 @@ export default function Study() {
       {/* Session Summary Modal */}
       <SessionSummary />
 
-      {/* Neural Reset Banner */}
+      {/* Neural Reset Banner - shows break suggestion */}
+      <NeuralResetBanner />
+
+      {/* Help Modal */}
+      <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
 
     </>
   );
