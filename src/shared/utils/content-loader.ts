@@ -26,25 +26,39 @@ export interface ParseAndLoadResult {
  * @returns Result object indicating success or containing error message
  */
 export function parseAndLoadContent(rawContent: string, subjectId?: string): ParseAndLoadResult {
+    console.log(`\n📦 [ContentLoader] parseAndLoadContent called`);
+    console.log(`   Subject ID: ${subjectId || 'NONE'}`);
+    console.log(`   Raw content length: ${rawContent.length} chars`);
+    
     try {
         const parseResult = parseGeneratedContent(rawContent);
 
         if (!parseResult.success) {
+            console.error(`   ❌ Parse failed: ${parseResult.error}`);
             return {
                 success: false,
                 error: parseResult.error || 'Failed to parse content',
             };
         }
 
+        console.log(`   ✅ Parse successful, ${parseResult.data.concepts.length} concepts found`);
+        
         const transformed = transformGeneratedContent(parseResult.data, subjectId);
 
         // FIX: Validate that we actually have concepts to learn
         if (!transformed.concepts || transformed.concepts.length === 0) {
+            console.error(`   ❌ No concepts after transformation`);
             return {
                 success: false,
                 error: 'Generation incomplete: No learning concepts were created. Please try again.',
             };
         }
+
+        console.log(`   ✅ Transformation successful, ${transformed.concepts.length} concepts created`);
+        console.log(`   First 3 transformed concept names:`);
+        transformed.concepts.slice(0, 3).forEach((c, i) => {
+            console.log(`      ${i + 1}. "${c.name}"`);
+        });
 
         const effectiveSubjectId = subjectId || `subject-${Date.now()}`;
 

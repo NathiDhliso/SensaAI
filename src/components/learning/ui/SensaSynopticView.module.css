@@ -377,6 +377,15 @@
     padding-left: var(--spacing-3);
 }
 
+.analogyText {
+    font-style: italic;
+    color: var(--color-text-secondary);
+    background: var(--color-surface-secondary);
+    padding: var(--spacing-3);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-primary);
+}
+
 .iconAccent {
     color: var(--color-accent) !important;
 }

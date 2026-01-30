@@ -39,6 +39,7 @@ type PersonalizationState = {
 
   // Metaphor Settings
   metaphorSettings: MetaphorSettings;
+  metaphorGraduation: Record<string, number>; // CONCEPT_ID -> SCORE (0-100)
 
   // Practice Mode (Learning Science)
   practiceMode: PracticeMode;
@@ -65,6 +66,7 @@ type PersonalizationActions = {
   // Metaphor Actions
   updateMetaphorSettings: (settings: MetaphorSettings) => void;
   trackMetaphorUsage: (action: string, value: string) => void;
+  updateGraduationScore: (conceptId: string, score: number) => void;
 
   // Practice Mode Actions
   setPracticeMode: (mode: PracticeMode) => void;
@@ -96,6 +98,7 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
         metaphorComplexity: 'simple',
         allowCustomMetaphors: false,
       },
+      metaphorGraduation: {},
 
       // Practice Mode Defaults
       practiceMode: 'progressive',
@@ -160,6 +163,16 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
         console.log('Metaphor usage:', { action, value, timestamp: new Date().toISOString() });
       },
 
+      // Graduation Actions
+      updateGraduationScore: (conceptId, score) => {
+        set((state) => ({
+          metaphorGraduation: {
+            ...state.metaphorGraduation,
+            [conceptId]: score,
+          },
+        }));
+      },
+
       // Practice Mode Actions
       setPracticeMode: (mode) => {
         set({ practiceMode: mode });
@@ -172,7 +185,7 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
     }),
     {
       name: 'personalization-storage',
-      version: 2,
+      version: 3, // Increment version for schema change
     }
   )
 );

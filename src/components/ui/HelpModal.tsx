@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * HelpModal Component
  * 
@@ -120,15 +122,15 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             </h3>
                             <div className={styles.flowChart}>
                                 {LEARNING_FLOW.map((step, index) => (
-                                    <>
-                                        <div key={step.label} className={styles.flowStep}>
+                                    <React.Fragment key={step.label}>
+                                        <div className={styles.flowStep}>
                                             <span className={styles.flowIcon}>{step.icon}</span>
                                             <span className={styles.flowLabel}>{step.label}</span>
                                         </div>
                                         {index < LEARNING_FLOW.length - 1 && (
-                                            <span key={`arrow-${index}`} className={styles.flowArrow}>→</span>
+                                            <span className={styles.flowArrow}>→</span>
                                         )}
-                                    </>
+                                    </React.Fragment>
                                 ))}
                             </div>
                         </div>

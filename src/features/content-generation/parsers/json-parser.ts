@@ -116,12 +116,12 @@ function parseDomainAnalysis(content: string): ParsedDomainAnalysis {
         if (firstBrace !== -1) {
             const possibleJson = cleanContent.substring(firstBrace).trim();
             const parsed = JSON.parse(possibleJson);
-            
+
             // Extract domain from JSON
             if (parsed.domain) {
                 domain = parsed.domain;
             }
-            
+
             // Extract lifecycle from JSON
             if (parsed.lifecycle) {
                 lifecycle = {
@@ -765,7 +765,7 @@ function extractStrictConnections(
     c: Record<string, unknown>
 ): Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> | undefined {
     const connections: Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> = [];
-    
+
     // Priority 1: strictConnections (frontend prompt format)
     if (Array.isArray(c.strictConnections)) {
         for (const conn of c.strictConnections) {
@@ -779,7 +779,7 @@ function extractStrictConnections(
             }
         }
     }
-    
+
     // Priority 2: connections (Lambda prompt format)
     if (connections.length === 0 && Array.isArray(c.connections)) {
         for (const conn of c.connections) {
@@ -793,7 +793,7 @@ function extractStrictConnections(
             }
         }
     }
-    
+
     return connections.length > 0 ? connections : undefined;
 }
 
@@ -803,20 +803,20 @@ function extractStrictConnections(
  */
 function normalizeConnectionType(type: string | undefined): 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' {
     if (!type) return 'related-to';
-    
+
     const t = type.toLowerCase().trim();
-    
+
     // Exact matches
     if (t === 'requires' || t === 'prerequisite' || t === 'depends-on' || t === 'depends_on') return 'requires';
     if (t === 'extends' || t === 'enhances' || t === 'specializes') return 'extends';
     if (t === 'enables' || t === 'provides' || t === 'powers') return 'enables';
     if (t === 'contains' || t === 'includes' || t === 'comprises') return 'contains';
-    
+
     // Fallback - but log a warning for investigation
     if (t !== 'related-to' && t !== 'relates-to' && t !== 'relates to') {
         console.warn(`[ConnectionParser] Unknown connection type "${type}" normalized to "related-to"`);
     }
-    
+
     return 'related-to';
 }
 
@@ -826,6 +826,10 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
     const c = concept;
     const order = typeof c.order === 'number' ? c.order : 1;
     const name = typeof c.name === 'string' ? c.name : 'Unknown Concept';
+
+    // Simple logging - the prompt should now generate proper names
+    console.log(`[Parser] Processing concept #${order}: "${name}"`);
+
 
     // Extract lifecycle phases - check BOTH lifecycle.phase1 AND root-level phase1
     let hookSentence = '';

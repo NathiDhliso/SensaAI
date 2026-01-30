@@ -59,23 +59,17 @@ const DEFAULT_STAGE_ICONS = ['shape:seed', 'shape:sprout', 'shape:bloom', 'shape
 // ============================================================================
 
 /**
- * Clean up concept names that are just placeholder IDs (e.g., "concept-P2-019")
- * Uses mnemonic anchor or formatted order as fallback
+ * Get concept name - now simplified since the prompt generates proper names
  */
 function cleanConceptName(concept: ParsedConcept): string {
-  // If name is NOT a placeholder, return it as is
-  if (!concept.name.match(/^concept-P\d+/i) && !concept.name.includes('placeholder')) {
+  // The prompt should now generate proper names like "Row-Level Security"
+  // instead of placeholder IDs like "concept-P1-003"
+  if (concept.name && concept.name.trim().length > 0) {
     return concept.name;
   }
 
-  // Fallback 1: Use Mnemonic Anchor (usually a punchy visual name)
-  if (concept.mnemonic?.anchor && concept.mnemonic.anchor.length < 50) {
-    // Remove emojis for the clean name if present
-    return concept.mnemonic.anchor.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
-  }
-
-  // Fallback 2: Use Stage + Order
-  return `Concept ${concept.order}`; // Simple fallback
+  // Fallback only for truly empty names
+  return `Concept ${concept.order}`;
 }
 
 /**
@@ -715,6 +709,10 @@ export function transformToLearningConcepts(
   stages: LearningStage[],
   fallbackConcepts: string[] = []
 ): LearningConcept[] {
+  console.log(`\n🔄 [Transformer] transformToLearningConcepts called`);
+  console.log(`   Total parsed concepts: ${parsed.concepts.length}`);
+  console.log(`   Fallback concepts: ${fallbackConcepts.length}`);
+
   const concepts: LearningConcept[] = [];
 
   // SANITIZE FALLBACKS: Ideally we should fix the source, but we filter here to be safe
@@ -844,6 +842,10 @@ export function transformToLearningConcepts(
       // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
       connections: extractSemanticConnections(parsedConcept, parsed.concepts),
     });
+
+    // Log the final concept name
+    const finalConcept = concepts[concepts.length - 1];
+    console.log(`   ✅ Created concept #${finalConcept.order}: "${finalConcept.name}"`);
   }
 
 

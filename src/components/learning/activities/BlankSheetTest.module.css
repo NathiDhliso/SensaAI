@@ -65,6 +65,25 @@
     }
 }
 
+.graduationBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    color: #ffd700;
+    font-weight: 500;
+    font-size: 0.9rem;
+    animation: slideIn 0.5s ease-out;
+}
+
+.gradIcon {
+    color: #ffd700;
+}
+
 .spinning {
     animation: spin 1s linear infinite;
 }

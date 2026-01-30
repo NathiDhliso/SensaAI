@@ -13,7 +13,7 @@
 
 export const PHASE1_PROMPT = `You are analyzing a subject domain to identify core concepts and their relationships.
 
-TASK: Identify 20-50 core concepts that professionals must know in this domain.
+TASK: Identify 50-100 core concepts that professionals must know in this domain.
 
 OUTPUT REQUIREMENTS:
 
@@ -24,7 +24,7 @@ OUTPUT REQUIREMENTS:
    - Phase 3: Verification/Monitoring/Evaluation (validation and outcomes)
    - Use single ACTION VERBS in CAPS (e.g., PROVISION → CONFIGURE → MONITOR)
 
-3. **Concepts Array**: 20-50 concepts, each with:
+3. **Concepts Array**: 50-100 concepts, each with:
    - name: Clear, specific concept name (real terminology from the domain)
    - tier: Classify as "foundation", "keystone", or "utility"
      * foundation: Core building blocks (20-30%) - universal constants others depend on
@@ -59,6 +59,14 @@ DEPENDENCY RULES:
 - NO circular dependencies (A→B→C→A is forbidden)
 - Dependencies must reference concept names that exist in your list
 
+GRANULARITY & ELABORATION RULES:
+1. **Break Down Topics**: Do not just list "Azure Active Directory". Break it down:
+   - "Azure AD Tenants"
+   - "Azure AD MFA"
+   - "Conditional Access Policies"
+2. **Specifics over Generics**: Avoid broad headers. Use testable, specific concept names.
+3. **Hierarchical Coverage**: Ensure major pillars have 5-10 child concepts each.
+
 ANTI-HALLUCINATION RULES:
 - Use REAL terminology from the domain (verifiable in official docs)
 - Do NOT invent concept names
@@ -83,7 +91,7 @@ OUTPUT FORMAT (JSON):
 }
 
 VALIDATION CHECKLIST (verify before returning):
-- ✅ 20-50 concepts total
+- ✅ 50-100 concepts total
 - ✅ Each concept has exactly one tier
 - ✅ All dependsOn references exist in the concepts array
 - ✅ No circular dependencies

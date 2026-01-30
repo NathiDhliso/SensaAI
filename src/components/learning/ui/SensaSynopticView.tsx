@@ -51,6 +51,13 @@ const CENTER = { x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 };
 const MIN_NODE_SPACING = 150; // Minimum spacing between node edges (in pixels)
 
 export default function SensaSynopticView({ concepts, subjectName }: SensaSynopticViewProps) {
+    console.log(`\n🗺️ [SensaSynopticView] Rendering with ${concepts.length} concepts`);
+    console.log(`   Subject: "${subjectName}"`);
+    console.log(`   First 5 concept names:`);
+    concepts.slice(0, 5).forEach((c, i) => {
+        console.log(`      ${i + 1}. "${c.name}" (tier: ${c.tier}, phase: ${c.lifecyclePhase})`);
+    });
+    
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [focusedTier, setFocusedTier] = useState<'foundation' | 'keystone' | 'utility' | null>(null);
     const [showHelp, setShowHelp] = useState(false);
@@ -632,25 +639,25 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                                     </button>
                                 </div>
                                 <div className={styles.drawerContent}>
-                                    {/* Core Insight - [NEW] Priority Display */}
-                                    {isRealContent(selectedConcept.shape?.simpleCore, selectedConcept.name) && (
+                                    {/* Core Insight - Respects metaphor settings */}
+                                    {selectedConceptContent.coreExplanation && isRealContent(selectedConceptContent.coreExplanation, selectedConcept.name) && (
                                         <div className={styles.section}>
                                             <h4><Zap size={16} /> Core Insight</h4>
                                             <p className={styles.coreInsightText}>
-                                                {selectedConcept.shape?.simpleCore}
+                                                {selectedConceptContent.coreExplanation}
                                             </p>
                                         </div>
                                     )}
 
-                                    {/* Quick Summary - only show if real content */}
-                                    {isRealContent(selectedConcept.hookSentence, selectedConcept.name) && (
+                                    {/* Analogical Model - Only shown if metaphors enabled */}
+                                    {selectedConceptContent.analogicalModel && isRealContent(selectedConceptContent.analogicalModel, selectedConcept.name) && (
                                         <div className={styles.section}>
-                                            <h4><BookOpen size={16} /> Quick Summary</h4>
-                                            <p>{selectedConcept.hookSentence}</p>
+                                            <h4><BookOpen size={16} /> Think of it like...</h4>
+                                            <p className={styles.analogyText}>{selectedConceptContent.analogicalModel}</p>
                                         </div>
                                     )}
 
-                                    {/* Why It Matters - only show if real content */}
+                                    {/* Why It Matters - always shown */}
                                     {isRealContent(selectedConcept.whyYouNeed, selectedConcept.name) && (
                                         <div className={styles.section}>
                                             <h4>Why It Matters</h4>

@@ -9,6 +9,7 @@
 import { motion } from 'framer-motion';
 import { Brain, Lightbulb, RefreshCw } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
+import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import styles from './NeuralResetBanner.module.css';
 
 interface NeuralResetBannerProps {
@@ -25,9 +26,10 @@ export function NeuralResetBanner({
     failedScore,
     onRetry,
 }: NeuralResetBannerProps) {
-    // Get simplified content from concept's SHAPE data
-    const simpleCore = concept.shape?.simpleCore || concept.hookSentence || null;
-    const analogicalModel = concept.shape?.analogicalModel || null;
+    // Get content respecting metaphor settings
+    const adaptedContent = useMetaphorContent(concept);
+    const simpleCore = adaptedContent.coreExplanation;
+    const analogicalModel = adaptedContent.analogicalModel;
 
     return (
         <motion.div

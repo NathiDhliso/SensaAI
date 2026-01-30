@@ -17,6 +17,12 @@ export const PHASE2_PROMPT = `You are generating detailed educational content fo
 You will receive a list of concept names with their tiers and dependencies from Phase 1.
 Your task is to generate rich educational content for each concept.
 
+**CRITICAL: DO NOT CHANGE THE CONCEPT NAMES FROM PHASE 1**
+- The "name" field you receive is the ACTUAL concept name (e.g., "Row-Level Security", "Virtual Network")
+- The "anchor" field in mnemonic is the VISUAL METAPHOR (e.g., "Castle 🏰", "Volcano 🌋")
+- NEVER put the mnemonic anchor in the "name" field
+- NEVER replace the concept name with a visual metaphor
+
 CONTENT TO GENERATE FOR EACH CONCEPT:
 
 1. **SHAPE FRAMEWORK** (Micro-learning format):

@@ -72,6 +72,17 @@ regardless of the subject, you must explicitly include concepts that address the
 
 *Ensure at least 1-2 concepts in this batch specifically address these pillars.*
 
+### GRANULARITY & ELABORATION RULES (CRITICAL):
+The user expects an "elaborate list" similar to a detailed exam syllabus.
+1. **AVOID Broad Categories**: Do not just list "Azure Active Directory".
+2. **BREAK DOWN into Specifics**: Instead of one broad concept, generate multiple specific ones:
+   - "Azure AD Tenants"
+   - "Azure AD MFA"
+   - "Conditional Access Policies"
+   - "Self-Service Password Reset"
+3. **Hierarchical Coverage**: Ensure major topics are exploded into their constituent parts.
+
+
 ## OUTPUT FORMAT:
 Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 
@@ -132,6 +143,10 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 3. REAL WORLD EXAMPLES: Field `shape.highStakesExample` MUST be a real case study.
 4. METAPHORS: Field `shape.analogicalModel` and `mnemonics` MUST use objects/systems OUTSIDE the domain.
 5. POSITIVE FRAMING: Use strictly positive, empowering language.
+6. **NAME FIELD (CRITICAL)**: The `name` field MUST be a proper, human-readable concept name.
+   - ✅ GOOD: "Row-Level Security", "Data Partitioning", "Cost-Based Optimization", "Cell Membrane"
+   - ❌ BAD: "concept-P1-001", "concept-P2-015" (these are IDs, NOT names)
+   - The `name` is what students will see in the interface - it MUST be meaningful!
 
 ## ANTI-DUPLICATION PROTOCOL (CRITICAL FOR PARALLEL GENERATION):
 You are generating PART {part_num} of 5 parallel batches. To ensure ZERO duplicate concepts:
@@ -147,16 +162,16 @@ Use this generic framework for ANY subject:
 
 You are responsible for **PILLAR {part_num}**. Focus EXCLUSIVELY on concepts belonging to this pillar.
 
-### Step 2: Concept ID Schema (MANDATORY)
-Every concept ID MUST follow this format: `concept-P{{part_num}}-{{seq}}`
-Examples: `concept-P1-001`, `concept-P2-007`, `concept-P3-014`
-This makes cross-part auditing unambiguous.
+### Step 2: Concept Ordering (MANDATORY)
+Use the `order` field to number concepts sequentially: {start_idx}, {start_idx}+1, ..., {end_idx}.
+The `order` field is used for internal tracking. The `name` field is what students see.
 
 ### Step 3: Uniqueness Validation (Self-Check)
 Before outputting, verify:
 - NO concept name is repeated from common terms (if a term is "obvious", other parts likely covered it).
 - Names are SPECIFIC, not generic. Avoid "Introduction to X" or "Overview of Y".
 - If a concept seems foundational, assume Part 1 already has it—unless you ARE Part 1.
+- **NEVER use placeholder IDs (concept-P1-xxx) as the name field!**
 
 Generate concepts {start_idx} through {end_idx} now:"""
 
@@ -178,20 +193,19 @@ Focus EXCLUSIVELY on concepts relevant to this assigned segment of the syllabus.
 DO NOT REPEAT topics that logically belong in other segments (e.g., if you are Pillar 1, do not cover advanced topics meant for Pillar 5).
 """
 
-    # Split 70 concepts into 5 parts (approx 14 each) to ensure full depth within token limits
-    # Smaller batches = higher success rate and less likely to truncate JSON
-    # Part 1: 1-14
-    # Part 2: 15-28
-    # Part 3: 29-42
-    # Part 4: 43-56
-    # Part 5: 57-70
+    # Split 100 concepts into 5 parts (20 each) to ensure full depth
+    # Part 1: 1-20
+    # Part 2: 21-40
+    # Part 3: 41-60
+    # Part 4: 61-80
+    # Part 5: 81-100
 
     ranges = [
-        (1, 14),
-        (15, 28),
-        (29, 42),
-        (43, 56),
-        (57, 70)
+        (1, 20),
+        (21, 40),
+        (41, 60),
+        (61, 80),
+        (81, 100)
     ]
 
     if 1 <= part <= 5:

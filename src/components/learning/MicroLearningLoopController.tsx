@@ -18,6 +18,8 @@ import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
 
 import BlankSheetTest from '@/components/learning/activities/BlankSheetTest';
 import ConfusionDrill from '@/components/learning/activities/ConfusionDrill';
+import { PeerReviewActivity } from '@/components/learning/activities/PeerReviewActivity';
+import { CreativeTransferActivity } from '@/components/learning/activities/CreativeTransferActivity';
 import { findConfusionPairs, generateConfusionQuestions } from '@/features/learning-session/activities/confusion-generator';
 import type { ConfusionDrillResult, ConfusionPair } from '@/features/learning-session/activities/confusion-generator';
 import { getRandomElaborationPrompt } from '@/features/ai-coach';
@@ -28,7 +30,7 @@ import styles from './MicroLearningLoopController.module.css';
 // TYPES
 // ============================================================================
 
-export type LoopPhase = 'worked-example' | 'test' | 'learn' | 'verify' | 'confusion';
+export type LoopPhase = 'worked-example' | 'faded-example' | 'test' | 'learn' | 'verify' | 'confusion' | 'social-learning' | 'creative-transfer';
 
 export type LoopOutcome = 'mastered' | 'needs-learning' | 'needs-review';
 
@@ -253,6 +255,157 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
                         </button>
                     </div>
                 )}
+            </div>
+        </motion.div>
+    );
+}
+
+/**
+ * Faded Example Phase: Scaffolded Practice
+ * Show problem + PARTIAL solution -> User completes the rest
+ */
+function FadedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamplePhaseProps) {
+    const [revealStep, setRevealStep] = useState(0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [userInputs, setUserInputs] = useState<string[]>([]);
+    const [startTime] = useState(() => Date.now());
+
+    // Use sessionContext to show intent if available
+    const intentMessage = sessionContext?.intent ? `Goal: ${sessionContext.intent}` : null;
+
+    // Synthesize problem/solution (Reuse logic or similar)
+    const example = useMemo(() => {
+        // ... (Same content synthesis as WorkedExample, duplicated for now to keep independent)
+        // Priority: Use explicit workedExample if provided
+        if (concept.workedExample) return { ...concept.workedExample, hasError: false };
+
+        const contextText = concept.shape?.highStakesExample || concept.hookSentence;
+        const approachText = concept.shape?.analogicalModel || concept.metaphor;
+
+        const steps = (concept.howToUse && concept.howToUse.length > 0) ? concept.howToUse : (concept.keyPoints || []);
+
+        return {
+            problem: contextText ? `Scenario: ${contextText}` : "Scenario loading...",
+            solution: approachText,
+            steps: steps,
+            hasError: steps.length === 0
+        };
+    }, [concept]);
+
+    // Initialize user inputs for missing steps (fade last 50%)
+    const fadedStartIndex = Math.max(1, Math.floor(example.steps.length / 2));
+
+    const handleInput = (idx: number, value: string) => {
+        const newInputs = [...userInputs];
+        newInputs[idx] = value;
+        setUserInputs(newInputs);
+    };
+
+    const handleStepReveal = () => {
+        if (revealStep < example.steps.length) {
+            setRevealStep(prev => prev + 1);
+        } else {
+            const timeSpent = (Date.now() - startTime) / 1000;
+            onComplete(timeSpent);
+        }
+    };
+
+    return (
+        <motion.div
+            className={styles.phaseCard}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+        >
+            <div className={styles.phaseHeader}>
+                <div className={`${styles.phaseIcon} ${styles.phaseIconExample}`} style={{ background: 'var(--color-primary-light)' }}>
+                    <Lightbulb size={24} color="var(--color-primary)" />
+                </div>
+                <div>
+                    <h3 className={styles.phaseTitle}>Complete the Pattern</h3>
+                    <p className={styles.phaseSubtitle}>Faded Example</p>
+                </div>
+            </div>
+
+            <div className={styles.phaseContent}>
+                {intentMessage && (
+                    <div className={styles.recallContext} style={{ marginBottom: '1rem' }}>
+                        <p><strong>{intentMessage}</strong></p>
+                    </div>
+                )}
+                <div className={styles.learningSection}>
+                    <h5 className={styles.sectionTitle}>The Problem</h5>
+                    <p>{example.problem}</p>
+                </div>
+
+                <div className={styles.learningSection}>
+                    <div className={styles.sectionHeader}>
+                        <h5 className={styles.sectionTitle}>The Solution</h5>
+                    </div>
+                    <ul className={styles.executionList}>
+                        {example.steps.map((step, idx) => {
+                            const isFaded = idx >= fadedStartIndex;
+                            const isVisible = idx <= revealStep;
+
+                            if (!isVisible) return null;
+
+                            return (
+                                <motion.li
+                                    key={idx}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                >
+                                    {isFaded ? (
+                                        <div className={styles.fadedStep}>
+                                            <span className={styles.stepNumber}>{idx + 1}.</span>
+                                            <input
+                                                type="text"
+                                                placeholder="What comes next?"
+                                                className={styles.fadedInput}
+                                                // Simplified: In a real app we'd validate this against the step text
+                                                onChange={(e) => handleInput(idx, e.target.value)}
+                                                onBlur={(e) => {
+                                                    // Auto-reveal the correct answer for now after they try
+                                                    if (e.target.value.length > 3) {
+                                                        // Simulate checking
+                                                        setRevealStep(prev => Math.max(prev, idx + 1));
+                                                    }
+                                                }}
+                                            />
+                                            {revealStep > idx && (
+                                                <div className={styles.revealedAnswer}>
+                                                    <CheckCircle size={14} /> {step}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <span>{step}</span>
+                                    )}
+                                </motion.li>
+                            );
+                        })}
+                    </ul>
+
+                    {/* Manual Helper Button if they get stuck or for non-faded steps */}
+                    {revealStep < example.steps.length && (
+                        <button
+                            className={styles.submitButton}
+                            onClick={handleStepReveal}
+                        >
+                            <span>{revealStep >= fadedStartIndex ? 'Check & Continue' : 'Next Step'}</span>
+                            <ChevronRight size={20} />
+                        </button>
+                    )}
+                    {revealStep >= example.steps.length && (
+                        <button
+                            className={styles.submitButton}
+                            onClick={handleStepReveal}
+                        >
+                            <span>Complete Exercise</span>
+                            <ChevronRight size={20} />
+                        </button>
+                    )}
+                </div>
             </div>
         </motion.div>
     );
@@ -789,7 +942,12 @@ export function MicroLearningLoopController({
     const { recordInteraction, studySession } = useLearningStore();
 
     // 1. Core State
-    const [loopState, setLoopState] = useState<LoopPhase>('test'); // Start with worked example
+    // ARCHITECT: Smart Scaffold Selection
+    // If user has high velocity/mastery, start with 'faded-example'. Else 'worked-example'.
+    const [loopState, setLoopState] = useState<LoopPhase>(() => {
+        if (userVelocity && userVelocity > 1.2) return 'faded-example';
+        return 'worked-example';
+    });
     const [loopStartTime] = useState(Date.now());
     const [keyPoints, setKeyPoints] = useState<string[]>([]);
     const [sessionContext, setSessionContext] = useState<{ intent?: string; prediction?: string }>({});
@@ -846,10 +1004,14 @@ export function MicroLearningLoopController({
         return pairs.length > 0;
     }, [concept, allConcepts]);
 
-    const handleWorkedExampleComplete = useCallback((timeSpent: number) => {
-        setTotalTimeSpent(prev => prev + timeSpent);
-        // After Worked Example (Make It Real), go to Test (Blank Sheet / Keep It Strong)
-        setLoopState('test');
+    // Unified handler for Worked/Faded phases
+    const handlePhaseComplete = useCallback((phase: LoopPhase, data: { timeSpent: number }) => {
+        setTotalTimeSpent(prev => prev + data.timeSpent);
+
+        // Transition logic
+        if (phase === 'worked-example' || phase === 'faded-example') {
+            setLoopState('test'); // Move to Blank Sheet Test
+        }
     }, []);
 
     const handleTestComplete = useCallback((result: TestPhaseResult) => {
@@ -933,10 +1095,20 @@ export function MicroLearningLoopController({
                         <WorkedExamplePhase
                             key="worked-example"
                             concept={concept}
-                            onComplete={handleWorkedExampleComplete}
+                            onComplete={(time) => handlePhaseComplete('worked-example', { timeSpent: time })}
                             sessionContext={sessionContext}
                         />
                     )}
+
+                    {loopState === 'faded-example' && (
+                        <FadedExamplePhase
+                            key="faded-example"
+                            concept={concept}
+                            onComplete={(time) => handlePhaseComplete('faded-example', { timeSpent: time })}
+                            sessionContext={sessionContext}
+                        />
+                    )}
+
                     {loopState === 'test' && (
                         <TestPhase
                             key="test"
@@ -981,18 +1153,48 @@ export function MicroLearningLoopController({
                                     const outcome = testResult && verifyResultData
                                         ? determineOutcome(testResult, verifyResultData)
                                         : 'mastered';
-                                    handleLoopCompleteInternal(outcome);
+                                    if (outcome === 'mastered') {
+                                        // ARCHITECT: Insert Social Learning OR Creative Transfer Phase
+                                        // Randomly select for variety or based on complexity?
+                                        // For now, 50/50 split for variety
+                                        const nextPhase = Math.random() > 0.5 ? 'social-learning' : 'creative-transfer';
+                                        setLoopState(nextPhase);
+                                    } else if (outcome === 'needs-review') {
+                                        // If not mastered, or needs review, complete the loop normally
+                                        handleLoopCompleteInternal(outcome);
+                                    } else {
+                                        // Default case for other outcomes
+                                        handleLoopCompleteInternal(outcome);
+                                    }
                                 }
                             }}
                             onClose={() => {
                                 // Allow early exit
                                 const outcome = testResult && verifyResultData
                                     ? determineOutcome(testResult, verifyResultData)
-                                    : 'mastered';
+                                    : 'mastered'; // Assume mastered if exiting early from confusion drill
                                 handleLoopCompleteInternal(outcome);
                             }}
                         />
                     )}
+                    {loopState === 'social-learning' && (
+                        <div className={styles.phaseCard}>
+                            <PeerReviewActivity
+                                concept={concept}
+                                onComplete={() => handlePhaseComplete('social-learning', { timeSpent: 45 })}
+                            />
+                        </div>
+                    )}
+
+                    {loopState === 'creative-transfer' && (
+                        <div className={styles.phaseCard}>
+                            <CreativeTransferActivity
+                                concept={concept}
+                                onComplete={() => handlePhaseComplete('creative-transfer', { timeSpent: 60 })}
+                            />
+                        </div>
+                    )}
+
                 </AnimatePresence>
 
                 {/* ARCHITECT ENHANCEMENT: Navigation Flexibility */}

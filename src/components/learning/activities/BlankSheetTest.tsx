@@ -25,7 +25,8 @@ import {
     Volume2,
     Loader2,
     Square,
-    Activity
+    Activity,
+    Trophy
 } from 'lucide-react';
 import { useVoice } from '@/features/ai-coach/voice/useVoice';
 import type { LearningConcept } from '@/shared/types/learning';
@@ -383,6 +384,54 @@ export function BlankSheetTest({
         const feedback = generateCoachFeedback(scoreAdapter, selectedPersona);
         blankSheetResult.coachFeedback = feedback;
 
+        // METAPHOR EXIT STRATEGY (Cognitive Science Enhancement)
+        // Check if user is relying on metaphor vocabulary instead of technical terms
+        const { metaphorSettings, updateGraduationScore, metaphorGraduation } = usePersonalizationStore.getState();
+        const currentGraduation = metaphorGraduation[concept.id] || 0;
+
+        let metaphorPenalty = 0;
+        let metaphorFeedback: string | undefined;
+
+        // Only enforce if metaphors are enabled and we have a defined metaphor
+        if (metaphorSettings.showAnalogies && concept.metaphor) {
+            const metaphorWords = concept.metaphor.toLowerCase()
+                .split(/\s+/)
+                .filter(w => w.length > 4) // Only significant words
+                .filter(w => !['like', 'think', 'imagine', 'compar'].some(stop => w.includes(stop))); // Exclude common framing words
+
+            const responseLower = response.toLowerCase();
+            const usedMetaphorWords = metaphorWords.filter(mw => responseLower.includes(mw));
+
+            // If user used significant metaphor vocabulary
+            if (usedMetaphorWords.length > 0) {
+                // If they are already "graduated" (>80 score previously), this is a regression
+                if (currentGraduation > 80) {
+                    metaphorPenalty = 10; // Penalize for regression
+                    metaphorFeedback = `⚠️ Dependency Detected: You're still relying on the "${concept.metaphor.slice(0, 20)}..." analogy. To graduate, explain this using only technical terms.`;
+                } else if (blankSheetResult.score > 70) {
+                    // High score but used metaphor -> Warning for next time
+                    metaphorFeedback = `💡 Next Level: You understand this well! Try explaining it next time without using the metaphor to prove deep technical mastery.`;
+                }
+            } else {
+                // Clean technical explanation! Boost graduation.
+                if (blankSheetResult.score > 70) {
+                    updateGraduationScore(concept.id, Math.min(100, currentGraduation + 20));
+                }
+            }
+        }
+
+        // Apply penalty if applicable
+        if (metaphorPenalty > 0) {
+            blankSheetResult.score = Math.max(0, blankSheetResult.score - metaphorPenalty);
+            // Append feedback
+            if (metaphorFeedback) {
+                blankSheetResult.scoringFeedback = (blankSheetResult.scoringFeedback ? blankSheetResult.scoringFeedback + "\n\n" : "") + metaphorFeedback;
+            }
+        } else if (metaphorFeedback) {
+            // Just append the "Next Level" tip without penalty
+            blankSheetResult.scoringFeedback = (blankSheetResult.scoringFeedback ? blankSheetResult.scoringFeedback + "\n\n" : "") + metaphorFeedback;
+        }
+
         setResult(blankSheetResult);
         setShowResults(true);
         setIsSubmitting(false);
@@ -504,6 +553,14 @@ export function BlankSheetTest({
                                     <li key={idx} className={styles.pointUncertain}>{point}</li>
                                 ))}
                             </ul>
+                        </div>
+                    )}
+
+                    {/* METAPHOR GRADUATION BADGE */}
+                    {result.score >= 80 && !result.scoringFeedback?.includes('Dependency Detected') && (
+                        <div className={styles.graduationBadge}>
+                            <Trophy size={16} className={styles.gradIcon} />
+                            <span>Metaphor Graduated: Technical Mastery Achieved</span>
                         </div>
                     )}
 
