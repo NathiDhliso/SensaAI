@@ -2,7 +2,12 @@
  * SensaAI Spacing Engine
  * 
  * Implements spaced repetition scheduling for the Learning Velocity Engine.
- * Uses interval sequence [1, 3, 7, 14, 30] days with confusion pair adjustments.
+ * Supports both fixed intervals [1, 3, 7, 14, 30] and SM-2 adaptive algorithm.
+ * 
+ * SM-2 Algorithm (SuperMemo 2):
+ * - Adapts intervals based on individual forgetting curves
+ * - Uses 0-5 quality ratings to adjust ease factor
+ * - More difficult concepts get shorter intervals
  * 
  * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7
  */
@@ -10,6 +15,17 @@
 // ============================================================================
 // TYPES
 // ============================================================================
+
+/**
+ * SM-2 Quality Rating (0-5)
+ * 0: Complete blackout, no memory
+ * 1: Incorrect, but upon seeing correct answer, remembered
+ * 2: Incorrect, but correct answer seemed easy to recall
+ * 3: Correct with serious difficulty
+ * 4: Correct after hesitation
+ * 5: Correct with perfect recall
+ */
+export type SM2Quality = 0 | 1 | 2 | 3 | 4 | 5;
 
 export interface ScheduledReview {
     /** Unique review ID */
@@ -20,7 +36,7 @@ export interface ScheduledReview {
     conceptName: string;
     /** When the review is due */
     dueDate: string;
-    /** Current interval index in the sequence */
+    /** Current interval index in the sequence (for fixed mode) */
     intervalIndex: number;
     /** Current interval in days */
     intervalDays: number;
@@ -36,6 +52,15 @@ export interface ScheduledReview {
     lastReviewDate?: string;
     /** Last review result */
     lastReviewResult?: 'success' | 'fail';
+
+    // ─── SM-2 ALGORITHM FIELDS ─────────────────────────────────────────────
+
+    /** SM-2 Ease Factor (1.3-2.5, default 2.5). Lower = harder concept */
+    easeFactor: number;
+    /** SM-2 Last quality rating (0-5) */
+    lastQuality?: SM2Quality;
+    /** SM-2 Consecutive correct repetitions (resets on fail) */
+    repetitions: number;
 }
 
 export interface SpacingMetrics {
@@ -52,12 +77,18 @@ export interface SpacingMetrics {
 }
 
 export interface SpacingConfig {
-    /** Base interval sequence in days */
+    /** Base interval sequence in days (for fixed mode) */
     intervalSequence: number[];
     /** Multiplier for concepts with confusion pairs */
     confusionPairMultiplier: number;
     /** Maximum interval in days */
     maxInterval: number;
+    /** Use SM-2 adaptive algorithm instead of fixed intervals */
+    useSM2: boolean;
+    /** SM-2 default ease factor for new concepts (2.5 recommended) */
+    defaultEaseFactor: number;
+    /** SM-2 minimum ease factor (1.3 recommended) */
+    minEaseFactor: number;
 }
 
 // ============================================================================
@@ -67,7 +98,10 @@ export interface SpacingConfig {
 const DEFAULT_CONFIG: SpacingConfig = {
     intervalSequence: [1, 3, 7, 14, 30],
     confusionPairMultiplier: 0.7,
-    maxInterval: 30,
+    maxInterval: 365, // SM-2 can go longer
+    useSM2: true, // Enable SM-2 by default
+    defaultEaseFactor: 2.5,
+    minEaseFactor: 1.3,
 };
 
 // ============================================================================
@@ -141,6 +175,9 @@ export class SpacingEngine {
             priority: this.calculatePriority(dueDate, hasConfusionPairs),
             lastReviewDate: now.toISOString(),
             lastReviewResult: 'success',
+            // SM-2 fields
+            easeFactor: this.config.defaultEaseFactor,
+            repetitions: 0,
         };
 
         this.reviews.set(conceptId, review);
@@ -150,29 +187,96 @@ export class SpacingEngine {
     }
 
     /**
-     * Record review result and update scheduling
+     * Record review result and update scheduling (legacy method, uses fixed intervals)
+     * @deprecated Use recordReviewWithQuality for SM-2 algorithm
      */
     recordReviewResult(conceptId: string, success: boolean): ScheduledReview | null {
+        // Map success/fail to SM-2 quality: success = 4, fail = 1
+        return this.recordReviewWithQuality(conceptId, success ? 4 : 1);
+    }
+
+    /**
+     * Record review with SM-2 quality rating (0-5)
+     * 
+     * SM-2 Algorithm:
+     * - quality >= 3: correct response, advance interval
+     * - quality < 3: incorrect, reset repetitions
+     * - Ease factor adjusts based on quality
+     * 
+     * @param conceptId The concept being reviewed
+     * @param quality SM-2 quality rating (0-5)
+     * @returns Updated review or null if not found
+     */
+    recordReviewWithQuality(conceptId: string, quality: SM2Quality): ScheduledReview | null {
         const review = this.reviews.get(conceptId);
         if (!review) return null;
 
         const now = new Date();
         review.lastReviewDate = now.toISOString();
+        review.lastQuality = quality;
+
+        // Determine success (quality >= 3 counts as success in SM-2)
+        const success = quality >= 3;
         review.lastReviewResult = success ? 'success' : 'fail';
 
-        if (success) {
-            review.successCount++;
-            // Progress to next interval
+        if (this.config.useSM2) {
+            // ─── SM-2 ALGORITHM ────────────────────────────────────────────────
+
+            if (quality >= 3) {
+                // Correct response
+                review.successCount++;
+                review.repetitions++;
+
+                // Calculate interval based on repetition number
+                if (review.repetitions === 1) {
+                    review.intervalDays = 1;
+                } else if (review.repetitions === 2) {
+                    review.intervalDays = 6;
+                } else {
+                    review.intervalDays = Math.round(review.intervalDays * review.easeFactor);
+                }
+
+                // Cap at max interval
+                review.intervalDays = Math.min(review.intervalDays, this.config.maxInterval);
+
+            } else {
+                // Incorrect response - reset
+                review.failCount++;
+                review.repetitions = 0;
+                review.intervalDays = 1;
+            }
+
+            // Adjust ease factor based on quality
+            // EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
+            const adjustment = 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02);
+            review.easeFactor = Math.max(
+                this.config.minEaseFactor,
+                review.easeFactor + adjustment
+            );
+
+            // Track interval index for backwards compatibility
             review.intervalIndex = Math.min(
-                review.intervalIndex + 1,
+                review.repetitions,
                 this.config.intervalSequence.length - 1
             );
-            review.intervalDays = this.config.intervalSequence[review.intervalIndex];
+
         } else {
-            review.failCount++;
-            // Reset to first interval
-            review.intervalIndex = 0;
-            review.intervalDays = this.config.intervalSequence[0];
+            // ─── FIXED INTERVAL MODE (legacy) ─────────────────────────────────
+
+            if (success) {
+                review.successCount++;
+                review.repetitions++;
+                review.intervalIndex = Math.min(
+                    review.intervalIndex + 1,
+                    this.config.intervalSequence.length - 1
+                );
+                review.intervalDays = this.config.intervalSequence[review.intervalIndex];
+            } else {
+                review.failCount++;
+                review.repetitions = 0;
+                review.intervalIndex = 0;
+                review.intervalDays = this.config.intervalSequence[0];
+            }
         }
 
         // Apply confusion pair multiplier if applicable

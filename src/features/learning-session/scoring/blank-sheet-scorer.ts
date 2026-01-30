@@ -436,7 +436,7 @@ class BlankSheetScorerClass {
      * Create fallback result when scoring data is missing
      * Uses basic heuristics based on response length
      */
-    private createFallbackResult(input: string, minWordCount: number): ScoringResult {
+    private createFallbackResult(input: string, _minWordCount: number): ScoringResult {
         const tokens = this.tokenize(this.normalizeText(input));
 
         // Basic scoring: 10 points per word, capped at 70 (no keywords to verify)

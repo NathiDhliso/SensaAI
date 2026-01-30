@@ -4,6 +4,11 @@
  * Generates diagnostic questions for foundation concepts to enable
  * the SensaAI Learning Velocity Engine diagnostic-first learning approach.
  * 
+ * PRE-TESTING EFFECT:
+ * Research shows testing BEFORE teaching primes learning better than studying first.
+ * This module supports creating pre-test assessments where answers are revealed
+ * only after the learner has attempted all questions AND completed the learning phase.
+ * 
  * Requirements: 1.2, 3.4, 3.5
  */
 
@@ -321,5 +326,178 @@ export function validateDiagnosticAssessment(assessment: ReturnType<typeof creat
     isValid: issues.length === 0,
     issues,
     recommendations
+  };
+}
+
+// ============================================================================
+// PRE-TESTING EFFECT
+// ============================================================================
+
+/**
+ * Pre-test result with priming information
+ * 
+ * The pre-testing effect (also called "test-enhanced learning") shows that
+ * attempting to retrieve information BEFORE learning primes the brain for
+ * better encoding, even when the initial retrieval attempt fails.
+ */
+export interface PreTestResult {
+  /** Questions to present before teaching */
+  questions: DiagnosticQuestion[];
+  /** Concept IDs that will be primed by this pre-test */
+  primedConceptIds: string[];
+  /** 
+   * When to reveal correct answers:
+   * - 'after_all_attempts': Show answers after all questions attempted (within session)
+   * - 'after_learning': Show answers only after completing Learn phase
+   * - 'never': Never show answers (pure priming, no feedback)
+   */
+  answerRevealTiming: 'after_all_attempts' | 'after_learning' | 'never';
+  /** Learner's responses (filled during pre-test) */
+  responses: Map<string, { selectedAnswer: number; wasCorrect?: boolean }>;
+  /** Total expected time in seconds */
+  estimatedTime: number;
+  /** Whether all questions have been attempted */
+  isComplete: boolean;
+}
+
+/**
+ * Create a pre-test assessment that tests BEFORE teaching.
+ * 
+ * Research shows this "desirable difficulty" primes learning:
+ * - Failed retrieval attempts create stronger encoding
+ * - Learners become aware of knowledge gaps
+ * - Curiosity is sparked for upcoming content
+ * 
+ * @param concepts All concepts in the learning session
+ * @param options Configuration for pre-test behavior
+ * @returns PreTestResult ready for presentation
+ */
+export function createPreTestAssessment(
+  concepts: SensaAILearningConcept[],
+  options: {
+    /** How many concepts to pre-test (default: 5) */
+    conceptCount?: number;
+    /** When to reveal answers (default: 'after_learning') */
+    answerRevealTiming?: PreTestResult['answerRevealTiming'];
+    /** Questions per concept (default: 1) */
+    questionsPerConcept?: number;
+  } = {}
+): PreTestResult {
+  const {
+    conceptCount = 5,
+    answerRevealTiming = 'after_learning',
+    questionsPerConcept = 1
+  } = options;
+
+  // Select foundation concepts prioritized by importance
+  const foundationConcepts = concepts
+    .filter(c => c.foundationLevel)
+    .sort((a, b) => {
+      // Prioritize by prerequisite weight (most foundational first)
+      const scoreA = a.prerequisiteWeight * 0.5 + a.frequencyWeight * 0.3 +
+        (a.abstractionLevel === 'concrete' ? 0.2 : 0);
+      const scoreB = b.prerequisiteWeight * 0.5 + b.frequencyWeight * 0.3 +
+        (b.abstractionLevel === 'concrete' ? 0.2 : 0);
+      return scoreB - scoreA;
+    })
+    .slice(0, conceptCount);
+
+  // Collect ONE question per concept for quick pre-test
+  const preTestQuestions: DiagnosticQuestion[] = [];
+  const primedConceptIds: string[] = [];
+
+  foundationConcepts.forEach(concept => {
+    primedConceptIds.push(concept.id);
+
+    // Take first N questions (already validated during generation)
+    const conceptQuestions = concept.diagnosticQuestions.slice(0, questionsPerConcept);
+    preTestQuestions.push(...conceptQuestions);
+  });
+
+  // Calculate total expected time
+  const estimatedTime = preTestQuestions.reduce((sum, q) => sum + q.expectedTime, 0);
+
+  return {
+    questions: preTestQuestions,
+    primedConceptIds,
+    answerRevealTiming,
+    responses: new Map(),
+    estimatedTime,
+    isComplete: false
+  };
+}
+
+/**
+ * Record a response to a pre-test question.
+ * Does NOT reveal correctness until appropriate timing.
+ */
+export function recordPreTestResponse(
+  preTest: PreTestResult,
+  questionId: string,
+  selectedAnswer: number
+): PreTestResult {
+  const question = preTest.questions.find(q => q.id === questionId);
+  if (!question) return preTest;
+
+  // Record response WITHOUT correctness (stored for later reveal)
+  preTest.responses.set(questionId, {
+    selectedAnswer,
+    wasCorrect: undefined // Will be revealed later
+  });
+
+  // Check if all questions attempted
+  preTest.isComplete = preTest.responses.size === preTest.questions.length;
+
+  return preTest;
+}
+
+/**
+ * Reveal pre-test answers based on timing configuration.
+ * Call this after learning phase to show learners what they got right/wrong.
+ */
+export function revealPreTestAnswers(preTest: PreTestResult): PreTestResult {
+  if (preTest.answerRevealTiming === 'never') {
+    return preTest; // Never reveal
+  }
+
+  // Reveal correctness for all responses
+  preTest.questions.forEach(question => {
+    const response = preTest.responses.get(question.id);
+    if (response) {
+      response.wasCorrect = response.selectedAnswer === question.correctAnswer;
+    }
+  });
+
+  return preTest;
+}
+
+/**
+ * Get pre-test statistics after reveal.
+ */
+export function getPreTestStats(preTest: PreTestResult): {
+  attempted: number;
+  correct: number;
+  incorrect: number;
+  accuracy: number;
+  primedConcepts: string[];
+} {
+  let correct = 0;
+  let incorrect = 0;
+
+  preTest.responses.forEach(response => {
+    if (response.wasCorrect !== undefined) {
+      if (response.wasCorrect) correct++;
+      else incorrect++;
+    }
+  });
+
+  const attempted = correct + incorrect;
+
+  return {
+    attempted,
+    correct,
+    incorrect,
+    accuracy: attempted > 0 ? Math.round((correct / attempted) * 100) : 0,
+    primedConcepts: preTest.primedConceptIds
   };
 }

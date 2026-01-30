@@ -154,6 +154,109 @@ export function getRecommendedBreathing(mood: Mood): BreathingPattern {
     }
 }
 
+// ============================================================================
+// ELABORATIVE INTERROGATION (METACOGNITION)
+// ============================================================================
+
+/**
+ * Elaboration prompt types for deeper learning.
+ * 
+ * Elaborative interrogation research shows these prompts improve:
+ * - Encoding of new information
+ * - Connection to prior knowledge
+ * - Transfer to new contexts
+ */
+export type ElaborationPromptType =
+    | 'why_true'        // "Why would X be true?"
+    | 'connect_prior'   // "What does this remind you of?"
+    | 'real_world'      // "Where would you use this?"
+    | 'self_explain'    // "Explain in your own words"
+    | 'compare'         // "How is this different from X?"
+    | 'predict';        // "What do you think would happen if...?"
+
+/**
+ * Persona-specific elaboration prompt templates.
+ * The {concept} placeholder will be replaced with the concept name.
+ */
+export const ELABORATION_PROMPTS: Record<PersonaId, Record<ElaborationPromptType, string>> = {
+    goggins: {
+        why_true: "Why does {concept} work this way? Explain it. No shortcuts.",
+        connect_prior: "What existing knowledge connects to {concept}?",
+        real_world: "Give me a real example of {concept} in action. Make it count.",
+        self_explain: "Teach me {concept} in your own words. Now.",
+        compare: "How is {concept} different from what we covered before?",
+        predict: "If you applied {concept} differently, what would happen?"
+    },
+    sage: {
+        why_true: "Sit with {concept}. Why does it feel true?",
+        connect_prior: "What echoes of prior learning do you notice in {concept}?",
+        real_world: "How might {concept} appear in your daily experience?",
+        self_explain: "Speak {concept} aloud in your own voice. Let understanding flow.",
+        compare: "How does {concept} dance with what came before?",
+        predict: "What ripples might form if {concept} were different?"
+    },
+    socratic: {
+        why_true: "Why do you think {concept} is the case? What makes it true?",
+        connect_prior: "What prior knowledge might connect to {concept}?",
+        real_world: "In what situations might {concept} be relevant?",
+        self_explain: "How would you explain {concept} to someone unfamiliar?",
+        compare: "What similarities or differences exist between {concept} and related ideas?",
+        predict: "If conditions changed, how might {concept} behave differently?"
+    },
+    coach: {
+        why_true: "Think about why {concept} makes sense. What's the underlying reason?",
+        connect_prior: "Does {concept} remind you of anything you already know?",
+        real_world: "Where in your life might you actually use {concept}?",
+        self_explain: "Try explaining {concept} in your own words—it'll help it stick!",
+        compare: "How does {concept} compare to what we've learned before?",
+        predict: "What do you think would happen if you changed how {concept} works?"
+    },
+    buddy: {
+        why_true: "Hey, why do you think {concept} works that way?",
+        connect_prior: "Does {concept} remind you of anything we talked about before?",
+        real_world: "Where might you actually run into {concept} out there?",
+        self_explain: "Could you explain {concept} back to me? Helps me know you got it!",
+        compare: "How is {concept} different from similar stuff?",
+        predict: "What if we changed things up with {concept}? What would happen?"
+    }
+};
+
+/**
+ * Get an elaboration prompt for a concept, tailored to the persona.
+ * 
+ * @param personaId The coach persona to use
+ * @param type The type of elaboration to prompt
+ * @param conceptName The concept to elaborate on
+ * @returns A formatted elaboration prompt string
+ */
+export function getElaborationPrompt(
+    personaId: PersonaId,
+    type: ElaborationPromptType,
+    conceptName: string
+): string {
+    const template = ELABORATION_PROMPTS[personaId]?.[type]
+        ?? ELABORATION_PROMPTS.coach[type];
+    return template.replace('{concept}', conceptName);
+}
+
+/**
+ * Get a random elaboration prompt for variety.
+ */
+export function getRandomElaborationPrompt(
+    personaId: PersonaId,
+    conceptName: string
+): { type: ElaborationPromptType; prompt: string } {
+    const types: ElaborationPromptType[] = [
+        'why_true', 'connect_prior', 'real_world',
+        'self_explain', 'compare', 'predict'
+    ];
+    const type = types[Math.floor(Math.random() * types.length)];
+    return {
+        type,
+        prompt: getElaborationPrompt(personaId, type, conceptName)
+    };
+}
+
 /**
  * AI Coach singleton for global access
  */
@@ -194,6 +297,27 @@ class AICoachService {
 
     getIntro(personaId: PersonaId, mood?: Mood): string {
         return getMoodAdjustedIntro(personaId, mood || this.sessionMood);
+    }
+
+    /**
+     * Get an elaboration prompt for deeper learning.
+     */
+    getElaboration(
+        personaId: PersonaId,
+        type: ElaborationPromptType,
+        conceptName: string
+    ): string {
+        return getElaborationPrompt(personaId, type, conceptName);
+    }
+
+    /**
+     * Get a random elaboration prompt for variety.
+     */
+    getRandomElaboration(
+        personaId: PersonaId,
+        conceptName: string
+    ): { type: ElaborationPromptType; prompt: string } {
+        return getRandomElaborationPrompt(personaId, conceptName);
     }
 }
 

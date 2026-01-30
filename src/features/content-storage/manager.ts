@@ -1,8 +1,8 @@
 export * from './types';
-export { CloudStorage, cloudStorage } from './cloud-storage';
+export { CloudStorage, cloudStorage } from './cloud/s3-dynamodb';
 import { buildDocumentFromConcepts } from '@/features/content-generation/api/backend-client';
-export { importFromFile, createFileInput } from './import';
-export type { ImportResult } from './import';
+export { importFromFile, createFileInput } from './sync/import';
+export type { ImportResult } from './sync/import';
 
 // Note: CloudStorage class is still exported for potential future use,
 // but StorageManager no longer uses it - concepts are stored via Lambda
@@ -30,10 +30,13 @@ export class StorageManager {
     return false;
   }
 
+  /**
+   * @deprecated Storage is now handled by Lambda → DynamoDB.
+   * This method is a no-op for backwards compatibility.
+   * The Generate.tsx flow saves concepts via the /concepts/generate API.
+   * @returns Always returns success - do not rely on this for actual storage.
+   */
   async saveResult(_result: SavedResult): Promise<{ success: boolean; path?: string; error?: string }> {
-    // NO-OP: Concept storage is now handled by Lambda → DynamoDB
-    // The Generate.tsx flow saves concepts via the /concepts/generate API,
-    // which triggers Lambda to store in sensapbl-concepts-pilot (PK/SK schema)
     console.warn('[StorageManager] saveResult is deprecated - Lambda handles all storage');
     return { success: true, path: 'lambda-managed' };
   }

@@ -255,32 +255,65 @@ For each Core Concept, generate memory palace anchors that enable spatial learni
 Analyze each concept's role in the domain hierarchy and assign a "tier":
 
 - **foundation:** Universal constants that other concepts depend on (the "bedrock")
-  - Examples: VNet, Storage Account, Entra ID, IAM, S3 Bucket, DNS, Active Directory
+  - Tech: VNet, Storage Account, IAM, DNS
+  - Biology: Cell, DNA, Protein, Membrane
+  - Accounting: Double-Entry, Chart of Accounts, General Ledger
+  - Welding: Base Metal, Heat, Filler Material, Shielding Gas
   - Visual Scale: MASSIVE/LANDSCAPE (these are "always there" like landmarks)
   
 - **keystone:** Major functional blocks that perform core operations (the "workers")
-  - Examples: VM, NSG, App Service, Lambda, EC2, Load Balancer, API Gateway
+  - Tech: VM, Load Balancer, API Gateway, Database
+  - Biology: Mitosis, Photosynthesis, Respiration, Digestion
+  - Accounting: Journal Entry, Trial Balance, Financial Statement
+  - Welding: MIG Welding, TIG Welding, Arc Welding, Flux Core
   - Visual Scale: HUMAN/ROOM SIZE (relatable, interactive scale)
   
 - **utility:** Specialized tools, tokens, or add-ons (the "accessories")
-  - Examples: SAS Token, PIM, Locks, Tags, Metrics, Policies, Secrets
+  - Tech: Access Token, Tag, Lock, Metric
+  - Biology: Enzyme, Hormone, Vitamin, Antibody
+  - Accounting: Receipt, Invoice, Voucher, Reconciliation
+  - Welding: Welding Helmet, Wire Brush, Chipping Hammer, Clamp
   - Visual Scale: HANDHELD/SMALL (tools you pick up and use)
 
 **ANCHOR GENERATION RULES:**
-1. Select anchor object starting with SAME FIRST LETTER as concept name
-2. Make anchor CONCRETE and VISUALIZABLE (physical object, not abstract)
-3. Include a relevant EMOJI that represents the anchor
-4. Scale anchor's described size to match dependency tier
+1. **CRITICAL**: The anchor is a VISUAL METAPHOR for the concept, NOT the concept name itself
+2. **DO NOT force same-letter matching** - choose the BEST functional metaphor regardless of spelling
+3. Select anchor object that REPRESENTS the concept's PRIMARY FUNCTION or purpose
+4. Anchor should be CONCRETE and VISUALIZABLE (physical object, not abstract)
+5. Include a relevant EMOJI that represents the anchor
+6. Scale anchor's described size to match dependency tier
+7. **DO NOT** create compound words, forced combinations, or nonsensical mashups
 
-**TIER-SPECIFIC ANCHOR EXAMPLES:**
-| Tier | Concept | Anchor Example |
-|------|---------|----------------|
-| foundation | VNet | "Volcano 🌋" |
-| foundation | Storage Account | "Skyscraper 🏢" |
-| keystone | NSG | "Night Guard 👮" |
-| keystone | VM | "Vending Machine 🎰" |
-| utility | SAS Token | "Secret Key 🔑" |
-| utility | Lock | "Luggage Lock 🔒" |
+**ANCHOR SELECTION PROCESS:**
+1. Identify the concept's PRIMARY FUNCTION (what does it DO?)
+2. Find a PHYSICAL OBJECT that performs a similar function in the real world
+3. Verify the object is CONCRETE and VISUALIZABLE (not abstract)
+4. Match the scale to the tier (foundation=building-sized, keystone=person-sized, utility=handheld)
+5. Add an appropriate emoji
+
+**CORRECT TIER-SPECIFIC ANCHOR EXAMPLES (Domain-Agnostic):**
+| Tier | Concept | Domain | Primary Function | Anchor Example | Why It Works |
+|------|---------|--------|------------------|----------------|--------------|
+| foundation | Cell Membrane | Biology | Controls entry/exit | "Castle Wall �" |  Massive barrier with selective gates |
+| foundation | Double-Entry | Accounting | Balances transactions | "Seesaw ⚖️" | Large scale that must balance |
+| foundation | Base Metal | Welding | Foundation to join | "Puzzle Piece 🧩" | Large piece everything connects to |
+| keystone | Mitosis | Biology | Divides cells | "Zipper 🤐" | Person-sized, splits and duplicates |
+| keystone | Journal Entry | Accounting | Records transactions | "Diary 📔" | Person-sized book for recording |
+| keystone | MIG Welding | Welding | Joins metal | "Glue Gun 🔫" | Handheld tool that bonds |
+| utility | Enzyme | Biology | Speeds reactions | "Catalyst 💊" | Small molecule that accelerates |
+| utility | Receipt | Accounting | Proves transaction | "Ticket 🎫" | Small proof of purchase |
+| utility | Welding Helmet | Welding | Protects eyes | "Sunglasses 🕶️" | Small protective gear |
+
+**WRONG EXAMPLES (DO NOT DO THIS):**
+| ❌ Bad Anchor | Why It's Wrong | ✅ Correct Alternative |
+|--------------|----------------|----------------------|
+| "CellPhone" (for Cell) | Nonsensical compound | "Building Block 🧱" (basic unit) |
+| "Debit+Credit" | Forced combination | "Seesaw ⚖️" (balances opposites) |
+| "WeldWeld" | Repeating words | "Bridge 🌉" (joins two sides) |
+| "Enzyme Enzyme+" | Meaningless repetition | "Key 🔑" (unlocks reactions) |
+| "Journal Journal" | Repeating words | "Ledger 📒" (records entries) |
+| "Membrane Membrane" | Repeating words | "Gate 🚪" (controls passage) |
+| "Arc Arc Shield" | Compound nonsense | "Shield 🛡️" (protects from arc) |
 
 **BIZARRE STORY RULES:**
 Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
@@ -288,40 +321,12 @@ Create a hallucinogenic, emotional, or absurd 2-3 sentence scene that:
 2. Uses vivid sensory details (colors, sounds, textures, emotions)
 3. **DEPENDENCY RULE:** If concept has a logical parent, the story MUST depict the current anchor INTERACTING with the parent's anchor
 
-**STORY EXAMPLES:**
-- Foundation (VNet as Volcano): "A colossal Volcano erupts with glowing data-lava, but the lava flows only into carved private channels, never mixing. Each channel leads to a different isolated kingdom below."
-- Keystone (NSG as Night Guard, parent: Subnet): "A muscular Night Guard wearing badges made of port numbers sleeps on a purple Subway Bench (Subnet). When anyone approaches, he instantly awakens, checks their badge, and only then allows passage."
-- Utility (SAS Token as Secret Key): "A tiny glowing Secret Key with an hourglass embedded in its handle unlocks a vault door, but the key melts and vanishes exactly at midnight."
+**STORY EXAMPLES (Domain-Agnostic):**
+- Foundation (Cell Membrane as Castle Wall): "A massive Castle Wall made of living bricks surrounds the kingdom. Each brick has tiny doors that open only for molecules wearing the correct password badge, while toxins bounce off helplessly."
+- Keystone (Journal Entry as Diary, parent: Chart of Accounts): "A leather-bound Diary sits on a desk, its pages divided into two columns. Every time money moves, an invisible hand writes the same amount on both sides, keeping the universe in perfect balance."
+- Utility (Welding Helmet as Sunglasses): "Magical Sunglasses darken instantly when the blinding arc ignites, protecting your eyes from the miniature sun you're holding in your hands. Remove them, and you'd be blind in seconds."
 
-**TOP-LEVEL CONCEPT STRUCTURE:**
-
-\`\`\`json
-{
-  "id": "concept-001",
-  "name": "Concept Name",
-  "tier": "foundation" | "keystone" | "utility",
-  "cognitiveLevel": "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create",
-  "commonPitfalls": ["Pitfall 1", "Pitfall 2"],
-  "stageId": "PREPARE" | "MODEL" | "DELIVER",
-  "order": 1,
-  "dependencies": [],
-  "outdegree": 8,
-  "mnemonic": { "tier": "Foundation", "anchor": "...", "story": "..." },
-  "phase1": { "hookSentence": "...", "microMetaphor": "...", ... },
-  "phase2": [ ... ],
-  "phase3": { "tool": "...", "metrics": [...], ... }
-}
-\`\`\`
-
-**DEPENDENCY DECLARATION RULES (\`dependsOn\` field):**
-1. Use EXACT concept names from this curriculum (case-sensitive matching)
-2. Only include DIRECT prerequisites (not transitive dependencies)
-3. Omit universal prerequisites (don't list "Introduction" for every concept)
-4. Empty array \`[]\` if no prerequisites (Foundation concepts typically have this)
-5. Keystone concepts reference their Foundation parents
-6. Utility concepts reference the specific concepts they attach to
-
-**⚠️ QUALITY GATE: Every concept MUST include a mnemonic object AND a dependsOn array. Concepts missing either will cause the dependency visualization to fail. This is NOT optional.**
+**⚠️ QUALITY GATE: Every concept MUST include a mnemonic object AND a dependsOn array. The mnemonic anchor must be a REAL VISUAL METAPHOR, not a compound word or circular definition. Concepts with nonsensical anchors will cause the visualization to fail. This is NOT optional.**
 
 ---
 

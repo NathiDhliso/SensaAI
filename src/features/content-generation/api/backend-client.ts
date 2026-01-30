@@ -4,6 +4,7 @@ import { useGenerationStore } from '@/store/generation-store';
 import type { ProgressCallback, GenerationResult, ValidationResult } from '@/shared/types/generation';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { toast } from '@/shared/utils/toast';
 
 /**
  * Uploads the raw exam/blueprint file to the secure storage bucket.
@@ -80,6 +81,7 @@ export async function generateWithBackend(
         if (generateResponse.status === 'failed') {
             console.error('[Backend Generator] Generation failed:', generateResponse.error);
             clearActiveJob(); // Clear failed job
+            toast.error(`Generation failed: ${generateResponse.error || 'Please try again'}`);
             throw new Error(generateResponse.error || 'Generation failed');
         }
 
@@ -208,6 +210,7 @@ export async function generateWithBackend(
             if (allConcepts.length === 0) {
                 console.error('[Backend Generator] No concepts generated');
                 clearActiveJob();
+                toast.error('No concepts generated. Try a more specific subject or different content.');
                 throw new Error(
                     'No concepts were generated. This usually means:\n\n' +
                     '1. The subject is too vague - try being more specific\n' +

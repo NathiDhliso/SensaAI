@@ -11,6 +11,44 @@ import type { UserProgress } from '@/shared/types/learning';
 
 const STORAGE_KEY = 'sensa-session-progress';
 const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+const EXPIRY_WARNING_MS = 1 * 60 * 60 * 1000; // Warn 1 hour before expiry
+
+/**
+ * Get time remaining before session expires
+ * Returns null if session doesn't exist, object with status if it does
+ */
+export function getTimeUntilExpiry(sessionId: string): {
+  expiresInMs: number;
+  isWarning: boolean;
+  isExpired: boolean;
+  formattedTime: string;
+} | null {
+  try {
+    const stored = localStorage.getItem(`${STORAGE_KEY}:${sessionId}`);
+    if (!stored) return null;
+
+    const data = JSON.parse(stored);
+    const age = Date.now() - data.timestamp;
+    const remainingMs = EXPIRY_MS - age;
+
+    if (remainingMs <= 0) {
+      return { expiresInMs: 0, isWarning: true, isExpired: true, formattedTime: 'Expired' };
+    }
+
+    const hours = Math.floor(remainingMs / (60 * 60 * 1000));
+    const minutes = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000));
+    const formattedTime = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+    return {
+      expiresInMs: remainingMs,
+      isWarning: remainingMs <= EXPIRY_WARNING_MS,
+      isExpired: false,
+      formattedTime,
+    };
+  } catch {
+    return null;
+  }
+}
 
 export interface SessionProgressData {
   sessionId: string;

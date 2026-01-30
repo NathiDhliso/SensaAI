@@ -115,6 +115,15 @@ class AudioServiceClass {
     }
 
     /**
+     * Stop currently playing audio (wrapper for stopAll to support useVoice)
+     * @param fade - Optional fade out (not yet implemented)
+     */
+    public stopCurrent(_fade: boolean = false): Promise<void> {
+        this.stopAll();
+        return Promise.resolve();
+    }
+
+    /**
      * Set global volume (0.0 - 1.0)
      */
     public setVolume(volume: number): void {

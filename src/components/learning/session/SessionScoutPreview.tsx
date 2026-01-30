@@ -28,6 +28,7 @@ import type { LearningConcept } from '@/shared/types/learning';
 import type { DependencyGraph } from '@/shared/types/sensa-flow';
 import { generatePreviewAnalysis } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { useLearningStore } from '@/store/learning-store';
 import { NomenclatureSprint } from '@/components/learning/activities/NomenclatureSprint';
 import styles from './SessionScoutPreview.module.css';
 
@@ -65,6 +66,7 @@ export function SessionScoutPreview({
     const [acknowledgedGaps, setAcknowledgedGaps] = useState<Set<string>>(new Set());
 
     const { selectedPersona } = usePersonalizationStore();
+    const { markSessionScouted, markSessionPreviewed } = useLearningStore();
     const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
     const navigate = useNavigate();
 
@@ -99,12 +101,17 @@ export function SessionScoutPreview({
     }, []);
 
     const handleNext = useCallback(() => {
+        // Mark phase completion based on current step
+        if (step === 'structure') {
+            markSessionScouted(); // User has surveyed the tier structure
+        }
         if (isLastStep) {
+            markSessionPreviewed(); // User has completed all explore steps
             onComplete(guesses);
         } else {
             setStep(STEPS_ORDER[currentStepIndex + 1]);
         }
-    }, [isLastStep, currentStepIndex, guesses, onComplete]);
+    }, [isLastStep, currentStepIndex, guesses, onComplete, step, markSessionScouted, markSessionPreviewed]);
 
     // ========================================================================
     // Step 1: Structure — Tier Visualization

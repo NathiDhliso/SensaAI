@@ -660,6 +660,84 @@
 }
 
 /* ============================================================================
+   CONFIDENCE RATING (METACOGNITION)
+   ============================================================================ */
+
+.confidencePrompt {
+    background: var(--overlay-primary-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+.confidenceHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-dark);
+    margin-bottom: 0.75rem;
+}
+
+.confidenceHeader svg {
+    color: var(--color-accent);
+}
+
+.confidenceButton {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 60px;
+}
+
+.confidenceButton:hover {
+    border-color: var(--color-accent);
+    background: var(--overlay-primary-5);
+}
+
+.confidenceButton.confidenceSelected {
+    border-color: var(--color-accent);
+    background: var(--overlay-primary-10);
+    box-shadow: var(--shadow-glow-primary);
+}
+
+.confidenceEmoji {
+    font-size: 1.25rem;
+}
+
+.confidenceLabel {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.confidencePrompt .submitButton {
+    margin-top: 1rem;
+}
+
+.calibrationFeedback {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--color-text-light);
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--overlay-amber-10);
+    border-radius: var(--radius-md);
+    line-height: 1.4;
+}
+
+/* ============================================================================
    BUTTONS
    ============================================================================ */
 

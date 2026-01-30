@@ -355,3 +355,244 @@ export function calculateLearningVelocity(
     tierVelocity: distribution,
   };
 }
+
+// ============================================================================
+// ADAPTIVE DIFFICULTY (ZONE OF PROXIMAL DEVELOPMENT)
+// ============================================================================
+
+/**
+ * Difficulty metrics for a concept based on learner performance.
+ * 
+ * Uses Zone of Proximal Development (ZPD) theory:
+ * - Too easy: Mastered quickly, high confidence → boring
+ * - ZPD: Challenging but achievable with support → optimal learning
+ * - Too hard: Repeated failures, low confidence → frustrating
+ */
+export interface ConceptDifficulty {
+  /** Concept ID */
+  conceptId: string;
+  /** Inherent difficulty (1-10, based on prerequisites/complexity) */
+  inherentDifficulty: number;
+  /** Learner-specific difficulty based on performance history */
+  personalDifficulty: number;
+  /** Number of attempts on this concept */
+  attempts: number;
+  /** Number of errors/failures */
+  errors: number;
+  /** Average time spent (seconds) */
+  avgTimeSpent: number;
+  /** Whether this concept is in the learner's ZPD */
+  inZPD: boolean;
+  /** ZPD classification */
+  zone: 'too_easy' | 'zpd' | 'too_hard';
+}
+
+/**
+ * Calculate difficulty metrics for a concept.
+ * 
+ * @param concept The concept to evaluate
+ * @param performance Historical performance data
+ * @returns ConceptDifficulty assessment
+ */
+export function calculateConceptDifficulty(
+  concept: LearningConcept,
+  performance: {
+    attempts: number;
+    errors: number;
+    avgTimeSpent: number;
+    wasSkipped?: boolean;
+  }
+): ConceptDifficulty {
+  // Calculate inherent difficulty from concept properties
+  let inherentDifficulty = 3; // Default medium
+
+  // Higher order = typically harder
+  if (concept.order && concept.order > 15) inherentDifficulty += 2;
+  else if (concept.order && concept.order > 8) inherentDifficulty += 1;
+
+  // Tier affects difficulty
+  const tier = getConceptTier(concept);
+  if (tier === 'Utility') inherentDifficulty += 2;
+  else if (tier === 'Keystone') inherentDifficulty += 1;
+
+  // Prerequisites add difficulty
+  if (concept.prerequisites && concept.prerequisites.length > 2) {
+    inherentDifficulty += 1;
+  }
+
+  // Clamp to 1-10
+  inherentDifficulty = Math.max(1, Math.min(10, inherentDifficulty));
+
+  // Calculate personal difficulty based on performance
+  let personalDifficulty = inherentDifficulty;
+
+  if (performance.attempts > 0) {
+    const errorRate = performance.errors / performance.attempts;
+
+    // High error rate increases personal difficulty
+    if (errorRate > 0.5) personalDifficulty += 2;
+    else if (errorRate > 0.25) personalDifficulty += 1;
+    else if (errorRate < 0.1) personalDifficulty -= 1;
+
+    // Slow time increases personal difficulty
+    if (performance.avgTimeSpent > 120) personalDifficulty += 1; // > 2 min
+    else if (performance.avgTimeSpent < 30) personalDifficulty -= 1; // < 30 sec
+  }
+
+  // Clamp to 1-10
+  personalDifficulty = Math.max(1, Math.min(10, personalDifficulty));
+
+  // Determine zone
+  let zone: 'too_easy' | 'zpd' | 'too_hard';
+  if (personalDifficulty <= 3) {
+    zone = 'too_easy';
+  } else if (personalDifficulty <= 7) {
+    zone = 'zpd'; // Goldilocks zone
+  } else {
+    zone = 'too_hard';
+  }
+
+  return {
+    conceptId: concept.id,
+    inherentDifficulty,
+    personalDifficulty,
+    attempts: performance.attempts,
+    errors: performance.errors,
+    avgTimeSpent: performance.avgTimeSpent,
+    inZPD: zone === 'zpd',
+    zone,
+  };
+}
+
+/**
+ * Get concepts that are in the learner's Zone of Proximal Development.
+ * 
+ * ZPD = concepts that are challenging but achievable with support.
+ * These provide optimal learning - not too easy (boring) or too hard (frustrating).
+ * 
+ * @param concepts All available concepts
+ * @param performanceMap Performance data keyed by concept ID
+ * @param options Filtering options
+ * @returns Concepts sorted by ZPD suitability
+ */
+export function getZPDConcepts(
+  concepts: LearningConcept[],
+  performanceMap: Map<string, {
+    attempts: number;
+    errors: number;
+    avgTimeSpent: number;
+  }>,
+  options: {
+    /** Minimum concepts to return even if not in ZPD */
+    minConcepts?: number;
+    /** Prefer concepts with fewer attempts (novelty) */
+    preferNovel?: boolean;
+  } = {}
+): { concept: LearningConcept; difficulty: ConceptDifficulty }[] {
+  const { minConcepts = 3, preferNovel = true } = options;
+
+  // Calculate difficulty for all concepts
+  const withDifficulty = concepts.map(concept => {
+    const perf = performanceMap.get(concept.id) || {
+      attempts: 0,
+      errors: 0,
+      avgTimeSpent: 0,
+    };
+    return {
+      concept,
+      difficulty: calculateConceptDifficulty(concept, perf),
+    };
+  });
+
+  // Separate by zone
+  const inZPD = withDifficulty.filter(c => c.difficulty.zone === 'zpd');
+  const tooEasy = withDifficulty.filter(c => c.difficulty.zone === 'too_easy');
+  const tooHard = withDifficulty.filter(c => c.difficulty.zone === 'too_hard');
+
+  // Sort ZPD by personal difficulty (prefer middle of ZPD)
+  inZPD.sort((a, b) => {
+    // Ideal difficulty is 5
+    const aDist = Math.abs(5 - a.difficulty.personalDifficulty);
+    const bDist = Math.abs(5 - b.difficulty.personalDifficulty);
+    return aDist - bDist;
+  });
+
+  // If we have enough ZPD concepts, return them
+  if (inZPD.length >= minConcepts) {
+    return inZPD;
+  }
+
+  // Otherwise, add some too-easy concepts (for confidence building)
+  // and some too-hard concepts (for stretch goals)
+  const result = [...inZPD];
+
+  // Add too-easy concepts (sorted by inherent difficulty descending - hardest of the easy)
+  tooEasy.sort((a, b) => b.difficulty.inherentDifficulty - a.difficulty.inherentDifficulty);
+  while (result.length < minConcepts && tooEasy.length > 0) {
+    result.push(tooEasy.shift()!);
+  }
+
+  // Add too-hard concepts only if we still need more
+  tooHard.sort((a, b) => a.difficulty.personalDifficulty - b.difficulty.personalDifficulty);
+  while (result.length < minConcepts && tooHard.length > 0) {
+    result.push(tooHard.shift()!);
+  }
+
+  // Optionally sort by novelty (fewer attempts first)
+  if (preferNovel) {
+    result.sort((a, b) => a.difficulty.attempts - b.difficulty.attempts);
+  }
+
+  return result;
+}
+
+/**
+ * Get adaptive difficulty recommendations for a learner.
+ */
+export function getAdaptiveDifficultyRecommendation(
+  concepts: LearningConcept[],
+  performanceMap: Map<string, { attempts: number; errors: number; avgTimeSpent: number }>
+): {
+  recommendation: 'increase' | 'decrease' | 'maintain';
+  reason: string;
+  zpdCount: number;
+  tooEasyCount: number;
+  tooHardCount: number;
+} {
+  const withDifficulty = concepts.map(concept => {
+    const perf = performanceMap.get(concept.id) || { attempts: 0, errors: 0, avgTimeSpent: 0 };
+    return calculateConceptDifficulty(concept, perf);
+  });
+
+  const zpdCount = withDifficulty.filter(c => c.zone === 'zpd').length;
+  const tooEasyCount = withDifficulty.filter(c => c.zone === 'too_easy').length;
+  const tooHardCount = withDifficulty.filter(c => c.zone === 'too_hard').length;
+
+  if (tooEasyCount > zpdCount && tooEasyCount > tooHardCount) {
+    return {
+      recommendation: 'increase',
+      reason: `Most concepts (${tooEasyCount}) feel too easy. Time to increase difficulty!`,
+      zpdCount,
+      tooEasyCount,
+      tooHardCount,
+    };
+  }
+
+  if (tooHardCount > zpdCount && tooHardCount > tooEasyCount) {
+    return {
+      recommendation: 'decrease',
+      reason: `Many concepts (${tooHardCount}) feel too challenging. Let's build more foundations first.`,
+      zpdCount,
+      tooEasyCount,
+      tooHardCount,
+    };
+  }
+
+  return {
+    recommendation: 'maintain',
+    reason: `Great balance! ${zpdCount} concepts are in your optimal learning zone.`,
+    zpdCount,
+    tooEasyCount,
+    tooHardCount,
+  };
+}

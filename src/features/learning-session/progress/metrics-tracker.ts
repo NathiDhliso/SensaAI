@@ -2,7 +2,11 @@
  * SensaAI Learning Velocity Metrics
  * 
  * Comprehensive tracking system for learning velocity, retention,
- * confusion rates, and spacing adherence.
+ * confusion rates, spacing adherence, and METACOGNITIVE CALIBRATION.
+ * 
+ * CONFIDENCE CALIBRATION:
+ * Tracks learner confidence ratings vs actual performance to help
+ * learners improve metacognitive accuracy (knowing what they know).
  * 
  * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7
  */
@@ -55,6 +59,13 @@ export interface ConceptMetric {
     lastRecallTimestamp?: string;
     /** Remediation attempts count for Mastery Branching */
     remediationAttempts?: number;
+
+    // ─── CONFIDENCE CALIBRATION (METACOGNITION) ───────────────────────────────
+
+    /** Confidence ratings before answering (1-5 scale) */
+    confidenceRatings: number[];
+    /** Actual outcomes for each rating (true = correct, false = incorrect) */
+    actualOutcomes: boolean[];
 }
 
 export interface LearningVelocityMetrics {
@@ -217,6 +228,8 @@ export class LearningMetricsTracker {
                 requiredConfusionDrill: false,
                 scheduledReviews: [],
                 reviewsOnTime: 0,
+                confidenceRatings: [],
+                actualOutcomes: [],
             });
         } else {
             const metric = this.metrics.conceptMetrics.get(conceptId)!;
@@ -409,6 +422,8 @@ export class LearningMetricsTracker {
                 scheduledReviews: [],
                 reviewsOnTime: 0,
                 lastRecallTimestamp: new Date().toISOString(),
+                confidenceRatings: [],
+                actualOutcomes: [],
             });
         }
         this.saveToStorage();
@@ -454,6 +469,128 @@ export class LearningMetricsTracker {
             metric.remediationAttempts = (metric.remediationAttempts || 0) + 1;
         }
         this.saveToStorage();
+    }
+
+    // ─── CONFIDENCE CALIBRATION (METACOGNITION) ────────────────────────────────
+
+    /**
+     * Record confidence rating BEFORE answering a question.
+     * 
+     * This supports metacognitive calibration training:
+     * - Learners rate confidence (1-5) before seeing if they're correct
+     * - Over time, helps them learn to accurately assess their knowledge
+     * 
+     * @param conceptId The concept being tested
+     * @param confidence 1 (very unsure) to 5 (very confident)
+     */
+    recordConfidenceRating(conceptId: string, confidence: 1 | 2 | 3 | 4 | 5): void {
+        const metric = this.metrics.conceptMetrics.get(conceptId);
+        if (metric) {
+            metric.confidenceRatings.push(confidence);
+        }
+        this.saveToStorage();
+    }
+
+    /**
+     * Record the actual outcome after a confidence rating.
+     * Call this after the learner answers to complete the calibration pair.
+     * 
+     * @param conceptId The concept being tested
+     * @param correct Whether the answer was correct
+     */
+    recordAnswerResult(conceptId: string, correct: boolean): void {
+        const metric = this.metrics.conceptMetrics.get(conceptId);
+        if (metric) {
+            metric.actualOutcomes.push(correct);
+        }
+        this.saveToStorage();
+    }
+
+    /**
+     * Get calibration score showing how accurate learner's confidence is.
+     * 
+     * @param conceptId Optional - if provided, get calibration for specific concept
+     * @returns Calibration breakdown (overconfident, underconfident, calibrated percentages)
+     */
+    getCalibrationScore(conceptId?: string): {
+        overconfident: number;  // % rated high (4-5) but got wrong
+        underconfident: number; // % rated low (1-2) but got right
+        calibrated: number;     // % correctly calibrated
+        total: number;          // total rating pairs
+    } {
+        let overconfident = 0;
+        let underconfident = 0;
+        let calibrated = 0;
+        let total = 0;
+
+        const concepts = conceptId
+            ? [this.metrics.conceptMetrics.get(conceptId)].filter(Boolean)
+            : Array.from(this.metrics.conceptMetrics.values());
+
+        concepts.forEach(metric => {
+            if (!metric) return;
+
+            // Only count paired ratings (have both confidence and outcome)
+            const pairCount = Math.min(
+                metric.confidenceRatings.length,
+                metric.actualOutcomes.length
+            );
+
+            for (let i = 0; i < pairCount; i++) {
+                const confidence = metric.confidenceRatings[i];
+                const correct = metric.actualOutcomes[i];
+                total++;
+
+                // High confidence (4-5) but wrong = overconfident
+                if (confidence >= 4 && !correct) {
+                    overconfident++;
+                }
+                // Low confidence (1-2) but right = underconfident
+                else if (confidence <= 2 && correct) {
+                    underconfident++;
+                }
+                // Medium confidence (3) or confidence matches outcome
+                else {
+                    calibrated++;
+                }
+            }
+        });
+
+        if (total === 0) {
+            return { overconfident: 0, underconfident: 0, calibrated: 100, total: 0 };
+        }
+
+        return {
+            overconfident: Math.round((overconfident / total) * 100),
+            underconfident: Math.round((underconfident / total) * 100),
+            calibrated: Math.round((calibrated / total) * 100),
+            total
+        };
+    }
+
+    /**
+     * Get human-readable calibration feedback to help learner improve.
+     */
+    getCalibrationFeedback(): string {
+        const calibration = this.getCalibrationScore();
+
+        if (calibration.total < 5) {
+            return "Not enough data yet. Keep rating your confidence before answering!";
+        }
+
+        if (calibration.overconfident > 30) {
+            return `You're often overconfident: ${calibration.overconfident}% of the time you rated high confidence but got it wrong. Take a moment to check your understanding before committing.`;
+        }
+
+        if (calibration.underconfident > 30) {
+            return `You're often underconfident: ${calibration.underconfident}% of the time you rated low confidence but got it right! Trust yourself more.`;
+        }
+
+        if (calibration.calibrated >= 70) {
+            return `Excellent metacognition! ${calibration.calibrated}% of your confidence ratings match your actual performance.`;
+        }
+
+        return `Your confidence calibration is ${calibration.calibrated}%. Keep practicing - self-awareness improves with reflection!`;
     }
 }
 

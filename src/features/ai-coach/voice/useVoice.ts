@@ -20,7 +20,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { STATIC_VOICE_LINES } from '@/features/ai-coach/voice/static-lines';
 import type { PersonaId, PhaseKey } from '@/features/ai-coach';
-import { AudioService } from '@/services/AudioService';
+import { AudioService } from '@/shared/services/AudioService';
 
 // ============================================================================
 // TYPES

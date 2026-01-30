@@ -4,6 +4,11 @@
  * Implements concept selection with tier balance and weighted prioritization.
  * Target distribution: Foundation 40%, Keystone 35%, Utility 25%
  * 
+ * PRACTICE MODES:
+ * - Blocked: Master one concept before moving on (easier but less transfer)
+ * - Mixed: Interleave concepts from different tiers (harder but better retention)
+ * - Progressive: Start blocked, transition to mixed as mastery builds
+ * 
  * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7
  */
 
@@ -48,6 +53,12 @@ export interface InterleavingConfig {
     maxConsecutiveSameTier: number;
     /** Whether interleaving is active */
     isActive: boolean;
+    /** Practice mode: blocked, mixed, or progressive */
+    practiceMode: 'blocked' | 'mixed' | 'progressive';
+    /** For progressive mode: concepts mastered before switching to mixed */
+    progressiveThreshold: number;
+    /** Interleaving ratio for mixed mode (0.0-1.0, higher = more interleaving) */
+    interleavingRatio: number;
 }
 
 // ============================================================================
@@ -67,6 +78,9 @@ const DEFAULT_CONFIG: InterleavingConfig = {
     },
     maxConsecutiveSameTier: 2,
     isActive: true,
+    practiceMode: 'mixed',       // Default to mixed for better transfer
+    progressiveThreshold: 5,      // Switch to mixed after 5 concepts
+    interleavingRatio: 0.7,       // 70% interleaved, 30% blocked
 };
 
 // ============================================================================
@@ -321,6 +335,131 @@ export class InterleavingAlgorithm {
         this.recentTiers = [];
         this.completedConcepts.clear();
         this.tierCounts = { Foundation: 0, Keystone: 0, Utility: 0 };
+    }
+
+    // ─── MIXED PRACTICE MODES ─────────────────────────────────────────────────
+
+    /**
+     * Set practice mode.
+     * - 'blocked': Master one concept at a time (easier, less transfer)
+     * - 'mixed': Interleave concepts across tiers (harder, better retention)
+     * - 'progressive': Start blocked, switch to mixed after threshold
+     */
+    setPracticeMode(mode: InterleavingConfig['practiceMode']): void {
+        this.config.practiceMode = mode;
+    }
+
+    /**
+     * Get a mixed practice session.
+     * 
+     * Research shows mixed practice leads to better long-term retention
+     * and transfer, even though blocked practice feels easier.
+     * 
+     * @param concepts Available concepts to choose from
+     * @param sessionSize Number of concepts to include
+     * @returns Interleaved concept sequence
+     */
+    getMixedPracticeSession(
+        concepts: LearningConcept[],
+        sessionSize: number = 7
+    ): LearningConcept[] {
+        // Force mixed mode temporarily
+        const originalMode = this.config.practiceMode;
+        this.config.practiceMode = 'mixed';
+        this.config.isActive = true;
+
+        const session = this.getInterleavedSession(concepts, sessionSize);
+
+        // Restore original mode
+        this.config.practiceMode = originalMode;
+
+        return session;
+    }
+
+    /**
+     * Get a progressive practice session.
+     * 
+     * Starts with blocked practice (easier, builds confidence),
+     * then transitions to mixed practice (harder, better transfer)
+     * after the learner has mastered a threshold of concepts.
+     * 
+     * @param concepts Available concepts to choose from
+     * @param sessionSize Number of concepts to include
+     * @returns Concept sequence with progressive interleaving
+     */
+    getProgressiveSession(
+        concepts: LearningConcept[],
+        sessionSize: number = 7
+    ): { concepts: LearningConcept[]; mode: 'blocked' | 'mixed' } {
+        const masteredCount = this.completedConcepts.size;
+
+        // Determine current effective mode
+        const effectiveMode: 'blocked' | 'mixed' =
+            masteredCount < this.config.progressiveThreshold
+                ? 'blocked'
+                : 'mixed';
+
+        // Apply mode
+        this.config.isActive = effectiveMode === 'mixed';
+
+        const session: LearningConcept[] = [];
+        const available = [...concepts].filter(c => !this.completedConcepts.has(c.id));
+
+        for (let i = 0; i < sessionSize && available.length > 0; i++) {
+            let next: LearningConcept | null;
+
+            if (effectiveMode === 'blocked') {
+                // In blocked mode, prefer same tier as last concept
+                const lastTier = this.recentTiers[this.recentTiers.length - 1];
+                const sameTier = available.filter(c => this.getConceptTier(c) === lastTier);
+
+                if (sameTier.length > 0 && lastTier) {
+                    next = sameTier[0];
+                } else {
+                    next = available[0];
+                }
+            } else {
+                // In mixed mode, use full interleaving
+                next = this.selectNext(available, concepts);
+            }
+
+            if (!next) break;
+
+            session.push(next);
+            this.markCompleted(next);
+
+            // Remove from available
+            const idx = available.findIndex(c => c.id === next!.id);
+            if (idx !== -1) available.splice(idx, 1);
+        }
+
+        return { concepts: session, mode: effectiveMode };
+    }
+
+    /**
+     * Get practice mode recommendation based on learner progress.
+     */
+    getRecommendedMode(): { mode: 'blocked' | 'mixed'; reason: string } {
+        const masteredCount = this.completedConcepts.size;
+
+        if (masteredCount < 3) {
+            return {
+                mode: 'blocked',
+                reason: 'Start with blocked practice to build foundational confidence.'
+            };
+        }
+
+        if (masteredCount < this.config.progressiveThreshold) {
+            return {
+                mode: 'blocked',
+                reason: `Continue blocked practice until ${this.config.progressiveThreshold} concepts mastered.`
+            };
+        }
+
+        return {
+            mode: 'mixed',
+            reason: 'Ready for mixed practice! Interleaving will strengthen long-term retention.'
+        };
     }
 }
 

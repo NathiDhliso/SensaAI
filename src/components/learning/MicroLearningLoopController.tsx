@@ -10,7 +10,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    CheckCircle, Brain, BookOpen, RotateCcw, ChevronRight, Lightbulb
+    CheckCircle, Brain, BookOpen, RotateCcw, ChevronRight, Lightbulb, AlertCircle
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/shared/types/learning';
@@ -20,6 +20,8 @@ import BlankSheetTest from '@/components/learning/activities/BlankSheetTest';
 import ConfusionDrill from '@/components/learning/activities/ConfusionDrill';
 import { findConfusionPairs, generateConfusionQuestions } from '@/features/learning-session/activities/confusion-generator';
 import type { ConfusionDrillResult, ConfusionPair } from '@/features/learning-session/activities/confusion-generator';
+import { getRandomElaborationPrompt } from '@/features/ai-coach';
+import { usePersonalizationStore } from '@/store/personalization-store';
 import styles from './MicroLearningLoopController.module.css';
 
 // ============================================================================
@@ -43,6 +45,8 @@ export interface MicroLearningLoopProps {
     onLoopComplete: (outcome: LoopOutcome, timeSpent: number) => void;
     /** Callback to skip to next concept */
     onSkip: () => void;
+    /** Callback to return to concept map (optional - falls back to skip if not provided) */
+    onReturnToMap?: () => void;
 }
 
 interface TestPhaseResult {
@@ -510,7 +514,10 @@ interface VerifyPhaseProps {
  */
 function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhaseProps) {
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+    const [confidence, setConfidence] = useState<number | null>(null);
+    const [showConfidencePrompt, setShowConfidencePrompt] = useState(false);
     const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
+    const [calibrationFeedback, setCalibrationFeedback] = useState<string | null>(null);
     const [startTime] = useState(() => Date.now());
 
     // Helper to shuffle an array (Fisher-Yates)
@@ -605,7 +612,7 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
     const correctIndex = question.options.indexOf(question.correct);
 
     const handleSubmit = () => {
-        if (selectedAnswer === null) return;
+        if (selectedAnswer === null || confidence === null) return;
 
         const timeSpent = (Date.now() - startTime) / 1000;
         const isCorrect = selectedAnswer === correctIndex;
@@ -613,9 +620,18 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
         // Show feedback
         setFeedback(isCorrect ? 'correct' : 'incorrect');
 
+        // Calculate calibration feedback
+        const wasOverconfident = confidence >= 4 && !isCorrect;
+        const wasUnderconfident = confidence <= 2 && isCorrect;
+        if (wasOverconfident) {
+            setCalibrationFeedback('💡 Tip: Your confidence was high but the answer was incorrect. Take more time to verify your understanding.');
+        } else if (wasUnderconfident) {
+            setCalibrationFeedback('🎯 Great! You knew more than you thought. Trust your learning!');
+        }
+
         // Audio feedback
         if (isCorrect) {
-            const audio = new Audio('/audio/voice/sage_master_success.mp3'); // Reuse existing sound or generic beep
+            const audio = new Audio('/audio/voice/sage_master_success.mp3');
             audio.volume = 0.2;
             audio.play().catch(() => { });
         }
@@ -623,8 +639,17 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
         // Delay for user to see result
         setTimeout(() => {
             onComplete(isCorrect, timeSpent);
-        }, 1500);
+        }, calibrationFeedback ? 2500 : 1500);
     };
+
+    // Confidence rating labels
+    const confidenceLabels = [
+        { value: 1, label: 'Guessing', emoji: '🎲' },
+        { value: 2, label: 'Unsure', emoji: '🤔' },
+        { value: 3, label: 'Somewhat', emoji: '😐' },
+        { value: 4, label: 'Confident', emoji: '😊' },
+        { value: 5, label: 'Certain', emoji: '💪' },
+    ];
 
     return (
         <motion.div
@@ -675,19 +700,56 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
                     })}
                 </div>
 
-                {!feedback && (
+                {!feedback && !showConfidencePrompt && (
                     <button
                         className={styles.submitButton}
-                        onClick={handleSubmit}
+                        onClick={() => setShowConfidencePrompt(true)}
                         disabled={selectedAnswer === null}
                     >
-                        <span>Verify Answer</span>
+                        <span>I'm ready to submit</span>
                         <ChevronRight size={20} />
                     </button>
                 )}
+
+                {/* Confidence Rating Prompt */}
+                {showConfidencePrompt && !feedback && (
+                    <motion.div
+                        className={styles.confidencePrompt}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <div className={styles.confidenceHeader}>
+                            <AlertCircle size={18} />
+                            <span>How confident are you in your answer?</span>
+                        </div>
+                        <div className={styles.confidenceButtons}>
+                            {confidenceLabels.map(({ value, label, emoji }) => (
+                                <button
+                                    key={value}
+                                    className={`${styles.confidenceButton} ${confidence === value ? styles.confidenceSelected : ''}`}
+                                    onClick={() => setConfidence(value)}
+                                >
+                                    <span className={styles.confidenceEmoji}>{emoji}</span>
+                                    <span className={styles.confidenceLabel}>{label}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            className={styles.submitButton}
+                            onClick={handleSubmit}
+                            disabled={confidence === null}
+                        >
+                            <span>Verify Answer</span>
+                            <ChevronRight size={20} />
+                        </button>
+                    </motion.div>
+                )}
                 {feedback && (
                     <div className={styles.feedbackMessage}>
-                        {feedback === 'correct' ? 'Correct!' : 'Not quite...'}
+                        <span>{feedback === 'correct' ? '✓ Correct!' : '✗ Not quite...'}</span>
+                        {calibrationFeedback && (
+                            <p className={styles.calibrationFeedback}>{calibrationFeedback}</p>
+                        )}
                     </div>
                 )}
             </div>
@@ -706,6 +768,7 @@ export function MicroLearningLoopController({
     userVelocity = 1.0,
     onLoopComplete,
     onSkip,
+    onReturnToMap,
 }: MicroLearningLoopProps) {
     // 0. Store & Hooks
     const { recordInteraction, studySession } = useLearningStore();
@@ -931,8 +994,13 @@ export function MicroLearningLoopController({
                     <button
                         className={styles.backToMapButton}
                         onClick={() => {
-                            // Navigate back to map to correct schema misunderstanding
-                            window.history.back();
+                            // Use provided callback, or fallback to skip if not available
+                            if (onReturnToMap) {
+                                onReturnToMap();
+                            } else {
+                                // Safe fallback: skip this concept instead of fragile history.back()
+                                onSkip();
+                            }
                         }}
                         title="Return to concept map to revise connections"
                     >

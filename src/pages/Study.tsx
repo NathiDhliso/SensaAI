@@ -20,6 +20,7 @@ import { usePersonalizationStore } from '@/store/personalization-store';
 import type { StudyGoal } from '@/shared/types/learning';
 import { storageManager } from '@/features/content-storage';
 import { parseAndLoadContent } from '@/shared/utils/content-loader';
+import { getTimeUntilExpiry } from '@/features/learning-session/progress/session-tracker';
 import { StudyLayout, type StudyTab } from '@/components/layout';
 import CelebrationModal from '@/components/learning/feedback/CelebrationModal';
 import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
@@ -46,10 +47,10 @@ export default function Study() {
   const initialTab = (searchParams.get('tab') as StudyTab) || 'overview';
   const [activeTab, setActiveTab] = useState<StudyTab>(initialTab);
   const [isHydrating, setIsHydrating] = useState(false);
-  
+
   // Session configuration state
   const [showSessionConfig, setShowSessionConfig] = useState(false);
-  
+
   // Coach message hook with 30s cooldown
   const { currentMessage: coachMessage, showMessage: showCoachMessage } = useCoachMessage({
     autoDismissMs: 8000,
@@ -206,13 +207,38 @@ export default function Study() {
     return () => endSession();
   }, [startSession, endSession]);
 
+  // Session expiry warning check
+  useEffect(() => {
+    if (!currentSession?.id) return;
+
+    const checkExpiry = () => {
+      const expiryInfo = getTimeUntilExpiry(currentSession.id);
+      if (expiryInfo?.isWarning && !expiryInfo.isExpired) {
+        toast.warning(`Session expires in ${expiryInfo.formattedTime}. Save your progress!`, {
+          duration: 10000,
+        });
+      } else if (expiryInfo?.isExpired) {
+        toast.error('Session has expired. Please start a new session.', {
+          duration: 10000,
+        });
+      }
+    };
+
+    // Check on mount
+    checkExpiry();
+
+    // Check every 5 minutes
+    const interval = setInterval(checkExpiry, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [currentSession?.id]);
+
   // Handle session start (after user completes session configuration)
   const handleSessionStart = useCallback((goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
     const { startStudySession, setMood } = useLearningStore.getState();
-    
+
     // Start the study session with selected parameters
     startStudySession(goal, duration, [], primer);
-    
+
     // Map SessionStartModal mood to learning store mood
     // SessionStartModal mood is already saved to personalization store by the modal
     const { lastSessionMood } = usePersonalizationStore.getState();
@@ -227,13 +253,13 @@ export default function Study() {
       const mappedMood = moodMap[lastSessionMood] || 'good';
       setMood(mappedMood);
     }
-    
+
     // Close modal
     setShowSessionConfig(false);
-    
+
     // Show coach intro message (mood-adjusted)
     showCoachMessage('prime', 'intro', 8000);
-    
+
     // Navigate to learn tab
     setActiveTab('learn');
   }, [showCoachMessage]);
@@ -454,7 +480,7 @@ export default function Study() {
       {/* Coach Message Toast - Fixed Bottom Right */}
       {coachMessage && (
         <div className={styles.coachToast}>
-          <CoachMessage 
+          <CoachMessage
             message={coachMessage}
             compact
             showVoiceButton={true}

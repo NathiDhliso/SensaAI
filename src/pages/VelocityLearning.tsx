@@ -227,12 +227,12 @@ export default function VelocityLearning() {
         // Score is derived from outcome for now (can be enhanced later)
         const score = outcome === 'mastered' ? 1.0 : outcome === 'needs-review' ? 0.6 : 0.3;
         completeConcept(activeConcept.id, score, outcome);
-        
+
         // Check if all concepts are now completed
         if (currentSession && studySession) {
             const completedCount = currentSession.progress.completedConcepts.length + 1; // +1 for the one we just completed
             const totalCount = currentSession.concepts.length;
-            
+
             // If all concepts completed, mark map as reconstructed to trigger MASTER phase
             if (completedCount >= totalCount && !studySession.mapReconstructed) {
                 console.log('[VelocityLearning] All concepts completed, transitioning to MASTER phase');
@@ -241,7 +241,7 @@ export default function VelocityLearning() {
                 sensaFlow.completeStudy(1.0); // Full reconstruction score
             }
         }
-        
+
         // Next concept is auto-selected by store logic usually, but let's be safe
         // useLearningFlow will recalculate activeConcept on next render
     };
@@ -294,6 +294,13 @@ export default function VelocityLearning() {
         // Critical: Clear session state to prevent zombie sessions
         clearSession();
         navigate('/');
+    };
+
+    // Return to concept map from micro-learning loop (SENSA v2.0 flow)
+    const handleReturnToMap = () => {
+        // Transition back to 'note' phase (concept map building)
+        // This allows user to revise connections if they realize misunderstanding
+        sensaFlow.setPhase('note');
     };
 
     const handleGoToLibrary = () => {
@@ -569,6 +576,7 @@ export default function VelocityLearning() {
                             userVelocity={1.0}
                             onLoopComplete={handleLoopComplete}
                             onSkip={handleSkipConcept}
+                            onReturnToMap={handleReturnToMap}
                         />
                     </motion.div>
                 );
