@@ -19,10 +19,20 @@ OUTPUT REQUIREMENTS:
 
 1. **Domain Name**: The subject being analyzed
 2. **Lifecycle Phases**: A 3-phase operational cycle specific to this domain
-   - Phase 1: Foundation/Setup/Preparation (what enables the work)
-   - Phase 2: Core Action/Implementation/Execution (the primary activity)
-   - Phase 3: Verification/Monitoring/Evaluation (validation and outcomes)
-   - Use single ACTION VERBS in CAPS (e.g., PROVISION → CONFIGURE → MONITOR)
+   - Phase 1: Enabling phase (what enables the work)
+   - Phase 2: Core activity (the primary action)
+   - Phase 3: Validation phase (outcomes and verification)
+
+LIFECYCLE VERB MAP (select based on domain type):
+| Domain | Phase 1 | Phase 2 | Phase 3 |
+|---|---|---|---|
+| IT/Cloud | PROVISION | CONFIGURE | MONITOR |
+| Coding | DEFINE | IMPLEMENT | DEBUG |
+| Business/Finance | RECOGNIZE | MEASURE | DISCLOSE |
+| Process | INITIATE | EXECUTE | CLOSE |
+| Learning | INTRODUCE | PRACTICE | ASSESS |
+
+Identify your domain type and use the matching verbs. Use CAPS for verbs.
 
 3. **Concepts Array**: 50-100 concepts, each with:
    - name: Clear, specific concept name (real terminology from the domain)

@@ -41,6 +41,16 @@ Assign one to `cognitiveLevel`: `remember`, `understand`, `apply`, `analyze`, `e
 ### CRITICAL CLARIFICATIONS (Common Pitfalls):
 Provide 2-3 items in `commonPitfalls` that resolve typical learner confusion. Frame POSITIVELY as precision checks.
 
+### MNEMONIC DEPTH RULE:
+- `anchor`: A concrete, physical object (not abstract concepts).
+- `story`: Map concepts to physical parts with spatial language.
+  - ❌ "It's like a key." (too abstract)
+  - ✅ "The Badge (Identity) opens the Gate (Authorization), leading to the Floor (Scope)."
+
+### SELECTION FIELD PATTERN (MANDATORY):
+Each selection item MUST follow: "When [Scenario] → Choose [Option] → Unlocks [Capability]"
+Example: "When needing low latency → Choose Direct Connect → Unlocks minimal network hops"
+
 ### STRICT CONNECTION RULES (Sensa v2.0) - MANDATORY:
 Every concept MUST have a `connections` array with at least 1-2 semantic relationships.
 Define connections using ONLY these Semantic Relationship verbs:
@@ -104,14 +114,14 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
     }},
     "mnemonic": {{ 
         "tier": "Foundation|Keystone|Utility",
-        "anchor": "Object + Emoji", 
-        "story": "Bizarre scene..." 
+        "anchor": "Concrete physical object + Emoji (e.g., '3-Story Building 🏢')", 
+        "story": "Map 2-3 concepts to physical parts with spatial relationships (above/below, inside/outside)" 
     }},
     "phase1": {{ 
         "hookSentence": "Compelling hook...", 
         "microMetaphor": "Physical analogy...",
         "prerequisite": "Required concept or knowledge...",
-        "selection": ["Criteria 1", "Criteria 2"],
+        "selection": ["When [Scenario] → Choose [Option] → Unlocks [Capability]"],
         "execution": "Implementation guidance..."
     }},
     "phase2": [ {{ "title": "...", "content": "..." }} ],
@@ -147,6 +157,14 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
    - ✅ GOOD: "Row-Level Security", "Data Partitioning", "Cost-Based Optimization", "Cell Membrane"
    - ❌ BAD: "concept-P1-001", "concept-P2-015" (these are IDs, NOT names)
    - The `name` is what students will see in the interface - it MUST be meaningful!
+
+### POSITIVE FRAMING TRANSFORMATION (MANDATORY):
+Never use negative constraints. Reframe as design boundaries:
+| ❌ Negative (AVOID) | ✅ Positive Reframe (USE) |
+|---|---|
+| "Cannot change after creation" | "Selection made at creation time (plan ahead)" |
+| "Will fail if X" | "Verify X is configured before proceeding" |
+| "Does not support X" | "Optimized for Y and Z (use [Alternative] for X)" |
 
 ## ANTI-DUPLICATION PROTOCOL (CRITICAL FOR PARALLEL GENERATION):
 You are generating PART {part_num} of 5 parallel batches. To ensure ZERO duplicate concepts:
