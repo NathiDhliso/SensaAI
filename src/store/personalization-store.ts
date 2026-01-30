@@ -15,6 +15,13 @@ export type BehavioralSignals = {
   totalConceptsViewed: number;
 };
 
+export type MetaphorSettings = {
+  showVisualAnchors: boolean;        // 🧮 Abacus vs just "Addition"
+  showAnalogies: boolean;            // "Like a calculator" explanations
+  metaphorComplexity: 'simple' | 'rich'; // "Key" vs "Master key with timer"
+  allowCustomMetaphors: boolean;     // User can replace system metaphors
+};
+
 type PersonalizationState = {
   onboardingComplete: boolean;
   chosenRole: UserRole | null;
@@ -28,6 +35,9 @@ type PersonalizationState = {
 
   // Cognitive Load Settings
   stressFreeMode: boolean; // Shorter AI explanations + forced Bionic Text
+
+  // Metaphor Settings
+  metaphorSettings: MetaphorSettings;
 
   // Academic Schedule
   semesterStartDate: string | null; // ISO Date String
@@ -48,6 +58,10 @@ type PersonalizationActions = {
   // Cognitive Load Actions
   setStressFreeMode: (enabled: boolean) => void;
 
+  // Metaphor Actions
+  updateMetaphorSettings: (settings: MetaphorSettings) => void;
+  trackMetaphorUsage: (action: string, value: string) => void;
+
   // Academic Schedule Actions
   setSemesterStartDate: (date: string | null) => void;
 };
@@ -67,6 +81,14 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
 
       // Cognitive Load Defaults
       stressFreeMode: false,
+
+      // Metaphor Defaults
+      metaphorSettings: {
+        showVisualAnchors: true,
+        showAnalogies: true,
+        metaphorComplexity: 'simple',
+        allowCustomMetaphors: false,
+      },
 
       // Academic Schedule Defaults
       semesterStartDate: null,
@@ -116,6 +138,16 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
       // Cognitive Load Actions
       setStressFreeMode: (enabled) => {
         set({ stressFreeMode: enabled });
+      },
+
+      // Metaphor Actions
+      updateMetaphorSettings: (settings) => {
+        set({ metaphorSettings: settings });
+      },
+
+      trackMetaphorUsage: (action, value) => {
+        // For now, just log to console. In production, this would send to analytics
+        console.log('Metaphor usage:', { action, value, timestamp: new Date().toISOString() });
       },
 
       // Academic Schedule Actions

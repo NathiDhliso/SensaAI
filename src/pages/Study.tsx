@@ -29,6 +29,7 @@ import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary'
 import { SessionScoutPreview } from '@/components/learning/session/SessionScoutPreview';
 import { CoachMessage } from '@/features/ai-coach/components';
 import { SessionStartModal } from '@/components/learning/session';
+import { MetaphorToggle } from '@/features/personalization';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
 import { useCoachMessage } from '@/shared/hooks/useCoachMessage';
 import { toast } from '@/shared/utils/toast';
@@ -471,7 +472,10 @@ export default function Study() {
         onTabChange={handleTabChange}
         subjectName={subjectName}
         headerActions={
-          <CognitiveGauge compact />
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <MetaphorToggle compact showSettings />
+            <CognitiveGauge compact />
+          </div>
         }
       >
         {renderTabContent()}

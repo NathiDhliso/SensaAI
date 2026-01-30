@@ -358,6 +358,12 @@ function categorizeKeyPoints(keyPoints: string[], howToUse: string[]): {
  */
 function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
     const { architecture, execution, systemPhysics } = categorizeKeyPoints(keyPoints, concept.howToUse || []);
+    const { selectedPersona } = usePersonalizationStore();
+
+    // Get a random elaboration prompt for this concept
+    const [elaboration] = useState(() =>
+        getRandomElaborationPrompt(selectedPersona || 'coach', concept.name)
+    );
 
     const renderShapeOrIcon = (icon: string | undefined, _unused?: unknown, size: 'sm' | 'md' | 'lg' = 'md') => {
         // Simplified icon renderer to avoid require() issues in ESM
@@ -492,6 +498,15 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                             <p>{concept.technicalDetails}</p>
                         </div>
                     )}
+
+                {/* Section 5: Elaboration Prompt (Metacognition) */}
+                <div className={styles.elaborationSection}>
+                    <div className={styles.elaborationHeader}>
+                        <Lightbulb size={18} />
+                        <span>Think Deeper</span>
+                    </div>
+                    <p className={styles.elaborationPrompt}>{elaboration.prompt}</p>
+                </div>
 
                 <button className={styles.submitButton} onClick={onComplete}>
                     <span>I understand, let's verify</span>

@@ -38,6 +38,14 @@
   color: var(--color-text-dark);
   margin: 0;
   line-height: var(--line-height-tight);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.visualAnchor {
+  font-size: 1.5em;
+  line-height: 1;
 }
 
 .bloomBadge {

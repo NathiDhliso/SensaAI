@@ -4,6 +4,7 @@ import { useLearningStore } from '@/store/learning-store';
 import { SensaShape } from '@/components/ui/SensaShape';
 import { renderShapeOrIcon } from '@/components/ui/SensaShape.utils';
 import SpeedReaderBar from '@/components/ui/SpeedReaderBar';
+import { useFormattedContent } from '@/shared/hooks/useMetaphorContent';
 
 import styles from './ConceptCard.module.css';
 
@@ -18,6 +19,8 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
 
   const concepts = getConcepts();
   const concept = concepts.find(c => c.id === conceptId);
+  const formattedContent = useFormattedContent(concept || null);
+  
   if (!concept) return null;
 
   const status = getConceptStatus(conceptId);
@@ -35,14 +38,24 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
         {renderShapeOrIcon(concept.icon, SensaShape, '2xl', styles.conceptIcon)}
         <div className={styles.conceptInfo}>
           <div className={styles.titleRow}>
-            <h1 className={styles.conceptName}>{concept.name}</h1>
+            <h1 className={styles.conceptName}>
+              {formattedContent.visualElement && (
+                <span className={styles.visualAnchor}>{formattedContent.visualElement} </span>
+              )}
+              {concept.name}
+            </h1>
             {concept.cognitiveLevel && (
               <span className={`${styles.bloomBadge} ${styles[concept.cognitiveLevel]}`}>
                 {concept.cognitiveLevel.toUpperCase()}
               </span>
             )}
           </div>
-          <p className={styles.metaphor}>{concept.metaphor}</p>
+          {/* Show analogical model if enabled, otherwise show original metaphor */}
+          {formattedContent.secondaryText ? (
+            <p className={styles.metaphor}>{formattedContent.secondaryText}</p>
+          ) : (
+            <p className={styles.metaphor}>{concept.metaphor}</p>
+          )}
         </div>
         {isCompleted && (
           <div className={styles.completedBadge}>
@@ -60,7 +73,7 @@ export default function ConceptCard({ conceptId, onComplete }: ConceptCardProps)
         />
       </div>
 
-      <p className={styles.hookSentence}>{concept.hookSentence}</p>
+      <p className={styles.hookSentence}>{formattedContent.primaryText}</p>
 
       {concept.logicalConnection && (
         <div className={styles.connectionBadge}>

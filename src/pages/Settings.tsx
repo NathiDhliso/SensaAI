@@ -23,6 +23,7 @@ import { useThemeStore, type Theme } from '@/store/theme-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
+import { MetaphorToggle } from '@/features/personalization';
 
 import { toast } from '@/shared/utils/toast';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
@@ -308,6 +309,11 @@ export default function Settings() {
                 <Zap size={16} />
                 <span>{stressFreeMode ? 'On' : 'Off'}</span>
               </button>
+            </div>
+
+            {/* Metaphor Controls */}
+            <div style={{ marginTop: '1.5rem' }}>
+              <MetaphorToggle />
             </div>
           </div>
 

@@ -29,6 +29,7 @@ import type { DependencyGraph } from '@/shared/types/sensa-flow';
 import { generatePreviewAnalysis } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
+import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import { NomenclatureSprint } from '@/components/learning/activities/NomenclatureSprint';
 import styles from './SessionScoutPreview.module.css';
 
@@ -52,6 +53,28 @@ const STEP_CONFIG = {
 } as const;
 
 const STEPS_ORDER: ExploreStep[] = ['structure', 'sprint', 'prime'];
+
+// Helper component for concept chips that respects metaphor settings
+const ConceptChip = ({ concept, className }: { concept: LearningConcept; className: string }) => {
+    const adaptedContent = useMetaphorContent(concept);
+    
+    return (
+        <motion.div
+            className={className}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            whileHover={{ scale: 1.02 }}
+        >
+            {adaptedContent.visualAnchor && (
+                <span className={styles.chipEmoji}>
+                    {adaptedContent.visualAnchor}
+                </span>
+            )}
+            <span className={styles.chipName}>{concept.name}</span>
+        </motion.div>
+    );
+};
 
 // ============================================================================
 // Component
@@ -135,19 +158,11 @@ export function SessionScoutPreview({
                     </div>
                     <div className={styles.conceptList}>
                         {conceptsByTier.foundation.map(c => (
-                            <motion.div
+                            <ConceptChip
                                 key={c.id}
+                                concept={c}
                                 className={`${styles.conceptChip} ${styles.foundationChip}`}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
-                                whileHover={{ scale: 1.02 }}
-                            >
-                                <span className={styles.chipEmoji}>
-                                    {c.mnemonic?.anchor?.split(' ')[1] || '🔷'}
-                                </span>
-                                <span className={styles.chipName}>{c.name}</span>
-                            </motion.div>
+                            />
                         ))}
                     </div>
                 </div>
@@ -162,18 +177,11 @@ export function SessionScoutPreview({
                     </div>
                     <div className={styles.conceptList}>
                         {conceptsByTier.keystone.map(c => (
-                            <motion.div
+                            <ConceptChip
                                 key={c.id}
+                                concept={c}
                                 className={`${styles.conceptChip} ${styles.keystoneChip}`}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                            >
-                                <span className={styles.chipEmoji}>
-                                    {c.mnemonic?.anchor?.split(' ')[1] || '🔶'}
-                                </span>
-                                <span className={styles.chipName}>{c.name}</span>
-                            </motion.div>
+                            />
                         ))}
                     </div>
                 </div>
@@ -188,18 +196,11 @@ export function SessionScoutPreview({
                     </div>
                     <div className={styles.conceptList}>
                         {conceptsByTier.utility.slice(0, 6).map(c => (
-                            <motion.div
+                            <ConceptChip
                                 key={c.id}
+                                concept={c}
                                 className={`${styles.conceptChip} ${styles.utilityChip}`}
-                                initial={{ opacity: 0, x: 10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3 }}
-                            >
-                                <span className={styles.chipEmoji}>
-                                    {c.mnemonic?.anchor?.split(' ')[1] || '🔹'}
-                                </span>
-                                <span className={styles.chipName}>{c.name}</span>
-                            </motion.div>
+                            />
                         ))}
                         {conceptsByTier.utility.length > 6 && (
                             <div className={styles.moreChip}>

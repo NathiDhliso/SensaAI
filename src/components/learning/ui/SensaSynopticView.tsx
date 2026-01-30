@@ -29,6 +29,7 @@ import type { LearningConcept } from '@/shared/types/learning';
 import { isRealContent, auditConceptContent } from '@/features/content-generation/validators/content-quality';
 import { useOrientationAwareZoom } from '@/shared/hooks/useOrientationAwareZoom';
 import { useAllNodeSizes } from '@/shared/hooks/useResponsiveNodeSize';
+import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import { resolveOverlaps, type NodePosition as LayoutNodePosition } from '@/shared/utils/layout-utils';
 import styles from './SensaSynopticView.module.css';
 
@@ -84,6 +85,13 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
             c.name.trim().length > 0
         );
     }, [concepts]);
+
+    // Get selected concept and its adapted content for metaphor filtering
+    const selectedConcept = useMemo(() =>
+        validConcepts.find(c => c.id === selectedId),
+        [validConcepts, selectedId]);
+    
+    const selectedConceptContent = useMetaphorContent(selectedConcept || null);
 
     // Calculate node positions on FIXED CANVAS with collision detection
     const nodePositions = useMemo(() => {
@@ -207,12 +215,6 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
 
         return positions;
     }, [validConcepts, nodeSizes]); // Added nodeSizes dependency
-
-
-
-    const selectedConcept = useMemo(() =>
-        validConcepts.find(c => c.id === selectedId),
-        [validConcepts, selectedId]);
 
     // KEYBOARD NAVIGATION: Escape to clear selection
     useEffect(() => {
@@ -656,11 +658,11 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                                         </div>
                                     )}
 
-                                    {/* Memory Anchor - only show if real content */}
-                                    {selectedConcept.mnemonic && isRealContent(selectedConcept.mnemonic.story, selectedConcept.name) && (
+                                    {/* Memory Anchor - only show if metaphors enabled and real content */}
+                                    {selectedConceptContent.visualAnchor && selectedConcept?.mnemonic && isRealContent(selectedConcept.mnemonic.story, selectedConcept.name) && (
                                         <div className={styles.section}>
                                             <h4><Anchor size={16} /> Memory Anchor</h4>
-                                            <p><strong>{selectedConcept.mnemonic.anchor}:</strong> {selectedConcept.mnemonic.story}</p>
+                                            <p><strong>{selectedConceptContent.visualAnchor}:</strong> {selectedConcept.mnemonic.story}</p>
                                             {selectedConcept.mnemonic.imageUrl && (
                                                 <div className={styles.mnemonicImage}>
                                                     <img
