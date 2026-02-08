@@ -137,6 +137,8 @@ Classification data flows through the entire pipeline and influences stage namin
 ```
 src/
 ├── App.tsx                    # Root component, routing
+├── contexts/
+│   └── ContentContext.tsx     # Content provider (used by main.tsx)
 ├── pages/                     # Full page views
 │   ├── Home.tsx               # Landing page
 │   ├── Generate.tsx           # Content generation UI
@@ -164,17 +166,23 @@ src/
 │   ├── content-generation/    # AI content generation
 │   │   ├── api/               # backend-client.ts, claude-client.ts
 │   │   ├── parsers/           # json-parser.ts, transformer.ts, ai-integration.ts
-│   │   └── validators/        # content-quality.ts
+│   │   ├── validators/        # content-quality.ts, tier-progression.ts
+│   │   └── generators/        # dependency-parser.ts, json-merger.ts, tier-calculator.ts
 │   ├── learning-session/      # Learning activities
 │   │   ├── activities/        # confusion-generator.ts, diagnostic-generator.ts
+│   │   ├── algorithms/        # concept-selection.ts, spacing-engine.ts, interleaving.ts
+│   │   ├── phases/            # preview-ai.ts, build-ai.ts, retain-ai.ts, score-map.ts
 │   │   ├── progress/          # session-tracker.ts (throttled localStorage persistence)
-│   │   └── scoring/           # Score calculation
+│   │   └── scoring/           # blank-sheet-scorer.ts
 │   ├── content-storage/       # Save/load content
 │   │   ├── cloud/             # s3-dynamodb.ts
 │   │   ├── local/             # indexed-db.ts, browser-storage.ts
-│   │   └── sync/              # Import/export
+│   │   ├── sync/              # import.ts, sync-engine.ts
+│   │   ├── manager.ts         # StorageManager (orchestrates cloud + local)
+│   │   └── types.ts           # SavedResult, StorageProvider interfaces
 │   ├── ai-coach/              # AI coach personas and voice
-│   └── personalization/       # User preference features
+│   ├── personalization/       # User preference features
+│   └── social/                # Social learning types (PeerReview)
 │
 ├── store/                     # Zustand state management
 │   ├── auth-store.ts          # Authentication state
@@ -187,6 +195,10 @@ src/
 │       ├── createSessionSlice.ts     # Session lifecycle (load, clear, start)
 │       ├── createNavigationSlice.ts  # Concept navigation + progress persistence
 │       ├── createStudySlice.ts       # Study session state machine
+│       ├── createCognitiveSlice.ts   # Cognitive load tracking
+│       ├── createDiagnosticSlice.ts  # Diagnostic assessment state
+│       ├── createFocusSlice.ts       # Focus/flow state management
+│       ├── createUISlice.ts          # UI state (celebrations, modals)
 │       └── types.ts                  # CurrentSession, UserProgress, etc.
 │
 └── shared/                    # Cross-cutting utilities
@@ -194,7 +206,7 @@ src/
     ├── hooks/                 # useLearningFlow, useSensaFlow, useFlowState, useGenerationEngine
     ├── types/                 # learning.ts, macro-workflow.ts, sensa-flow.ts, generation.ts
     ├── constants/             # UI timings, scoring constants
-    ├── services/              # AudioService singleton
+    ├── services/              # audio.ts (unified AudioManager + AudioService), exam-objectives-fetcher.ts
     └── utils/                 # content-loader.ts, toast.ts, score-utils.ts
 ```
 
@@ -222,12 +234,9 @@ backend/src/
 │   └── proxy/routes/          # /api/v1/proxy — Public resource proxy
 ├── shared/
 │   ├── middleware/             # auth.ts (JWT verify), error-handler.ts, rate-limit.ts
-│   ├── lib/
-│   │   ├── prompts/           # phase1-domain-analysis.ts, phase2-content-generation.ts, phase3-validation.ts (reference)
-│   │   ├── validation/        # content-validators.ts
-│   │   └── system-prompt.ts   # Deprecated stub
 │   └── types/
-│       └── macro-workflow.ts  # Classification types (shared with frontend)
+│       ├── macro-workflow.ts  # Classification types (shared with frontend)
+│       └── grounding.ts       # Source grounding types for content verification
 ```
 
 ### Lambda Functions (`backend/lambda/`)
@@ -402,14 +411,27 @@ Token refresh handled transparently via refresh token cookie
 - [x] Session time tracking + momentum checkpoints
 - [x] Dark/light theme
 
-### Planned / Partial
+### Planned — Near Term
 
 - [ ] SCOUT phase (pre-learning overview)
 - [ ] PREVIEW phase (content preview before study)
 - [ ] MasteryDashboard (COMPLETE phase summary)
-- [ ] Multi-device sync (CRDT-lite field merging)
 - [ ] Audio interrupt service (priority-based queue)
 - [ ] Struggle detector (interaction velocity heuristic)
-- [ ] Analytics pipeline (metaphor usage, session metrics)
 - [ ] Production environment (Terraform `prod/`)
 - [ ] S3 backend for Terraform state
+
+### Planned — Phase 2 (Blueprint-Formula Integration)
+
+The classification system (Type A/B/C/D) currently determines content structure but does not feed back into the learning formula. Phase 2 wires them together:
+
+- [ ] **G baseline scoring** — Classification confidence → real G value in the formula (not decorative)
+- [ ] **Type-aware Q metrics** — Q_f, Q_M, Q_P adapt measurement to blueprint type:
+  - Procedural: stage completion rate, checkpoint pass rate, hands-on time
+  - Conceptual: move fluency, novel problem success, deliberate case work
+  - Cyclic: cycle completion rate, insight per cycle, loop quality
+  - Perceptual: pattern exposure rate, discrimination accuracy, perception drills
+- [ ] **Feedback loop** — Detect wrong blueprint (low I + high effort → suggest reclassification)
+- [ ] **Blueprint-Formula dashboard** — UI showing G, Q factors, and why the user is stuck or accelerating
+- [ ] Multi-device sync (CRDT-lite field merging)
+- [ ] Analytics pipeline (metaphor usage, session metrics, G/Q tracking)

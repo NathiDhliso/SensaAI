@@ -85,9 +85,7 @@ export * from './hooks/useResponsiveNodeSize';
 export { useSensaFlow } from './hooks/useSensaFlow';
 
 // Constants
-export * from './constants/app-config';
 export * from './constants/learning-content';
-export * from './constants/learning-science';
 export * from './constants/sensa-flow-constants';
 export * from './constants/storage-keys';
 export * from './constants/theme-colors';
@@ -96,4 +94,3 @@ export * from './constants/z-index';
 
 // Services
 export * from './services/audio';
-export * from './services/AudioService';

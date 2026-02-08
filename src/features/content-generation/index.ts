@@ -18,10 +18,8 @@ export { transformToSensaAIContent as transformGeneratedContent } from './parser
 // Validators
 export * from './validators/content-quality';
 export * from './validators/tier-progression';
-export * from './validators/validation';
 
 // Generators
 export * from './generators/tier-calculator';
 export * from './generators/json-merger';
 export * from './generators/dependency-parser';
-export * from './generators/surgical-merge';

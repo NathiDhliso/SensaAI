@@ -20,9 +20,9 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
 import { useAuthStore } from '@/store/auth-store';
-import { SyncEngine } from '@/shared/storage/sync-engine';
+import { SyncEngine } from '@/features/content-storage/sync/sync-engine';
 import type { SavedResult, StorageProvider } from '../types';
-import type { UserProgress, QuizScores } from '@/shared/storage/sync-engine';
+import type { UserProgress, QuizScores } from '@/features/content-storage/sync/sync-engine';
 
 export class CloudStorage implements StorageProvider {
   private s3Client: S3Client | null = null;

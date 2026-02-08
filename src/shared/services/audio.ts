@@ -302,6 +302,35 @@ class AudioManager {
         this.savePreferences();
     }
 
+    // === Track-based playback (UI sounds: mastery, success, etc.) ===
+
+    play(track: string, src?: string): Promise<void> {
+        if (this.isMuted) return Promise.resolve();
+
+        if (src && !this.audioCache.has(src)) {
+            const audio = new Audio(src);
+            audio.preload = 'auto';
+            this.audioCache.set(src, audio);
+        }
+
+        const audio = src ? this.audioCache.get(src) : this.audioCache.get(track);
+        if (!audio) return Promise.resolve();
+
+        audio.currentTime = 0;
+        audio.volume = this.narrationVolume;
+
+        return audio.play().catch((error) => {
+            if (error.name !== 'NotAllowedError') {
+                console.error('[AudioManager] Playback error:', error);
+            }
+        });
+    }
+
+    stopCurrent(_fade: boolean = false): Promise<void> {
+        this.stopAll();
+        return Promise.resolve();
+    }
+
     // === Getters ===
 
     getMuted(): boolean {
@@ -325,10 +354,19 @@ class AudioManager {
     }
 }
 
-// Export singleton instance
 export const audioManager = AudioManager.getInstance();
+export const AudioService = audioManager;
 
-// Export hook for React components
 export function useAudioManager() {
     return audioManager;
+}
+
+if (typeof window !== 'undefined') {
+    const initOnInteraction = () => {
+        audioManager.preloadPrimerAudio().catch(() => {});
+        document.removeEventListener('click', initOnInteraction);
+        document.removeEventListener('keydown', initOnInteraction);
+    };
+    document.addEventListener('click', initOnInteraction, { once: true });
+    document.addEventListener('keydown', initOnInteraction, { once: true });
 }

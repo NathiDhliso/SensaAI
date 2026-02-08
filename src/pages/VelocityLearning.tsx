@@ -218,7 +218,7 @@ export default function VelocityLearning() {
         // "Sonic Boom" Effect for Mastery
         if (outcome === 'mastered') {
             // Use AudioService singleton instead of creating new Audio instances
-            import('@/shared/services/AudioService').then(({ AudioService }) => {
+            import('@/shared/services/audio').then(({ AudioService }) => {
                 AudioService.play('mastery', '/audio/voice/sage_master_success.mp3');
             });
         }
