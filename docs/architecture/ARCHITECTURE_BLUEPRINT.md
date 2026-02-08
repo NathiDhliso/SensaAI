@@ -142,8 +142,6 @@ Classification data flows through the entire pipeline and influences stage namin
 ```
 src/
 ├── App.tsx                    # Root component, routing, mounts SettingsPanel + BackgroundJobToast
-├── contexts/
-│   └── ContentContext.tsx     # Content provider (used by main.tsx)
 ├── pages/                     # Full page views
 │   ├── Home.tsx               # Landing page
 │   ├── Generate.tsx           # Content generation UI
@@ -161,18 +159,15 @@ src/
 │   │   ├── BackgroundJobToast # Generation job notifications
 │   │   ├── MomentumCheckpoint # Momentum milestone celebrations
 │   │   ├── HelpModal          # Contextual help overlay
-│   │   ├── SensaIcon / SensaShape  # Brand components
-│   │   ├── SpeedReaderBar     # Speed reading overlay
+│   │   ├── SensaShape         # Brand shape component
 │   │   ├── SessionTimeToast   # Session time notifications
-│   │   ├── TierExplainer      # Tier system explainer
 │   │   └── ConceptProgressIndicator
 │   ├── learning/              # Learning-specific
 │   │   ├── activities/        # BlankSheet, ConfusionDrill, ConceptMapBuilder,
 │   │   │                      # MasteryChallenge, NomenclatureSprint,
 │   │   │                      # CreativeTransfer, PeerReview
 │   │   ├── session/           # SessionStartModal, VelocityLockInGate,
-│   │   │                      # SessionScoutPreview, SessionGoalManager,
-│   │   │                      # SessionSummary, UnifiedSessionBar
+│   │   │                      # SessionScoutPreview, SessionSummary
 │   │   ├── onboarding/        # DiagnosticLaunchSystem, GuidedPrimer,
 │   │   │                      # OnboardingFlow, PrerequisiteCheck
 │   │   ├── feedback/          # SkipReasonModal, CelebrationModal,
@@ -381,7 +376,7 @@ SCOUT → PREVIEW → PRIME → BUILD → MASTER → COMPLETE
 |-------|---------|--------------|
 | SCOUT | Pre-learning overview of content | SessionScoutPreview |
 | PREVIEW | Nomenclature Sprint + Gap Priming | NomenclatureSprint |
-| PRIME | Mood check-in → auto-curates goal + duration | VelocityLockInGate, SessionStartModal |
+| PRIME | Mood check-in → auto-curates goal + duration | VelocityLockInGate, SessionStartModal (Study.tsx only) |
 | DIAGNOSE | Assess prior knowledge | DiagnosticLaunchSystem |
 | BUILD | Core learning loop | MicroLearningLoopController |
 | MASTER | Mastery challenges | MasteryChallenge, ConceptMapBuilder |

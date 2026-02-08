@@ -183,8 +183,6 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
 
       setPendingFile: (file) => set({ pendingFile: file }),
 
-      startTime: null,
-
       startGeneration: (subject, context) =>
         set({
           currentSubject: subject,

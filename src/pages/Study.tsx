@@ -207,10 +207,6 @@ export default function Study() {
     hydrateFromStorage();
   }, [subjectId, currentSession?.id, currentSession?.subjectId, retryCount]);
 
-  useEffect(() => {
-    return () => {};
-  }, []);
-
   // Start learning session on mount
   useEffect(() => {
     startSession();

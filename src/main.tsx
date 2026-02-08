@@ -13,14 +13,10 @@ const queryClient = new QueryClient({
   },
 });
 
-import { ContentProvider } from './contexts/ContentContext';
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ContentProvider>
-        <App />
-      </ContentProvider>
+      <App />
     </QueryClientProvider>
   </StrictMode>
 );

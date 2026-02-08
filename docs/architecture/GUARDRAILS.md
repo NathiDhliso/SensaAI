@@ -86,7 +86,7 @@ SCOUT → PREVIEW → PRIME → BUILD → MASTER → COMPLETE
 |-------|-----------|-------------|
 | SCOUT | SessionScoutPreview | Pre-learning content overview |
 | PREVIEW | NomenclatureSprint | Terminology familiarization + gap priming |
-| PRIME | SessionStartModal + VelocityLockInGate | Mood selection → auto-curates goal + duration |
+| PRIME | SessionStartModal (Study.tsx) + VelocityLockInGate | Mood selection → auto-curates goal + duration |
 | DIAGNOSE | DiagnosticLaunchSystem | Prior knowledge assessment |
 | BUILD | MicroLearningLoopController | Teach → BlankSheet → ConfusionDrill → Quiz → Outcome |
 | MASTER | MasteryChallenge + ConceptMapBuilder | Mastery-level challenges |
@@ -211,6 +211,9 @@ After making changes, verify:
 | Using `relates-to` connections | There is NO generic fallback. Use one of the 6 universal types: requires, enables, is-part-of, is-type-of, causes, constrains. |
 | Using inline styles in pages | Use `.module.css` for all styling. Never use `style={{}}` in page components. |
 | Duplicating mood mappings | `MOOD_GOAL_MAP` in `SessionStartModal.tsx` is the single source of truth for mood→goal, duration, and store mood. Import it; never re-create. |
+| Duplicate toast systems | The app uses a single custom toast system (`@/shared/utils/toast.ts`). Never add Sonner, react-hot-toast, or other toast libraries. |
+| Duplicate SessionStartModal | `SessionStartModal` is rendered only in `Study.tsx`. Never render it in `VelocityLearning.tsx` — Study.tsx guards the learn tab and handles session config. |
+| Using ContentContext | `ContentContext` was removed. Use `useLearningStore().getConcepts()` to access loaded concepts. |
 | Hardcoding cognitive load | Wire to `getCognitiveLoadLevel()` from the learning store's CognitiveSlice. Never hardcode. |
 | Skip reason with no routing | When a user skips a concept, differentiate behavior: too-easy → mark mastered (0.85), too-hard → route to foundation prerequisite, not-relevant → skip cleanly. |
 | Empty algorithm fallback | If concept selection algorithms fail, fall back to sequential (next N incomplete concepts). Never pass empty `targetConcepts[]`. |

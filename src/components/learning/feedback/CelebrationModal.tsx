@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Share2, Check } from 'lucide-react';
-import { useContent } from '@/shared/hooks/useContent';
+import { useLearningStore } from '@/store/learning-store';
 import { CONFETTI_COLORS } from '@/shared/constants/theme-colors';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import type { CelebrationData, LearningConcept } from '@/shared/types/learning';
@@ -35,7 +35,8 @@ const generateConfetti = () => {
 const CONFETTI_PIECES = generateConfetti();
 
 export default function CelebrationModal({ data, onContinue, onTakeBreak }: CelebrationModalProps) {
-  const { concepts } = useContent();
+  const getConcepts = useLearningStore(s => s.getConcepts);
+  const concepts = getConcepts();
   const confettiPieces = CONFETTI_PIECES;
   const [autoDismissCountdown, setAutoDismissCountdown] = useState(4);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);

@@ -15,6 +15,7 @@ import type { SavedResult } from '@/features/content-storage/types';
 // import type { SavedResult } from '@/features/content-storage'; // Assuming types are exported from index or specifically
 
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { toast } from '@/shared/utils/toast';
 import styles from './SavedResults.module.css';
 
 export default function SavedResults() {
@@ -98,15 +99,15 @@ export default function SavedResults() {
 
       if (deletedCount > 0) {
         await Promise.all(removalPromises);
-        await loadResults(); // Reload fresh list
-        alert(`Cleanup complete! Removed ${deletedCount} duplicate(s).`);
+        await loadResults();
+        toast.success(`Cleanup complete! Removed ${deletedCount} duplicate(s).`);
       } else {
-        alert('Your library is already clean! No duplicates found.');
+        toast.info('Your library is already clean! No duplicates found.');
       }
 
     } catch (err) {
       console.error('Cleanup failed:', err);
-      alert('Failed to clean up duplicates.');
+      toast.error('Failed to clean up duplicates.');
     } finally {
       setLoading(false);
     }

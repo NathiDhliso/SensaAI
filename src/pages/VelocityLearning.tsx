@@ -30,7 +30,6 @@ import MomentumCheckpoint from '@/components/ui/MomentumCheckpoint';
 import SessionTimeToast from '@/components/ui/SessionTimeToast';
 import MicroLearningLoopController from '@/components/learning/MicroLearningLoopController';
 import DiagnosticLaunchSystem from '@/components/learning/onboarding/DiagnosticLaunchSystem';
-import SessionStartModal from '@/components/learning/session/SessionStartModal';
 import VelocityLockInGate from '@/components/learning/session/VelocityLockInGate';
 import { SessionScoutPreview } from '@/components/learning/session/SessionScoutPreview';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
@@ -41,7 +40,6 @@ import PhaseNavigator from '@/components/learning/ui/PhaseNavigator';
 import { LearningToolbar } from '@/components/learning/LearningToolbar';
 
 import type {
-    StudyGoal,
     LearningConcept
 } from '@/shared/types/learning';
 import type { SensaAILearningConcept } from '@/features/content-generation/parsers/transformer';
@@ -82,7 +80,6 @@ export default function VelocityLearning() {
     const {
         currentPhase,
         activeConcept,
-        showStartModal
     } = useLearningFlow();
 
     // 2b. SENSA v2.0 Flow State Machine
@@ -218,15 +215,6 @@ export default function VelocityLearning() {
     }, []);
 
     // 5. Handlers
-    const handleStartSession = (goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
-        // Pass primer atomically to ensure correct initial phase state (avoids PRIME phase sticking)
-        startStudySession(goal, duration, [], primer || null);
-
-        // Lock-in state is implied by session start, but we update local UI state to be sure
-        setLockedIn(true);
-    };
-
-
     const handleLoopComplete = (outcome: 'mastered' | 'needs-learning' | 'needs-review', _timeSpent: number) => {
         if (!activeConcept) return;
 
@@ -492,18 +480,7 @@ export default function VelocityLearning() {
                 </div>
             </main>
 
-            {/* Modals */}
             <AnimatePresence>
-                {showStartModal && lockedIn && (
-                    <SessionStartModal
-                        subjectName={currentSession.subject}
-                        totalConcepts={currentSession.concepts.length}
-                        completedConcepts={currentSession.progress.completedConcepts.length}
-                        onStart={handleStartSession}
-                    />
-                )}
-
-                {/* ARCHITECT ENHANCEMENT: Skip Reason Modal */}
                 {showSkipModal && activeConcept && (
                     <SkipReasonModal
                         conceptName={activeConcept.name}
