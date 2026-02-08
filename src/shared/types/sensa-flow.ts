@@ -11,7 +11,7 @@ import type { ConceptMapData } from './learning';
 // ============================================================================
 
 /** Concept tier classification */
-export type TierType = 'foundation' | 'keystone' | 'utility';
+export type TierType = 'root' | 'trunk' | 'leaf';
 
 /** SENSA v2.0 learning flow phases */
 export type SensaPhase = 'see' | 'explore' | 'note' | 'study' | 'apply' | 'complete';
@@ -144,9 +144,9 @@ export interface ConfusionPair {
 }
 
 export interface TierDistribution {
-    foundation: number;
-    keystone: number;
-    utility: number;
+    root: number;
+    trunk: number;
+    leaf: number;
     total: number;
 }
 

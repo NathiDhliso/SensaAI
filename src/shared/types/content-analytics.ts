@@ -19,9 +19,9 @@ export interface MnemonicCoverage {
 }
 
 export interface TierDistribution {
-    foundation: number;
-    keystone: number;
-    utility: number;
+    root: number;
+    trunk: number;
+    leaf: number;
     total: number;
 }
 

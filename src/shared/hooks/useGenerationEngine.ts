@@ -176,7 +176,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
             order: concept.order,
             stageId: 'stage-1',
             mnemonic: concept.anchor
-              ? { tier: 'foundation', anchor: concept.anchor, story: '' }
+              ? { tier: 'root', anchor: concept.anchor, story: '' }
               : undefined,
             phase1: {
               hookSentence: '',

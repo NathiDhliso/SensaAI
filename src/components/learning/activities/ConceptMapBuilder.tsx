@@ -952,22 +952,21 @@ export default function ConceptMapBuilder({
                         {/* Bucket Zones - only show when expanded */}
                         {!sidebarCollapsed && (
                             <>
-                                {/* Foundation Zone */}
                                 <div className={styles.bucketZone}>
-                                    <div className={`${styles.bucketHeader} ${styles.bucketFoundation}`}>
-                                        <span className={styles.bucketIcon}>🔷</span>
-                                        <span>Foundation</span>
+                                    <div className={`${styles.bucketHeader} ${styles.bucketRoot}`}>
+                                        <span className={styles.bucketIcon}>🌱</span>
+                                        <span>Root</span>
                                         <span className={styles.bucketCount}>
-                                            {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation').length}
+                                            {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'root').length}
                                         </span>
                                     </div>
                                     <div className={styles.bucketConcepts}>
                                         {concepts
-                                            .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation')
+                                            .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'root')
                                             .map(c => (
                                                 <div
                                                     key={c.id}
-                                                    className={`${styles.sidebarItem} ${styles.foundationItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                    className={`${styles.sidebarItem} ${styles.rootItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
                                                     onClick={() => handleAddConcept(c)}
                                                 >
                                                     {c.name}
@@ -977,22 +976,21 @@ export default function ConceptMapBuilder({
                                     </div>
                                 </div>
 
-                                {/* Keystone Zone */}
                                 <div className={styles.bucketZone}>
-                                    <div className={`${styles.bucketHeader} ${styles.bucketKeystone}`}>
-                                        <span className={styles.bucketIcon}>🔶</span>
-                                        <span>Keystone</span>
+                                    <div className={`${styles.bucketHeader} ${styles.bucketTrunk}`}>
+                                        <span className={styles.bucketIcon}>🌿</span>
+                                        <span>Trunk</span>
                                         <span className={styles.bucketCount}>
-                                            {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone').length}
+                                            {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk').length}
                                         </span>
                                     </div>
                                     <div className={styles.bucketConcepts}>
                                         {concepts
-                                            .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone')
+                                            .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk')
                                             .map(c => (
                                                 <div
                                                     key={c.id}
-                                                    className={`${styles.sidebarItem} ${styles.keystoneItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                    className={`${styles.sidebarItem} ${styles.trunkItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
                                                     onClick={() => handleAddConcept(c)}
                                                 >
                                                     {c.name}
@@ -1002,15 +1000,14 @@ export default function ConceptMapBuilder({
                                     </div>
                                 </div>
 
-                                {/* Utility Zone */}
                                 <div className={styles.bucketZone}>
-                                    <div className={`${styles.bucketHeader} ${styles.bucketUtility}`}>
-                                        <span className={styles.bucketIcon}>🔹</span>
-                                        <span>Utility</span>
+                                    <div className={`${styles.bucketHeader} ${styles.bucketLeaf}`}>
+                                        <span className={styles.bucketIcon}>🍃</span>
+                                        <span>Leaf</span>
                                         <span className={styles.bucketCount}>
                                             {concepts.filter(c => {
                                                 const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
-                                                return t !== 'foundation' && t !== 'keystone';
+                                                return t !== 'root' && t !== 'trunk';
                                             }).length}
                                         </span>
                                     </div>
@@ -1018,12 +1015,12 @@ export default function ConceptMapBuilder({
                                         {concepts
                                             .filter(c => {
                                                 const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
-                                                return t !== 'foundation' && t !== 'keystone';
+                                                return t !== 'root' && t !== 'trunk';
                                             })
                                             .map(c => (
                                                 <div
                                                     key={c.id}
-                                                    className={`${styles.sidebarItem} ${styles.utilityItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+                                                    className={`${styles.sidebarItem} ${styles.leafItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
                                                     onClick={() => handleAddConcept(c)}
                                                 >
                                                     {c.name}

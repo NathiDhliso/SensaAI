@@ -1054,18 +1054,18 @@
     border-radius: var(--radius-sm);
 }
 
-.tierFoundation {
-    background: linear-gradient(135deg, var(--color-foundation) 0%, color-mix(in srgb, var(--color-foundation) 80%, black) 100%);
+.tierRoot {
+    background: linear-gradient(135deg, var(--color-root) 0%, color-mix(in srgb, var(--color-root) 80%, black) 100%);
     color: white;
 }
 
-.tierKeystone {
-    background: linear-gradient(135deg, var(--color-keystone) 0%, color-mix(in srgb, var(--color-keystone) 80%, black) 100%);
+.tierTrunk {
+    background: linear-gradient(135deg, var(--color-trunk) 0%, color-mix(in srgb, var(--color-trunk) 80%, black) 100%);
     color: white;
 }
 
-.tierUtility {
-    background: linear-gradient(135deg, var(--color-utility) 0%, color-mix(in srgb, var(--color-utility) 80%, black) 100%);
+.tierLeaf {
+    background: linear-gradient(135deg, var(--color-leaf) 0%, color-mix(in srgb, var(--color-leaf) 80%, black) 100%);
     color: white;
 }
 
@@ -1107,16 +1107,16 @@
     text-overflow: ellipsis;
 }
 
-.foundationChip {
-    border-left: 3px solid var(--color-foundation);
+.rootChip {
+    border-left: 3px solid var(--color-root);
 }
 
-.keystoneChip {
-    border-left: 3px solid var(--color-keystone);
+.trunkChip {
+    border-left: 3px solid var(--color-trunk);
 }
 
-.utilityChip {
-    border-left: 3px solid var(--color-utility);
+.leafChip {
+    border-left: 3px solid var(--color-leaf);
 }
 
 .moreChip {
@@ -1167,7 +1167,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1rem;
-    background: var(--color-foundation);
+    background: var(--color-root);
     color: white;
     border-radius: var(--radius-md);
     font-weight: 600;

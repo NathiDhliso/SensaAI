@@ -59,7 +59,7 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
     });
     
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [focusedTier, setFocusedTier] = useState<'foundation' | 'keystone' | 'utility' | null>(null);
+    const [focusedTier, setFocusedTier] = useState<'root' | 'trunk' | 'leaf' | null>(null);
     const [showHelp, setShowHelp] = useState(false);
 
     // Viewport Refs
@@ -117,29 +117,29 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
 
         // Radii per Tier (INCREASED for better spacing)
         const radii = {
-            foundation: 280, // Inner (increased from 220)
-            keystone: 520,   // Middle (increased from 450)
-            utility: 760     // Outer (increased from 680)
+            root: 280,
+            trunk: 520,
+            leaf: 760
         };
 
         // Group concepts by Phase AND Tier
         const grouped = {
-            PREPARE: { foundation: [] as LearningConcept[], keystone: [] as LearningConcept[], utility: [] as LearningConcept[] },
-            MODEL: { foundation: [] as LearningConcept[], keystone: [] as LearningConcept[], utility: [] as LearningConcept[] },
-            DELIVER: { foundation: [] as LearningConcept[], keystone: [] as LearningConcept[], utility: [] as LearningConcept[] }
+            PREPARE: { root: [] as LearningConcept[], trunk: [] as LearningConcept[], leaf: [] as LearningConcept[] },
+            MODEL: { root: [] as LearningConcept[], trunk: [] as LearningConcept[], leaf: [] as LearningConcept[] },
+            DELIVER: { root: [] as LearningConcept[], trunk: [] as LearningConcept[], leaf: [] as LearningConcept[] }
         };
 
         // Classify every concept
         validConcepts.forEach(c => {
             const phase = c.lifecyclePhase || 'PREPARE'; // Fallback
-            const tier = c.tier || 'utility';
+            const tier = c.tier || 'leaf';
             if (grouped[phase] && grouped[phase][tier]) {
                 grouped[phase][tier].push(c);
             }
         });
 
         // Helper to place nodes within a sector arc with ENHANCED spacing
-        const placeInSector = (nodes: LearningConcept[], sectorStart: number, sectorEnd: number, radius: number, tier: 'foundation' | 'keystone' | 'utility') => {
+        const placeInSector = (nodes: LearningConcept[], sectorStart: number, sectorEnd: number, radius: number, tier: 'root' | 'trunk' | 'leaf') => {
             if (nodes.length === 0) return;
 
             // Sort by order
@@ -184,15 +184,15 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
         // Process all groups
         (['PREPARE', 'MODEL', 'DELIVER'] as const).forEach(phase => {
             const { start, end } = sectors[phase];
-            placeInSector(grouped[phase].foundation, start, end, radii.foundation, 'foundation');
-            placeInSector(grouped[phase].keystone, start, end, radii.keystone, 'keystone');
-            placeInSector(grouped[phase].utility, start, end, radii.utility, 'utility');
+            placeInSector(grouped[phase].root, start, end, radii.root, 'root');
+            placeInSector(grouped[phase].trunk, start, end, radii.trunk, 'trunk');
+            placeInSector(grouped[phase].leaf, start, end, radii.leaf, 'leaf');
         });
 
         // Apply collision detection and resolution
         const positionsArray: LayoutNodePosition[] = Array.from(positions.entries()).map(([id, pos]) => {
             const concept = validConcepts.find(c => c.id === id);
-            const tier = (concept?.tier || 'utility') as 'foundation' | 'keystone' | 'utility';
+            const tier = (concept?.tier || 'leaf') as 'root' | 'trunk' | 'leaf';
             const nodeSize = nodeSizes[tier];
             // Use half of max dimension as radius for collision detection
             const radius = Math.max(nodeSize.width, nodeSize.height) / 2;
@@ -269,15 +269,15 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
 
             // PRIORITY 2: Use SHAPE simpleCore (if real content)
             if (isRealContent(concept.shape?.simpleCore, concept.name)) {
-                const tierLabel = tier === 'foundation' ? 'Foundation 🏗️' :
-                    tier === 'keystone' ? 'Keystone 🌉' : 'Utility 🛠️';
+                const tierLabel = tier === 'root' ? 'Root �' :
+                    tier === 'trunk' ? 'Trunk �' : 'Leaf 🍃';
                 return `${tierLabel}: ${concept.shape!.simpleCore}`;
             }
 
             // PRIORITY 3: Use hookSentence (if real content)
             if (isRealContent(concept.hookSentence, concept.name)) {
-                const tierLabel = tier === 'foundation' ? 'Foundation 🏗️' :
-                    tier === 'keystone' ? 'Keystone 🌉' : 'Utility 🛠️';
+                const tierLabel = tier === 'root' ? 'Root �' :
+                    tier === 'trunk' ? 'Trunk �' : 'Leaf 🍃';
                 return `${tierLabel}: ${concept.hookSentence}`;
             }
 
@@ -292,14 +292,14 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
 
         // General Tier Description covers
         switch (tier) {
-            case 'foundation': return "FOUNDATION ROOTS 🏗️ — These are the big ideas that hold everything else up!";
-            case 'keystone': return "KEYSTONE BRIDGES 🌉 — These connect your ideas together so they make sense.";
-            case 'utility': return "UTILITY TOOLS 🛠️ — Special tricks and details for specific problems.";
+            case 'root': return "ROOT ENTRY POINTS � — These are the starting ideas that everything else grows from!";
+            case 'trunk': return "TRUNK CONNECTORS � — These link your ideas together into a strong structure.";
+            case 'leaf': return "LEAF APPLICATIONS 🍃 — Specialized skills and details for specific problems.";
             default: return "";
         }
     };
 
-    const handleRingClick = (tier: 'foundation' | 'keystone' | 'utility') => {
+    const handleRingClick = (tier: 'root' | 'trunk' | 'leaf') => {
         if (focusedTier === tier) {
             setFocusedTier(null); // Toggle off
         } else {
@@ -468,9 +468,9 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                         <div className={styles.helpSection}>
                             <h4><CircleDot size={14} /> Understanding the Zones</h4>
                             <ul className={styles.tierLegend}>
-                                <li><span className={styles.tierDot} data-tier="foundation" /> <strong>Foundation</strong> — Core concepts everything else builds upon</li>
-                                <li><span className={styles.tierDot} data-tier="keystone" /> <strong>Keystone</strong> — Bridge concepts connecting ideas together</li>
-                                <li><span className={styles.tierDot} data-tier="utility" /> <strong>Utility</strong> — Specialized tools for specific problems</li>
+                                <li><span className={styles.tierDot} data-tier="root" /> <strong>Root</strong> — Entry points that everything else grows from</li>
+                                <li><span className={styles.tierDot} data-tier="trunk" /> <strong>Trunk</strong> — Core connectors linking ideas together</li>
+                                <li><span className={styles.tierDot} data-tier="leaf" /> <strong>Leaf</strong> — Specialized applications for specific problems</li>
                             </ul>
                         </div>
 
@@ -525,20 +525,20 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                         }}
                     >
                         {/* Visual Orbit Rings - Render Order: Outer -> Inner (Pointer Events Stack) */}
-                        <div className={`${styles.orbitRing} ${focusedTier === 'utility' ? styles.active : ''}`}
+                        <div className={`${styles.orbitRing} ${focusedTier === 'leaf' ? styles.active : ''}`}
                             style={{ width: 1360, height: 1360, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
-                            onClick={(e) => { e.stopPropagation(); handleRingClick('utility'); }} />
-                        <div className={`${styles.ringLabel} ${focusedTier && focusedTier !== 'utility' ? styles.dimmed : ''}`} style={{ marginTop: -500 }}>Utility Zone</div>
+                            onClick={(e) => { e.stopPropagation(); handleRingClick('leaf'); }} />
+                        <div className={`${styles.ringLabel} ${focusedTier && focusedTier !== 'leaf' ? styles.dimmed : ''}`} style={{ marginTop: -500 }}>Leaf Zone</div>
 
-                        <div className={`${styles.orbitRing} ${focusedTier === 'keystone' ? styles.active : ''}`}
+                        <div className={`${styles.orbitRing} ${focusedTier === 'trunk' ? styles.active : ''}`}
                             style={{ width: 900, height: 900, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
-                            onClick={(e) => { e.stopPropagation(); handleRingClick('keystone'); }} />
-                        <div className={`${styles.ringLabel} ${focusedTier && focusedTier !== 'keystone' ? styles.dimmed : ''}`} style={{ marginTop: -350 }}>Keystone Zone</div>
+                            onClick={(e) => { e.stopPropagation(); handleRingClick('trunk'); }} />
+                        <div className={`${styles.ringLabel} ${focusedTier && focusedTier !== 'trunk' ? styles.dimmed : ''}`} style={{ marginTop: -350 }}>Trunk Zone</div>
 
-                        <div className={`${styles.orbitRing} ${focusedTier === 'foundation' ? styles.active : ''}`}
+                        <div className={`${styles.orbitRing} ${focusedTier === 'root' ? styles.active : ''}`}
                             style={{ width: 440, height: 440, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
-                            onClick={(e) => { e.stopPropagation(); handleRingClick('foundation'); }} />
-                        <div className={`${styles.ringLabel} ${focusedTier && focusedTier !== 'foundation' ? styles.dimmed : ''}`} style={{ marginTop: -200 }}>Foundation Zone</div>
+                            onClick={(e) => { e.stopPropagation(); handleRingClick('root'); }} />
+                        <div className={`${styles.ringLabel} ${focusedTier && focusedTier !== 'root' ? styles.dimmed : ''}`} style={{ marginTop: -200 }}>Root Zone</div>
 
                         <svg className={styles.connections} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
                             {renderLines()}
@@ -553,13 +553,13 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                         {validConcepts.map((concept) => {
                             const pos = nodePositions.get(concept.id);
                             if (!pos) return null;
-                            const tier = concept.tier || 'utility';
+                            const tier = concept.tier || 'leaf';
                             const isTierVisible = !focusedTier || focusedTier === tier;
                             const isFocusVisible = !selectedId || selectedId === concept.id || (focusedDefaults && focusedDefaults.has(concept.id));
                             const isVisible = isTierVisible && isFocusVisible;
 
                             // Get responsive size for this tier
-                            const nodeSize = nodeSizes[tier as 'foundation' | 'keystone' | 'utility'];
+                            const nodeSize = nodeSizes[tier as 'root' | 'trunk' | 'leaf'];
 
                             return (
                                 <motion.div
@@ -629,8 +629,8 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                             <div className={styles.drawerContentWrapper}>
                                 <div className={styles.drawerHeader}>
                                     <div>
-                                        <span className={`${styles.drawerTier} ${styles[selectedConcept.tier || 'utility']}_bg`}>
-                                            {selectedConcept.tier || 'Utility'}
+                                        <span className={`${styles.drawerTier} ${styles[selectedConcept.tier || 'leaf']}_bg`}>
+                                            {selectedConcept.tier || 'Leaf'}
                                         </span>
                                         <h3 className={styles.drawerTitle}>{selectedConcept.name}</h3>
                                     </div>

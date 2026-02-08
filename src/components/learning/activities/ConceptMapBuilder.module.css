@@ -568,44 +568,42 @@
 }
 
 /* Foundation Zone */
-.bucketFoundation {
+.bucketRoot {
     background: linear-gradient(90deg, var(--overlay-accent-10) 0%, transparent 100%);
     color: var(--color-accent);
 }
 
-.foundationItem {
+.rootItem {
     border-left: 3px solid var(--color-accent);
 }
 
-.foundationItem:hover {
+.rootItem:hover {
     background: var(--overlay-accent-10);
 }
 
-/* Keystone Zone */
-.bucketKeystone {
+.bucketTrunk {
     background: linear-gradient(90deg, var(--color-warning-bg) 0%, transparent 100%);
     color: var(--color-warning);
 }
 
-.keystoneItem {
+.trunkItem {
     border-left: 3px solid var(--color-warning);
 }
 
-.keystoneItem:hover {
+.trunkItem:hover {
     background: var(--color-warning-bg);
 }
 
-/* Utility Zone */
-.bucketUtility {
+.bucketLeaf {
     background: linear-gradient(90deg, var(--overlay-sage-10) 0%, transparent 100%);
     color: var(--color-sage);
 }
 
-.utilityItem {
+.leafItem {
     border-left: 3px solid var(--color-sage);
 }
 
-.utilityItem:hover {
+.leafItem:hover {
     background: var(--overlay-sage-10);
 }
 

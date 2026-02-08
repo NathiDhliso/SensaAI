@@ -73,7 +73,7 @@ export default function VelocityLearning() {
         knownConcepts: string[];
         knowledgeGaps: string[];
         confidenceScores: Record<string, number>;
-        canSkipFoundation: boolean;
+        canSkipRoot: boolean;
     };
 
     // 2. The State Machine Hook (legacy - used for phase detection)
@@ -289,12 +289,12 @@ export default function VelocityLearning() {
             const nextId = getNextConcept();
             if (nextId) setCurrentConcept(nextId);
         } else if (data.reason === 'too-hard') {
-            const foundationConcept = currentSession?.concepts.find(
-                c => c.tier === 'foundation' && !currentSession.progress.completedConcepts.includes(c.id) && c.id !== pendingSkipConcept
+            const rootConcept = currentSession?.concepts.find(
+                c => c.tier === 'root' && !currentSession.progress.completedConcepts.includes(c.id) && c.id !== pendingSkipConcept
             );
-            if (foundationConcept) {
-                setCurrentConcept(foundationConcept.id);
-                toast.info(`Routing to prerequisite: ${foundationConcept.name}`, { duration: 4000 });
+            if (rootConcept) {
+                setCurrentConcept(rootConcept.id);
+                toast.info(`Routing to prerequisite: ${rootConcept.name}`, { duration: 4000 });
             } else {
                 const nextId = getNextConcept();
                 if (nextId) setCurrentConcept(nextId);

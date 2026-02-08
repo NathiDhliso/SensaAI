@@ -199,16 +199,16 @@ export async function generateWithBackend(
                 progress: 65,
             });
 
-            const [foundationConcepts, keystoneConcepts, utilityConcepts] = await Promise.all([
-                conceptsApi.getAllByTier(userId, sessionId, 'foundation'),
-                conceptsApi.getAllByTier(userId, sessionId, 'keystone'),
-                conceptsApi.getAllByTier(userId, sessionId, 'utility'),
+            const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
+                conceptsApi.getAllByTier(userId, sessionId, 'root'),
+                conceptsApi.getAllByTier(userId, sessionId, 'trunk'),
+                conceptsApi.getAllByTier(userId, sessionId, 'leaf'),
             ]);
 
             allConcepts = [
-                ...(foundationConcepts || []),
-                ...(keystoneConcepts || []),
-                ...(utilityConcepts || []),
+                ...(rootConcepts || []),
+                ...(trunkConcepts || []),
+                ...(leafConcepts || []),
             ];
 
             // Sort by order if available
@@ -250,7 +250,7 @@ export async function generateWithBackend(
         // Convert concepts to the full document format
         let fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
             ...c,
-            tier: c.tier || 'utility'
+            tier: c.tier || 'leaf'
         })), jobClassification);
 
 
@@ -362,7 +362,7 @@ export function buildDocumentFromConcepts(
             },
             // Use real AI-generated content if available, otherwise fallback (which shouldn't happen with strict policy)
             mnemonic: concept.mnemonic || {
-                tier: concept.tier === 'foundation' ? 'Foundation' : concept.tier === 'keystone' ? 'Keystone' : 'Utility',
+                tier: concept.tier === 'root' ? 'Root' : concept.tier === 'trunk' ? 'Trunk' : 'Leaf',
                 anchor: `${concept.displayProperties?.emoji || '📚'} ${concept.name}`,
                 story: `Understanding ${concept.name} in the context of ${subject}`,
             },

@@ -18,12 +18,12 @@ import type { LearningConcept } from '@/shared/types/learning';
 // TYPES
 // ============================================================================
 
-export type ConceptTier = 'Foundation' | 'Keystone' | 'Utility';
+export type ConceptTier = 'Root' | 'Trunk' | 'Leaf';
 
 export interface TierBalance {
-    Foundation: number;
-    Keystone: number;
-    Utility: number;
+    Root: number;
+    Trunk: number;
+    Leaf: number;
 }
 
 export interface PriorityWeights {
@@ -67,9 +67,9 @@ export interface InterleavingConfig {
 
 const DEFAULT_CONFIG: InterleavingConfig = {
     targetBalance: {
-        Foundation: 0.40,
-        Keystone: 0.35,
-        Utility: 0.25,
+        Root: 0.20,
+        Trunk: 0.50,
+        Leaf: 0.30,
     },
     weights: {
         prerequisite: 0.40,
@@ -91,7 +91,7 @@ export class InterleavingAlgorithm {
     private config: InterleavingConfig;
     private recentTiers: ConceptTier[] = [];
     private completedConcepts: Set<string> = new Set();
-    private tierCounts: TierBalance = { Foundation: 0, Keystone: 0, Utility: 0 };
+    private tierCounts: TierBalance = { Root: 0, Trunk: 0, Leaf: 0 };
 
     constructor(config: Partial<InterleavingConfig> = {}) {
         this.config = { ...DEFAULT_CONFIG, ...config };
@@ -112,12 +112,12 @@ export class InterleavingAlgorithm {
         // Otherwise, infer from position/importance
         // This is a simplified heuristic
         if (concept.order && concept.order <= 5) {
-            return 'Foundation';
+            return 'Root';
         }
         if (concept.order && concept.order <= 10) {
-            return 'Keystone';
+            return 'Trunk';
         }
-        return 'Utility';
+        return 'Leaf';
     }
 
     /**
@@ -334,7 +334,7 @@ export class InterleavingAlgorithm {
     reset(): void {
         this.recentTiers = [];
         this.completedConcepts.clear();
-        this.tierCounts = { Foundation: 0, Keystone: 0, Utility: 0 };
+        this.tierCounts = { Root: 0, Trunk: 0, Leaf: 0 };
     }
 
     // ─── MIXED PRACTICE MODES ─────────────────────────────────────────────────

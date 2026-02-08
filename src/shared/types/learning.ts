@@ -6,7 +6,7 @@
 export interface MnemonicContext {
   anchor: string;
   story: string;
-  tier?: 'foundation' | 'keystone' | 'utility';
+  tier?: 'root' | 'trunk' | 'leaf';
   parentName?: string;
   parentId?: string;
   dependsOn?: string[];
@@ -27,7 +27,7 @@ export interface DependencyMetrics {
   dependentCount: number;
   dependencyCount: number;
   totalConnections: number;
-  calculatedTier: 'foundation' | 'keystone' | 'utility';
+  calculatedTier: 'root' | 'trunk' | 'leaf';
   centralityScore: number;
   clusterGroup: string;
 }
@@ -42,9 +42,9 @@ export interface SubjectGraphNode {
 export interface SubjectGraphStats {
   totalNodes: number;
   totalEdges: number;
-  foundationCount: number;
-  keystoneCount: number;
-  utilityCount: number;
+  rootCount: number;
+  trunkCount: number;
+  leafCount: number;
   centralHub: string;
 }
 
@@ -134,12 +134,12 @@ export interface LearningConcept {
 
   // ========== SENSA v2.0 TIER SYSTEM (REQUIRED) ==========
   /**
-   * Top-level tier classification for progression control.
-   * - foundation: Core concepts (outdegree ≥ 5)
-   * - keystone: Connecting concepts (outdegree 2-4)
-   * - utility: Polish/optimization (outdegree ≤ 1)
+   * Dependency-derived tier classification computed from the connection graph.
+   * - root: Entry points (in-degree 0, out-degree ≥ 1) — learn these first
+   * - trunk: Core connectors (in-degree ≥ 1, out-degree ≥ 1) — the meat of the subject
+   * - leaf: Terminal applications (out-degree 0 or isolated) — specialized skills
    */
-  tier: 'foundation' | 'keystone' | 'utility';
+  tier: 'root' | 'trunk' | 'leaf';
 
   /**
    * Bloom's Taxonomy Level (Phase 2 Cognitive Model)

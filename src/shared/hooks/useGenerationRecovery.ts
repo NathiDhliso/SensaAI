@@ -114,16 +114,16 @@ export function useGenerationRecovery() {
             });
 
             // Fetch all concepts
-            const [foundationConcepts, keystoneConcepts, utilityConcepts] = await Promise.all([
-              conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'foundation'),
-              conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'keystone'),
-              conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'utility'),
+            const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
+              conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'root'),
+              conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'trunk'),
+              conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'leaf'),
             ]);
 
             const allConcepts = [
-              ...(foundationConcepts || []),
-              ...(keystoneConcepts || []),
-              ...(utilityConcepts || []),
+              ...(rootConcepts || []),
+              ...(trunkConcepts || []),
+              ...(leafConcepts || []),
             ];
 
             allConcepts.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
@@ -137,7 +137,7 @@ export function useGenerationRecovery() {
             const result: any = {
               fullDocument,
               sessionId: activeJob.sessionId,
-              tier: 'foundation' as const,
+              tier: 'root' as const,
               conceptCount: allConcepts.length,
             };
 

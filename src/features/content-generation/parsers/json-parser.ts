@@ -614,7 +614,7 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
                     const curStory = concept.mnemonic?.story || '';
 
                     concept.mnemonic = {
-                        tier: (mItem.tier as 'foundation' | 'keystone' | 'utility') || curTier,
+                        tier: (mItem.tier as 'root' | 'trunk' | 'leaf') || curTier,
                         anchor: anchor || curAnchor,
                         story: story || curStory,
                         parentName: mItem.parentConcept || mItem.parentName || undefined,
@@ -673,22 +673,13 @@ function extractFirstSentence(text: string): string {
 }
 
 /**
- * Determine tier based on concept order and name
- * Returns lowercase tier values: 'foundation', 'keystone', 'utility'
+ * Determine tier based on concept order and name (fallback only — tiers are
+ * normally computed from the connection graph in post-processing).
  */
-function determineTier(order: number, _name: string): 'foundation' | 'keystone' | 'utility' {
-    // SILVER BULLET SCALING LOGIC (Parser Version):
-    // When parsing stream/markdown, we might not know the total count yet.
-    // We use a safe "Growth" heuristic assuming a standard ~30-50 concept curriculum.
-
-    // 1. Foundation: First 5 concepts are almost always setup/definitions
-    if (order <= 5) return 'foundation';
-
-    // 2. Keystone: The core body of knowledge (next ~20-25 concepts)
-    if (order <= 30) return 'keystone';
-
-    // 3. Utility: Everything else is application/advanced
-    return 'utility';
+function determineTier(order: number, _name: string): 'root' | 'trunk' | 'leaf' {
+    if (order <= 5) return 'root';
+    if (order <= 30) return 'trunk';
+    return 'leaf';
 }
 
 
@@ -772,7 +763,7 @@ function extractMnemonic(content: string, conceptName: string): ParsedMnemonic |
     const imageMatch = match[1].match(/\\"imageUrl\\":\s*\\"([^"]+)\\"/);
 
     return {
-        tier: (tierMatch?.[1]?.toLowerCase() as 'foundation' | 'keystone' | 'utility') || 'foundation',
+        tier: (tierMatch?.[1]?.toLowerCase() as 'root' | 'trunk' | 'leaf') || 'root',
         anchor: anchorMatch?.[1]?.replace(/\\"/g, '"') || '',
         story: storyMatch?.[1]?.replace(/\\"/g, '"') || '',
         imageUrl: imageMatch?.[1]?.replace(/\\"/g, '"'),
@@ -959,36 +950,33 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
 
     // Extract mnemonic
     // Extract mnemonic and Tier (checking root level first for Sensa v2.0 compliance)
-    let tier: 'foundation' | 'keystone' | 'utility' | undefined;
+    let tier: 'root' | 'trunk' | 'leaf' | undefined;
 
-    // Check root level tier (preferred in new prompt)
     if (typeof c.tier === 'string') {
         const t = c.tier.toLowerCase();
-        if (t === 'foundation') tier = 'foundation';
-        else if (t === 'keystone') tier = 'keystone';
-        else if (t === 'utility') tier = 'utility';
+        if (t === 'root') tier = 'root';
+        else if (t === 'trunk') tier = 'trunk';
+        else if (t === 'leaf') tier = 'leaf';
     }
 
     let mnemonic: ParsedMnemonic | undefined;
     if (c.mnemonic && typeof c.mnemonic === 'object') {
         const m = c.mnemonic as Record<string, unknown>;
 
-        // If not found at root, check inside mnemonic
         if (!tier && typeof m.tier === 'string') {
             const t = m.tier.toLowerCase();
-            if (t === 'foundation') tier = 'foundation';
-            else if (t === 'keystone') tier = 'keystone';
-            else if (t === 'utility') tier = 'utility';
+            if (t === 'root') tier = 'root';
+            else if (t === 'trunk') tier = 'trunk';
+            else if (t === 'leaf') tier = 'leaf';
         }
 
         mnemonic = {
-            tier: tier || 'foundation', // Default to foundation if still missing
+            tier: tier || 'root',
             anchor: typeof m.anchor === 'string' ? m.anchor : '',
             story: typeof m.story === 'string' ? m.story : '',
             parentName: typeof m.parentConcept === 'string' ? m.parentConcept : undefined,
         };
     } else if (tier) {
-        // If mnemonic object missing but tier exists at root, create minimal mnemonic
         mnemonic = {
             tier: tier,
             anchor: `${name}`,

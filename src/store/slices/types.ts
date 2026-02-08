@@ -109,7 +109,7 @@ export interface DiagnosticSession {
   knownConcepts: string[];
   knowledgeGaps: string[];
   confidenceScores: Record<string, number>;
-  canSkipFoundation: boolean;
+  canSkipRoot: boolean;
   isComplete: boolean;
 }
 
@@ -155,7 +155,7 @@ export type DiagnosticSliceActions = {
     knownConcepts: string[];
     knowledgeGaps: string[];
     confidenceScores: Record<string, number>;
-    canSkipFoundation: boolean;
+    canSkipRoot: boolean;
   }) => void;
   clearDiagnostic: () => void;
   getDiagnosticSession: () => DiagnosticSession | null;

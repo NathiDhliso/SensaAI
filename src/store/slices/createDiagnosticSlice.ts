@@ -33,7 +33,7 @@ export const createDiagnosticSlice: StateCreator<
       knownConcepts: [],
       knowledgeGaps: [],
       confidenceScores: {},
-      canSkipFoundation: false,
+      canSkipRoot: false,
       isComplete: false,
     };
     set({ diagnosticSession });
@@ -50,7 +50,7 @@ export const createDiagnosticSlice: StateCreator<
         knownConcepts: results.knownConcepts,
         knowledgeGaps: results.knowledgeGaps,
         confidenceScores: results.confidenceScores,
-        canSkipFoundation: results.canSkipFoundation,
+        canSkipRoot: results.canSkipRoot,
         isComplete: true,
       },
     });

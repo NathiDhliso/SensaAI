@@ -95,15 +95,14 @@ export function SessionScoutPreview({
 
     // Group concepts by tier
     const conceptsByTier = useMemo(() => {
-        const foundation = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'foundation');
-        const keystone = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'keystone');
-        // Everything else is utility
-        const utility = concepts.filter(c => {
+        const root = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'root');
+        const trunk = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk');
+        const leaf = concepts.filter(c => {
             const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
-            return t !== 'foundation' && t !== 'keystone';
+            return t !== 'root' && t !== 'trunk';
         });
 
-        return { foundation, keystone, utility };
+        return { root, trunk, leaf };
     }, [concepts]);
 
     // Generate AI Preview Analysis for priming step
@@ -145,23 +144,22 @@ export function SessionScoutPreview({
                 <BookOpen size={20} className={styles.instructionIcon} />
                 <div>
                     <h3>Scan the Tier Structure</h3>
-                    <p>Foundation concepts enable Keystones, which enable Utilities. Notice the flow.</p>
+                    <p>Root concepts grow into Trunks, which branch into Leaves. Notice the flow.</p>
                 </div>
             </div>
 
             <div className={styles.tierFlow}>
-                {/* Foundation Column */}
                 <div className={styles.tierColumn}>
-                    <div className={`${styles.tierHeader} ${styles.tierFoundation}`}>
-                        <span className={styles.tierLabel}>Foundation</span>
-                        <span className={styles.tierCount}>{conceptsByTier.foundation.length}</span>
+                    <div className={`${styles.tierHeader} ${styles.tierRoot}`}>
+                        <span className={styles.tierLabel}>Root</span>
+                        <span className={styles.tierCount}>{conceptsByTier.root.length}</span>
                     </div>
                     <div className={styles.conceptList}>
-                        {conceptsByTier.foundation.map(c => (
+                        {conceptsByTier.root.map(c => (
                             <ConceptChip
                                 key={c.id}
                                 concept={c}
-                                className={`${styles.conceptChip} ${styles.foundationChip}`}
+                                className={`${styles.conceptChip} ${styles.rootChip}`}
                             />
                         ))}
                     </div>
@@ -169,18 +167,17 @@ export function SessionScoutPreview({
 
                 <ArrowRight className={styles.flowArrow} size={24} />
 
-                {/* Keystone Column */}
                 <div className={styles.tierColumn}>
-                    <div className={`${styles.tierHeader} ${styles.tierKeystone}`}>
-                        <span className={styles.tierLabel}>Keystone</span>
-                        <span className={styles.tierCount}>{conceptsByTier.keystone.length}</span>
+                    <div className={`${styles.tierHeader} ${styles.tierTrunk}`}>
+                        <span className={styles.tierLabel}>Trunk</span>
+                        <span className={styles.tierCount}>{conceptsByTier.trunk.length}</span>
                     </div>
                     <div className={styles.conceptList}>
-                        {conceptsByTier.keystone.map(c => (
+                        {conceptsByTier.trunk.map(c => (
                             <ConceptChip
                                 key={c.id}
                                 concept={c}
-                                className={`${styles.conceptChip} ${styles.keystoneChip}`}
+                                className={`${styles.conceptChip} ${styles.trunkChip}`}
                             />
                         ))}
                     </div>
@@ -188,23 +185,22 @@ export function SessionScoutPreview({
 
                 <ArrowRight className={styles.flowArrow} size={24} />
 
-                {/* Utility Column */}
                 <div className={styles.tierColumn}>
-                    <div className={`${styles.tierHeader} ${styles.tierUtility}`}>
-                        <span className={styles.tierLabel}>Utility</span>
-                        <span className={styles.tierCount}>{conceptsByTier.utility.length}</span>
+                    <div className={`${styles.tierHeader} ${styles.tierLeaf}`}>
+                        <span className={styles.tierLabel}>Leaf</span>
+                        <span className={styles.tierCount}>{conceptsByTier.leaf.length}</span>
                     </div>
                     <div className={styles.conceptList}>
-                        {conceptsByTier.utility.slice(0, 6).map(c => (
+                        {conceptsByTier.leaf.slice(0, 6).map(c => (
                             <ConceptChip
                                 key={c.id}
                                 concept={c}
-                                className={`${styles.conceptChip} ${styles.utilityChip}`}
+                                className={`${styles.conceptChip} ${styles.leafChip}`}
                             />
                         ))}
-                        {conceptsByTier.utility.length > 6 && (
+                        {conceptsByTier.leaf.length > 6 && (
                             <div className={styles.moreChip}>
-                                +{conceptsByTier.utility.length - 6} more
+                                +{conceptsByTier.leaf.length - 6} more
                             </div>
                         )}
                     </div>
@@ -214,9 +210,9 @@ export function SessionScoutPreview({
             <div className={styles.tierInsight}>
                 <Sparkles size={16} />
                 <span>
-                    <strong>{conceptsByTier.foundation.length}</strong> foundation concepts
-                    enable <strong>{conceptsByTier.keystone.length}</strong> keystones
-                    supporting <strong>{conceptsByTier.utility.length}</strong> utilities.
+                    <strong>{conceptsByTier.root.length}</strong> root concepts
+                    grow into <strong>{conceptsByTier.trunk.length}</strong> trunks
+                    branching into <strong>{conceptsByTier.leaf.length}</strong> leaves.
                 </span>
             </div>
         </div>

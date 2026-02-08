@@ -74,10 +74,10 @@ function getConceptPhase(concept: LearningConcept): string | null {
 /**
  * Get the tier of a concept.
  */
-function getConceptTier(concept: LearningConcept): 'Foundation' | 'Keystone' | 'Utility' {
-  const t = concept.tier || concept.mnemonic?.tier || 'utility';
+function getConceptTier(concept: LearningConcept): 'Root' | 'Trunk' | 'Leaf' {
+  const t = concept.tier || concept.mnemonic?.tier || 'leaf';
   const pascal = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
-  return pascal as 'Foundation' | 'Keystone' | 'Utility';
+  return pascal as 'Root' | 'Trunk' | 'Leaf';
 }
 
 /**
@@ -107,14 +107,14 @@ function prerequisitesMet(
 function calculateTierDistribution(
   completedConcepts: string[],
   allConcepts: LearningConcept[]
-): { foundation: number; keystone: number; utility: number } {
+): { root: number; trunk: number; leaf: number } {
   const completed = allConcepts.filter(c => completedConcepts.includes(c.id));
   const total = completed.length || 1;
 
   return {
-    foundation: completed.filter(c => getConceptTier(c) === 'Foundation').length / total,
-    keystone: completed.filter(c => getConceptTier(c) === 'Keystone').length / total,
-    utility: completed.filter(c => getConceptTier(c) === 'Utility').length / total,
+    root: completed.filter(c => getConceptTier(c) === 'Root').length / total,
+    trunk: completed.filter(c => getConceptTier(c) === 'Trunk').length / total,
+    leaf: completed.filter(c => getConceptTier(c) === 'Leaf').length / total,
   };
 }
 
@@ -123,23 +123,22 @@ function calculateTierDistribution(
  * Ideal progression: Foundation 40%, Keystone 35%, Utility 25%
  */
 function getIdealNextTier(
-  distribution: { foundation: number; keystone: number; utility: number }
-): 'Foundation' | 'Keystone' | 'Utility' {
-  const idealFoundation = 0.4;
-  const idealKeystone = 0.35;
-  const idealUtility = 0.25;
+  distribution: { root: number; trunk: number; leaf: number }
+): 'Root' | 'Trunk' | 'Leaf' {
+  const idealRoot = 0.2;
+  const idealTrunk = 0.5;
+  const idealLeaf = 0.3;
 
-  const foundationDelta = idealFoundation - distribution.foundation;
-  const keystoneDelta = idealKeystone - distribution.keystone;
-  const utilityDelta = idealUtility - distribution.utility;
+  const rootDelta = idealRoot - distribution.root;
+  const trunkDelta = idealTrunk - distribution.trunk;
+  const leafDelta = idealLeaf - distribution.leaf;
 
-  // Return the tier that's most behind its ideal
-  if (foundationDelta >= keystoneDelta && foundationDelta >= utilityDelta) {
-    return 'Foundation';
-  } else if (keystoneDelta >= utilityDelta) {
-    return 'Keystone';
+  if (rootDelta >= trunkDelta && rootDelta >= leafDelta) {
+    return 'Root';
+  } else if (trunkDelta >= leafDelta) {
+    return 'Trunk';
   }
-  return 'Utility';
+  return 'Leaf';
 }
 
 /**
@@ -200,8 +199,8 @@ function scoreConcept(
   if (candidateTier === idealTier) {
     tierBalanceScore = 1.0;
   } else if (
-    (idealTier === 'Foundation' && candidateTier === 'Keystone') ||
-    (idealTier === 'Keystone' && candidateTier === 'Utility')
+    (idealTier === 'Root' && candidateTier === 'Trunk') ||
+    (idealTier === 'Trunk' && candidateTier === 'Leaf')
   ) {
     tierBalanceScore = 0.6;
   }
@@ -412,8 +411,8 @@ export function calculateConceptDifficulty(
 
   // Tier affects difficulty
   const tier = getConceptTier(concept);
-  if (tier === 'Utility') inherentDifficulty += 2;
-  else if (tier === 'Keystone') inherentDifficulty += 1;
+  if (tier === 'Leaf') inherentDifficulty += 2;
+  else if (tier === 'Trunk') inherentDifficulty += 1;
 
   // Prerequisites add difficulty
   if (concept.prerequisites && concept.prerequisites.length > 2) {

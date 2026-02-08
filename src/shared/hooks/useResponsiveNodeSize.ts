@@ -18,16 +18,16 @@ interface NodeSizeConfig {
 
 // Base node sizes (matching current implementation)
 const BASE_SIZES: Record<TierType, number> = {
-    foundation: 120,
-    keystone: 140,
-    utility: 100
+    root: 120,
+    trunk: 140,
+    leaf: 100
 };
 
 // Font size ranges for readability
 const FONT_SIZE_RANGES: Record<TierType, { min: number; max: number; base: number }> = {
-    foundation: { min: 11, max: 16, base: 13 },
-    keystone: { min: 12, max: 18, base: 14 },
-    utility: { min: 10, max: 14, base: 11 }
+    root: { min: 11, max: 16, base: 13 },
+    trunk: { min: 12, max: 18, base: 14 },
+    leaf: { min: 10, max: 14, base: 11 }
 };
 
 /**
@@ -89,13 +89,13 @@ export function useResponsiveNodeSize(
  * @returns Object with sizes for all tiers
  */
 export function useAllNodeSizes(zoomLevel: number): Record<TierType, NodeSizeConfig> {
-    const foundationSize = useResponsiveNodeSize(zoomLevel, 'foundation');
-    const keystoneSize = useResponsiveNodeSize(zoomLevel, 'keystone');
-    const utilitySize = useResponsiveNodeSize(zoomLevel, 'utility');
+    const rootSize = useResponsiveNodeSize(zoomLevel, 'root');
+    const trunkSize = useResponsiveNodeSize(zoomLevel, 'trunk');
+    const leafSize = useResponsiveNodeSize(zoomLevel, 'leaf');
 
     return {
-        foundation: foundationSize,
-        keystone: keystoneSize,
-        utility: utilitySize
+        root: rootSize,
+        trunk: trunkSize,
+        leaf: leafSize
     };
 }

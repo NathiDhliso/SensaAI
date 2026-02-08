@@ -11,20 +11,20 @@ interface TierDistributionChartProps {
 }
 
 const TIER_CONFIG = {
-    foundation: {
-        label: 'Foundation',
-        description: 'Core capabilities',
-        color: GRAPH_COLORS.foundation,
+    root: {
+        label: 'Root',
+        description: 'Entry points',
+        color: GRAPH_COLORS.root,
     },
-    keystone: {
-        label: 'Keystone',
-        description: 'Major functions',
-        color: GRAPH_COLORS.keystone,
+    trunk: {
+        label: 'Trunk',
+        description: 'Core connectors',
+        color: GRAPH_COLORS.trunk,
     },
-    utility: {
-        label: 'Utility',
-        description: 'Specialized tools',
-        color: GRAPH_COLORS.utility,
+    leaf: {
+        label: 'Leaf',
+        description: 'Specialized applications',
+        color: GRAPH_COLORS.leaf,
     },
 } as const;
 
@@ -35,9 +35,9 @@ export const TierDistributionChart: React.FC<TierDistributionChartProps> = ({
     const total = data.total || 1; // Prevent division by zero
 
     const tiers = [
-        { key: 'foundation', count: data.foundation },
-        { key: 'keystone', count: data.keystone },
-        { key: 'utility', count: data.utility },
+        { key: 'root', count: data.root },
+        { key: 'trunk', count: data.trunk },
+        { key: 'leaf', count: data.leaf },
     ] as const;
 
     // Calculate percentages

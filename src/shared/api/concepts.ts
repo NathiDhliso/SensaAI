@@ -8,7 +8,7 @@ import type { ParsedConcept } from '@/features/content-generation/parsers/types'
 export interface ConceptsQueryParams {
     userId: string;
     sessionId: string;
-    tier?: 'foundation' | 'keystone' | 'utility';
+    tier?: 'root' | 'trunk' | 'leaf';
     limit?: number;
     cursor?: string;
 }
@@ -158,7 +158,7 @@ export const conceptsApi = {
     async getAllByTier(
         userId: string,
         sessionId: string,
-        tier: 'foundation' | 'keystone' | 'utility',
+        tier: 'root' | 'trunk' | 'leaf',
     ): Promise<ParsedConcept[]> {
         const allConcepts: ParsedConcept[] = [];
         let cursor: string | null = null;

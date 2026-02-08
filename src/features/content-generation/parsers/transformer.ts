@@ -31,7 +31,7 @@ export interface SensaAILearningConcept extends Omit<LearningConcept, 'confusion
 
   // Metadata for intelligent systems
   foundationLevel: boolean;               // Eligible for diagnostic inclusion
-  tier: 'foundation' | 'keystone' | 'utility';  // For interleaving algorithm
+  tier: 'root' | 'trunk' | 'leaf';  // For interleaving algorithm
   complexityScore: number;                // 1-10 for adaptive timing
   prerequisiteWeight: number;             // How many concepts depend on this
   frequencyWeight: number;                // How often this concept is used
@@ -332,18 +332,15 @@ function isFoundationLevel(concept: ParsedConcept, allConcepts: ParsedConcept[])
 /**
  * Calculate concept tier for interleaving algorithm
  */
-function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'foundation' | 'keystone' | 'utility' {
-  // Use explicit root tier if available (preferred)
+function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'root' | 'trunk' | 'leaf' {
   if (concept.tier) {
     return concept.tier;
   }
 
-  // Use mnemonic tier if available (legacy fallback)
   if (concept.mnemonic?.tier) {
     return concept.mnemonic.tier;
   }
 
-  // Calculate based on dependencies
   const dependentCount = allConcepts.filter(other =>
     other.id !== concept.id &&
     ((other.phase1.prerequisite ? safeStr(other.phase1.prerequisite).toLowerCase().includes(concept.name.toLowerCase()) : false) ||
@@ -353,9 +350,9 @@ function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'f
   const dependencyCount = concept.phase1.prerequisite &&
     !safeStr(concept.phase1.prerequisite).toLowerCase().includes('none') ? 1 : 0;
 
-  if (dependentCount >= 3) return 'foundation';
-  if (dependentCount >= 1 || dependencyCount > 0) return 'keystone';
-  return 'utility';
+  if (dependentCount >= 3) return 'root';
+  if (dependentCount >= 1 || dependencyCount > 0) return 'trunk';
+  return 'leaf';
 }
 
 
@@ -752,19 +749,10 @@ function safeSlugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 }
 
-function determineTierFallback(order: number, _name: string): 'foundation' | 'keystone' | 'utility' {
-  // PURE DYNAMIC LOGIC:
-  // We cannot assume any semantic meaning from the name because the subject is unknown.
-  // We rely strictly on the topological order (learning sequence).
-
-  // 1. Foundation: The first few concepts are universally introductory.
-  if (order <= 5) return 'foundation';
-
-  // 2. Keystone: The core body of the curriculum.
-  if (order <= 20) return 'keystone';
-
-  // 3. Utility: Later concepts are typically advanced applications or specific tools.
-  return 'utility';
+function determineTierFallback(order: number, _name: string): 'root' | 'trunk' | 'leaf' {
+  if (order <= 5) return 'root';
+  if (order <= 20) return 'trunk';
+  return 'leaf';
 }
 
 export function transformToLearningConcepts(
@@ -853,7 +841,7 @@ export function transformToLearningConcepts(
       mnemonic = {
         anchor: parsedConcept.mnemonic.anchor,
         story: parsedConcept.mnemonic.story,
-        tier: parsedConcept.mnemonic.tier || parsedConcept.tier || 'utility',
+        tier: parsedConcept.mnemonic.tier || parsedConcept.tier || 'leaf',
         parentName: parsedConcept.mnemonic.parentName,
         parentId: parsedConcept.mnemonic.parentId,
         dependsOn: parsedConcept.mnemonic.dependsOn,
@@ -863,7 +851,7 @@ export function transformToLearningConcepts(
 
     concepts.push({
       id: parsedConcept.id,
-      stageId: stage?.id || 'stage-1-foundation',
+      stageId: stage?.id || 'stage-1-root',
       order: stageConceptIndex + 1,
       name: cleanConceptName(parsedConcept),
       icon,
@@ -924,7 +912,7 @@ export function transformToLearningConcepts(
 
         concepts.push({
           id: skeletonId,
-          stageId: stages[0]?.id || 'stage-1-foundation',
+          stageId: stages[0]?.id || 'stage-1-root',
           order: concepts.length + 1,
           name: name,
           icon: 'shape:seed',
@@ -1100,9 +1088,9 @@ function assignTiersByPercentile(concepts: LearningConcept[], outdegrees: Map<st
     const degree = outdegrees.get(c.name) || 0;
     // Only assign if threshold is meaningful (avoid all utility if p80 = 0)
     if (p80 > 0 || p50 > 0) {
-      if (degree >= p80 && p80 > 0) c.tier = 'foundation';
-      else if (degree >= p50 && p50 > 0) c.tier = 'keystone';
-      else c.tier = 'utility';
+      if (degree >= p80 && p80 > 0) c.tier = 'root';
+      else if (degree >= p50 && p50 > 0) c.tier = 'trunk';
+      else c.tier = 'leaf';
     }
   });
 }
@@ -1144,8 +1132,8 @@ export function transformToSensaAIConcepts(
         Object.assign(existing, c);
       }
       // If conflicting tiers, prefer Foundation
-      if (c.tier === 'foundation' && existing.tier !== 'foundation') {
-        existing.tier = 'foundation';
+      if (c.tier === 'root' && existing.tier !== 'root') {
+        existing.tier = 'root';
       }
     } else {
       seenNames.set(norm, c);
@@ -1170,9 +1158,9 @@ export function transformToSensaAIConcepts(
     // Fallback: Assign tiers based on order (first third = foundation, etc.)
     const third = Math.ceil(baseConcepts.length / 3);
     baseConcepts.forEach((c, idx) => {
-      if (idx < third) c.tier = 'foundation';
-      else if (idx < third * 2) c.tier = 'keystone';
-      else c.tier = 'utility';
+      if (idx < third) c.tier = 'root';
+      else if (idx < third * 2) c.tier = 'trunk';
+      else c.tier = 'leaf';
     });
   } else {
     // Step 3: Calculate outdegrees (how many concepts depend on each one)
@@ -1197,8 +1185,8 @@ export function transformToSensaAIConcepts(
         keyPoints: ['Core domain concept', 'Essential for completeness', 'Recovered during analysis'],
         diagnosticQuestions: [],
         confusionPairs: [],
-        foundationLevel: (baseConcept.tier === 'foundation'),
-        tier: (baseConcept.tier as 'foundation' | 'keystone' | 'utility') || 'utility',
+        foundationLevel: (baseConcept.tier === 'root'),
+        tier: baseConcept.tier || 'leaf',
         complexityScore: 3,
         prerequisiteWeight: 0,
         frequencyWeight: 1,
@@ -1380,19 +1368,18 @@ export function validateSensaAIMetadata(concepts: SensaAILearningConcept[]): {
 
   // Check tier distribution
   const tierCounts = {
-    Foundation: concepts.filter(c => c.tier === 'foundation').length,
-    Keystone: concepts.filter(c => c.tier === 'keystone').length,
-    Utility: concepts.filter(c => c.tier === 'utility').length
+    Root: concepts.filter(c => c.tier === 'root').length,
+    Trunk: concepts.filter(c => c.tier === 'trunk').length,
+    Leaf: concepts.filter(c => c.tier === 'leaf').length
   };
 
   const total = concepts.length;
-  const foundationPercent = (tierCounts.Foundation / total) * 100;
+  const rootPercent = (tierCounts.Root / total) * 100;
 
 
-  // Target: Foundation 40%, Keystone 35%, Utility 25%
-  if (foundationPercent < 30 || foundationPercent > 50) {
-    issues.push(`Foundation concepts: ${foundationPercent.toFixed(1)}% (target: 40%)`);
-    recommendations.push('Adjust concept dependencies to achieve better tier balance');
+  if (rootPercent < 10 || rootPercent > 40) {
+    issues.push(`Root concepts: ${rootPercent.toFixed(1)}% (target: ~20%)`);
+    recommendations.push('Adjust concept connections to achieve better tier balance');
   }
 
   return {

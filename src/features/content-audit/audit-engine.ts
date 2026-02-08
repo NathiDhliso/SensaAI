@@ -35,7 +35,7 @@ export interface ContentAuditResult {
   objectivesProvided: number;
   objectivesCovered: number;
   unmappedConcepts: number;
-  tierDistribution: { foundation: number; keystone: number; utility: number };
+  tierDistribution: { root: number; trunk: number; leaf: number };
   bloomsDistribution: Record<string, number>;
   verdicts: ConceptVerdict[];
   harshInsights: string[];
@@ -265,9 +265,9 @@ function generateHarshInsights(
     );
   }
 
-  if (tierDist.utility > tierDist.keystone * 2 && totalConcepts > 8) {
+  if (tierDist.leaf > tierDist.trunk * 2 && totalConcepts > 8) {
     insights.push(
-      `${tierDist.utility} utility concepts vs only ${tierDist.keystone} keystone. The generation over-indexed on peripheral topics.`,
+      `${tierDist.leaf} leaf concepts vs only ${tierDist.trunk} trunk. The generation over-indexed on peripheral topics.`,
     );
   }
 
@@ -281,13 +281,13 @@ export function auditContent(
   const { concepts } = parsedContent;
   const hasObjectives = examObjectives.length > 0;
 
-  const tierDist = { foundation: 0, keystone: 0, utility: 0 };
+  const tierDist = { root: 0, trunk: 0, leaf: 0 };
   const bloomsDist: Record<string, number> = {};
   const verdicts: ConceptVerdict[] = [];
   const coveredObjectives = new Set<string>();
 
   for (const concept of concepts) {
-    const tier = concept.tier || 'utility';
+    const tier = concept.tier || 'leaf';
     if (tier in tierDist) tierDist[tier as keyof typeof tierDist]++;
 
     const level = concept.cognitiveLevel || 'remember';

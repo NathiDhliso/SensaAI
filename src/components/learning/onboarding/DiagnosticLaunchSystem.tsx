@@ -44,7 +44,7 @@ export interface DiagnosticResults {
     /** Confidence scores per concept */
     confidenceScores: Record<string, number>;
     /** Whether to skip to advanced content */
-    canSkipFoundation: boolean;
+    canSkipRoot: boolean;
 }
 
 interface QuestionWithMeta {
@@ -374,7 +374,7 @@ export function DiagnosticLaunchSystem({
                 knowledgeGaps,
                 totalTimeSeconds,
                 confidenceScores,
-                canSkipFoundation: knownConcepts.length >= selectedConcepts.length * VELOCITY_CONFIG.DIAGNOSTIC.PASS_THRESHOLD, // 70% threshold
+                canSkipRoot: knownConcepts.length >= selectedConcepts.length * VELOCITY_CONFIG.DIAGNOSTIC.PASS_THRESHOLD, // 70% threshold
             };
 
             setPhase('results');

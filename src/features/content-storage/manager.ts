@@ -69,15 +69,15 @@ export class StorageManager {
       // We need to fetch all tiers to reconstruct the document
       console.log(`[StorageManager] Fetching concepts for userId="${resolvedUserId}" sessionId="${resolvedSessionId}"`);
 
-      const [foundation, keystone, utility] = await Promise.all([
-        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'foundation'),
-        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'keystone'),
-        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'utility'),
+      const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
+        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'root'),
+        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'trunk'),
+        conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'leaf'),
       ]);
 
-      console.log(`[StorageManager] Tier counts - foundation: ${foundation.length}, keystone: ${keystone.length}, utility: ${utility.length}`);
+      console.log(`[StorageManager] Tier counts - root: ${rootConcepts.length}, trunk: ${trunkConcepts.length}, leaf: ${leafConcepts.length}`);
 
-      const allConcepts = [...foundation, ...keystone, ...utility];
+      const allConcepts = [...rootConcepts, ...trunkConcepts, ...leafConcepts];
 
       if (allConcepts.length === 0) {
         console.warn('[StorageManager] No concepts found for result:', id);
@@ -88,14 +88,14 @@ export class StorageManager {
           const fallbackSessionId = jobStatus.jobId || id;
           console.log(`[StorageManager] Fallback query - userId="${resolvedUserId}" sessionId="${fallbackSessionId}"`);
 
-          const [fFoundation, fKeystone, fUtility] = await Promise.all([
-            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'foundation'),
-            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'keystone'),
-            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'utility'),
+          const [fRoot, fTrunk, fLeaf] = await Promise.all([
+            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'root'),
+            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'trunk'),
+            conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'leaf'),
           ]);
 
-          console.log(`[StorageManager] Fallback tier counts - foundation: ${fFoundation.length}, keystone: ${fKeystone.length}, utility: ${fUtility.length}`);
-          allConcepts.push(...fFoundation, ...fKeystone, ...fUtility);
+          console.log(`[StorageManager] Fallback tier counts - root: ${fRoot.length}, trunk: ${fTrunk.length}, leaf: ${fLeaf.length}`);
+          allConcepts.push(...fRoot, ...fTrunk, ...fLeaf);
         }
       }
 

@@ -132,25 +132,25 @@ export function getConfusionRiskConcepts(concepts: SensaAILearningConcept[]): Se
  * Get tier distribution for interleaving algorithm
  */
 export function getTierDistribution(concepts: SensaAILearningConcept[]): {
-  foundation: SensaAILearningConcept[];
-  keystone: SensaAILearningConcept[];
-  utility: SensaAILearningConcept[];
-  distribution: { foundation: number; keystone: number; utility: number };
+  root: SensaAILearningConcept[];
+  trunk: SensaAILearningConcept[];
+  leaf: SensaAILearningConcept[];
+  distribution: { root: number; trunk: number; leaf: number };
 } {
-  const foundation = concepts.filter(c => c.tier === 'foundation');
-  const keystone = concepts.filter(c => c.tier === 'keystone');
-  const utility = concepts.filter(c => c.tier === 'utility');
+  const root = concepts.filter(c => c.tier === 'root');
+  const trunk = concepts.filter(c => c.tier === 'trunk');
+  const leaf = concepts.filter(c => c.tier === 'leaf');
 
   const total = concepts.length;
 
   return {
-    foundation,
-    keystone,
-    utility,
+    root,
+    trunk,
+    leaf,
     distribution: {
-      foundation: Math.round((foundation.length / total) * 100),
-      keystone: Math.round((keystone.length / total) * 100),
-      utility: Math.round((utility.length / total) * 100)
+      root: Math.round((root.length / total) * 100),
+      trunk: Math.round((trunk.length / total) * 100),
+      leaf: Math.round((leaf.length / total) * 100)
     }
   };
 }
@@ -182,14 +182,14 @@ export function createReadyDiagnosticAssessment(
  */
 export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
   totalConcepts: number;
-  foundationConcepts: number;
+  rootConcepts: number;
   diagnosticQuestions: number;
   confusionPairs: number;
   avgComplexity: number;
   tierDistribution: Record<string, number>;
   readinessScore: number;
 } {
-  const foundationConcepts = concepts.filter(c => c.foundationLevel);
+  const rootLevelConcepts = concepts.filter(c => c.foundationLevel);
   const totalQuestions = concepts.reduce((sum, c) => sum + c.diagnosticQuestions.length, 0);
   const totalConfusionPairs = concepts.reduce((sum, c) => sum + c.confusionPairs.length, 0);
   const avgComplexity = concepts.reduce((sum, c) => sum + c.complexityScore, 0) / concepts.length;
@@ -203,7 +203,7 @@ export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
   let readinessScore = 0;
 
   // Foundation concepts (40 points max)
-  readinessScore += Math.min(40, (foundationConcepts.length / 7) * 40);
+  readinessScore += Math.min(40, (rootLevelConcepts.length / 7) * 40);
 
   // Diagnostic questions (30 points max)
   readinessScore += Math.min(30, (totalQuestions / (concepts.length * 2)) * 30);
@@ -217,7 +217,7 @@ export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
 
   return {
     totalConcepts: concepts.length,
-    foundationConcepts: foundationConcepts.length,
+    rootConcepts: rootLevelConcepts.length,
     diagnosticQuestions: totalQuestions,
     confusionPairs: totalConfusionPairs,
     avgComplexity: Math.round(avgComplexity * 10) / 10,

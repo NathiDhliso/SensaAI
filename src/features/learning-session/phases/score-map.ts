@@ -16,9 +16,9 @@ import { getPersonaResponse, type PersonaId } from '@/features/ai-coach';
 // ============================================================================
 
 export interface MapScoreBreakdown {
-    foundationCoverage: number;      // % of foundation concepts included
-    keystoneCoverage: number;        // % of keystone concepts included
-    utilityCoverage: number;         // % of utility concepts included
+    rootCoverage: number;
+    trunkCoverage: number;
+    leafCoverage: number;
     correctConnections: number;      // Count of connections matching AI
     missingConnections: string[];    // List of missing important connections
     incorrectConnections: string[];  // List of potentially incorrect connections
@@ -63,28 +63,24 @@ export function scoreConceptMap(
     const userConceptNames = new Map(mapData.nodes.map(n => [n.conceptId, n.conceptName]));
 
     // Group AI concepts by tier
-    const foundationConcepts = aiConcepts.filter(c => c.tier === 'foundation');
-    const keystoneConcepts = aiConcepts.filter(c => c.tier === 'keystone');
-    const utilityConcepts = aiConcepts.filter(c => c.tier === 'utility' || !c.tier);
+    const rootConcepts = aiConcepts.filter(c => c.tier === 'root');
+    const trunkConcepts = aiConcepts.filter(c => c.tier === 'trunk');
+    const leafConcepts = aiConcepts.filter(c => c.tier === 'leaf' || !c.tier);
 
-    // Calculate tier coverages
-    const foundationCoverage = calculateCoverage(foundationConcepts, userConceptIds);
-    const keystoneCoverage = calculateCoverage(keystoneConcepts, userConceptIds);
-    const utilityCoverage = calculateCoverage(utilityConcepts, userConceptIds);
+    const rootCoverage = calculateCoverage(rootConcepts, userConceptIds);
+    const trunkCoverage = calculateCoverage(trunkConcepts, userConceptIds);
+    const leafCoverage = calculateCoverage(leafConcepts, userConceptIds);
 
-    // Calculate completeness (weighted by tier importance)
-    // Foundation concepts are more important than utility
     const completeness = Math.round(
-        (foundationCoverage * 0.4) +
-        (keystoneCoverage * 0.35) +
-        (utilityCoverage * 0.25)
+        (rootCoverage * 0.3) +
+        (trunkCoverage * 0.5) +
+        (leafCoverage * 0.2)
     );
 
     // Analyze connections
     const connectionAnalysis = analyzeConnections(mapData.connections, aiConcepts, userConceptNames);
     const connectionAccuracy = connectionAnalysis.accuracy;
 
-    // Calculate structural quality (Foundation → Keystone → Utility flow)
     const structuralQuality = calculateStructuralQuality(mapData.connections, aiConcepts, userConceptNames);
 
     // Calculate tier balance
@@ -118,9 +114,9 @@ export function scoreConceptMap(
         structuralQuality,
         tierBalance,
         breakdown: {
-            foundationCoverage,
-            keystoneCoverage,
-            utilityCoverage,
+            rootCoverage,
+            trunkCoverage,
+            leafCoverage,
             correctConnections: connectionAnalysis.correctCount,
             missingConnections: connectionAnalysis.missingConnections,
             incorrectConnections: connectionAnalysis.incorrectConnections,
@@ -242,9 +238,9 @@ function calculateStructuralQuality(
     if (userConnections.length === 0) return 0;
 
     // Build tier map
-    const tierMap = new Map<string, 'foundation' | 'keystone' | 'utility'>();
+    const tierMap = new Map<string, 'root' | 'trunk' | 'leaf'>();
     for (const concept of aiConcepts) {
-        tierMap.set(concept.id, concept.tier || 'utility');
+        tierMap.set(concept.id, concept.tier || 'leaf');
     }
 
     let goodFlowCount = 0;
@@ -257,8 +253,7 @@ function calculateStructuralQuality(
         if (!fromTier || !toTier) continue;
         totalConnections++;
 
-        // Good flow: Foundation → Keystone → Utility (or same tier)
-        const tierOrder = { foundation: 0, keystone: 1, utility: 2 };
+        const tierOrder = { root: 0, trunk: 1, leaf: 2 };
         const fromOrder = tierOrder[fromTier];
         const toOrder = tierOrder[toTier];
 
@@ -282,31 +277,28 @@ function calculateTierBalance(
 ): number {
     const includedConcepts = aiConcepts.filter(c => userConceptIds.has(c.id));
 
-    const foundationCount = includedConcepts.filter(c => c.tier === 'foundation').length;
-    const keystoneCount = includedConcepts.filter(c => c.tier === 'keystone').length;
-    const utilityCount = includedConcepts.filter(c => c.tier === 'utility' || !c.tier).length;
+    const rootCount = includedConcepts.filter(c => c.tier === 'root').length;
+    const trunkCount = includedConcepts.filter(c => c.tier === 'trunk').length;
+    const leafCount = includedConcepts.filter(c => c.tier === 'leaf' || !c.tier).length;
 
-    // Check if all tiers are represented
-    const hasAllTiers = foundationCount > 0 && keystoneCount > 0 && utilityCount > 0;
+    const hasAllTiers = rootCount > 0 && trunkCount > 0 && leafCount > 0;
 
     if (!hasAllTiers) {
-        // Missing tiers = lower score
-        const tiersPresent = [foundationCount > 0, keystoneCount > 0, utilityCount > 0]
+        const tiersPresent = [rootCount > 0, trunkCount > 0, leafCount > 0]
             .filter(Boolean).length;
         return Math.round((tiersPresent / 3) * 100);
     }
 
-    // All tiers present, check balance
-    const total = foundationCount + keystoneCount + utilityCount;
-    const idealFoundation = total * 0.25;
-    const idealKeystone = total * 0.35;
-    const idealUtility = total * 0.40;
+    const total = rootCount + trunkCount + leafCount;
+    const idealRoot = total * 0.20;
+    const idealTrunk = total * 0.50;
+    const idealLeaf = total * 0.30;
 
-    const foundationDeviation = Math.abs(foundationCount - idealFoundation) / idealFoundation;
-    const keystoneDeviation = Math.abs(keystoneCount - idealKeystone) / idealKeystone;
-    const utilityDeviation = Math.abs(utilityCount - idealUtility) / idealUtility;
+    const rootDeviation = Math.abs(rootCount - idealRoot) / idealRoot;
+    const trunkDeviation = Math.abs(trunkCount - idealTrunk) / idealTrunk;
+    const leafDeviation = Math.abs(leafCount - idealLeaf) / idealLeaf;
 
-    const avgDeviation = (foundationDeviation + keystoneDeviation + utilityDeviation) / 3;
+    const avgDeviation = (rootDeviation + trunkDeviation + leafDeviation) / 3;
 
     // Convert deviation to score (0 deviation = 100, high deviation = lower)
     return Math.round(Math.max(0, 100 - (avgDeviation * 100)));

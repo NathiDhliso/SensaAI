@@ -3,7 +3,7 @@
  * Determines concept importance based on dependency count.
  */
 
-export type Tier = 'Foundation' | 'Keystone' | 'Utility';
+export type Tier = 'Root' | 'Trunk' | 'Leaf';
 
 /**
  * Tier thresholds based on dependent count.
@@ -16,11 +16,8 @@ export type Tier = 'Foundation' | 'Keystone' | 'Utility';
  * even with smaller graphs or sparse dependency data.
  */
 export const TIER_THRESHOLDS = {
-    /** 4+ dependents = Foundation tier */
-    FOUNDATION: 4,
-    /** 2-3 dependents = Keystone tier */
-    KEYSTONE: 2,
-    // 0-1 dependents = Utility tier (implicit)
+    ROOT: 4,
+    TRUNK: 2,
 } as const;
 
 /**
@@ -28,9 +25,9 @@ export const TIER_THRESHOLDS = {
  * Foundation concepts get 4x the visual area of Utility concepts.
  */
 export const TIER_WEIGHTS = {
-    Foundation: 4,  // 4x area - largest visual presence
-    Keystone: 2,    // 2x area - medium visual presence
-    Utility: 1,     // 1x area - smallest visual presence
+    Root: 4,
+    Trunk: 2,
+    Leaf: 1,
 } as const;
 
 /**
@@ -41,9 +38,9 @@ export const TIER_WEIGHTS = {
  * @returns The calculated tier
  */
 export function calculateTier(dependentCount: number): Tier {
-    if (dependentCount >= TIER_THRESHOLDS.FOUNDATION) return 'Foundation';
-    if (dependentCount >= TIER_THRESHOLDS.KEYSTONE) return 'Keystone';
-    return 'Utility';
+    if (dependentCount >= TIER_THRESHOLDS.ROOT) return 'Root';
+    if (dependentCount >= TIER_THRESHOLDS.TRUNK) return 'Trunk';
+    return 'Leaf';
 }
 
 /**

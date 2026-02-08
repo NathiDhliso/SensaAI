@@ -216,7 +216,7 @@ export function calculateDependencyMetrics(
             dependentCount,
             dependencyCount,
             totalConnections,
-            calculatedTier: calculateTier(dependentCount).toLowerCase() as 'foundation' | 'keystone' | 'utility',
+            calculatedTier: calculateTier(dependentCount).toLowerCase() as 'root' | 'trunk' | 'leaf',
             centralityScore: calculateCentralityScore(totalConnections, maxConnections),
             clusterGroup: concept.stageId,
         });
@@ -249,22 +249,22 @@ export function buildSubjectGraph(
     }));
 
     // Calculate stats
-    let foundationCount = 0;
-    let keystoneCount = 0;
-    let utilityCount = 0;
+    let rootCount = 0;
+    let trunkCount = 0;
+    let leafCount = 0;
     let centralHub = '';
     let maxConnections = 0;
 
     for (const [id, metrics] of metricsMap) {
         switch (metrics.calculatedTier) {
-            case 'foundation':
-                foundationCount++;
+            case 'root':
+                rootCount++;
                 break;
-            case 'keystone':
-                keystoneCount++;
+            case 'trunk':
+                trunkCount++;
                 break;
-            case 'utility':
-                utilityCount++;
+            case 'leaf':
+                leafCount++;
                 break;
         }
 
@@ -282,9 +282,9 @@ export function buildSubjectGraph(
         stats: {
             totalNodes: nodes.length,
             totalEdges: edges.length,
-            foundationCount,
-            keystoneCount,
-            utilityCount,
+            rootCount,
+            trunkCount,
+            leafCount,
             centralHub,
         },
     };

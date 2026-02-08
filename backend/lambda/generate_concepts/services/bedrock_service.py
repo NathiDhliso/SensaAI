@@ -234,33 +234,20 @@ class BedrockService:
     def _validate_concept(self, concept: Dict[str, Any]) -> bool:
         """
         Validate that a concept has mandatory fields for frontend rendering.
-        
-        Args:
-            concept: Concept dictionary to validate
-            
-        Returns:
-            True if concept is valid, False otherwise
+        Tier is NOT required from LLM — it is computed from the connection graph.
         """
         if not isinstance(concept, dict):
             return False
 
-        # Must have a name
         if not concept.get("name"):
             return False
 
-        # Must have tier (foundation, keystone, utility)
-        valid_tiers = {"foundation", "keystone", "utility"}
-        if concept.get("tier") not in valid_tiers:
-            return False
-
-        # Must have mnemonic with at least anchor or story
         mnemonic = concept.get("mnemonic", {})
         if not isinstance(mnemonic, dict):
             return False
         if not mnemonic.get("anchor") and not mnemonic.get("story"):
             return False
 
-        # Must have SHAPE with at least simpleCore
         shape = concept.get("shape", {})
         if not isinstance(shape, dict):
             return False
@@ -269,45 +256,98 @@ class BedrockService:
 
         return True
 
+    def _compute_tiers_from_graph(self, concepts: List[Dict[str, Any]]) -> None:
+        """
+        Compute tiers deterministically from the connection graph.
+        
+        Algorithm:
+        - Build a directed graph from connections (requires, enables, etc.)
+        - For directional types (requires, enables, is-part-of, is-type-of, causes, constrains),
+          determine which direction implies "A depends on B" vs "A is depended upon by B"
+        - Compute in-degree (how many concepts point TO this one) and
+          out-degree (how many concepts this one points TO)
+        - Assign tiers:
+          ROOT:  in_degree == 0 AND out_degree >= 1 (entry points)
+          TRUNK: in_degree >= 1 AND out_degree >= 1 (connectors)
+          LEAF:  out_degree == 0 OR isolated          (terminal/specialized)
+        """
+        name_to_idx = {}
+        for i, c in enumerate(concepts):
+            key = c.get("name", "").strip().lower()
+            if key:
+                name_to_idx[key] = i
+
+        n = len(concepts)
+        in_degree = [0] * n
+        out_degree = [0] * n
+
+        DEPENDENCY_TYPES = {"requires", "is-part-of", "is-type-of"}
+        ENABLEMENT_TYPES = {"enables", "causes", "constrains"}
+
+        for i, concept in enumerate(concepts):
+            connections = concept.get("connections", [])
+            if not isinstance(connections, list):
+                continue
+            for conn in connections:
+                if not isinstance(conn, dict):
+                    continue
+                target_name = conn.get("target", "").strip().lower()
+                conn_type = conn.get("type", "").strip().lower()
+                target_idx = name_to_idx.get(target_name)
+
+                if target_idx is None:
+                    continue
+
+                if conn_type in DEPENDENCY_TYPES:
+                    out_degree[i] += 1
+                    in_degree[target_idx] += 1
+                elif conn_type in ENABLEMENT_TYPES:
+                    in_degree[i] += 1
+                    out_degree[target_idx] += 1
+                else:
+                    out_degree[i] += 1
+                    in_degree[target_idx] += 1
+
+        for i, concept in enumerate(concepts):
+            ind = in_degree[i]
+            outd = out_degree[i]
+
+            if ind == 0 and outd >= 1:
+                concept["tier"] = "root"
+            elif ind >= 1 and outd >= 1:
+                concept["tier"] = "trunk"
+            else:
+                concept["tier"] = "leaf"
+
+        tier_counts = {"root": 0, "trunk": 0, "leaf": 0}
+        for c in concepts:
+            tier_counts[c["tier"]] = tier_counts.get(c["tier"], 0) + 1
+        print(f"[BedrockService] Tier distribution: {tier_counts}")
+
     def _post_process_concepts(self, concepts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Post-process concepts to ensure required fields and tier assignment.
-        
-        Args:
-            concepts: List of concepts to process
-            
-        Returns:
-            Processed concepts with IDs, tiers, and stages
+        Post-process concepts: assign IDs, compute tiers from connection graph,
+        and normalize required fields.
         """
         from shared.utils import generate_id
 
-        total = len(concepts)
-        foundation_cutoff = max(int(total * 0.2), 1)
-        keystone_cutoff = max(int(total * 0.6), foundation_cutoff + 1)
-
-        for i, concept in enumerate(concepts):
+        for concept in concepts:
             if "id" not in concept:
                 concept["id"] = generate_id()
 
-            valid_tiers = {"foundation", "keystone", "utility"}
-            if concept.get("tier") not in valid_tiers:
-                if i < foundation_cutoff:
-                    concept["tier"] = "foundation"
-                elif i < keystone_cutoff:
-                    concept["tier"] = "keystone"
-                else:
-                    concept["tier"] = "utility"
+            concept.pop("tier", None)
+            concept.pop("tierJustification", None)
 
-            # Normalize fields
             concept["stageId"] = concept.get("stageId", "PREPARE")
             if "mnemonic" not in concept:
                 concept["mnemonic"] = {}
 
-            # Ensure scoring field exists with defaults
             if "scoring" not in concept:
                 concept["scoring"] = {"keywords": [], "aliases": []}
             elif not isinstance(concept.get("scoring"), dict):
                 concept["scoring"] = {"keywords": [], "aliases": []}
+
+        self._compute_tiers_from_graph(concepts)
 
         return concepts
 

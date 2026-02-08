@@ -178,13 +178,15 @@ Generate concepts {start_idx} to {end_idx} for Part {part_num}.
 ## 3. CONCEPT GENERATION RULES
 
 ### 3.1 REQUIRED FIELDS (ALL CONCEPTS):
-- **Core**: name, tier, tierJustification, cognitiveLevel, commonPitfalls, order
+- **Core**: name, cognitiveLevel, commonPitfalls, order
 - **Engagement**: phase1 (hookSentence, microMetaphor, prerequisite, selection, execution)
-- **Memory**: mnemonic (anchor + story + tier)
+- **Memory**: mnemonic (anchor + story)
 - **Understanding**: description, keyPoints, whyYouNeed, technicalDetails, shape
 - **Application**: phase2 (content), phase3 (tool, metrics)
-- **Relationship**: connections (requires, extends, enables, contains)
+- **Relationship**: connections (CRITICAL — see §3.4)
 - **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
+
+**NOTE**: Do NOT include a "tier" field. Tiers are computed automatically from the connection graph.
 
 ### 3.2 MNEMONIC RULES:
 - `anchor`: Concrete physical object (e.g., "3-Story Building 🏢"), NOT abstract.
@@ -205,6 +207,8 @@ Every connection MUST use exactly one of these 6 types. There is NO generic fall
 - **constrains**: "What limits or governs this?" — Boundary condition (A constrains B means A sets rules/limits on B)
 
 **FORBIDDEN**: Do NOT use "related-to", "relates", "extends", or any vague association. If you cannot classify a connection into one of these 6 types, the connection is not meaningful enough to include.
+
+**MINIMUM CONNECTIONS**: Every concept MUST have at least 2 connections. Most concepts should have 3-5. Connections can reference concepts from ANY part (cross-part connections are expected and encouraged). Use the exact concept name as the `target` value.
 
 ### 3.5 COGNITIVE LEVELS (Bloom's):
 Assign one: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`
@@ -230,15 +234,13 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 [
   {{
     "name": "Concept Name (Human-readable, NOT placeholder IDs)",
-    "tier": "foundation|keystone|utility",
-    "tierJustification": "Reason...",
     "cognitiveLevel": "apply",
     "commonPitfalls": ["Misinterpreting X"],
     "order": {start_idx},
     "whyYouNeed": "...",
     "technicalDetails": "...",
     "workedExample": {{ "problem": "...", "solution": "...", "steps": ["..."] }},
-    "mnemonic": {{ "tier": "...", "anchor": "Object + Emoji", "story": "Spatial scene..." }},
+    "mnemonic": {{ "anchor": "Object + Emoji", "story": "Spatial scene..." }},
     "phase1": {{ "hookSentence": "...", "microMetaphor": "...", "prerequisite": "...", "selection": ["When..."], "execution": "..." }},
     "phase2": [ {{ "title": "...", "content": "..." }} ],
     "phase3": {{ "tool": "...", "metrics": [...] }},

@@ -18,7 +18,7 @@ export interface NodeDimensions {
 }
 
 export type ScreenOrientation = 'portrait' | 'landscape';
-export type TierType = 'foundation' | 'keystone' | 'utility';
+export type TierType = 'root' | 'trunk' | 'leaf';
 
 /**
  * Detect if two circular nodes overlap
@@ -68,9 +68,9 @@ export function calculateNodeSize(
 
     // Tier-specific size adjustments
     const tierMultipliers: Record<TierType, number> = {
-        foundation: 1.0,
-        keystone: 1.17,  // 140/120
-        utility: 0.83    // 100/120
+        root: 1.0,
+        trunk: 1.17,
+        leaf: 0.83
     };
 
     const tierFactor = tierMultipliers[tier];

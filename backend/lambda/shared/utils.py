@@ -224,7 +224,7 @@ def create_cursor(last_evaluated_key: Optional[Dict[str, Any]]) -> Optional[str]
 
 
 # Tier definitions matching TypeScript types
-TIERS = ["foundation", "keystone", "utility"]
+TIERS = ["root", "trunk", "leaf"]
 
 # Lifecycle stages
 STAGES = ["PREPARE", "MODEL", "DELIVER"]

@@ -53,11 +53,11 @@ export function MasteryDashboard({
         const avgTimePerConcept = mastered > 0 ? Math.round(timeSpentMs / mastered / 1000) : 0;
 
         const tierBreakdown = {
-            foundation: concepts.filter(c => (c.tier || '').toLowerCase() === 'foundation').length,
-            keystone: concepts.filter(c => (c.tier || '').toLowerCase() === 'keystone').length,
-            utility: concepts.filter(c => {
+            root: concepts.filter(c => (c.tier || '').toLowerCase() === 'root').length,
+            trunk: concepts.filter(c => (c.tier || '').toLowerCase() === 'trunk').length,
+            leaf: concepts.filter(c => {
                 const t = (c.tier || '').toLowerCase();
-                return t !== 'foundation' && t !== 'keystone';
+                return t !== 'root' && t !== 'trunk';
             }).length,
         };
 
@@ -165,9 +165,9 @@ export function MasteryDashboard({
                     Tier Coverage
                 </h3>
                 <div className={styles.tierBars}>
-                    <TierBar label="Foundation" count={stats.tierBreakdown.foundation} total={stats.totalConcepts} color="var(--tier-foundation, #3b82f6)" />
-                    <TierBar label="Keystone" count={stats.tierBreakdown.keystone} total={stats.totalConcepts} color="var(--tier-keystone, #8b5cf6)" />
-                    <TierBar label="Utility" count={stats.tierBreakdown.utility} total={stats.totalConcepts} color="var(--tier-utility, #10b981)" />
+                    <TierBar label="Root" count={stats.tierBreakdown.root} total={stats.totalConcepts} color="var(--color-root, #6366f1)" />
+                    <TierBar label="Trunk" count={stats.tierBreakdown.trunk} total={stats.totalConcepts} color="var(--color-trunk, #8b5cf6)" />
+                    <TierBar label="Leaf" count={stats.tierBreakdown.leaf} total={stats.totalConcepts} color="var(--color-leaf, #a78bfa)" />
                 </div>
             </motion.div>
 

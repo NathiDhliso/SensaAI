@@ -210,18 +210,18 @@
 }
 
 /* Tier Specific Styles */
-.node.foundation {
+.node.root {
     border-color: var(--color-info);
     background: radial-gradient(circle at 30% 30%, rgba(var(--color-info-rgb), 0.2), var(--color-surface));
 }
 
-.node.keystone {
+.node.trunk {
     border-color: var(--color-primary);
     background: radial-gradient(circle at 30% 30%, rgba(var(--color-primary-rgb), 0.2), var(--color-surface));
     z-index: 6;
 }
 
-.node.utility {
+.node.leaf {
     border-color: var(--color-success);
     background: radial-gradient(circle at 30% 30%, rgba(var(--color-success-rgb), 0.2), var(--color-surface));
 }
@@ -296,20 +296,18 @@
     line-height: 1.2;
 }
 
-
-
 /* Badge Backgrounds */
-.foundation_bg {
+.root_bg {
     background: var(--color-info);
     color: white;
 }
 
-.keystone_bg {
+.trunk_bg {
     background: var(--color-primary);
     color: white;
 }
 
-.utility_bg {
+.leaf_bg {
     background: var(--color-success);
     color: white;
 }
@@ -608,17 +606,17 @@
     flex-shrink: 0;
 }
 
-.tierDot[data-tier="foundation"] {
+.tierDot[data-tier="root"] {
     background: var(--color-info);
     box-shadow: 0 0 8px var(--color-info);
 }
 
-.tierDot[data-tier="keystone"] {
+.tierDot[data-tier="trunk"] {
     background: var(--color-primary);
     box-shadow: 0 0 8px var(--color-primary);
 }
 
-.tierDot[data-tier="utility"] {
+.tierDot[data-tier="leaf"] {
     background: var(--color-success);
     box-shadow: 0 0 8px var(--color-success);
 }

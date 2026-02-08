@@ -233,7 +233,7 @@ class IndexedDBStorage implements StorageProvider {
           const entry: CachedConceptEntry = {
             id: `${subjectId}:${concept.id}`,
             subjectId,
-            tier: concept.mnemonic?.tier?.toLowerCase() || 'utility',
+            tier: concept.mnemonic?.tier?.toLowerCase() || 'leaf',
             concept,
           };
           store.put(entry);

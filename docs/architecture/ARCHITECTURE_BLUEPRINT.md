@@ -93,7 +93,7 @@ Lambda handler.py:
      Part 3: Output & Delivery (visualization, reporting, publishing, collaboration)
      Part 4: Governance & Infrastructure (security, compliance, deployment, admin)
      Part 5: Advanced & Ecosystem (optimization, AI features, mobile, integrations)
-  3. Post-process: assign tiers, stages, validate
+  3. Post-process: compute tiers from connection graph (root/trunk/leaf), assign stages, validate
   4. Store concepts + classification in DynamoDB (jobs table + concepts table)
   5. Return { jobId, sessionId, conceptCount, classification }
         │
@@ -345,7 +345,7 @@ infra/terraform/
 
 **Concepts Table** (`sensapbl-concepts-pilot`)
 - PK: `USER#{userId}#SESSION#{sessionId}`
-- SK: `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
+- SK: `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}` (tier = root|trunk|leaf)
 - GSI1: For tier-based queries
 
 **Jobs Table** (`sensapbl-jobs-pilot`)
@@ -390,6 +390,35 @@ Each concept cycles through:
 3. **Confusion Drill** — Distinguish from similar concepts
 4. **Quiz** — Multiple choice assessment
 5. **Outcome** — mastered / needs-review / needs-learning → next concept
+
+### Tier System (Root / Trunk / Leaf)
+
+Concepts are classified into 3 dependency-derived tiers. The LLM does **not** assign tiers — they are computed deterministically from the connection graph in `_compute_tiers_from_graph()` (Lambda `bedrock_service.py`).
+
+| Tier | Graph Rule | Meaning | Expected % |
+|------|-----------|---------|------------|
+| `root` | in-degree 0, out-degree ≥ 1 | Entry points — learn these first | ~20% |
+| `trunk` | in-degree ≥ 1, out-degree ≥ 1 | Core connectors — the meat of the subject | ~50% |
+| `leaf` | out-degree 0 or isolated | Terminal applications — specialized skills | ~30% |
+
+Direction rules for connection types:
+- `requires`, `is-part-of`, `is-type-of` → source depends on target
+- `enables`, `causes`, `constrains` → target depends on source
+
+Key files:
+- Backend: `backend/lambda/generate_concepts/services/bedrock_service.py` → `_compute_tiers_from_graph()`
+- Frontend type: `src/shared/types/sensa-flow.ts` → `TierType = 'root' | 'trunk' | 'leaf'`
+- Frontend fallback: `src/features/content-generation/parsers/transformer.ts` → `calculateTier()`
+- Tier progression validator: `src/features/content-generation/validators/tier-progression.ts`
+- CSS variables: `--color-root`, `--color-trunk`, `--color-leaf` in `src/index.css`
+- Graph colors: `GRAPH_COLORS.root`, `.trunk`, `.leaf` in `src/shared/constants/theme-colors.ts`
+
+UI surfaces:
+- `SensaSynopticView` — orbit rings (inner=root, middle=trunk, outer=leaf)
+- `SessionScoutPreview` — tier columns with flow arrows
+- `ConceptMapBuilder` — sidebar bucket zones
+- `MasteryDashboard` — tier coverage bars
+- `TierDistributionChart` — analytics bar chart
 
 ### Connection Type Taxonomy (Concept Map)
 
@@ -464,7 +493,7 @@ Token refresh handled transparently via refresh token cookie
 
 - [x] AI content generation with subject classification (4 types)
 - [x] Macro workflow blueprint (type-aware stage generation)
-- [x] Multi-tier concept organization (foundation, keystone, utility)
+- [x] Multi-tier concept organization (root, trunk, leaf — dependency-derived from connection graph)
 - [x] SENSA v2.0 learning flow (PRIME → BUILD → MASTER)
 - [x] Micro learning loop (teach → blank sheet → confusion drill → quiz)
 - [x] Mnemonic anchor system
@@ -522,6 +551,7 @@ Full audit documented in `docs/architecture/AUDIT_SILVER_BULLET.md`. Key changes
 - [x] **CreativeTransferActivity rebuilt** — Type-aware scenario templates (procedural/conceptual/cyclic/perceptual); keyword-based response scoring replaces length check
 - [x] **MasteryChallenge real scoring** — Automated keyword + concept-name coverage scoring replaces self-assessment honor system; shows score %, matched terms, missed terms
 - [x] **NomenclatureSprint verb-object matching** — Match pairs now include `howToUse` steps alongside metaphor anchors for action-oriented recall
+- [x] **Dependency-derived tier system (root/trunk/leaf)** — Tiers computed deterministically from connection graph in Lambda `_compute_tiers_from_graph()`. Replaces legacy LLM-assigned foundation/keystone/utility. root=entry points (in-degree 0), trunk=connectors (in+out degree ≥1), leaf=terminal (out-degree 0). CSS vars `--color-root/trunk/leaf`, `GRAPH_COLORS.root/trunk/leaf`. Updated across all UI surfaces, types, validators, algorithms, stores, and CSS modules.
 - [x] **VerifyPhase better distractors** — Fallback distractors pulled from other concepts' hook sentences and key points instead of generic templates
 - [x] **FadedExample fuzzy validation** — Input validated via word-overlap against step text (30% threshold) instead of `length > 3`
 - [x] **App.tsx cleanup** — Removed dead commented bionic reading code

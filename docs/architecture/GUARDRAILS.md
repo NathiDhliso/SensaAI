@@ -168,7 +168,35 @@ This taxonomy is enforced in 4 places:
 
 ---
 
-## 8. Pre-Change Checklist
+## 8. Tier System (Root / Trunk / Leaf)
+
+Concepts are classified into 3 tiers **deterministically from the connection graph** — the LLM does NOT assign tiers.
+
+| Tier | Graph Rule | Meaning | Expected % |
+|------|-----------|---------|------------|
+| `root` | in-degree 0, out-degree ≥ 1 | Entry points — learn these first | ~20% |
+| `trunk` | in-degree ≥ 1, out-degree ≥ 1 | Core connectors — the meat of the subject | ~50% |
+| `leaf` | out-degree 0 or isolated | Terminal applications — specialized skills | ~30% |
+
+**How it works:**
+1. Lambda generates concepts WITHOUT a `tier` field
+2. `_compute_tiers_from_graph()` in `bedrock_service.py` builds a directed graph from connections
+3. Connection types `requires`, `is-part-of`, `is-type-of` → source depends on target (out-degree for source, in-degree for target)
+4. Connection types `enables`, `causes`, `constrains` → target depends on source (reverse direction)
+5. Tier is assigned based on in-degree and out-degree per the table above
+
+**Key files:**
+- Backend computation: `backend/lambda/generate_concepts/services/bedrock_service.py` → `_compute_tiers_from_graph()`
+- Frontend types: `src/shared/types/sensa-flow.ts` → `TierType = 'root' | 'trunk' | 'leaf'`
+- Frontend fallback: `src/features/content-generation/parsers/transformer.ts` → `calculateTier()`
+- UI display: `src/components/learning/ui/SensaSynopticView.tsx` (orbit rings), `SessionScoutPreview.tsx` (tier columns)
+- CSS variables: `src/index.css` → `--color-root`, `--color-trunk`, `--color-leaf`
+
+**FORBIDDEN**: Using `foundation`, `keystone`, or `utility` as tier names anywhere in the codebase. These are legacy names replaced in v2.0.
+
+---
+
+## 9. Pre-Change Checklist
 
 Before making any change, verify:
 
@@ -183,7 +211,7 @@ Before making any change, verify:
 
 ---
 
-## 9. Post-Change Checklist
+## 10. Post-Change Checklist
 
 After making changes, verify:
 
@@ -197,7 +225,7 @@ After making changes, verify:
 
 ---
 
-## 10. Common Pitfalls
+## 11. Common Pitfalls
 
 | Pitfall | How to avoid |
 |---------|-------------|
@@ -215,17 +243,18 @@ After making changes, verify:
 | Duplicate SessionStartModal | `SessionStartModal` is rendered only in `Study.tsx`. Never render it in `VelocityLearning.tsx` — Study.tsx guards the learn tab and handles session config. |
 | Using ContentContext | `ContentContext` was removed. Use `useLearningStore().getConcepts()` to access loaded concepts. |
 | Hardcoding cognitive load | Wire to `getCognitiveLoadLevel()` from the learning store's CognitiveSlice. Never hardcode. |
-| Skip reason with no routing | When a user skips a concept, differentiate behavior: too-easy → mark mastered (0.85), too-hard → route to foundation prerequisite, not-relevant → skip cleanly. |
+| Skip reason with no routing | When a user skips a concept, differentiate behavior: too-easy → mark mastered (0.85), too-hard → route to root prerequisite, not-relevant → skip cleanly. |
 | Empty algorithm fallback | If concept selection algorithms fail, fall back to sequential (next N incomplete concepts). Never pass empty `targetConcepts[]`. |
 | Oversized border-radius on modals | Modal/card containers use `var(--radius-xl)` (12px) max. Never exceed 16px on modal containers — larger values read as consumer app. |
 | Using red for stressed mood | Stressed mood uses slate (`#64748b`), not red. Red triggers cortisol — the opposite of calming a stressed learner. |
 | Perpetual CSS/motion animations | Animations should fire once on mount, not loop infinitely. `repeat: Infinity` is prohibited on non-loading-state elements. |
 | Adding paper/grid textures | The crumpled paper texture on `body::before` is the only allowed texture. No grid dots, no additional paper overlays. |
 | Saturated dark mode backgrounds | Dark mode backgrounds must stay below ~15% saturation. Current palette: `#16131e` → `#1e1a28` → `#262233`. Never use vivid purple backgrounds. |
+| Using old tier names | Never use `foundation`, `keystone`, or `utility` as tier names. The tier system uses `root`, `trunk`, `leaf` — see §8. |
 
 ---
 
-## 11. Key Files to Know
+## 12. Key Files to Know
 
 | File | Why it matters |
 |------|---------------|
@@ -241,8 +270,9 @@ After making changes, verify:
 | `src/components/learning/launchpad/ContentLaunchpad.tsx` | Analytics dashboard at `/launchpad/:subjectId` — renders audit results with expandable per-concept verdicts. |
 | `src/pages/Study.tsx` | Study session entry + hydration |
 | `src/components/layout/StudyLayout.tsx` | Unified study command center layout wrapper |
-| `src/shared/constants/theme-colors.ts` | All color constants including mood colors |
+| `src/shared/constants/theme-colors.ts` | All color constants including mood colors, `GRAPH_COLORS` (root/trunk/leaf), lifecycle colors |
 | `backend/lambda/shared/system_prompt.py` | Generation prompt (classification + silver bullet + surgical fix). Domain-aware partitioning: when user provides exam objectives, `_parse_objective_domains()` splits them into top-level domains and `_distribute_domains_to_parts()` assigns domains to the 5 generation parts so each part covers specific exam domains instead of generic knowledge dimensions. |
+| `src/features/content-generation/validators/tier-progression.ts` | Tier access control, ceiling calculation, mastery breakdown. Uses `root/trunk/leaf` tiers (see §8). |
 | `docs/architecture/ARCHITECTURE_BLUEPRINT.md` | Full architecture reference |
 | `docs/architecture/AUDIT_SILVER_BULLET.md` | Silver bullet audit findings and fixes |
 
@@ -259,7 +289,7 @@ Remove-Item "backend\lambda_deploy.zip"
 
 ---
 
-## 12. For Prompters
+## 13. For Prompters
 
 When starting a new session with an AI tool on this codebase:
 

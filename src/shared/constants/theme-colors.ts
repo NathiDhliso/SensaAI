@@ -131,9 +131,9 @@ export const LIFECYCLE_COLORS = {
 // GRAPH COLORS (for Results.tsx & GraphView)
 // ============================================
 export const GRAPH_COLORS = {
-    foundation: COLORS.secondary.sage,   // #10b981
-    keystone: COLORS.accent.light,       // #8b5cf6
-    utility: COLORS.secondary.amber,     // #f59e0b
+    root: COLORS.secondary.sage,         // #10b981
+    trunk: COLORS.accent.light,          // #8b5cf6
+    leaf: COLORS.secondary.amber,        // #f59e0b
 } as const;
 
 // ============================================

@@ -16,9 +16,9 @@ import type { TierType, TierDistribution } from '@/shared/types/sensa-flow';
 // ============================================================================
 
 export const TIER_CONFIG = {
-    foundation: { color: GRAPH_COLORS.foundation, label: 'Foundation' },
-    keystone: { color: GRAPH_COLORS.keystone, label: 'Keystone' },
-    utility: { color: COLORS.text.muted, label: 'Utility' }
+    root: { color: GRAPH_COLORS.root, label: 'Root' },
+    trunk: { color: GRAPH_COLORS.trunk, label: 'Trunk' },
+    leaf: { color: COLORS.text.muted, label: 'Leaf' }
 } as const;
 
 // ============================================================================
@@ -37,28 +37,24 @@ export function canAccessConcept(
     allConcepts: LearningConcept[]
 ): boolean {
     // Foundation concepts are always accessible
-    if (concept.tier === 'foundation') {
+    if (concept.tier === 'root') {
         return true;
     }
 
-    // Keystone requires all Foundation dependencies mastered
-    if (concept.tier === 'keystone') {
+    if (concept.tier === 'trunk') {
         return concept.dependencies.every(depId => {
             const dep = allConcepts.find(c => c.id === depId);
             if (!dep) return false;
 
-            // If dependency is Foundation, it must be mastered
-            if (dep.tier === 'foundation') {
+            if (dep.tier === 'root') {
                 return masteredConceptIds.has(depId);
             }
 
-            // If dependency is also Keystone, it must be mastered
             return masteredConceptIds.has(depId);
         });
     }
 
-    // Utility requires all Keystone/Utility dependencies mastered
-    if (concept.tier === 'utility') {
+    if (concept.tier === 'leaf') {
         return concept.dependencies.every(depId => {
             const dep = allConcepts.find(c => c.id === depId);
             if (!dep) return false;
@@ -88,9 +84,9 @@ export function getConceptsByTierWithAccess(
     masteredConceptIds: Set<string>
 ): Record<TierType, Array<{ concept: LearningConcept; accessible: boolean; mastered: boolean }>> {
     const result: Record<TierType, Array<{ concept: LearningConcept; accessible: boolean; mastered: boolean }>> = {
-        foundation: [],
-        keystone: [],
-        utility: [],
+        root: [],
+        trunk: [],
+        leaf: [],
     };
 
     for (const concept of concepts) {
@@ -120,15 +116,15 @@ export function calculateTierCeiling(
     masteredConceptIds: Set<string>
 ): number {
     const tierProgress: Record<TierType, number> = {
-        foundation: 0,
-        keystone: 0,
-        utility: 0,
+        root: 0,
+        trunk: 0,
+        leaf: 0,
     };
 
     const tierCounts: Record<TierType, number> = {
-        foundation: 0,
-        keystone: 0,
-        utility: 0,
+        root: 0,
+        trunk: 0,
+        leaf: 0,
     };
 
     for (const concept of concepts) {
@@ -138,18 +134,17 @@ export function calculateTierCeiling(
         }
     }
 
-    const foundationPct = tierCounts.foundation > 0
-        ? tierProgress.foundation / tierCounts.foundation
+    const rootPct = tierCounts.root > 0
+        ? tierProgress.root / tierCounts.root
         : 0;
-    const keystonePct = tierCounts.keystone > 0
-        ? tierProgress.keystone / tierCounts.keystone
+    const trunkPct = tierCounts.trunk > 0
+        ? tierProgress.trunk / tierCounts.trunk
         : 0;
-    const utilityPct = tierCounts.utility > 0
-        ? tierProgress.utility / tierCounts.utility
+    const leafPct = tierCounts.leaf > 0
+        ? tierProgress.leaf / tierCounts.leaf
         : 0;
 
-    // I is capped by weakest tier
-    return Math.min(foundationPct, keystonePct, utilityPct);
+    return Math.min(rootPct, trunkPct, leafPct);
 }
 
 /**
@@ -159,8 +154,8 @@ export function getTierMasteryBreakdown(
     concepts: LearningConcept[],
     masteredConceptIds: Set<string>
 ): TierDistribution & { masteryPerTier: Record<TierType, number> } {
-    const counts: Record<TierType, number> = { foundation: 0, keystone: 0, utility: 0 };
-    const mastered: Record<TierType, number> = { foundation: 0, keystone: 0, utility: 0 };
+    const counts: Record<TierType, number> = { root: 0, trunk: 0, leaf: 0 };
+    const mastered: Record<TierType, number> = { root: 0, trunk: 0, leaf: 0 };
 
     for (const concept of concepts) {
         counts[concept.tier]++;
@@ -170,14 +165,14 @@ export function getTierMasteryBreakdown(
     }
 
     return {
-        foundation: counts.foundation,
-        keystone: counts.keystone,
-        utility: counts.utility,
+        root: counts.root,
+        trunk: counts.trunk,
+        leaf: counts.leaf,
         total: concepts.length,
         masteryPerTier: {
-            foundation: counts.foundation > 0 ? mastered.foundation / counts.foundation : 0,
-            keystone: counts.keystone > 0 ? mastered.keystone / counts.keystone : 0,
-            utility: counts.utility > 0 ? mastered.utility / counts.utility : 0,
+            root: counts.root > 0 ? mastered.root / counts.root : 0,
+            trunk: counts.trunk > 0 ? mastered.trunk / counts.trunk : 0,
+            leaf: counts.leaf > 0 ? mastered.leaf / counts.leaf : 0,
         },
     };
 }

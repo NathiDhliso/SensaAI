@@ -197,6 +197,11 @@
   --color-info: #3b82f6;
   --color-info-bg: #dbeafe;
   --color-info-border: #60a5fa;
+
+  /* ========== TIER COLORS (Root/Trunk/Leaf) ========== */
+  --color-root: #6366f1;
+  --color-trunk: #8b5cf6;
+  --color-leaf: #a78bfa;
   --color-info-text: #1e40af;
 
   /* ========== GRADIENT DEFINITIONS ========== */

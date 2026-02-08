@@ -2,7 +2,7 @@
  * Parsed mnemonic context for Memory Palace
  */
 export interface ParsedMnemonic {
-  tier?: 'foundation' | 'keystone' | 'utility';
+  tier?: 'root' | 'trunk' | 'leaf';
   anchor: string;      // e.g., "Volcano 🌋"
   story: string;       // Bizarre scene linking anchor to concept
   imageUrl?: string;   // Generated image URL (Silver Bullet)
@@ -15,7 +15,7 @@ export interface ParsedConcept {
   id: string;
   name: string;
   order: number;
-  tier?: 'foundation' | 'keystone' | 'utility'; // Added to support root-level tier
+  tier?: 'root' | 'trunk' | 'leaf';
   tierJustification?: string; // Explain WHY it fits this tier
   stageId: string;
   logicalConnection?: string;

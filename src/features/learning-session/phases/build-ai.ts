@@ -185,11 +185,11 @@ function findConnectionType(
         }
     }
 
-    if (conceptA.tier === 'foundation' && conceptB.tier === 'keystone') {
-        return { label: 'requires', confidence: 0.65, reasoning: 'Foundation → Keystone tier progression' };
+    if (conceptA.tier === 'root' && conceptB.tier === 'trunk') {
+        return { label: 'requires', confidence: 0.65, reasoning: 'Root → Trunk tier progression' };
     }
-    if (conceptA.tier === 'keystone' && conceptB.tier === 'foundation') {
-        return { label: 'requires', confidence: 0.65, reasoning: 'Keystone depends on Foundation' };
+    if (conceptA.tier === 'trunk' && conceptB.tier === 'root') {
+        return { label: 'requires', confidence: 0.65, reasoning: 'Trunk depends on Root' };
     }
 
     if (sharedWords.length >= 3) {
