@@ -513,6 +513,29 @@ export default function Study() {
         subjectName={subjectName}
         headerActions={
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {useLearningStore.getState().studySession && (
+              <button
+                onClick={() => setShowSessionConfig(true)}
+                title="Recalibrate session — change your energy level"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  background: 'transparent',
+                  border: '1px solid var(--color-border, rgba(255,255,255,0.1))',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  padding: '0.3rem 0.6rem',
+                  fontSize: '0.7rem',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  textTransform: 'uppercase' as const,
+                  letterSpacing: '0.03em',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
+                ⚡ Recalibrate
+              </button>
+            )}
             <button
               onClick={() => setShowHelpModal(true)}
               title="Help & Shortcuts"

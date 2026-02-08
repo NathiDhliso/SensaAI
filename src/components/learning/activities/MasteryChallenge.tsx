@@ -4,7 +4,7 @@
  * Implements Phase 3.5: Prove Mastery (Boss Battle).
  * Presents a comprehensive, time-boxed challenge requiring synthesis of multiple concepts.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
     Trophy,
@@ -23,6 +23,38 @@ interface MasteryChallengeProps {
     onComplete: (passed: boolean) => void;
 }
 
+function scoreMasteryResponse(response: string, concepts: LearningConcept[]): { score: number; matched: string[]; missed: string[] } {
+    const lower = response.toLowerCase();
+    const allKeywords: string[] = [];
+
+    for (const c of concepts.slice(0, 5)) {
+        allKeywords.push(c.name.toLowerCase());
+        if (c.keyPoints) {
+            for (const kp of c.keyPoints.slice(0, 2)) {
+                const words = kp.toLowerCase().split(/\s+/).filter(w => w.length > 4);
+                allKeywords.push(...words);
+            }
+        }
+        if (c.howToUse) {
+            for (const step of c.howToUse.slice(0, 1)) {
+                const words = step.toLowerCase().split(/\s+/).filter(w => w.length > 4);
+                allKeywords.push(...words);
+            }
+        }
+    }
+
+    const unique = [...new Set(allKeywords)];
+    const matched = unique.filter(kw => lower.includes(kw));
+    const missed = unique.filter(kw => !lower.includes(kw));
+    const keywordScore = unique.length > 0 ? matched.length / unique.length : 0;
+    const lengthBonus = Math.min(0.15, response.length / 1000);
+    const conceptNameHits = concepts.slice(0, 5).filter(c => lower.includes(c.name.toLowerCase())).length;
+    const conceptCoverage = concepts.length > 0 ? conceptNameHits / Math.min(5, concepts.length) : 0;
+
+    const total = Math.min(1, keywordScore * 0.5 + conceptCoverage * 0.35 + lengthBonus);
+    return { score: total, matched, missed };
+}
+
 export default function MasteryChallenge({
     concepts,
     onComplete
@@ -30,12 +62,10 @@ export default function MasteryChallenge({
     const [phase, setPhase] = useState<'intro' | 'challenge' | 'complete'>('intro');
     const [timeRemaining, setTimeRemaining] = useState<number>(UI_TIMINGS.MASTERY_TIME_SECONDS);
     const [userResponse, setUserResponse] = useState('');
-    const [selfAssessment, setSelfAssessment] = useState<'excellent' | 'good' | 'needs-work' | null>(null);
+    const [scoreResult, setScoreResult] = useState<{ score: number; matched: string[]; missed: string[] } | null>(null);
 
-    // Pause global focus session timer during challenge
     usePauseGlobalTimer();
 
-    // Timer countdown
     useEffect(() => {
         if (phase !== 'challenge') return;
 
@@ -59,9 +89,8 @@ export default function MasteryChallenge({
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Generate a boss battle scenario - dynamic with fallback
     const conceptNames = concepts.slice(0, 3).map(c => c.name).join(', ');
-    const scenario = concepts.length > 0
+    const scenario = useMemo(() => concepts.length > 0
         ? `You are consulting for a client who needs to implement a comprehensive solution using the concepts you've learned.
 
 **Scenario:**
@@ -74,21 +103,25 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
 4. Provide a step-by-step implementation approach
 
 **Your Response:**`
-        : DEFAULT_MASTERY_SCENARIO;
+        : DEFAULT_MASTERY_SCENARIO, [concepts, conceptNames]);
 
     const handleStartChallenge = () => {
         setPhase('challenge');
     };
 
     const handleSubmit = () => {
+        const result = scoreMasteryResponse(userResponse, concepts);
+        setScoreResult(result);
         setPhase('complete');
     };
 
-    const handleSelfAssess = (assessment: 'excellent' | 'good' | 'needs-work') => {
-        setSelfAssessment(assessment);
-        // Pass if excellent or good
-        onComplete(assessment === 'excellent' || assessment === 'good');
+    const handleComplete = () => {
+        const passed = (scoreResult?.score ?? 0) >= 0.35;
+        onComplete(passed);
     };
+
+    const scorePercent = scoreResult ? Math.round(scoreResult.score * 100) : 0;
+    const passed = scorePercent >= 35;
 
     return (
         <div className={styles.container}>
@@ -101,12 +134,12 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
                         <h2 className={styles.title}>
                             {phase === 'intro' ? 'Boss Battle: Prove Your Mastery' :
                                 phase === 'challenge' ? 'Challenge in Progress' :
-                                    'Challenge Complete'}
+                                    'Results'}
                         </h2>
                         <p className={styles.subtitle}>
                             {phase === 'intro' ? 'A comprehensive challenge to demonstrate your understanding' :
                                 phase === 'challenge' ? 'Apply everything you\'ve learned' :
-                                    'How did you do?'}
+                                    `Score: ${scorePercent}%`}
                         </p>
                     </div>
                 </div>
@@ -131,16 +164,16 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
                         <div className={styles.infoCard}>
                             <h3>What to Expect</h3>
                             <ul>
-                                <li>A complex, real-world scenario requiring multiple concepts</li>
+                                <li>A real-world scenario requiring multiple concepts</li>
                                 <li>10 minutes to craft your response</li>
-                                <li>Self-assessment of your performance</li>
-                                <li>Opportunity to demonstrate true mastery</li>
+                                <li>Automated scoring based on concept coverage</li>
+                                <li>Use specific terminology from what you learned</li>
                             </ul>
                         </div>
 
                         <div className={styles.warningCard}>
                             <AlertTriangle size={20} />
-                            <p>Final test</p>
+                            <p>Final challenge — reference specific concepts by name</p>
                         </div>
 
                         <button
@@ -167,13 +200,13 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
                             className={styles.textarea}
                             value={userResponse}
                             onChange={(e) => setUserResponse(e.target.value)}
-                            placeholder="Type your comprehensive response here..."
+                            placeholder="Reference specific concepts by name. Explain how they connect and what steps to take..."
                         />
 
                         <button
                             className={styles.submitButton}
                             onClick={handleSubmit}
-                            disabled={userResponse.length < 100}
+                            disabled={userResponse.length < 80}
                         >
                             Submit Response
                             <CheckCircle2 size={16} />
@@ -181,58 +214,36 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
                     </motion.div>
                 )}
 
-                {phase === 'complete' && (
+                {phase === 'complete' && scoreResult && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className={styles.completeContainer}
                     >
-                        <div className={styles.responseCard}>
-                            <h3>Your Response:</h3>
-                            <div className={styles.responseContent}>
-                                <p>{userResponse || 'No response provided'}</p>
-                            </div>
+                        <div className={styles.celebrationCard}>
+                            <Trophy size={48} className={styles.celebrationIcon} />
+                            <h2>{passed ? (scorePercent >= 70 ? 'Outstanding!' : 'Well Done!') : 'Keep Practicing'}</h2>
+                            <p style={{ fontSize: '2rem', fontWeight: 700 }}>{scorePercent}%</p>
+                            <p>
+                                {passed
+                                    ? `You covered ${scoreResult.matched.length} key terms across the concepts.`
+                                    : `You missed key terms. Try mentioning specific concept names and their properties.`}
+                            </p>
                         </div>
 
-                        {!selfAssessment ? (
-                            <div className={styles.assessmentSection}>
-                                <h3>How well did you do?</h3>
-                                <div className={styles.assessmentButtons}>
-                                    <button
-                                        className={`${styles.assessmentButton} ${styles.excellent}`}
-                                        onClick={() => handleSelfAssess('excellent')}
-                                    >
-                                        Excellent
-                                    </button>
-                                    <button
-                                        className={`${styles.assessmentButton} ${styles.good}`}
-                                        onClick={() => handleSelfAssess('good')}
-                                    >
-                                        Good
-                                    </button>
-                                    <button
-                                        className={`${styles.assessmentButton} ${styles.needsWork}`}
-                                        onClick={() => handleSelfAssess('needs-work')}
-                                    >
-                                        Needs Work
-                                    </button>
+                        {scoreResult.missed.length > 0 && scoreResult.missed.length <= 8 && (
+                            <div className={styles.responseCard}>
+                                <h3>Terms to Review:</h3>
+                                <div className={styles.responseContent}>
+                                    <p>{scoreResult.missed.slice(0, 8).join(', ')}</p>
                                 </div>
                             </div>
-                        ) : (
-                            <div className={styles.celebrationCard}>
-                                <Trophy size={48} className={styles.celebrationIcon} />
-                                <h2>
-                                    {selfAssessment === 'excellent' ? 'Outstanding!' :
-                                        selfAssessment === 'good' ? 'Well Done!' :
-                                            'Keep Practicing!'}
-                                </h2>
-                                <p>
-                                    {selfAssessment === 'excellent' ? 'You\'ve demonstrated true mastery of these concepts.' :
-                                        selfAssessment === 'good' ? 'You have a solid understanding. Keep building on this foundation.' :
-                                            'Review the concepts and try again when you\'re ready.'}
-                                </p>
-                            </div>
                         )}
+
+                        <button className={styles.startButton} onClick={handleComplete}>
+                            {passed ? 'Complete' : 'Continue'}
+                            <Trophy size={20} />
+                        </button>
                     </motion.div>
                 )}
             </div>

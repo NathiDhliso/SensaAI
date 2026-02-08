@@ -10,76 +10,84 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { SensaPhase, DependencyGraph, ValidationResult, EquationMetadata } from '@/shared/types/sensa-flow';
 import type { ConceptMapData, StudySession } from '@/shared/types/learning';
+import type { SubjectType } from '@/shared/types/macro-workflow';
 import {
     calculateMasteryIndex,
     hasMastery,
     findWeakestVariable,
 } from '@/shared/constants/sensa-flow-constants';
+import {
+    calculateGBaseline,
+    calculateTypeAwareMetrics,
+    detectBlueprintMismatch,
+    getTypeAwareRecommendation,
+    type TypeAwareQMetrics,
+    type QMetricInputs,
+    type FeedbackSignal,
+} from '@/shared/services/blueprint-formula';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 export interface SensaFlowState {
-    // Current phase
     phase: SensaPhase;
 
-    // Equation variables
-    G: number;      // Governance (set in Step 1: See)
-    Q_P: number;    // Preparation quality (builds Steps 2-4)
-    Q_M: number;    // Modeling quality (builds Steps 2-5)
-    Q_f: number;    // Fluency quality (set in Step 5)
-    I: number;      // Mastery index (calculated)
+    G: number;
+    Q_P: number;
+    Q_M: number;
+    Q_f: number;
+    I: number;
 
-    // Step-specific data
+    subjectType: SubjectType | undefined;
+    gBaseline: number;
+    typeAwareMetrics: TypeAwareQMetrics | null;
+    feedbackSignal: FeedbackSignal | null;
+
     userGuesses: Map<string, string>;
     conceptMap: ConceptMapData | null;
     validationResult: ValidationResult | null;
     synthesisScore: number;
     flowModeCompleted: boolean;
 
-    // Metadata from AI
     equationMetadata: EquationMetadata | null;
     dependencyGraph: DependencyGraph | null;
 
-    // Analytics
     startedAt: Date;
     completedSteps: SensaPhase[];
     timePerStep: Partial<Record<SensaPhase, number>>;
 }
 
 export interface SensaFlowActions {
-    // Phase transitions
     setPhase: (phase: SensaPhase) => void;
 
-    // Equation updates
     updateG: (value: number) => void;
     updateQP: (delta: number) => void;
     updateQM: (delta: number) => void;
     updateQf: (value: number) => void;
 
-    // Step completions
+    initializeFromClassification: (subjectType: SubjectType | undefined, confidence?: number) => void;
+    updateTypeAwareMetrics: (inputs: QMetricInputs) => void;
+
     completeExplore: (guesses: Map<string, string>) => void;
     completeNote: (mapData: ConceptMapData, validation?: ValidationResult) => void;
     completeStudy: (reconstructionScore: number) => void;
     completeApply: (synthesisScore: number, flowModeCompleted: boolean, Q_f: number) => void;
 
-    // Metadata
     setEquationMetadata: (metadata: EquationMetadata) => void;
     setDependencyGraph: (graph: DependencyGraph) => void;
 
-    // Utilities
     reset: () => void;
     syncFromStore: (session: StudySession) => void;
 }
 
 export interface UseSensaFlowReturn extends SensaFlowState, SensaFlowActions {
-    // Computed properties
     isComplete: boolean;
     hasMastered: boolean;
     weakestVariable: { variable: 'G' | 'Q_P' | 'Q_M' | 'Q_f'; value: number };
     recommendation: string;
     progressPercent: number;
+    qLabels: { Q_f: string; Q_M: string; Q_P: string };
 }
 
 // ============================================================================
@@ -88,11 +96,15 @@ export interface UseSensaFlowReturn extends SensaFlowState, SensaFlowActions {
 
 const createInitialState = (): SensaFlowState => ({
     phase: 'see',
-    G: 1.0,        // Default: optimal environment
-    Q_P: 0.0,      // Starts at 0, builds up
-    Q_M: 0.0,      // Starts at 0, builds up
-    Q_f: 0.0,      // Set in Apply phase
-    I: 0.0,        // Calculated
+    G: 1.0,
+    Q_P: 0.0,
+    Q_M: 0.0,
+    Q_f: 0.0,
+    I: 0.0,
+    subjectType: undefined,
+    gBaseline: 1.0,
+    typeAwareMetrics: null,
+    feedbackSignal: null,
     userGuesses: new Map(),
     conceptMap: null,
     validationResult: null,
@@ -170,6 +182,28 @@ export function useSensaFlow(): UseSensaFlowReturn {
             const Q_f = Math.max(0, Math.min(1, value));
             const I = calculateMasteryIndex(prev.G, prev.Q_P, prev.Q_M, Q_f);
             return { ...prev, Q_f, I };
+        });
+    }, []);
+
+    const initializeFromClassification = useCallback((subjectType: SubjectType | undefined, confidence?: number) => {
+        setState(prev => {
+            const gBaseline = calculateGBaseline(subjectType, confidence);
+            const G = gBaseline;
+            const I = calculateMasteryIndex(G, prev.Q_P, prev.Q_M, prev.Q_f);
+            return { ...prev, subjectType, gBaseline, G, I };
+        });
+    }, []);
+
+    const updateTypeAwareMetrics = useCallback((inputs: QMetricInputs) => {
+        setState(prev => {
+            const metrics = calculateTypeAwareMetrics(prev.subjectType, inputs);
+            const Q_f = metrics.Q_f;
+            const Q_M = metrics.Q_M;
+            const Q_P = metrics.Q_P;
+            const G = prev.gBaseline + (prev.feedbackSignal?.gAdjustment ?? 0);
+            const I = calculateMasteryIndex(G, Q_P, Q_M, Q_f);
+            const feedbackSignal = detectBlueprintMismatch(prev.subjectType, metrics, G, prev.completedSteps.length);
+            return { ...prev, Q_f, Q_M, Q_P, G, I, typeAwareMetrics: metrics, feedbackSignal };
         });
     }, []);
 
@@ -336,6 +370,9 @@ export function useSensaFlow(): UseSensaFlowReturn {
     );
 
     const recommendation = useMemo(() => {
+        if (state.typeAwareMetrics) {
+            return getTypeAwareRecommendation(state.subjectType, weakestVariable.variable, state.typeAwareMetrics);
+        }
         const recs: Record<string, string> = {
             G: 'Improve your learning environment and focus.',
             Q_P: 'Revisit the Explore phase to better understand structure.',
@@ -343,7 +380,12 @@ export function useSensaFlow(): UseSensaFlowReturn {
             Q_f: 'Practice more with Flow Mode speed drills.',
         };
         return recs[weakestVariable.variable];
-    }, [weakestVariable]);
+    }, [weakestVariable, state.typeAwareMetrics, state.subjectType]);
+
+    const qLabels = useMemo(() => {
+        if (state.typeAwareMetrics) return state.typeAwareMetrics.labels;
+        return { Q_f: 'Flow Quality', Q_M: 'Mastery Quality', Q_P: 'Practice Quality' };
+    }, [state.typeAwareMetrics]);
 
     const progressPercent = useMemo(() => {
         const phaseOrder: SensaPhase[] = ['see', 'explore', 'note', 'study', 'apply', 'complete'];
@@ -362,6 +404,8 @@ export function useSensaFlow(): UseSensaFlowReturn {
         updateQP,
         updateQM,
         updateQf,
+        initializeFromClassification,
+        updateTypeAwareMetrics,
         completeExplore,
         completeNote,
         completeStudy,
@@ -375,6 +419,7 @@ export function useSensaFlow(): UseSensaFlowReturn {
         weakestVariable,
         recommendation,
         progressPercent,
+        qLabels,
     };
 }
 

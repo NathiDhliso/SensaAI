@@ -22,6 +22,7 @@ import {
   Home
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
+import { useUIStore } from '@/store/ui-store';
 
 import styles from './StudyLayout.module.css';
 
@@ -222,7 +223,7 @@ export function StudyLayout({
 
           <button
             className={styles.settingsButton}
-            onClick={() => navigate('/settings')}
+            onClick={() => useUIStore.getState().openSettingsPanel()}
             aria-label="Settings"
           >
             <Settings size={18} />

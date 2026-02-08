@@ -202,10 +202,9 @@ export function SessionStartModal({
                         className={`${styles.moodCard} ${selectedMood === mood.id ? styles.moodCardActive : ''}`}
                         onClick={() => {
                           setSelectedMood(mood.id);
-                          // Smart Defaults (Curated Session)
                           switch (mood.id) {
                             case 'energized':
-                              setSelectedGoal('velocity'); // Redirected to new Velocity Mode
+                              setSelectedGoal('velocity');
                               setSelectedDuration(45);
                               break;
                             case 'neutral':
@@ -213,21 +212,22 @@ export function SessionStartModal({
                               setSelectedDuration(30);
                               break;
                             case 'tired':
-                              setSelectedGoal('review'); // Easier cognitive load
-                              setSelectedDuration(15);   // Shorter duration
+                              setSelectedGoal('review');
+                              setSelectedDuration(15);
                               break;
                             case 'stressed':
-                              setSelectedGoal('explore'); // Low pressure
-                              setSelectedDuration(15);    // Quick win
+                              setSelectedGoal('explore');
+                              setSelectedDuration(15);
                               break;
                           }
                         }}
-                        title={mood.description}
+                        title={mood.sessionAdjustment}
                       >
                         <div className={styles.moodIconWrapper} style={{ color: moodColor }}>
                           <MoodIcon size={24} />
                         </div>
                         <span className={styles.moodLabel}>{mood.label}</span>
+                        <span className={styles.moodDesc}>{mood.description}</span>
                       </button>
                     );
                   })}

@@ -176,7 +176,7 @@ export default function Home() {
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), UI_TIMINGS.BLUR_DELAY)}
                 onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                placeholder="Initialize Learning System..." // Technical placeholder
+                placeholder="Enter any subject to learn..."
                 className={styles.input}
                 autoFocus
               />

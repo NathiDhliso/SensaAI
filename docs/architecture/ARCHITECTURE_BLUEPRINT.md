@@ -427,17 +427,36 @@ Token refresh handled transparently via refresh token cookie
 - [x] Production environment (Terraform `prod/`) — Full config with production URLs
 - [x] S3 backend for Terraform state — Bootstrap module + both envs use S3 backend
 
-### Planned — Phase 2 (Blueprint-Formula Integration)
+### Phase 2 — Blueprint-Formula Integration (Implemented)
 
-The classification system (Type A/B/C/D) currently determines content structure but does not feed back into the learning formula. Phase 2 wires them together:
+The classification system (Type A/B/C/D) now feeds back into the learning formula via `blueprint-formula.ts`:
 
-- [ ] **G baseline scoring** — Classification confidence → real G value in the formula (not decorative)
-- [ ] **Type-aware Q metrics** — Q_f, Q_M, Q_P adapt measurement to blueprint type:
+- [x] **G baseline scoring** — `calculateGBaseline()` maps classification confidence → G value (procedural: 0.85, conceptual: 0.80, cyclic: 0.75, perceptual: 0.70)
+- [x] **Type-aware Q metrics** — `calculateTypeAwareMetrics()` adapts Q_f, Q_M, Q_P per subject type:
   - Procedural: stage completion rate, checkpoint pass rate, hands-on time
   - Conceptual: move fluency, novel problem success, deliberate case work
   - Cyclic: cycle completion rate, insight per cycle, loop quality
   - Perceptual: pattern exposure rate, discrimination accuracy, perception drills
-- [ ] **Feedback loop** — Detect wrong blueprint (low I + high effort → suggest reclassification)
-- [ ] **Blueprint-Formula dashboard** — UI showing G, Q factors, and why the user is stuck or accelerating
+- [x] **Feedback loop** — `detectBlueprintMismatch()` detects low I + high effort → suggests reclassification, adjusts G
+- [x] **Blueprint-Formula dashboard** — `BlueprintFormulaDashboard` component shows G, type-aware Q labels, feedback alerts, recommendations
+
+### Phase 3 — Silver Bullet Audit Fixes (Implemented)
+
+Full audit documented in `docs/architecture/AUDIT_SILVER_BULLET.md`. Key changes:
+
+- [x] **Shared example synthesis** — `synthesizeExample()` extracted to `src/shared/utils/example-synthesis.ts`, eliminates duplication between WorkedExample and FadedExample phases
+- [x] **Type-aware activity selection** — `MicroLearningLoopController` accepts `subjectType` prop, selects post-confusion activity per classification (procedural→transfer, conceptual→transfer, cyclic→social, perceptual→transfer)
+- [x] **Blueprint-Formula dashboard wired** — `updateTypeAwareMetrics()` called in `handleLoopComplete` with real cognitive metrics, dashboard now receives live data
+- [x] **PeerReviewActivity rebuilt** — Generates misconceptions from `commonPitfalls` and same-tier concept confusion; validates correction via keyword scoring
+- [x] **CreativeTransferActivity rebuilt** — Type-aware scenario templates (procedural/conceptual/cyclic/perceptual); keyword-based response scoring replaces length check
+- [x] **MasteryChallenge real scoring** — Automated keyword + concept-name coverage scoring replaces self-assessment honor system; shows score %, matched terms, missed terms
+- [x] **NomenclatureSprint verb-object matching** — Match pairs now include `howToUse` steps alongside metaphor anchors for action-oriented recall
+- [x] **VerifyPhase better distractors** — Fallback distractors pulled from other concepts' hook sentences and key points instead of generic templates
+- [x] **FadedExample fuzzy validation** — Input validated via word-overlap against step text (30% threshold) instead of `length > 3`
+- [x] **App.tsx cleanup** — Removed dead commented bionic reading code
+- [x] **Home.tsx universal search** — Search placeholder changed to "Enter any subject to learn..." to feel universal
+
+### Planned — Future
+
 - [ ] Multi-device sync (CRDT-lite field merging)
 - [ ] Analytics pipeline (metaphor usage, session metrics, G/Q tracking)

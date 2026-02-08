@@ -56,16 +56,21 @@ export function NomenclatureSprint({
     const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
     const [isComplete, setIsComplete] = useState(false);
 
-    // Generate match pairs from concepts
     const matchPairs: MatchPair[] = useMemo(() => {
         return concepts
-            .filter(c => c.mnemonic?.anchor || c.hookSentence)
-            .slice(0, 15) // Limit to 15 pairs
-            .map(c => ({
-                id: c.id,
-                term: c.name,
-                metaphor: c.mnemonic?.anchor || c.hookSentence || c.name,
-            }));
+            .filter(c => c.mnemonic?.anchor || c.hookSentence || (c.howToUse && c.howToUse.length > 0))
+            .slice(0, 15)
+            .map(c => {
+                const hasAction = c.howToUse && c.howToUse.length > 0;
+                const useAnchor = !hasAction || Math.random() > 0.5;
+                return {
+                    id: c.id,
+                    term: c.name,
+                    metaphor: useAnchor
+                        ? (c.mnemonic?.anchor || c.hookSentence || c.name)
+                        : c.howToUse![0],
+                };
+            });
     }, [concepts]);
 
     // Current pair and shuffled options

@@ -8,7 +8,6 @@ import BackgroundJobToast from './components/ui/BackgroundJobToast';
 
 const Home = lazy(() => import('./pages/Home'));
 const Generate = lazy(() => import('./pages/Generate'));
-const Settings = lazy(() => import('./pages/Settings'));
 const SavedResults = lazy(() => import('./pages/SavedResults'));
 
 const Study = lazy(() => import('./pages/Study'));
@@ -33,21 +32,6 @@ function LoadingFallback() {
 
 
 function App() {
-  // const bionicReading = usePersonalizationStore(state => state.bionicReading);
-
-
-  // Apply bionic reading mode to document
-  // useEffect(() => {
-  //   if (bionicReading) {
-  //     document.documentElement.setAttribute('data-bionic-reading', 'true');
-  //   } else {
-  //     document.documentElement.removeAttribute('data-bionic-reading');
-  //   }
-  // }, [bionicReading]);
-
-  // Apply bionic reading text processing
-
-
   return (
     <BrowserRouter>
       <Suspense fallback={<LoadingFallback />}>
@@ -95,15 +79,8 @@ function App() {
           } />
 
           {/* ═══════════════════════════════════════════════════════════════
-              SETTINGS & LIBRARY
+              LIBRARY
               ═══════════════════════════════════════════════════════════════ */}
-          <Route path="/settings" element={
-            <ProtectedRoute><Settings /></ProtectedRoute>
-          } />
-
-          {/* 
-           * Library - Saved/bookmarked generation results
-           */}
           <Route path="/library" element={
             <ProtectedRoute><SavedResults /></ProtectedRoute>
           } />

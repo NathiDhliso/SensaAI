@@ -14,7 +14,9 @@ import {
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/shared/types/learning';
+import type { SubjectType } from '@/shared/types/macro-workflow';
 import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
+import { synthesizeExample } from '@/shared/utils/example-synthesis';
 
 import BlankSheetTest from '@/components/learning/activities/BlankSheetTest';
 import ConfusionDrill from '@/components/learning/activities/ConfusionDrill';
@@ -35,19 +37,13 @@ export type LoopPhase = 'worked-example' | 'faded-example' | 'test' | 'learn' | 
 export type LoopOutcome = 'mastered' | 'needs-learning' | 'needs-review';
 
 export interface MicroLearningLoopProps {
-    /** Current concept being learned */
     concept: LearningConcept;
-    /** All concepts for confusion detection */
     allConcepts?: LearningConcept[];
-    /** Complexity score (1-10) for adaptive timing */
     complexityScore: number;
-    /** User's historical velocity for this type of concept */
     userVelocity?: number;
-    /** Callback when loop completes */
+    subjectType?: SubjectType;
     onLoopComplete: (outcome: LoopOutcome, timeSpent: number) => void;
-    /** Callback to skip to next concept */
     onSkip: () => void;
-    /** Callback to return to concept map (optional - falls back to skip if not provided) */
     onReturnToMap?: () => void;
 }
 
@@ -56,6 +52,25 @@ interface TestPhaseResult {
     totalPoints: number;
     confidence: number;
     timeSpent: number;
+}
+
+// ============================================================================
+// TYPE-AWARE ACTIVITY SELECTION
+// ============================================================================
+
+function selectPostConfusionActivity(subjectType?: SubjectType): LoopPhase {
+    switch (subjectType) {
+        case 'procedural':
+            return 'creative-transfer';
+        case 'conceptual':
+            return 'creative-transfer';
+        case 'cyclic':
+            return 'social-learning';
+        case 'perceptual':
+            return 'creative-transfer';
+        default:
+            return Math.random() > 0.5 ? 'social-learning' : 'creative-transfer';
+    }
 }
 
 // ============================================================================
@@ -129,50 +144,7 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
     const [revealStep, setRevealStep] = useState(0);
     const [startTime] = useState(() => Date.now());
 
-    // Synthesize problem/solution - STRICT MODE: flag missing content
-    const example = useMemo(() => {
-        // Priority: Use explicit workedExample if provided
-        if (concept.workedExample) return { ...concept.workedExample, hasError: false };
-
-        // Build scenario from available content
-        const contextText = concept.shape?.highStakesExample ||
-            concept.hookSentence ||
-            concept.whyYouNeed;
-
-        // Use shape.analogicalModel or shape.simpleCore for solution approach
-        const approachText = concept.shape?.analogicalModel ||
-            concept.shape?.simpleCore ||
-            concept.metaphor;
-
-        // Check if we have REAL content (not placeholders)
-        const isRealContent = (text?: string, conceptName?: string) => {
-            if (!text || text.trim() === '') return false;
-            const lowerText = text.toLowerCase();
-            // Check for common placeholder phrases
-            if (lowerText.includes('lorem ipsum') || lowerText.includes('placeholder') || lowerText.includes('to be defined')) return false;
-            // Check if it's just the concept name itself, which isn't real content
-            if (conceptName && lowerText.includes(conceptName.toLowerCase()) && lowerText.length < conceptName.length + 10) return false;
-            return true;
-        };
-
-        const hasRealContext = isRealContent(contextText, concept.name);
-        const hasRealApproach = isRealContent(approachText, concept.name);
-        const hasRealSteps = (concept.howToUse && concept.howToUse.length > 0) ||
-            (concept.keyPoints && concept.keyPoints.length > 0);
-
-        return {
-            problem: hasRealContext
-                ? `Scenario: ${contextText}`
-                : null, // Flag as missing
-            solution: hasRealApproach
-                ? `Approach: ${approachText}`
-                : null, // Flag as missing
-            steps: hasRealSteps
-                ? (concept.howToUse && concept.howToUse.length > 0 ? concept.howToUse : concept.keyPoints!)
-                : [], // Empty = error
-            hasError: !hasRealContext || !hasRealApproach || !hasRealSteps
-        };
-    }, [concept]);
+    const example = useMemo(() => synthesizeExample(concept), [concept]);
 
     const handleReveal = () => {
         setIsSolutionRevealed(true);
@@ -273,24 +245,7 @@ function FadedExamplePhase({ concept, onComplete, sessionContext }: WorkedExampl
     // Use sessionContext to show intent if available
     const intentMessage = sessionContext?.intent ? `Goal: ${sessionContext.intent}` : null;
 
-    // Synthesize problem/solution (Reuse logic or similar)
-    const example = useMemo(() => {
-        // ... (Same content synthesis as WorkedExample, duplicated for now to keep independent)
-        // Priority: Use explicit workedExample if provided
-        if (concept.workedExample) return { ...concept.workedExample, hasError: false };
-
-        const contextText = concept.shape?.highStakesExample || concept.hookSentence;
-        const approachText = concept.shape?.analogicalModel || concept.metaphor;
-
-        const steps = (concept.howToUse && concept.howToUse.length > 0) ? concept.howToUse : (concept.keyPoints || []);
-
-        return {
-            problem: contextText ? `Scenario: ${contextText}` : "Scenario loading...",
-            solution: approachText,
-            steps: steps,
-            hasError: steps.length === 0
-        };
-    }, [concept]);
+    const example = useMemo(() => synthesizeExample(concept), [concept]);
 
     // Initialize user inputs for missing steps (fade last 50%)
     const fadedStartIndex = Math.max(1, Math.floor(example.steps.length / 2));
@@ -362,12 +317,13 @@ function FadedExamplePhase({ concept, onComplete, sessionContext }: WorkedExampl
                                                 type="text"
                                                 placeholder="What comes next?"
                                                 className={styles.fadedInput}
-                                                // Simplified: In a real app we'd validate this against the step text
                                                 onChange={(e) => handleInput(idx, e.target.value)}
                                                 onBlur={(e) => {
-                                                    // Auto-reveal the correct answer for now after they try
-                                                    if (e.target.value.length > 3) {
-                                                        // Simulate checking
+                                                    const input = e.target.value.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                                                    const target = step.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                                                    const overlap = input.filter(w => target.some(t => t.includes(w) || w.includes(t))).length;
+                                                    const threshold = Math.max(1, Math.floor(target.length * 0.3));
+                                                    if (input.length >= 2 && overlap >= threshold) {
                                                         setRevealStep(prev => Math.max(prev, idx + 1));
                                                     }
                                                 }}
@@ -753,18 +709,20 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
                 const distractorText = c.hookSentence || (c.howToUse && c.howToUse[0]) || `Related to ${c.name}`;
                 distractors.push(distractorText);
             }
-        } else {
-            // Fallback to generic distractors if not enough concepts
-            distractors.push(
-                `The process of reversing ${concept.name}`,
-                `An alternative to ${concept.name}`,
-                `A deprecated version of ${concept.name}`
-            );
+        } else if (otherConcepts.length > 0) {
+            const shuffled = shuffleArray(otherConcepts);
+            for (let i = 0; i < Math.min(3, shuffled.length); i++) {
+                const c = shuffled[i];
+                const distractorText = c.hookSentence || (c.keyPoints && c.keyPoints[0]) || (c.howToUse && c.howToUse[0]) || c.name;
+                distractors.push(distractorText);
+            }
         }
 
-        // Ensure we have 3 distractors (fill with generic if needed/mixed)
         while (distractors.length < 3) {
-            distractors.push(`An unrelated concept in ${concept.name}`);
+            const filler = otherConcepts.length > 0
+                ? (otherConcepts[distractors.length % otherConcepts.length].hookSentence || otherConcepts[distractors.length % otherConcepts.length].name)
+                : `A related property of ${concept.name}`;
+            distractors.push(filler);
         }
 
         return {
@@ -934,6 +892,7 @@ export function MicroLearningLoopController({
     allConcepts,
     complexityScore,
     userVelocity = 1.0,
+    subjectType,
     onLoopComplete,
     onSkip,
     onReturnToMap,
@@ -1154,10 +1113,7 @@ export function MicroLearningLoopController({
                                         ? determineOutcome(testResult, verifyResultData)
                                         : 'mastered';
                                     if (outcome === 'mastered') {
-                                        // ARCHITECT: Insert Social Learning OR Creative Transfer Phase
-                                        // Randomly select for variety or based on complexity?
-                                        // For now, 50/50 split for variety
-                                        const nextPhase = Math.random() > 0.5 ? 'social-learning' : 'creative-transfer';
+                                        const nextPhase = selectPostConfusionActivity(subjectType);
                                         setLoopState(nextPhase);
                                     } else if (outcome === 'needs-review') {
                                         // If not mastered, or needs review, complete the loop normally
@@ -1181,6 +1137,7 @@ export function MicroLearningLoopController({
                         <div className={styles.phaseCard}>
                             <PeerReviewActivity
                                 concept={concept}
+                                allConcepts={allConcepts}
                                 onComplete={() => handlePhaseComplete('social-learning', { timeSpent: 45 })}
                             />
                         </div>
@@ -1190,6 +1147,7 @@ export function MicroLearningLoopController({
                         <div className={styles.phaseCard}>
                             <CreativeTransferActivity
                                 concept={concept}
+                                subjectType={subjectType}
                                 onComplete={() => handlePhaseComplete('creative-transfer', { timeSpent: 60 })}
                             />
                         </div>

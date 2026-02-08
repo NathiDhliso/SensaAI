@@ -562,6 +562,14 @@
   color: var(--color-text-primary);
 }
 
+.moodDesc {
+  font-size: 0.5625rem;
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+  text-align: center;
+  max-width: 100%;
+}
+
 @media (max-width: 600px) {
   .moodGrid {
     grid-template-columns: repeat(2, 1fr);

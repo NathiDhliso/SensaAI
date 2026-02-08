@@ -22,6 +22,7 @@ import { loadSessionProgress, getProgressAge, cleanupExpiredProgress } from '@/f
 import { toast } from '@/shared/utils/toast';
 
 import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
+import { BlueprintFormulaDashboard } from '@/components/dashboard/BlueprintFormulaDashboard';
 import { EquationTracker } from '@/components/ui/EquationTracker';
 import { FlowProgressBar } from '@/components/ui/FlowProgressBar';
 import { ConceptProgressIndicator } from '@/components/ui/ConceptProgressIndicator';
@@ -102,6 +103,14 @@ export default function VelocityLearning() {
             }
         },
     });
+
+    // 2e. Initialize G baseline from subject classification
+    useEffect(() => {
+        if (currentSession?.subjectType) {
+            const confidence = currentSession.macroWorkflow?.classification?.confidence;
+            sensaFlow.initializeFromClassification(currentSession.subjectType, confidence);
+        }
+    }, [currentSession?.subjectType]);
 
     // 3. Local UI State (MUST be declared before useEffects that reference them)
     const [lockedIn, setLockedIn] = useState(false);
@@ -248,8 +257,25 @@ export default function VelocityLearning() {
             }
         }
 
-        // Next concept is auto-selected by store logic usually, but let's be safe
-        // useLearningFlow will recalculate activeConcept on next render
+        if (currentSession?.subjectType) {
+            const progress = currentSession.progress;
+            const metrics = currentSession.cognitiveMetrics;
+            sensaFlow.updateTypeAwareMetrics({
+                completedConcepts: progress.completedConcepts.length + 1,
+                totalConcepts: currentSession.concepts.length,
+                consecutiveCorrect: metrics.consecutiveCorrect,
+                consecutiveErrors: metrics.consecutiveErrors,
+                avgResponseTimeMs: metrics.avgResponseTimeMs,
+                mapNodeCount: studySession?.conceptMap?.nodes?.length ?? 0,
+                mapConnectionCount: studySession?.conceptMap?.connections?.length ?? 0,
+                guessCount: Object.keys(studySession?.predictions ?? {}).length,
+                cycleCompletions: progress.completedConcepts.length,
+                blankSheetScore: score,
+                quizAccuracy: score,
+                timeSpentMs: progress.sessionStartTime ? Date.now() - progress.sessionStartTime : 0,
+                targetDurationMs: (studySession?.targetDuration ?? 30) * 60000,
+            });
+        }
     };
 
     // ARCHITECT ENHANCEMENT: Diagnostic Skip with Reason Capture
@@ -425,12 +451,29 @@ export default function VelocityLearning() {
                                 completedPhases={sensaFlow.completedSteps}
                                 compact={true}
                                 subProgress={
-                                    // Calculate sub-progress during STUDY phase (micro-learning loop)
                                     sensaFlow.phase === 'study' && currentSession
                                         ? currentSession.progress.completedConcepts.length / currentSession.concepts.length
                                         : 0
                                 }
                             />
+
+                            {currentSession?.subjectType && (
+                                <BlueprintFormulaDashboard
+                                    subjectType={sensaFlow.subjectType}
+                                    G={sensaFlow.G}
+                                    gBaseline={sensaFlow.gBaseline}
+                                    Q_f={sensaFlow.Q_f}
+                                    Q_M={sensaFlow.Q_M}
+                                    Q_P={sensaFlow.Q_P}
+                                    I={sensaFlow.I}
+                                    phase={sensaFlow.phase}
+                                    qLabels={sensaFlow.qLabels}
+                                    typeAwareMetrics={sensaFlow.typeAwareMetrics}
+                                    feedbackSignal={sensaFlow.feedbackSignal}
+                                    recommendation={sensaFlow.recommendation}
+                                    weakestVariable={sensaFlow.weakestVariable}
+                                />
+                            )}
                         </>
                     )}
 
@@ -604,6 +647,7 @@ export default function VelocityLearning() {
                             allConcepts={currentSession!.concepts}
                             complexityScore={(activeConcept as LearningConcept & { complexityScore?: number }).complexityScore || 5}
                             userVelocity={1.0}
+                            subjectType={currentSession?.subjectType}
                             onLoopComplete={handleLoopComplete}
                             onSkip={handleSkipConcept}
                             onReturnToMap={handleReturnToMap}

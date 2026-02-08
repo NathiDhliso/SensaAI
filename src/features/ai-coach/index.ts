@@ -23,31 +23,31 @@ export interface MoodOption {
 export const MOOD_OPTIONS: MoodOption[] = [
     {
         id: 'energized',
-        emoji: '😊',
+        emoji: '⚡',
         label: 'Energized',
-        description: 'Focused and ready to tackle challenges',
-        sessionAdjustment: 'Full intensity, challenging concepts first'
+        description: 'Push me — I want a challenge',
+        sessionAdjustment: 'Velocity drills, harder concepts first, 45 min'
     },
     {
         id: 'neutral',
-        emoji: '😐',
+        emoji: '🧠',
         label: 'Neutral',
-        description: "Let's see how it goes",
-        sessionAdjustment: 'Standard pacing, balanced approach'
+        description: 'Steady pace, deep understanding',
+        sessionAdjustment: 'Full learning lifecycle, balanced mix, 30 min'
     },
     {
         id: 'tired',
-        emoji: '😴',
+        emoji: '�',
         label: 'Tired',
-        description: 'Low energy but showing up',
-        sessionAdjustment: 'Shorter bursts, more encouragement, easier concepts first'
+        description: 'Keep it light — review what I know',
+        sessionAdjustment: 'Spaced review, familiar concepts, 15 min'
     },
     {
         id: 'stressed',
-        emoji: '😤',
+        emoji: '🌊',
         label: 'Stressed',
-        description: 'Need to clear my head',
-        sessionAdjustment: 'Extended calming intro, easy wins first'
+        description: 'No pressure — let me explore freely',
+        sessionAdjustment: 'Free exploration, easy wins, 15 min'
     }
 ];
 
