@@ -153,12 +153,22 @@ Classification goal: {classification_goal}
 You are generating **Part {part_num} of 5** for this curriculum.
 Each part covers approximately 20% of the subject's breadth.
 
-**Partition Strategy:**
-- Part 1: Foundational concepts and prerequisites
-- Part 2: Core operational concepts
-- Part 3: Applied skills and techniques
-- Part 4: Advanced integration and optimization
-- Part 5: Specialized topics and edge cases
+**Partition Strategy (Knowledge Dimensions):**
+- Part 1: **Core Mechanics** — Foundational building blocks, data structures, key terminology, prerequisite knowledge
+- Part 2: **Workflows & Operations** — Day-to-day processes, standard procedures, configuration, transformation, modeling
+- Part 3: **Output & Delivery** — Creating deliverables, visualization, reporting, presentation, publishing, sharing, collaboration
+- Part 4: **Governance & Infrastructure** — Security, access control, compliance, deployment, refresh/sync, gateways, environments, administration
+- Part 5: **Advanced & Ecosystem** — Optimization, performance tuning, platform-specific features, AI/automation capabilities, mobile/cross-platform, integrations, edge cases
+
+**CRITICAL COVERAGE RULE:**
+Each part must cover its assigned knowledge dimension COMPLETELY. Do NOT let concepts from one dimension bleed into another part.
+Think about what a certification exam or real-world practitioner would need to know in this dimension — cover ALL of it.
+
+**Coverage Dimensions by Classification Type:**
+- **Procedural**: Ensure each part covers the tools, settings, and platform features relevant to that dimension — not just the process steps
+- **Conceptual**: Ensure each part covers the governance frameworks, collaboration patterns, and delivery mechanisms — not just the theoretical concepts
+- **Cyclic**: Ensure each part covers the infrastructure, team workflows, and iteration tooling — not just the cycle phases
+- **Perceptual**: Ensure each part covers the diagnostic tools, reporting systems, and practice environments — not just the perceptual skills
 
 Generate concepts {start_idx} to {end_idx} for Part {part_num}.
 
@@ -251,7 +261,8 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 3. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
 4. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study.
 5. **METAPHORS**: Use objects OUTSIDE the domain.
-6. **NO DUPLICATION**: You are Part {part_num} of 5. Only cover your pillar.
+6. **NO DUPLICATION**: You are Part {part_num} of 5. Only cover your assigned knowledge dimension.
+7. **FULL DIMENSION COVERAGE**: Cover ALL important topics within your assigned dimension. Think: "What would a certification exam test in this dimension?" Do not leave gaps.
 
 Generate concepts {start_idx} through {end_idx} now:"""
 
@@ -267,7 +278,7 @@ def get_silver_bullet_prompt(
 {context}
 
 **INSTRUCTION**: Map your concepts for Part {part} directly to the objectives above.
-Cover objectives proportionally (if 5 domains listed, each pillar covers ~1 domain)."""
+Cover objectives proportionally (if 5 domains listed, each knowledge dimension covers ~1 domain)."""
     else:
         context_block = ""
 

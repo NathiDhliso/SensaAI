@@ -87,7 +87,12 @@ Express backend proxies to Lambda (generate_concepts)
         ▼
 Lambda handler.py:
   1. classify_subject() → Bedrock call → returns { subjectType, classification, macroStructure }
-  2. Parallel generate_concepts() with classification context → Bedrock calls
+  2. Parallel generate_concepts() × 5 parts (knowledge dimensions) → Bedrock calls
+     Part 1: Core Mechanics (foundations, terminology, prerequisites)
+     Part 2: Workflows & Operations (processes, configuration, modeling)
+     Part 3: Output & Delivery (visualization, reporting, publishing, collaboration)
+     Part 4: Governance & Infrastructure (security, compliance, deployment, admin)
+     Part 5: Advanced & Ecosystem (optimization, AI features, mobile, integrations)
   3. Post-process: assign tiers, stages, validate
   4. Store concepts + classification in DynamoDB (jobs table + concepts table)
   5. Return { jobId, sessionId, conceptCount, classification }
@@ -136,7 +141,7 @@ Classification data flows through the entire pipeline and influences stage namin
 
 ```
 src/
-├── App.tsx                    # Root component, routing
+├── App.tsx                    # Root component, routing, mounts SettingsPanel + BackgroundJobToast
 ├── contexts/
 │   └── ContentContext.tsx     # Content provider (used by main.tsx)
 ├── pages/                     # Full page views
@@ -145,21 +150,44 @@ src/
 │   ├── Study.tsx              # Study session entry + hydration
 │   ├── VelocityLearning.tsx   # SENSA v2.0 learning engine
 │   ├── SavedResults.tsx       # Library of generated content
-│   ├── Settings.tsx           # User preferences
 │   ├── Login.tsx / SignUp.tsx  # Auth pages
 │   └── DocumentView.tsx       # Raw document viewer
 │
 ├── components/                # UI components
-│   ├── ui/                    # Generic (EquationTracker, FlowProgressBar, etc.)
+│   ├── auth/                  # ProtectedRoute (route guard)
+│   ├── ui/                    # Generic UI widgets
+│   │   ├── EquationTracker    # Universal Learning Equation display
+│   │   ├── FlowProgressBar    # Session progress bar
+│   │   ├── BackgroundJobToast # Generation job notifications
+│   │   ├── MomentumCheckpoint # Momentum milestone celebrations
+│   │   ├── HelpModal          # Contextual help overlay
+│   │   ├── SensaIcon / SensaShape  # Brand components
+│   │   ├── SpeedReaderBar     # Speed reading overlay
+│   │   ├── SessionTimeToast   # Session time notifications
+│   │   ├── TierExplainer      # Tier system explainer
+│   │   └── ConceptProgressIndicator
 │   ├── learning/              # Learning-specific
-│   │   ├── activities/        # BlankSheet, ConfusionDrill, Quiz, ConceptMapBuilder
-│   │   ├── session/           # SessionStartModal, VelocityLockInGate
-│   │   ├── onboarding/        # DiagnosticLaunchSystem
-│   │   ├── feedback/          # SkipReasonModal
-│   │   ├── ui/                # PhaseNavigator, SensaSynopticView
+│   │   ├── activities/        # BlankSheet, ConfusionDrill, ConceptMapBuilder,
+│   │   │                      # MasteryChallenge, NomenclatureSprint,
+│   │   │                      # CreativeTransfer, PeerReview
+│   │   ├── session/           # SessionStartModal, VelocityLockInGate,
+│   │   │                      # SessionScoutPreview, SessionGoalManager,
+│   │   │                      # SessionSummary, UnifiedSessionBar
+│   │   ├── onboarding/        # DiagnosticLaunchSystem, GuidedPrimer,
+│   │   │                      # OnboardingFlow, PrerequisiteCheck
+│   │   ├── feedback/          # SkipReasonModal, CelebrationModal,
+│   │   │                      # ConnectionTypeModal, NeuralResetModal,
+│   │   │                      # FlagInaccuracyButton
+│   │   ├── launchpad/         # ContentLaunchpad, ScoreCard, TierDistributionChart
+│   │   ├── LearningToolbar/   # FocusTimer, ProgressAnalytics, QuickQuiz
+│   │   ├── ui/                # PhaseNavigator, SensaSynopticView,
+│   │   │                      # CognitiveGauge, NeuralResetBanner
 │   │   └── MicroLearningLoopController.tsx  # Core learning loop orchestrator
-│   ├── generation/            # CognitiveStream (animated generation thoughts)
-│   ├── layout/                # AppLayout, Sidebar
+│   ├── generation/            # CognitiveStream, AgentCore
+│   ├── layout/                # StudyLayout (unified study command center wrapper)
+│   ├── settings/              # SettingsPanel (slide-out, always mounted in App.tsx)
+│   ├── dashboard/             # BlueprintFormulaDashboard, MasteryDashboard
+│   ├── storage/               # CloudLibraryModal
 │   └── error/                 # ErrorBoundary
 │
 ├── features/                  # Business logic by domain
@@ -180,17 +208,20 @@ src/
 │   │   ├── sync/              # import.ts, sync-engine.ts
 │   │   ├── manager.ts         # StorageManager (orchestrates cloud + local)
 │   │   └── types.ts           # SavedResult, StorageProvider interfaces
-│   ├── ai-coach/              # AI coach personas and voice
-│   ├── personalization/       # User preference features
+│   ├── ai-coach/              # AI coach personas, voice (useVoice hook, static-lines)
+│   │   ├── components/        # Coach UI components
+│   │   └── voice/             # useVoice.ts, static-lines.ts
+│   ├── personalization/       # User preference features (MetaphorToggle, etc.)
+│   │   └── components/        # MetaphorToggle
 │   └── social/                # Social learning types (PeerReview)
 │
 ├── store/                     # Zustand state management
 │   ├── auth-store.ts          # Authentication state
 │   ├── generation-store.ts    # Generation jobs, progress, classification
 │   ├── learning-store.ts      # Composed from slices (below)
-│   ├── personalization-store.ts # Metaphors, stress-free mode, practice mode
-│   ├── theme-store.ts         # Dark/light theme
-│   ├── ui-store.ts            # UI state
+│   ├── personalization-store.ts # Metaphors, stress-free mode, practice mode, coach settings
+│   ├── theme-store.ts         # Dark/light/system theme
+│   ├── ui-store.ts            # Settings panel open/close state
 │   └── slices/                # Learning store slices
 │       ├── createSessionSlice.ts     # Session lifecycle (load, clear, start)
 │       ├── createNavigationSlice.ts  # Concept navigation + progress persistence
@@ -203,19 +234,40 @@ src/
 │
 └── shared/                    # Cross-cutting utilities
     ├── api/                   # API client, concepts API
-    ├── hooks/                 # useLearningFlow, useSensaFlow, useFlowState, useGenerationEngine
+    ├── hooks/                 # useLearningFlow, useSensaFlow, useFlowState,
+    │                          # useGenerationEngine, useClickOutside, useEscapeKey
     ├── types/                 # learning.ts, macro-workflow.ts, sensa-flow.ts, generation.ts
-    ├── constants/             # UI timings, scoring constants
-    ├── services/              # audio.ts (unified AudioManager + AudioService), exam-objectives-fetcher.ts
-    └── utils/                 # content-loader.ts, toast.ts, score-utils.ts
+    ├── constants/             # UI timings, scoring constants, theme-colors
+    ├── services/              # audio.ts (AudioManager + AudioService), exam-objectives-fetcher.ts
+    └── utils/                 # content-loader.ts, toast.ts, score-utils.ts, example-synthesis.ts
 ```
+
+### Routes (App.tsx)
+
+| Route | Component | Auth |
+|-------|-----------|------|
+| `/` | Home | Public |
+| `/login` | Login | Public |
+| `/signup` | SignUp | Public |
+| `/confirm-signup` | ConfirmSignUp | Public |
+| `/auth/callback`, `/callback` | AuthCallback | Public |
+| `/generate/:subject` | Generate | Protected |
+| `/study/:subjectId` | Study | Protected |
+| `/launchpad/:subjectId` | ContentLaunchpad | Protected |
+| `/library` | SavedResults | Protected |
+| `/view/:id` | DocumentView | Protected |
+
+Global overlays always mounted: `SettingsPanel` (slide-out), `BackgroundJobToast`.
 
 ### Key Frontend Patterns
 
-- **Zustand slices** — Learning store is composed from session, navigation, and study slices
+- **Zustand slices** — Learning store is composed from session, navigation, study, cognitive, diagnostic, focus, and UI slices
 - **Ref-based cleanup** — Unmount effects use refs to avoid stale closure cascades
 - **Throttled persistence** — Session progress saves are throttled (2s) with flush-on-unmount
 - **Modular CSS** — All styling via `.module.css` files, no global CSS classes
+- **Consolidated settings** — Single `SettingsPanel` slide-out (portal-based, always mounted in App.tsx) replaces the old `/settings` page. Opened via `useUIStore.openSettingsPanel()`
+- **Mood-based session curation** — `SessionStartModal` mood selection auto-sets goal + duration based on energy level
+- **Browser SpeechSynthesis** — Voice preview in settings uses native `SpeechSynthesis` API (no audio file dependency)
 
 ---
 
@@ -317,21 +369,23 @@ infra/terraform/
 
 ## 8. Learning Engine (SENSA v2.0)
 
-### 5-Phase Flow
+### Learning Phase Flow
 
 ```
-PRIME → BUILD → MASTER → COMPLETE
-  │
-  └── DIAGNOSE (optional, on first visit)
+SCOUT → PREVIEW → PRIME → BUILD → MASTER → COMPLETE
+                    │
+                    └── DIAGNOSE (optional, on first visit)
 ```
 
 | Phase | Purpose | Key Component |
 |-------|---------|--------------|
-| PRIME | Lock-in: set goal, duration, primer | VelocityLockInGate, SessionStartModal |
+| SCOUT | Pre-learning overview of content | SessionScoutPreview |
+| PREVIEW | Nomenclature Sprint + Gap Priming | NomenclatureSprint |
+| PRIME | Lock-in: set goal, duration, mood | VelocityLockInGate, SessionStartModal |
 | DIAGNOSE | Assess prior knowledge | DiagnosticLaunchSystem |
 | BUILD | Core learning loop | MicroLearningLoopController |
 | MASTER | Mastery challenges | MasteryChallenge, ConceptMapBuilder |
-| COMPLETE | Summary dashboard | (Future: MasteryDashboard) |
+| COMPLETE | Summary dashboard | MasteryDashboard |
 
 ### Micro Learning Loop (BUILD phase)
 
@@ -415,10 +469,12 @@ Token refresh handled transparently via refresh token cookie
 - [x] Mastery challenges
 - [x] Generation progress UI (CognitiveStream, subject type badge)
 - [x] Session time tracking + momentum checkpoints
-- [x] Dark/light theme
-
-### Planned — Near Term
-
+- [x] Dark/light/system theme
+- [x] Consolidated settings panel (slide-out, all toggles wired to stores)
+- [x] Mood-based session curation (energized/neutral/tired/stressed → auto-set goal + duration)
+- [x] Browser SpeechSynthesis voice preview (no audio file dependency)
+- [x] ContentLaunchpad (analytics + readiness dashboard at `/launchpad/:subjectId`)
+- [x] StudyLayout (unified study command center wrapper with cognitive load indicator)
 - [x] SCOUT phase (pre-learning overview) — SessionScoutPreview wired into VelocityLearning
 - [x] PREVIEW phase (content preview before study) — Nomenclature Sprint + Gap Priming steps
 - [x] MasteryDashboard (COMPLETE phase summary) — Grade, equation breakdown, tier coverage
@@ -426,6 +482,10 @@ Token refresh handled transparently via refresh token cookie
 - [x] Struggle detector (interaction velocity heuristic) — useStruggleDetector wired into VelocityLearning
 - [x] Production environment (Terraform `prod/`) — Full config with production URLs
 - [x] S3 backend for Terraform state — Bootstrap module + both envs use S3 backend
+- [x] LearningToolbar (FocusTimer, ProgressAnalytics, QuickQuiz)
+- [x] Feedback system (CelebrationModal, ConnectionTypeModal, NeuralResetModal, FlagInaccuracyButton)
+- [x] Onboarding flow (GuidedPrimer, PrerequisiteCheck, OnboardingFlow)
+- [x] CloudLibraryModal (cloud storage browser)
 
 ### Phase 2 — Blueprint-Formula Integration (Implemented)
 
