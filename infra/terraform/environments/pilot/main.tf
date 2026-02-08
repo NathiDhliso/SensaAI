@@ -4,14 +4,13 @@
 terraform {
   required_version = ">= 1.6.0"
 
-  # Local state for pilot - uncomment S3 backend when ready for team use
-  # backend "s3" {
-  #   bucket         = "sensapbl-terraform-state"
-  #   key            = "pilot/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-locks"
-  # }
+  backend "s3" {
+    bucket         = "sensapbl-terraform-state"
+    key            = "pilot/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "terraform-locks"
+  }
 }
 
 # Load the root module with pilot-specific configuration

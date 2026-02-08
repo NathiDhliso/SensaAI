@@ -4,14 +4,13 @@
 terraform {
   required_version = ">= 1.6.0"
 
-  # Recommended: Use S3 backend for production state
-  # backend "s3" {
-  #   bucket         = "sensapbl-terraform-state-prod"
-  #   key            = "prod/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-locks"
-  # }
+  backend "s3" {
+    bucket         = "sensapbl-terraform-state"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "terraform-locks"
+  }
 }
 
 # The root module handles all resource creation

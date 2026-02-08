@@ -29,22 +29,38 @@ import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
 export type PrimerAudioKey = keyof typeof PRIMER_AUDIO;
 
+export type AudioPriority = 'background' | 'narration' | 'effect' | 'interrupt';
+
+interface QueuedAudio {
+    src: string;
+    priority: AudioPriority;
+    volume?: number;
+    loop?: boolean;
+}
+
+const PRIORITY_RANK: Record<AudioPriority, number> = {
+    background: 0,
+    narration: 1,
+    effect: 2,
+    interrupt: 3,
+};
+
 class AudioManager {
     private static instance: AudioManager;
 
-    // Audio elements
     private backgroundMusic: HTMLAudioElement | null = null;
     private narration: HTMLAudioElement | null = null;
+    private activeEffect: HTMLAudioElement | null = null;
 
-    // State
     private isMuted: boolean = false;
     private musicVolume: number = 0.3;
     private narrationVolume: number = 0.8;
     private isBackgroundMusicEnabled: boolean = true;
     private isNarrationEnabled: boolean = true;
 
-    // Preloaded audio cache
     private audioCache: Map<string, HTMLAudioElement> = new Map();
+    private queue: QueuedAudio[] = [];
+    private currentPriority: AudioPriority = 'background';
 
     private constructor() {
         // Load preferences from localStorage
@@ -326,9 +342,112 @@ class AudioManager {
         });
     }
 
-    stopCurrent(_fade: boolean = false): Promise<void> {
+    stopCurrent(fade: boolean = false): Promise<void> {
+        if (fade) return this.fadeOutAll(500);
         this.stopAll();
         return Promise.resolve();
+    }
+
+    async playWithPriority(src: string, priority: AudioPriority, options?: { volume?: number; loop?: boolean }): Promise<void> {
+        if (this.isMuted) return;
+
+        const rank = PRIORITY_RANK[priority];
+        const currentRank = PRIORITY_RANK[this.currentPriority];
+
+        if (rank < currentRank && this.activeEffect) {
+            this.queue.push({ src, priority, ...options });
+            return;
+        }
+
+        if (rank >= currentRank && this.activeEffect) {
+            await this.fadeOutEffect(300);
+        }
+
+        if (priority === 'interrupt' && this.narration) {
+            const savedVolume = this.backgroundMusic?.volume ?? this.musicVolume;
+            if (this.backgroundMusic) this.backgroundMusic.volume = savedVolume * 0.2;
+        }
+
+        let audio = this.audioCache.get(src);
+        if (!audio) {
+            audio = new Audio(src);
+            audio.preload = 'auto';
+            this.audioCache.set(src, audio);
+        }
+
+        const el = audio.cloneNode(true) as HTMLAudioElement;
+        el.volume = options?.volume ?? (priority === 'background' ? this.musicVolume : this.narrationVolume);
+        el.loop = options?.loop ?? false;
+        this.activeEffect = el;
+        this.currentPriority = priority;
+
+        el.addEventListener('ended', () => {
+            if (this.activeEffect === el) {
+                this.activeEffect = null;
+                this.currentPriority = 'background';
+                if (this.backgroundMusic) this.backgroundMusic.volume = this.musicVolume;
+                this.processQueue();
+            }
+        }, { once: true });
+
+        try {
+            await el.play();
+        } catch (error: unknown) {
+            const err = error as { name?: string };
+            if (err.name !== 'NotAllowedError') {
+                console.error('[AudioManager] Priority playback error:', error);
+            }
+            this.activeEffect = null;
+            this.currentPriority = 'background';
+            this.processQueue();
+        }
+    }
+
+    private processQueue(): void {
+        if (this.queue.length === 0) return;
+        this.queue.sort((a, b) => PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority]);
+        const next = this.queue.shift()!;
+        this.playWithPriority(next.src, next.priority, { volume: next.volume, loop: next.loop });
+    }
+
+    private fadeOutEffect(duration: number): Promise<void> {
+        return new Promise((resolve) => {
+            if (!this.activeEffect) { resolve(); return; }
+            const el = this.activeEffect;
+            const startVol = el.volume;
+            const steps = 10;
+            const stepDur = duration / steps;
+            const volStep = startVol / steps;
+            let step = 0;
+            const interval = setInterval(() => {
+                step++;
+                el.volume = Math.max(0, startVol - volStep * step);
+                if (step >= steps) {
+                    clearInterval(interval);
+                    el.pause();
+                    el.currentTime = 0;
+                    if (this.activeEffect === el) this.activeEffect = null;
+                    resolve();
+                }
+            }, stepDur);
+        });
+    }
+
+    private fadeOutAll(duration: number): Promise<void> {
+        const promises: Promise<void>[] = [];
+        if (this.activeEffect) promises.push(this.fadeOutEffect(duration));
+        if (this.backgroundMusic) promises.push(this.fadeOutBackgroundMusic(duration));
+        if (this.narration) {
+            promises.push(new Promise((resolve) => {
+                this.stopNarration();
+                resolve();
+            }));
+        }
+        return Promise.all(promises).then(() => {});
+    }
+
+    clearQueue(): void {
+        this.queue = [];
     }
 
     // === Getters ===

@@ -269,11 +269,17 @@ infra/terraform/
 │   ├── lambda/                # generate_concepts (15min timeout), query_concepts (30s)
 │   ├── api_gateway/           # HTTP API with Lambda integrations
 │   └── s3/                    # Content storage bucket
+├── bootstrap/                 # One-time setup: S3 state bucket + DynamoDB lock table
+│   └── main.tf
 └── environments/
-    └── pilot/                 # Pilot environment (local state)
+    ├── pilot/                 # Pilot environment (S3 backend)
+    │   ├── main.tf
+    │   ├── terraform.tfvars
+    │   └── variables.tf
+    └── prod/                  # Production environment (S3 backend)
         ├── main.tf
         ├── terraform.tfvars
-        └── terraform.tfstate
+        └── variables.tf
 ```
 
 ### Key Infrastructure Details
@@ -413,13 +419,13 @@ Token refresh handled transparently via refresh token cookie
 
 ### Planned — Near Term
 
-- [ ] SCOUT phase (pre-learning overview)
-- [ ] PREVIEW phase (content preview before study)
-- [ ] MasteryDashboard (COMPLETE phase summary)
-- [ ] Audio interrupt service (priority-based queue)
-- [ ] Struggle detector (interaction velocity heuristic)
-- [ ] Production environment (Terraform `prod/`)
-- [ ] S3 backend for Terraform state
+- [x] SCOUT phase (pre-learning overview) — SessionScoutPreview wired into VelocityLearning
+- [x] PREVIEW phase (content preview before study) — Nomenclature Sprint + Gap Priming steps
+- [x] MasteryDashboard (COMPLETE phase summary) — Grade, equation breakdown, tier coverage
+- [x] Audio interrupt service (priority-based queue) — playWithPriority(), fade, queue processing
+- [x] Struggle detector (interaction velocity heuristic) — useStruggleDetector wired into VelocityLearning
+- [x] Production environment (Terraform `prod/`) — Full config with production URLs
+- [x] S3 backend for Terraform state — Bootstrap module + both envs use S3 backend
 
 ### Planned — Phase 2 (Blueprint-Formula Integration)
 

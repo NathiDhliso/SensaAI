@@ -9,18 +9,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Brain, Home, BookOpen } from 'lucide-react';
+import { AlertCircle, Brain, Home } from 'lucide-react';
 
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/shared/hooks/useLearningFlow';
 import { useSensaFlow } from '@/shared/hooks/useSensaFlow';
 import { useFlowState } from '@/shared/hooks/useFlowState';
+import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
+import { useCoachMessage } from '@/shared/hooks/useCoachMessage';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { loadSessionProgress, getProgressAge, cleanupExpiredProgress } from '@/features/learning-session/progress/session-tracker';
 import { toast } from '@/shared/utils/toast';
 
-// SENSA v2.0: MasteryDashboard will be used in COMPLETE phase - future implementation
-// import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
+import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
 import { EquationTracker } from '@/components/ui/EquationTracker';
 import { FlowProgressBar } from '@/components/ui/FlowProgressBar';
 import { ConceptProgressIndicator } from '@/components/ui/ConceptProgressIndicator';
@@ -30,7 +31,7 @@ import MicroLearningLoopController from '@/components/learning/MicroLearningLoop
 import DiagnosticLaunchSystem from '@/components/learning/onboarding/DiagnosticLaunchSystem';
 import SessionStartModal from '@/components/learning/session/SessionStartModal';
 import VelocityLockInGate from '@/components/learning/session/VelocityLockInGate';
-// SessionScoutPreview - reserved for future SCOUT phase implementation
+import { SessionScoutPreview } from '@/components/learning/session/SessionScoutPreview';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
 import MasteryChallenge from '@/components/learning/activities/MasteryChallenge';
 import SensaSynopticView from '@/components/learning/ui/SensaSynopticView';
@@ -60,8 +61,6 @@ export default function VelocityLearning() {
         setCurrentConcept,
         getNextConcept,
         startSession,
-        // markSessionScouted - reserved for future SCOUT phase
-        // markSessionPreviewed - reserved for future PREVIEW phase
         markSessionMapBuilt,
         markSessionMapReconstructed,
         markSessionMastered,
@@ -90,6 +89,19 @@ export default function VelocityLearning() {
 
     // 2c. Flow State Detection (Momentum Checkpoints)
     const flowState = useFlowState();
+
+    // 2d. Struggle Detection + Coach Messages
+    const { showMessage: showCoachMessage } = useCoachMessage();
+    useStruggleDetector({
+        idleThresholdSeconds: 60,
+        errorThreshold: 2,
+        backspaceThreshold: 30,
+        onStruggleChange: (state) => {
+            if (state.isStruggling && state.confidence > 0.5 && currentPhase === 'LEARN') {
+                showCoachMessage('build', 'struggle', 10000);
+            }
+        },
+    });
 
     // 3. Local UI State (MUST be declared before useEffects that reference them)
     const [lockedIn, setLockedIn] = useState(false);
@@ -138,13 +150,9 @@ export default function VelocityLearning() {
         }
     }, [currentSession?.id]); // Only run when session ID changes
 
-    // Auto-transition from PRIME to BUILD after lock-in
     useEffect(() => {
         if (currentPhase === 'PRIME' && lockedIn) {
-            // Small delay to allow lock-in animation to complete
             const timer = setTimeout(() => {
-                // Skip SCOUT/PREVIEW phase since user already did Overview tab
-                // Go directly to BUILD phase - use stored goal/duration or defaults
                 const goal = studySession?.goal ?? ('learn-new' as const);
                 const duration = studySession?.targetDuration ?? 30;
                 startStudySession(goal, duration, [currentSession!.concepts[0].id]);
@@ -209,8 +217,6 @@ export default function VelocityLearning() {
         setLockedIn(true);
     };
 
-    // Scout phase handler - reserved for future implementation
-    // Uses markSessionScouted() and markSessionPreviewed() when needed
 
     const handleLoopComplete = (outcome: 'mastered' | 'needs-learning' | 'needs-review', _timeSpent: number) => {
         if (!activeConcept) return;
@@ -515,9 +521,28 @@ export default function VelocityLearning() {
                         </motion.div>
                     );
                 }
-                // If locked in, automatically transition to BUILD phase
-                // (Skip SCOUT/PREVIEW since user already did Overview tab)
-                return null; // Will auto-advance to BUILD
+                return null;
+
+            case 'SCOUT':
+            case 'PREVIEW':
+                return (
+                    <motion.div
+                        key="scout-preview"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className={styles.fullWidthContainer}
+                    >
+                        <SessionScoutPreview
+                            concepts={currentSession!.concepts}
+                            initialPhase={currentPhase === 'PREVIEW' ? 'sprint' : 'structure'}
+                            onComplete={(guesses) => {
+                                setCompletedPhases(prev => new Set(prev).add('SCOUT').add('PREVIEW'));
+                                sensaFlow.completeExplore(guesses);
+                            }}
+                        />
+                    </motion.div>
+                );
 
             case 'BUILD':
                 return (
@@ -659,51 +684,25 @@ export default function VelocityLearning() {
                     );
                 }
 
-                // Case 2: User has completed concepts - show completion summary
                 if (hasCompletedConcepts) {
-                    const completedCount = currentSession?.progress?.completedConcepts?.length || 0;
-                    const totalCount = currentSession?.concepts.length || 0;
-                    const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-
                     return (
-                        <div className={styles.emptyState}>
-                            <Brain size={48} className={styles.emptyIcon} style={{ color: 'var(--color-success, #10b981)' }} />
-                            <h2>Session Complete! 🎉</h2>
-                            <p>You've mastered {completedCount} of {totalCount} concepts ({completionPercentage}%)</p>
-                            <div className={styles.sessionStats}>
-                                <div className={styles.stat}>
-                                    <span className={styles.statLabel}>Time Spent</span>
-                                    <span className={styles.statValue}>
-                                        {Math.floor((Date.now() - (currentSession?.progress?.sessionStartTime || Date.now())) / 60000)} min
-                                    </span>
-                                </div>
-                                <div className={styles.stat}>
-                                    <span className={styles.statLabel}>Concepts Mastered</span>
-                                    <span className={styles.statValue}>{completedCount}</span>
-                                </div>
-                            </div>
-                            <div className={styles.buttonGroup}>
-                                <button
-                                    onClick={handleReturnToDashboard}
-                                    className={styles.primaryButton}
-                                    aria-label="Return to dashboard"
-                                >
-                                    <Home size={20} />
-                                    Return to Dashboard
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        // Reset to overview to review concepts
-                                        navigate(`/study/${currentSession?.id}?tab=overview`);
-                                    }}
-                                    className={styles.secondaryButton}
-                                    aria-label="Review concepts"
-                                >
-                                    <BookOpen size={20} />
-                                    Review Concepts
-                                </button>
-                            </div>
-                        </div>
+                        <MasteryDashboard
+                            concepts={currentSession!.concepts}
+                            completedConcepts={currentSession!.progress.completedConcepts}
+                            subjectName={currentSession!.subject}
+                            sessionStartTime={currentSession!.progress.sessionStartTime || Date.now()}
+                            equation={{
+                                G: sensaFlow.G,
+                                Q_f: sensaFlow.Q_f,
+                                Q_M: sensaFlow.Q_M,
+                                Q_P: sensaFlow.Q_P,
+                                I: sensaFlow.I,
+                                phase: sensaFlow.phase,
+                            }}
+                            streakCount={flowState.streakCount}
+                            onReturnHome={handleReturnToDashboard}
+                            onReviewConcepts={() => navigate(`/study/${currentSession?.id}?tab=overview`)}
+                        />
                     );
                 }
 
