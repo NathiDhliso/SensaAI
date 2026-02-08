@@ -505,3 +505,636 @@
     gap: 1rem;
     justify-content: flex-end;
 }
+
+.loadingContainer {
+    justify-content: center;
+    align-items: center;
+}
+
+.loadingContent {
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+.loadingSpinner {
+    margin-bottom: 1rem;
+}
+
+.loadingText {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.errorContainer {
+    justify-content: center;
+    align-items: center;
+}
+
+.errorContent {
+    text-align: center;
+    color: var(--color-text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.errorIcon {
+    color: var(--color-warning);
+}
+
+.errorTitle {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--color-text-primary);
+}
+
+.errorMessage {
+    margin: 0;
+    font-size: 0.9rem;
+    max-width: 300px;
+}
+
+.errorBack {
+    margin-top: 0.5rem;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.viewDocLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--color-accent-light);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+.viewDocLink:hover {
+    color: var(--color-accent);
+}
+
+.headerCta {
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.headerCta:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.metricCard {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    box-shadow: var(--shadow-sm);
+    border-left: 3px solid var(--color-border);
+    transition: box-shadow 0.2s ease;
+}
+
+.metricCard:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.metricValue {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    font-family: var(--font-mono);
+    line-height: 1;
+}
+
+.metricSuffix {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    margin-left: 0.125rem;
+}
+
+.metricLabel {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.02em;
+}
+
+.insightsSection {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.insightsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.insightItem {
+    padding: 0.75rem 1rem;
+    background: var(--color-warning-bg);
+    border-left: 3px solid var(--color-warning);
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: var(--color-text-primary);
+}
+
+.insightItemPositive {
+    background: var(--color-success-bg);
+    border-left-color: var(--color-success);
+}
+
+.auditSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-height: 0;
+}
+
+.sortHint {
+    font-size: 0.6875rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.conceptList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.conceptRow {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.conceptRow:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.conceptRowHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    gap: 0.75rem;
+    user-select: none;
+}
+
+.conceptRowLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.conceptName {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conceptRowRight {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.issueCount {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+}
+
+.expandIcon {
+    color: var(--color-text-muted);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.expandIconOpen {
+    transform: rotate(180deg);
+}
+
+.verdictBadge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.verdictExamCritical {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    border: 1px solid var(--color-success-border);
+}
+
+.verdictSupplementary {
+    background: var(--color-warning-bg);
+    color: var(--color-warning);
+    border: 1px solid var(--color-warning-border);
+}
+
+.verdictFluff {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    border: 1px solid var(--color-error-border);
+}
+
+.verdictUnverified {
+    background: var(--color-surface-subtle);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+}
+
+.metricCardClickable {
+    cursor: pointer;
+}
+
+.metricCardClickable:hover {
+    border-color: var(--color-accent);
+}
+
+.objectivesPanel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.objectivesHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+}
+
+.objectivesHeader:hover {
+    background: var(--color-surface-subtle);
+}
+
+.objectivesHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.objectivesHeaderLeft svg {
+    color: var(--color-accent);
+    flex-shrink: 0;
+}
+
+.objectivesTitle {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.objectivesSavedBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--color-success);
+    background: var(--color-success-bg);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-success-border);
+}
+
+.objectivesHeaderRight {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.objectivesChevron {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+}
+
+.objectivesClearBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.objectivesClearBtn:hover {
+    color: var(--color-error);
+    border-color: var(--color-error);
+    background: var(--color-error-bg);
+}
+
+.objectivesBody {
+    overflow: hidden;
+    border-top: 1px solid var(--color-border);
+    padding: 1rem 1.25rem 1.25rem;
+}
+
+.objectivesHint {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    margin: 0 0 0.75rem;
+    line-height: 1.5;
+}
+
+.objectivesInput {
+    display: block;
+    width: 100%;
+    min-height: 140px;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-subtle);
+    color: var(--color-text-primary);
+    font-size: 0.8125rem;
+    font-family: inherit;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.objectivesInput:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.objectivesInput::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.6;
+}
+
+.objectivesPreview {
+    margin-top: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-subtle);
+    overflow: hidden;
+}
+
+.objectivesPreviewHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.objectivesPreviewList {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.objectivesPreviewList li {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    padding: 0.25rem 0;
+    line-height: 1.4;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.objectivesPreviewList li:last-child {
+    border-bottom: none;
+}
+
+.objectivesActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.objectivesCancelBtn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.objectivesCancelBtn:hover {
+    background: var(--color-surface-subtle);
+    color: var(--color-text-primary);
+}
+
+.objectivesSaveBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--color-accent);
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.objectivesSaveBtn:hover {
+    opacity: 0.9;
+}
+
+.objectivesSaveBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.matchedObjective {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    padding: 0.5rem 0.625rem;
+    background: var(--color-success-bg);
+    border-left: 2px solid var(--color-success);
+    border-radius: var(--radius-sm);
+    line-height: 1.4;
+}
+
+.tierBadge {
+    font-size: 0.625rem;
+    font-weight: 500;
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-sm);
+    text-transform: capitalize;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    background: var(--color-surface-subtle);
+}
+
+.conceptDetail {
+    padding: 0 1rem 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.detailScores {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.75rem 0;
+    margin-bottom: 0.5rem;
+}
+
+.detailScore {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.detailScoreLabel {
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.detailScoreValue {
+    font-size: 1.125rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+}
+
+.detailSubsection {
+    margin-top: 0.75rem;
+}
+
+.detailSubsectionTitle {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.375rem;
+}
+
+.issueList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.issueItem {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.issueCritical {
+    background: var(--color-error-bg);
+    border-left: 2px solid var(--color-error);
+}
+
+.issueWarning {
+    background: var(--color-warning-bg);
+    border-left: 2px solid var(--color-warning);
+}
+
+.issueContent {
+    flex: 1;
+}
+
+.issueMessage {
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.issueImpact {
+    color: var(--color-text-secondary);
+    margin-top: 0.125rem;
+}
+
+.strengthList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.strengthItem {
+    font-size: 0.6875rem;
+    padding: 0.2rem 0.5rem;
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-success-border);
+}
+
+@media (max-width: 640px) {
+    .conceptRowHeader {
+        flex-wrap: wrap;
+    }
+
+    .conceptRowRight {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

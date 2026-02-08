@@ -131,9 +131,6 @@ export function StudyLayout({
           <button onClick={() => navigate('/')} className={styles.homeButton} aria-label="Go home">
             <Home size={18} />
           </button>
-          <button onClick={handleBack} className={styles.backButton} aria-label="Go back">
-            <ArrowLeft size={18} />
-          </button>
 
           <div className={styles.titleGroup}>
             <h1 className={styles.title}>{displaySubject}</h1>

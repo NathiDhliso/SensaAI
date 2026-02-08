@@ -232,10 +232,14 @@ export default function VelocityLearning() {
 
         // "Sonic Boom" Effect for Mastery
         if (outcome === 'mastered') {
-            // Use AudioService singleton instead of creating new Audio instances
-            import('@/shared/services/audio').then(({ AudioService }) => {
-                AudioService.play('mastery', '/audio/voice/sage_master_success.mp3');
-            });
+            try {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance('Excellent! Concept mastered.');
+                    utterance.rate = 1.1;
+                    utterance.volume = 0.6;
+                    window.speechSynthesis.speak(utterance);
+                }
+            } catch (_) { }
         }
 
         // Pass score and outcome to completeConcept for attempt tracking
@@ -289,22 +293,25 @@ export default function VelocityLearning() {
     const handleSkipReasonConfirm = (data: SkipReasonData) => {
         setShowSkipModal(false);
 
-        // Adaptive routing based on skip reason
-        if (data.reason === 'too-hard') {
-            // TODO: Route to prerequisite check
-            // For now, just advance to next concept
-            const nextId = getNextConcept();
-            if (nextId) setCurrentConcept(nextId);
-        } else if (data.reason === 'too-easy') {
-            // TODO: Route to high-stakes verification
-            // For now, mark as mastered and advance
+        if (data.reason === 'too-easy') {
             if (pendingSkipConcept) {
-                completeConcept(pendingSkipConcept, 1.0, 'mastered');
+                completeConcept(pendingSkipConcept, 0.85, 'mastered');
             }
+            toast.success('Marked as known — it may reappear in mastery challenges', { duration: 3000 });
             const nextId = getNextConcept();
             if (nextId) setCurrentConcept(nextId);
+        } else if (data.reason === 'too-hard') {
+            const foundationConcept = currentSession?.concepts.find(
+                c => c.tier === 'foundation' && !currentSession.progress.completedConcepts.includes(c.id) && c.id !== pendingSkipConcept
+            );
+            if (foundationConcept) {
+                setCurrentConcept(foundationConcept.id);
+                toast.info(`Routing to prerequisite: ${foundationConcept.name}`, { duration: 4000 });
+            } else {
+                const nextId = getNextConcept();
+                if (nextId) setCurrentConcept(nextId);
+            }
         } else {
-            // Default: Just skip to next
             const nextId = getNextConcept();
             if (nextId) setCurrentConcept(nextId);
         }
@@ -386,7 +393,8 @@ export default function VelocityLearning() {
     // But store action startStudySession sets session active. useLearningFlow returns PRIME if !studySession.
     // So: switch(currentPhase) 'PRIME' -> check lockedIn.
 
-    const cognitiveLoad = 0.4; // TODO: Connect to real store metric
+    const cognitiveLoadLevel = useLearningStore.getState().getCognitiveLoadLevel();
+    const cognitiveLoad = { low: 0.2, optimal: 0.5, high: 0.75, overload: 1.0 }[cognitiveLoadLevel];
 
     return (
         <div className={styles.container} style={{ '--cognitive-load': cognitiveLoad } as React.CSSProperties}>
@@ -538,8 +546,8 @@ export default function VelocityLearning() {
                             setShowCheckpoint(false);
                         }}
                         onExit={() => {
-                            // TODO: Navigate to recap screen
                             setShowCheckpoint(false);
+                            navigate(`/study/${currentSession?.id}?tab=overview`);
                         }}
                     />
                 )}

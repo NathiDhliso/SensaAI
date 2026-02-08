@@ -20,6 +20,7 @@ export interface SavedResult {
     formatConsistency: number;
     completeness: number;
   };
+  examObjectives?: string[];
   savedLocally: boolean;
   savedToCloud?: boolean;
   cloudUrl?: string;

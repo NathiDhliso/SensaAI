@@ -15,7 +15,8 @@ function inferDependenciesFromPrerequisite(
     concept: ParsedConcept,
     allConcepts: ParsedConcept[]
 ): string[] {
-    const prereqText = concept.phase1?.prerequisite?.toLowerCase() || '';
+    const raw = concept.phase1?.prerequisite;
+    const prereqText = (typeof raw === 'string' ? raw : raw != null ? String(raw) : '').toLowerCase();
     if (!prereqText || prereqText.includes('none') || prereqText.length < 5) {
         return [];
     }

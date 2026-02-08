@@ -397,7 +397,7 @@ export default function Generate() {
               </div>
               <div className={styles.modalBody}>
                 <p>
-                  You already have a generated results for <strong>{decodedSubject}</strong>.
+                  You already have generated results for <strong>{decodedSubject}</strong>.
                 </p>
                 <p>
                   Generating again will <strong>permanently delete</strong> the previous version

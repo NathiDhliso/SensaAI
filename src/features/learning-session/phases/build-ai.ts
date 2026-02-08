@@ -152,52 +152,51 @@ export function suggestConnections(
     return suggestions.sort((a, b) => b.confidence - a.confidence);
 }
 
-/**
- * Find connection type between two concepts
- */
+const STRUCTURAL_PATTERNS: Array<{
+    keywords: string[];
+    type: string;
+    reasoning: string;
+}> = [
+    { keywords: ['require', 'requires', 'prerequisite', 'depend', 'depends', 'needs', 'before', 'prior'], type: 'requires', reasoning: 'Prerequisite relationship' },
+    { keywords: ['enable', 'enables', 'unlock', 'unlocks', 'allow', 'allows', 'makes possible'], type: 'enables', reasoning: 'Capability chain' },
+    { keywords: ['part', 'component', 'within', 'inside', 'contains', 'composed', 'element', 'member'], type: 'is part of', reasoning: 'Part-whole composition' },
+    { keywords: ['type', 'kind', 'variant', 'instance', 'category', 'class', 'form', 'subtype'], type: 'is type of', reasoning: 'Taxonomic classification' },
+    { keywords: ['cause', 'causes', 'result', 'results', 'produces', 'triggers', 'leads', 'creates'], type: 'causes', reasoning: 'Causal chain' },
+    { keywords: ['constrain', 'constrains', 'limit', 'limits', 'restrict', 'governs', 'bounds', 'rule', 'policy'], type: 'constrains', reasoning: 'Boundary condition' },
+];
+
 function findConnectionType(
     conceptA: LearningConcept,
     conceptB: LearningConcept,
     stopWords: Set<string>
 ): { label: string; confidence: number; reasoning: string } | null {
-    // Check if concepts share keywords
     const wordsA = extractKeywords(conceptA, stopWords);
     const wordsB = extractKeywords(conceptB, stopWords);
-
+    const allWords = [...wordsA, ...wordsB];
     const sharedWords = wordsA.filter(w => wordsB.includes(w));
 
-    if (sharedWords.length === 0) {
-        return null;
-    }
+    if (sharedWords.length === 0) return null;
 
-    // Determine relationship type
-    // Base confidence logic: 1 word = 0.5, 2 words = 0.7, 3+ words = 0.9
     const confidence = Math.min(0.9, 0.3 + (sharedWords.length * 0.2));
 
-    // Common relationship patterns
-    const patterns = [
-        { keywords: ['use', 'uses', 'using'], label: 'uses', reasoning: 'Usage relationship detected' },
-        { keywords: ['depend', 'requires', 'needs'], label: 'requires', reasoning: 'Dependency detected' },
-        { keywords: ['part', 'component', 'contains'], label: 'is part of', reasoning: 'Composition detected' },
-        { keywords: ['type', 'kind', 'variant'], label: 'is a type of', reasoning: 'Classification detected' },
-        { keywords: ['result', 'leads', 'causes'], label: 'leads to', reasoning: 'Causal relationship detected' },
-    ];
-
-    for (const pattern of patterns) {
-        if (sharedWords.some(w => pattern.keywords.includes(w.toLowerCase()))) {
-            return { label: pattern.label, confidence: Math.max(confidence, 0.7), reasoning: pattern.reasoning };
+    for (const pattern of STRUCTURAL_PATTERNS) {
+        if (allWords.some(w => pattern.keywords.includes(w.toLowerCase()))) {
+            return { label: pattern.type, confidence: Math.max(confidence, 0.7), reasoning: pattern.reasoning };
         }
     }
 
-    // Default generic connection
-    // We penalize generic "relates to" if it's just 1 shared word
-    if (sharedWords.length < 2) return null;
+    if (conceptA.tier === 'foundation' && conceptB.tier === 'keystone') {
+        return { label: 'requires', confidence: 0.65, reasoning: 'Foundation → Keystone tier progression' };
+    }
+    if (conceptA.tier === 'keystone' && conceptB.tier === 'foundation') {
+        return { label: 'requires', confidence: 0.65, reasoning: 'Keystone depends on Foundation' };
+    }
 
-    return {
-        label: 'relates to',
-        confidence: confidence * 0.8, // 2 words (0.7) * 0.8 = 0.56. Filtered out by 0.65 threshold.
-        reasoning: `Shared concepts: ${sharedWords.slice(0, 3).join(', ')}`,
-    };
+    if (sharedWords.length >= 3) {
+        return { label: 'enables', confidence: confidence * 0.85, reasoning: `Strong overlap: ${sharedWords.slice(0, 3).join(', ')}` };
+    }
+
+    return null;
 }
 
 /**
@@ -324,13 +323,12 @@ export function validateConnectionLabel(
         };
     }
 
-    // Check for vague labels
-    const vagueLabels = ['relates to', 'connects', 'is related', 'link'];
+    const vagueLabels = ['relates to', 'connects', 'is related', 'link', 'related to', 'relates', 'associated', 'connected to', 'goes with'];
     if (vagueLabels.includes(labelLower)) {
         return {
             isValid: false,
             suggestion: suggestLabel(),
-            reasoning: 'Try to be more specific. What type of relationship?',
+            reasoning: 'Ask yourself: requires, enables, is part of, is type of, causes, or constrains?',
         };
     }
 
@@ -345,16 +343,13 @@ export function validateConnectionLabel(
  */
 function suggestLabel(): string {
     const suggestions = [
-        'uses',
         'requires',
-        'is part of',
-        'leads to',
-        'depends on',
         'enables',
-        'implements',
+        'is part of',
+        'is type of',
+        'causes',
+        'constrains',
     ];
-
-    // Simple heuristic - could be replaced with AI inference
     return suggestions[Math.floor(Math.random() * suggestions.length)];
 }
 

@@ -1,7 +1,8 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, Zap, Cloud, Upload, ShieldCheck, FileText, X } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud, ChevronDown, ChevronUp, Target } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
+import { parseSyllabusText } from '@/features/content-audit';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGenerationStore } from '@/store/generation-store';
@@ -90,13 +91,14 @@ export default function Home() {
   const [subject, setSubject] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showCloudLibrary, setShowCloudLibrary] = useState(false);
-  const [blueprintFile, setBlueprintFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [objectivesText, setObjectivesText] = useState('');
+  const [objectivesOpen, setObjectivesOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const navigate = useNavigate();
 
   /* Hooks & Store */
   const { openSettingsPanel } = useUIStore();
-  const { recentSubjects, setPendingFile } = useGenerationStore();
+  const { recentSubjects } = useGenerationStore();
 
   /* Derived State */
   const allSubjects = useMemo(() => {
@@ -105,6 +107,11 @@ export default function Home() {
       category: cat.name
     })));
   }, []);
+
+  const parsedObjectives = useMemo(() => {
+    if (!objectivesText.trim()) return [];
+    return parseSyllabusText(objectivesText);
+  }, [objectivesText]);
 
   const filteredSuggestions = useMemo(() => {
     if (!subject.trim()) return [];
@@ -118,26 +125,15 @@ export default function Home() {
     setShowSuggestions(false);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBlueprintFile(file);
-      setPendingFile(file);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setBlueprintFile(null);
-    setPendingFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   const handleGenerate = () => {
     if (subject.trim()) {
       setShowSuggestions(false);
-      navigate(`/generate/${encodeURIComponent(subject)}`);
+      const params = new URLSearchParams();
+      if (parsedObjectives.length > 0) {
+        params.set('context', parsedObjectives.join('\n'));
+      }
+      const query = params.toString();
+      navigate(`/generate/${encodeURIComponent(subject)}${query ? `?${query}` : ''}`);
     }
   };
 
@@ -224,56 +220,76 @@ export default function Home() {
               </AnimatePresence>
             </div>
 
-            {/* Blueprint Upload Section */}
-            <div className={styles.blueprintSection}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.json,.txt"
-                onChange={handleFileUpload}
-                style={{ display: 'none' }}
-                id="blueprint-upload"
-              />
-
-              {blueprintFile ? (
-                <div className={styles.blueprintAttached}>
-                  <div className={styles.blueprintInfo}>
-                    <ShieldCheck size={16} className={styles.verifiedIcon} />
-                    <FileText size={14} />
-                    <span className={styles.blueprintName}>{blueprintFile.name}</span>
-                    <span className={styles.groundedBadge}>GROUNDED</span>
-                  </div>
-                  <button
-                    onClick={handleRemoveFile}
-                    className={styles.removeBlueprint}
-                    aria-label="Remove blueprint"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className={styles.uploadBlueprintButton}
-                >
-                  <Upload size={14} />
-                  <span>Attach Exam Blueprint (Optional)</span>
-                  <span className={styles.uploadHint}>PDF or JSON for verified content</span>
-                </button>
-              )}
-            </div>
           </div>
 
-          {/* Grounding Status Indicator */}
+          <div className={styles.objectivesSection}>
+            <button
+              className={styles.objectivesToggle}
+              onClick={() => setObjectivesOpen(!objectivesOpen)}
+            >
+              <Target size={14} />
+              <span>{parsedObjectives.length > 0 ? `${parsedObjectives.length} Exam Objectives Loaded` : 'Paste Exam Objectives (Recommended)'}</span>
+              {objectivesOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+            <AnimatePresence>
+              {objectivesOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={styles.objectivesBody}
+                >
+                  <textarea
+                    className={styles.objectivesInput}
+                    value={objectivesText}
+                    onChange={e => { setObjectivesText(e.target.value); setShowPreview(false); }}
+                    onPaste={() => setTimeout(() => setShowPreview(true), 50)}
+                    placeholder={'Paste your exam objectives or syllabus here.\nHeaders, numbering, percentages, and junk lines are auto-cleaned.\n\nExample:\nManage Azure identities and governance (20-25%)\n  Create users and groups\n  Manage licenses in Microsoft Entra ID\n  Configure self-service password reset'}
+                    rows={6}
+                    spellCheck={false}
+                  />
+                  {parsedObjectives.length > 0 && (
+                    <div className={styles.objectivesMeta}>
+                      <span className={styles.objectivesCount}>{parsedObjectives.length} objectives detected</span>
+                      <button
+                        type="button"
+                        className={styles.objectivesPreviewToggle}
+                        onClick={() => setShowPreview(!showPreview)}
+                      >
+                        {showPreview ? 'Hide preview' : 'Show cleaned preview'}
+                      </button>
+                    </div>
+                  )}
+                  <AnimatePresence>
+                    {showPreview && parsedObjectives.length > 0 && (
+                      <motion.ul
+                        className={styles.objectivesPreviewList}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {parsedObjectives.map((obj, i) => (
+                          <li key={i} className={styles.objectivesPreviewItem}>{obj}</li>
+                        ))}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <div className={styles.groundingStatus}>
-            {blueprintFile ? (
+            {parsedObjectives.length > 0 ? (
               <div className={styles.groundedStatus}>
-                <ShieldCheck size={14} />
-                <span>Blueprint Grounded — Content will be verified against official objectives</span>
+                <Target size={14} />
+                <span>Objective-Driven — AI will generate concepts mapped to your {parsedObjectives.length} objectives</span>
               </div>
             ) : (
               <div className={styles.ungroundedStatus}>
-                <span>Standard Mode — AI knowledge only, verify against official docs</span>
+                <span>Standard Mode — Paste exam objectives above for targeted content</span>
               </div>
             )}
           </div>

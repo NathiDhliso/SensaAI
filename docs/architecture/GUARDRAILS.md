@@ -105,6 +105,8 @@ Mood selection in `SessionStartModal` auto-sets goal and duration:
 | Tired 🔋 | review | 15 min | Spaced review, familiar concepts |
 | Stressed 🌊 | explore | 15 min | Free exploration, easy wins |
 
+Duration and goal are **not** manually selectable — mood is the only input. The mapping lives in `MOOD_GOAL_MAP` inside `SessionStartModal.tsx`.
+
 Mood options are defined in `src/features/ai-coach/index.ts` → `MOOD_OPTIONS`.
 Mood colors are in `src/shared/constants/theme-colors.ts` → `MOOD_COLORS`.
 
@@ -143,6 +145,27 @@ Prompt file: `backend/lambda/shared/system_prompt.py` → `SILVER_BULLET_PROMPT`
 - The classification type (A/B/C/D) adapts how each dimension is interpreted
 - Never hardcode subject-specific examples into the partition strategy
 
+### Connection Type Taxonomy (6 Universal Types)
+
+Every concept connection must use exactly one of these 6 types. There is NO generic fallback.
+
+| Type | Question it answers | Direction |
+|------|-------------------|-----------|
+| `requires` | What must I know first? | A requires B = B is prerequisite for A |
+| `enables` | What does this unlock? | A enables B = learning A makes B possible |
+| `is-part-of` | What is this a piece of? | A is part of B = A is component within B |
+| `is-type-of` | What category does this belong to? | A is type of B = A is specific instance of B |
+| `causes` | What happens because of this? | A causes B = A directly produces B |
+| `constrains` | What limits or governs this? | A constrains B = A sets rules/limits on B |
+
+**FORBIDDEN**: `related-to`, `relates`, `extends`, or any vague association.
+
+This taxonomy is enforced in 4 places:
+- `backend/lambda/shared/system_prompt.py` — generation prompt §3.4
+- `src/components/learning/feedback/ConnectionTypeModal.tsx` — user-facing modal
+- `src/features/learning-session/phases/build-ai.ts` — AI suggestion engine
+- `src/components/learning/activities/ConceptMapBuilder.tsx` — `LABEL_PRESETS`
+
 ---
 
 ## 8. Pre-Change Checklist
@@ -166,10 +189,11 @@ After making changes, verify:
 
 - [ ] **No unused imports** — Check for lint warnings about unused variables/imports.
 - [ ] **No duplicate code** — Did you introduce logic that already exists elsewhere?
-- [ ] **Blueprint updated** — If you changed routes, phases, stores, or directory structure, update `ARCHITECTURE_BLUEPRINT.md`.
-- [ ] **This file updated** — If you changed architecture patterns, update this guardrail doc.
+- [ ] **Blueprint updated** — If you changed routes, phases, stores, or directory structure, update `ARCHITECTURE_BLUEPRINT.md`. **Do this automatically, do not ask.**
+- [ ] **This file updated** — If you changed architecture patterns, update this guardrail doc. **Do this automatically, do not ask.**
 - [ ] **package.json current** — If you added/removed a dependency, update `package.json`.
 - [ ] **TypeScript clean** — `npx tsc --noEmit` returns 0 errors.
+- [ ] **Lambda deployed** — If you changed `backend/lambda/` code, deploy via AWS CLI (see §11).
 
 ---
 
@@ -184,6 +208,17 @@ After making changes, verify:
 | Creating stores for one-off state | Use `useState` for local state. Only create Zustand stores for state shared across components. |
 | Navigating to `/settings` | Use `useUIStore.getState().openSettingsPanel()` instead. |
 | Importing mid-file | Always import at the top. If editing, make a separate edit to add imports. |
+| Using `relates-to` connections | There is NO generic fallback. Use one of the 6 universal types: requires, enables, is-part-of, is-type-of, causes, constrains. |
+| Using inline styles in pages | Use `.module.css` for all styling. Never use `style={{}}` in page components. |
+| Duplicating mood mappings | `MOOD_GOAL_MAP` in `SessionStartModal.tsx` is the single source of truth for mood→goal, duration, and store mood. Import it; never re-create. |
+| Hardcoding cognitive load | Wire to `getCognitiveLoadLevel()` from the learning store's CognitiveSlice. Never hardcode. |
+| Skip reason with no routing | When a user skips a concept, differentiate behavior: too-easy → mark mastered (0.85), too-hard → route to foundation prerequisite, not-relevant → skip cleanly. |
+| Empty algorithm fallback | If concept selection algorithms fail, fall back to sequential (next N incomplete concepts). Never pass empty `targetConcepts[]`. |
+| Oversized border-radius on modals | Modal/card containers use `var(--radius-xl)` (12px) max. Never exceed 16px on modal containers — larger values read as consumer app. |
+| Using red for stressed mood | Stressed mood uses slate (`#64748b`), not red. Red triggers cortisol — the opposite of calming a stressed learner. |
+| Perpetual CSS/motion animations | Animations should fire once on mount, not loop infinitely. `repeat: Infinity` is prohibited on non-loading-state elements. |
+| Adding paper/grid textures | The crumpled paper texture on `body::before` is the only allowed texture. No grid dots, no additional paper overlays. |
+| Saturated dark mode backgrounds | Dark mode backgrounds must stay below ~15% saturation. Current palette: `#16131e` → `#1e1a28` → `#262233`. Never use vivid purple backgrounds. |
 
 ---
 
@@ -193,15 +228,31 @@ After making changes, verify:
 |------|---------------|
 | `src/App.tsx` | All routes defined here. Mounts global overlays. |
 | `src/components/settings/SettingsPanel.tsx` | Consolidated settings (appearance, AI companion, practice mode, cognitive load, academic schedule, data management) |
+| `src/components/learning/session/SessionStartModal.tsx` | Mood-based session curation (PRIME phase entry point). Exports `MOOD_GOAL_MAP` — **single source of truth** for mood→goal+duration+storeMood. |
 | `src/store/personalization-store.ts` | Most user preferences live here |
 | `src/features/ai-coach/index.ts` | Mood options, persona system, coach utilities |
 | `src/components/learning/MicroLearningLoopController.tsx` | Core learning loop orchestrator |
 | `src/pages/VelocityLearning.tsx` | SENSA v2.0 learning engine |
+| `src/features/content-audit/audit-engine.ts` | Content Audit Engine — 2-track scoring: (1) Content Health = structural completeness (SHAPE, mnemonic, technical depth), (2) Objective Alignment = bigram + token + name-overlap fuzzy matching against user-provided exam objectives. Classifies as objective-aligned / supplementary / not-in-objectives / unverified. Objectives stored in localStorage per subject. |
+| `src/features/content-audit/syllabus-parser.ts` | Smart syllabus/exam paper parser — strips numbering, bullets, headers, percentages, weights, answer choices (A-E), question numbers, mark allocations, instructions, answer keys, and junk lines from raw pasted text. Handles both syllabus and exam paper formats. Used by Home page (pre-generation cleanup) and Launchpad (post-generation audit). |
+| `src/components/learning/launchpad/ContentLaunchpad.tsx` | Analytics dashboard at `/launchpad/:subjectId` — renders audit results with expandable per-concept verdicts. |
 | `src/pages/Study.tsx` | Study session entry + hydration |
 | `src/components/layout/StudyLayout.tsx` | Unified study command center layout wrapper |
 | `src/shared/constants/theme-colors.ts` | All color constants including mood colors |
+| `backend/lambda/shared/system_prompt.py` | Generation prompt (classification + silver bullet + surgical fix). Domain-aware partitioning: when user provides exam objectives, `_parse_objective_domains()` splits them into top-level domains and `_distribute_domains_to_parts()` assigns domains to the 5 generation parts so each part covers specific exam domains instead of generic knowledge dimensions. |
 | `docs/architecture/ARCHITECTURE_BLUEPRINT.md` | Full architecture reference |
 | `docs/architecture/AUDIT_SILVER_BULLET.md` | Silver bullet audit findings and fixes |
+
+### Lambda Deployment
+
+Terraform S3 backend is currently unavailable. Deploy Lambda code changes via AWS CLI:
+
+```bash
+Compress-Archive -Path "backend\lambda\*" -DestinationPath "backend\lambda_deploy.zip" -Force
+aws lambda update-function-code --function-name sensapbl-generate-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+aws lambda update-function-code --function-name sensapbl-query-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+Remove-Item "backend\lambda_deploy.zip"
+```
 
 ---
 
@@ -214,3 +265,4 @@ When starting a new session with an AI tool on this codebase:
 3. **Be specific about which domain** — "Fix the mood curation in SessionStartModal" is better than "fix the learning flow"
 4. **State the store** — If the change involves state, name the Zustand store
 5. **Run TypeScript check** — Always ask the AI to run `npx tsc --noEmit` before finishing
+6. **Docs auto-update** — After any architectural change, the AI should automatically update this file and `ARCHITECTURE_BLUEPRINT.md` without being asked

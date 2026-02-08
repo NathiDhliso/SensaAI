@@ -122,7 +122,7 @@ class BedrockService:
                         accept="application/json",
                         body=json.dumps({
                             "anthropic_version": "bedrock-2023-05-31",
-                            "max_tokens": 8192,
+                            "max_tokens": 16384,
                             "temperature": 0.7,
                             "messages": [{"role": "user", "content": prompt}],
                         }),
@@ -168,6 +168,17 @@ class BedrockService:
         all_concepts = [
             c for c in all_concepts if isinstance(c, dict) and c.get("name")
         ]
+
+        seen_names = set()
+        deduped = []
+        for c in all_concepts:
+            name_key = c["name"].strip().lower()
+            if name_key not in seen_names:
+                seen_names.add(name_key)
+                deduped.append(c)
+            else:
+                print(f"[BedrockService] Dedup: removed duplicate '{c['name']}'")
+        all_concepts = deduped
 
         if len(all_concepts) < self.MIN_CONCEPTS_THRESHOLD:
             print(f"[WARNING] Only {len(all_concepts)} concepts (threshold: {self.MIN_CONCEPTS_THRESHOLD})")
@@ -270,17 +281,22 @@ class BedrockService:
         """
         from shared.utils import generate_id
 
+        total = len(concepts)
+        foundation_cutoff = max(int(total * 0.2), 1)
+        keystone_cutoff = max(int(total * 0.6), foundation_cutoff + 1)
+
         for i, concept in enumerate(concepts):
             if "id" not in concept:
                 concept["id"] = generate_id()
 
-            # Ensure tier consistency based on position
-            if i < 14:  # First 20%
-                concept["tier"] = concept.get("tier", "foundation")
-            elif i < 42:  # Next 40%
-                concept["tier"] = concept.get("tier", "keystone")
-            else:
-                concept["tier"] = concept.get("tier", "utility")
+            valid_tiers = {"foundation", "keystone", "utility"}
+            if concept.get("tier") not in valid_tiers:
+                if i < foundation_cutoff:
+                    concept["tier"] = "foundation"
+                elif i < keystone_cutoff:
+                    concept["tier"] = "keystone"
+                else:
+                    concept["tier"] = "utility"
 
             # Normalize fields
             concept["stageId"] = concept.get("stageId", "PREPARE")

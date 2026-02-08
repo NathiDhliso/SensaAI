@@ -381,7 +381,7 @@ SCOUT → PREVIEW → PRIME → BUILD → MASTER → COMPLETE
 |-------|---------|--------------|
 | SCOUT | Pre-learning overview of content | SessionScoutPreview |
 | PREVIEW | Nomenclature Sprint + Gap Priming | NomenclatureSprint |
-| PRIME | Lock-in: set goal, duration, mood | VelocityLockInGate, SessionStartModal |
+| PRIME | Mood check-in → auto-curates goal + duration | VelocityLockInGate, SessionStartModal |
 | DIAGNOSE | Assess prior knowledge | DiagnosticLaunchSystem |
 | BUILD | Core learning loop | MicroLearningLoopController |
 | MASTER | Mastery challenges | MasteryChallenge, ConceptMapBuilder |
@@ -395,6 +395,21 @@ Each concept cycles through:
 3. **Confusion Drill** — Distinguish from similar concepts
 4. **Quiz** — Multiple choice assessment
 5. **Outcome** — mastered / needs-review / needs-learning → next concept
+
+### Connection Type Taxonomy (Concept Map)
+
+All concept connections use exactly 6 universal types (no generic fallback):
+
+| Type | Question | Example |
+|------|----------|---------|
+| `requires` | What must I know first? | Calculus requires Algebra |
+| `enables` | What does this unlock? | Variables enable Functions |
+| `is-part-of` | What is this a piece of? | Mitochondria is part of Cell |
+| `is-type-of` | What category? | Sonnet is type of Poem |
+| `causes` | What happens because of this? | Inflation causes Price Increase |
+| `constrains` | What limits this? | Budget constrains Scope |
+
+Enforced in: generation prompt, `ConnectionTypeModal`, `build-ai.ts` suggestion engine, `LABEL_PRESETS`.
 
 ### Universal Learning Equation
 
@@ -473,7 +488,8 @@ Token refresh handled transparently via refresh token cookie
 - [x] Consolidated settings panel (slide-out, all toggles wired to stores)
 - [x] Mood-based session curation (energized/neutral/tired/stressed → auto-set goal + duration)
 - [x] Browser SpeechSynthesis voice preview (no audio file dependency)
-- [x] ContentLaunchpad (analytics + readiness dashboard at `/launchpad/:subjectId`)
+- [x] ContentLaunchpad + Content Audit Engine (`/launchpad/:subjectId`) — 2-track audit: (1) Content Health = structural completeness (SHAPE, mnemonic, technical depth), (2) Objective Alignment = fuzzy-match concepts against user-provided exam objectives (pasted in dashboard, stored in localStorage). Classifies as objective-aligned / supplementary / not-in-objectives / unverified. Shows uncovered objectives as content gaps. Expandable per-concept verdicts with matched objective display.
+- [x] Objective-Driven Generation Pipeline — Home page has collapsible "Paste Exam Objectives" textarea with smart cleanup (`parseSyllabusText`) that strips percentages, numbering, answer choices, mark allocations, instructions, and exam paper junk. Cleaned objectives passed as `?context=` URL param to Generate page → Lambda. Lambda `system_prompt.py` parses objectives into domains via `_parse_objective_domains()`, distributes to 5 parts via `_distribute_domains_to_parts()`. `max_tokens` 16384 per part. Post-generation deduplication. Blueprint upload removed (users paste content directly). `exam-objectives-fetcher.ts` deleted (PDF parsing never implemented).
 - [x] StudyLayout (unified study command center wrapper with cognitive load indicator)
 - [x] SCOUT phase (pre-learning overview) — SessionScoutPreview wired into VelocityLearning
 - [x] PREVIEW phase (content preview before study) — Nomenclature Sprint + Gap Priming steps

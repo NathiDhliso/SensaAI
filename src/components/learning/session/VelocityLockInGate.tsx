@@ -59,11 +59,10 @@ export default function VelocityLockInGate({
                         }}
                         animate={{
                             y: [0, -30, 0],
-                            opacity: [0.3, 0.7, 0.3]
+                            opacity: [0, 0.5, 0]
                         }}
                         transition={{
                             duration: particle.duration,
-                            repeat: Infinity,
                             delay: particle.delay
                         }}
                         style={{
@@ -79,14 +78,10 @@ export default function VelocityLockInGate({
                 <motion.div
                     className={styles.iconContainer}
                     animate={{
-                        scale: [1, 1.05, 1],
-                        boxShadow: [
-                            '0 0 30px var(--overlay-primary-15)',
-                            '0 0 60px var(--overlay-primary-15)',
-                            '0 0 30px var(--overlay-primary-15)'
-                        ]
+                        scale: [0.9, 1.02, 1],
+                        boxShadow: '0 0 30px var(--overlay-primary-15)',
                     }}
-                    transition={{ duration: 2, repeat: Infinity }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
                 >
                     <Rocket size={48} className={styles.icon} />
                 </motion.div>

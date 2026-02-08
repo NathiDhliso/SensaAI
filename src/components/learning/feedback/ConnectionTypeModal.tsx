@@ -7,14 +7,14 @@
  */
 
 import { motion } from 'framer-motion';
-import { X, GitBranch, ArrowRight, Shield, Package, Link } from 'lucide-react';
+import { X, GitBranch, ArrowRight, Shield, Package, Layers, Lock } from 'lucide-react';
 import styles from './ConnectionTypeModal.module.css';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type ConnectionType = 'causes' | 'requires' | 'enables' | 'prevents' | 'contains' | 'relates-to';
+export type ConnectionType = 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains';
 
 export interface ConnectionTypeData {
     type: ConnectionType;
@@ -31,6 +31,7 @@ interface ConnectionTypeModalProps {
 const CONNECTION_TYPES: Array<{
     id: ConnectionType;
     label: string;
+    question: string;
     description: string;
     icon: React.ReactNode;
     example: string;
@@ -38,44 +39,50 @@ const CONNECTION_TYPES: Array<{
     {
         id: 'requires',
         label: 'Requires',
-        description: 'Must be understood before',
+        question: 'What must I know first?',
+        description: 'B must be understood before A',
         icon: <Shield size={20} />,
-        example: 'Foundation → Keystone',
+        example: 'Calculus requires Algebra',
     },
     {
         id: 'enables',
         label: 'Enables',
-        description: 'Makes possible',
+        question: 'What does this unlock?',
+        description: 'Learning A makes B possible',
         icon: <ArrowRight size={20} />,
-        example: 'Variable → Function',
+        example: 'Variables enable Functions',
+    },
+    {
+        id: 'is-part-of',
+        label: 'Is Part Of',
+        question: 'What is this a piece of?',
+        description: 'A is a component within B',
+        icon: <Package size={20} />,
+        example: 'Mitochondria is part of Cell',
+    },
+    {
+        id: 'is-type-of',
+        label: 'Is Type Of',
+        question: 'What category does this belong to?',
+        description: 'A is a specific instance of B',
+        icon: <Layers size={20} />,
+        example: 'Sonnet is type of Poem',
     },
     {
         id: 'causes',
         label: 'Causes',
-        description: 'Directly produces',
+        question: 'What happens because of this?',
+        description: 'A directly produces or triggers B',
         icon: <GitBranch size={20} />,
-        example: 'Error → Exception',
+        example: 'Inflation causes Price Increase',
     },
     {
-        id: 'prevents',
-        label: 'Prevents',
-        description: 'Blocks or mitigates',
-        icon: <Shield size={20} />,
-        example: 'Validation → Bug',
-    },
-    {
-        id: 'contains',
-        label: 'Contains',
-        description: 'Is composed of',
-        icon: <Package size={20} />,
-        example: 'Class → Method',
-    },
-    {
-        id: 'relates-to',
-        label: 'Related To',
-        description: 'Shares context',
-        icon: <Link size={20} />,
-        example: 'General association',
+        id: 'constrains',
+        label: 'Constrains',
+        question: 'What limits or governs this?',
+        description: 'A sets rules or limits on B',
+        icon: <Lock size={20} />,
+        example: 'Budget constrains Scope',
     },
 ];
 
@@ -138,7 +145,7 @@ export function ConnectionTypeModal({
                             <div className={styles.typeIcon}>{type.icon}</div>
                             <div className={styles.typeContent}>
                                 <h3 className={styles.typeLabel}>{type.label}</h3>
-                                <p className={styles.typeDescription}>{type.description}</p>
+                                <p className={styles.typeQuestion}>{type.question}</p>
                                 <span className={styles.typeExample}>{type.example}</span>
                             </div>
                         </motion.button>

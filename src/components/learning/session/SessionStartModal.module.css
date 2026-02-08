@@ -21,7 +21,7 @@
 
 .modal {
   background: var(--color-surface);
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   width: 100%;
   max-width: 900px;
   margin: auto;

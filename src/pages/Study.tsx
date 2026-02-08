@@ -28,7 +28,7 @@ import { SessionSummary } from '@/components/learning/session/SessionSummary';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
 import { SessionScoutPreview } from '@/components/learning/session/SessionScoutPreview';
 import { CoachMessage } from '@/features/ai-coach/components';
-import { SessionStartModal } from '@/components/learning/session';
+import { SessionStartModal, MOOD_GOAL_MAP } from '@/components/learning/session';
 import { MetaphorToggle } from '@/features/personalization';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
 import { useCoachMessage } from '@/shared/hooks/useCoachMessage';
@@ -272,26 +272,19 @@ export default function Study() {
       }
     } catch (err) {
       console.warn('Algorithm selection failed, falling back to sequential:', err);
-      // Fallback: take next N incomplete concepts
-      // targetConcepts = ... (handled by core logic if empty array passed?)
-      // We'll pass empty to let backend/store decide if algo fails
+      const completedIds = new Set(session?.progress?.completedConcepts || []);
+      targetConcepts = concepts
+        .filter(c => !completedIds.has(c.id))
+        .slice(0, sessionSize)
+        .map(c => c.id);
     }
 
     // Start the study session with selected parameters and concepts
     startStudySession(goal, duration, targetConcepts, primer);
 
-    // Map SessionStartModal mood to learning store mood
-    // SessionStartModal mood is already saved to personalization store by the modal
     const { lastSessionMood } = usePersonalizationStore.getState();
     if (lastSessionMood) {
-      // Map: energized->pumped, neutral->good, tired->tired, stressed->struggling
-      const moodMap: Record<string, 'pumped' | 'good' | 'okay' | 'struggling' | 'tired'> = {
-        'energized': 'pumped',
-        'neutral': 'good',
-        'tired': 'tired',
-        'stressed': 'struggling',
-      };
-      const mappedMood = moodMap[lastSessionMood] || 'good';
+      const mappedMood = MOOD_GOAL_MAP[lastSessionMood]?.storeMood || 'good';
       setMood(mappedMood);
     }
 
@@ -512,26 +505,12 @@ export default function Study() {
         onTabChange={handleTabChange}
         subjectName={subjectName}
         headerActions={
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className={styles.headerActions}>
             {useLearningStore.getState().studySession && (
               <button
                 onClick={() => setShowSessionConfig(true)}
                 title="Recalibrate session — change your energy level"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  background: 'transparent',
-                  border: '1px solid var(--color-border, rgba(255,255,255,0.1))',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  padding: '0.3rem 0.6rem',
-                  fontSize: '0.7rem',
-                  fontFamily: "'JetBrains Mono', monospace",
-                  textTransform: 'uppercase' as const,
-                  letterSpacing: '0.03em',
-                  color: 'var(--color-text-secondary)',
-                }}
+                className={styles.recalibrateButton}
               >
                 ⚡ Recalibrate
               </button>
@@ -539,14 +518,7 @@ export default function Study() {
             <button
               onClick={() => setShowHelpModal(true)}
               title="Help & Shortcuts"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '0.5rem',
-                borderRadius: '50%',
-                color: 'var(--color-text-secondary)',
-              }}
+              className={styles.helpButton}
             >
               ❓
             </button>

@@ -21,7 +21,7 @@
 
 .modal {
   background: var(--color-surface);
-  border-radius: 1.5rem;
+  border-radius: 12px;
   padding: 2.5rem 3rem;
   width: min(800px, 90vw);
   text-align: center;

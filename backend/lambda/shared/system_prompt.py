@@ -195,15 +195,20 @@ Generate concepts {start_idx} to {end_idx} for Part {part_num}.
 ### 3.3 SELECTION FIELD PATTERN:
 Each item: "When [Scenario] → Choose [Option] → Unlocks [Capability]"
 
-### 3.4 CONNECTION TYPES (Strict):
-- **requires**: Hard prerequisite
-- **extends**: Adds features/specialization
-- **enables**: Provides capability
-- **contains**: Composition
-- **related-to**: Soft link (use sparingly, <5%)
+### 3.4 CONNECTION TYPES (Strict — 6 Universal Types):
+Every connection MUST use exactly one of these 6 types. There is NO generic fallback.
+- **requires**: "What must I know first?" — Hard prerequisite (A requires B means B must be understood before A)
+- **enables**: "What does this unlock?" — Capability chain (A enables B means learning A makes B possible)
+- **is-part-of**: "What is this a piece of?" — Part-whole composition (A is part of B means A is a component within B)
+- **is-type-of**: "What category does this belong to?" — Taxonomy (A is type of B means A is a specific instance of B)
+- **causes**: "What happens because of this?" — Causal chain (A causes B means A directly produces or triggers B)
+- **constrains**: "What limits or governs this?" — Boundary condition (A constrains B means A sets rules/limits on B)
+
+**FORBIDDEN**: Do NOT use "related-to", "relates", "extends", or any vague association. If you cannot classify a connection into one of these 6 types, the connection is not meaningful enough to include.
 
 ### 3.5 COGNITIVE LEVELS (Bloom's):
 Assign one: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`
+**MANDATORY DISTRIBUTION**: At least 30% of concepts MUST be `apply` or higher. Concepts involving configuration, troubleshooting, or decision-making MUST be `apply`/`analyze`. Concepts involving best practices or trade-offs MUST be `evaluate`. Do NOT default everything to `understand`.
 
 ### 3.6 POSITIVE FRAMING:
 | ❌ Avoid | ✅ Use |
@@ -227,7 +232,7 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
     "name": "Concept Name (Human-readable, NOT placeholder IDs)",
     "tier": "foundation|keystone|utility",
     "tierJustification": "Reason...",
-    "cognitiveLevel": "understand",
+    "cognitiveLevel": "apply",
     "commonPitfalls": ["Misinterpreting X"],
     "order": {start_idx},
     "whyYouNeed": "...",
@@ -248,7 +253,7 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
     "scoring": {{ "keywords": ["..."], "aliases": ["..."] }},
     "criticalDistinctions": [{{ "correct": "...", "incorrect": "..." }}],
     "designBoundaries": [{{ "boundary": "...", "rationale": "..." }}],
-    "connections": [{{ "target": "Other Concept", "type": "requires|extends|enables|contains" }}]
+    "connections": [{{ "target": "Other Concept", "type": "requires|enables|is-part-of|is-type-of|causes|constrains" }}]
   }}
 ]
 ```
@@ -267,13 +272,100 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 Generate concepts {start_idx} through {end_idx} now:"""
 
 
+def _parse_objective_domains(context: str) -> list:
+    import re as _re
+    lines = context.strip().split('\n')
+    domains = []
+    current_domain = None
+    current_subs = []
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        indent = len(line) - len(line.lstrip())
+        is_sub = indent >= 2 or stripped.startswith('-') or stripped.startswith('•')
+        clean = _re.sub(r'^[\s\-•*\d.]+', '', stripped).strip()
+        clean = _re.sub(r'\(\s*\d+[\s\-–]*\d*\s*%?\s*\)', '', clean).strip()
+        if not clean:
+            continue
+
+        if not is_sub and len(clean) > 10:
+            if current_domain:
+                domains.append({"name": current_domain, "objectives": current_subs[:]})
+            current_domain = clean
+            current_subs = []
+        elif current_domain and clean:
+            current_subs.append(clean)
+        elif not current_domain:
+            if current_domain is None and len(clean) > 10:
+                current_domain = clean
+                current_subs = []
+
+    if current_domain:
+        domains.append({"name": current_domain, "objectives": current_subs[:]})
+
+    return domains
+
+
+def _distribute_domains_to_parts(domains: list, num_parts: int = 5) -> dict:
+    if not domains:
+        return {}
+
+    total_objectives = sum(len(d["objectives"]) for d in domains)
+    per_part = max(total_objectives // num_parts, 1) if total_objectives > 0 else len(domains) // num_parts
+
+    parts = {}
+    current_part = 1
+    current_count = 0
+
+    for domain in domains:
+        if current_part > num_parts:
+            current_part = num_parts
+
+        if current_part not in parts:
+            parts[current_part] = []
+        parts[current_part].append(domain)
+        current_count += max(len(domain["objectives"]), 1)
+
+        if current_count >= per_part and current_part < num_parts:
+            current_part += 1
+            current_count = 0
+
+    return parts
+
+
 def get_silver_bullet_prompt(
     subject: str,
     part: int = 1,
     context: str = "",
     classification: dict = None,
 ) -> str:
-    if context:
+    domains = _parse_objective_domains(context) if context else []
+    domain_parts = _distribute_domains_to_parts(domains) if domains else {}
+
+    if domain_parts and part in domain_parts:
+        part_domains = domain_parts[part]
+        domain_lines = []
+        for d in part_domains:
+            domain_lines.append(f"**Domain: {d['name']}**")
+            for obj in d["objectives"]:
+                domain_lines.append(f"  - {obj}")
+        domain_text = "\n".join(domain_lines)
+
+        all_domain_names = []
+        for p, ds in domain_parts.items():
+            if p != part:
+                for d in ds:
+                    all_domain_names.append(d["name"])
+        other_parts_text = ", ".join(all_domain_names) if all_domain_names else "(none)"
+
+        context_block = f"""### EXAM OBJECTIVES FOR THIS PART (Part {part}):
+{domain_text}
+
+**CRITICAL**: Generate one concept for EACH sub-objective listed above. Every sub-objective must have its own dedicated concept.
+Do NOT generate concepts for other domains — those are covered in other parts: {other_parts_text}"""
+    elif context:
         context_block = f"""### USER-PROVIDED OBJECTIVES (Primary Source):
 {context}
 

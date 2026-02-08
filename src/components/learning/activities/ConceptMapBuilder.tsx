@@ -47,8 +47,8 @@ import styles from './ConceptMapBuilder.module.css';
 
 const MAX_LABEL_LENGTH = 25;
 const LABEL_PRESETS = [
-    'causes', 'enables', 'requires', 'is part of',
-    'leads to', 'depends on', 'contains', 'example of'
+    'requires', 'enables', 'is part of',
+    'is type of', 'causes', 'constrains'
 ];
 
 // ============================================================================

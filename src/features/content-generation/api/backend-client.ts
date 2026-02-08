@@ -6,7 +6,6 @@ import type { ParsedConcept } from '@/features/content-generation/parsers/types'
 import type { SubjectType, MacroWorkflowResult } from '@/shared/types/macro-workflow';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { toast } from '@/shared/utils/toast';
-import { fetchExamObjectives, formatObjectivesAsContext } from '@/shared/services/exam-objectives-fetcher';
 
 /**
  * Uploads the raw exam/blueprint file to the secure storage bucket.
@@ -44,44 +43,7 @@ export async function generateWithBackend(
     // Get active job tracking functions
     const { setActiveJob, updateActiveJobStatus, clearActiveJob } = useGenerationStore.getState();
 
-    // Pass 0: Fetch latest exam objectives (lightweight web fetch)
-    onProgress(1, 'in-progress', {
-        message: 'Fetching latest exam objectives...',
-        progress: 2,
-    });
-
-    let enhancedContext = context || '';
-    
-    try {
-        const examObjectives = await fetchExamObjectives(subject, {
-            timeout: 8000, // 8 second timeout
-            retries: 1, // Single retry
-            includeSubObjectives: true
-        });
-        
-        if (examObjectives) {
-            const objectivesContext = formatObjectivesAsContext(examObjectives);
-            enhancedContext = objectivesContext + (context ? `\n\nADDITIONAL CONTEXT:\n${context}` : '');
-            
-            onProgress(1, 'in-progress', {
-                message: `Found ${examObjectives.totalObjectives} official exam objectives!`,
-                progress: 4,
-            });
-            
-            toast.success(`Loaded ${examObjectives.totalObjectives} official objectives for ${examObjectives.examCode.toUpperCase()}`);
-        } else {
-            onProgress(1, 'in-progress', {
-                message: 'No exam objectives found, proceeding with subject analysis...',
-                progress: 4,
-            });
-        }
-    } catch (error) {
-        console.warn('[ExamFetch] Failed to fetch objectives:', error);
-        onProgress(1, 'in-progress', {
-            message: 'Proceeding without exam objectives...',
-            progress: 4,
-        });
-    }
+    const enhancedContext = context || '';
 
     // Pass 1: Start serverless generation
     onProgress(1, 'in-progress', {

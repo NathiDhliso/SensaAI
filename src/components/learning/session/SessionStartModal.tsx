@@ -27,11 +27,11 @@ interface SessionStartModalProps {
   onBack?: () => void;
 }
 
-const MOOD_GOAL_MAP: Record<Mood, { goal: StudyGoal; duration: number }> = {
-  energized: { goal: 'velocity', duration: 45 },
-  neutral: { goal: 'learn-new', duration: 30 },
-  tired: { goal: 'review', duration: 15 },
-  stressed: { goal: 'explore', duration: 15 },
+export const MOOD_GOAL_MAP: Record<Mood, { goal: StudyGoal; duration: number; storeMood: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired' }> = {
+  energized: { goal: 'velocity', duration: 45, storeMood: 'pumped' },
+  neutral: { goal: 'learn-new', duration: 30, storeMood: 'good' },
+  tired: { goal: 'review', duration: 15, storeMood: 'tired' },
+  stressed: { goal: 'explore', duration: 15, storeMood: 'struggling' },
 };
 
 export function SessionStartModal({

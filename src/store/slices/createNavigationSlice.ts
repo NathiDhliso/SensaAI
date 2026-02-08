@@ -120,7 +120,7 @@ export const createNavigationSlice: StateCreator<
         sessionId: state.currentSession.id,
         subjectId: state.currentSession.subjectId,
         progress: newProgress,
-        currentPhase: 'LEARN', // TODO: Get actual phase from state
+        currentPhase: state.studySession?.mastered ? 'MASTER' : state.studySession?.mapReconstructed ? 'LEARN' : state.studySession ? 'LEARN' : 'IDLE',
         activeConcept: nextConcept,
       });
     } catch (error) {

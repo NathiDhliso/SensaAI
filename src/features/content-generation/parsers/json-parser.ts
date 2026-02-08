@@ -996,16 +996,19 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
         };
     }
 
-    // Extract annotations
     let criticalDistinctions: string[] = [];
     let designBoundaries: string[] = [];
     let examFocus: string[] = [];
 
-    if (c.annotations && typeof c.annotations === 'object') {
+    if (Array.isArray(c.criticalDistinctions)) criticalDistinctions = c.criticalDistinctions as string[];
+    if (Array.isArray(c.designBoundaries)) designBoundaries = c.designBoundaries as string[];
+    if (Array.isArray(c.examFocus)) examFocus = c.examFocus as string[];
+
+    if (criticalDistinctions.length === 0 && c.annotations && typeof c.annotations === 'object') {
         const a = c.annotations as Record<string, unknown>;
-        criticalDistinctions = Array.isArray(a.criticalDistinctions) ? a.criticalDistinctions as string[] : [];
-        designBoundaries = Array.isArray(a.designBoundaries) ? a.designBoundaries as string[] : [];
-        examFocus = Array.isArray(a.examFocus) ? a.examFocus as string[] : [];
+        if (Array.isArray(a.criticalDistinctions)) criticalDistinctions = a.criticalDistinctions as string[];
+        if (Array.isArray(a.designBoundaries)) designBoundaries = a.designBoundaries as string[];
+        if (Array.isArray(a.examFocus)) examFocus = a.examFocus as string[];
     }
 
     return {

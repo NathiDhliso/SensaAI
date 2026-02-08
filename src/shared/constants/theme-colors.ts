@@ -13,7 +13,7 @@
 // PRIMARY COLORS
 // ============================================
 export const COLORS = {
-    // Primary palette
+    // Primary palette (single brand color)
     primary: {
         amethyst: '#6B46C1',
         coral: '#F97316',
@@ -21,20 +21,20 @@ export const COLORS = {
         indigo: '#6366f1',
     },
 
-    // Secondary palette
+    // Secondary palette (semantic only: success + warning)
     secondary: {
         amber: '#F59E0B',
         rose: '#EC4899',
         sage: '#10B981',
     },
 
-    // Accent colors (for dynamic usage)
+    // Accent colors (amethyst family only)
     accent: {
         light: '#8b5cf6',
         default: '#6B46C1',
         hover: '#553c9a',
-        alt: '#F97316',
-        altHover: '#ea580c',
+        alt: '#F59E0B',
+        altHover: '#d97706',
     },
 
     // Semantic colors
@@ -143,7 +143,7 @@ export const MOOD_COLORS = {
     energized: COLORS.secondary.amber,  // #F59E0B - Amber
     neutral: COLORS.info,               // #3b82f6 - Blue (adjusted for consistency)
     tired: COLORS.text.muted,           // #64748b - Slate
-    stressed: COLORS.error,             // #EF4444 - Red
+    stressed: '#64748b',                 // Slate - calming, not cortisol-triggering
 } as const;
 
 // ============================================

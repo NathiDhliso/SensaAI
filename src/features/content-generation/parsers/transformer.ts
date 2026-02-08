@@ -2,6 +2,18 @@ import type { ParsedGeneratedContent, ParsedConcept, ParsedMentalAnchor } from '
 import type { LearningStage, LearningConcept, ConceptLifecycle, SubjectGraph, MnemonicContext } from '@/shared/types/learning';
 import { buildSubjectGraph } from '@/features/content-generation/generators/dependency-parser';
 
+function safeStr(val: unknown): string {
+  if (typeof val === 'string') return val;
+  if (val == null) return '';
+  if (typeof val === 'object') {
+    const obj = val as Record<string, unknown>;
+    if ('correct' in obj && 'incorrect' in obj) return `${obj.correct} ${obj.incorrect}`;
+    if ('boundary' in obj && 'rationale' in obj) return `${obj.boundary} ${obj.rationale}`;
+    try { return JSON.stringify(val); } catch { return ''; }
+  }
+  return String(val);
+}
+
 
 // ============================================================================
 // SENSAAI LEARNING VELOCITY ENGINE EXTENSIONS
@@ -206,8 +218,8 @@ function calculateConceptSimilarity(conceptA: ParsedConcept, conceptB: ParsedCon
   const phaseAItems = [...conceptA.phase1.selection, ...conceptA.phase2];
   const phaseBItems = [...conceptB.phase1.selection, ...conceptB.phase2];
   const commonPhaseItems = phaseAItems.filter(item =>
-    phaseBItems.some(bItem => bItem.toLowerCase().includes(item.toLowerCase()) ||
-      item.toLowerCase().includes(bItem.toLowerCase()))
+    phaseBItems.some(bItem => safeStr(bItem).toLowerCase().includes(safeStr(item).toLowerCase()) ||
+      safeStr(item).toLowerCase().includes(safeStr(bItem).toLowerCase()))
   );
   if (commonPhaseItems.length > 0) {
     similarity += commonPhaseItems.length / Math.max(phaseAItems.length, phaseBItems.length);
@@ -216,7 +228,7 @@ function calculateConceptSimilarity(conceptA: ParsedConcept, conceptB: ParsedCon
 
   // Tool similarity (same verification tools)
   if (conceptA.phase3.tool && conceptB.phase3.tool) {
-    if (conceptA.phase3.tool.toLowerCase() === conceptB.phase3.tool.toLowerCase()) {
+    if (safeStr(conceptA.phase3.tool).toLowerCase() === safeStr(conceptB.phase3.tool).toLowerCase()) {
       similarity += 0.5;
     }
     factors++;
@@ -245,10 +257,10 @@ function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, Confusio
 
         // Compare critical distinctions
         const uniqueToA = conceptA.criticalDistinctions.filter(d =>
-          !conceptB.criticalDistinctions.some(bd => bd.toLowerCase().includes(d.toLowerCase()))
+          !conceptB.criticalDistinctions.some(bd => safeStr(bd).toLowerCase().includes(safeStr(d).toLowerCase()))
         );
         const uniqueToB = conceptB.criticalDistinctions.filter(d =>
-          !conceptA.criticalDistinctions.some(ad => ad.toLowerCase().includes(d.toLowerCase()))
+          !conceptA.criticalDistinctions.some(ad => safeStr(ad).toLowerCase().includes(safeStr(d).toLowerCase()))
         );
 
         keyDifferences.push(...uniqueToA.map(d => `${conceptA.name}: ${d}`));
@@ -299,13 +311,13 @@ function isFoundationLevel(concept: ParsedConcept, allConcepts: ParsedConcept[])
   // 3. Have concrete rather than abstract content
 
   const hasMinimalPrerequisites = !concept.phase1.prerequisite ||
-    concept.phase1.prerequisite.toLowerCase().includes('none') ||
-    concept.phase1.prerequisite.length < 50;
+    safeStr(concept.phase1.prerequisite).toLowerCase().includes('none') ||
+    safeStr(concept.phase1.prerequisite).length < 50;
 
   const isReferencedByOthers = allConcepts.some(other =>
     other.id !== concept.id &&
-    (other.phase1.prerequisite?.toLowerCase().includes(concept.name.toLowerCase()) ||
-      other.phase1.execution?.toLowerCase().includes(concept.name.toLowerCase()))
+    (other.phase1.prerequisite ? safeStr(other.phase1.prerequisite).toLowerCase().includes(concept.name.toLowerCase()) : false) ||
+    (other.phase1.execution ? safeStr(other.phase1.execution).toLowerCase().includes(concept.name.toLowerCase()) : false)
   );
 
   const hasConcreteContent = concept.phase1.microMetaphor.length > 0 ||
@@ -334,12 +346,12 @@ function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'f
   // Calculate based on dependencies
   const dependentCount = allConcepts.filter(other =>
     other.id !== concept.id &&
-    (other.phase1.prerequisite?.toLowerCase().includes(concept.name.toLowerCase()) ||
-      other.phase1.execution?.toLowerCase().includes(concept.name.toLowerCase()))
+    ((other.phase1.prerequisite ? safeStr(other.phase1.prerequisite).toLowerCase().includes(concept.name.toLowerCase()) : false) ||
+      (other.phase1.execution ? safeStr(other.phase1.execution).toLowerCase().includes(concept.name.toLowerCase()) : false))
   ).length;
 
   const dependencyCount = concept.phase1.prerequisite &&
-    !concept.phase1.prerequisite.toLowerCase().includes('none') ? 1 : 0;
+    !safeStr(concept.phase1.prerequisite).toLowerCase().includes('none') ? 1 : 0;
 
   if (dependentCount >= 3) return 'foundation';
   if (dependentCount >= 1 || dependencyCount > 0) return 'keystone';
@@ -470,7 +482,7 @@ function getConceptMetaphor(concept: ParsedConcept, mentalAnchors: ParsedMentalA
 }
 
 function extractPrerequisites(concept: ParsedConcept, allConcepts: ParsedConcept[]): string[] {
-  const prereqText = concept.phase1.prerequisite.toLowerCase();
+  const prereqText = safeStr(concept.phase1.prerequisite).toLowerCase();
   const prerequisites: string[] = [];
 
   for (const other of allConcepts) {
@@ -539,7 +551,7 @@ function extractSemanticConnections(
   }
 
   // Priority 3: Infer "requires" from prerequisite text (semantic extraction)
-  const prereqText = concept.phase1?.prerequisite?.toLowerCase() || '';
+  const prereqText = safeStr(concept.phase1?.prerequisite).toLowerCase();
   if (prereqText && !prereqText.includes('none') && prereqText.length > 5) {
     for (const other of allConcepts) {
       if (other.id === concept.id) continue;
@@ -886,8 +898,8 @@ export function transformToLearningConcepts(
       dependencies: extractPrerequisites(parsedConcept, parsed.concepts),
       outdegree: parsed.concepts.filter(other =>
         other.id !== parsedConcept.id &&
-        (other.phase1.prerequisite?.toLowerCase().includes(parsedConcept.name.toLowerCase()) ||
-          other.phase1.execution?.toLowerCase().includes(parsedConcept.name.toLowerCase()))
+        ((other.phase1.prerequisite ? safeStr(other.phase1.prerequisite).toLowerCase().includes(parsedConcept.name.toLowerCase()) : false) ||
+          (other.phase1.execution ? safeStr(other.phase1.execution).toLowerCase().includes(parsedConcept.name.toLowerCase()) : false))
       ).length,
       // SILVER BULLET: Map AI-generated semantic connections to LearningConcept.connections
       // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
