@@ -56,29 +56,58 @@ class BedrockService:
             "BEDROCK_MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0"
         )
 
-    def generate_concepts(self, subject: str, context: str = "") -> List[Dict[str, Any]]:
-        """
-        Generate concepts using parallel partitioned requests.
-        
-        This method splits generation into 5 parallel requests to bypass
-        token limits and maximize throughput.
-        
-        Args:
-            subject: The subject to generate concepts for
-            context: Additional context for generation
-            
-        Returns:
-            List of validated concept dictionaries
-        """
+    def classify_subject(self, subject: str, context: str = "") -> Optional[Dict[str, Any]]:
+        from shared.system_prompt import get_classification_prompt
+
+        prompt = get_classification_prompt(subject, context)
+        print(f"[BedrockService] Classifying subject: {subject}")
+
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                response = self.client.invoke_model(
+                    modelId=self.model_id,
+                    contentType="application/json",
+                    accept="application/json",
+                    body=json.dumps({
+                        "anthropic_version": "bedrock-2023-05-31",
+                        "max_tokens": 4096,
+                        "temperature": 0.3,
+                        "messages": [{"role": "user", "content": prompt}],
+                    }),
+                )
+
+                response_body = json.loads(response.get("body").read())
+                raw_content = response_body.get("content", [])[0].get("text", "")
+                print(f"[BedrockService] Classification response: {len(raw_content)} chars")
+
+                json_match = re.search(r'\{[\s\S]*\}', raw_content)
+                if json_match:
+                    result = json.loads(json_match.group(0))
+                    valid_types = {"procedural", "conceptual", "cyclic", "perceptual"}
+                    if result.get("subjectType") in valid_types:
+                        print(f"[BedrockService] Classified as: {result['subjectType']} (confidence: {result.get('classification', {}).get('confidence', 'N/A')})")
+                        return result
+
+                print(f"[BedrockService] Classification attempt {attempt + 1} returned invalid data")
+            except Exception as e:
+                print(f"[BedrockService] Classification attempt {attempt + 1} error: {e}")
+
+            if attempt < self.MAX_RETRIES - 1:
+                time.sleep(self.RETRY_BACKOFF_BASE ** (attempt + 1))
+
+        print("[BedrockService] Classification failed, using default (conceptual)")
+        return None
+
+    def generate_concepts(self, subject: str, context: str = "") -> tuple:
         from shared.system_prompt import get_silver_bullet_prompt
 
+        classification = self.classify_subject(subject, context)
+
         def generate_part_with_retry(part_num: int) -> List[Dict[str, Any]]:
-            """Generate a single partition with retry logic."""
-            # Stagger start times to avoid rate limits
             if part_num > 1:
                 time.sleep(1.5 * part_num)
 
-            prompt = get_silver_bullet_prompt(subject, part_num, context)
+            prompt = get_silver_bullet_prompt(subject, part_num, context, classification)
             last_error = None
 
             print(f"[BedrockService] Part {part_num}: Starting with model={self.model_id}")
@@ -106,7 +135,6 @@ class BedrockService:
                     parsed = self._parse_concepts_from_response(raw_content)
                     print(f"[BedrockService] Part {part_num}: Parsed {len(parsed)} concepts")
 
-                    # Validate each concept
                     validated = [c for c in parsed if self._validate_concept(c)]
                     print(f"[BedrockService] Part {part_num}: Validated {len(validated)} concepts")
 
@@ -119,7 +147,6 @@ class BedrockService:
                     last_error = str(e)
                     print(f"[BedrockService] Part {part_num}: Error on attempt {attempt + 1}: {last_error}")
 
-                # Exponential backoff (except on last attempt)
                 if attempt < self.MAX_RETRIES - 1:
                     sleep_time = self.RETRY_BACKOFF_BASE ** (attempt + 1)
                     time.sleep(sleep_time)
@@ -127,7 +154,6 @@ class BedrockService:
             print(f"[ERROR] generate_part_with_retry failed after {self.MAX_RETRIES} attempts: {last_error}")
             return []
 
-        # Run all parts in parallel with controlled concurrency
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
             futures = [
                 executor.submit(generate_part_with_retry, i)
@@ -135,24 +161,20 @@ class BedrockService:
             ]
             results = [f.result() for f in futures]
 
-        # Combine all results
         all_concepts = []
         for part_concepts in results:
             all_concepts.extend(part_concepts)
 
-        # Filter and validate
         all_concepts = [
             c for c in all_concepts if isinstance(c, dict) and c.get("name")
         ]
 
-        # Check minimum threshold
         if len(all_concepts) < self.MIN_CONCEPTS_THRESHOLD:
             print(f"[WARNING] Only {len(all_concepts)} concepts (threshold: {self.MIN_CONCEPTS_THRESHOLD})")
 
-        # Post-process: assign tiers/stages
         all_concepts = self._post_process_concepts(all_concepts)
 
-        return all_concepts
+        return all_concepts, classification
 
     def repair_concept(
         self, subject: str, concept_name: str, issue: str

@@ -581,6 +581,37 @@ export function transformToLearningStages(
 ): LearningStage[] {
   const stages: LearningStage[] = [];
 
+  const macro = parsed.domainAnalysis.macroStructure;
+  if (macro && macro.data) {
+    const macroStages = extractMacroStageNames(macro);
+    if (macroStages.length > 0) {
+      const conceptsPerStage = Math.ceil(parsed.concepts.length / macroStages.length);
+      for (let i = 0; i < macroStages.length; i++) {
+        const stageName = macroStages[i];
+        const stageId = `stage-${i + 1}-${slugify(stageName)}`;
+        const stageIcon = DEFAULT_STAGE_ICONS[i] || DEFAULT_STAGE_ICONS[0];
+        const startIdx = i * conceptsPerStage;
+        const endIdx = Math.min(startIdx + conceptsPerStage, parsed.concepts.length);
+        const conceptIds = parsed.concepts.slice(startIdx, endIdx).map(c => c.id);
+
+        stages.push({
+          id: stageId,
+          title: stageName,
+          description: `Master the ${stageName.toLowerCase()} concepts`,
+          order: i + 1,
+          name: stageName,
+          metaphor: stageName,
+          metaphorDescription: `Master the ${stageName.toLowerCase()} concepts`,
+          icon: stageIcon,
+          concepts: conceptIds,
+          celebrationTitle: `${stageName} Complete!`,
+          celebrationMessage: `You've mastered the ${stageName.toLowerCase()} stage!`,
+        });
+      }
+      return stages;
+    }
+  }
+
   if (parsed.learningPath.stages.length > 0) {
     for (const stage of parsed.learningPath.stages) {
       const stageId = `stage-${stage.order}-${slugify(stage.name)}`;
@@ -621,6 +652,26 @@ export function transformToLearningStages(
   }
 
   return stages;
+}
+
+function extractMacroStageNames(macro: NonNullable<import('./types').ParsedDomainAnalysis['macroStructure']>): string[] {
+  const data = macro.data as unknown as Record<string, unknown>;
+  if (macro.type === 'procedural' && Array.isArray((data as { stages?: unknown }).stages)) {
+    return ((data as { stages: { verb?: string; id?: string }[] }).stages).map(s => s.verb || s.id || '');
+  }
+  if (macro.type === 'conceptual' && Array.isArray((data as { coreMoves?: unknown }).coreMoves)) {
+    return ((data as { coreMoves: { verb?: string; id?: string }[] }).coreMoves).map(m => m.verb || m.id || '');
+  }
+  if (macro.type === 'cyclic' && Array.isArray((data as { fundamentalCycle?: unknown }).fundamentalCycle)) {
+    return ((data as { fundamentalCycle: { verb?: string; id?: string }[] }).fundamentalCycle).map(n => n.verb || n.id || '');
+  }
+  if (macro.type === 'perceptual' && Array.isArray((data as { perceptualLadder?: unknown }).perceptualLadder)) {
+    return ((data as { perceptualLadder: { label?: string }[] }).perceptualLadder).map(l => l.label || '');
+  }
+  if (Array.isArray(data.stages)) {
+    return (data.stages as string[]).filter(s => typeof s === 'string');
+  }
+  return [];
 }
 
 function findStageForConcept(conceptId: string, stages: LearningStage[]): LearningStage | undefined {

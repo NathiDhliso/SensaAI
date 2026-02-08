@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getRandomTerm, getDomainName } from '@/shared/utils/subject-domain-detector';
+import type { SubjectType } from '@/shared/types/generation';
 import styles from '@/pages/Generate.module.css';
+
+const TYPE_LABELS: Record<SubjectType, string> = {
+    procedural: 'PROCEDURAL MASTERY',
+    conceptual: 'CONCEPTUAL FLUENCY',
+    cyclic: 'ADAPTIVE INTEGRATION',
+    perceptual: 'EMBODIED JUDGMENT',
+};
 
 interface CognitiveStreamProps {
     pass: number;
     intensity: number;
     isGenerating: boolean;
     subject?: string;
+    subjectType?: SubjectType | null;
 }
 
-export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensity, isGenerating, subject }) => {
+export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensity, isGenerating, subject, subjectType }) => {
     const [thought, setThought] = useState('');
 
-    // Cycle thoughts based on pass and intensity
     useEffect(() => {
         if (!isGenerating) {
             // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid reset when not generating
@@ -24,25 +32,44 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
         const getThoughts = () => {
             const subjectName = subject || 'content';
             const domainName = getDomainName(subjectName);
+            const typeLabel = subjectType ? TYPE_LABELS[subjectType] : null;
             
-            // Generate domain-specific terms on each call
             const nodes = getRandomTerm(subjectName, 'nodes');
             const concepts = getRandomTerm(subjectName, 'concepts');
             const structures = getRandomTerm(subjectName, 'structures');
             const processes = getRandomTerm(subjectName, 'processes');
-            
-            const thoughtsWithContext = {
-                pass1: [
-                    `SCANNING ${subjectName.toUpperCase()} ${nodes.toUpperCase()}...`,
-                    `PARSING ${nodes.toUpperCase()} FOR RELEVANCE...`,
-                    `DETECTING ${domainName.toUpperCase()} SEMANTIC DENSITY...`,
-                    `ANALYZING ${structures.toUpperCase()}...`,
-                    `ISOLATING KEY ${concepts.toUpperCase()}...`,
-                    `CROSS-REFERENCING ${nodes.toUpperCase()}...`,
-                    "FILTERING IRRELEVANT DATA...",
-                    "FOCUSING ON CORE PATTERNS..."
-                ],
-                pass2: [
+
+            const classificationThoughts = [
+                `CLASSIFYING LEARNING TARGET...`,
+                `ANALYZING ${subjectName.toUpperCase()} STRUCTURE TYPE...`,
+                `DETECTING ${domainName.toUpperCase()} PEDAGOGY PATTERN...`,
+                `EVALUATING: PROCEDURAL vs CONCEPTUAL vs CYCLIC vs PERCEPTUAL...`,
+                `SCANNING ${nodes.toUpperCase()} FOR MACRO STRUCTURE...`,
+                `ISOLATING CORE ${concepts.toUpperCase()}...`,
+                `CROSS-REFERENCING ${structures.toUpperCase()}...`,
+                "EXTRACTING DOMAIN ARCHITECTURE...",
+            ];
+
+            if (typeLabel) {
+                classificationThoughts.push(
+                    `TYPE LOCKED :: ${typeLabel}`,
+                    `APPLYING ${typeLabel} FRAMEWORK...`,
+                    `MAPPING ${typeLabel} MACRO STRUCTURE...`,
+                );
+            }
+
+            const typeAwarePass2 = typeLabel
+                ? [
+                    `${typeLabel} :: MAPPING ${structures.toUpperCase()}...`,
+                    `${typeLabel} :: TRACING ${processes.toUpperCase()}...`,
+                    `GENERATING TYPE-ADAPTED ${concepts.toUpperCase()}...`,
+                    `CONNECTING ${nodes.toUpperCase()} VIA ${typeLabel}...`,
+                    `IDENTIFYING ${domainName.toUpperCase()} DEPENDENCIES...`,
+                    "WEAVING CONTEXTUAL RELATIONSHIPS...",
+                    `CALCULATING ${concepts.toUpperCase()} ENTROPY...`,
+                    "OPTIMIZING KNOWLEDGE PATHWAYS..."
+                ]
+                : [
                     `MAPPING ${subjectName.toUpperCase()} ${structures.toUpperCase()}...`,
                     `TRACING ${processes.toUpperCase()}...`,
                     `VALIDATING ${concepts.toUpperCase()}...`,
@@ -51,7 +78,11 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
                     "WEAVING CONTEXTUAL RELATIONSHIPS...",
                     `CALCULATING ${concepts.toUpperCase()} ENTROPY...`,
                     "OPTIMIZING KNOWLEDGE PATHWAYS..."
-                ],
+                ];
+            
+            const thoughtsWithContext = {
+                pass1: classificationThoughts,
+                pass2: typeAwarePass2,
                 pass3: [
                     `SYNTHESIZING ${concepts.toUpperCase()}...`,
                     `STRUCTURING ${nodes.toUpperCase()}...`,
@@ -83,8 +114,6 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
 
         const thoughts = getThoughts();
 
-        // Cycle speed based on intensity (Higher intensity = faster thoughts)
-        // Intensity 0 = 5000ms, Intensity 100 = 2000ms (Slower overall)
         const intervalTime = Math.max(2000, 5000 - (intensity * 30));
 
         let lastIndex = -1;
@@ -98,12 +127,12 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
             setThought(thoughts[nextIndex]);
         };
 
-        pickNextThought(); // Initial pick
+        pickNextThought();
 
         const intervalId = setInterval(pickNextThought, intervalTime);
 
         return () => clearInterval(intervalId);
-    }, [pass, intensity, isGenerating]);
+    }, [pass, intensity, isGenerating, subjectType]);
 
     return (
         <div className={styles.cognitiveStreamContainer}>

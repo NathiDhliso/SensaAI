@@ -158,9 +158,9 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
         set({ metaphorSettings: settings });
       },
 
-      trackMetaphorUsage: (action, value) => {
+      trackMetaphorUsage: (_action, _value) => {
         // For now, just log to console. In production, this would send to analytics
-        console.log('Metaphor usage:', { action, value, timestamp: new Date().toISOString() });
+        // Analytics placeholder: { action, value, timestamp }
       },
 
       // Graduation Actions

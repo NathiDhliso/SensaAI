@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Pass1Result, PassStatus, ValidationResult, GenerationResult } from '@/shared/types/generation';
+import type { Pass1Result, PassStatus, ValidationResult, GenerationResult, SubjectType } from '@/shared/types/generation';
+import type { MacroWorkflowResult } from '@/shared/types/macro-workflow';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
 
 export type BedrockConfig = {
@@ -51,6 +52,8 @@ export type GenerationState = {
   streamedConcepts: ParsedConcept[];
   constructionPhase: ConstructionPhase;
   expectedConceptCount: number;
+  subjectType: SubjectType | null;
+  macroWorkflow: MacroWorkflowResult | null;
   // Surgical Merge Protocol
   history: Pass1Result[];
   repairProgress: {
@@ -95,6 +98,8 @@ type GenerationActions = {
   setConstructionPhase: (phase: ConstructionPhase) => void;
   setExpectedConceptCount: (count: number) => void;
   clearStreamedConcepts: () => void;
+  setSubjectType: (type: SubjectType) => void;
+  setMacroWorkflow: (workflow: MacroWorkflowResult) => void;
   // Surgical Merge Actions
   snapshotState: () => void;
   rollbackState: () => void;
@@ -154,6 +159,8 @@ const initialState: GenerationState = {
   streamedConcepts: [],
   constructionPhase: 'idle',
   expectedConceptCount: 0,
+  subjectType: null,
+  macroWorkflow: null,
   currentFileContext: null,
   history: [],
   repairProgress: null,
@@ -285,6 +292,10 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
       setExpectedConceptCount: (count) => set({ expectedConceptCount: count }),
 
       clearStreamedConcepts: () => set({ streamedConcepts: [], constructionPhase: 'idle' }),
+
+      setSubjectType: (type) => set({ subjectType: type }),
+
+      setMacroWorkflow: (workflow) => set({ macroWorkflow: workflow }),
 
       snapshotState: () =>
         set((state) => {

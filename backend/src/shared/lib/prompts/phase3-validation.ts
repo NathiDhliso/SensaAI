@@ -52,7 +52,13 @@ VALIDATION CHECKS:
    - Keystone concepts depend on foundation concepts
    - Utility concepts depend on keystone or foundation concepts
 
-6. **Confusion Pair Detection**:
+6. **Subject Type Coherence** (if subjectType is provided):
+   - **Procedural**: Concepts should map to lifecycle stages; phase1 should frame setup/selection, phase2 should frame execution steps, phase3 should frame verification/metrics
+   - **Conceptual**: Concepts should represent cognitive moves; lifecycle phases should frame interpret/apply/evaluate patterns
+   - **Cyclic**: Concepts should map to cycle positions; lifecycle phases should frame observe/act/reflect patterns; no concept should exist outside the cycle
+   - **Perceptual**: Concepts should map to perceptual levels; lifecycle phases should frame perceive/analyze/synthesize patterns; earlier concepts should be more surface-level
+
+7. **Confusion Pair Detection**:
    - Identify 3-5 concept pairs with similar names or overlapping functions
    - For each pair, provide:
      * distinctionKey: The ONE question that reveals which applies

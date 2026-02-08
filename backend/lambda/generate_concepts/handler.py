@@ -136,8 +136,10 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     if context:
         print(f"[Handler] Using user-provided context ({len(context)} chars)")
     try:
-        concepts = bedrock_service.generate_concepts(subject, context)
+        concepts, classification = bedrock_service.generate_concepts(subject, context)
         print(f"[Handler] Generation complete: {len(concepts)} concepts")
+        if classification:
+            print(f"[Handler] Classification: {classification.get('subjectType', 'unknown')}")
     except Exception as e:
         print(f"[Handler] ERROR: Bedrock generation failed: {str(e)}")
         dynamo_service.mark_job_failed(job_id, user_id, str(e))
@@ -147,9 +149,9 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     print(f"[Handler] Storing concepts...")
     dynamo_service.store_concepts(user_id, session_id, concepts, subject)
 
-    # Step 5: Mark job as completed
+    # Step 5: Mark job as completed with classification data
     print(f"[Handler] Marking job completed...")
-    dynamo_service.mark_job_completed(job_id, user_id, len(concepts))
+    dynamo_service.mark_job_completed(job_id, user_id, len(concepts), classification)
 
     print(f"[Handler] Success: {len(concepts)} concepts generated for job {job_id}")
     return api_response(200, {
@@ -157,6 +159,7 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
         "sessionId": session_id,
         "status": "completed",
         "conceptCount": len(concepts),
+        "classification": classification,
     })
 
 

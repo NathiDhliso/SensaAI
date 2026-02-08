@@ -27,7 +27,9 @@ import type {
   LifecyclePhases,
   StreamedConceptPreview,
   GenerationResult,
+  SubjectType,
 } from '@/shared/types/generation';
+import type { MacroWorkflowResult } from '@/shared/types/macro-workflow';
 
 // ============================================================================
 // TYPES
@@ -90,6 +92,8 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
     addStreamedConcept,
     setConstructionPhase,
     setExpectedConceptCount,
+    setSubjectType,
+    setMacroWorkflow,
   } = useGenerationStore();
 
   // Constants
@@ -149,6 +153,13 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
           setExpectedConceptCount(data.concepts.length);
           setConstructionPhase('framing');
         }
+        const pass1 = data as Pass1Result;
+        if (pass1.subjectType) {
+          setSubjectType(pass1.subjectType as SubjectType);
+        }
+        if (pass1.macroWorkflow) {
+          setMacroWorkflow(pass1.macroWorkflow as MacroWorkflowResult);
+        }
       }
 
       if (pass === 2 && status === 'complete' && data?.content) {
@@ -199,6 +210,8 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
     addStreamedConcept,
     setConstructionPhase,
     setExpectedConceptCount,
+    setSubjectType,
+    setMacroWorkflow,
   ]);
 
   /**

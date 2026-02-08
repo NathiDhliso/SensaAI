@@ -6,7 +6,7 @@
  * I = min(h, G × Q_f × Q_M × Q_P)
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Brain, Home, BookOpen } from 'lucide-react';
@@ -120,7 +120,6 @@ export default function VelocityLearning() {
         const savedProgress = loadSessionProgress(currentSession.id);
         if (savedProgress) {
             const age = getProgressAge(currentSession.id);
-            console.log('[VelocityLearning] Found saved progress:', age);
 
             // Restore progress if it matches current session
             if (savedProgress.subjectId === currentSession.subjectId) {
@@ -176,31 +175,30 @@ export default function VelocityLearning() {
         }
     }, [currentPhase, startDiagnostic]);
 
-    // Cleanup: Save final progress on unmount
+    const unmountRef = useRef({ currentSession, currentPhase, getNextConcept });
+    useEffect(() => {
+        unmountRef.current = { currentSession, currentPhase, getNextConcept };
+    });
+
     useEffect(() => {
         return () => {
-            // Save progress one last time when component unmounts
-            if (currentSession) {
-                const { progress } = currentSession;
-                const nextConcept = getNextConcept();
-
-                try {
-                    import('@/features/learning-session/progress/session-tracker').then(({ saveSessionProgress: saveProgress }) => {
-                        saveProgress({
-                            sessionId: currentSession.id,
-                            subjectId: currentSession.subjectId,
-                            progress,
-                            currentPhase: currentPhase || 'IDLE',
-                            activeConcept: nextConcept,
-                        });
-                        console.log('[VelocityLearning] Saved progress on unmount');
+            const { currentSession: session, currentPhase: phase, getNextConcept: getNext } = unmountRef.current;
+            if (!session) return;
+            const { progress } = session;
+            const nextConcept = getNext();
+            try {
+                import('@/features/learning-session/progress/session-tracker').then(({ flushSessionProgress }) => {
+                    flushSessionProgress({
+                        sessionId: session.id,
+                        subjectId: session.subjectId,
+                        progress,
+                        currentPhase: phase || 'IDLE',
+                        activeConcept: nextConcept,
                     });
-                } catch (error) {
-                    console.error('[VelocityLearning] Failed to save progress on unmount:', error);
-                }
-            }
+                });
+            } catch (_) { /* non-critical */ }
         };
-    }, [currentSession, currentPhase, getNextConcept]);
+    }, []);
 
     // 5. Handlers
     const handleStartSession = (goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {

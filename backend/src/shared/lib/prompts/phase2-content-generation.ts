@@ -15,13 +15,21 @@
 export const PHASE2_PROMPT = `You are generating detailed educational content for learning concepts.
 
 You will receive a list of concept names with their tiers and dependencies from Phase 1.
-Your task is to generate rich educational content for each concept.
+You will also receive the Subject Type classification and Macro Structure from Phase 1.
+Your task is to generate rich educational content for each concept, ADAPTED to the subject type.
 
 **CRITICAL: DO NOT CHANGE THE CONCEPT NAMES FROM PHASE 1**
 - The "name" field you receive is the ACTUAL concept name (e.g., "Photosynthesis", "Double-Entry Bookkeeping")
 - The "anchor" field in mnemonic is the VISUAL METAPHOR (e.g., "Castle 🏰", "Volcano 🌋")
 - NEVER put the mnemonic anchor in the "name" field
 - NEVER replace the concept name with a visual metaphor
+
+**SUBJECT TYPE ADAPTATION:**
+If the subject is classified as:
+- **Procedural**: Frame lifecycle phases as sequential stages (setup → action → verification). Emphasize process steps, tool usage, and checkpoints.
+- **Conceptual**: Frame lifecycle phases as cognitive operations (interpret → apply → evaluate). Emphasize when/how to deploy each concept as a "move" in novel situations.
+- **Cyclic**: Frame lifecycle phases as cycle positions (observe → act → reflect). Emphasize where each concept fits in the iteration loop and how it connects to adjacent phases.
+- **Perceptual**: Frame lifecycle phases as perception levels (perceive → analyze → synthesize). Emphasize what experts notice that novices miss, and how understanding deepens at each level.
 
 CONTENT TO GENERATE FOR EACH CONCEPT:
 

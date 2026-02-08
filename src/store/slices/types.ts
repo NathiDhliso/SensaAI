@@ -15,6 +15,7 @@ import type {
   SessionPrimer,
   ConceptMapData,
 } from '@/shared/types/learning';
+import type { SubjectType, MacroWorkflowResult } from '@/shared/types/macro-workflow';
 
 // ============================================================================
 // SHARED TYPES
@@ -32,6 +33,8 @@ export type ContentMetadata = {
   diagnosticReady?: boolean;
   metadataCompleteness?: number;
   fullDocument?: string;
+  subjectType?: SubjectType;
+  macroWorkflow?: MacroWorkflowResult;
 };
 
 /**
@@ -91,6 +94,8 @@ export interface CurrentSession {
   metadata: ContentMetadata | null;
   progress: UserProgress;
   cognitiveMetrics: CognitiveMetrics;
+  subjectType?: SubjectType;
+  macroWorkflow?: MacroWorkflowResult;
 }
 
 /**

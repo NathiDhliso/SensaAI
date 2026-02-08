@@ -7,6 +7,7 @@
 
 
 import type { SubjectGraph } from './learning';
+import type { SubjectType, MacroWorkflowResult } from './macro-workflow';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LIFECYCLE TYPES
@@ -21,6 +22,8 @@ export type LifecyclePhases = {
   phase3: string;
 };
 
+export type { SubjectType, MacroWorkflowResult };
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PASS RESULTS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -31,6 +34,8 @@ export type LifecyclePhases = {
 export type Pass1Result = {
   domain: string;
   lifecycle: LifecyclePhases;
+  subjectType?: SubjectType;
+  macroWorkflow?: MacroWorkflowResult;
   roleScope: string;
   excludedActions: string[];
   concepts: string[];

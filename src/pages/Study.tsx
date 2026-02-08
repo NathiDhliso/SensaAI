@@ -108,16 +108,7 @@ export default function Study() {
 
       // Check if we already have the correct session loaded
       if (currentSession) {
-        // Log ID debug info
-        console.log('[Study] Hydration Check:', {
-          urlSubjectId: subjectId,
-          currentSessionId: currentSession.id,
-          currentSubjectId: currentSession.subjectId
-        });
-
-        // Allow match on either ID (run ID or content ID)
         if (currentSession.id === subjectId || currentSession.subjectId === subjectId) {
-          console.log('[Study] Session already loaded, skipping hydration');
           return;
         }
       }
@@ -125,12 +116,10 @@ export default function Study() {
       // Check if this is a fresh generation (content already parsed and loaded)
       const navigationState = location.state as { freshGeneration?: boolean } | null;
       if (navigationState?.freshGeneration && currentSession) {
-        console.log('[Study] Fresh generation detected, content already loaded');
         return;
       }
 
       // Need to hydrate from storage
-      console.log('[Study] Starting hydration for:', subjectId);
       setIsHydrating(true);
       setHydrationError(null);
 
@@ -218,13 +207,8 @@ export default function Study() {
     hydrateFromStorage();
   }, [subjectId, currentSession?.id, currentSession?.subjectId, retryCount]);
 
-  // Debug logging for mount/unmount
   useEffect(() => {
-    console.log('[Study] Component Mounted');
-    return () => {
-      console.log('[Study] Component Unmounting');
-      console.trace('[Study] Unmount Stack Trace');
-    };
+    return () => {};
   }, []);
 
   // Start learning session on mount

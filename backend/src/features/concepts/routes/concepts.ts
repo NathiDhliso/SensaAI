@@ -281,6 +281,7 @@ conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Respon
             status: result.Item.status,
             conceptCount: result.Item.conceptCount,
             error: result.Item.error,
+            classification: result.Item.classification,
         });
     } catch (error) {
         console.error('[Backend /jobs/:jobId] ERROR:', error);

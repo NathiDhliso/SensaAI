@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useGenerationStore } from '@/store/generation-store';
 import type { ProgressCallback, GenerationResult, ValidationResult } from '@/shared/types/generation';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
+import type { SubjectType, MacroWorkflowResult } from '@/shared/types/macro-workflow';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { toast } from '@/shared/utils/toast';
 import { fetchExamObjectives, formatObjectivesAsContext } from '@/shared/services/exam-objectives-fetcher';
@@ -144,6 +145,8 @@ export async function generateWithBackend(
             status: 'processing',
         });
 
+        let jobClassification: Record<string, unknown> | undefined;
+
         // [BLOCK: Polling Loop]
         // Skip polling if already completed (which it should be for sync lambda)
         if (generateResponse.status !== 'completed') {
@@ -170,6 +173,9 @@ export async function generateWithBackend(
                     const status = await conceptsApi.getJobStatus(jobId, userId);
 
                     if (status.status === 'completed') {
+                        if (status.classification) {
+                            jobClassification = status.classification as unknown as Record<string, unknown>;
+                        }
                         onProgress(2, 'complete', { message: 'AI generation complete!', progress: 60 });
                         break;
                     }
@@ -282,8 +288,8 @@ export async function generateWithBackend(
         // Convert concepts to the full document format
         let fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
             ...c,
-            tier: c.tier || 'utility' // Ensure tier is always defined
-        })));
+            tier: c.tier || 'utility'
+        })), jobClassification);
 
 
         // =====================================================================
@@ -314,10 +320,22 @@ export async function generateWithBackend(
         updateActiveJobStatus('completed');
         clearActiveJob();
 
+        const classificationLifecycle = (jobClassification?.lifecycle as Record<string, string>) || {};
+
         return {
             pass1: {
                 domain: subject,
-                lifecycle: { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' },
+                lifecycle: {
+                    phase1: classificationLifecycle.phase1 || 'PREPARE',
+                    phase2: classificationLifecycle.phase2 || 'MODEL',
+                    phase3: classificationLifecycle.phase3 || 'DELIVER',
+                },
+                subjectType: (jobClassification?.subjectType as SubjectType) || generateResponse.subjectType,
+                macroWorkflow: jobClassification ? {
+                    classification: jobClassification.classification,
+                    macroStructure: jobClassification.macroStructure,
+                    connectiveTissue: jobClassification.connectiveTissue,
+                } as unknown as MacroWorkflowResult : generateResponse.macroWorkflow,
                 roleScope: subject,
                 excludedActions: [],
                 concepts: conceptNames,
@@ -355,7 +373,11 @@ export async function generateWithBackend(
  * Build a full document from concepts in the format expected by the content parser.
  * This creates the JSON structure that parseGeneratedContent expects.
  */
-export function buildDocumentFromConcepts(subject: string, concepts: ParsedConcept[]): string {
+export function buildDocumentFromConcepts(
+    subject: string,
+    concepts: ParsedConcept[],
+    classification?: Record<string, unknown>,
+): string {
     const conceptBlocks = concepts.map((c, index) => {
         const concept = c as ParsedConcept & {
             description?: string;
@@ -414,13 +436,18 @@ export function buildDocumentFromConcepts(subject: string, concepts: ParsedConce
         };
     });
 
-    // Return as JSON that the parser expects
+    const lifecycle = (classification?.lifecycle as Record<string, string>) || {};
+
     return JSON.stringify({
         domain: subject,
+        subjectType: classification?.subjectType,
+        classification: classification?.classification,
+        macroStructure: classification?.macroStructure,
+        connectiveTissue: classification?.connectiveTissue,
         lifecycle: {
-            phase1: 'PREPARE',
-            phase2: 'MODEL',
-            phase3: 'DELIVER',
+            phase1: lifecycle.phase1 || 'PREPARE',
+            phase2: lifecycle.phase2 || 'MODEL',
+            phase3: lifecycle.phase3 || 'DELIVER',
         },
         concepts: conceptBlocks,
     }, null, 2);

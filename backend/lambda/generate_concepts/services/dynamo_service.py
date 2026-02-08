@@ -167,17 +167,19 @@ class DynamoService:
             print(f"[DynamoService] Warning: Failed to update progress: {e}")
 
     def mark_job_completed(
-        self, job_id: str, user_id: str, concept_count: int
+        self, job_id: str, user_id: str, concept_count: int, classification: dict = None
     ) -> None:
-        """
-        Mark job as successfully completed.
-        
-        Args:
-            job_id: Job identifier
-            user_id: User identifier
-            concept_count: Number of concepts generated
-        """
         self.update_job_status(job_id, user_id, "completed", concept_count=concept_count)
+        if classification:
+            try:
+                self.jobs_table.update_item(
+                    Key={"jobId": job_id, "userId": user_id},
+                    UpdateExpression="SET classification = :cls",
+                    ExpressionAttributeValues={":cls": classification},
+                )
+                print(f"[DynamoService] Stored classification for job {job_id}")
+            except ClientError as e:
+                print(f"[DynamoService] Warning: Failed to store classification: {e}")
 
     def mark_job_failed(self, job_id: str, user_id: str, error: str) -> None:
         """

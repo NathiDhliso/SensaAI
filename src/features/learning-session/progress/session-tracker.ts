@@ -60,27 +60,45 @@ export interface SessionProgressData {
   version: string; // For future schema migrations
 }
 
-/**
- * Save session progress to localStorage
- */
+const SAVE_THROTTLE_MS = 2000;
+let lastSaveTime = 0;
+let pendingSave: ReturnType<typeof setTimeout> | null = null;
+
+function writeSave(data: Omit<SessionProgressData, 'timestamp' | 'version'>): void {
+  const progressData: SessionProgressData = {
+    ...data,
+    timestamp: Date.now(),
+    version: '1.0',
+  };
+  localStorage.setItem(
+    `${STORAGE_KEY}:${data.sessionId}`,
+    JSON.stringify(progressData)
+  );
+  lastSaveTime = Date.now();
+}
+
 export function saveSessionProgress(data: Omit<SessionProgressData, 'timestamp' | 'version'>): void {
   try {
-    const progressData: SessionProgressData = {
-      ...data,
-      timestamp: Date.now(),
-      version: '1.0',
-    };
+    const now = Date.now();
+    const elapsed = now - lastSaveTime;
 
-    localStorage.setItem(
-      `${STORAGE_KEY}:${data.sessionId}`,
-      JSON.stringify(progressData)
-    );
-
-    console.log('[SessionProgress] Saved progress for session:', data.sessionId);
+    if (elapsed >= SAVE_THROTTLE_MS) {
+      if (pendingSave) { clearTimeout(pendingSave); pendingSave = null; }
+      writeSave(data);
+    } else if (!pendingSave) {
+      pendingSave = setTimeout(() => {
+        pendingSave = null;
+        writeSave(data);
+      }, SAVE_THROTTLE_MS - elapsed);
+    }
   } catch (error) {
     console.error('[SessionProgress] Failed to save progress:', error);
-    // Don't throw - progress saving is non-critical
   }
+}
+
+export function flushSessionProgress(data: Omit<SessionProgressData, 'timestamp' | 'version'>): void {
+  if (pendingSave) { clearTimeout(pendingSave); pendingSave = null; }
+  try { writeSave(data); } catch (_) { /* non-critical */ }
 }
 
 /**
@@ -91,7 +109,6 @@ export function loadSessionProgress(sessionId: string): SessionProgressData | nu
   try {
     const stored = localStorage.getItem(`${STORAGE_KEY}:${sessionId}`);
     if (!stored) {
-      console.log('[SessionProgress] No saved progress found for session:', sessionId);
       return null;
     }
 
@@ -105,7 +122,6 @@ export function loadSessionProgress(sessionId: string): SessionProgressData | nu
       return null;
     }
 
-    console.log('[SessionProgress] Loaded progress for session:', sessionId, 'age:', Math.round(age / 1000 / 60), 'minutes');
     return data;
   } catch (error) {
     console.error('[SessionProgress] Failed to load progress:', error);
@@ -119,7 +135,6 @@ export function loadSessionProgress(sessionId: string): SessionProgressData | nu
 export function deleteSessionProgress(sessionId: string): void {
   try {
     localStorage.removeItem(`${STORAGE_KEY}:${sessionId}`);
-    console.log('[SessionProgress] Deleted progress for session:', sessionId);
   } catch (error) {
     console.error('[SessionProgress] Failed to delete progress:', error);
   }

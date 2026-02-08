@@ -3,7 +3,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { generationRouter } from '../features/generation/routes/generation.js';
 import { contentRouter } from '../features/content/routes/content.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from '../features/auth/routes/auth.js';
@@ -42,7 +41,6 @@ app.use('/ready', healthRouter);
 app.use('/api/v1/proxy', proxyRouter);
 
 // Protected routes
-app.use('/api/v1/generation', authMiddleware, generationRouter);
 app.use('/api/v1/content', authMiddleware, contentRouter);
 app.use('/api/v1/concepts', authMiddleware, conceptsRouter);
 app.use('/api/v1/auth', authRouter);

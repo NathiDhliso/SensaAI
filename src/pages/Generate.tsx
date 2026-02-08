@@ -29,6 +29,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useCollisionDetection } from '@/shared/hooks/useCollisionDetection';
 import { useGenerationEngine } from '@/shared/hooks/useGenerationEngine';
 import { useGenerationRecovery } from '@/shared/hooks/useGenerationRecovery';
+import { SUBJECT_TYPE_META } from '@/shared/types/macro-workflow';
 import styles from './Generate.module.css';
 
 // ============================================================================
@@ -95,6 +96,7 @@ export default function Generate() {
     expectedConceptCount,
     pendingFile,
     progress,
+    subjectType,
     setError: _setError,
   } = useGenerationStore();
 
@@ -232,6 +234,7 @@ export default function Generate() {
               intensity={intensity}
               isGenerating={isGenerating}
               subject={subject ? decodeURIComponent(subject) : undefined}
+              subjectType={subjectType}
             />
           </div>
         </div>
@@ -257,6 +260,44 @@ export default function Generate() {
                 {pendingFile ? 'OBJECTIVES_LOCKED' : 'UNGROUNDED_MODE'}
               </span>
             </div>
+            <AnimatePresence>
+              {subjectType && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{
+                    marginTop: '0.75rem',
+                    padding: '0.5rem 0.75rem',
+                    background: `${SUBJECT_TYPE_META[subjectType].color}15`,
+                    border: `1px solid ${SUBJECT_TYPE_META[subjectType].color}40`,
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span style={{ fontSize: '1rem' }}>{SUBJECT_TYPE_META[subjectType].icon}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '0.65rem',
+                      color: SUBJECT_TYPE_META[subjectType].color,
+                      textTransform: 'uppercase',
+                      fontWeight: 600,
+                    }}>
+                      {SUBJECT_TYPE_META[subjectType].label}
+                    </span>
+                    <span style={{
+                      fontSize: '0.6rem',
+                      color: 'var(--color-text-muted)',
+                    }}>
+                      {SUBJECT_TYPE_META[subjectType].description}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Center: System Progress */}

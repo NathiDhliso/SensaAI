@@ -1,0 +1,415 @@
+# SensaPBL Architecture Blueprint
+
+> Last Updated: February 8, 2026
+
+---
+
+## 1. System Overview
+
+SensaPBL is an AI-powered learning platform that generates structured educational content from any subject, then guides users through a multi-phase learning session with adaptive pacing, diagnostic assessments, and mastery challenges.
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18 + TypeScript, Vite, Zustand, Framer Motion |
+| Styling | Modular CSS (`.module.css`) |
+| Backend API | Express.js + TypeScript (Node 18) |
+| Serverless | AWS Lambda (Python 3.12) |
+| AI/LLM | AWS Bedrock (Claude 3 Sonnet) |
+| Auth | AWS Cognito (OAuth 2.0 + PKCE, HttpOnly cookies) |
+| Database | AWS DynamoDB (concepts table, jobs table) |
+| Storage | AWS S3 (content), IndexedDB (local cache), localStorage (session progress) |
+| Infrastructure | Terraform (modules: Lambda, API Gateway, DynamoDB, Cognito, S3) |
+| CI/Deployment | Terraform apply from `infra/terraform/environments/pilot/` |
+
+---
+
+## 2. High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        FRONTEND (React)                         │
+│  Pages → Hooks → Stores → Features → API Client                │
+└──────────────┬──────────────────────────────┬───────────────────┘
+               │                              │
+               │ /api/v1/concepts/*           │ /api/v1/auth/*
+               │ /api/v1/content/*            │ /api/v1/proxy/*
+               ▼                              ▼
+┌──────────────────────────────┐  ┌───────────────────────────────┐
+│   EXPRESS BACKEND (Node.js)  │  │      AWS COGNITO              │
+│   - Auth middleware          │  │   - User pools                │
+│   - Concepts proxy to Lambda │  │   - OAuth 2.0 + PKCE          │
+│   - Content CRUD             │  │   - HttpOnly cookie tokens    │
+└──────────────┬───────────────┘  └───────────────────────────────┘
+               │
+               │ Lambda Invoke
+               ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    AWS LAMBDA (Python 3.12)                       │
+│                                                                   │
+│  ┌─────────────────────┐    ┌──────────────────────┐             │
+│  │  generate_concepts   │    │   query_concepts      │             │
+│  │  - classify_subject  │    │   - Paginated queries  │             │
+│  │  - parallel generate │    │   - Tier filtering     │             │
+│  │  - store to DynamoDB │    │   - Subject management │             │
+│  └──────────┬──────────┘    └──────────┬───────────┘             │
+│             │                          │                          │
+│             ▼                          ▼                          │
+│  ┌──────────────────┐      ┌──────────────────┐                  │
+│  │  AWS Bedrock      │      │  AWS DynamoDB     │                  │
+│  │  (Claude 3 Sonnet)│      │  - concepts table │                  │
+│  └──────────────────┘      │  - jobs table     │                  │
+│                             └──────────────────┘                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. Content Generation Pipeline
+
+This is the only active generation path. The legacy TypeScript multi-phase orchestrator has been removed.
+
+### Flow
+
+```
+User enters subject + context
+        │
+        ▼
+Frontend: generateWithBackend()
+        │
+        ▼
+conceptsApi.generate() → POST /api/v1/concepts/generate
+        │
+        ▼
+Express backend proxies to Lambda (generate_concepts)
+        │
+        ▼
+Lambda handler.py:
+  1. classify_subject() → Bedrock call → returns { subjectType, classification, macroStructure }
+  2. Parallel generate_concepts() with classification context → Bedrock calls
+  3. Post-process: assign tiers, stages, validate
+  4. Store concepts + classification in DynamoDB (jobs table + concepts table)
+  5. Return { jobId, sessionId, conceptCount, classification }
+        │
+        ▼
+Frontend polls job status via GET /api/v1/concepts/jobs/:jobId
+  - Receives classification data when job completes
+        │
+        ▼
+Frontend fetches concepts via GET /api/v1/concepts?sessionId=...
+        │
+        ▼
+buildDocumentFromConcepts() → includes classification in JSON document
+        │
+        ▼
+parseAndLoadContent() → parseDomainAnalysis() extracts classification
+        │
+        ▼
+transformToLearningStages() → uses macroStructure for type-aware stages
+        │
+        ▼
+loadSession() → stores subjectType + macroWorkflow in CurrentSession
+        │
+        ▼
+Navigate to /study/:subjectId
+```
+
+### Subject Classification System
+
+Every subject is classified into one of four types before content generation:
+
+| Type | Label | Structure | Examples |
+|------|-------|-----------|----------|
+| A | Procedural | Sequential stages on object lifecycle | Azure admin, surgery, coding |
+| B | Conceptual | Core moves + application patterns | Law, philosophy, music theory |
+| C | Cyclic | Fundamental cycle + meta-awareness | Design thinking, research, jazz |
+| D | Perceptual | Perceptual ladder + practice structures | Diagnosis, chess, art critique |
+
+Classification data flows through the entire pipeline and influences stage naming, concept organization, and validation rules.
+
+---
+
+## 4. Frontend Architecture
+
+### Directory Structure
+
+```
+src/
+├── App.tsx                    # Root component, routing
+├── pages/                     # Full page views
+│   ├── Home.tsx               # Landing page
+│   ├── Generate.tsx           # Content generation UI
+│   ├── Study.tsx              # Study session entry + hydration
+│   ├── VelocityLearning.tsx   # SENSA v2.0 learning engine
+│   ├── SavedResults.tsx       # Library of generated content
+│   ├── Settings.tsx           # User preferences
+│   ├── Login.tsx / SignUp.tsx  # Auth pages
+│   └── DocumentView.tsx       # Raw document viewer
+│
+├── components/                # UI components
+│   ├── ui/                    # Generic (EquationTracker, FlowProgressBar, etc.)
+│   ├── learning/              # Learning-specific
+│   │   ├── activities/        # BlankSheet, ConfusionDrill, Quiz, ConceptMapBuilder
+│   │   ├── session/           # SessionStartModal, VelocityLockInGate
+│   │   ├── onboarding/        # DiagnosticLaunchSystem
+│   │   ├── feedback/          # SkipReasonModal
+│   │   ├── ui/                # PhaseNavigator, SensaSynopticView
+│   │   └── MicroLearningLoopController.tsx  # Core learning loop orchestrator
+│   ├── generation/            # CognitiveStream (animated generation thoughts)
+│   ├── layout/                # AppLayout, Sidebar
+│   └── error/                 # ErrorBoundary
+│
+├── features/                  # Business logic by domain
+│   ├── content-generation/    # AI content generation
+│   │   ├── api/               # backend-client.ts, claude-client.ts
+│   │   ├── parsers/           # json-parser.ts, transformer.ts, ai-integration.ts
+│   │   └── validators/        # content-quality.ts
+│   ├── learning-session/      # Learning activities
+│   │   ├── activities/        # confusion-generator.ts, diagnostic-generator.ts
+│   │   ├── progress/          # session-tracker.ts (throttled localStorage persistence)
+│   │   └── scoring/           # Score calculation
+│   ├── content-storage/       # Save/load content
+│   │   ├── cloud/             # s3-dynamodb.ts
+│   │   ├── local/             # indexed-db.ts, browser-storage.ts
+│   │   └── sync/              # Import/export
+│   ├── ai-coach/              # AI coach personas and voice
+│   └── personalization/       # User preference features
+│
+├── store/                     # Zustand state management
+│   ├── auth-store.ts          # Authentication state
+│   ├── generation-store.ts    # Generation jobs, progress, classification
+│   ├── learning-store.ts      # Composed from slices (below)
+│   ├── personalization-store.ts # Metaphors, stress-free mode, practice mode
+│   ├── theme-store.ts         # Dark/light theme
+│   ├── ui-store.ts            # UI state
+│   └── slices/                # Learning store slices
+│       ├── createSessionSlice.ts     # Session lifecycle (load, clear, start)
+│       ├── createNavigationSlice.ts  # Concept navigation + progress persistence
+│       ├── createStudySlice.ts       # Study session state machine
+│       └── types.ts                  # CurrentSession, UserProgress, etc.
+│
+└── shared/                    # Cross-cutting utilities
+    ├── api/                   # API client, concepts API
+    ├── hooks/                 # useLearningFlow, useSensaFlow, useFlowState, useGenerationEngine
+    ├── types/                 # learning.ts, macro-workflow.ts, sensa-flow.ts, generation.ts
+    ├── constants/             # UI timings, scoring constants
+    ├── services/              # AudioService singleton
+    └── utils/                 # content-loader.ts, toast.ts, score-utils.ts
+```
+
+### Key Frontend Patterns
+
+- **Zustand slices** — Learning store is composed from session, navigation, and study slices
+- **Ref-based cleanup** — Unmount effects use refs to avoid stale closure cascades
+- **Throttled persistence** — Session progress saves are throttled (2s) with flush-on-unmount
+- **Modular CSS** — All styling via `.module.css` files, no global CSS classes
+
+---
+
+## 5. Backend Architecture
+
+### Express Server (`backend/src/`)
+
+```
+backend/src/
+├── core/
+│   └── server.ts              # Express app, middleware, route mounting
+├── features/
+│   ├── auth/routes/           # /api/v1/auth — Cognito token exchange
+│   ├── concepts/routes/       # /api/v1/concepts — Proxy to Lambda
+│   ├── content/routes/        # /api/v1/content — Content CRUD
+│   └── proxy/routes/          # /api/v1/proxy — Public resource proxy
+├── shared/
+│   ├── middleware/             # auth.ts (JWT verify), error-handler.ts, rate-limit.ts
+│   ├── lib/
+│   │   ├── prompts/           # phase1-domain-analysis.ts, phase2-content-generation.ts, phase3-validation.ts (reference)
+│   │   ├── validation/        # content-validators.ts
+│   │   └── system-prompt.ts   # Deprecated stub
+│   └── types/
+│       └── macro-workflow.ts  # Classification types (shared with frontend)
+```
+
+### Lambda Functions (`backend/lambda/`)
+
+```
+backend/lambda/
+├── generate_concepts/
+│   ├── handler.py             # Entry point: routes generate/repair actions
+│   └── services/
+│       ├── bedrock_service.py # classify_subject() + parallel generate_concepts()
+│       └── dynamo_service.py  # Job tracking, concept storage, batch writes
+├── query_concepts/
+│   └── handler.py             # Paginated concept queries, subject management, job polling
+├── shared/
+│   ├── system_prompt.py       # SILVER_BULLET_PROMPT + classification prompt
+│   └── utils.py               # CORS, API response helpers, DynamoDB key builders
+└── requirements.txt
+```
+
+---
+
+## 6. Infrastructure (Terraform)
+
+```
+infra/terraform/
+├── main.tf                    # Root module: wires Cognito, S3, DynamoDB, Lambda, API Gateway
+├── modules/
+│   ├── cognito/               # User pool, app client, domain
+│   ├── dynamodb/              # concepts table (GSI1 for tier queries), jobs table
+│   ├── lambda/                # generate_concepts (15min timeout), query_concepts (30s)
+│   ├── api_gateway/           # HTTP API with Lambda integrations
+│   └── s3/                    # Content storage bucket
+└── environments/
+    └── pilot/                 # Pilot environment (local state)
+        ├── main.tf
+        ├── terraform.tfvars
+        └── terraform.tfstate
+```
+
+### Key Infrastructure Details
+
+- **Region**: us-east-1
+- **Generate Lambda**: 3008 MB memory, 900s timeout (15 min for LLM calls)
+- **Query Lambda**: 512 MB memory, 30s timeout
+- **API Gateway**: `https://c4kxjdukwj.execute-api.us-east-1.amazonaws.com`
+- **DynamoDB tables**: `sensapbl-concepts-pilot`, `sensapbl-jobs-pilot`
+
+---
+
+## 7. Data Flow & Storage
+
+### DynamoDB Schema
+
+**Concepts Table** (`sensapbl-concepts-pilot`)
+- PK: `USER#{userId}#SESSION#{sessionId}`
+- SK: `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
+- GSI1: For tier-based queries
+
+**Jobs Table** (`sensapbl-jobs-pilot`)
+- Tracks generation job status, progress, classification data
+- TTL: 24 hours
+
+### Local Storage
+
+| Store | Purpose | TTL |
+|-------|---------|-----|
+| IndexedDB | Full generated documents (offline access) | None |
+| localStorage | Session progress recovery | 24 hours |
+| Zustand (memory) | Active session state | Page lifetime |
+
+---
+
+## 8. Learning Engine (SENSA v2.0)
+
+### 5-Phase Flow
+
+```
+PRIME → BUILD → MASTER → COMPLETE
+  │
+  └── DIAGNOSE (optional, on first visit)
+```
+
+| Phase | Purpose | Key Component |
+|-------|---------|--------------|
+| PRIME | Lock-in: set goal, duration, primer | VelocityLockInGate, SessionStartModal |
+| DIAGNOSE | Assess prior knowledge | DiagnosticLaunchSystem |
+| BUILD | Core learning loop | MicroLearningLoopController |
+| MASTER | Mastery challenges | MasteryChallenge, ConceptMapBuilder |
+| COMPLETE | Summary dashboard | (Future: MasteryDashboard) |
+
+### Micro Learning Loop (BUILD phase)
+
+Each concept cycles through:
+1. **Teach** — Present the concept with mnemonic anchor
+2. **Blank Sheet** — Recall from memory (fuzzy-scored)
+3. **Confusion Drill** — Distinguish from similar concepts
+4. **Quiz** — Multiple choice assessment
+5. **Outcome** — mastered / needs-review / needs-learning → next concept
+
+### Universal Learning Equation
+
+```
+I = min(h, G × Q_f × Q_M × Q_P)
+```
+
+- **I** = Information absorbed
+- **h** = Time horizon
+- **G** = Generation quality factor
+- **Q_f** = Flow quality (momentum tracking)
+- **Q_M** = Mastery quality (concept scores)
+- **Q_P** = Practice quality (engagement)
+
+Tracked by `EquationTracker` component and `useFlowState` hook.
+
+---
+
+## 9. Authentication Flow
+
+```
+Login page → Cognito Hosted UI (OAuth 2.0 + PKCE)
+    │
+    ▼
+Callback → Exchange code for tokens
+    │
+    ▼
+Express backend sets HttpOnly cookies (access + refresh tokens)
+    │
+    ▼
+All API calls include cookies → auth middleware verifies JWT
+    │
+    ▼
+Token refresh handled transparently via refresh token cookie
+```
+
+---
+
+## 10. Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Lambda for generation, Express for routing | Generation needs 15-min timeout; Express handles auth, proxying, and content CRUD |
+| Python Lambda (not TypeScript) | Better Bedrock SDK support, simpler prompt management |
+| Classification before generation | Enables type-aware content structure (procedural vs conceptual vs cyclic vs perceptual) |
+| Zustand over Redux | Simpler API, slice composition, no boilerplate |
+| Modular CSS over Tailwind | Scoped styles, no utility class sprawl, better readability |
+| localStorage for session progress | Instant recovery on refresh, no network dependency |
+| Throttled saves (2s) | Prevents state-change cascade from flooding localStorage |
+| Ref-based unmount pattern | Avoids stale closures in React cleanup effects |
+
+---
+
+## 11. Feature Map
+
+### Implemented
+
+- [x] AI content generation with subject classification (4 types)
+- [x] Macro workflow blueprint (type-aware stage generation)
+- [x] Multi-tier concept organization (foundation, keystone, utility)
+- [x] SENSA v2.0 learning flow (PRIME → BUILD → MASTER)
+- [x] Micro learning loop (teach → blank sheet → confusion drill → quiz)
+- [x] Mnemonic anchor system
+- [x] Diagnostic assessment (pre-learning knowledge check)
+- [x] Session progress persistence + recovery
+- [x] Cognito authentication (OAuth 2.0 + PKCE)
+- [x] Cloud storage (S3 + DynamoDB)
+- [x] Local storage (IndexedDB + localStorage)
+- [x] AI coach personas (voice lines, personality system)
+- [x] Personalization (metaphor settings, stress-free mode, practice mode)
+- [x] Concept map builder
+- [x] Mastery challenges
+- [x] Generation progress UI (CognitiveStream, subject type badge)
+- [x] Session time tracking + momentum checkpoints
+- [x] Dark/light theme
+
+### Planned / Partial
+
+- [ ] SCOUT phase (pre-learning overview)
+- [ ] PREVIEW phase (content preview before study)
+- [ ] MasteryDashboard (COMPLETE phase summary)
+- [ ] Multi-device sync (CRDT-lite field merging)
+- [ ] Audio interrupt service (priority-based queue)
+- [ ] Struggle detector (interaction velocity heuristic)
+- [ ] Analytics pipeline (metaphor usage, session metrics)
+- [ ] Production environment (Terraform `prod/`)
+- [ ] S3 backend for Terraform state

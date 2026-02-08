@@ -78,7 +78,16 @@ export function parseAndLoadContent(rawContent: string, subjectId?: string): Par
             metadata: {
                 ...transformed.metadata,
                 fullDocument: rawContent,
+                subjectType: parseResult.data.domainAnalysis.subjectType,
+                macroWorkflow: parseResult.data.domainAnalysis.classification
+                    ? {
+                        classification: parseResult.data.domainAnalysis.classification,
+                        macroStructure: parseResult.data.domainAnalysis.macroStructure!,
+                        connectiveTissue: parseResult.data.domainAnalysis.connectiveTissue!,
+                    }
+                    : undefined,
             },
+            subjectType: parseResult.data.domainAnalysis.subjectType,
         });
 
         return { success: true };

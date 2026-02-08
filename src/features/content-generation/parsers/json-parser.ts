@@ -160,9 +160,43 @@ function parseDomainAnalysis(content: string): ParsedDomainAnalysis {
         }
     }
 
+    let subjectType: ParsedDomainAnalysis['subjectType'];
+    let classification: ParsedDomainAnalysis['classification'];
+    let macroStructure: ParsedDomainAnalysis['macroStructure'];
+    let connectiveTissue: ParsedDomainAnalysis['connectiveTissue'];
+
+    try {
+        let cleanContent = content.replace(/^\uFEFF/, '');
+        // eslint-disable-next-line no-control-regex
+        cleanContent = cleanContent.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+        const firstBrace = cleanContent.indexOf('{');
+        if (firstBrace !== -1) {
+            const parsed = JSON.parse(cleanContent.substring(firstBrace).trim());
+            const validTypes = ['procedural', 'conceptual', 'cyclic', 'perceptual'];
+            if (parsed.subjectType && validTypes.includes(parsed.subjectType)) {
+                subjectType = parsed.subjectType;
+            }
+            if (parsed.classification && typeof parsed.classification === 'object') {
+                classification = parsed.classification;
+            }
+            if (parsed.macroStructure && typeof parsed.macroStructure === 'object') {
+                macroStructure = parsed.macroStructure;
+            }
+            if (parsed.connectiveTissue && typeof parsed.connectiveTissue === 'object') {
+                connectiveTissue = parsed.connectiveTissue;
+            }
+        }
+    } catch {
+        // Classification extraction failed, fields remain undefined
+    }
+
     return {
         domain,
         professionalRole: extractValue(content, 'Professional Role:') || 'Learner',
+        subjectType,
+        classification,
+        macroStructure,
+        connectiveTissue,
         lifecycle,
         sourceVerification: 'Documentation',
         recentUpdates: extractListItems(content, 'Recent Updates:'),

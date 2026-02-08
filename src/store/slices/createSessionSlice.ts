@@ -86,6 +86,8 @@ export const createSessionSlice: StateCreator<
       metadata: sessionData.metadata,
       progress: initialProgress,
       cognitiveMetrics: initialMetrics,
+      subjectType: sessionData.subjectType,
+      macroWorkflow: sessionData.macroWorkflow,
     };
 
     set({

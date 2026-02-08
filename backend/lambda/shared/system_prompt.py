@@ -2,14 +2,115 @@
 # This is a Python version of the TypeScript system-prompt.ts
 # Contains the full learning science for SENSA v2.0
 # 
-# Prompt Version: v5.0 (Universal Exam Support - User Objectives First)
+# Prompt Version: v6.0 (Universal Macro Workflow Blueprint - Silver Bullet Edition)
 # See docs/prompts/README.md for version history.
 
 # LEGACY PROMPTS REMOVED (SYSTEM_PROMPT_V4, BLUEPRINT_PROMPT, EXPAND_PROMPT)
 
 
 # =============================================================================
-# SILVER BULLET PROMPT (Universal - Objectives First)
+# CLASSIFICATION PROMPT (Pre-step: Classify subject before generation)
+# =============================================================================
+
+CLASSIFICATION_PROMPT = """You are an expert curriculum architect. Your ONLY task is to classify the following subject into one of 4 learning types and extract its macro structure.
+
+Subject: {subject}
+{context}
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 1: CLASSIFY THE SUBJECT
+═══════════════════════════════════════════════════════════════════════════
+
+Ask: "What is this subject teaching?" Then classify:
+
+TYPE A — PROCEDURAL MASTERY ("procedural")
+  Goal: Execute a repeatable process on defined objects
+  Examples: Surgery, coding, Azure administration, calculus, welding
+  Structure: Sequential stages on an object lifecycle
+
+TYPE B — CONCEPTUAL FLUENCY ("conceptual")
+  Goal: Deploy the right concept at the right time in novel situations
+  Examples: Law, philosophy, music theory, economics, literary analysis
+  Structure: Core moves + application patterns
+
+TYPE C — ADAPTIVE INTEGRATION ("cyclic")
+  Goal: Navigate iterative cycles with increasing sophistication
+  Examples: Design thinking, scientific research, jazz improvisation, agile
+  Structure: Fundamental cycle + meta-awareness layers
+
+TYPE D — EMBODIED JUDGMENT ("perceptual")
+  Goal: Perceive what novices miss and act on subtle cues
+  Examples: Medical diagnosis, chess, wine tasting, art critique, debugging
+  Structure: Perceptual ladder + deliberate practice structures
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 2: EXTRACT MACRO STRUCTURE
+═══════════════════════════════════════════════════════════════════════════
+
+Based on the classification, extract the appropriate macro structure:
+
+For PROCEDURAL: Extract the object lifecycle stages (3-7 stages)
+  Example: Azure VM → PROVISION → CONFIGURE → SECURE → MONITOR → OPTIMIZE → DECOMMISSION
+
+For CONCEPTUAL: Extract core moves (5-12 distinct "moves")
+  Example: Law → IDENTIFY_ISSUE → APPLY_RULE → DISTINGUISH_PRECEDENT → CONSTRUCT_ARGUMENT → EVALUATE_POLICY
+
+For CYCLIC: Extract the fundamental cycle phases (3-6 phases)
+  Example: Design Thinking → EMPATHIZE → DEFINE → IDEATE → PROTOTYPE → TEST
+
+For PERCEPTUAL: Extract the perceptual ladder levels (3-5 levels)
+  Example: Chess → MATERIAL_COUNTING → PATTERN_RECOGNITION → POSITIONAL_EVALUATION → STRATEGIC_PLANNING
+
+Also extract:
+- Connective Tissue: The gateway skill, threshold concept, and signature move for this subject
+- Lifecycle: 3 action verbs in CAPS representing the learning phases
+
+═══════════════════════════════════════════════════════════════════════════
+OUTPUT FORMAT (JSON ONLY)
+═══════════════════════════════════════════════════════════════════════════
+
+Return ONLY valid JSON. No markdown. No text before or after.
+
+{{
+  "subjectType": "procedural" | "conceptual" | "cyclic" | "perceptual",
+  "classification": {{
+    "type": "procedural" | "conceptual" | "cyclic" | "perceptual",
+    "label": "Procedural Mastery" | "Conceptual Fluency" | "Adaptive Integration" | "Embodied Judgment",
+    "goal": "One sentence describing the learning goal",
+    "confidence": 0.0-1.0,
+    "justification": "Why this type was chosen",
+    "hybridElements": []
+  }},
+  "macroStructure": {{
+    "type": "procedural" | "conceptual" | "cyclic" | "perceptual",
+    "data": {{
+      "stages": ["STAGE_1", "STAGE_2", ...]
+    }}
+  }},
+  "connectiveTissue": {{
+    "gatewaySkill": "The one skill that unlocks everything else",
+    "thresholdConcept": "The concept that changes how you see the domain",
+    "signatureMove": "What experts do that novices cannot"
+  }},
+  "lifecycle": {{
+    "phase1": "VERB1",
+    "phase2": "VERB2",
+    "phase3": "VERB3"
+  }}
+}}
+
+Classify the subject now."""
+
+
+def get_classification_prompt(subject: str, context: str = "") -> str:
+    context_block = ""
+    if context:
+        context_block = f"\nAdditional Context:\n{context}"
+    return CLASSIFICATION_PROMPT.format(subject=subject, context=context_block)
+
+
+# =============================================================================
+# SILVER BULLET PROMPT (Universal - Classification-Aware)
 # =============================================================================
 
 
@@ -18,32 +119,36 @@ SILVER_BULLET_PROMPT = """ACT AS: An expert professor and curriculum designer sp
 OBJECTIVE: Generate Part {part_num} of a comprehensive curriculum (Concepts {start_idx} to {end_idx}).
 
 ---
-## 1. DYNAMIC SUBJECT ANALYSIS (MANDATORY FIRST STEP)
+## 1. SUBJECT CLASSIFICATION (PRE-ANALYZED)
 
-Before generating ANY concepts, you MUST analyze the subject "{subject}" to understand:
+This subject has been classified as: **{subject_type_label}** ({subject_type})
+Classification goal: {classification_goal}
 
-### 1.1 SUBJECT IDENTIFICATION
-- **What exactly is this subject?** (certification exam, academic course, trade skill, etc.)
-- **What is the official scope?** (research actual syllabus/objectives if this is an exam)
-- **What domain does it belong to?** (technology, medicine, finance, trades, science, etc.)
+### Macro Structure:
+{macro_structure_text}
 
-### 1.2 SCOPE BOUNDARIES (CRITICAL)
-**GENERATE CONCEPTS ONLY FOR: {subject}**
-- Do NOT include concepts from related but different subjects
-- Do NOT include concepts from other certifications or exams
-- Do NOT include general topics not specific to this subject
-- EVERY concept must directly serve mastery of "{subject}"
+### Connective Tissue:
+- Gateway Skill: {gateway_skill}
+- Threshold Concept: {threshold_concept}
+- Signature Move: {signature_move}
 
-### 1.3 DOMAIN-SPECIFIC STRUCTURE
-Analyze how professionals in this field organize their knowledge:
-- What are the foundational concepts that everything else builds on?
-- What are the core skills/processes that practitioners use daily?
-- What specialized knowledge separates experts from beginners?
+### Lifecycle Phases:
+- Phase 1: {lifecycle_phase1}
+- Phase 2: {lifecycle_phase2}
+- Phase 3: {lifecycle_phase3}
 
-{context}
+**CRITICAL: Adapt your concept generation to this classification:**
+- **Procedural**: Frame concepts as process steps, tool usage, and checkpoints along the object lifecycle stages
+- **Conceptual**: Frame concepts as cognitive moves with application patterns and when/how to deploy them
+- **Cyclic**: Frame concepts as cycle positions with iteration awareness and connections to adjacent phases
+- **Perceptual**: Frame concepts as perceptual levels showing what experts notice that novices miss
 
 ---
-## 2. PARTITIONED GENERATION
+## 2. SCOPE & PARTITIONED GENERATION
+
+**GENERATE CONCEPTS ONLY FOR: {subject}**
+- Do NOT include concepts from related but different subjects
+- EVERY concept must directly serve mastery of "{subject}"
 
 You are generating **Part {part_num} of 5** for this curriculum.
 Each part covers approximately 20% of the subject's breadth.
@@ -56,6 +161,8 @@ Each part covers approximately 20% of the subject's breadth.
 - Part 5: Specialized topics and edge cases
 
 Generate concepts {start_idx} to {end_idx} for Part {part_num}.
+
+{context}
 
 ---
 ## 3. CONCEPT GENERATION RULES
@@ -149,28 +256,41 @@ Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 Generate concepts {start_idx} through {end_idx} now:"""
 
 
-def get_silver_bullet_prompt(subject: str, part: int = 1, context: str = "") -> str:
-    """
-    Returns the prompt for generating concepts.
-    
-    Args:
-        subject: The subject/exam name (e.g., "AZ-305", "Biology")
-        part: Which part (1-5) of the syllabus to generate
-        context: User-provided exam objectives or additional context
-    """
-    # Format context - this is the SINGLE source of truth
+def get_silver_bullet_prompt(
+    subject: str,
+    part: int = 1,
+    context: str = "",
+    classification: dict = None,
+) -> str:
     if context:
         context_block = f"""### USER-PROVIDED OBJECTIVES (Primary Source):
 {context}
 
-**INSTRUCTION**: Map your {20} concepts for Part {part} directly to the objectives above.
+**INSTRUCTION**: Map your concepts for Part {part} directly to the objectives above.
 Cover objectives proportionally (if 5 domains listed, each pillar covers ~1 domain)."""
     else:
-        context_block = """### NO OBJECTIVES PROVIDED
-The user has not provided specific exam objectives.
-Use the FALLBACK FRAMEWORK in Section 2 to partition the subject."""
+        context_block = ""
 
-    # Concept ranges (20 per part = 100 total)
+    cls = classification or {}
+    cls_data = cls.get("classification", {})
+    macro = cls.get("macroStructure", {})
+    tissue = cls.get("connectiveTissue", {})
+    lifecycle = cls.get("lifecycle", {})
+
+    subject_type = cls.get("subjectType", "conceptual")
+    type_labels = {
+        "procedural": "Procedural Mastery",
+        "conceptual": "Conceptual Fluency",
+        "cyclic": "Adaptive Integration",
+        "perceptual": "Embodied Judgment",
+    }
+    subject_type_label = type_labels.get(subject_type, "Conceptual Fluency")
+    classification_goal = cls_data.get("goal", f"Master {subject}")
+
+    macro_data = macro.get("data", {})
+    stages = macro_data.get("stages", [])
+    macro_structure_text = "\n".join([f"  - {s}" for s in stages]) if stages else "  (Not available)"
+
     ranges = [
         (1, 20),
         (21, 40),
@@ -182,24 +302,28 @@ Use the FALLBACK FRAMEWORK in Section 2 to partition the subject."""
     if 1 <= part <= 5:
         start_idx, end_idx = ranges[part - 1]
         count = end_idx - start_idx + 1
-        return SILVER_BULLET_PROMPT.format(
-            subject=subject,
-            part_num=part,
-            start_idx=start_idx,
-            end_idx=end_idx,
-            count=count,
-            context=context_block
-        )
     else:
-        # Fallback to Part 1 if invalid part
-        return SILVER_BULLET_PROMPT.format(
-            subject=subject, 
-            part_num=1, 
-            start_idx=1, 
-            end_idx=20, 
-            count=20,
-            context=context_block
-        )
+        start_idx, end_idx, count = 1, 20, 20
+        part = 1
+
+    return SILVER_BULLET_PROMPT.format(
+        subject=subject,
+        part_num=part,
+        start_idx=start_idx,
+        end_idx=end_idx,
+        count=count,
+        context=context_block,
+        subject_type=subject_type,
+        subject_type_label=subject_type_label,
+        classification_goal=classification_goal,
+        macro_structure_text=macro_structure_text,
+        gateway_skill=tissue.get("gatewaySkill", "Core domain skill"),
+        threshold_concept=tissue.get("thresholdConcept", "Fundamental insight"),
+        signature_move=tissue.get("signatureMove", "Expert-level application"),
+        lifecycle_phase1=lifecycle.get("phase1", "PREPARE"),
+        lifecycle_phase2=lifecycle.get("phase2", "MODEL"),
+        lifecycle_phase3=lifecycle.get("phase3", "DELIVER"),
+    )
 
 
 # =============================================================================

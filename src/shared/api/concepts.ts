@@ -33,6 +33,8 @@ export interface GenerateConceptsResponse {
     status: 'in_progress' | 'completed' | 'failed';
     conceptCount?: number;
     error?: string;
+    subjectType?: import('@/shared/types/macro-workflow').SubjectType;
+    macroWorkflow?: import('@/shared/types/macro-workflow').MacroWorkflowResult;
 }
 
 export interface JobStatus {
@@ -43,6 +45,13 @@ export interface JobStatus {
     status: 'in_progress' | 'completed' | 'failed';
     conceptCount?: number;
     error?: string;
+    classification?: {
+        subjectType: import('@/shared/types/macro-workflow').SubjectType;
+        classification: import('@/shared/types/macro-workflow').SubjectClassification;
+        macroStructure: import('@/shared/types/macro-workflow').MacroStructure;
+        connectiveTissue: import('@/shared/types/macro-workflow').ConnectiveTissue;
+        lifecycle: { phase1: string; phase2: string; phase3: string };
+    };
 }
 
 export interface JobSummary {
