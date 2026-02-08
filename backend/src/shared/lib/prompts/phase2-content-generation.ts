@@ -18,7 +18,7 @@ You will receive a list of concept names with their tiers and dependencies from 
 Your task is to generate rich educational content for each concept.
 
 **CRITICAL: DO NOT CHANGE THE CONCEPT NAMES FROM PHASE 1**
-- The "name" field you receive is the ACTUAL concept name (e.g., "Row-Level Security", "Virtual Network")
+- The "name" field you receive is the ACTUAL concept name (e.g., "Photosynthesis", "Double-Entry Bookkeeping")
 - The "anchor" field in mnemonic is the VISUAL METAPHOR (e.g., "Castle 🏰", "Volcano 🌋")
 - NEVER put the mnemonic anchor in the "name" field
 - NEVER replace the concept name with a visual metaphor
@@ -46,7 +46,7 @@ CONTENT TO GENERATE FOR EACH CONCEPT:
    **A - Analogical Model** (45 seconds to read)
    - Map to familiar physical system (construction, cooking, sports, factory, etc.)
    - 3-4 specific concepts mapped to physical elements
-   - ✅ GOOD (Tech): "Think of Lambda like a restaurant kitchen: You're the chef (code), AWS handles equipment (infrastructure)"
+   - ✅ GOOD (Tech): "Think of a load balancer like a restaurant host: directs customers (requests) to available tables (servers)"
    - ✅ GOOD (Biology): "Think of the cell membrane like a nightclub bouncer: checks IDs (receptors), lets VIPs in (nutrients), kicks troublemakers out (toxins)"
    - ✅ GOOD (Welding): "Think of MIG welding like a hot glue gun: trigger feeds wire (filler), heat melts it (arc), gas protects the joint (shielding)"
 

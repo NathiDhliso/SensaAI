@@ -15,6 +15,11 @@ export const PHASE1_PROMPT = `You are analyzing a subject domain to identify cor
 
 TASK: Identify 50-100 core concepts that professionals must know in this domain.
 
+HARD RULE: USER OBJECTIVES ARE THE SINGLE SOURCE OF TRUTH.
+- If the user provides "USER OBJECTIVES / CONTEXT", you MUST map concepts DIRECTLY to those objectives.
+- Ignore generic tier classifications if they conflict with the specific user objectives.
+- If no user objectives are provided, use your best judgment based on the domain.
+
 OUTPUT REQUIREMENTS:
 
 1. **Domain Name**: The subject being analyzed
@@ -44,13 +49,13 @@ Identify your domain type and use the matching verbs. Use CAPS for verbs.
 
 TIER CLASSIFICATION RULES:
 - Foundation: Universal constants, always present
-  - Tech: VNet, Storage Account, IAM, DNS
+  - Tech: Network, Storage, Identity, Naming
   - Biology: Cell, DNA, Protein, Membrane
   - Accounting: Double-Entry, Chart of Accounts, General Ledger
   - Welding: Base Metal, Heat, Filler Material, Shielding Gas
   - Medicine: Anatomy, Physiology, Pathology, Pharmacology
 - Keystone: Major workers that perform operations
-  - Tech: VM, Lambda, Load Balancer, Database
+  - Tech: Virtual Machine, Function, Load Balancer, Database
   - Biology: Mitosis, Photosynthesis, Respiration, Digestion
   - Accounting: Journal Entry, Trial Balance, Financial Statement
   - Welding: MIG Welding, TIG Welding, Arc Welding, Flux Core
@@ -70,10 +75,10 @@ DEPENDENCY RULES:
 - Dependencies must reference concept names that exist in your list
 
 GRANULARITY & ELABORATION RULES:
-1. **Break Down Topics**: Do not just list "Azure Active Directory". Break it down:
-   - "Azure AD Tenants"
-   - "Azure AD MFA"
-   - "Conditional Access Policies"
+1. **Break Down Topics**: Do not just list broad categories. Break them down into specific, testable concepts:
+   - Instead of "Authentication" → "Multi-Factor Authentication", "Single Sign-On", "Password Policies"
+   - Instead of "Database Design" → "Normalization", "Primary Keys", "Foreign Key Constraints"
+   - Instead of "Cell Biology" → "Cell Membrane", "Mitochondria", "Nucleus Function"
 2. **Specifics over Generics**: Avoid broad headers. Use testable, specific concept names.
 3. **Hierarchical Coverage**: Ensure major pillars have 5-10 child concepts each.
 

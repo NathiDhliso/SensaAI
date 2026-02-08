@@ -10,7 +10,7 @@ interface AuthenticatedRequest extends Request {
 // Start a new generation
 generationRouter.post('/start', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const { subject, domain } = req.body;
+        const { subject, context, domain } = req.body;
         const userId = req.user?.sub;
 
         if (!subject) {
@@ -19,10 +19,11 @@ generationRouter.post('/start', async (req: AuthenticatedRequest, res: Response)
         }
 
         // Start generation (always uses multi-phase system)
+        // Use 'context' if provided, fallback to 'domain' for backwards compatibility
         const jobId = await bedrockService.startGeneration({
             userId: userId || 'anonymous',
             subject,
-            domain,
+            context: context || domain,
         });
 
         res.json({ jobId, status: 'queued', multiPhase: true });

@@ -225,6 +225,26 @@ authRouter.post('/session/login', async (req: Request, res: Response) => {
             return;
         }
 
+        // Development mode bypass - use same hardcoded user as authMiddleware
+        if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+            const user = {
+                id: 'dev-user',
+                email: 'dev@sensapbl.com',
+                name: 'Developer',
+            };
+
+            // Set dummy cookies for consistency
+            setAuthCookies(
+                res,
+                'dev-access-token',
+                'dev-refresh-token',
+                3600
+            );
+
+            res.json({ user });
+            return;
+        }
+
         // Use Cognito SDK for USER_PASSWORD_AUTH flow
         const command = new InitiateAuthCommand({
             AuthFlow: 'USER_PASSWORD_AUTH',

@@ -101,8 +101,8 @@ ISSUE TYPES:
 - "invalid_dependency": dependsOn references non-existent concept or creates cycle
 
 CONFUSION PAIR SELECTION CRITERIA:
-- Concepts with similar names (e.g., "Security Group" vs "Network Security Group")
-- Concepts with overlapping functions (e.g., "Lambda" vs "EC2")
+- Concepts with similar names (e.g., "Mitosis" vs "Meiosis", "Debit" vs "Credit")
+- Concepts with overlapping functions (e.g., "Arteries" vs "Veins", "Assets" vs "Liabilities")
 - Concepts from same tier that serve different purposes
 - Concepts frequently tested together in certifications
 

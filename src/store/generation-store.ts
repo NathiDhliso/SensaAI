@@ -147,7 +147,7 @@ const initialState: GenerationState = {
   validation: null,
   fullDocument: null,
   results: [],
-  recentSubjects: ['AZ-104 Azure Admin', 'AWS Solutions Architect', 'PL-300 Power BI'],
+  recentSubjects: [],
   isGenerating: false,
   error: null,
   activeJob: null,

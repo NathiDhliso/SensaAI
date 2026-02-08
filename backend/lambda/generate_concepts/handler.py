@@ -131,7 +131,10 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     dynamo_service.initialize_subject_metadata(user_id, session_id, subject)
 
     # Step 3: Generate concepts with Bedrock (parallel 5-partition strategy)
-    print(f"[Handler] Starting parallel generation...")
+    # The prompt dynamically analyzes the subject - no hardcoded blueprints needed
+    print(f"[Handler] Starting parallel generation for: {subject}")
+    if context:
+        print(f"[Handler] Using user-provided context ({len(context)} chars)")
     try:
         concepts = bedrock_service.generate_concepts(subject, context)
         print(f"[Handler] Generation complete: {len(concepts)} concepts")

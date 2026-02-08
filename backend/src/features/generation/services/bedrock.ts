@@ -20,7 +20,7 @@ import {
 interface GenerationRequest {
     userId: string;
     subject: string;
-    domain?: string;
+    context?: string; // Renamed from 'domain' to match frontend API
     // Multi-phase is now the only system - legacy removed
 }
 
@@ -170,7 +170,8 @@ class BedrockService {
 
             const phase1Input: Phase1Input = {
                 subject: request.subject,
-                targetConceptCount: 35
+                targetConceptCount: 35,
+                context: request.context // Pass user objectives/context from request
             };
 
             const phase1Output = await executePhase1(phase1Input);
@@ -196,7 +197,7 @@ class BedrockService {
             } catch (error) {
                 // Handle partial failure
                 job.content += `\n⚠️ Partial failure in Phase 2. Attempting recovery...\n`;
-                
+
                 // Save partial state and retry
                 const partialState = savePartialState([], phase1Output.concepts.map(c => c.name));
                 phase2Output = await retryMissingConcepts(partialState, {

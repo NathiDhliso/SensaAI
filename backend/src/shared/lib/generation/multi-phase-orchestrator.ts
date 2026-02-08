@@ -25,6 +25,7 @@ export interface Phase1Input {
   subject: string;
   targetConceptCount?: number;
   focusAreas?: string[];
+  context?: string; // User-provided exam objectives
 }
 
 export interface Phase1Output {
@@ -120,19 +121,18 @@ const bedrockClient = new BedrockRuntimeClient({
   region: process.env.AWS_REGION || 'us-east-1',
 });
 
-/**
- * Execute Phase 1: Domain Analysis
- * Generates concept names, tiers, and dependencies
- */
 export async function executePhase1(input: Phase1Input): Promise<Phase1Output> {
   const userMessage = `Subject: ${input.subject}
 Target Concept Count: ${input.targetConceptCount || 35}
+${input.context ? `USER OBJECTIVES / CONTEXT (CRITICAL):
+${input.context}
+INSTRUCTION: Map concepts directly to these objectives.` : ''}
 ${input.focusAreas ? `Focus Areas: ${input.focusAreas.join(', ')}` : ''}
 
 Generate the domain analysis following the instructions in the system prompt.`;
 
   const response = await callBedrock(PHASE1_PROMPT, userMessage);
-  
+
   // Parse JSON response
   const jsonMatch = response.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
@@ -327,30 +327,30 @@ function validatePhase2Output(output: Phase2Output): ValidationResult {
   // Check each concept has required fields
   for (const concept of output.concepts) {
     if (!concept.name) errors.push('Concept missing name');
-    
+
     // CRITICAL: Validate that concept name is NOT a mnemonic anchor
     // Mnemonic anchors are visual metaphors (Castle, Volcano, Wrench), NOT concept names
     if (concept.name && concept.mnemonic?.anchor) {
       const name = concept.name.toLowerCase().replace(/[^a-z\s]/g, '');
       const anchor = concept.mnemonic.anchor.toLowerCase().replace(/[^a-z\s]/g, '');
-      
+
       // Check if name matches anchor (or is very similar)
       if (name === anchor || name.includes(anchor) || anchor.includes(name)) {
         errors.push(`Concept name "${concept.name}" appears to be a mnemonic anchor. Use the actual concept name from Phase 1.`);
       }
-      
+
       // Check for compound patterns like "X + Y" or "X (Y)"
       if (concept.name.includes('+') || concept.name.includes('(')) {
         errors.push(`Concept name "${concept.name}" contains compound pattern. Use the actual concept name from Phase 1.`);
       }
-      
+
       // Check if name is too short and generic (likely a mnemonic)
       const commonMnemonics = ['castle', 'volcano', 'seesaw', 'wrench', 'battery', 'puzzle', 'star', 'key', 'bridge'];
       if (concept.name.length < 15 && commonMnemonics.some(m => name.includes(m))) {
         errors.push(`Concept name "${concept.name}" appears to be a mnemonic anchor. Use the actual concept name from Phase 1.`);
       }
     }
-    
+
     if (!concept.shape) errors.push(`Concept "${concept.name}" missing shape`);
     if (!concept.lifecycle) errors.push(`Concept "${concept.name}" missing lifecycle`);
     if (!concept.mnemonic) errors.push(`Concept "${concept.name}" missing mnemonic`);
@@ -364,7 +364,7 @@ function validatePhase2Output(output: Phase2Output): ValidationResult {
       if (!concept.shape.analogicalModel) errors.push(`Concept "${concept.name}" missing shape.analogicalModel`);
       if (!concept.shape.patternRecognition) errors.push(`Concept "${concept.name}" missing shape.patternRecognition`);
       if (!concept.shape.eliminationLogic) errors.push(`Concept "${concept.name}" missing shape.eliminationLogic`);
-      
+
       // Check for circular definitions
       if (concept.shape.simpleCore && hasCircularDefinition(concept.name, concept.shape.simpleCore)) {
         errors.push(`Concept "${concept.name}" has circular definition in simpleCore`);

@@ -8,6 +8,7 @@ import { contentRouter } from '../features/content/routes/content.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from '../features/auth/routes/auth.js';
 import { conceptsRouter } from '../features/concepts/routes/concepts.js';
+import { proxyRouter } from '../features/proxy/routes/proxy.js';
 import { authMiddleware } from '../shared/middleware/auth.js';
 import { errorHandler } from '../shared/middleware/error-handler.js';
 import { rateLimiter } from '../shared/middleware/rate-limit.js';
@@ -36,6 +37,9 @@ app.use(rateLimiter);
 // Health check (no auth required)
 app.use('/health', healthRouter);
 app.use('/ready', healthRouter);
+
+// Proxy routes (no auth required for public resources)
+app.use('/api/v1/proxy', proxyRouter);
 
 // Protected routes
 app.use('/api/v1/generation', authMiddleware, generationRouter);

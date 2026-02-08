@@ -2,222 +2,175 @@
 # This is a Python version of the TypeScript system-prompt.ts
 # Contains the full learning science for SENSA v2.0
 # 
-# Prompt Version: v4.2 (Cognitive Distinctions & Uniform Depth)
+# Prompt Version: v5.0 (Universal Exam Support - User Objectives First)
 # See docs/prompts/README.md for version history.
 
 # LEGACY PROMPTS REMOVED (SYSTEM_PROMPT_V4, BLUEPRINT_PROMPT, EXPAND_PROMPT)
 
 
 # =============================================================================
-# SILVER BULLET PROMPT (Tiered Depth)
+# SILVER BULLET PROMPT (Universal - Objectives First)
 # =============================================================================
 
 
-SILVER_BULLET_PROMPT = """ACT AS: An expert professor and curriculum designer for: {subject}
+SILVER_BULLET_PROMPT = """ACT AS: An expert professor and curriculum designer specializing in: {subject}
 
 OBJECTIVE: Generate Part {part_num} of a comprehensive curriculum (Concepts {start_idx} to {end_idx}).
 
-## CONTEXT & EMPHASIS:
+---
+## 1. DYNAMIC SUBJECT ANALYSIS (MANDATORY FIRST STEP)
+
+Before generating ANY concepts, you MUST analyze the subject "{subject}" to understand:
+
+### 1.1 SUBJECT IDENTIFICATION
+- **What exactly is this subject?** (certification exam, academic course, trade skill, etc.)
+- **What is the official scope?** (research actual syllabus/objectives if this is an exam)
+- **What domain does it belong to?** (technology, medicine, finance, trades, science, etc.)
+
+### 1.2 SCOPE BOUNDARIES (CRITICAL)
+**GENERATE CONCEPTS ONLY FOR: {subject}**
+- Do NOT include concepts from related but different subjects
+- Do NOT include concepts from other certifications or exams
+- Do NOT include general topics not specific to this subject
+- EVERY concept must directly serve mastery of "{subject}"
+
+### 1.3 DOMAIN-SPECIFIC STRUCTURE
+Analyze how professionals in this field organize their knowledge:
+- What are the foundational concepts that everything else builds on?
+- What are the core skills/processes that practitioners use daily?
+- What specialized knowledge separates experts from beginners?
+
 {context}
 
-## STRATEGY: UNIFORM DEPTH & HOLISTIC LEARNING
-To support the "NO FALLBACKS" policy, EVERY concept must be fully fleshed out with complete learning science metadata. Do NOT skip fields for Keystone or Utility tiers.
+---
+## 2. PARTITIONED GENERATION
 
-### REQUIRED FIELDS (ALL CONCEPTS):
+You are generating **Part {part_num} of 5** for this curriculum.
+Each part covers approximately 20% of the subject's breadth.
+
+**Partition Strategy:**
+- Part 1: Foundational concepts and prerequisites
+- Part 2: Core operational concepts
+- Part 3: Applied skills and techniques
+- Part 4: Advanced integration and optimization
+- Part 5: Specialized topics and edge cases
+
+Generate concepts {start_idx} to {end_idx} for Part {part_num}.
+
+---
+## 3. CONCEPT GENERATION RULES
+
+### 3.1 REQUIRED FIELDS (ALL CONCEPTS):
 - **Core**: name, tier, tierJustification, cognitiveLevel, commonPitfalls, order
 - **Engagement**: phase1 (hookSentence, microMetaphor, prerequisite, selection, execution)
-- **Memory**: mnemonic (FULL: anchor + story + tier)
-- **Understanding**: description, keyPoints, whyYouNeed, technicalDetails, shape (simpleCore, highStakesExample, analogicalModel)
+- **Memory**: mnemonic (anchor + story + tier)
+- **Understanding**: description, keyPoints, whyYouNeed, technicalDetails, shape
 - **Application**: phase2 (content), phase3 (tool, metrics)
-- **Relationship**: connections (MUST be strictly typed: requires, extends, enables, contains), criticalDistinctions, designBoundaries
-- **Scoring**: scoring (MANDATORY for Blank Sheet Test support)
-  - `keywords`: Array of 3-5 essential terms required for a correct definition
-  - `aliases`: Array of 3-5 synonyms or alternative phrasings for fuzzy matching
-  - Do NOT include the concept name itself in keywords
+- **Relationship**: connections (requires, extends, enables, contains)
+- **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
 
-### COGNITIVE CLASSIFICATION (Bloom's Taxonomy):
-Assign one to `cognitiveLevel`: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`.
-
-### CRITICAL CLARIFICATIONS (Common Pitfalls):
-Provide 2-3 items in `commonPitfalls` that resolve typical learner confusion. Frame POSITIVELY as precision checks.
-
-### MNEMONIC DEPTH RULE:
-- `anchor`: A concrete, physical object (not abstract concepts).
+### 3.2 MNEMONIC RULES:
+- `anchor`: Concrete physical object (e.g., "3-Story Building 🏢"), NOT abstract.
 - `story`: Map concepts to physical parts with spatial language.
-  - ❌ "It's like a key." (too abstract)
   - ✅ "The Badge (Identity) opens the Gate (Authorization), leading to the Floor (Scope)."
+  - ❌ "It's like a key." (too abstract)
 
-### SELECTION FIELD PATTERN (MANDATORY):
-Each selection item MUST follow: "When [Scenario] → Choose [Option] → Unlocks [Capability]"
-Example: "When needing low latency → Choose Direct Connect → Unlocks minimal network hops"
+### 3.3 SELECTION FIELD PATTERN:
+Each item: "When [Scenario] → Choose [Option] → Unlocks [Capability]"
 
-### STRICT CONNECTION RULES (Sensa v2.0) - MANDATORY:
-Every concept MUST have a `connections` array with at least 1-2 semantic relationships.
-Define connections using ONLY these Semantic Relationship verbs:
-1. **requires**: Hard dependency (Prerequisite). "A cannot function without B." (Most common)
-2. **extends**: Enhancement/Specialization. "A adds features or specificity to B."
-3. **enables**: Capability Flow. "A provides the power/access that B uses."
-4. **contains**: Composition. "A includes B as a sub-component."
-5. **related-to**: Soft association (Use SPARINGLY - max 5% of all connections).
+### 3.4 CONNECTION TYPES (Strict):
+- **requires**: Hard prerequisite
+- **extends**: Adds features/specialization
+- **enables**: Provides capability
+- **contains**: Composition
+- **related-to**: Soft link (use sparingly, <5%)
 
-⚠️ QUALITY GATE: Generic "related-to" connections indicate shallow understanding.
-Prefer SPECIFIC relationships (requires, extends, enables, contains) that describe HOW concepts interact.
+### 3.5 COGNITIVE LEVELS (Bloom's):
+Assign one: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`
 
-Example of GOOD connections:
-- "Data Source Connectors" enables "Query Folding" (capability flow)
-- "Star Schema Design" requires "Dimension Table Patterns" (hard dependency)
-- "Workspace" contains "Datasets" (composition)
+### 3.6 POSITIVE FRAMING:
+| ❌ Avoid | ✅ Use |
+|---|---|
+| "Cannot change after creation" | "Selection made at creation time" |
+| "Will fail if X" | "Verify X before proceeding" |
 
-Example of BAD connections (AVOID):
-- "Concept A" related-to "Concept B" (too vague - WHY are they related?)
+### 3.7 GRANULARITY:
+Break broad topics into domain-specific subtopics:
+- ❌ Broad umbrella terms that cover too much
+- ✅ Specific concepts that can each be learned in 5-10 minutes
 
-### MANDATORY DOMAIN DIMENSIONS [Must be covered across the curriculum]
-regardless of the subject, you must explicitly include concepts that address these universal professional standards:
+---
+## 4. OUTPUT FORMAT
 
-1. **Governance, Compliance & Security**: (e.g., Regulatory requirements, Data privacy/protection, Safety standards, Role-based access, Ethics).
-2. **Accessibility & Inclusivity**: (e.g., Design for all users, Industry standard compliance (WCAG/ADA), Ergonomics, Broad usability).
-3. **Performance & Optimization**: (e.g., Efficiency techniques, Diagnostic tooling, Bottleneck identification, Resource management).
-4. **Professional Lifecycle & Development**: (e.g., Development workflows (Dev/Test/Prod), Version control, Publication strategies, Maintenance).
-5. **Advanced & Emerging Capabilities**: (e.g., AI/ML integration, Automation features, Smart tooling, Future-facing trends).
-
-*Ensure at least 1-2 concepts in this batch specifically address these pillars.*
-
-### GRANULARITY & ELABORATION RULES (CRITICAL):
-The user expects an "elaborate list" similar to a detailed exam syllabus.
-1. **AVOID Broad Categories**: Do not just list "Azure Active Directory".
-2. **BREAK DOWN into Specifics**: Instead of one broad concept, generate multiple specific ones:
-   - "Azure AD Tenants"
-   - "Azure AD MFA"
-   - "Conditional Access Policies"
-   - "Self-Service Password Reset"
-3. **Hierarchical Coverage**: Ensure major topics are exploded into their constituent parts.
-
-
-## OUTPUT FORMAT:
 Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 
 ```json
 [
   {{
-    "name": "Concept Name",
+    "name": "Concept Name (Human-readable, NOT placeholder IDs)",
     "tier": "foundation|keystone|utility",
-    "tierJustification": "Reason for tier...",
+    "tierJustification": "Reason...",
     "cognitiveLevel": "understand",
-    "commonPitfalls": ["Misinterpreting X", "Assuming Y"],
+    "commonPitfalls": ["Misinterpreting X"],
     "order": {start_idx},
-    "whyYouNeed": "Professionals rely on this...",
-    "technicalDetails": "Advanced insight...",
-    "workedExample": {{
-      "problem": "Scenario...",
-      "solution": "Approach...",
-      "steps": ["Step 1...", "Step 2..."]
-    }},
-    "mnemonic": {{ 
-        "tier": "Foundation|Keystone|Utility",
-        "anchor": "Concrete physical object + Emoji (e.g., '3-Story Building 🏢')", 
-        "story": "Map 2-3 concepts to physical parts with spatial relationships (above/below, inside/outside)" 
-    }},
-    "phase1": {{ 
-        "hookSentence": "Compelling hook...", 
-        "microMetaphor": "Physical analogy...",
-        "prerequisite": "Required concept or knowledge...",
-        "selection": ["When [Scenario] → Choose [Option] → Unlocks [Capability]"],
-        "execution": "Implementation guidance..."
-    }},
+    "whyYouNeed": "...",
+    "technicalDetails": "...",
+    "workedExample": {{ "problem": "...", "solution": "...", "steps": ["..."] }},
+    "mnemonic": {{ "tier": "...", "anchor": "Object + Emoji", "story": "Spatial scene..." }},
+    "phase1": {{ "hookSentence": "...", "microMetaphor": "...", "prerequisite": "...", "selection": ["When..."], "execution": "..." }},
     "phase2": [ {{ "title": "...", "content": "..." }} ],
     "phase3": {{ "tool": "...", "metrics": [...] }},
     "shape": {{
       "simpleCore": "One sentence, no jargon.",
-      "highStakesExample": "REAL: [Company] ([Year]) achieved [outcome].",
+      "highStakesExample": "REAL: [Company] ([Year]) [outcome].",
       "analogicalModel": "Like [system]: [mapping]...",
       "patternRecognition": {{ "question": "...", "answer": "..." }},
       "eliminationLogic": "[A] for [X], [B] for [Y]."
     }},
-    "keyPoints": ["Point 1", "Point 2", "Point 3"],
-    "scoring": {{
-      "keywords": ["essential_term_1", "essential_term_2", "essential_term_3"],
-      "aliases": ["synonym_1", "synonym_2", "alternative_phrasing"]
-    }},
+    "keyPoints": ["..."],
+    "scoring": {{ "keywords": ["..."], "aliases": ["..."] }},
     "criticalDistinctions": [{{ "correct": "...", "incorrect": "..." }}],
     "designBoundaries": [{{ "boundary": "...", "rationale": "..." }}],
-    "connections": [
-      {{ "target": "Other Concept Name", "type": "requires|extends|enables|contains" }}
-    ]
+    "connections": [{{ "target": "Other Concept", "type": "requires|extends|enables|contains" }}]
   }}
 ]
 ```
 
-## CRITICAL RULES:
-1. QUANTITY: You MUST generate exactly {count} concepts (from #{start_idx} to #{end_idx}).
-2. FORMAT: valid JSON array. NO markdown. NO text before/after.
-3. REAL WORLD EXAMPLES: Field `shape.highStakesExample` MUST be a real case study.
-4. METAPHORS: Field `shape.analogicalModel` and `mnemonics` MUST use objects/systems OUTSIDE the domain.
-5. POSITIVE FRAMING: Use strictly positive, empowering language.
-6. **NAME FIELD (CRITICAL)**: The `name` field MUST be a proper, human-readable concept name.
-   - ✅ GOOD: "Row-Level Security", "Data Partitioning", "Cost-Based Optimization", "Cell Membrane"
-   - ❌ BAD: "concept-P1-001", "concept-P2-015" (these are IDs, NOT names)
-   - The `name` is what students will see in the interface - it MUST be meaningful!
+---
+## 5. CRITICAL RULES
 
-### POSITIVE FRAMING TRANSFORMATION (MANDATORY):
-Never use negative constraints. Reframe as design boundaries:
-| ❌ Negative (AVOID) | ✅ Positive Reframe (USE) |
-|---|---|
-| "Cannot change after creation" | "Selection made at creation time (plan ahead)" |
-| "Will fail if X" | "Verify X is configured before proceeding" |
-| "Does not support X" | "Optimized for Y and Z (use [Alternative] for X)" |
-
-## ANTI-DUPLICATION PROTOCOL (CRITICAL FOR PARALLEL GENERATION):
-You are generating PART {part_num} of 5 parallel batches. To ensure ZERO duplicate concepts:
-
-### Step 1: Subject Breakdown (Internal - Do NOT output)
-Before generating concepts, mentally partition the subject into 5 non-overlapping knowledge pillars.
-Use this generic framework for ANY subject:
-- **Pillar 1**: Foundations & Core Terminology (definitions, base concepts)
-- **Pillar 2**: Architecture & Structure (how things connect/organize)
-- **Pillar 3**: Implementation & Configuration (hands-on actions)
-- **Pillar 4**: Security, Compliance & Governance (rules, restrictions, policies)
-- **Pillar 5**: Advanced Topics & Optimization (performance, troubleshooting, edge cases)
-
-You are responsible for **PILLAR {part_num}**. Focus EXCLUSIVELY on concepts belonging to this pillar.
-
-### Step 2: Concept Ordering (MANDATORY)
-Use the `order` field to number concepts sequentially: {start_idx}, {start_idx}+1, ..., {end_idx}.
-The `order` field is used for internal tracking. The `name` field is what students see.
-
-### Step 3: Uniqueness Validation (Self-Check)
-Before outputting, verify:
-- NO concept name is repeated from common terms (if a term is "obvious", other parts likely covered it).
-- Names are SPECIFIC, not generic. Avoid "Introduction to X" or "Overview of Y".
-- If a concept seems foundational, assume Part 1 already has it—unless you ARE Part 1.
-- **NEVER use placeholder IDs (concept-P1-xxx) as the name field!**
+1. **QUANTITY**: Generate exactly {count} concepts (#{start_idx} to #{end_idx}).
+2. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
+3. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
+4. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study.
+5. **METAPHORS**: Use objects OUTSIDE the domain.
+6. **NO DUPLICATION**: You are Part {part_num} of 5. Only cover your pillar.
 
 Generate concepts {start_idx} through {end_idx} now:"""
 
 
 def get_silver_bullet_prompt(subject: str, part: int = 1, context: str = "") -> str:
-    # If context is provided, format it for the prompt
-    context_str = ""
+    """
+    Returns the prompt for generating concepts.
+    
+    Args:
+        subject: The subject/exam name (e.g., "AZ-305", "Biology")
+        part: Which part (1-5) of the syllabus to generate
+        context: User-provided exam objectives or additional context
+    """
+    # Format context - this is the SINGLE source of truth
     if context:
-        context_str = f"USER CONTEXT / SPECIFIC FOCUS:\n{context}\n\n*Prioritize this context in your concept selection.*"
+        context_block = f"""### USER-PROVIDED OBJECTIVES (Primary Source):
+{context}
 
-    # DOMAIN-BASED PARTITIONING: Ensure unique coverage across parts
-    # This instructs the AI to logically slice the subject itself into 5 parts
-    domain_focus = f"""
-DOMAIN PILLAR IDENTIFIER:
-CURRENT PART: {part} OF 5
-STRICT RULE: Partition the subject into 5 distinct, non-overlapping logical pillars. 
-You are currently responsible for PILLAR {part}.
-Focus EXCLUSIVELY on concepts relevant to this assigned segment of the syllabus. 
-DO NOT REPEAT topics that logically belong in other segments (e.g., if you are Pillar 1, do not cover advanced topics meant for Pillar 5).
-"""
+**INSTRUCTION**: Map your {20} concepts for Part {part} directly to the objectives above.
+Cover objectives proportionally (if 5 domains listed, each pillar covers ~1 domain)."""
+    else:
+        context_block = """### NO OBJECTIVES PROVIDED
+The user has not provided specific exam objectives.
+Use the FALLBACK FRAMEWORK in Section 2 to partition the subject."""
 
-    # Split 100 concepts into 5 parts (20 each) to ensure full depth
-    # Part 1: 1-20
-    # Part 2: 21-40
-    # Part 3: 41-60
-    # Part 4: 61-80
-    # Part 5: 81-100
-
+    # Concept ranges (20 per part = 100 total)
     ranges = [
         (1, 20),
         (21, 40),
@@ -235,7 +188,7 @@ DO NOT REPEAT topics that logically belong in other segments (e.g., if you are P
             start_idx=start_idx,
             end_idx=end_idx,
             count=count,
-            context=context_str + domain_focus
+            context=context_block
         )
     else:
         # Fallback to Part 1 if invalid part
@@ -245,8 +198,9 @@ DO NOT REPEAT topics that logically belong in other segments (e.g., if you are P
             start_idx=1, 
             end_idx=20, 
             count=20,
-            context=context_str
+            context=context_block
         )
+
 
 # =============================================================================
 # SURGICAL FIX PROMPT (Single Concept Repair)
@@ -285,12 +239,12 @@ Return ONLY the raw JSON object for this concept.
   "phase3": {{ "tool": "...", "metrics": [...] }},
   "shape": {{
     "simpleCore": "One sentence, no jargon.",
-    "highStakesExample": "REAL Case: Specific Company/Event + Year + Outcome (NO generic examples).",
+    "highStakesExample": "REAL Case: Specific Company/Event + Year + Outcome.",
     "analogicalModel": "Like [system]: [mapping]...",
     "patternRecognition": {{ "question": "...", "answer": "..." }},
     "eliminationLogic": "..."
   }},
-  "strictConnections": [
+  "connections": [
      {{ "target": "Related Concept", "type": "requires|extends|enables|contains" }}
   ]
 }}
@@ -311,4 +265,3 @@ def get_surgical_fix_prompt(subject: str, concept_name: str, issue: str) -> str:
         concept_name=concept_name, 
         issue_description=issue
     )
-

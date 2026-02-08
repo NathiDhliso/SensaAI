@@ -235,9 +235,15 @@ conceptsRouter.get('/jobs', async (req: AuthenticatedRequest, res: Response) => 
         jobs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
         res.json({ jobs });
-    } catch (error) {
+    } catch (error: any) {
         console.error('[Backend /jobs] ERROR:', error);
-        res.status(500).json({ error: 'Failed to list jobs' });
+        // Debug logging
+        try {
+            const fs = await import('fs');
+            fs.appendFileSync('debug_jobs_error.txt', `[${new Date().toISOString()}] ${error.message}\nStack: ${error.stack}\n`);
+        } catch (e) { console.error('Failed to write debug log', e); }
+
+        res.status(500).json({ error: 'Failed to list jobs', details: error.message });
     }
 });
 
@@ -326,7 +332,7 @@ conceptsRouter.post('/repair', async (req: AuthenticatedRequest, res: Response) 
             }
 
             // Parse Lambda response
-            const responsePayload = invokeResponse.Payload ? 
+            const responsePayload = invokeResponse.Payload ?
                 JSON.parse(Buffer.from(invokeResponse.Payload).toString()) : null;
 
             if (!responsePayload || responsePayload.statusCode !== 200) {

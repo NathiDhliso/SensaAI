@@ -119,7 +119,7 @@ class ApiClient {
     }
 
     const error = new Error(
-      `API Error: ${response.status} ${response.statusText}`
+      `API Error: ${response.status} ${response.statusText} - ${typeof body === 'object' ? JSON.stringify(body) : String(body)}`
     ) as ApiError;
     error.status = response.status;
     error.statusText = response.statusText;

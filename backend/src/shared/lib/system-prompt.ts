@@ -12,7 +12,7 @@ OBJECTIVE: Create a "Visual Master Hierarchical Chart" (Structured Outline), "De
 
 ## STEP 1: LIVE VERIFICATION [Required for Accuracy]
 
-Browse the web for the most recent official syllabus or standard (e.g., "Microsoft Learn Skills Measured," "2025 Tax Code," "Bar Exam Content Outline," authoritative textbook).
+Browse the web for the most recent official syllabus or standard (e.g., "Official Curriculum Standards," "Professional Certification Requirements," "Academic Course Outline," authoritative textbook).
 
 * **Scan for Updates:** Identify 3 specific topics added or emphasized in the last 12 months.
 * **Extract Hard Data:** Look for specific numbers (statutory limits, dates, thresholds, version requirements, fee schedules) that have changed. If numerical data isn't publicly available, explicitly state this limitation.
@@ -80,7 +80,7 @@ Create a Single Code Block containing a structured outline. You must follow thes
 | "Does not inherit" | "[Design Boundary]: Applied directly to each resource (use policy for automated assignment)" |
 
 * **Verification Level (Phase 3): The "Evidence Pattern"** — Use \`[LIFECYCLE_PHASE_3]\` marker
-   ○ Name the exact tool, document, metric, test, or procedure (e.g., "Westlaw Citator", "Blood Gas Analysis", "Azure Monitor Logs", "IRS Form 8879")
+   ○ Name the exact tool, document, metric, test, or procedure (e.g., "Stethoscope", "Blood Pressure Reading", "Activity Monitor", "Form 1040")
    ○ Do not invent tool/document names
    ○ Include specific metrics, deadlines, or thresholds to monitor where relevant
    ○ Frame as "what to observe" rather than "what to watch out for"
@@ -124,7 +124,7 @@ Before generating each concept, verify ALL of these fields are present and SUBST
    - BAD: "Think of an API Gateway like a Gateway to an API"
    - GOOD: "Think of an API Gateway like a Hotel Concierge desk that routes requests"
 
-3. **EMPTY FALLBACKS** - "See documentation" or "Check Azure portal" for core fields
+3. **EMPTY FALLBACKS** - "See documentation" or "Check official source" for core fields
    - BAD: "[Verify in Docs]" for a core constraint
    - GOOD: "[Design Boundary]: Max 10 GB per partition (verify latest limits for edge cases)"
 
@@ -136,26 +136,24 @@ Every concept in the Master Chart MUST include SHAPE sections designed for 2-min
 
 **S - SIMPLE CORE** (15 seconds to read)
 One sentence. No jargon. A complete beginner could repeat it.
-Example: "Lambda runs your code without you managing servers - you just upload and trigger."
+Use vocabulary appropriate to the subject domain - NOT tech jargon for non-tech subjects.
 
 **H - HIGH-STAKES EXAMPLE** (30 seconds to read)
-A real company + year + specific numbers or human impact.
-Example: "In 2017, the S3 outage cost companies $150M in 4 hours - Lambda functions depending on S3 also failed, teaching engineers about regional dependencies."
+A real case study + year + specific numbers or human impact from the relevant domain.
+Research and cite actual events from the subject's field (medical cases for medicine, financial scandals for accounting, safety incidents for trades, etc.).
 
 **A - ANALOGICAL MODEL** (45 seconds to read)
-Map to a familiar system (construction, cooking, sports, etc.) that matches typical learner backgrounds.
-3-4 specific technical concepts mapped to physical elements.
-Example: "Think of Lambda like a restaurant kitchen: You're the chef (code), AWS is the kitchen equipment (infrastructure). You focus on recipes (logic), they handle the stove, fridge, and cleanup (scaling, patching, monitoring)."
+Map to a familiar system (construction, cooking, sports, household items, etc.) that matches typical learner backgrounds.
+3-4 specific domain concepts mapped to physical elements.
+Use metaphors from OUTSIDE the subject domain to create fresh understanding.
 
 **P - PATTERN RECOGNITION** (20 seconds to read)
-A self-test question. "You know you've mastered this when you can answer:"
-Then provide the answer immediately below.
-Example: "Question: When would you choose Lambda over EC2? Answer: When your workload is event-driven, unpredictable, or you want zero server management."
+A self-test question relevant to the domain. "You know you've mastered this when you can answer:"
+Then provide the answer immediately below. Frame the question using domain-appropriate scenarios.
 
 **E - ELIMINATION LOGIC** (10 seconds to read)
-One critical distinction that clarifies common confusion points.
+One critical distinction between commonly confused concepts within the subject domain.
 Format: "[CONCEPT A] is [definition], while [CONCEPT B] is [different definition]—they serve different purposes."
-Example: "Lambda cold starts (initialization delay) differ from Lambda timeouts (execution limit). Cold starts affect startup speed; timeouts limit execution duration. Understanding both prevents performance misconfigurations."
 
 ⚠️ **CRITICAL:** Use POSITIVE framing: "A is X, B is Y" NOT "Don't confuse A with B"
 
