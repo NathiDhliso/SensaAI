@@ -484,7 +484,7 @@ export default function ContentLaunchpad() {
                             <div className={styles.footerStat}>
                                 <span className={styles.statLabel}>Tier Split</span>
                                 <span className={styles.statValue}>
-                                    {audit.tierDistribution.foundation}F / {audit.tierDistribution.keystone}K / {audit.tierDistribution.utility}U
+                                    {audit.tierDistribution.root}R / {audit.tierDistribution.trunk}T / {audit.tierDistribution.leaf}L
                                 </span>
                             </div>
                         </div>

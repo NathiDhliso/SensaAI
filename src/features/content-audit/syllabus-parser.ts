@@ -11,11 +11,15 @@ const ACTION_VERBS = new Set([
   'disable', 'customize', 'extend', 'automate', 'validate', 'verify',
   'test', 'debug', 'review', 'audit', 'document', 'report',
   'understand', 'use', 'work with', 'navigate', 'access',
+  'enhance', 'promote', 'certify', 'publish', 'import',
+  'pivot', 'unpivot', 'transpose', 'merge', 'append',
+  'format', 'group', 'layer', 'detect', 'provide',
 ]);
 
 const SKIP_PATTERNS = [
   /^(course|exam|assessment|grading|schedule|syllabus|overview|introduction|prerequisite|textbook|reference|instructor|office|email|phone|website|date|time|location|room|building)/i,
   /^(total|final|midterm|quiz|assignment|homework|project|lab|tutorial|seminar|workshop|review|revision|summary|conclusion|appendix|bibliography|glossary|index)/i,
+  /^(skills measured|skills at a glance|audience profile)/i,
   /^page\s*\d/i,
   /^copyright/i,
   /^\d+$/,
@@ -86,19 +90,64 @@ function isDomainHeader(rawLine: string, cleanedText: string): boolean {
   return false;
 }
 
+function isProse(text: string): boolean {
+  if (text.length < 30) return false;
+  const proseIndicators = /\b(you should|you will|you can|as a candidate|this exam|this course|work closely|work with|responsible for|expected to|able to|proficient at|collaborate with|data analyst|closely with)\b/i;
+  if (proseIndicators.test(text)) return true;
+  const sentencePattern = /[.!?]\s+[A-Z]/;
+  if (sentencePattern.test(text)) return true;
+  if (/\.$/.test(text.trim()) && text.length > 40) return true;
+  return false;
+}
+
+function isSectionHeader(index: number, items: Array<{ text: string }>): boolean {
+  const { text } = items[index];
+  if (!startsWithActionVerb(text)) return false;
+
+  const words = text.split(/\s+/);
+  if (words.length > 8) return false;
+
+  const hasSpecificDetail = /(?:including|such as|for example|e\.g\.|,)/i.test(text);
+  if (hasSpecificDetail) return false;
+
+  const isByUsingQualifier = /\bby using\b/i.test(text);
+
+  let followingActionLines = 0;
+  for (let j = index + 1; j < items.length && j <= index + 6; j++) {
+    if (startsWithActionVerb(items[j].text)) {
+      followingActionLines++;
+    } else {
+      break;
+    }
+  }
+
+  if (isByUsingQualifier && followingActionLines >= 2) return true;
+  if (followingActionLines >= 3) return true;
+
+  return false;
+}
+
 export function parseSyllabusText(raw: string): string[] {
   const rawLines = raw.split(/\n/);
-  const objectives: string[] = [];
-  const seen = new Set<string>();
 
+  const cleaned: Array<{ raw: string; text: string }> = [];
   for (const rawLine of rawLines) {
     const trimmed = rawLine.trim();
     if (!trimmed) continue;
-
     const text = cleanText(trimmed);
     if (shouldSkip(text)) continue;
-
     if (isDomainHeader(rawLine, text)) continue;
+    cleaned.push({ raw: rawLine, text });
+  }
+
+  const objectives: string[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < cleaned.length; i++) {
+    const { text } = cleaned[i];
+
+    if (isProse(text)) continue;
+    if (isSectionHeader(i, cleaned)) continue;
 
     if (startsWithActionVerb(text) || text.length >= 15) {
       const norm = text.toLowerCase();
