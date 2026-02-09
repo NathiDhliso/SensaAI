@@ -8,9 +8,7 @@
  * - Interleaving Effect: Mixed practice improves long-term retention
  * - Spacing Effect: Distributed practice > massed practice
  * - Prerequisite Gates: Only suggest concepts with satisfied dependencies
- * - Tier Balance: Maintain Foundation → Keystone → Utility progression
- * 
- * @see SILVER_BULLET_LEARNING_ARCHITECTURE.md Phase 3.B
+ * - Tier Balance: Maintain Root (~20%) → Trunk (~50%) → Leaf (~30%) progression
  */
 
 import type { LearningConcept, LearningStage, LifecyclePhaseKey } from '@/shared/types/learning';
@@ -120,7 +118,7 @@ function calculateTierDistribution(
 
 /**
  * Get the ideal next tier based on current distribution.
- * Ideal progression: Foundation 40%, Keystone 35%, Utility 25%
+ * Ideal progression: Root ~20%, Trunk ~50%, Leaf ~30%
  */
 function getIdealNextTier(
   distribution: { root: number; trunk: number; leaf: number }

@@ -17,7 +17,7 @@ export interface DependencyEdge {
   id: string;
   source: string;
   target: string;
-  relationship: 'depends-on' | 'related-to' | 'requires' | 'extends' | 'enables' | 'contains';
+  relationship: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains';
   weight: number;
 }
 
@@ -177,13 +177,9 @@ export interface LearningConcept {
    */
   commonPitfalls?: string[];
 
-  /**
-   * AI-generated semantic connections to other concepts.
-   * Types: requires, extends, enables, contains, related-to
-   */
   connections?: Array<{
     target: string;
-    type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to';
+    type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains';
   }>;
   // ========== END SENSA v2.0 ==========
 

@@ -324,10 +324,66 @@ class BedrockService:
             tier_counts[c["tier"]] = tier_counts.get(c["tier"], 0) + 1
         print(f"[BedrockService] Tier distribution: {tier_counts}")
 
+    def _enforce_blooms_distribution(self, concepts: List[Dict[str, Any]]) -> None:
+        VALID_LEVELS = {"remember", "understand", "apply", "analyze", "evaluate", "create"}
+        HIGHER_ORDER = {"apply", "analyze", "evaluate", "create"}
+        UPGRADE_KEYWORDS = [
+            "configur", "troubleshoot", "deploy", "implement", "manage",
+            "monitor", "create", "design", "build", "set up", "provision",
+            "migrate", "secure", "optimize", "diagnos", "debug", "resolve",
+            "evaluate", "compare", "select", "choose", "decide", "plan",
+            "architect", "automat", "integrat", "custom", "extend",
+        ]
+
+        for c in concepts:
+            level = (c.get("cognitiveLevel") or "remember").lower().strip()
+            if level not in VALID_LEVELS:
+                c["cognitiveLevel"] = "understand"
+
+        total = len(concepts)
+        if total == 0:
+            return
+
+        higher_count = sum(1 for c in concepts if c.get("cognitiveLevel", "").lower() in HIGHER_ORDER)
+        target_higher = max(int(total * 0.30), 1)
+
+        if higher_count >= target_higher:
+            print(f"[BedrockService] Bloom's OK: {higher_count}/{total} higher-order ({higher_count/total*100:.0f}%)")
+            return
+
+        needed = target_higher - higher_count
+        candidates = []
+        for c in concepts:
+            if c.get("cognitiveLevel", "").lower() in HIGHER_ORDER:
+                continue
+            name_lower = c.get("name", "").lower()
+            desc = (c.get("whyYouNeed", "") + " " + c.get("technicalDetails", "")).lower()
+            text = name_lower + " " + desc
+            keyword_hits = sum(1 for kw in UPGRADE_KEYWORDS if kw in text)
+            if keyword_hits > 0:
+                candidates.append((c, keyword_hits))
+
+        candidates.sort(key=lambda x: -x[1])
+
+        upgraded = 0
+        for c, hits in candidates:
+            if upgraded >= needed:
+                break
+            old_level = c.get("cognitiveLevel", "understand")
+            if hits >= 3:
+                c["cognitiveLevel"] = "analyze"
+            else:
+                c["cognitiveLevel"] = "apply"
+            upgraded += 1
+            print(f"[BedrockService] Bloom's upgrade: '{c.get('name')}' {old_level} -> {c['cognitiveLevel']}")
+
+        final_higher = sum(1 for c in concepts if c.get("cognitiveLevel", "").lower() in HIGHER_ORDER)
+        print(f"[BedrockService] Bloom's final: {final_higher}/{total} higher-order ({final_higher/total*100:.0f}%)")
+
     def _post_process_concepts(self, concepts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Post-process concepts: assign IDs, compute tiers from connection graph,
-        and normalize required fields.
+        enforce Bloom's distribution, and normalize required fields.
         """
         from shared.utils import generate_id
 
@@ -348,6 +404,7 @@ class BedrockService:
                 concept["scoring"] = {"keywords": [], "aliases": []}
 
         self._compute_tiers_from_graph(concepts)
+        self._enforce_blooms_distribution(concepts)
 
         return concepts
 

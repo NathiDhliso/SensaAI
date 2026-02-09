@@ -433,7 +433,7 @@ All concept connections use exactly 6 universal types (no generic fallback):
 | `causes` | What happens because of this? | Inflation causes Price Increase |
 | `constrains` | What limits this? | Budget constrains Scope |
 
-Enforced in: generation prompt, `ConnectionTypeModal`, `build-ai.ts` suggestion engine, `LABEL_PRESETS`.
+Enforced in: generation prompt (`system_prompt.py` §3.4), surgical fix prompt, `normalizeConnectionType()` in `json-parser.ts`, `extractDependencyEdges()` in `dependency-parser.ts`, `ConnectionTypeModal`, `build-ai.ts` suggestion engine, `LABEL_PRESETS`.
 
 ### Universal Learning Equation
 
@@ -556,6 +556,18 @@ Full audit documented in `docs/architecture/AUDIT_SILVER_BULLET.md`. Key changes
 - [x] **FadedExample fuzzy validation** — Input validated via word-overlap against step text (30% threshold) instead of `length > 3`
 - [x] **App.tsx cleanup** — Removed dead commented bionic reading code
 - [x] **Home.tsx universal search** — Search placeholder changed to "Enter any subject to learn..." to feel universal
+
+### Phase 4 — Silver Bullet v2: Pipeline Alignment (Implemented)
+
+Holistic fix addressing systemic misalignments across the generation → parsing → learning pipeline:
+
+- [x] **Surgical fix prompt aligned** — Updated `SURGICAL_FIX_PROMPT` to use 6 universal connection types (was legacy requires/extends/enables/contains), removed `tier` field (computed from graph), added `cognitiveLevel`, `keyPoints`, `commonPitfalls`, `scoring` fields
+- [x] **Bloom's cognitive level enforcement** — `_enforce_blooms_distribution()` in `bedrock_service.py` ensures ≥30% concepts are `apply` or higher. Keyword-based upgrade for configuration/troubleshooting/decision concepts
+- [x] **Objective domain parsing improved** — `_parse_objective_domains()` in `system_prompt.py` now detects hierarchy by content (action verbs, percentage weights) not just indentation. Prevents all objectives landing in one part
+- [x] **Connection taxonomy unified** — All 4 layers (Lambda prompt, `json-parser.ts`, `transformer.ts`, `learning.ts` types) now use the same 6 universal types. Legacy `extends`/`contains`/`related-to`/`depends-on` eliminated
+- [x] **Dependency parser uses Lambda connections** — `extractDependencyEdges()` now uses `strictConnections` (populated from Lambda's `connections` array) as Priority 1. Fallback inference only when no connections exist
+- [x] **Single-source-of-truth tiers** — Removed frontend `assignTiersByPercentile()` that was overwriting Lambda's deterministic tiers. Frontend `calculateTier()` is now fallback-only for skeleton concepts
+- [x] **Hierarchy-aware syllabus parser** — `parseSyllabusText()` now detects domain headers (percentage weights, short capitalized phrases) and skips them. Only counts leaf objectives (action verb lines, substantial content). Fixes inflated objective count (was 192, now ~79)
 
 ### Planned — Future
 

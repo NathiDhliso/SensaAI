@@ -65,7 +65,7 @@ export interface ParsedConcept {
   dependsOn?: string[];
   strictConnections?: {
     target: string;
-    type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to';
+    type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains';
   }[];
 }
 

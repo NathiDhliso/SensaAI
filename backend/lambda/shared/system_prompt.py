@@ -279,33 +279,88 @@ def _parse_objective_domains(context: str) -> list:
     lines = context.strip().split('\n')
     domains = []
     current_domain = None
-    current_subs = []
+    current_subdomain = None
+    current_objectives = []
+
+    PERCENTAGE_PATTERN = _re.compile(r'\(\s*\d+[\s\-–]*\d*\s*%\s*\)')
+    WEIGHT_PATTERN = _re.compile(r'\d+[\s\-–]+\d+\s*%')
+    BULLET_PREFIX = _re.compile(r'^[\s]*[-–—•*◦▪]+\s*')
+    NUMBERING_PREFIX = _re.compile(r'^[\s]*\d+[\.\)\:]\s*')
+    LETTER_PREFIX = _re.compile(r'^[\s]*[a-zA-Z][\.\)]\s*')
+    ACTION_VERBS = {
+        "create", "configure", "manage", "implement", "deploy", "monitor",
+        "assign", "apply", "interpret", "provision", "troubleshoot", "set up",
+        "perform", "export", "modify", "map", "query", "analyze", "evaluate",
+        "design", "build", "define", "establish", "develop", "integrate",
+        "secure", "optimize", "migrate", "backup", "restore", "connect",
+    }
+
+    def clean_line(text):
+        text = BULLET_PREFIX.sub('', text)
+        text = NUMBERING_PREFIX.sub('', text)
+        text = LETTER_PREFIX.sub('', text)
+        text = PERCENTAGE_PATTERN.sub('', text)
+        text = WEIGHT_PATTERN.sub('', text)
+        text = text.strip().rstrip(':').rstrip('-').rstrip('–').strip()
+        return text
+
+    def starts_with_action_verb(text):
+        lower = text.lower()
+        for verb in ACTION_VERBS:
+            if lower.startswith(verb + " ") or lower.startswith(verb + "\t"):
+                return True
+        return False
+
+    def has_percentage_weight(raw_line):
+        return bool(PERCENTAGE_PATTERN.search(raw_line)) or bool(WEIGHT_PATTERN.search(raw_line))
+
+    def flush_subdomain():
+        nonlocal current_subdomain, current_objectives
+        if current_subdomain and current_objectives:
+            pass
+        current_subdomain = None
 
     for line in lines:
         stripped = line.strip()
         if not stripped:
             continue
+
         indent = len(line) - len(line.lstrip())
-        is_sub = indent >= 2 or stripped.startswith('-') or stripped.startswith('•')
-        clean = _re.sub(r'^[\s\-•*\d.]+', '', stripped).strip()
-        clean = _re.sub(r'\(\s*\d+[\s\-–]*\d*\s*%?\s*\)', '', clean).strip()
-        if not clean:
+        clean = clean_line(stripped)
+        if not clean or len(clean) < 4:
             continue
 
-        if not is_sub and len(clean) > 10:
+        is_domain_header = has_percentage_weight(line) and len(clean) > 10
+        is_action_leaf = starts_with_action_verb(clean)
+        is_indented = indent >= 2 or stripped.startswith('-') or stripped.startswith('•')
+
+        if is_domain_header:
             if current_domain:
-                domains.append({"name": current_domain, "objectives": current_subs[:]})
+                domains.append({"name": current_domain, "objectives": current_objectives[:]})
             current_domain = clean
-            current_subs = []
-        elif current_domain and clean:
-            current_subs.append(clean)
-        elif not current_domain:
-            if current_domain is None and len(clean) > 10:
+            current_objectives = []
+            current_subdomain = None
+        elif current_domain is not None:
+            if is_action_leaf:
+                current_objectives.append(clean)
+            elif not is_indented and not is_action_leaf and len(clean) > 10:
+                words = clean.split()
+                if len(words) <= 8 and not any(clean.lower().startswith(v + " ") for v in ACTION_VERBS):
+                    current_subdomain = clean
+                else:
+                    current_objectives.append(clean)
+            elif is_indented:
+                current_objectives.append(clean)
+            elif len(clean) > 10:
+                current_objectives.append(clean)
+        else:
+            if len(clean) > 10:
                 current_domain = clean
-                current_subs = []
+                current_objectives = []
+                current_subdomain = None
 
     if current_domain:
-        domains.append({"name": current_domain, "objectives": current_subs[:]})
+        domains.append({"name": current_domain, "objectives": current_objectives[:]})
 
     return domains
 
@@ -446,25 +501,25 @@ Issue: {issue_description}
 Generate a FULLY REPAIRED JSON object for this single concept.
 Focus specifically on resolving the issue described above while maintaining high quality in all other fields.
 
+**NOTE**: Do NOT include a "tier" field. Tiers are computed automatically from the connection graph.
+
 ## OUTPUT FORMAT:
 Return ONLY the raw JSON object for this concept.
 
 ```json
 {{
   "name": "{concept_name}",
-  "tier": "foundation|keystone|utility",
-  "tierJustification": "Reason...",
+  "cognitiveLevel": "remember|understand|apply|analyze|evaluate|create",
   "order": 1,
   "whyYouNeed": "...",
   "technicalDetails": "...",
-  "workedExample": {{ ... }},
+  "workedExample": {{ "problem": "...", "solution": "...", "steps": ["..."] }},
   "mnemonic": {{ 
-    "tier": "...", 
     "anchor": "Concrete Object + Emoji", 
-    "story": "Bizarre scene..." 
+    "story": "Spatial scene..." 
   }},
-  "phase1": {{ "hookSentence": "...", "microMetaphor": "..." }},
-  "phase2": [ ... ],
+  "phase1": {{ "hookSentence": "...", "microMetaphor": "...", "prerequisite": "...", "selection": ["When..."], "execution": "..." }},
+  "phase2": [ {{ "title": "...", "content": "..." }} ],
   "phase3": {{ "tool": "...", "metrics": [...] }},
   "shape": {{
     "simpleCore": "One sentence, no jargon.",
@@ -473,11 +528,22 @@ Return ONLY the raw JSON object for this concept.
     "patternRecognition": {{ "question": "...", "answer": "..." }},
     "eliminationLogic": "..."
   }},
+  "keyPoints": ["..."],
+  "commonPitfalls": ["..."],
+  "scoring": {{ "keywords": ["..."], "aliases": ["..."] }},
   "connections": [
-     {{ "target": "Related Concept", "type": "requires|extends|enables|contains" }}
+     {{ "target": "Related Concept", "type": "requires|enables|is-part-of|is-type-of|causes|constrains" }}
   ]
 }}
 ```
+
+## CONNECTION TYPES (6 Universal Types — No generic fallback):
+- **requires**: Hard prerequisite (A requires B = B must be understood before A)
+- **enables**: Capability chain (A enables B = learning A makes B possible)
+- **is-part-of**: Part-whole composition (A is part of B = A is component within B)
+- **is-type-of**: Taxonomy (A is type of B = A is specific instance of B)
+- **causes**: Causal chain (A causes B = A directly produces or triggers B)
+- **constrains**: Boundary condition (A constrains B = A sets rules/limits on B)
 
 ## CRITICAL RULES:
 1. Fix the identified issue completely.
@@ -485,6 +551,7 @@ Return ONLY the raw JSON object for this concept.
 3. Ensure `mnemonic.story` is bizarre, memorable, and uses the anchor.
 4. Use strictly positive framing.
 5. Return ONLY valid JSON for the single concept object. NO markdown.
+6. Every connection MUST use one of the 6 types above. Do NOT use "related-to", "extends", or "contains".
 """
 
 def get_surgical_fix_prompt(subject: str, concept_name: str, issue: str) -> str:

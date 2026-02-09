@@ -509,8 +509,8 @@ function extractPrerequisites(concept: ParsedConcept, allConcepts: ParsedConcept
 function extractSemanticConnections(
   concept: ParsedConcept,
   allConcepts: ParsedConcept[]
-): Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> {
-  const connections: Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> = [];
+): Array<{ target: string; type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }> {
+  const connections: Array<{ target: string; type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }> = [];
   const addedTargets = new Set<string>(); // Prevent duplicates
 
   // Helper to validate target exists in curriculum
@@ -926,9 +926,9 @@ export function transformToLearningConcepts(
           visualElement: safeSlugify(name),
           actionButtonText: `Explore ${name}`,
           lifecycle: {
-            phase1: { title: 'FOUNDATION', steps: ['Identify'] },
-            phase2: { title: 'ACTION', steps: ['Apply'] },
-            phase3: { title: 'VERIFICATION', steps: ['Validate'] }
+            phase1: { title: lifecycleLabels.phase1 || 'PREPARE', steps: ['Identify'] },
+            phase2: { title: lifecycleLabels.phase2 || 'ACTION', steps: ['Apply'] },
+            phase3: { title: lifecycleLabels.phase3 || 'VERIFICATION', steps: ['Validate'] }
           },
           logicalConnection: '',
           shape: undefined,
@@ -1018,82 +1018,6 @@ function validateDependencies(concepts: ParsedConcept[]): void {
   });
 }
 
-/**
- * Detect circular dependencies in the concept graph
- * Returns true if a cycle exists
- */
-function hasCycle(concepts: ParsedConcept[]): boolean {
-  const graph = new Map<string, string[]>();
-  concepts.forEach(c => {
-    graph.set(c.name, c.dependsOn || []);
-  });
-
-  const visited = new Set<string>();
-  const recStack = new Set<string>();
-
-  function dfs(node: string): boolean {
-    visited.add(node);
-    recStack.add(node);
-
-    for (const neighbor of graph.get(node) || []) {
-      if (!visited.has(neighbor) && dfs(neighbor)) return true;
-      if (recStack.has(neighbor)) return true;
-    }
-
-    recStack.delete(node);
-    return false;
-  }
-
-  for (const node of graph.keys()) {
-    if (!visited.has(node) && dfs(node)) {
-      console.error(`🚨 Circular dependency detected involving "${node}"!`);
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Calculate outdegree (how many concepts depend on this one)
- */
-function calculateOutdegrees(concepts: ParsedConcept[]): Map<string, number> {
-  const outdegrees = new Map<string, number>();
-  concepts.forEach(c => outdegrees.set(c.name, 0));
-
-  concepts.forEach(concept => {
-    (concept.dependsOn || []).forEach(depName => {
-      outdegrees.set(depName, (outdegrees.get(depName) || 0) + 1);
-    });
-  });
-
-  return outdegrees;
-}
-
-/**
- * Assign tiers using percentile-based thresholds (adaptive to curriculum size)
- */
-function assignTiersByPercentile(concepts: LearningConcept[], outdegrees: Map<string, number>): void {
-  const degreeValues = Array.from(outdegrees.values()).sort((a, b) => b - a);
-
-  // Handle edge cases
-  if (degreeValues.length < 3) {
-    return; // Too few concepts for percentile tiers
-  }
-
-  // Calculate percentile thresholds
-  const p80 = degreeValues[Math.floor(degreeValues.length * 0.2)] || 0; // Top 20%
-  const p50 = degreeValues[Math.floor(degreeValues.length * 0.5)] || 0; // Top 50%
-
-  concepts.forEach(c => {
-    const degree = outdegrees.get(c.name) || 0;
-    // Only assign if threshold is meaningful (avoid all utility if p80 = 0)
-    if (p80 > 0 || p50 > 0) {
-      if (degree >= p80 && p80 > 0) c.tier = 'root';
-      else if (degree >= p50 && p50 > 0) c.tier = 'trunk';
-      else c.tier = 'leaf';
-    }
-  });
-}
 
 /**
  * Transform concepts to SensaAI Learning Velocity Engine enhanced concepts
@@ -1145,30 +1069,7 @@ export function transformToSensaAIConcepts(
   // CRITICAL: Ensure balanced distribution layout
   balanceLifecycleDistribution(baseConcepts);
 
-  // ========================================================================
-  // SILVER BULLET: Robust Tier Classification with Validated Dependencies
-  // ========================================================================
-
-  // Step 1: Validate all dependsOn references exist (remove hallucinations)
   validateDependencies(parsed.concepts);
-
-  // Step 2: Check for circular dependencies
-  if (hasCycle(parsed.concepts)) {
-    console.error('🚨 Circular dependencies detected! Falling back to order-based tiers.');
-    // Fallback: Assign tiers based on order (first third = foundation, etc.)
-    const third = Math.ceil(baseConcepts.length / 3);
-    baseConcepts.forEach((c, idx) => {
-      if (idx < third) c.tier = 'root';
-      else if (idx < third * 2) c.tier = 'trunk';
-      else c.tier = 'leaf';
-    });
-  } else {
-    // Step 3: Calculate outdegrees (how many concepts depend on each one)
-    const outdegrees = calculateOutdegrees(parsed.concepts);
-
-    // Step 4: Assign tiers using percentile-based thresholds
-    assignTiersByPercentile(baseConcepts, outdegrees);
-  }
 
   // Identify confusion pairs across all concepts
   const confusionMap = identifyConfusionPairs(parsed.concepts);

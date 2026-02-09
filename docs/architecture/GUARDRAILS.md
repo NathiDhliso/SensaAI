@@ -185,10 +185,13 @@ Concepts are classified into 3 tiers **deterministically from the connection gra
 4. Connection types `enables`, `causes`, `constrains` → target depends on source (reverse direction)
 5. Tier is assigned based on in-degree and out-degree per the table above
 
+**Single Source of Truth:** Lambda's `_compute_tiers_from_graph()` is the ONLY tier computation. The frontend `calculateTier()` in `transformer.ts` is a fallback ONLY for concepts missing a tier field (e.g., skeleton recovery concepts). The frontend MUST NOT re-compute or override Lambda-assigned tiers.
+
 **Key files:**
-- Backend computation: `backend/lambda/generate_concepts/services/bedrock_service.py` → `_compute_tiers_from_graph()`
+- Backend computation (authoritative): `backend/lambda/generate_concepts/services/bedrock_service.py` → `_compute_tiers_from_graph()`
+- Backend Bloom's enforcement: `bedrock_service.py` → `_enforce_blooms_distribution()` (≥30% apply+)
 - Frontend types: `src/shared/types/sensa-flow.ts` → `TierType = 'root' | 'trunk' | 'leaf'`
-- Frontend fallback: `src/features/content-generation/parsers/transformer.ts` → `calculateTier()`
+- Frontend fallback only: `src/features/content-generation/parsers/transformer.ts` → `calculateTier()`
 - UI display: `src/components/learning/ui/SensaSynopticView.tsx` (orbit rings), `SessionScoutPreview.tsx` (tier columns)
 - CSS variables: `src/index.css` → `--color-root`, `--color-trunk`, `--color-leaf`
 

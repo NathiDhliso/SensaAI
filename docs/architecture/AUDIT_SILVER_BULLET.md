@@ -14,7 +14,7 @@
 | `ConfusionDrill` | Real A/B scenarios, timer, keyboard shortcuts, confidence calibration. |
 | `ConceptMapBuilder` | Undo/redo, drag-drop, AI suggestions, gap detection. Core practice ground. |
 | `Generation Pipeline` | Lambda → classify → parallel generate → poll → hydrate. Working end-to-end. |
-| `Tier System` | Foundation/Keystone/Utility with dependency tracking. Strong structural foundation. |
+| `Tier System` | Root/Trunk/Leaf computed deterministically from connection graph. Strong structural foundation. |
 | `Interleaving Algorithm` | Blocked/mixed/progressive modes with tier balance. Solid selection logic. |
 | `ZPD Concept Selection` | Prerequisite gates, tier balance, phase interleaving. Good cognitive science. |
 | `Struggle Detector` | Idle time, error rate, backspace velocity. Thoughtful multi-signal detection. |

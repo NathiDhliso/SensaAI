@@ -788,8 +788,8 @@ function determineStageId(order: number): string {
  */
 function extractStrictConnections(
     c: Record<string, unknown>
-): Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> | undefined {
-    const connections: Array<{ target: string; type: 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' }> = [];
+): Array<{ target: string; type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }> | undefined {
+    const connections: Array<{ target: string; type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }> = [];
 
     // Priority 1: strictConnections (frontend prompt format)
     if (Array.isArray(c.strictConnections)) {
@@ -826,23 +826,20 @@ function extractStrictConnections(
  * Normalize connection type to one of the valid semantic types.
  * Prevents generic/invalid types from slipping through.
  */
-function normalizeConnectionType(type: string | undefined): 'requires' | 'extends' | 'enables' | 'contains' | 'related-to' {
-    if (!type) return 'related-to';
+function normalizeConnectionType(type: string | undefined): 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' {
+    if (!type) return 'requires';
 
     const t = type.toLowerCase().trim();
 
-    // Exact matches
     if (t === 'requires' || t === 'prerequisite' || t === 'depends-on' || t === 'depends_on') return 'requires';
-    if (t === 'extends' || t === 'enhances' || t === 'specializes') return 'extends';
-    if (t === 'enables' || t === 'provides' || t === 'powers') return 'enables';
-    if (t === 'contains' || t === 'includes' || t === 'comprises') return 'contains';
+    if (t === 'enables' || t === 'provides' || t === 'powers' || t === 'unlocks') return 'enables';
+    if (t === 'is-part-of' || t === 'is_part_of' || t === 'part-of' || t === 'contains' || t === 'includes' || t === 'comprises') return 'is-part-of';
+    if (t === 'is-type-of' || t === 'is_type_of' || t === 'type-of' || t === 'extends' || t === 'specializes' || t === 'enhances') return 'is-type-of';
+    if (t === 'causes' || t === 'triggers' || t === 'produces' || t === 'leads-to') return 'causes';
+    if (t === 'constrains' || t === 'limits' || t === 'governs' || t === 'restricts') return 'constrains';
 
-    // Fallback - but log a warning for investigation
-    if (t !== 'related-to' && t !== 'relates-to' && t !== 'relates to') {
-        console.warn(`[ConnectionParser] Unknown connection type "${type}" normalized to "related-to"`);
-    }
-
-    return 'related-to';
+    console.warn(`[ConnectionParser] Unknown connection type "${type}" normalized to "requires"`);
+    return 'requires';
 }
 
 function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | null {

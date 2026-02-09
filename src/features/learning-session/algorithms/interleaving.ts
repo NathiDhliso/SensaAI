@@ -2,14 +2,12 @@
  * SensaAI Interleaving Algorithm
  * 
  * Implements concept selection with tier balance and weighted prioritization.
- * Target distribution: Foundation 40%, Keystone 35%, Utility 25%
+ * Target distribution: Root ~20%, Trunk ~50%, Leaf ~30%
  * 
  * PRACTICE MODES:
  * - Blocked: Master one concept before moving on (easier but less transfer)
  * - Mixed: Interleave concepts from different tiers (harder but better retention)
  * - Progressive: Start blocked, transition to mixed as mastery builds
- * 
- * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7
  */
 
 import type { LearningConcept } from '@/shared/types/learning';

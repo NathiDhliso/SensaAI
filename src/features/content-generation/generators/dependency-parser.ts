@@ -57,10 +57,11 @@ function inferDependenciesFromPrerequisite(
 export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdge[] {
     const edges: DependencyEdge[] = [];
     const nameToIdMap = new Map(concepts.map(c => [c.name.toLowerCase(), c.id]));
-    const addedEdges = new Set<string>(); // Prevent duplicates
+    const addedEdges = new Set<string>();
 
     for (const concept of concepts) {
-        // Priority 1: Strict Connections (Sensa v2.0 Strict Mode)
+        let hasConnections = false;
+
         if (concept.strictConnections && concept.strictConnections.length > 0) {
             for (const conn of concept.strictConnections) {
                 const targetId = nameToIdMap.get(conn.target.toLowerCase());
@@ -75,19 +76,15 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
                         weight: 1.0,
                     });
                     addedEdges.add(edgeKey);
+                    hasConnections = true;
                 }
-            }
-            // If we have strict connections, we skip other inferred dependencies to avoid noise
-            if (addedEdges.size > 0 && Array.from(addedEdges).some(k => k.startsWith(`${concept.id}->`))) {
-                continue;
             }
         }
 
-        // Priority 2: Inferred from dependencies/mnemonic
-        // Get explicit dependencies from mnemonic
+        if (hasConnections) continue;
+
         let dependsOn = concept.mnemonic?.dependsOn || [];
 
-        // Fallback: infer from prerequisite text if no explicit dependencies
         if (dependsOn.length === 0) {
             dependsOn = inferDependenciesFromPrerequisite(concept, concepts);
         }
@@ -101,14 +98,13 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
                     id: `edge-${concept.id}-${targetId}`,
                     source: concept.id,
                     target: targetId,
-                    relationship: 'depends-on',
+                    relationship: 'requires',
                     weight: 1.0,
                 });
                 addedEdges.add(edgeKey);
             }
         }
 
-        // Also create edge from parentName if present
         if (concept.mnemonic?.parentName) {
             const parentId = nameToIdMap.get(concept.mnemonic.parentName.toLowerCase());
             const edgeKey = `${concept.id}->${parentId}`;
@@ -118,14 +114,13 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
                     id: `edge-${concept.id}-${parentId}`,
                     source: concept.id,
                     target: parentId,
-                    relationship: 'depends-on',
+                    relationship: 'is-part-of',
                     weight: 1.0,
                 });
                 addedEdges.add(edgeKey);
             }
         }
 
-        // Also use parentId if directly available
         if (concept.mnemonic?.parentId) {
             const parentId = concept.mnemonic.parentId;
             const edgeKey = `${concept.id}->${parentId}`;
@@ -135,7 +130,7 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
                     id: `edge-${concept.id}-${parentId}`,
                     source: concept.id,
                     target: parentId,
-                    relationship: 'depends-on',
+                    relationship: 'is-part-of',
                     weight: 1.0,
                 });
                 addedEdges.add(edgeKey);
@@ -143,15 +138,13 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
         }
     }
 
-    // If still no edges, create a simple linear chain based on concept order
-    // This ensures the graph isn't completely disconnected
     if (edges.length === 0 && concepts.length > 1) {
         for (let i = 1; i < concepts.length; i++) {
             edges.push({
                 id: `edge-chain-${concepts[i].id}-${concepts[i - 1].id}`,
                 source: concepts[i].id,
                 target: concepts[i - 1].id,
-                relationship: 'related-to',
+                relationship: 'requires',
                 weight: 0.5,
             });
         }
