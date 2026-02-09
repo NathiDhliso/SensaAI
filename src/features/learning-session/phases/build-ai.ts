@@ -45,7 +45,7 @@ export interface LabelValidation {
 
 /**
  * Check if a concept has an AI-generated connection to another concept
- * Returns the connection type (requires, extends, enables, contains) or null
+ * Returns the connection type (requires, enables, is-part-of, is-type-of, causes, constrains) or null
  */
 function getAIConnection(conceptA: LearningConcept, conceptB: LearningConcept): { type: string; isReverse: boolean } | null {
     // Check if conceptA has a connection to conceptB

@@ -364,25 +364,36 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
                 let opacity = '0.6';
 
                 switch (conn.type) {
-                    case 'requires': // Hard Dependency
-                        strokeColor = 'var(--color-accent)'; // Highlight dependencies
+                    case 'requires':
+                        strokeColor = 'var(--color-accent)';
                         strokeWidth = '2';
                         opacity = '0.9';
                         break;
-                    case 'extends': // Enhancement
-                        strokeColor = 'var(--color-text-primary)';
-                        strokeDasharray = '6 3'; // Dashed
+                    case 'enables':
+                        strokeColor = 'var(--color-function)';
+                        strokeDasharray = '2 2';
                         break;
-                    case 'enables': // Capability Flow
-                        strokeColor = 'var(--color-function)'; // Function/Action color
-                        strokeDasharray = '2 2'; // Dotted
-                        break;
-                    case 'contains': // Composition
+                    case 'is-part-of':
                         strokeColor = 'var(--color-text-primary)';
-                        strokeWidth = '3'; // Thick
+                        strokeWidth = '3';
                         opacity = '0.5';
                         break;
-                    default: // related-to
+                    case 'is-type-of':
+                        strokeColor = 'var(--color-text-primary)';
+                        strokeDasharray = '6 3';
+                        break;
+                    case 'causes':
+                        strokeColor = 'var(--color-warning, var(--color-accent))';
+                        strokeWidth = '2';
+                        strokeDasharray = '4 2';
+                        opacity = '0.8';
+                        break;
+                    case 'constrains':
+                        strokeColor = 'var(--color-error, var(--color-text-muted))';
+                        strokeDasharray = '8 4';
+                        opacity = '0.7';
+                        break;
+                    default:
                         opacity = '0.4';
                         break;
                 }

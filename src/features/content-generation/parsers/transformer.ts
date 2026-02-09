@@ -498,8 +498,8 @@ function extractPrerequisites(concept: ParsedConcept, allConcepts: ParsedConcept
 /**
  * SILVER BULLET: Extract semantic connections from AI-generated content.
  * 
- * This function maps the AI-generated relationship types (requires, extends, enables, contains)
- * to the LearningConcept.connections format, ensuring rich visualization instead of generic "relates to".
+ * This function maps the AI-generated relationship types (6 universal: requires, enables, is-part-of, is-type-of, causes, constrains)
+ * to the LearningConcept.connections format.
  * 
  * Priority order:
  * 1. strictConnections (from frontend surgical prompt)
@@ -527,7 +527,7 @@ function extractSemanticConnections(
       if (conn.target && validateTarget(conn.target) && !addedTargets.has(conn.target.toLowerCase())) {
         connections.push({
           target: conn.target,
-          type: conn.type || 'related-to',
+          type: conn.type || 'requires',
         });
         addedTargets.add(conn.target.toLowerCase());
       }
