@@ -13,7 +13,6 @@ export type BehavioralSignals = {
  totalConceptsViewed: number;
 };
 export type MetaphorSettings = {
- showVisualAnchors: boolean; // Abacus vs just "Addition"
  showAnalogies: boolean; // "Like a calculator" explanations
  metaphorComplexity: 'simple' | 'rich'; // "Key" vs "Master key with timer"
  allowCustomMetaphors: boolean; // User can replace system metaphors
@@ -73,7 +72,6 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
  stressFreeMode: false,
  // Metaphor Defaults
  metaphorSettings: {
- showVisualAnchors: true,
  showAnalogies: true,
  metaphorComplexity: 'simple',
  allowCustomMetaphors: false
@@ -153,4 +151,4 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
  version: 3, // Increment version for schema change
  }
  )
-);
+);

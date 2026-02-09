@@ -206,7 +206,7 @@
 }
 
 .launchButton:hover:not(:disabled) {
- background: var(--color-accent-dark, #7c3aed);
+ background: var(--color-accent-dark);
  transform: translateY(-1px);
 }
 
@@ -290,7 +290,7 @@
 }
 
 .resultActionPrimary:hover {
- background: var(--color-accent-dark, #7c3aed);
+ background: var(--color-accent-dark);
 }
 
 .resultActionSecondary {

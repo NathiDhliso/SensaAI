@@ -10,8 +10,6 @@ import type { LearningConcept } from '@/shared/types/learning';
 interface AdaptedContent {
  /** Core explanation - always shown */
  coreExplanation: string | null;
- /** Visual anchor/emoji - controlled by showVisualAnchors */
- visualAnchor: string | null;
  /** Analogical explanation - controlled by showAnalogies */
  analogicalModel: string | null;
  /** Hook sentence - fallback content */
@@ -30,7 +28,6 @@ export function useMetaphorContent(concept: LearningConcept | null): AdaptedCont
  if (!concept) {
  return {
  coreExplanation: null,
- visualAnchor: null,
  analogicalModel: null,
  hookSentence: null,
  metaphorsEnabled: false,
@@ -38,7 +35,6 @@ export function useMetaphorContent(concept: LearningConcept | null): AdaptedCont
  };
  }
  const {
- showVisualAnchors,
  showAnalogies,
  metaphorComplexity
  } = metaphorSettings;
@@ -49,9 +45,7 @@ export function useMetaphorContent(concept: LearningConcept | null): AdaptedCont
  concept.whyYouNeed || 
  null;
  // Visual anchor (emoji/icon) - only if enabled
- const visualAnchor = showVisualAnchors 
- ? (concept.mnemonic?.anchor || null)
- : null;
+ 
  // Analogical model - only if enabled and complexity matches
  let analogicalModel: string | null = null;
  if (showAnalogies && concept.shape?.analogicalModel) {
@@ -70,10 +64,9 @@ export function useMetaphorContent(concept: LearningConcept | null): AdaptedCont
  const hookSentence = concept.hookSentence || null;
  return {
  coreExplanation,
- visualAnchor,
  analogicalModel,
  hookSentence,
- metaphorsEnabled: showVisualAnchors || showAnalogies,
+ metaphorsEnabled: showAnalogies,
  metaphorComplexity
  };
  }, [concept, metaphorSettings]);
@@ -91,7 +84,6 @@ export function useFormattedContent(concept: LearningConcept | null): {
  return useMemo(() => {
  const {
  coreExplanation,
- visualAnchor,
  analogicalModel,
  hookSentence,
  metaphorsEnabled
@@ -105,8 +97,7 @@ export function useFormattedContent(concept: LearningConcept | null): {
  return {
  primaryText,
  secondaryText,
- visualElement,
- hasMetaphors: metaphorsEnabled && (!!analogicalModel || !!visualAnchor)
+ hasMetaphors: metaphorsEnabled && !!analogicalModel
  };
  }, [adaptedContent]);
 }
@@ -119,6 +110,6 @@ export function useMetaphorSettings() {
  settings: metaphorSettings,
  updateSettings: updateMetaphorSettings,
  trackUsage: trackMetaphorUsage,
- isEnabled: metaphorSettings.showVisualAnchors || metaphorSettings.showAnalogies
+ isEnabled: metaphorSettings.metaphorSettings.showAnalogies
  };
 }

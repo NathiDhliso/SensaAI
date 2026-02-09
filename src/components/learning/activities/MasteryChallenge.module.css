@@ -7,7 +7,8 @@
  display: flex;
  flex-direction: column;
  height: 100%;
- background: var(--color-surface);
+ background: var(--color-surface-elevated);
+ border: 1px solid var(--color-border);
  border-radius: var(--radius-xl, 1.5rem);
  overflow: hidden;
 }
@@ -76,6 +77,7 @@
  gap: var(--spacing-6);
  padding: var(--spacing-8);
  overflow-y: auto;
+ background: var(--color-surface);
 }
 .introContainer {
  display: flex;
@@ -151,6 +153,11 @@
  padding: var(--spacing-6);
  border-radius: var(--radius-lg);
  border: 1px solid var(--color-border);
+}
+.scenarioCard p {
+ margin: 0;
+ line-height: var(--line-height-relaxed);
+ color: var(--color-text-primary);
 }
 .scenarioCard pre {
  white-space: pre-wrap;
@@ -761,6 +768,92 @@
  font-weight: 800;
  margin: var(--spacing-2) 0 0;
 }
+.optionsList {
+ display: flex;
+ flex-direction: column;
+ gap: var(--spacing-3);
+}
+.optionButton {
+ display: flex;
+ align-items: center;
+ gap: var(--spacing-3);
+ width: 100%;
+ padding: var(--spacing-4) var(--spacing-5);
+ background: var(--color-surface-elevated);
+ border: 2px solid var(--color-border);
+ border-radius: var(--radius-lg);
+ cursor: pointer;
+ transition: all 0.2s ease;
+ text-align: left;
+}
+.optionButton:hover:not(:disabled) {
+ border-color: var(--color-accent);
+ background: var(--overlay-primary-5);
+}
+.optionLetter {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 28px;
+ height: 28px;
+ border-radius: 50%;
+ background: var(--color-surface-subtle);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-bold);
+ color: var(--color-text-secondary);
+ flex-shrink: 0;
+}
+.optionText {
+ flex: 1;
+ font-size: var(--font-size-base);
+ color: var(--color-text-primary);
+ line-height: var(--line-height-relaxed);
+}
+.optionButton.selected {
+ border-color: var(--color-accent);
+ background: var(--overlay-primary-10);
+}
+.optionButton.selected .optionLetter {
+ background: var(--color-accent);
+ color: var(--color-text-on-accent);
+}
+.optionButton.correct {
+ border-color: var(--color-success);
+ background: var(--color-success-bg);
+}
+.optionButton.correct .optionLetter {
+ background: var(--color-success);
+ color: var(--color-text-on-accent);
+}
+.optionButton.correct .optionText {
+ color: var(--color-success-text);
+ font-weight: var(--font-weight-medium);
+}
+.optionButton.incorrect {
+ border-color: var(--color-error);
+ background: var(--color-error-bg);
+}
+.optionButton.incorrect .optionLetter {
+ background: var(--color-error);
+ color: var(--color-text-on-accent);
+}
+.optionButton.incorrect .optionText {
+ color: var(--color-error-text);
+}
+.optionButton.disabled {
+ opacity: 0.5;
+ cursor: default;
+}
+.resultIcon {
+ flex-shrink: 0;
+ margin-left: auto;
+}
+.optionButton.correct .resultIcon {
+ color: var(--color-success);
+}
+.optionButton.incorrect .resultIcon {
+ color: var(--color-error);
+}
 .celebrationFailed {
  background: var(--color-warning-bg);
  border-color: var(--color-warning);
@@ -773,4 +866,4 @@
 }
 .celebrationFailed .overallScore {
  color: var(--color-warning-text);
-}
+}

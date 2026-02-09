@@ -670,62 +670,63 @@
  }
 }
 :global([data-visual-theme="scholarly"]) .heroContent {
- border: 1px solid rgba(0, 0, 0, 0.10);
+ border: 1px solid var(--color-border);
  border-radius: 8px;
- box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+ box-shadow: 0 1px 3px var(--shadow-sm), 0 2px 8px var(--shadow-md);
 }
 :global([data-visual-theme="scholarly"]) .input {
- border: 1px solid rgba(0, 0, 0, 0.12);
+ border: 1px solid var(--color-border);
  border-radius: 8px;
- background: #ffffff;
+ background: var(--color-surface);
 }
 :global([data-visual-theme="scholarly"]) .input:focus {
- border-color: #2563eb;
- box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+ border-color: var(--color-accent);
+ box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 :global([data-visual-theme="scholarly"]) .objectivesSection {
- border: 1px solid rgba(0, 0, 0, 0.10);
+ border: 1px solid var(--color-border);
  border-radius: 8px;
 }
 :global([data-visual-theme="scholarly"]) .learnButton,
 :global([data-visual-theme="scholarly"]) .savedButton,
 :global([data-visual-theme="scholarly"]) .settingsButton,
 :global([data-visual-theme="scholarly"]) .cloudLibraryButton {
- background: #ffffff;
- border: 1px solid rgba(0, 0, 0, 0.10);
+ background: var(--color-surface);
+ border: 1px solid var(--color-border);
  border-radius: 8px;
 }
 :global([data-visual-theme="scholarly"]) .learnButton:hover,
 :global([data-visual-theme="scholarly"]) .savedButton:hover,
 :global([data-visual-theme="scholarly"]) .settingsButton:hover {
- border-color: rgba(0, 0, 0, 0.18);
- box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+ border-color: var(--color-border-dark);
+ box-shadow: 0 2px 8px var(--shadow-md);
 }
 :global([data-visual-theme="scholarly"]) .quickStartCard {
- border: 1px solid rgba(0, 0, 0, 0.08);
+ border: 1px solid var(--color-border);
  border-radius: 6px;
- background: #ffffff;
+ background: var(--color-surface);
 }
 :global([data-visual-theme="scholarly"]) .quickStartCard:hover {
- border-color: rgba(0, 0, 0, 0.15);
+ border-color: var(--color-border-dark);
 }
 :global([data-visual-theme="scholarly"]) .recentTag {
- border: 1px solid rgba(0, 0, 0, 0.10);
- background: #ffffff;
+ border: 1px solid var(--color-border);
+ background: var(--color-surface);
  border-radius: 6px;
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .heroContent {
- border: 1px solid rgba(255, 255, 255, 0.06);
+ border: 1px solid var(--color-border-dark);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .input {
- border: 1px solid rgba(255, 255, 255, 0.08);
- background: #151921;
+ border: 1px solid var(--color-border-dark);
+ background: var(--color-surface-subtle);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .learnButton,
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .savedButton,
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .settingsButton,
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .cloudLibraryButton {
- background: rgba(255, 255, 255, 0.04);
+ background: var(--color-surface-subtle);
+ border: 1px solid var(--color-border-dark);
  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .quickStartCard {

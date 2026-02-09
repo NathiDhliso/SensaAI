@@ -80,12 +80,13 @@ export const EXPECTED_DURATIONS = {
  * 
  * I = min(h, G × Q_f × Q_M × Q_P)
  * 
- * @param G - Governance multiplier (environment quality)
- * @param Q_P - Preparation quality (0-1)
- * @param Q_M - Modeling quality (0-1)
- * @param Q_f - Fluency quality (0-1)
+ * @param G - Generation quality factor (content quality)
+ * @param Q_P - Practice quality (engagement, 0-1)
+ * @param Q_M - Mastery quality (concept scores, 0-1)
+ * @param Q_f - Flow quality (momentum tracking, 0-1)
  * @param h - Ceiling cap (default 1.0)
- * @returns The mastery index I (0-1)
+ * @returns The mastery index I (0-1) - Information absorbed
+ */
  */
 export function calculateMasteryIndex(
  G: number,
@@ -137,4 +138,4 @@ export const EQUATION_COLORS_HEX = {
  Q_M: COLORS.warning, // #f59e0b - Amber
  Q_f: COLORS.secondary.rose, // #ec4899 - Pink
  I: COLORS.accent.light, // #8b5cf6 - Purple
-} as const;
+} as const;

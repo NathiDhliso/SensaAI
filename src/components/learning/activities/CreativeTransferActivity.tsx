@@ -114,7 +114,7 @@ export function CreativeTransferActivity({ concept, subjectType, onComplete }: C
  </div>
  ) : (
  <div className={styles.successSection}>
- <div className={styles.successIcon} style={{ color: 'var(--color-warning, #f59e0b)' }}>
+ <div className={styles.successIcon} style={{ color: 'var(--color-warning)' }}>
  <XCircle size={48} />
  </div>
  <h4>Try Again</h4>
@@ -123,4 +123,4 @@ export function CreativeTransferActivity({ concept, subjectType, onComplete }: C
  )}
  </div>
  );
-}
+}

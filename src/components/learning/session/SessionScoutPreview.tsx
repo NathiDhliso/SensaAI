@@ -61,8 +61,8 @@ const ConceptChip = ({ concept, className }: { concept: LearningConcept; classNa
  transition={{ delay: 0.1 }}
  whileHover={{ scale: 1.02 }}
  >
- {adaptedContent.visualAnchor && !isScholarly && (
- <span className={styles.chipEmoji}>
+ {adaptedContent.visualAnchor && (
+ <span className={styles.chipIcon}>
  {adaptedContent.visualAnchor}
  </span>
  )}
@@ -384,4 +384,4 @@ export function SessionScoutPreview({
  </div>
  );
 }
-export default SessionScoutPreview;
+export default SessionScoutPreview;

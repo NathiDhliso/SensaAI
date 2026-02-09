@@ -666,7 +666,19 @@ export default function VelocityLearning() {
  }}
  streakCount={flowState.streakCount}
  onReturnHome={handleReturnToDashboard}
- onReviewConcepts={() => navigate(`/study/${currentSession?.subjectId}?tab=overview`)}
+ onReviewConcepts={() => {
+ console.log('[VelocityLearning] Review Concepts clicked', {
+ currentSession,
+ subjectId: currentSession?.subjectId,
+ id: currentSession?.id
+ });
+ const targetId = currentSession?.subjectId || currentSession?.id;
+ if (targetId) {
+ navigate(`/study/${targetId}?tab=overview`);
+ } else {
+ console.error('[VelocityLearning] No valid session ID found');
+ }
+ }}
  />
  );
  }
@@ -690,4 +702,4 @@ export default function VelocityLearning() {
  );
  }
  }
-}
+}

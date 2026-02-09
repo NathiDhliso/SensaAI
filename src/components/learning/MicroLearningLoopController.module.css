@@ -335,7 +335,7 @@
 }
 .bloomBadge.create {
  background-color: var(--color-bloom-create);
- color: #333;
+ color: var(--color-text-dark);
 }
 .hookSentence {
  font-size: 1.125rem;

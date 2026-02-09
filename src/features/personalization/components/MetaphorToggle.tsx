@@ -38,14 +38,13 @@ export default function MetaphorToggle({
  const handleQuickToggle = () => {
  const newSettings = {
  ...settings,
- showVisualAnchors: !settings.showVisualAnchors,
- showAnalogies: !settings.showVisualAnchors, // Toggle both together for simplicity
+ showAnalogies: !settings.showAnalogies,
  };
  setSettings(newSettings);
  updateMetaphorSettings(newSettings);
  onSettingsChange?.(newSettings);
  // Track usage for analytics
- trackMetaphorUsage('quick_toggle', newSettings.showVisualAnchors ? 'enabled' : 'disabled');
+ trackMetaphorUsage('quick_toggle', newSettings.showAnalogies ? 'enabled' : 'disabled');
  };
  const handleSettingChange = (key: keyof MetaphorSettings, value: any) => {
  const newSettings = { ...settings, [key]: value };
@@ -54,7 +53,7 @@ export default function MetaphorToggle({
  onSettingsChange?.(newSettings);
  trackMetaphorUsage('setting_change', `${key}:${value}`);
  };
- const isMetaphorsEnabled = settings.showVisualAnchors || settings.showAnalogies;
+ const isMetaphorsEnabled = settings.showAnalogies;
  if (compact) {
  return (
  <div className={styles.compactToggle}>
@@ -94,8 +93,8 @@ export default function MetaphorToggle({
  <label className={styles.settingLabel}>
  <input
  type="checkbox"
- checked={settings.showVisualAnchors}
- onChange={(e) => handleSettingChange('showVisualAnchors', e.target.checked)}
+ checked={settings.showAnalogies}
+ onChange={(e) => handleSettingChange('showAnalogies', e.target.checked)}
  />
  <span>{isScholarly ? 'Visual anchors' : 'Visual anchors ( icons)'}</span>
  </label>
@@ -170,13 +169,13 @@ export default function MetaphorToggle({
  <label className={styles.switch}>
  <input
  type="checkbox"
- checked={settings.showVisualAnchors}
- onChange={(e) => handleSettingChange('showVisualAnchors', e.target.checked)}
+ checked={settings.showAnalogies}
+ onChange={(e) => handleSettingChange('showAnalogies', e.target.checked)}
  />
  <span className={styles.slider}></span>
  </label>
  <div className={styles.example}>
- {settings.showVisualAnchors ? (
+ {settings.showAnalogies ? (
  <span>{isScholarly ? 'Addition Abacus' : 'Addition Abacus '}</span>
  ) : (
  <span>Addition Addition</span>
@@ -252,7 +251,7 @@ export default function MetaphorToggle({
  <h4>Preview</h4>
  <div className={styles.previewCard}>
  <div className={styles.conceptPreview}>
- {settings.showVisualAnchors && !isScholarly && <span className={styles.anchor}></span>}
+ {settings.showAnalogies && !isScholarly && <span className={styles.anchor}></span>}
  <span className={styles.conceptName}>Addition</span>
  </div>
  {settings.showAnalogies && (

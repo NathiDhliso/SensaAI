@@ -252,7 +252,7 @@
 
 .primaryButton {
  background: var(--color-primary);
- color: var(--color-text-on-accent, #ffffff);
+ color: var(--color-text-on-accent);
  box-shadow: var(--shadow-sm);
 }
 

@@ -78,14 +78,14 @@
  align-items: center;
  padding: 0.5rem 0.4rem;
  background: var(--color-surface-subtle);
- border-radius: 8px;
+ border-radius: var(--radius-sm, 8px);
  border: 1px solid var(--color-border-light);
  min-width: 44px;
  position: relative;
 }
 .variable.weak {
- border-color: var(--color-warning, #f59e0b);
- background: rgba(245, 158, 11, 0.1);
+ border-color: var(--color-warning);
+ background: var(--color-warning-light);
 }
 .varLabel {
  font-size: 0.65rem;
@@ -102,10 +102,10 @@
  position: absolute;
  top: -4px;
  right: -4px;
- color: var(--color-warning, #f59e0b);
+ color: var(--color-warning);
 }
 .operator {
- color: rgba(255, 255, 255, 0.3);
+ color: var(--color-text-operator);
  font-size: 0.75rem;
 }
 /* Threshold */
@@ -116,7 +116,7 @@
  width: 100%;
  height: 4px;
  background: var(--color-surface-subtle);
- border-radius: 2px;
+ border-radius: var(--radius-xs, 2px);
  overflow: hidden;
  margin-bottom: 0.5rem;
 }
@@ -126,7 +126,7 @@
  height: 100%;
  width: var(--progress);
  background: var(--color);
- border-radius: 2px;
+ border-radius: var(--radius-xs, 2px);
  transition: width 0.3s ease;
 }
 .thresholdLabel {
@@ -151,13 +151,13 @@
 .compactValue {
  font-size: 1rem;
  font-weight: 600;
- color: var(--color-primary-light, #a78bfa);
+ color: var(--color-primary-light);
 }
 .compactValue.mastered {
- color: var(--color-success, #22c55e);
+ color: var(--color-success);
 }
 .masteryIcon {
- color: var(--color-success, #22c55e);
+ color: var(--color-success);
 }
 /* Proactive Intervention Warning - "Grinding Futile" Alert */
 .interventionWarning {
@@ -165,32 +165,32 @@
  align-items: center;
  gap: 0.5rem;
  padding: 0.5rem 0.75rem;
- background: rgba(239, 68, 68, 0.15);
- border: 1px solid rgba(239, 68, 68, 0.3);
+ background: var(--color-error-bg-subtle);
+ border: 1px solid var(--color-error-border-subtle);
  border-radius: var(--radius-md, 8px);
  margin-top: 0.75rem;
  font-size: 0.7rem;
 }
 .interventionWarning .warningIcon {
- color: #ef4444;
+ color: var(--color-error);
  flex-shrink: 0;
 }
 .interventionWarning .warningText {
- color: rgba(255, 255, 255, 0.8);
+ color: var(--color-text-secondary);
  flex: 1;
 }
 .backtrackButton {
  padding: 0.25rem 0.5rem;
- background: rgba(239, 68, 68, 0.2);
- border: 1px solid rgba(239, 68, 68, 0.4);
+ background: var(--color-error-bg-hover);
+ border: 1px solid var(--color-error-border-strong);
  border-radius: var(--radius-sm, 4px);
- color: #fca5a5;
+ color: var(--color-error-light);
  font-size: 0.65rem;
  font-weight: 600;
  cursor: pointer;
  transition: all 0.2s ease;
 }
 .backtrackButton:hover {
- background: rgba(239, 68, 68, 0.3);
- color: #fecaca;
+ background: var(--color-error-border-subtle);
+ color: var(--color-error-lighter);
 }

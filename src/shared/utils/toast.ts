@@ -42,32 +42,32 @@ class ToastManager {
  switch (type) {
  case 'success':
  return {
- bg: 'var(--color-surface, #1e1a28)',
- border: 'var(--color-success, #10b981)',
- text: 'var(--color-text-primary, #e2e8f0)',
- icon: 'var(--color-success, #10b981)'
+ bg: 'var(--color-surface)',
+ border: 'var(--color-success)',
+ text: 'var(--color-text-primary)',
+ icon: 'var(--color-success)'
  };
  case 'error':
  return {
- bg: 'var(--color-surface, #1e1a28)',
- border: 'var(--color-error, #ef4444)',
- text: 'var(--color-text-primary, #e2e8f0)',
- icon: 'var(--color-error, #ef4444)'
+ bg: 'var(--color-surface)',
+ border: 'var(--color-error)',
+ text: 'var(--color-text-primary)',
+ icon: 'var(--color-error)'
  };
  case 'warning':
  return {
- bg: 'var(--color-surface, #1e1a28)',
- border: 'var(--color-warning, #f59e0b)',
- text: 'var(--color-text-primary, #e2e8f0)',
- icon: 'var(--color-warning, #f59e0b)'
+ bg: 'var(--color-surface)',
+ border: 'var(--color-warning)',
+ text: 'var(--color-text-primary)',
+ icon: 'var(--color-warning)'
  };
  case 'info':
  default:
  return {
- bg: 'var(--color-surface, #1e1a28)',
- border: 'var(--color-primary, #3b82f6)',
- text: 'var(--color-text-primary, #e2e8f0)',
- icon: 'var(--color-primary, #3b82f6)'
+ bg: 'var(--color-surface)',
+ border: 'var(--color-primary)',
+ text: 'var(--color-text-primary)',
+ icon: 'var(--color-primary)'
  };
  }
  }
@@ -159,4 +159,4 @@ export const toast = {
  toastManager.show(message, 'error', options),
  dismiss: (id: string) => toastManager.dismiss(id),
  dismissAll: () => toastManager.dismissAll()
-};
+};

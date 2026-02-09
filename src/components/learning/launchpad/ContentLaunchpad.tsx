@@ -260,15 +260,15 @@ export default function ContentLaunchpad() {
  </div>
  <div className={styles.contextDivider} />
  <div className={styles.contextStat}>
- <span className={styles.contextValue} style={{ color: 'var(--color-root, #ef4444)' }}>{tierCounts.root}</span>
+ <span className={styles.contextValue} style={{ color: 'var(--color-root)' }}>{tierCounts.root}</span>
  <span className={styles.contextLabel}>Root</span>
  </div>
  <div className={styles.contextStat}>
- <span className={styles.contextValue} style={{ color: 'var(--color-trunk, #f59e0b)' }}>{tierCounts.trunk}</span>
+ <span className={styles.contextValue} style={{ color: 'var(--color-trunk)' }}>{tierCounts.trunk}</span>
  <span className={styles.contextLabel}>Trunk</span>
  </div>
  <div className={styles.contextStat}>
- <span className={styles.contextValue} style={{ color: 'var(--color-leaf, #22c55e)' }}>{tierCounts.leaf}</span>
+ <span className={styles.contextValue} style={{ color: 'var(--color-leaf)' }}>{tierCounts.leaf}</span>
  <span className={styles.contextLabel}>Leaf</span>
  </div>
  <div className={styles.contextDivider} />
@@ -717,4 +717,4 @@ export default function ContentLaunchpad() {
  </footer>
  </div>
  );
-}
+}

@@ -167,7 +167,8 @@ export function useLearningFlow(): LearningFlow {
  completed.push('BUILD');
  }
  const diagnosticDone = diagnosticSession?.isComplete ?? false;
- if (diagnosticDone) {
+ const pastDiagnose = ['LEARN', 'MASTER', 'COMPLETE'].includes(currentPhase);
+ if (diagnosticDone || pastDiagnose) {
  completed.push('DIAGNOSE');
  }
  const hasCompletedAnyConcepts = currentSession.progress.completedConcepts.length > 0;
@@ -206,4 +207,4 @@ export function useLearningFlow(): LearningFlow {
  showDashboard,
  showStartModal
  };
-}
+}

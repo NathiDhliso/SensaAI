@@ -111,10 +111,10 @@
  color: rgba(255, 255, 255, 0.8);
 }
 .completed .stepLabel {
- color: var(--color-success, #22c55e);
+ color: var(--color-success);
 }
 .active .stepLabel {
- color: var(--color-primary-light, #a78bfa);
+ color: var(--color-primary-light);
 }
 .upcoming .stepLabel {
  color: rgba(255, 255, 255, 0.4);

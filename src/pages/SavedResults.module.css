@@ -766,7 +766,7 @@
  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 :global([data-visual-theme="scholarly"]) .header {
- background: #ffffff;
+ background: var(--color-surface);
  border: 1px solid rgba(0, 0, 0, 0.10);
  border-radius: 8px;
  padding: 1.25rem 1.5rem;

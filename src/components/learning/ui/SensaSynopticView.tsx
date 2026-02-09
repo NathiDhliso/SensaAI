@@ -611,7 +611,7 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
  {selectedConceptContent.visualAnchor && selectedConcept?.mnemonic && isRealContent(selectedConcept.mnemonic.story, selectedConcept.name) && (
  <div className={styles.section}>
  <h4><Anchor size={16} /> Memory Anchor</h4>
- <p><strong>{selectedConceptContent.visualAnchor}:</strong> {selectedConcept.mnemonic.story}</p>
+ <p>{selectedConcept.mnemonic.story}</p>
  {selectedConcept.mnemonic.imageUrl && (
  <div className={styles.mnemonicImage}>
  <img

@@ -76,11 +76,11 @@ export interface SensaFlowState {
  /** Current phase in the 5-step flow */
  phase: SensaPhase;
  /** Equation tracking: I = G × Q_f × Q_M × Q_P */
- G: number; // Governance multiplier (set in Step 1: See)
- Q_P: number; // Preparation quality (builds Steps 2-4)
- Q_M: number; // Modeling quality (builds Steps 2-5)
- Q_f: number; // Fluency quality (builds Step 5)
- I: number; // Insight/Mastery (calculated continuously)
+ G: number; // Generation quality factor (content quality)
+ Q_P: number; // Practice quality (engagement)
+ Q_M: number; // Mastery quality (concept scores)
+ Q_f: number; // Flow quality (momentum tracking)
+ I: number; // Information absorbed (calculated continuously)
  /** Step-specific data */
  userGuesses: Map<string, string>; // From Step 2: Explore
  conceptMap: ConceptMapData | null; // From Step 3: Note
@@ -131,4 +131,4 @@ export interface MasteryChallengeResult {
  synthesisScore: number;
  flowModeCompleted: boolean;
  Q_f: number;
-}
+}

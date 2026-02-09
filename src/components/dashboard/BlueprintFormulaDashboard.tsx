@@ -77,7 +77,7 @@ export function BlueprintFormulaDashboard({
  <div className={styles.barTrack}>
  <motion.div
  className={styles.barFill}
- style={{ backgroundColor: 'var(--color-governance, #6366f1)' }}
+ style={{ backgroundColor: 'var(--color-governance, var(--color-accent))' }}
  initial={{ width: 0 }}
  animate={{ width: `${G * 100}%` }}
  transition={{ duration: 0.6 }}
@@ -127,7 +127,7 @@ function MetricRow({ label, variable, value, isWeakest }: {
  isWeakest: boolean;
 }) {
  const percent = Math.round(value * 100);
- const colorVar = `var(--color-${variable === 'Q_f' ? 'fluency' : variable === 'Q_M' ? 'modeling' : 'preparation'}, #888)`;
+ const colorVar = `var(--color-${variable === 'Q_f' ? 'fluency' : variable === 'Q_M' ? 'modeling' : 'preparation'}, var(--color-text-muted))`;
 
  return (
  <div className={`${styles.metricRow} ${isWeakest ? styles.weakest : ''}`}>

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { SensaPhase } from '@/shared/types/sensa-flow';
+import { getCSSVariable } from '@/shared/constants/theme-colors';
 import styles from './MasteryDashboard.module.css';
 
 interface MasteryDashboardProps {
@@ -49,49 +50,58 @@ function drawCertificate(
  timeMin: number,
  date: string,
 ) {
- ctx.fillStyle = '#fdfcfb';
+ const certBg = getCSSVariable('--color-cert-bg') || '#fdfcfb';
+ const certBorder = getCSSVariable('--color-cert-border') || '#1e293b';
+ const certBorderInner = getCSSVariable('--color-cert-border-inner') || '#cbd5e1';
+ const certHeading = getCSSVariable('--color-cert-heading') || '#0f172a';
+ const certSubtext = getCSSVariable('--color-cert-subtext') || '#475569';
+ const certMuted = getCSSVariable('--color-cert-muted') || '#64748b';
+ const certDivider = getCSSVariable('--color-cert-divider') || '#94a3b8';
+ const certBadgeBg = getCSSVariable('--color-cert-badge-bg') || '#f1f5f9';
+
+ ctx.fillStyle = certBg;
  ctx.fillRect(0, 0, CERT_WIDTH, CERT_HEIGHT);
 
- ctx.strokeStyle = '#1e293b';
+ ctx.strokeStyle = certBorder;
  ctx.lineWidth = 3;
  ctx.strokeRect(32, 32, CERT_WIDTH - 64, CERT_HEIGHT - 64);
 
- ctx.strokeStyle = '#cbd5e1';
+ ctx.strokeStyle = certBorderInner;
  ctx.lineWidth = 1;
  ctx.strokeRect(44, 44, CERT_WIDTH - 88, CERT_HEIGHT - 88);
 
  const cx = CERT_WIDTH / 2;
 
- ctx.fillStyle = '#64748b';
+ ctx.fillStyle = certMuted;
  ctx.font = '600 13px system-ui, sans-serif';
  ctx.textAlign = 'center';
  ctx.letterSpacing = '4px';
  ctx.fillText('CERTIFICATE OF COMPLETION', cx, 110);
  ctx.letterSpacing = '0px';
 
- ctx.fillStyle = '#0f172a';
+ ctx.fillStyle = certHeading;
  ctx.font = '700 36px system-ui, sans-serif';
  ctx.fillText(subject, cx, 180);
 
- ctx.fillStyle = '#94a3b8';
+ ctx.fillStyle = certDivider;
  ctx.fillRect(cx - 60, 200, 120, 1);
 
- ctx.fillStyle = '#475569';
+ ctx.fillStyle = certSubtext;
  ctx.font = '400 16px system-ui, sans-serif';
  ctx.fillText('This certifies the successful completion of', cx, 250);
 
- ctx.fillStyle = '#0f172a';
+ ctx.fillStyle = certHeading;
  ctx.font = '700 52px system-ui, sans-serif';
  ctx.fillText(`${conceptCount} Concepts`, cx, 310);
 
- ctx.fillStyle = '#475569';
+ ctx.fillStyle = certSubtext;
  ctx.font = '400 16px system-ui, sans-serif';
  ctx.fillText(`with a grade of ${grade} and ${completionRate}% completion in ${timeMin} minutes`, cx, 355);
 
- ctx.fillStyle = '#94a3b8';
+ ctx.fillStyle = certDivider;
  ctx.fillRect(cx - 60, 385, 120, 1);
 
- ctx.fillStyle = '#64748b';
+ ctx.fillStyle = certMuted;
  ctx.font = '600 13px system-ui, sans-serif';
  ctx.letterSpacing = '3px';
  ctx.fillText('LEARNING METRICS', cx, 430);
@@ -103,37 +113,37 @@ function drawCertificate(
  const values = [grade, `${conceptCount}`, `${completionRate}%`, `${timeMin}m`];
 
  labels.forEach((label, i) => {
- ctx.fillStyle = '#0f172a';
+ ctx.fillStyle = certHeading;
  ctx.font = '700 28px system-ui, sans-serif';
  ctx.fillText(values[i], cx + cols[i], metricsY);
 
- ctx.fillStyle = '#94a3b8';
+ ctx.fillStyle = certDivider;
  ctx.font = '500 11px system-ui, sans-serif';
  ctx.letterSpacing = '1px';
  ctx.fillText(label.toUpperCase(), cx + cols[i], metricsY + 22);
  ctx.letterSpacing = '0px';
  });
 
- ctx.fillStyle = '#94a3b8';
+ ctx.fillStyle = certDivider;
  ctx.fillRect(cx - 200, 520, 400, 1);
 
- ctx.fillStyle = '#94a3b8';
+ ctx.fillStyle = certDivider;
  ctx.font = '400 13px system-ui, sans-serif';
  ctx.fillText(date, cx, 570);
 
- ctx.fillStyle = '#0f172a';
+ ctx.fillStyle = certHeading;
  ctx.font = '700 18px system-ui, sans-serif';
  ctx.fillText('SensaPBL', cx, 610);
 
- ctx.fillStyle = '#94a3b8';
+ ctx.fillStyle = certDivider;
  ctx.font = '400 12px system-ui, sans-serif';
  ctx.fillText('Powered by AI-Driven Learning', cx, 635);
 
- ctx.fillStyle = '#f1f5f9';
+ ctx.fillStyle = certBadgeBg;
  ctx.beginPath();
  ctx.arc(cx, 710, 30, 0, Math.PI * 2);
  ctx.fill();
- ctx.fillStyle = '#64748b';
+ ctx.fillStyle = certMuted;
  ctx.font = '700 20px system-ui, sans-serif';
  ctx.fillText('S', cx, 717);
 }
@@ -181,11 +191,11 @@ export function MasteryDashboard({
  }, [concepts, completedConcepts, sessionStartTime, equation]);
 
  const grade = useMemo(() => {
- if (stats.efficiencyScore >= 80) return { label: 'S', color: '#f59e0b', message: 'Exceptional mastery!' };
- if (stats.efficiencyScore >= 65) return { label: 'A', color: '#10b981', message: 'Strong performance' };
- if (stats.efficiencyScore >= 50) return { label: 'B', color: '#3b82f6', message: 'Solid progress' };
- if (stats.efficiencyScore >= 35) return { label: 'C', color: '#f59e0b', message: 'Room to grow' };
- return { label: 'D', color: '#ef4444', message: 'Keep practicing' };
+ if (stats.efficiencyScore >= 80) return { label: 'S', color: getCSSVariable('--color-grade-s') || 'var(--color-grade-s)', message: 'Exceptional mastery!' };
+ if (stats.efficiencyScore >= 65) return { label: 'A', color: getCSSVariable('--color-grade-a') || 'var(--color-grade-a)', message: 'Strong performance' };
+ if (stats.efficiencyScore >= 50) return { label: 'B', color: getCSSVariable('--color-grade-b') || 'var(--color-grade-b)', message: 'Solid progress' };
+ if (stats.efficiencyScore >= 35) return { label: 'C', color: getCSSVariable('--color-grade-c') || 'var(--color-grade-c)', message: 'Room to grow' };
+ return { label: 'D', color: getCSSVariable('--color-grade-d') || 'var(--color-grade-d)', message: 'Keep practicing' };
  }, [stats.efficiencyScore]);
 
  const dateString = useMemo(() => {
@@ -233,7 +243,7 @@ export function MasteryDashboard({
  printWindow.document.write(`
  <html>
  <head><title>Certificate - ${subjectName}</title></head>
- <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#fff;">
+ <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:white;">
  <img src="${dataUrl}" style="max-width:100%;height:auto;" />
  </body>
  </html>
@@ -329,9 +339,9 @@ export function MasteryDashboard({
  Tier Coverage
  </h3>
  <div className={styles.tierBars}>
- <TierBar label="Root" count={stats.tierBreakdown.root} total={stats.totalConcepts} color="var(--color-root, #6366f1)" />
- <TierBar label="Trunk" count={stats.tierBreakdown.trunk} total={stats.totalConcepts} color="var(--color-trunk, #8b5cf6)" />
- <TierBar label="Leaf" count={stats.tierBreakdown.leaf} total={stats.totalConcepts} color="var(--color-leaf, #a78bfa)" />
+ <TierBar label="Root" count={stats.tierBreakdown.root} total={stats.totalConcepts} color="var(--color-root)" />
+ <TierBar label="Trunk" count={stats.tierBreakdown.trunk} total={stats.totalConcepts} color="var(--color-trunk)" />
+ <TierBar label="Leaf" count={stats.tierBreakdown.leaf} total={stats.totalConcepts} color="var(--color-leaf)" />
  </div>
  </motion.div>
 
@@ -381,7 +391,7 @@ export function MasteryDashboard({
 
 function EquationBar({ label, value }: { label: string; value: number }) {
  const percent = Math.round(value * 100);
- const color = percent >= 70 ? 'var(--color-success, #10b981)' : percent >= 40 ? 'var(--color-warning, #f59e0b)' : 'var(--color-error, #ef4444)';
+ const color = percent >= 70 ? 'var(--color-success)' : percent >= 40 ? 'var(--color-warning)' : 'var(--color-error)';
 
  return (
  <div className={styles.barRow}>

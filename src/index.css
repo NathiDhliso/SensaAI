@@ -323,6 +323,53 @@
  --color-bloom-evaluate: #F44336;
  --color-bloom-create: #FFD700;
 
+ /* Grade Colors (S/A/B/C/D performance grades) */
+ --color-grade-s: #d97706;
+ --color-grade-a: #16a34a;
+ --color-grade-b: #2563eb;
+ --color-grade-c: #ca8a04;
+ --color-grade-d: #dc2626;
+
+ /* Gold / Graduation */
+ --color-gold: #b8860b;
+ --color-gold-bg: rgba(184, 134, 11, 0.1);
+ --color-gold-border: rgba(184, 134, 11, 0.3);
+
+ /* Mastery accent */
+ --color-mastery: #7c3aed;
+
+ /* Additional accent variants */
+ --color-primary-light: #8b5cf6;
+ --color-accent-dark: #553c9a;
+
+ /* Operator / muted UI text */
+ --color-text-operator: rgba(0, 0, 0, 0.3);
+
+ /* Error light variants (for intervention warnings) */
+ --color-error-light: #fca5a5;
+ --color-error-lighter: #fecaca;
+ --color-error-bg-subtle: rgba(220, 38, 38, 0.15);
+ --color-error-border-subtle: rgba(220, 38, 38, 0.3);
+ --color-error-bg-hover: rgba(220, 38, 38, 0.2);
+ --color-error-border-strong: rgba(220, 38, 38, 0.4);
+
+ /* Warning light variant */
+ --color-warning-light: rgba(245, 158, 11, 0.1);
+
+ /* Success gradient endpoints */
+ --color-success-dark: #059669;
+ --color-success-darker: #047857;
+
+ /* Certificate colors (print-friendly, always light) */
+ --color-cert-bg: #fdfcfb;
+ --color-cert-border: #1e293b;
+ --color-cert-border-inner: #cbd5e1;
+ --color-cert-heading: #0f172a;
+ --color-cert-subtext: #475569;
+ --color-cert-muted: #64748b;
+ --color-cert-divider: #94a3b8;
+ --color-cert-badge-bg: #f1f5f9;
+
  /* Border variants */
  --color-border-hover: var(--color-border-emphasis);
 
@@ -416,6 +463,35 @@
  --color-success-subtle: var(--color-success-bg);
  --color-warning-subtle: var(--color-warning-bg);
  --color-border-hover: var(--color-border-emphasis);
+
+ --color-grade-s: #fbbf24;
+ --color-grade-a: #4ade80;
+ --color-grade-b: #60a5fa;
+ --color-grade-c: #fbbf24;
+ --color-grade-d: #f87171;
+
+ --color-gold: #ffd700;
+ --color-gold-bg: rgba(255, 215, 0, 0.1);
+ --color-gold-border: rgba(255, 215, 0, 0.3);
+
+ --color-mastery: #a78bfa;
+
+ --color-primary-light: #a78bfa;
+ --color-accent-dark: #7c3aed;
+
+ --color-text-operator: rgba(255, 255, 255, 0.3);
+
+ --color-error-light: #fca5a5;
+ --color-error-lighter: #fecaca;
+ --color-error-bg-subtle: rgba(239, 68, 68, 0.15);
+ --color-error-border-subtle: rgba(239, 68, 68, 0.3);
+ --color-error-bg-hover: rgba(239, 68, 68, 0.2);
+ --color-error-border-strong: rgba(239, 68, 68, 0.4);
+
+ --color-warning-light: rgba(245, 158, 11, 0.1);
+
+ --color-success-dark: #059669;
+ --color-success-darker: #047857;
 }
 
 /* Also support prefers-color-scheme for automatic dark mode */
@@ -621,6 +697,35 @@
  --transition-fast: 0.1s ease;
  --transition-normal: 0.15s ease;
  --transition-slow: 0.25s ease;
+
+ --color-grade-s: #92400e;
+ --color-grade-a: #15803d;
+ --color-grade-b: #1d4ed8;
+ --color-grade-c: #a16207;
+ --color-grade-d: #b91c1c;
+
+ --color-gold: #92400e;
+ --color-gold-bg: rgba(146, 64, 14, 0.08);
+ --color-gold-border: rgba(146, 64, 14, 0.2);
+
+ --color-mastery: #2563eb;
+
+ --color-primary-light: #3b82f6;
+ --color-accent-dark: #1d4ed8;
+
+ --color-text-operator: rgba(0, 0, 0, 0.3);
+
+ --color-error-light: #b91c1c;
+ --color-error-lighter: #dc2626;
+ --color-error-bg-subtle: rgba(220, 38, 38, 0.08);
+ --color-error-border-subtle: rgba(220, 38, 38, 0.15);
+ --color-error-bg-hover: rgba(220, 38, 38, 0.12);
+ --color-error-border-strong: rgba(220, 38, 38, 0.25);
+
+ --color-warning-light: rgba(202, 138, 4, 0.1);
+
+ --color-success-dark: #15803d;
+ --color-success-darker: #166534;
 }
 
 [data-visual-theme="scholarly"] body {
@@ -753,6 +858,35 @@
  --color-bloom-analyze: #94a3b8;
  --color-bloom-evaluate: #64748b;
  --color-bloom-create: #475569;
+
+ --color-grade-s: #fbbf24;
+ --color-grade-a: #4ade80;
+ --color-grade-b: #60a5fa;
+ --color-grade-c: #fbbf24;
+ --color-grade-d: #f87171;
+
+ --color-gold: #ffd700;
+ --color-gold-bg: rgba(255, 215, 0, 0.1);
+ --color-gold-border: rgba(255, 215, 0, 0.3);
+
+ --color-mastery: #60a5fa;
+
+ --color-primary-light: #60a5fa;
+ --color-accent-dark: #2563eb;
+
+ --color-text-operator: rgba(255, 255, 255, 0.3);
+
+ --color-error-light: #fca5a5;
+ --color-error-lighter: #fecaca;
+ --color-error-bg-subtle: rgba(239, 68, 68, 0.15);
+ --color-error-border-subtle: rgba(239, 68, 68, 0.3);
+ --color-error-bg-hover: rgba(239, 68, 68, 0.2);
+ --color-error-border-strong: rgba(239, 68, 68, 0.4);
+
+ --color-warning-light: rgba(234, 179, 8, 0.1);
+
+ --color-success-dark: #16a34a;
+ --color-success-darker: #15803d;
 }
 
 [data-visual-theme="scholarly"].dark body,
