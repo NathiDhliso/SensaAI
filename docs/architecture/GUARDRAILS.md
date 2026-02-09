@@ -274,6 +274,7 @@ After making changes, verify:
 | `backend/lambda/shared/system_prompt.py` | Generation prompt (classification + silver bullet + surgical fix). Domain-aware partitioning: when user provides exam objectives, `_parse_objective_domains()` splits them into top-level domains and `_distribute_domains_to_parts()` assigns domains to the 5 generation parts so each part covers specific exam domains instead of generic knowledge dimensions. |
 | `src/features/content-generation/validators/tier-progression.ts` | Tier access control, ceiling calculation, mastery breakdown. Uses `root/trunk/leaf` tiers (see §8). |
 | `docs/architecture/ARCHITECTURE_BLUEPRINT.md` | Full architecture reference |
+| `docs/architecture/SYSTEMS_AND_INTERACTIONS.md` | All 16 systems and how they interact |
 | `docs/architecture/AUDIT_SILVER_BULLET.md` | Silver bullet audit findings and fixes |
 
 ### Lambda Deployment

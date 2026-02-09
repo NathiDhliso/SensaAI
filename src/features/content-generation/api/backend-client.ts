@@ -199,11 +199,19 @@ export async function generateWithBackend(
                 progress: 65,
             });
 
+            console.log('[Backend Generator] Fetching concepts with:', { userId, sessionId });
+
             const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
                 conceptsApi.getAllByTier(userId, sessionId, 'root'),
                 conceptsApi.getAllByTier(userId, sessionId, 'trunk'),
                 conceptsApi.getAllByTier(userId, sessionId, 'leaf'),
             ]);
+
+            console.log('[Backend Generator] Tier results:', {
+                root: rootConcepts?.length ?? 0,
+                trunk: trunkConcepts?.length ?? 0,
+                leaf: leafConcepts?.length ?? 0,
+            });
 
             allConcepts = [
                 ...(rootConcepts || []),
@@ -214,21 +222,38 @@ export async function generateWithBackend(
             // Sort by order if available
             allConcepts.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
-            // CRITICAL: Check for empty generation
             if (allConcepts.length === 0) {
-                console.error('[Backend Generator] No concepts generated');
-                clearActiveJob();
-                toast.error('No concepts generated. Try a more specific subject or different content.');
-                throw new Error(
-                    'No concepts were generated. This usually means:\n\n' +
-                    '1. The subject is too vague - try being more specific\n' +
-                    '   Example: Instead of "Azure", try "Azure Virtual Machines"\n\n' +
-                    '2. The content file was empty or unreadable\n' +
-                    '   Check that your file contains valid text content\n\n' +
-                    '3. The AI service is experiencing issues\n' +
-                    '   Try again in a few moments\n\n' +
-                    'Please try again with a clearer subject or different content.'
-                );
+                console.warn('[Backend Generator] Tier-based fetch returned 0. Trying unfiltered fetch...');
+                const unfilteredResponse = await conceptsApi.query({
+                    userId,
+                    sessionId,
+                    limit: 100,
+                });
+                console.log('[Backend Generator] Unfiltered fetch:', {
+                    count: unfilteredResponse.count,
+                    hasMore: unfilteredResponse.hasMore,
+                    firstConcept: unfilteredResponse.concepts[0]?.name,
+                    firstTier: unfilteredResponse.concepts[0]?.tier,
+                });
+
+                if (unfilteredResponse.concepts.length > 0) {
+                    allConcepts = unfilteredResponse.concepts;
+                    console.log(`[Backend Generator] Recovered ${allConcepts.length} concepts via unfiltered query`);
+                } else {
+                    console.error('[Backend Generator] No concepts generated');
+                    clearActiveJob();
+                    toast.error('No concepts generated. Try a more specific subject or different content.');
+                    throw new Error(
+                        'No concepts were generated. This usually means:\n\n' +
+                        '1. The subject is too vague - try being more specific\n' +
+                        '   Example: Instead of "Azure", try "Azure Virtual Machines"\n\n' +
+                        '2. The content file was empty or unreadable\n' +
+                        '   Check that your file contains valid text content\n\n' +
+                        '3. The AI service is experiencing issues\n' +
+                        '   Try again in a few moments\n\n' +
+                        'Please try again with a clearer subject or different content.'
+                    );
+                }
             }
 
             onProgress(3, 'complete', {

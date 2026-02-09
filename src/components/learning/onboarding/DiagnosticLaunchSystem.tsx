@@ -11,7 +11,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, CheckCircle2, Clock, Play, Target, Zap, ChevronRight, RotateCcw, ArrowLeft } from 'lucide-react';
 import type { SensaAILearningConcept, DiagnosticQuestion } from '@/features/content-generation/parsers/transformer';
-import { getFoundationConcepts } from '@/features/content-generation/parsers/ai-integration';
+import { getRootConcepts } from '@/features/content-generation/parsers/ai-integration';
 import { UI_TIMINGS, VELOCITY_CONFIG } from '@/shared/constants/ui-constants';
 import styles from './DiagnosticLaunchSystem.module.css';
 
@@ -68,7 +68,7 @@ function selectDiagnosticConcepts(
     maxConcepts: number = VELOCITY_CONFIG.DIAGNOSTIC.CONCEPTS_TO_TEST
 ): SensaAILearningConcept[] {
     // Use the integration utility which implements the ranking logic
-    return getFoundationConcepts(concepts).slice(0, maxConcepts);
+    return getRootConcepts(concepts).slice(0, maxConcepts);
 }
 
 /**

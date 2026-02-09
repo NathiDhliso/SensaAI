@@ -47,7 +47,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     - userId: User ID (required)
     - sessionId: Session ID (required for get/delete/progress)
     - jobId: Job ID (required for job progress)
-    - tier: Filter by tier (optional: foundation, keystone, utility)
+    - tier: Filter by tier (optional: root, trunk, leaf)
     - limit: Number of items per page
     - cursor: Pagination cursor
     - afterOrder: For get_latest_concepts, only return concepts with order > this value
@@ -362,7 +362,7 @@ def transform_item_to_concept(item: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "id": item.get("conceptId"),
         "name": item.get("name", "Unnamed"),
-        "tier": item.get("tier", "foundation"),
+        "tier": item.get("tier", "leaf"),
         "stageId": item.get("stageId", "PREPARE"),
         "description": item.get("description", ""),
         "keyPoints": item.get("keyPoints", []),
@@ -391,7 +391,7 @@ def transform_item_to_concept_full(item: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "id": item.get("conceptId"),
         "name": item.get("name", "Unnamed"),
-        "tier": item.get("tier", "foundation"),
+        "tier": item.get("tier", "leaf"),
         "stageId": item.get("stageId", "PREPARE"),
         "order": order,
         "description": item.get("description", ""),

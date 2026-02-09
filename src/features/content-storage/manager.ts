@@ -97,6 +97,32 @@ export class StorageManager {
           console.log(`[StorageManager] Fallback tier counts - root: ${fRoot.length}, trunk: ${fTrunk.length}, leaf: ${fLeaf.length}`);
           allConcepts.push(...fRoot, ...fTrunk, ...fLeaf);
         }
+
+        if (allConcepts.length === 0 && jobStatus.conceptCount && jobStatus.conceptCount > 0) {
+          console.warn('[StorageManager] Tier-based queries returned 0. Trying unfiltered query...');
+          const unfilteredSessionId = jobStatus.sessionId || jobStatus.jobId || id;
+          const unfiltered = await conceptsApi.query({
+            userId: resolvedUserId ?? 'anonymous',
+            sessionId: unfilteredSessionId,
+            limit: 100,
+          });
+          console.log(`[StorageManager] Unfiltered query returned ${unfiltered.count} concepts`);
+
+          if (unfiltered.concepts.length > 0) {
+            allConcepts.push(...unfiltered.concepts);
+            let page = unfiltered;
+            while (page.hasMore && page.nextCursor) {
+              page = await conceptsApi.query({
+                userId: resolvedUserId ?? 'anonymous',
+                sessionId: unfilteredSessionId,
+                limit: 100,
+                cursor: page.nextCursor,
+              });
+              allConcepts.push(...page.concepts);
+            }
+            console.log(`[StorageManager] Recovered ${allConcepts.length} concepts via unfiltered query`);
+          }
+        }
       }
 
       // 3. Reconstruct the document

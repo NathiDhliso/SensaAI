@@ -100,11 +100,11 @@ export async function loadSensaAIContent(
 }
 
 /**
- * Get foundation concepts suitable for diagnostic assessment
+ * Get root concepts suitable for diagnostic assessment
  */
-export function getFoundationConcepts(concepts: SensaAILearningConcept[]): SensaAILearningConcept[] {
+export function getRootConcepts(concepts: SensaAILearningConcept[]): SensaAILearningConcept[] {
   return concepts
-    .filter(concept => concept.foundationLevel)
+    .filter(concept => concept.rootLevel)
     .sort((a, b) => {
       // Sort by diagnostic suitability
       const scoreA = a.prerequisiteWeight * 0.4 + a.frequencyWeight * 0.3 + (a.abstractionLevel === 'concrete' ? 0.3 : 0);
@@ -189,7 +189,7 @@ export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
   tierDistribution: Record<string, number>;
   readinessScore: number;
 } {
-  const rootLevelConcepts = concepts.filter(c => c.foundationLevel);
+  const rootLevelConcepts = concepts.filter(c => c.rootLevel);
   const totalQuestions = concepts.reduce((sum, c) => sum + c.diagnosticQuestions.length, 0);
   const totalConfusionPairs = concepts.reduce((sum, c) => sum + c.confusionPairs.length, 0);
   const avgComplexity = concepts.reduce((sum, c) => sum + c.complexityScore, 0) / concepts.length;

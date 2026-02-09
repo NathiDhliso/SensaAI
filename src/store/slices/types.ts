@@ -29,7 +29,7 @@ export type ContentMetadata = {
   role: string;
   source: string;
   conceptCount: number;
-  foundationConcepts?: number;
+  rootConcepts?: number;
   diagnosticReady?: boolean;
   metadataCompleteness?: number;
   fullDocument?: string;

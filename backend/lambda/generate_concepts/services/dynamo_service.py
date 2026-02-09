@@ -221,7 +221,7 @@ class DynamoService:
         gsi1_pk = create_gsi1_pk(user_id, session_id)
 
         concept_id = concept.get("id", generate_id())
-        tier = concept.get("tier", "foundation")
+        tier = concept.get("tier", "leaf")
 
         try:
             self.concepts_table.put_item(
@@ -364,7 +364,7 @@ class DynamoService:
             # Write all concepts
             for concept in concepts:
                 concept_id = concept.get("id", generate_id())
-                tier = concept.get("tier", "foundation")
+                tier = concept.get("tier", "leaf")
 
                 batch.put_item(
                     Item=self._build_concept_item(

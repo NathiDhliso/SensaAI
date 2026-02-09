@@ -57,17 +57,17 @@ export async function generateEnhancedDiagnosticQuestions(
 ): Promise<Map<string, DiagnosticQuestion[]>> {
   const questionMap = new Map<string, DiagnosticQuestion[]>();
 
-  // Only generate for foundation concepts (diagnostic eligible)
-  const foundationConcepts = concepts.filter(c => c.foundationLevel);
+  // Only generate for root concepts (diagnostic eligible)
+  const rootConcepts = concepts.filter(c => c.rootLevel);
 
-  if (foundationConcepts.length === 0) {
+  if (rootConcepts.length === 0) {
     return questionMap;
   }
 
   // Process concepts in batches to avoid overwhelming the API
   const batchSize = 3;
-  for (let i = 0; i < foundationConcepts.length; i += batchSize) {
-    const batch = foundationConcepts.slice(i, i + batchSize);
+  for (let i = 0; i < rootConcepts.length; i += batchSize) {
+    const batch = rootConcepts.slice(i, i + batchSize);
 
     try {
       const batchQuestions = await generateDiagnosticBatch(batch, subject, config, questionsPerConcept);
@@ -78,7 +78,7 @@ export async function generateEnhancedDiagnosticQuestions(
       });
 
       // Small delay between batches to be respectful to the API
-      if (i + batchSize < foundationConcepts.length) {
+      if (i + batchSize < rootConcepts.length) {
         await new Promise(resolve => setTimeout(resolve, UI_TIMINGS.ONE_SECOND));
       }
 
@@ -113,7 +113,7 @@ async function generateDiagnosticBatch(
     tier: c.tier
   }));
 
-  const prompt = `Generate ${questionsPerConcept} diagnostic questions for each of these foundation concepts in "${subject}":
+  const prompt = `Generate ${questionsPerConcept} diagnostic questions for each of these root concepts in "${subject}":
 
 ${conceptDetails.map(c => `
 CONCEPT: ${c.name}
@@ -219,7 +219,7 @@ Return a JSON object with concept IDs as keys:
 }
 
 /**
- * Create a diagnostic assessment from foundation concepts
+ * Create a diagnostic assessment from root concepts
  */
 export function createDiagnosticAssessment(
   concepts: SensaAILearningConcept[],
@@ -229,15 +229,15 @@ export function createDiagnosticAssessment(
   questions: DiagnosticQuestion[];
   totalTime: number;
   metadata: {
-    foundationCount: number;
+    rootCount: number;
     questionCount: number;
     avgComplexity: number;
     tierDistribution: Record<string, number>;
   };
 } {
-  // Select 5-7 foundation concepts for diagnostic (cognitive load management)
-  const foundationConcepts = concepts
-    .filter(c => c.foundationLevel)
+  // Select 5-7 root concepts for diagnostic (cognitive load management)
+  const rootConcepts = concepts
+    .filter(c => c.rootLevel)
     .sort((a, b) => {
       // Prioritize by diagnostic suitability score
       const scoreA = a.prerequisiteWeight * 0.4 + a.frequencyWeight * 0.3 +
@@ -251,7 +251,7 @@ export function createDiagnosticAssessment(
   // Collect questions for selected concepts
   const allQuestions: DiagnosticQuestion[] = [];
 
-  foundationConcepts.forEach(concept => {
+  rootConcepts.forEach(concept => {
     const conceptQuestions = enhancedQuestions?.get(concept.id) || concept.diagnosticQuestions;
 
     // Limit to 1-2 questions per concept to keep diagnostic under 3 minutes
@@ -261,19 +261,19 @@ export function createDiagnosticAssessment(
 
   // Calculate metadata
   const totalTime = allQuestions.reduce((sum, q) => sum + q.expectedTime, 0);
-  const avgComplexity = foundationConcepts.reduce((sum, c) => sum + c.complexityScore, 0) / foundationConcepts.length;
+  const avgComplexity = rootConcepts.reduce((sum, c) => sum + c.complexityScore, 0) / rootConcepts.length;
 
-  const tierDistribution = foundationConcepts.reduce((dist, c) => {
+  const tierDistribution = rootConcepts.reduce((dist, c) => {
     dist[c.tier] = (dist[c.tier] || 0) + 1;
     return dist;
   }, {} as Record<string, number>);
 
   return {
-    concepts: foundationConcepts,
+    concepts: rootConcepts,
     questions: allQuestions,
     totalTime,
     metadata: {
-      foundationCount: foundationConcepts.length,
+      rootCount: rootConcepts.length,
       questionCount: allQuestions.length,
       avgComplexity: Math.round(avgComplexity * 10) / 10,
       tierDistribution
@@ -294,8 +294,8 @@ export function validateDiagnosticAssessment(assessment: ReturnType<typeof creat
 
   // Check concept count (5-7 optimal)
   if (assessment.concepts.length < 5) {
-    issues.push(`Only ${assessment.concepts.length} foundation concepts, need at least 5`);
-    recommendations.push('Ensure more concepts are marked as foundation level');
+    issues.push(`Only ${assessment.concepts.length} root concepts, need at least 5`);
+    recommendations.push('Ensure more concepts are marked as root level');
   }
 
   if (assessment.concepts.length > 7) {
@@ -312,7 +312,7 @@ export function validateDiagnosticAssessment(assessment: ReturnType<typeof creat
   // Check question distribution
   if (assessment.questions.length < assessment.concepts.length) {
     issues.push('Some concepts have no diagnostic questions');
-    recommendations.push('Ensure all foundation concepts have at least one diagnostic question');
+    recommendations.push('Ensure all root concepts have at least one diagnostic question');
   }
 
   // Check tier balance (should have some variety)
@@ -389,11 +389,11 @@ export function createPreTestAssessment(
     questionsPerConcept = 1
   } = options;
 
-  // Select foundation concepts prioritized by importance
-  const foundationConcepts = concepts
-    .filter(c => c.foundationLevel)
+  // Select root concepts prioritized by importance
+  const rootConcepts = concepts
+    .filter(c => c.rootLevel)
     .sort((a, b) => {
-      // Prioritize by prerequisite weight (most foundational first)
+      // Prioritize by prerequisite weight (most important first)
       const scoreA = a.prerequisiteWeight * 0.5 + a.frequencyWeight * 0.3 +
         (a.abstractionLevel === 'concrete' ? 0.2 : 0);
       const scoreB = b.prerequisiteWeight * 0.5 + b.frequencyWeight * 0.3 +
@@ -406,7 +406,7 @@ export function createPreTestAssessment(
   const preTestQuestions: DiagnosticQuestion[] = [];
   const primedConceptIds: string[] = [];
 
-  foundationConcepts.forEach(concept => {
+  rootConcepts.forEach(concept => {
     primedConceptIds.push(concept.id);
 
     // Take first N questions (already validated during generation)

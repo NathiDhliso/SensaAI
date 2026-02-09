@@ -159,7 +159,8 @@ export default function Generate() {
 
     const decodedSubject = decodeURIComponent(subject);
     checkForDuplicates(decodedSubject);
-  }, [subject, bedrockConfig, navigate, checkForDuplicates]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subject, bedrockConfig, navigate]);
 
   // Beforeunload warning
   useEffect(() => {

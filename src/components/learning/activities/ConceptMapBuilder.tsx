@@ -531,14 +531,14 @@ export default function ConceptMapBuilder({
         }
 
         // Check each user guess
-        userGuesses.forEach((guessedKeystoneId, foundationId) => {
-            const actualEdges = edgeMap.get(foundationId) || [];
-            if (actualEdges.includes(guessedKeystoneId)) {
-                correctPredictions.push(foundationId);
+        userGuesses.forEach((guessedTrunkId, rootId) => {
+            const actualEdges = edgeMap.get(rootId) || [];
+            if (actualEdges.includes(guessedTrunkId)) {
+                correctPredictions.push(rootId);
             } else {
                 incorrectPredictions.push({
-                    conceptId: foundationId,
-                    userGuess: getConceptName(guessedKeystoneId),
+                    conceptId: rootId,
+                    userGuess: getConceptName(guessedTrunkId),
                     actualConnection: actualEdges.length > 0
                         ? getConceptName(actualEdges[0])
                         : 'No direct connection'

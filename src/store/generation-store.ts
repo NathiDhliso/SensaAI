@@ -343,9 +343,31 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
       name: 'chart-generator-storage',
       partialize: (state) => ({
         recentSubjects: state.recentSubjects,
-        results: state.results,
-        activeJob: state.activeJob, // Persist active job for background recovery
+        activeJob: state.activeJob,
       }),
+      storage: {
+        getItem: (name) => {
+          try {
+            const value = localStorage.getItem(name);
+            return value ? JSON.parse(value) : null;
+          } catch {
+            return null;
+          }
+        },
+        setItem: (name, value) => {
+          try {
+            localStorage.setItem(name, JSON.stringify(value));
+          } catch {
+            try {
+              localStorage.removeItem(name);
+              localStorage.setItem(name, JSON.stringify(value));
+            } catch { /* quota exceeded — skip persistence */ }
+          }
+        },
+        removeItem: (name) => {
+          try { localStorage.removeItem(name); } catch { /* ignore */ }
+        },
+      },
     }
   )
 );

@@ -25,6 +25,17 @@ const CONCEPTS_TABLE = process.env.CONCEPTS_TABLE || 'sensapbl-concepts-pilot';
 const JOBS_TABLE = process.env.JOBS_TABLE || 'sensapbl-jobs-pilot';
 const GENERATE_FUNCTION = process.env.GENERATE_LAMBDA || 'sensapbl-generate-concepts-pilot';
 
+const LEGACY_TIER_MAP: Record<string, string> = {
+    'foundation': 'root',
+    'keystone': 'trunk',
+    'utility': 'leaf',
+};
+
+function remapTier(tier: string | undefined): string {
+    if (!tier) return 'leaf';
+    return LEGACY_TIER_MAP[tier] || tier;
+}
+
 // Pagination helpers
 function createCursor(lastKey: Record<string, unknown> | undefined): string | null {
     if (!lastKey) return null;
@@ -70,16 +81,40 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             ExclusiveStartKey: parseCursor(cursor),
         }));
 
+        if (result.Items?.length === 0 && !tier) {
+            console.log(`[Backend /concepts] GSI returned 0 items (unfiltered). Falling back to main table with PK='${gsi1pk}'`);
+
+            const mainTableResult = await docClient.send(new QueryCommand({
+                TableName: CONCEPTS_TABLE,
+                KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+                ExpressionAttributeValues: {
+                    ':pk': gsi1pk,
+                    ':skPrefix': 'TIER#',
+                },
+                Limit: limit,
+                ConsistentRead: true,
+            }));
+
+            if (mainTableResult.Items && mainTableResult.Items.length > 0) {
+                console.log(`[Backend /concepts] Main table found ${mainTableResult.Items.length} items`);
+                result.Items = mainTableResult.Items;
+                result.LastEvaluatedKey = mainTableResult.LastEvaluatedKey;
+            } else {
+                console.log(`[Backend /concepts] Main table also returned 0 items`);
+            }
+        } else {
+            console.log(`[Backend /concepts] Query returned ${result.Items?.length ?? 0} items for tier='${tier || 'all'}'`);
+        }
+
         const concepts = (result.Items || []).map(item => ({
             id: item.conceptId,
             name: item.name,
-            tier: item.tier,
+            tier: remapTier(item.tier),
             stageId: item.stageId,
             description: item.description,
             keyPoints: item.keyPoints || [],
             prerequisiteWeight: parseFloat(item.prerequisiteWeight) || 0.5,
             displayProperties: item.displayProperties || {},
-            // Include full SENSA learning science fields
             mnemonic: item.mnemonic || {},
             phase1: item.phase1 || {},
             phase2: item.phase2 || [],

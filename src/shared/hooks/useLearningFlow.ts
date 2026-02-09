@@ -161,8 +161,8 @@ export function useLearningFlow(): LearningFlow {
         // Auto-detect need for diagnostic (Fresh session + Foundation Content)
         // Only if we haven't started learning yet (no completed concepts)
         const isFresh = currentSession.progress.completedConcepts.length === 0;
-        const foundationCount = currentSession.metadata?.foundationConcepts ?? 0;
-        if (isFresh && foundationCount >= 5 && !activeConcept) {
+        const rootCount = currentSession.metadata?.rootConcepts ?? 0;
+        if (isFresh && rootCount >= 5 && !activeConcept) {
             // Note: !activeConcept check acts as a safeguard, but really we check completion
             return 'DIAGNOSE';
         }

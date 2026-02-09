@@ -30,7 +30,7 @@ export interface SensaAILearningConcept extends Omit<LearningConcept, 'confusion
   confusionPairs: ConfusionPairMetadata[];     // For prevention system
 
   // Metadata for intelligent systems
-  foundationLevel: boolean;               // Eligible for diagnostic inclusion
+  rootLevel: boolean;                     // Eligible for diagnostic inclusion
   tier: 'root' | 'trunk' | 'leaf';  // For interleaving algorithm
   complexityScore: number;                // 1-10 for adaptive timing
   prerequisiteWeight: number;             // How many concepts depend on this
@@ -304,7 +304,7 @@ function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, Confusio
 /**
  * Determine if concept is foundation level (eligible for diagnostics)
  */
-function isFoundationLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]): boolean {
+function isRootLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]): boolean {
   // Foundation concepts typically:
   // 1. Have fewer prerequisites
   // 2. Are referenced by other concepts
@@ -1185,7 +1185,7 @@ export function transformToSensaAIConcepts(
         keyPoints: ['Core domain concept', 'Essential for completeness', 'Recovered during analysis'],
         diagnosticQuestions: [],
         confusionPairs: [],
-        foundationLevel: (baseConcept.tier === 'root'),
+        rootLevel: (baseConcept.tier === 'root'),
         tier: baseConcept.tier || 'leaf',
         complexityScore: 3,
         prerequisiteWeight: 0,
@@ -1197,7 +1197,7 @@ export function transformToSensaAIConcepts(
     // Extract SensaAI metadata
     const keyPoints = extractKeyPoints(parsedConcept);
     const diagnosticQuestions = generateDiagnosticQuestions(parsedConcept);
-    const foundationLevel = isFoundationLevel(parsedConcept, parsed.concepts);
+    const rootLevel = isRootLevel(parsedConcept, parsed.concepts);
     const tier = calculateTier(parsedConcept, parsed.concepts);
     const complexityScore = calculateComplexityScore(parsedConcept);
 
@@ -1220,7 +1220,7 @@ export function transformToSensaAIConcepts(
       keyPoints,
       diagnosticQuestions,
       confusionPairs: conceptConfusionPairs,
-      foundationLevel,
+      rootLevel,
       tier,
       complexityScore,
       prerequisiteWeight,
@@ -1283,7 +1283,7 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
     role: string;
     source: string;
     conceptCount: number;
-    foundationConcepts: number;
+    rootConcepts: number;
     diagnosticReady: boolean;
     metadataCompleteness: number;
   };
@@ -1298,8 +1298,8 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
   );
 
   // Calculate SensaAI metrics
-  const foundationConcepts = concepts.filter(c => c.foundationLevel).length;
-  const diagnosticReady = foundationConcepts >= 5; // Need at least 5 for diagnostic
+  const rootConcepts = concepts.filter(c => c.rootLevel).length;
+  const diagnosticReady = rootConcepts >= 5; // Need at least 5 for diagnostic
 
   // Calculate metadata completeness
   let completenessScore = 0;
@@ -1310,7 +1310,7 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
 
     if (concept.keyPoints.length >= 3) completenessScore++;
     if (concept.diagnosticQuestions.length >= 1) completenessScore++;
-    if (concept.foundationLevel !== undefined) completenessScore++;
+    if (concept.rootLevel !== undefined) completenessScore++;
     if (concept.tier) completenessScore++;
     if (concept.complexityScore > 0) completenessScore++;
     if (concept.confusionPairs.length >= 0) completenessScore++; // Always true, validates structure
@@ -1327,7 +1327,7 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
       role: parsed.domainAnalysis.professionalRole,
       source: parsed.domainAnalysis.sourceVerification,
       conceptCount: concepts.length,
-      foundationConcepts,
+      rootConcepts,
       diagnosticReady,
       metadataCompleteness,
     },
@@ -1346,9 +1346,9 @@ export function validateSensaAIMetadata(concepts: SensaAILearningConcept[]): {
   const recommendations: string[] = [];
 
   // Check foundation concepts for diagnostics
-  const foundationCount = concepts.filter(c => c.foundationLevel).length;
-  if (foundationCount < 5) {
-    issues.push(`Only ${foundationCount} foundation concepts found, need at least 5 for diagnostics`);
+  const rootCount = concepts.filter(c => c.rootLevel).length;
+  if (rootCount < 5) {
+    issues.push(`Only ${rootCount} root concepts found, need at least 5 for diagnostics`);
     recommendations.push('Ensure concepts have minimal prerequisites and concrete examples');
   }
 

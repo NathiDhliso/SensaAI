@@ -7,7 +7,7 @@
  * @module hooks/useCollisionDetection
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { conceptsApi } from '@/shared/api/concepts';
 import { useAuthStore } from '@/store/auth-store';
@@ -47,6 +47,13 @@ export function useCollisionDetection(
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
   const [pendingSubject, setPendingSubject] = useState<string | null>(null);
 
+  const optionsRef = useRef(options);
+  const navigateRef = useRef(navigate);
+  useEffect(() => {
+    optionsRef.current = options;
+    navigateRef.current = navigate;
+  });
+
   /**
    * Check for duplicate subjects using fuzzy matching
    * Returns true if a duplicate was found (and modal is shown)
@@ -58,7 +65,7 @@ export function useCollisionDetection(
 
       if (!user) {
         setIsCheckingCollision(false);
-        options.onNoDuplicate();
+        optionsRef.current.onNoDuplicate();
         return false;
       }
 
@@ -93,14 +100,12 @@ export function useCollisionDetection(
         return false;
       } catch (err) {
         console.error('Failed to check duplicates:', err);
-        // Fail open - proceed with generation
         setIsCheckingCollision(false);
-        options.onNoDuplicate();
+        optionsRef.current.onNoDuplicate();
         return false;
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [options]
+    []
   );
 
   /**
@@ -122,24 +127,24 @@ export function useCollisionDetection(
           );
 
           if (shouldLoad) {
-            if (options.onExistingFound) {
-              options.onExistingFound(existing.id);
+            if (optionsRef.current.onExistingFound) {
+              optionsRef.current.onExistingFound(existing.id);
             } else {
-              navigate(`/study/${existing.id}`);
+              navigateRef.current(`/study/${existing.id}`);
             }
             return;
           }
         }
 
         setIsCheckingCollision(false);
-        options.onNoDuplicate();
+        optionsRef.current.onNoDuplicate();
       } catch (e) {
         console.warn('Failed to check shared intelligence:', e);
         setIsCheckingCollision(false);
-        options.onNoDuplicate();
+        optionsRef.current.onNoDuplicate();
       }
     },
-    [navigate, options]
+    []
   );
 
   /**
@@ -157,9 +162,9 @@ export function useCollisionDetection(
     setCollisionJobId(null);
 
     if (pendingSubject) {
-      options.onNoDuplicate();
+      optionsRef.current.onNoDuplicate();
     }
-  }, [collisionJobId, pendingSubject, options]);
+  }, [collisionJobId, pendingSubject]);
 
   /**
    * Handle user canceling overwrite - navigate back
@@ -168,8 +173,8 @@ export function useCollisionDetection(
     setShowOverwriteModal(false);
     setCollisionJobId(null);
     setPendingSubject(null);
-    navigate('/');
-  }, [navigate]);
+    navigateRef.current('/');
+  }, []);
 
   /**
    * Reset all collision state
