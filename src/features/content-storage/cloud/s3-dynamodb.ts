@@ -226,7 +226,12 @@ export class CloudStorage implements StorageProvider {
 
       // Sort by date descending
       const results = result.Items as SavedResult[];
-      results.sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
+      const safeTime = (d: string) => {
+        if (/^\d+$/.test(d)) return Number(d);
+        const t = new Date(d).getTime();
+        return isNaN(t) ? 0 : t;
+      };
+      results.sort((a, b) => safeTime(b.generatedAt) - safeTime(a.generatedAt));
 
       // Return the newest one, but we MUST fetch the full document from S3 first
       // because list/scan results usually exclude the heavy 'fullDocument'

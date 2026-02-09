@@ -23,6 +23,7 @@ import styles from './PhaseNavigator.module.css';
 interface PhaseNavigatorProps {
     currentPhase: LearningPhase;
     completedPhases: LearningPhase[];
+    diagnosticSkipped?: boolean;
     className?: string;
 }
 
@@ -49,12 +50,17 @@ const VISIBLE_PHASES: LearningPhase[] = ['PRIME', 'BUILD', 'DIAGNOSE', 'LEARN', 
 export function PhaseNavigator({
     currentPhase,
     completedPhases,
+    diagnosticSkipped = false,
     className = ''
 }: PhaseNavigatorProps) {
+    const visiblePhases = diagnosticSkipped
+        ? VISIBLE_PHASES.filter(p => p !== 'DIAGNOSE')
+        : VISIBLE_PHASES;
+
     return (
         <div className={`${styles.container} ${className}`}>
             <div className={styles.phases}>
-                {VISIBLE_PHASES.map((phase, index) => {
+                {visiblePhases.map((phase, index) => {
                     const config = PHASE_CONFIG[phase as keyof typeof PHASE_CONFIG];
                     const Icon = config.icon;
                     const isActive = phase === currentPhase;
@@ -103,7 +109,7 @@ export function PhaseNavigator({
                                     )}
                                 </div>
                                 <div className={styles.phaseInfo}>
-                                    <span className={styles.phaseNumber}>{config.order}</span>
+                                    <span className={styles.phaseNumber}>{index + 1}</span>
                                     <span className={styles.phaseLabel}>{config.label}</span>
                                 </div>
                             </motion.div>

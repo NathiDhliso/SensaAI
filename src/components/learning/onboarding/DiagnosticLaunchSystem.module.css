@@ -478,7 +478,62 @@
     font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
     line-height: 1.6;
+    margin-bottom: var(--spacing-4);
+}
+
+.gapBreakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    width: 100%;
     margin-bottom: var(--spacing-6);
+}
+
+.gapSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.gapSectionHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.gapIcon {
+    color: var(--color-warning);
+}
+
+.gapChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.gapChipKnown {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--overlay-sage-10);
+    color: var(--color-success);
+    border: 1px solid var(--color-success);
+}
+
+.gapChipGap {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--overlay-amber-10);
+    color: var(--color-warning);
+    border: 1px solid var(--color-warning);
 }
 
 /* ============================================================================

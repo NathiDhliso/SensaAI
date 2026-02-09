@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
-import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { AlertTriangle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
+import { generateAIBrokenConfig } from '@/features/learning-session/activities/gym-ai-service';
 import styles from './PreMortemActivity.module.css';
 
 interface PreMortemActivityProps {
@@ -70,9 +71,23 @@ function buildBrokenConfig(concept: LearningConcept): BrokenConfig {
 }
 
 export default function PreMortemActivity({ concept, onComplete }: PreMortemActivityProps) {
-    const config = useMemo(() => buildBrokenConfig(concept), [concept]);
+    const fallbackConfig = useMemo(() => buildBrokenConfig(concept), [concept]);
+    const [config, setConfig] = useState<BrokenConfig>(fallbackConfig);
+    const [configLoading, setConfigLoading] = useState(true);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [resolved, setResolved] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        generateAIBrokenConfig(concept).then(result => {
+            if (cancelled) return;
+            if (result) {
+                setConfig(result);
+            }
+            setConfigLoading(false);
+        });
+        return () => { cancelled = true; };
+    }, [concept]);
 
     const handleSelect = (index: number) => {
         if (resolved) return;
@@ -84,6 +99,21 @@ export default function PreMortemActivity({ concept, onComplete }: PreMortemActi
     };
 
     const isCorrect = selectedIndex === config.alteredIndex;
+
+    if (configLoading) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.header}>
+                    <AlertTriangle size={24} />
+                    <h3>Pre-Mortem: Find the Failure</h3>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '3rem', color: 'var(--color-text-muted)' }}>
+                    <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                    <span>Generating scenario...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.container}>

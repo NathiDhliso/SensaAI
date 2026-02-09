@@ -517,6 +517,43 @@ export function DiagnosticLaunchSystem({
                         }
                     </p>
 
+                    {(() => {
+                        const knownIds = new Set(answers.filter(a => a.correct).map(a => a.conceptId));
+                        const gapIds = new Set(answers.filter(a => !a.correct).map(a => a.conceptId));
+                        const knownNames = selectedConcepts.filter(c => knownIds.has(c.id)).map(c => c.name);
+                        const gapNames = selectedConcepts.filter(c => gapIds.has(c.id)).map(c => c.name);
+                        return (
+                            <div className={styles.gapBreakdown}>
+                                {knownNames.length > 0 && (
+                                    <div className={styles.gapSection}>
+                                        <div className={styles.gapSectionHeader}>
+                                            <CheckCircle2 size={14} className={styles.correctIcon} />
+                                            <span>Known ({knownNames.length})</span>
+                                        </div>
+                                        <div className={styles.gapChips}>
+                                            {knownNames.map(name => (
+                                                <span key={name} className={styles.gapChipKnown}>{name}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {gapNames.length > 0 && (
+                                    <div className={styles.gapSection}>
+                                        <div className={styles.gapSectionHeader}>
+                                            <Target size={14} className={styles.gapIcon} />
+                                            <span>Focus Areas ({gapNames.length})</span>
+                                        </div>
+                                        <div className={styles.gapChips}>
+                                            {gapNames.map(name => (
+                                                <span key={name} className={styles.gapChipGap}>{name}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
+
                     <button
                         className={styles.primaryButton}
                         onClick={onStartLearning}

@@ -4,7 +4,7 @@
  */
 
 import type { StateCreator } from 'zustand';
-import type { LearningStore, NavigationSliceActions, UserProgress } from './types';
+import type { LearningStore, NavigationSliceActions, NavigationSliceState, UserProgress } from './types';
 import { getInitialProgress } from './createSessionSlice';
 import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
 import { saveSessionProgress } from '@/features/learning-session/progress/session-tracker';
@@ -19,8 +19,10 @@ export const createNavigationSlice: StateCreator<
   LearningStore,
   [],
   [],
-  NavigationSliceActions
+  NavigationSliceState & NavigationSliceActions
 > = (set, get) => ({
+  lastSpacingUpdate: null,
+
   completeConcept: (conceptId: string, score?: number, outcome?: 'mastered' | 'needs-learning' | 'needs-review') => {
     const state = get();
     if (!state.currentSession) return;
@@ -133,12 +135,12 @@ export const createNavigationSlice: StateCreator<
     if (shouldComplete) {
       try {
         const spacing = getSpacingEngine();
-        const concept = concepts.find(c => c.id === conceptId);
-        const hasConfusion = (concept?.commonPitfalls?.length ?? 0) > 0;
+        const conceptForSpacing = concepts.find(c => c.id === conceptId);
+        const hasConfusion = (conceptForSpacing?.commonPitfalls?.length ?? 0) > 0;
         const existing = spacing.getReview(conceptId);
 
         if (!existing) {
-          spacing.scheduleInitialReview(conceptId, concept?.name ?? conceptId, hasConfusion);
+          spacing.scheduleInitialReview(conceptId, conceptForSpacing?.name ?? conceptId, hasConfusion);
         }
 
         let quality: SM2Quality = 4;
@@ -149,7 +151,31 @@ export const createNavigationSlice: StateCreator<
         else quality = 2;
 
         if (existing) {
-          spacing.recordReviewWithQuality(conceptId, quality);
+          const updated = spacing.recordReviewWithQuality(conceptId, quality);
+          if (updated) {
+            set({
+              lastSpacingUpdate: {
+                conceptName: updated.conceptName,
+                quality,
+                nextReviewDate: updated.dueDate,
+                intervalDays: updated.intervalDays,
+                easeFactor: updated.easeFactor,
+              },
+            });
+          }
+        } else {
+          const review = spacing.getReview(conceptId);
+          if (review) {
+            set({
+              lastSpacingUpdate: {
+                conceptName: review.conceptName,
+                quality,
+                nextReviewDate: review.dueDate,
+                intervalDays: review.intervalDays,
+                easeFactor: review.easeFactor,
+              },
+            });
+          }
         }
       } catch (e) {
         console.warn('[Navigation] SpacingEngine integration error:', e);

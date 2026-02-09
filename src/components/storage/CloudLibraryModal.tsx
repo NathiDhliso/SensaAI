@@ -8,6 +8,7 @@ import { parseContent } from '@/features/content-generation/parsers/json-parser'
 import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { getMetricsTracker } from '@/features/learning-session/progress/metrics-tracker';
+import { formatSafeDate } from '@/shared/utils/utils';
 import styles from './CloudLibraryModal.module.css';
 
 interface CloudLibraryModalProps {
@@ -176,7 +177,7 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
                 // 1. Format content
                 content += `SUBJECT: ${fullResult.subject.toUpperCase()}\n`;
                 content += `DOMAIN: ${fullResult.pass1Data.domain}\n`;
-                content += `GENERATED: ${new Date(fullResult.generatedAt).toLocaleString()}\n`;
+                content += `GENERATED: ${formatSafeDate(fullResult.generatedAt)}\n`;
                 content += `=================================================\n\n`;
                 content += `[ CONCEPTS & MNEMONICS ]\n\n`;
 
@@ -273,7 +274,7 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
         const uniqueMap = new Map<string, SavedResult>();
 
         results.forEach(r => {
-            const dateStr = new Date(r.generatedAt).toLocaleDateString();
+            const dateStr = formatSafeDate(r.generatedAt);
             const key = `${r.subject}|${r.pass1Data.domain}|${dateStr}`;
 
             const existing = uniqueMap.get(key);
@@ -316,8 +317,10 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
                 case 'domain':
                     return a.pass1Data.domain.localeCompare(b.pass1Data.domain);
                 case 'date':
-                default:
-                    return new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime();
+                default: {
+                    const safeTime = (d: string) => /^\d+$/.test(d) ? Number(d) : (new Date(d).getTime() || 0);
+                    return safeTime(b.generatedAt) - safeTime(a.generatedAt);
+                }
             }
         });
     }, [results, searchQuery, activeFilter, sortBy]);
@@ -579,7 +582,7 @@ export function CloudLibraryModal({ isOpen, onClose, onUpdate }: CloudLibraryMod
                                             <span className={styles.metaDivider}>•</span>
                                             <span className={styles.metaDate}>
                                                 <Calendar size={12} />
-                                                {new Date(result.generatedAt).toLocaleDateString()}
+                                                {formatSafeDate(result.generatedAt)}
                                             </span>
                                             <span className={styles.metaDivider}>•</span>
                                             <span className={styles.metaAuthor} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>

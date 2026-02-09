@@ -4,18 +4,25 @@
  * Implements Phase 3.5: Prove Mastery (Boss Battle).
  * Presents a comprehensive, time-boxed challenge requiring synthesis of multiple concepts.
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
     Trophy,
     Clock,
     CheckCircle2,
-    AlertTriangle
+    AlertTriangle,
+    Loader2
 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { DEFAULT_MASTERY_SCENARIO } from '@/shared/constants/learning-content';
 import { usePauseGlobalTimer } from '@/shared/hooks/usePauseGlobalTimer';
+import {
+    generateMasteryScenario,
+    scoreMasteryWithAI,
+    type AIMasteryScenario,
+    type AIScoreResult,
+} from '@/features/learning-session/activities/gym-ai-service';
 import styles from './MasteryChallenge.module.css';
 
 interface MasteryChallengeProps {
@@ -63,8 +70,20 @@ export default function MasteryChallenge({
     const [timeRemaining, setTimeRemaining] = useState<number>(UI_TIMINGS.MASTERY_TIME_SECONDS);
     const [userResponse, setUserResponse] = useState('');
     const [scoreResult, setScoreResult] = useState<{ score: number; matched: string[]; missed: string[] } | null>(null);
+    const [aiScenario, setAiScenario] = useState<AIMasteryScenario | null>(null);
+    const [aiScore, setAiScore] = useState<AIScoreResult | null>(null);
+    const [aiScoring, setAiScoring] = useState(false);
 
     usePauseGlobalTimer();
+
+    useEffect(() => {
+        let cancelled = false;
+        generateMasteryScenario(concepts).then(result => {
+            if (cancelled) return;
+            if (result) setAiScenario(result);
+        });
+        return () => { cancelled = true; };
+    }, [concepts]);
 
     useEffect(() => {
         if (phase !== 'challenge') return;
@@ -90,30 +109,39 @@ export default function MasteryChallenge({
     };
 
     const conceptNames = concepts.slice(0, 3).map(c => c.name).join(', ');
-    const scenario = useMemo(() => concepts.length > 0
-        ? `You are consulting for a client who needs to implement a comprehensive solution using the concepts you've learned.
-
-**Scenario:**
-Design and explain a complete system that integrates ${conceptNames}${concepts.length > 3 ? ', and more' : ''}.
-
-**Requirements:**
-1. Explain how each concept contributes to the solution
-2. Describe the relationships between concepts
-3. Identify potential challenges and how you'd address them
-4. Provide a step-by-step implementation approach
-
-**Your Response:**`
-        : DEFAULT_MASTERY_SCENARIO, [concepts, conceptNames]);
+    const scenario = useMemo(() => {
+        if (aiScenario) {
+            const reqs = aiScenario.requirements.map((r, i) => `${i + 1}. ${r}`).join('\n');
+            return `**Scenario:**\n${aiScenario.scenario}\n\n**Requirements:**\n${reqs}\n\n**Your Response:`;
+        }
+        if (concepts.length > 0) {
+            return `You are consulting for a client who needs to implement a comprehensive solution using the concepts you've learned.\n\n**Scenario:**\nDesign and explain a complete system that integrates ${conceptNames}${concepts.length > 3 ? ', and more' : ''}.\n\n**Requirements:**\n1. Explain how each concept contributes to the solution\n2. Describe the relationships between concepts\n3. Identify potential challenges and how you'd address them\n4. Provide a step-by-step implementation approach\n\n**Your Response:**`;
+        }
+        return DEFAULT_MASTERY_SCENARIO;
+    }, [concepts, conceptNames, aiScenario]);
 
     const handleStartChallenge = () => {
         setPhase('challenge');
     };
 
-    const handleSubmit = () => {
-        const result = scoreMasteryResponse(userResponse, concepts);
-        setScoreResult(result);
+    const handleSubmit = useCallback(async () => {
+        setAiScoring(true);
+        const aiResult = await scoreMasteryWithAI(concepts, userResponse);
+        setAiScoring(false);
+
+        if (aiResult) {
+            setAiScore(aiResult);
+            setScoreResult({
+                score: aiResult.score,
+                matched: aiResult.strengths,
+                missed: aiResult.gaps,
+            });
+        } else {
+            const result = scoreMasteryResponse(userResponse, concepts);
+            setScoreResult(result);
+        }
         setPhase('complete');
-    };
+    }, [concepts, userResponse]);
 
     const handleComplete = () => {
         const passed = (scoreResult?.score ?? 0) >= 0.35;
@@ -206,10 +234,10 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
                         <button
                             className={styles.submitButton}
                             onClick={handleSubmit}
-                            disabled={userResponse.length < 80}
+                            disabled={userResponse.length < 80 || aiScoring}
                         >
-                            Submit Response
-                            <CheckCircle2 size={16} />
+                            {aiScoring ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={16} />}
+                            {aiScoring ? 'Scoring...' : 'Submit Response'}
                         </button>
                     </motion.div>
                 )}
@@ -225,15 +253,25 @@ Design and explain a complete system that integrates ${conceptNames}${concepts.l
                             <h2>{passed ? (scorePercent >= 70 ? 'Outstanding!' : 'Well Done!') : 'Keep Practicing'}</h2>
                             <p style={{ fontSize: '2rem', fontWeight: 700 }}>{scorePercent}%</p>
                             <p>
-                                {passed
-                                    ? `You covered ${scoreResult.matched.length} key terms across the concepts.`
-                                    : `You missed key terms. Try mentioning specific concept names and their properties.`}
+                                {aiScore?.feedback
+                                    || (passed
+                                        ? `You covered ${scoreResult.matched.length} key terms across the concepts.`
+                                        : `You missed key terms. Try mentioning specific concept names and their properties.`)}
                             </p>
                         </div>
 
+                        {scoreResult.matched.length > 0 && (
+                            <div className={styles.responseCard}>
+                                <h3>{aiScore ? 'Strengths:' : 'Matched Terms:'}</h3>
+                                <div className={styles.responseContent}>
+                                    <p>{scoreResult.matched.slice(0, 6).join(', ')}</p>
+                                </div>
+                            </div>
+                        )}
+
                         {scoreResult.missed.length > 0 && scoreResult.missed.length <= 8 && (
                             <div className={styles.responseCard}>
-                                <h3>Terms to Review:</h3>
+                                <h3>{aiScore ? 'Gaps:' : 'Terms to Review:'}</h3>
                                 <div className={styles.responseContent}>
                                     <p>{scoreResult.missed.slice(0, 8).join(', ')}</p>
                                 </div>

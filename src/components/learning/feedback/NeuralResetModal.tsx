@@ -5,13 +5,23 @@
  * when cognitive load is too high. Can be dismissed easily.
  */
 
+import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Coffee } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import styles from './NeuralResetModal.module.css';
 
 export default function NeuralResetBanner() {
-    const { showNeuralReset, dismissNeuralReset } = useLearningStore();
+    const { showNeuralReset, dismissNeuralReset, currentSession } = useLearningStore();
+    const metrics = currentSession?.cognitiveMetrics;
+
+    const triggerReason = useMemo(() => {
+        if (!metrics) return null;
+        if (metrics.consecutiveErrors >= 5) return `${metrics.consecutiveErrors} errors in a row`;
+        if (metrics.currentLoad >= 85) return `Cognitive load at ${Math.round(metrics.currentLoad)}%`;
+        if (metrics.consecutiveErrors >= 3) return `${metrics.consecutiveErrors} consecutive errors`;
+        return null;
+    }, [metrics]);
 
     return (
         <AnimatePresence>
@@ -28,6 +38,9 @@ export default function NeuralResetBanner() {
                         <span className={styles.bannerText}>
                             <strong>Time for a quick break?</strong> Your brain could use a 2-minute reset.
                         </span>
+                        {triggerReason && (
+                            <span className={styles.bannerReason}>{triggerReason}</span>
+                        )}
                     </div>
                     <button 
                         className={styles.bannerDismiss} 

@@ -38,6 +38,16 @@ variable "query_concepts_invoke_arn" {
   type        = string
 }
 
+variable "gym_ai_function_name" {
+  description = "Name of the gym AI Lambda function"
+  type        = string
+}
+
+variable "gym_ai_invoke_arn" {
+  description = "Invoke ARN of the gym AI Lambda function"
+  type        = string
+}
+
 # CORS Configuration
 variable "cors_allowed_origins" {
   description = "Allowed CORS origins"

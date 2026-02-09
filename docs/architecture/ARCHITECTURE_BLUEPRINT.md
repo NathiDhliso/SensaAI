@@ -1,6 +1,34 @@
 # SensaPBL Architecture Blueprint
 
-> Last Updated: February 8, 2026
+> Last Updated: February 9, 2026
+
+---
+
+## Executive Summary
+
+SensaPBL is an AI-powered learning platform. A user enters any subject, the system generates structured educational content via AWS Lambda + Bedrock (Claude 3 Sonnet), then guides them through an adaptive multi-phase learning session in the browser.
+
+**Architecture at a glance:**
+
+| Concern | Implementation |
+|---------|---------------|
+| Content generation | Python Lambda (15 min timeout, 10 GB) → Bedrock LLM → DynamoDB |
+| Content delivery | Express.js proxy → Lambda query → paginated concept fetch |
+| Learning engine | React SPA with Zustand slices, SENSA v2.0 flow (SCOUT → BUILD → MASTER) |
+| Adaptive algorithms | SM-2 spacing, ZPD concept selection, interleaving, cognitive load tracking |
+| Storage | DynamoDB + S3 (cloud truth), IndexedDB (offline cache), localStorage (session progress) |
+| Auth | Cognito OAuth 2.0 + PKCE, HttpOnly cookie tokens |
+| Infra | Terraform modules (Lambda, API Gateway, DynamoDB, Cognito, S3), S3 backend for state |
+
+**Key data flows:**
+
+1. **Generate** — User enters subject → Express → Lambda invokes Bedrock 5× in parallel → stores concepts in DynamoDB → frontend polls job status → fetches concepts → parses into learning session
+2. **Learn** — Session config (mood → goal + duration) → micro-learning loops (teach → recall → drill → quiz) → spacing engine records quality → next concept selected by ZPD + interleaving
+3. **Review** — Launchpad gym shows due reviews from SM-2 spacing engine, concept map builder, peer review, mastery challenges
+
+**Error resilience:** 3-retry exponential backoff at both Lambda (Bedrock calls) and frontend (API calls via `resilience.ts`). Offline queue re-sends failed requests on reconnect. Study page hydration retries 3× with backoff. LearningErrorBoundary catches render crashes with recover/abandon paths.
+
+**Scale posture:** DynamoDB on-demand (PAY_PER_REQUEST), Lambda concurrency at AWS defaults. No provisioned capacity. Designed for pilot-scale (<1000 users).
 
 ---
 
@@ -68,7 +96,29 @@ SensaPBL is an AI-powered learning platform that generates structured educationa
 
 ## 3. Content Generation Pipeline
 
-This is the only active generation path. The legacy TypeScript multi-phase orchestrator has been removed.
+This is the only active generation path.
+
+#### Migration from Legacy Orchestrator
+
+The original generation pipeline was a TypeScript multi-phase orchestrator (`multi-phase-orchestrator.ts`) that ran in the Express backend. It made sequential Bedrock calls from Node.js, parsed responses in-process, and returned the full document synchronously. This had three problems:
+
+1. **Timeout ceiling** — Express requests time out at ~30s on most hosts; generation takes 3–12 minutes
+2. **No parallelism** — Parts were generated sequentially, doubling wall-clock time
+3. **Tight coupling** — Parsing, validation, and storage were interleaved in one function
+
+The replacement is the **Lambda-based async pipeline** documented below. Key migration changes:
+
+| Concern | Legacy (removed) | Current |
+|---------|-----------------|---------|
+| Runtime | Express (Node.js, sync) | Lambda (Python 3.12, async) |
+| LLM calls | Sequential, 1 prompt | Parallel, 5 partitioned prompts + 1 classification |
+| Timeout | ~30s (Express limit) | 900s (Lambda limit) |
+| Storage | Return full JSON to frontend | Store concepts in DynamoDB, frontend fetches |
+| Job tracking | None (sync response) | Jobs table with status polling |
+| Classification | None | Bedrock call returns `subjectType` + `macroStructure` |
+| Tier computation | Frontend percentile-based | Lambda graph-based (`_compute_tiers_from_graph`) |
+
+The legacy orchestrator files (`multi-phase-orchestrator.ts`, `phase1-domain-analysis.ts`, `phase2-content-generation.ts`) were deleted. The frontend API client (`backend-client.ts`) was rewritten to call the Express proxy which invokes Lambda asynchronously. The frontend now polls `/api/v1/concepts/jobs/:jobId` for status, then fetches concepts via `/api/v1/concepts?sessionId=...`.
 
 ### Flow
 
@@ -332,7 +382,7 @@ infra/terraform/
 ### Key Infrastructure Details
 
 - **Region**: us-east-1
-- **Generate Lambda**: 3008 MB memory, 900s timeout (15 min for LLM calls)
+- **Generate Lambda**: 10,240 MB memory (10 GB), 900s timeout (15 min for LLM calls)
 - **Query Lambda**: 512 MB memory, 30s timeout
 - **API Gateway**: `https://c4kxjdukwj.execute-api.us-east-1.amazonaws.com`
 - **DynamoDB tables**: `sensapbl-concepts-pilot`, `sensapbl-jobs-pilot`
@@ -487,7 +537,85 @@ Token refresh handled transparently via refresh token cookie
 
 ---
 
-## 11. Feature Map
+## 11. Error Handling & Failure Modes
+
+### Lambda Generation Failures
+
+| Failure | Behavior | Recovery |
+|---------|----------|----------|
+| Bedrock throttling / 5xx | 3 retries with exponential backoff (2s, 4s, 8s) per part. Boto3 client also configured with `retries={"max_attempts": 3, "mode": "adaptive"}` | If all retries fail for a part, that part returns `[]`. Generation succeeds if total concepts ≥ 40 (`MIN_CONCEPTS_THRESHOLD`). Below 40 = partial success logged |
+| Lambda timeout (>900s) | Lambda killed by AWS. Job stays `in_progress` in DynamoDB | Frontend polls job status. If no progress after ~16 min, `useGenerationEngine` treats it as stalled. Jobs table has 24h TTL — stale jobs auto-expire |
+| DynamoDB throttling | On-demand mode auto-scales, but burst can exceed per-partition limits | Boto3 retries handle transient throttles. Batch writes in `dynamo_service.py` use `batch_writer()` which auto-retries unprocessed items |
+| Classification fails | 3 retries, then falls back to `None` (conceptual default) | Generation proceeds with no classification. Frontend receives no `subjectType` — UI omits the type badge, stage naming uses generic labels |
+| JSON parse failure (truncated LLM output) | 4-stage incremental parser: (1) direct `json.loads`, (2) regex extraction, (3) single-object wrap, (4) character-by-character recovery | Recovers partial concepts from truncated responses. Logged as warning |
+
+### Express Backend Failures
+
+| Failure | Behavior | Recovery |
+|---------|----------|----------|
+| Lambda invoke error | Caught in `/generate` route. Job marked `failed` in DynamoDB with error message | Frontend sees `status: 'failed'` on next poll. Displays error with "Go to Dashboard" action |
+| Auth token expired | `auth.ts` middleware rejects with 401 | Frontend intercepts 401, redirects to login. Cognito refresh token (HttpOnly cookie) handles transparent renewal |
+
+### Frontend Failures
+
+| Failure | Behavior | Recovery |
+|---------|----------|----------|
+| API call fails (network) | `resilience.ts` retries 3× with exponential backoff (1s, 2s, 4s, max 10s). 4xx errors are not retried | `OfflineQueueManager` stores failed writes; re-sends on `online` event |
+| Study page hydration fails | `Study.tsx` retries 3× with backoff (1s, 2s, 3s). Displays typed error states: `SESSION_NOT_FOUND`, `EMPTY_CONTENT`, `INVALID_CONTENT`, `CORRUPTED_CONTENT`, `GENERATION_IN_PROGRESS`, `SESSION_ID_MISSING` | Each error state has a specific message + action button (e.g., "Go to Dashboard", "Refresh Page") |
+| Learning engine crash | `LearningErrorBoundary` catches React render errors. Two paths: "Recover Session" (re-renders), "Return to Dashboard" (clears state + navigates home) | If recovery fails, only "Return to Dashboard" is shown |
+| Session progress lost | `localStorage` progress recovery on mount. `VelocityLearning.tsx` checks `loadSessionProgress()` and restores active concept + progress | Shows "Resumed from where you left off" toast with age |
+| IndexedDB quota exceeded | `indexed-db.ts` eviction policy: removes results >90 days old, then oldest results until under target usage | Logged. Cloud storage (S3/DynamoDB) remains source of truth |
+
+### Degraded States
+
+| Condition | Degraded behavior |
+|-----------|-------------------|
+| Offline | IndexedDB cache serves saved content. New generation blocked. Offline queue stores pending writes |
+| No Cognito session | Protected routes redirect to `/login`. Generation and cloud storage unavailable. Local content still accessible |
+| Spacing engine not initialized | Gym tab shows 0 due reviews. No crash — `try/catch` wraps all spacing calls in `ContentLaunchpad.tsx` |
+| Classification missing | Learning session works with generic stage names. Blueprint-Formula dashboard shows "Unknown" type. No functional degradation |
+
+---
+
+## 12. Performance Characteristics
+
+### Latency Budget
+
+| Operation | Expected latency | Bottleneck |
+|-----------|-----------------|------------|
+| Content generation (full) | 3–12 min | 5 parallel Bedrock calls × 16K max_tokens each. Classification adds ~5s |
+| Job status poll | <200ms | DynamoDB point read on jobs table |
+| Concept fetch (paginated) | <500ms | DynamoDB query on concepts table (GSI1) |
+| Study page hydration (cache hit) | <100ms | IndexedDB read |
+| Study page hydration (cloud) | 1–3s | S3 getObject + JSON parse |
+| Micro-loop phase transition | <50ms | In-memory Zustand state update |
+
+### Resource Limits
+
+| Resource | Config | Limit |
+|----------|--------|-------|
+| Generate Lambda memory | 10,240 MB (10 GB) | AWS max is 10 GB — at ceiling |
+| Generate Lambda timeout | 900s (15 min) | AWS max is 900s — at ceiling |
+| Query Lambda memory | 512 MB | Comfortable for DynamoDB queries |
+| Query Lambda timeout | 30s | Sufficient for paginated reads |
+| DynamoDB billing | PAY_PER_REQUEST (on-demand) | Auto-scales. No provisioned capacity to exhaust |
+| Bedrock concurrency | 3 workers (`MAX_WORKERS`) per invocation | Stays within Bedrock per-model limits |
+| IndexedDB cache | Eviction at quota threshold | Browser-dependent (typically 50–500 MB) |
+| Offline queue | 50 items max | Oldest dropped on overflow |
+| Toast dedup window | 2s | Same message + type suppressed within window |
+
+### Scale Limits (Pilot Posture)
+
+Current architecture is designed for pilot scale. Known ceilings:
+
+- **Concurrent generations**: Lambda concurrency defaults (~1000 per region). Each generation holds 1 Lambda for up to 15 min. At 100 concurrent users generating simultaneously, that's 100 Lambdas × 15 min = significant concurrency burn. Monitor via CloudWatch `ConcurrentExecutions`.
+- **DynamoDB hot partitions**: Concepts table PK is `USER#userId#SESSION#sessionId`. No hot-key risk at pilot scale. At >10K users, monitor `ThrottledRequests` metric.
+- **Bedrock rate limits**: Claude 3 Sonnet has per-account tokens-per-minute limits. 5 parallel calls per generation × N concurrent users can hit this. Mitigation: stagger part start times (1.5s × part_num delay already in `generate_part_with_retry`).
+- **S3**: No practical limit at pilot scale.
+
+---
+
+## 13. Feature Map
 
 ### Implemented
 
@@ -595,6 +723,29 @@ Redesigns the main dashboard around Cognitive Load Theory and activates spaced r
 - [x] **PeerReview multi-turn** — Refactored from single-turn to 4-stage dialogue (diagnosis → pushback → defense → resolution). Pushback uses `commonPitfalls`/`technicalDetails`.
 - [x] **PreMortemActivity** — New activity: derives steps from concept lifecycle, randomly alters one, user identifies the broken step.
 - [x] **ConceptMapBuilder mode toggle** — `mode` prop ('guided' | 'free') with toolbar toggle. Free mode skips validation and saves directly.
+
+### Phase 7 — Cognitive Pipeline UI Visibility (Implemented)
+
+Surfaces hidden adaptive intelligence to the learner so the cognitive value proposition is visible, not just backend logic:
+
+- [x] **Daily Stack spacing visibility** — Review cards in `ContentLaunchpad.tsx` now show interval days, ease factor label (Easy/Medium/Hard), and repetition streak. Spacing metrics footer shows retention rate, tracked concepts, overdue count, and adherence percentage with SM-2 explanation.
+- [x] **Adaptive intelligence indicator** — `MicroLearningLoopController.tsx` now shows a contextual hint below the phase stepper explaining why the current activity was chosen (velocity-based scaffold, tier context, subject-type routing, confusion detection) and the adaptive loop duration.
+- [x] **Diagnostic gap breakdown** — `DiagnosticLaunchSystem.tsx` results phase now shows a concept-level breakdown: green chips for known concepts, amber chips for focus areas/gaps. Previously only showed aggregate score.
+- [x] **Flow/struggle state indicator** — `LearningToolbar.tsx` now shows a pulsing green "In Flow" badge when flow state is detected, or an amber "High Load" badge when cognitive load is high. Uses `useFlowState` hook and `getCognitiveLoadLevel()` from learning store.
+- [x] **Spacing feedback toast** — After concept completion, `VelocityLearning.tsx` shows a brief toast with the SM-2 quality label (Perfect/Good/Okay/Weak/Missed) and next review interval. `lastSpacingUpdate` stored in `NavigationSliceState` via `createNavigationSlice.ts`.
+- [x] **Concept selection reason** — `ConceptProgressIndicator.tsx` now accepts a `selectionReason` prop. `VelocityLearning.tsx` computes the reason from tier, interleaving context, and progress state (e.g., "Building foundations first", "Interleaved from root → trunk", "Applying knowledge — leaf concept").
+- [x] **Neural reset trigger reason** — `NeuralResetModal.tsx` now shows WHY the reset was triggered: consecutive error count or cognitive load percentage. Displayed as a monospace pill inside the banner.
+
+### Phase 8 — Routing, Data Display & Toast Silver Bullet (Implemented)
+
+Fixes systemic issues across routing, date handling, and toast notifications:
+
+- [x] **Invalid Date fix** — `manager.ts` was storing `Date.now().toString()` (numeric string) as `generatedAt`, which `new Date()` cannot parse. Fixed at source to use ISO string. Added `formatSafeDate()` utility in `utils.ts` that handles numeric strings, ISO strings, and nulls. Applied to `ContentLaunchpad.tsx`, `DocumentView.tsx`, `CloudLibraryModal.tsx`.
+- [x] **Date sorting fix** — All date-based sorting in `indexed-db.ts`, `s3-dynamodb.ts`, `SavedResults.tsx`, `CloudLibraryModal.tsx` now uses safe numeric string detection before `new Date()` parsing.
+- [x] **Toast deduplication** — `toast.ts` now tracks recent messages with a 2-second dedup window. Same message + type within 2s is suppressed, preventing duplicate toasts (e.g., "Resumed from where you left off" showing twice).
+- [x] **Toast theming** — Replaced hardcoded hex colors (`#10b981`, `#ef4444`, etc.) with CSS variable-based theming: `var(--color-surface)` background, `var(--color-text-primary)` text, type-specific border/icon using `var(--color-success/error/warning/primary)`. Uses left-border accent style instead of solid color backgrounds.
+- [x] **Gym tab routing fix** — Gym buttons in `ContentLaunchpad.tsx` navigate to `/study/:id?tab=learn&activity=X`. `Study.tsx` URL guard now auto-shows session config modal when no session exists instead of silently redirecting to overview. `handleTabChange` also shows modal instead of blocking with a toast.
+- [x] **Duplicate toast ref guard** — `VelocityLearning.tsx` progress recovery effect now uses a `useRef` guard (`progressRestoredRef`) to prevent the "Resumed" toast from firing multiple times on re-renders.
 
 ### Planned — Future
 

@@ -51,6 +51,18 @@
     transition: background 0.2s;
 }
 
+.bannerReason {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    background: var(--overlay-white-20);
+    border-radius: var(--radius-full, 9999px);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--color-text-on-accent);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+}
+
 .bannerDismiss:hover {
     background: var(--overlay-white-30);
 }

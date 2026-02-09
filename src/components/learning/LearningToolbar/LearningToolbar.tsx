@@ -7,16 +7,19 @@
  */
 
 import { useState } from 'react';
-import { Timer, BarChart3, Brain, Flame, FileText, RotateCcw } from 'lucide-react';
+import { Timer, BarChart3, Brain, Flame, FileText, RotateCcw, Zap, AlertCircle } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
+import { useFlowState } from '@/shared/hooks/useFlowState';
 import { FocusTimer } from './FocusTimer';
 import { ProgressAnalytics } from './ProgressAnalytics';
 import { QuickQuiz } from './QuickQuiz';
 import styles from './LearningToolbar.module.css';
 
 export function LearningToolbar() {
-    const { currentSession, isSessionActive, resetProgress } = useLearningStore();
+    const { currentSession, isSessionActive, resetProgress, getCognitiveLoadLevel } = useLearningStore();
     const progress = currentSession?.progress;
+    const flowState = useFlowState();
+    const cogLevel = getCognitiveLoadLevel();
 
     const [showTimer, setShowTimer] = useState(false);
     const [showAnalytics, setShowAnalytics] = useState(false);
@@ -32,6 +35,18 @@ export function LearningToolbar() {
     return (
         <>
             <div className={styles.toolbar}>
+                {flowState.isInFlow && (
+                    <div className={styles.flowBadge}>
+                        <Zap size={12} />
+                        In Flow
+                    </div>
+                )}
+                {!flowState.isInFlow && cogLevel === 'high' && (
+                    <div className={styles.loadBadge}>
+                        <AlertCircle size={12} />
+                        High Load
+                    </div>
+                )}
                 {progress && progress.conceptsLearnedToday > 0 && (
                     <div className={styles.streakBadge}>
                         <Flame size={14} />

@@ -132,7 +132,7 @@ export class StorageManager {
       return {
         id: jobStatus.jobId,
         subject: resolvedSubject,
-        generatedAt: Date.now().toString(), // Helper uses Date.now(), we could convert from jobStatus.createdAt
+        generatedAt: new Date().toISOString(),
         fullDocument,
         pass1Data: {
           domain: resolvedSubject, // Usually same as subject if not stored separately

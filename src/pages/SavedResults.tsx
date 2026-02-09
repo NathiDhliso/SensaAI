@@ -132,8 +132,10 @@ export default function SavedResults() {
 
     filtered = [...filtered].sort((a, b) => {
       switch (sortBy) {
-        case 'date':
-          return new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime();
+        case 'date': {
+          const safeTime = (d: string) => /^\d+$/.test(d) ? Number(d) : (new Date(d).getTime() || 0);
+          return safeTime(b.generatedAt) - safeTime(a.generatedAt);
+        }
         case 'subject':
           return a.subject.localeCompare(b.subject);
         case 'quality':
@@ -175,8 +177,9 @@ export default function SavedResults() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    const parsed = /^\d+$/.test(dateString) ? new Date(Number(dateString)) : new Date(dateString);
+    if (isNaN(parsed.getTime())) return 'Unknown';
+    return parsed.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

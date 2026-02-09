@@ -190,6 +190,18 @@ export type StudySliceActions = {
   } | null;
 };
 
+export type SpacingFeedback = {
+  conceptName: string;
+  quality: number;
+  nextReviewDate: string;
+  intervalDays: number;
+  easeFactor: number;
+};
+
+export type NavigationSliceState = {
+  lastSpacingUpdate: SpacingFeedback | null;
+};
+
 export type NavigationSliceActions = {
   completeConcept: (conceptId: string, score?: number, outcome?: 'mastered' | 'needs-learning' | 'needs-review') => void;
   setCurrentConcept: (conceptId: string) => void;
@@ -274,6 +286,7 @@ export type UISliceActions = {
 export type LearningState = SessionSliceState &
   DiagnosticSliceState &
   StudySliceState &
+  NavigationSliceState &
   CognitiveSliceState &
   FocusSliceState &
   UISliceState;

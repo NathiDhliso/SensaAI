@@ -6,7 +6,7 @@
  * I = min(h, G × Q_f × Q_M × Q_P)
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Brain, Home } from 'lucide-react';
@@ -79,6 +79,8 @@ export default function VelocityLearning() {
     // 2. The State Machine Hook (legacy - used for phase detection)
     const {
         currentPhase,
+        completedPhases,
+        diagnosticSkipped,
         activeConcept,
     } = useLearningFlow();
 
@@ -109,9 +111,23 @@ export default function VelocityLearning() {
         }
     }, [currentSession?.subjectType]);
 
+    const selectionReason = useMemo(() => {
+        if (!activeConcept || !currentSession) return null;
+        const completed = currentSession.progress.completedConcepts;
+        const tier = activeConcept.tier;
+        if (tier === 'root' && completed.length < 3) return 'Building foundations first';
+        if (tier === 'leaf') return 'Applying knowledge — leaf concept';
+        const lastCompleted = completed[completed.length - 1];
+        if (lastCompleted) {
+            const lastConcept = currentSession.concepts.find(c => c.id === lastCompleted);
+            if (lastConcept && lastConcept.tier !== tier) return `Interleaved from ${lastConcept.tier} → ${tier}`;
+        }
+        if (tier === 'trunk') return 'Core concept — connecting ideas';
+        return null;
+    }, [activeConcept, currentSession]);
+
     // 3. Local UI State (MUST be declared before useEffects that reference them)
     const [lockedIn, setLockedIn] = useState(false);
-    const [completedPhases, setCompletedPhases] = useState<Set<string>>(new Set());
 
     // ARCHITECT ENHANCEMENT: Skip Diagnostics
     const [showSkipModal, setShowSkipModal] = useState(false);
@@ -127,34 +143,29 @@ export default function VelocityLearning() {
         }
     }, [studySession, sensaFlow]);
 
-    // Progress Recovery: Restore from localStorage on mount
+    const progressRestoredRef = useRef(false);
     useEffect(() => {
-        if (!currentSession) return;
+        if (!currentSession || progressRestoredRef.current) return;
+        progressRestoredRef.current = true;
 
-        // Clean up expired progress on mount
         cleanupExpiredProgress();
 
-        // Try to load saved progress
         const savedProgress = loadSessionProgress(currentSession.id);
         if (savedProgress) {
             const age = getProgressAge(currentSession.id);
 
-            // Restore progress if it matches current session
             if (savedProgress.subjectId === currentSession.subjectId) {
-                // Update store with saved progress
                 const { updateSessionProgress, setCurrentConcept } = useLearningStore.getState();
                 updateSessionProgress(savedProgress.progress);
 
-                // Restore active concept if available
                 if (savedProgress.activeConcept) {
                     setCurrentConcept(savedProgress.activeConcept);
                 }
 
-                // Show toast notification
                 toast.success(`Resumed from where you left off (${age})`, { duration: 4000 });
             }
         }
-    }, [currentSession?.id]); // Only run when session ID changes
+    }, [currentSession?.id]);
 
     useEffect(() => {
         if (currentPhase === 'PRIME' && lockedIn) {
@@ -230,10 +241,20 @@ export default function VelocityLearning() {
             } catch (_) { }
         }
 
-        // Pass score and outcome to completeConcept for attempt tracking
-        // Score is derived from outcome for now (can be enhanced later)
         const score = outcome === 'mastered' ? 1.0 : outcome === 'needs-review' ? 0.6 : 0.3;
         completeConcept(activeConcept.id, score, outcome);
+
+        setTimeout(() => {
+            const { lastSpacingUpdate } = useLearningStore.getState();
+            if (lastSpacingUpdate) {
+                const qualityLabels: Record<number, string> = { 5: 'Perfect', 4: 'Good', 3: 'Okay', 2: 'Weak', 1: 'Missed', 0: 'Blank' };
+                const label = qualityLabels[lastSpacingUpdate.quality] || 'Recorded';
+                toast.info(
+                    `${label} recall → next review in ${lastSpacingUpdate.intervalDays}d`,
+                    { duration: 3500 }
+                );
+            }
+        }, 500);
 
         // Check if all concepts are now completed
         if (currentSession && studySession) {
@@ -398,7 +419,8 @@ export default function VelocityLearning() {
                     {currentSession && studySession?.goal !== 'explore' && (
                         <PhaseNavigator
                             currentPhase={currentPhase}
-                            completedPhases={Array.from(completedPhases) as any}
+                            completedPhases={completedPhases}
+                            diagnosticSkipped={diagnosticSkipped}
                         />
                     )}
 
@@ -423,6 +445,7 @@ export default function VelocityLearning() {
                                     current={currentSession.progress.completedConcepts.length + 1}
                                     total={currentSession.concepts.length}
                                     compact={true}
+                                    selectionReason={selectionReason}
                                 />
                             )}
 
@@ -543,7 +566,6 @@ export default function VelocityLearning() {
                                 subjectName={currentSession!.subject}
                                 onConfirm={() => {
                                     setLockedIn(true);
-                                    setCompletedPhases(prev => new Set(prev).add('PRIME'));
                                 }}
                             />
                         </motion.div>
@@ -565,7 +587,6 @@ export default function VelocityLearning() {
                             concepts={currentSession!.concepts}
                             initialPhase={currentPhase === 'PREVIEW' ? 'sprint' : 'structure'}
                             onComplete={(guesses) => {
-                                setCompletedPhases(prev => new Set(prev).add('SCOUT').add('PREVIEW'));
                                 sensaFlow.completeExplore(guesses);
                             }}
                         />
@@ -586,8 +607,6 @@ export default function VelocityLearning() {
                             subjectName={currentSession!.subject}
                             onComplete={(data) => {
                                 markSessionMapBuilt(data);
-                                setCompletedPhases(prev => new Set(prev).add('BUILD'));
-                                // SENSA v2.0: Update equation (Note phase)
                                 sensaFlow.completeNote(data);
                             }}
                         />
@@ -608,7 +627,6 @@ export default function VelocityLearning() {
                             diagnosticReady={currentSession!.metadata?.diagnosticReady ?? false}
                             onStartLearning={() => {
                                 startDiagnostic();
-                                setCompletedPhases(prev => new Set(prev).add('DIAGNOSE'));
                             }}
                             onDiagnosticComplete={handleDiagnosticComplete}
                         />
@@ -654,9 +672,6 @@ export default function VelocityLearning() {
                             concepts={currentSession!.concepts}
                             onComplete={(passed) => {
                                 markSessionMastered();
-                                setCompletedPhases(prev => new Set(prev).add('MASTER'));
-                                // SENSA v2.0: Update equation (Apply phase)
-                                // passed boolean indicates overall success
                                 sensaFlow.completeApply(
                                     passed ? 0.85 : 0.5, // synthesisScore
                                     passed, // flowModeCompleted

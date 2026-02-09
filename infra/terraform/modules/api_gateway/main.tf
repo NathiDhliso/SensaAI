@@ -145,6 +145,36 @@ resource "aws_apigatewayv2_route" "job_status" {
 }
 
 # ==============================================================================
+# Gym AI Route (POST /gym-ai)
+# ==============================================================================
+
+resource "aws_apigatewayv2_integration" "gym_ai" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = var.gym_ai_invoke_arn
+  integration_method     = "POST"
+  payload_format_version = "2.0"
+  timeout_milliseconds   = 29000
+}
+
+resource "aws_apigatewayv2_route" "gym_ai" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /gym-ai"
+  target    = "integrations/${aws_apigatewayv2_integration.gym_ai.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
+}
+
+resource "aws_lambda_permission" "gym_ai" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = var.gym_ai_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
+}
+
+# ==============================================================================
 # Cognito JWT Authorizer (optional)
 # ==============================================================================
 

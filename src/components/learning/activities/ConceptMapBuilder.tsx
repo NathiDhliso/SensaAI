@@ -317,36 +317,29 @@ export default function ConceptMapBuilder({
     const analyzeMap = useCallback(() => {
         if (nodes.length < 2) return;
 
+        const avgConnsPerNode = nodes.length > 0 ? connections.length / nodes.length : 0;
+        if (avgConnsPerNode >= 2.5) {
+            setSuggestions([]);
+            setDetectedGaps([]);
+            return;
+        }
+
         const mapConceptIds = new Set(nodes.map(n => n.conceptId));
         const mapConcepts = concepts.filter(c => mapConceptIds.has(c.id));
 
-        // 1. Suggest Connections
-        const newSuggestions = suggestConnections(mapConcepts,
-            connections.map(c => {
-                const fromNode = nodes.find(n => n.id === c.fromId);
-                const toNode = nodes.find(n => n.id === c.toId);
-                return {
-                    fromId: fromNode?.conceptId || '',
-                    toId: toNode?.conceptId || ''
-                };
-            }),
-            subjectName // Pass subject name for dynamic filtering
-        );
+        const existingConns = connections.map(c => {
+            const fromNode = nodes.find(n => n.id === c.fromId);
+            const toNode = nodes.find(n => n.id === c.toId);
+            return {
+                fromId: fromNode?.conceptId || '',
+                toId: toNode?.conceptId || ''
+            };
+        });
+
+        const newSuggestions = suggestConnections(mapConcepts, existingConns, subjectName);
         setSuggestions(newSuggestions.slice(0, 3));
 
-        // 2. Detect Gaps
-        const gaps = detectGaps(concepts,
-            nodes.map(n => n.conceptId),
-            connections.map(c => {
-                const fromNode = nodes.find(n => n.id === c.fromId);
-                const toNode = nodes.find(n => n.id === c.toId);
-                return {
-                    fromId: fromNode?.conceptId || '',
-                    toId: toNode?.conceptId || ''
-                };
-            }),
-            subjectName // Pass subject name
-        );
+        const gaps = detectGaps(concepts, nodes.map(n => n.conceptId), existingConns, subjectName);
         setDetectedGaps(gaps);
     }, [nodes, connections, concepts, subjectName]);
 

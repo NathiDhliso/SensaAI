@@ -924,11 +924,33 @@ export function MicroLearningLoopController({
         onLoopComplete(outcome, timeSpent);
     };
 
-    // Calculate adaptive loop duration based on concept complexity and user velocity
     const loopDuration = useMemo(() =>
         calculateLoopDuration(complexityScore, userVelocity),
         [complexityScore, userVelocity]
     );
+
+    const adaptiveReason = useMemo(() => {
+        const reasons: string[] = [];
+        if (userVelocity > 1.2) {
+            reasons.push('Scaffold reduced — your velocity is high');
+        } else if (userVelocity < 0.8) {
+            reasons.push('Full scaffold — building foundations');
+        }
+        if (concept.tier === 'root') {
+            reasons.push('Root concept — prerequisite for others');
+        } else if (concept.tier === 'leaf') {
+            reasons.push('Leaf concept — specialized application');
+        }
+        if (loopState === 'social-learning' && subjectType === 'cyclic') {
+            reasons.push('Peer review selected — cyclic subjects benefit from dialogue');
+        } else if (loopState === 'creative-transfer') {
+            const typeLabel = subjectType ? { procedural: 'procedural', conceptual: 'conceptual', cyclic: 'cyclic', perceptual: 'perceptual' }[subjectType] : null;
+            reasons.push(typeLabel ? `Transfer task — ${typeLabel} scenario` : 'Transfer task — applying to new context');
+        } else if (loopState === 'confusion') {
+            reasons.push('Similar concepts detected — discrimination training');
+        }
+        return reasons.length > 0 ? reasons[0] : null;
+    }, [userVelocity, concept.tier, loopState, subjectType]);
 
     // Extract key points from concept
     useEffect(() => {
@@ -1044,9 +1066,14 @@ export function MicroLearningLoopController({
                 </div>
             </div>
 
+            {adaptiveReason && (
+                <div className={styles.adaptiveHint}>
+                    <Brain size={12} />
+                    <span>{adaptiveReason}</span>
+                    <span className={styles.adaptiveTiming}>~{Math.round(loopDuration / 60)}min loop</span>
+                </div>
+            )}
 
-
-            {/* Phase content */}
             {/* Main Content Area */}
             <div className={styles.contentArea}>
                 <AnimatePresence mode="wait">

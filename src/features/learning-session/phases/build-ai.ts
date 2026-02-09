@@ -18,8 +18,13 @@ const GENERIC_STOP_WORDS = new Set([
     'concept', 'intro', 'introduction', 'summary', 'overview', 'basic', 'basics',
     'create', 'creating', 'update', 'updating', 'configure', 'configuring',
     'monitor', 'monitoring', 'optimize', 'optimizing',
-    'define', 'defining', 'manage', 'management', 'analysis', 'analytics' // Common action verbs
+    'define', 'defining', 'manage', 'management', 'analysis', 'analytics',
+    'finding', 'using', 'advanced', 'techniques', 'methods', 'problems', 'involving',
+    'understanding', 'applying', 'working', 'exploring', 'studying',
 ]);
+
+const MAX_CONNECTIONS_PER_CONCEPT = 3;
+const MAX_TOTAL_SUGGESTIONS = 20;
 
 export interface ConnectionSuggestion {
     id: string;
@@ -76,6 +81,7 @@ function getAIConnection(conceptA: LearningConcept, conceptB: LearningConcept): 
 /**
  * Suggest connections between concepts based on their relationships
  * PRIORITY: AI-generated connections > Keyword matching
+ * Caps: max 3 connections per concept, max 20 total suggestions
  */
 export function suggestConnections(
     concepts: LearningConcept[],
@@ -87,68 +93,88 @@ export function suggestConnections(
         existingConnections.map(c => `${c.fromId}-${c.toId}`)
     );
 
-    // Dynamic Stopwords: Flatten the subject name into tokens
+    const connectionCount = new Map<string, number>();
+    for (const conn of existingConnections) {
+        connectionCount.set(conn.fromId, (connectionCount.get(conn.fromId) || 0) + 1);
+        connectionCount.set(conn.toId, (connectionCount.get(conn.toId) || 0) + 1);
+    }
+
     const subjectTokens = subjectName
         ? new Set(cleanTokens(subjectName, new Set()))
         : new Set<string>();
 
-    // Merge generic words with subject-specific noise
-    // e.g. if subject is "Subject Name", then 'subject' and 'name' become stopwords
-    const effectiveStopWords = new Set([...GENERIC_STOP_WORDS, ...subjectTokens]);
+    const nameWordFreq = new Map<string, number>();
+    for (const c of concepts) {
+        const tokens = cleanTokens(c.name, new Set());
+        for (const t of tokens) {
+            nameWordFreq.set(t, (nameWordFreq.get(t) || 0) + 1);
+        }
+    }
+    const highFreqWords = new Set<string>();
+    const freqThreshold = Math.max(2, Math.floor(concepts.length * 0.35));
+    for (const [word, count] of nameWordFreq) {
+        if (count >= freqThreshold) highFreqWords.add(word);
+    }
 
-    // Analyze each pair of concepts for potential connections
+    const effectiveStopWords = new Set([...GENERIC_STOP_WORDS, ...subjectTokens, ...highFreqWords]);
+
+    const suggestionCount = new Map<string, number>();
+
+    const canSuggestFor = (conceptId: string) => {
+        const existing = connectionCount.get(conceptId) || 0;
+        const pending = suggestionCount.get(conceptId) || 0;
+        return (existing + pending) < MAX_CONNECTIONS_PER_CONCEPT;
+    };
+
     for (let i = 0; i < concepts.length; i++) {
         for (let j = i + 1; j < concepts.length; j++) {
+            if (suggestions.length >= MAX_TOTAL_SUGGESTIONS) break;
+
             const conceptA = concepts[i];
             const conceptB = concepts[j];
 
-            // Skip if connection already exists
+            if (!canSuggestFor(conceptA.id) || !canSuggestFor(conceptB.id)) continue;
+
             const pairKey = `${conceptA.id}-${conceptB.id}`;
             const reversePairKey = `${conceptB.id}-${conceptA.id}`;
             if (existingPairs.has(pairKey) || existingPairs.has(reversePairKey)) {
                 continue;
             }
 
-            // PRIORITY 1: Check for AI-generated connections
             const aiConnection = getAIConnection(conceptA, conceptB);
             if (aiConnection) {
-                // Use AI connection with high confidence
+                const fromId = aiConnection.isReverse ? conceptB.id : conceptA.id;
+                const toId = aiConnection.isReverse ? conceptA.id : conceptB.id;
                 suggestions.push({
                     id: `suggestion-${Date.now()}-${i}-${j}`,
-                    fromConceptId: aiConnection.isReverse ? conceptB.id : conceptA.id,
-                    toConceptId: aiConnection.isReverse ? conceptA.id : conceptB.id,
+                    fromConceptId: fromId,
+                    toConceptId: toId,
                     suggestedLabel: aiConnection.type,
-                    confidence: 0.95, // High confidence for AI-generated connections
+                    confidence: 0.90,
                     reasoning: `AI-generated: "${conceptA.name}" ${aiConnection.type} "${conceptB.name}"`,
                 });
+                suggestionCount.set(fromId, (suggestionCount.get(fromId) || 0) + 1);
+                suggestionCount.set(toId, (suggestionCount.get(toId) || 0) + 1);
                 continue;
             }
 
-            // PRIORITY 2: Fall back to keyword matching
             const connection = findConnectionType(conceptA, conceptB, effectiveStopWords);
-
-            // STRICTER THRESHOLD for keyword-based connections:
-            // Generic 'relates to' requires >0.65 (approx 3 shared words)
-            // Specific labels (uses, requires) require >0.55 (2 shared words)
-            if (connection) {
-                const isGeneric = connection.label === 'relates to';
-                const threshold = isGeneric ? 0.65 : 0.55;
-
-                if (connection.confidence >= threshold) {
-                    suggestions.push({
-                        id: `suggestion-${Date.now()}-${i}-${j}`,
-                        fromConceptId: conceptA.id,
-                        toConceptId: conceptB.id,
-                        suggestedLabel: connection.label,
-                        confidence: connection.confidence,
-                        reasoning: connection.reasoning,
-                    });
-                }
+            if (connection && connection.confidence >= 0.7) {
+                suggestions.push({
+                    id: `suggestion-${Date.now()}-${i}-${j}`,
+                    fromConceptId: conceptA.id,
+                    toConceptId: conceptB.id,
+                    suggestedLabel: connection.label,
+                    confidence: connection.confidence,
+                    reasoning: connection.reasoning,
+                });
+                suggestionCount.set(conceptA.id, (suggestionCount.get(conceptA.id) || 0) + 1);
+                suggestionCount.set(conceptB.id, (suggestionCount.get(conceptB.id) || 0) + 1);
             }
         }
+        if (suggestions.length >= MAX_TOTAL_SUGGESTIONS) break;
     }
 
-    // Sort by confidence
     return suggestions.sort((a, b) => b.confidence - a.confidence);
 }
 
@@ -172,49 +198,48 @@ function findConnectionType(
 ): { label: string; confidence: number; reasoning: string } | null {
     const wordsA = extractKeywords(conceptA, stopWords);
     const wordsB = extractKeywords(conceptB, stopWords);
-    const allWords = [...wordsA, ...wordsB];
     const sharedWords = wordsA.filter(w => wordsB.includes(w));
 
-    if (sharedWords.length === 0) return null;
+    if (sharedWords.length < 2) return null;
 
-    const confidence = Math.min(0.9, 0.3 + (sharedWords.length * 0.2));
+    const confidence = Math.min(0.9, 0.3 + (sharedWords.length * 0.15));
+
+    const descWordsA = extractDescriptionKeywords(conceptA, stopWords);
+    const descWordsB = extractDescriptionKeywords(conceptB, stopWords);
+    const descWords = [...descWordsA, ...descWordsB];
 
     for (const pattern of STRUCTURAL_PATTERNS) {
-        if (allWords.some(w => pattern.keywords.includes(w.toLowerCase()))) {
-            return { label: pattern.type, confidence: Math.max(confidence, 0.7), reasoning: pattern.reasoning };
+        if (descWords.some(w => pattern.keywords.includes(w.toLowerCase()))) {
+            return { label: pattern.type, confidence: Math.max(confidence, 0.75), reasoning: pattern.reasoning };
         }
     }
 
-    if (conceptA.tier === 'root' && conceptB.tier === 'trunk') {
-        return { label: 'requires', confidence: 0.65, reasoning: 'Root → Trunk tier progression' };
-    }
-    if (conceptA.tier === 'trunk' && conceptB.tier === 'root') {
-        return { label: 'requires', confidence: 0.65, reasoning: 'Trunk depends on Root' };
-    }
-
-    if (sharedWords.length >= 3) {
+    if (sharedWords.length >= 4) {
         return { label: 'enables', confidence: confidence * 0.85, reasoning: `Strong overlap: ${sharedWords.slice(0, 3).join(', ')}` };
     }
 
     return null;
 }
 
-/**
- * Extract keywords from a concept
- */
 function extractKeywords(concept: LearningConcept, stopWords: Set<string>): string[] {
     const words: string[] = [];
-
-    // From name
     words.push(...cleanTokens(concept.name, stopWords));
-
-    // From key points
     if (concept.keyPoints) {
         concept.keyPoints.forEach(point => {
             words.push(...cleanTokens(point, stopWords));
         });
     }
+    return [...new Set(words)];
+}
 
+function extractDescriptionKeywords(concept: LearningConcept, stopWords: Set<string>): string[] {
+    const words: string[] = [];
+    if (concept.keyPoints) {
+        concept.keyPoints.forEach(point => words.push(...cleanTokens(point, stopWords)));
+    }
+    if (concept.technicalDetails) {
+        words.push(...cleanTokens(concept.technicalDetails, stopWords));
+    }
     return [...new Set(words)];
 }
 
@@ -239,31 +264,31 @@ export function detectGaps(
 ): GapDetection[] {
     const gaps: GapDetection[] = [];
 
-    // Dynamic Stopwords (consistency with suggestConnections)
     const subjectTokens = subjectName
         ? new Set(cleanTokens(subjectName, new Set()))
         : new Set<string>();
     const effectiveStopWords = new Set([...GENERIC_STOP_WORDS, ...subjectTokens]);
 
-    // Check each node on the map
+    const avgConnections = nodesOnMap.length > 0
+        ? connections.length / nodesOnMap.length
+        : 0;
+
     for (const nodeId of nodesOnMap) {
         const concept = concepts.find(c => c.id === nodeId);
         if (!concept) continue;
 
-        // Count connections for this node
-        const connectionCount = connections.filter(
+        const nodeConnCount = connections.filter(
             c => c.fromId === nodeId || c.toId === nodeId
         ).length;
 
-        // Flag if isolated (no connections) or orphaned (only 1 connection)
-        if (connectionCount === 0) {
+        if (nodeConnCount === 0) {
             gaps.push({
                 conceptId: nodeId,
                 conceptName: concept.name,
                 message: `"${concept.name}" has no connections. How does it relate to other concepts?`,
                 suggestedConnections: findPotentialConnections(concept, concepts, nodesOnMap, effectiveStopWords),
             });
-        } else if (connectionCount === 1 && nodesOnMap.length > 3) {
+        } else if (nodeConnCount === 1 && avgConnections < 1.5 && nodesOnMap.length > 3) {
             gaps.push({
                 conceptId: nodeId,
                 conceptName: concept.name,
@@ -273,7 +298,7 @@ export function detectGaps(
         }
     }
 
-    return gaps;
+    return gaps.slice(0, 3);
 }
 
 /**

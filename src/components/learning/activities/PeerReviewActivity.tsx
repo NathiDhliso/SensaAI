@@ -1,7 +1,13 @@
-import { useState, useMemo } from 'react';
-import { MessageCircle, Send, User, CheckCircle, XCircle, Shield } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { MessageCircle, Send, User, CheckCircle, XCircle, Shield, Loader2 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import { MOCK_PEERS, type SimulatedPeer } from '@/features/social/types';
+import {
+    generateAIMisconception,
+    generateAIPushback,
+    scoreWithAI,
+    type AIMisconception,
+} from '@/features/learning-session/activities/gym-ai-service';
 import styles from './PeerReviewActivity.module.css';
 
 type ConversationStage = 'diagnosis' | 'pushback' | 'defense' | 'resolution';
@@ -120,9 +126,34 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [finalResult, setFinalResult] = useState<{ passed: boolean; feedback: string } | null>(null);
     const [showInput, setShowInput] = useState(true);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiMisconception, setAiMisconception] = useState<AIMisconception | null>(null);
+    const [aiReady, setAiReady] = useState(false);
 
-    const misconception = useMemo(() => generateMisconception(concept, allConcepts), [concept, allConcepts]);
-    const pushbackQuestion = useMemo(() => pickPushbackChallenge(concept), [concept]);
+    const fallbackMisconception = useMemo(() => generateMisconception(concept, allConcepts), [concept, allConcepts]);
+    const fallbackPushback = useMemo(() => pickPushbackChallenge(concept), [concept]);
+
+    useEffect(() => {
+        let cancelled = false;
+        generateAIMisconception(concept, allConcepts).then(result => {
+            if (cancelled) return;
+            if (result) {
+                setAiMisconception(result);
+            }
+            setAiReady(true);
+        });
+        return () => { cancelled = true; };
+    }, [concept, allConcepts]);
+
+    const misconception = useMemo(() => {
+        if (aiMisconception) {
+            return {
+                statement: aiMisconception.statement,
+                correctionKeywords: aiMisconception.correctionHints,
+            };
+        }
+        return fallbackMisconception;
+    }, [aiMisconception, fallbackMisconception]);
 
     const stageLabel: Record<ConversationStage, string> = {
         diagnosis: 'Diagnose the error',
@@ -131,69 +162,76 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
         resolution: 'Resolution',
     };
 
+    const handleDiagnosisSubmit = useCallback(async (userText: string) => {
+        setMessages(prev => [...prev, { sender: 'user', text: userText }]);
+        setShowInput(false);
+        setAiLoading(true);
+
+        const aiScore = await scoreWithAI(concept, userText, 'peer-review');
+        const fallbackScore = scoreCorrection(userText, misconception.correctionKeywords);
+        const score = aiScore ? aiScore.score : fallbackScore.score;
+        const diagnosisPassed = score >= 0.35;
+
+        setAiLoading(false);
+
+        if (diagnosisPassed) {
+            setAiLoading(true);
+            const aiPush = await generateAIPushback(concept, userText);
+            setAiLoading(false);
+
+            const pushText = aiPush?.challenge || fallbackPushback;
+            setTimeout(() => {
+                setMessages(prev => [...prev, { sender: 'peer', text: pushText, icon: 'shield' }]);
+                setStage('defense');
+                setShowInput(true);
+            }, 800);
+        } else {
+            const failFeedback = aiScore?.feedback
+                || `Hmm, I'm still not sure I understand. Could you be more specific about how ${concept.name} actually works?`;
+            setFinalResult({ passed: false, feedback: failFeedback });
+            setMessages(prev => [...prev, { sender: 'peer', text: failFeedback, icon: 'x' }]);
+            setStage('resolution');
+            setTimeout(() => onComplete(false), 2500);
+        }
+    }, [concept, misconception.correctionKeywords, fallbackPushback, onComplete]);
+
+    const handleDefenseSubmit = useCallback(async (userText: string) => {
+        setMessages(prev => [...prev, { sender: 'user', text: userText }]);
+        setShowInput(false);
+        setAiLoading(true);
+
+        const aiScore = await scoreWithAI(concept, userText, 'defense');
+        const fallbackDefense = scoreDefense(userText, concept);
+        const score = aiScore ? aiScore.score : fallbackDefense;
+        const defensePassed = score >= 0.3;
+
+        setAiLoading(false);
+
+        const feedback = aiScore?.feedback
+            || (defensePassed
+                ? `That actually makes a lot of sense now. I can see why my original thinking was off. Thanks for walking me through it!`
+                : `I appreciate the effort, but I'm still not fully convinced. I think there's more nuance here that we're missing.`);
+
+        setTimeout(() => {
+            setFinalResult({ passed: defensePassed, feedback });
+            setMessages(prev => [...prev, { sender: 'peer', text: feedback, icon: defensePassed ? 'check' : 'x' }]);
+            setStage('resolution');
+            setTimeout(() => onComplete(defensePassed), 2500);
+        }, 800);
+    }, [concept, onComplete]);
+
     const handleSubmit = () => {
         if (inputText.length < 20) return;
         const userText = inputText;
         setInputText('');
 
         if (stage === 'diagnosis') {
-            const { score } = scoreCorrection(userText, misconception.correctionKeywords);
-            const diagnosisPassed = score >= 0.35;
-
-            setMessages(prev => [
-                ...prev,
-                { sender: 'user', text: userText },
-            ]);
-
-            if (diagnosisPassed) {
-                setShowInput(false);
-                setTimeout(() => {
-                    setMessages(prev => [
-                        ...prev,
-                        { sender: 'peer', text: pushbackQuestion, icon: 'shield' },
-                    ]);
-                    setStage('defense');
-                    setShowInput(true);
-                }, 1200);
-            } else {
-                setShowInput(false);
-                setFinalResult({
-                    passed: false,
-                    feedback: `Hmm, I'm still not sure I understand. Could you be more specific about how ${concept.name} actually works?`,
-                });
-                setMessages(prev => [
-                    ...prev,
-                    { sender: 'peer', text: `Hmm, I'm still not sure I understand. Could you be more specific about how ${concept.name} actually works?`, icon: 'x' },
-                ]);
-                setStage('resolution');
-                setTimeout(() => onComplete(false), 2500);
-            }
+            handleDiagnosisSubmit(userText);
             return;
         }
 
         if (stage === 'defense') {
-            const defenseScore = scoreDefense(userText, concept);
-            const defensePassed = defenseScore >= 0.3;
-
-            setMessages(prev => [
-                ...prev,
-                { sender: 'user', text: userText },
-            ]);
-            setShowInput(false);
-
-            const feedback = defensePassed
-                ? `That actually makes a lot of sense now. I can see why my original thinking was off. Thanks for walking me through it!`
-                : `I appreciate the effort, but I'm still not fully convinced. I think there's more nuance here that we're missing.`;
-
-            setTimeout(() => {
-                setFinalResult({ passed: defensePassed, feedback });
-                setMessages(prev => [
-                    ...prev,
-                    { sender: 'peer', text: feedback, icon: defensePassed ? 'check' : 'x' },
-                ]);
-                setStage('resolution');
-                setTimeout(() => onComplete(defensePassed), 2500);
-            }, 1000);
+            handleDefenseSubmit(userText);
             return;
         }
     };
@@ -249,7 +287,14 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
                 ))}
             </div>
 
-            {showInput && !finalResult && (
+            {aiLoading && (
+                <div className={styles.inputArea} style={{ justifyContent: 'center', opacity: 0.6 }}>
+                    <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                    <span style={{ fontSize: '0.8125rem' }}>Thinking...</span>
+                </div>
+            )}
+
+            {showInput && !finalResult && !aiLoading && (
                 <div className={styles.inputArea}>
                     <textarea
                         value={inputText}

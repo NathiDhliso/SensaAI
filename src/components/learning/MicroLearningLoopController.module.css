@@ -110,6 +110,35 @@
     }
 }
 
+.adaptiveHint {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    background: var(--overlay-primary-10);
+    border-radius: var(--radius-full, 9999px);
+    margin: 0 auto;
+    width: fit-content;
+    font-style: italic;
+}
+
+.adaptiveHint svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+
+.adaptiveTiming {
+    margin-left: auto;
+    padding-left: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-weight: 600;
+    color: var(--color-accent);
+    font-size: 0.625rem;
+}
+
 /* ============================================================================
    LOOP INFO (SIDEBAR)
    ============================================================================ */

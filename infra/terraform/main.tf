@@ -129,6 +129,8 @@ module "api_gateway" {
   generate_concepts_invoke_arn    = module.lambda.generate_concepts_invoke_arn
   query_concepts_function_name    = module.lambda.query_concepts_function_name
   query_concepts_invoke_arn       = module.lambda.query_concepts_invoke_arn
+  gym_ai_function_name            = module.lambda.gym_ai_function_name
+  gym_ai_invoke_arn               = module.lambda.gym_ai_invoke_arn
 
   # CORS configuration
   cors_allowed_origins = var.cors_allowed_origins

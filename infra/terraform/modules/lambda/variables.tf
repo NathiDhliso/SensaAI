@@ -64,6 +64,19 @@ variable "query_memory_size" {
   default     = 512
 }
 
+# Gym AI Lambda Configuration
+variable "gym_ai_timeout" {
+  description = "Timeout for gym_ai Lambda (seconds)"
+  type        = number
+  default     = 30
+}
+
+variable "gym_ai_memory_size" {
+  description = "Memory size for gym_ai Lambda (MB)"
+  type        = number
+  default     = 256
+}
+
 # Logging
 variable "log_retention_days" {
   description = "CloudWatch log retention in days"

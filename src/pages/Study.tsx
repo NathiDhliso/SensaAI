@@ -37,6 +37,7 @@ import { getInterleavingAlgorithm } from '@/features/learning-session/algorithms
 import { getZPDConcepts } from '@/features/learning-session/algorithms/concept-selection';
 import HelpModal from '@/components/ui/HelpModal';
 import NeuralResetBanner from '@/components/learning/feedback/NeuralResetModal';
+import GymActivityLauncher, { type GymActivity } from '@/components/learning/gym/GymActivityLauncher';
 import styles from './Study.module.css';
 
 // Lazy load heavy components
@@ -294,42 +295,49 @@ export default function Study() {
     setActiveTab('learn');
   }, [showCoachMessage]);
 
-  // Handle tab changes with prerequisite validation
   const handleTabChange = useCallback((tab: StudyTab) => {
     const { studySession } = useLearningStore.getState();
+    const hasGymActivity = searchParams.get('activity');
 
-    // Validate prerequisites before allowing tab navigation
     if (tab === 'learn') {
-      // Check if overview/scouting is complete
-      if (!studySession?.scouted && concepts.length === 0) {
+      if (!studySession && concepts.length === 0) {
         toast.warning('Please complete the overview first to understand the concepts');
         return;
       }
 
-      // Check if study session has started
-      if (!studySession) {
-        toast.info('Start a learning session from the overview tab first');
-        setActiveTab('overview');
+      if (!studySession && !hasGymActivity) {
+        setShowSessionConfig(true);
         return;
       }
     }
 
     setActiveTab(tab);
-  }, [concepts]);
+  }, [concepts, searchParams]);
 
-  // URL guard: Validate tab from URL params
   useEffect(() => {
     const urlTab = searchParams.get('tab') as StudyTab;
     if (!urlTab) return;
 
-    // Validate URL tab against prerequisites
     if (urlTab === 'learn') {
       const { studySession } = useLearningStore.getState();
-      if (!studySession?.scouted && concepts.length === 0) {
-        console.log('[Study] Invalid direct navigation to learn tab, redirecting to overview');
-        setActiveTab('overview');
-        navigate(`/study/${subjectId}?tab=overview`, { replace: true });
-        toast.info('Start from the overview to begin learning');
+      const hasGymActivity = searchParams.get('activity');
+
+      if (hasGymActivity && concepts.length > 0) {
+        setActiveTab('learn');
+        return;
+      }
+
+      if (!studySession) {
+        if (concepts.length > 0) {
+          setShowSessionConfig(true);
+          setActiveTab('overview');
+        } else {
+          setActiveTab('overview');
+          navigate(`/study/${subjectId}?tab=overview`, { replace: true });
+          toast.info('Loading content — please start a session first');
+        }
+      } else {
+        setActiveTab('learn');
       }
     }
   }, [searchParams, concepts, subjectId, navigate]);
@@ -469,15 +477,28 @@ export default function Study() {
           </div>
         );
 
-      case 'learn':
+      case 'learn': {
+        const activityParam = searchParams.get('activity') as GymActivity | null;
+        const validActivities: GymActivity[] = ['concept-map', 'peer-review', 'mastery', 'pre-mortem'];
+
+        if (activityParam && validActivities.includes(activityParam) && concepts.length > 0) {
+          return (
+            <GymActivityLauncher
+              activity={activityParam}
+              concepts={concepts}
+              onBack={() => {
+                navigate(`/launchpad/${subjectId}`);
+              }}
+            />
+          );
+        }
+
         return (
           <Suspense fallback={<div className={styles.loading}>Loading Velocity Engine...</div>}>
             <LearningErrorBoundary
               onRecover={() => {
-                // Attempt to recover by reloading the session
               }}
               onAbandon={() => {
-                // Clear corrupted state and navigate to dashboard
                 useLearningStore.getState().clearSession();
                 navigate('/');
               }}
@@ -488,6 +509,7 @@ export default function Study() {
             </LearningErrorBoundary>
           </Suspense>
         );
+      }
 
       default:
         return null;

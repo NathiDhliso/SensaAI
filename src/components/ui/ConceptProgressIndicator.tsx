@@ -12,12 +12,14 @@ interface ConceptProgressIndicatorProps {
     current: number;
     total: number;
     compact?: boolean;
+    selectionReason?: string | null;
 }
 
 export function ConceptProgressIndicator({
     current,
     total,
     compact = false,
+    selectionReason,
 }: ConceptProgressIndicatorProps) {
     const percentage = total > 0 ? (current / total) * 100 : 0;
 
@@ -28,6 +30,9 @@ export function ConceptProgressIndicator({
                 <span className={styles.separator}>of</span>
                 <span className={styles.total}>{total}</span>
                 <span className={styles.percentage}>• {Math.round(percentage)}%</span>
+                {selectionReason && (
+                    <span className={styles.selectionReason}>{selectionReason}</span>
+                )}
             </div>
 
             <div className={styles.progressBar}>

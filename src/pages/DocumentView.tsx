@@ -4,6 +4,7 @@ import { ArrowLeft, Lightbulb, Map, FileText, Download } from 'lucide-react';
 import { storageManager } from '@/features/content-storage';
 import { parseContent } from '@/features/content-generation/parsers/json-parser';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
+import { formatSafeDate } from '@/shared/utils/utils';
 import styles from './DocumentView.module.css';
 
 export default function DocumentView() {
@@ -35,7 +36,7 @@ export default function DocumentView() {
                 setContent({
                     subject: result.subject,
                     domain: result.pass1Data.domain,
-                    date: new Date(result.generatedAt).toLocaleDateString(),
+                    date: formatSafeDate(result.generatedAt),
                     data: parseResult.success ? parseResult.data : null,
                     raw: result.fullDocument
                 });

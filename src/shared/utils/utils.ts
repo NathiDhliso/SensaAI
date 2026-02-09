@@ -29,6 +29,20 @@ export function formatPace(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+export function formatSafeDate(dateString: string | number | undefined | null): string {
+  if (!dateString) return 'Unknown';
+  let date: Date;
+  if (typeof dateString === 'number') {
+    date = new Date(dateString);
+  } else if (/^\d+$/.test(dateString)) {
+    date = new Date(Number(dateString));
+  } else {
+    date = new Date(dateString);
+  }
+  if (isNaN(date.getTime())) return 'Unknown';
+  return date.toLocaleDateString();
+}
+
 export type TimerUrgency = 'normal' | 'warning' | 'critical';
 
 export function getTimerUrgency(

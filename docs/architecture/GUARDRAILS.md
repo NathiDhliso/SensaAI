@@ -271,6 +271,12 @@ After making changes, verify:
 | Adding paper/grid textures | The crumpled paper texture on `body::before` is the only allowed texture. No grid dots, no additional paper overlays. |
 | Saturated dark mode backgrounds | Dark mode backgrounds must stay below ~15% saturation. Current palette: `#16131e` → `#1e1a28` → `#262233`. Never use vivid purple backgrounds. |
 | Using old tier names | Never use `foundation`, `keystone`, or `utility` as tier names. The tier system uses `root`, `trunk`, `leaf` — see §8. |
+| Silent adaptive logic | When adding adaptive behavior (activity routing, timing, scheduling), always surface a brief explanation to the user. Use `.adaptiveHint` pattern from `MicroLearningLoopController` or `.spacingFooter` pattern from `ContentLaunchpad`. The learner should understand *why* the system made a decision. |
+| Raw `new Date(generatedAt)` | Never use `new Date(generatedAt)` directly — legacy data stores numeric strings from `Date.now().toString()`. Always use `formatSafeDate()` from `@/shared/utils/utils` for display, or the inline `safeTime()` pattern for sorting. Source of truth for new records: ISO strings via `new Date().toISOString()`. |
+| Hardcoded toast colors | Toast colors must use CSS variables (`var(--color-surface)`, `var(--color-success)`, etc.), never hex values. The toast system in `toast.ts` handles theming internally. |
+| Gym activity routing | Gym tab buttons navigate to `/study/:id?tab=learn&activity=X`. Study.tsx reads `activity` param and renders `GymActivityLauncher` (in `src/components/learning/gym/`) instead of VelocityLearning. Valid activities: `concept-map`, `peer-review`, `mastery`, `pre-mortem`. Gym activities bypass `SessionStartModal` — they only need concepts loaded, not a full study session. |
+| Gym AI cost management | Gym activities use Claude Haiku (not Sonnet) via `gym-ai-service.ts`. All AI calls are optional — every activity has a keyword-based fallback that runs if AI fails or Bedrock isn't configured. Responses are cached client-side for 30 min per concept. Max tokens per call: 150-400. Never use Sonnet for gym scoring/generation. |
+| Uncapped concept map connections | `suggestConnections()` in `build-ai.ts` must enforce: max 3 connections per concept, max 20 total suggestions, and stop suggesting when avg connections/node ≥ 2.5. `STRUCTURAL_PATTERNS` must only match against `keyPoints`/`technicalDetails`, never concept names (e.g., "Limits" ≠ "constrains"). Words appearing in >35% of concept names are auto-stopwords. |
 
 ---
 
@@ -288,7 +294,8 @@ After making changes, verify:
 | `src/features/content-audit/audit-engine.ts` | Content Audit Engine — 2-track scoring: (1) Content Health = structural completeness (SHAPE, mnemonic, technical depth), (2) Objective Alignment = bigram + token + name-overlap fuzzy matching against user-provided exam objectives. Classifies as objective-aligned / supplementary / not-in-objectives / unverified. Objectives stored in localStorage per subject. |
 | `src/features/content-audit/syllabus-parser.ts` | Smart syllabus/exam paper parser — strips numbering, bullets, headers, percentages, weights, answer choices (A-E), question numbers, mark allocations, instructions, answer keys, and junk lines from raw pasted text. Handles both syllabus and exam paper formats. Used by Home page (pre-generation cleanup) and Launchpad (post-generation audit). |
 | `src/components/learning/launchpad/ContentLaunchpad.tsx` | Analytics dashboard at `/launchpad/:subjectId` — renders audit results with expandable per-concept verdicts. |
-| `src/pages/Study.tsx` | Study session entry + hydration |
+| `src/pages/Study.tsx` | Study session entry + hydration. Reads `activity` query param to render `GymActivityLauncher` for gym activities. |
+| `src/features/learning-session/activities/gym-ai-service.ts` | AI-powered gym activity service. Uses Claude Haiku for cost efficiency. Provides: `generateAIMisconception`, `generateAIPushback`, `scoreWithAI`, `generateMasteryScenario`, `scoreMasteryWithAI`, `generateAIBrokenConfig`. All functions return `null` on failure — callers must implement keyword-based fallback. 30-min client-side cache, max 100 entries. |
 | `src/components/layout/StudyLayout.tsx` | Unified study command center layout wrapper |
 | `src/shared/constants/theme-colors.ts` | All color constants including mood colors, `GRAPH_COLORS` (root/trunk/leaf), lifecycle colors |
 | `backend/lambda/shared/system_prompt.py` | Generation prompt (classification + silver bullet + surgical fix). Domain-aware partitioning: when user provides exam objectives, `_parse_objective_domains()` splits them into top-level domains and `_distribute_domains_to_parts()` assigns domains to the 5 generation parts so each part covers specific exam domains instead of generic knowledge dimensions. |
@@ -305,6 +312,7 @@ Terraform S3 backend is currently unavailable. Deploy Lambda code changes via AW
 Compress-Archive -Path "backend\lambda\*" -DestinationPath "backend\lambda_deploy.zip" -Force
 aws lambda update-function-code --function-name sensapbl-generate-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
 aws lambda update-function-code --function-name sensapbl-query-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+aws lambda update-function-code --function-name sensapbl-gym-ai-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
 Remove-Item "backend\lambda_deploy.zip"
 ```
 

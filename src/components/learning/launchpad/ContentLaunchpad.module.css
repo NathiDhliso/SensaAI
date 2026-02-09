@@ -39,6 +39,13 @@
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.batteryIndicator:hover {
+    background: var(--color-surface-subtle);
+    border-color: var(--color-accent-light);
 }
 
 .batteryLabel {
@@ -697,8 +704,7 @@
 }
 
 .zoneLocked {
-    opacity: 0.55;
-    pointer-events: none;
+    opacity: 0.7;
     position: relative;
 }
 
@@ -769,13 +775,14 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
     text-align: left;
 }
 
 .reviewCard:hover {
     border-color: var(--color-accent);
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 .reviewCardStale {
@@ -800,14 +807,101 @@
     font-weight: 500;
 }
 
-.zoneEmpty {
+.reviewSpacing {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.15rem;
+}
+
+.reviewInterval {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.625rem;
+    color: var(--color-text-muted);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.reviewEase {
+    font-size: 0.625rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.reviewStreak {
+    font-size: 0.625rem;
+    color: var(--color-accent);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.spacingFooter {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    margin-top: 0.5rem;
+    background: var(--color-surface-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    flex-wrap: wrap;
+}
+
+.spacingMetric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.spacingValue {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.spacingLabel {
+    font-size: 0.625rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 500;
+}
+
+.spacingInfo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    margin-left: auto;
+    font-style: italic;
+}
+
+.zoneEmpty {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
     padding: 1rem;
     color: var(--color-text-muted);
     font-size: 0.875rem;
     font-weight: 500;
+}
+
+.zoneEmptyContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.zoneEmptyHint {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    opacity: 0.7;
 }
 
 .zoneCards {
@@ -879,6 +973,85 @@
 .zoneLockedOverlay p {
     margin: 0;
     font-size: 0.8125rem;
+}
+
+.zoneLockedPreview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.lockedActivityRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-subtle);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, opacity 0.15s;
+}
+
+.lockedActivityRow:hover {
+    border-color: var(--color-accent-light);
+    opacity: 0.9;
+    color: var(--color-text-secondary);
+}
+
+.lockedHint {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    padding: 0.375rem 0.75rem;
+    font-style: italic;
+}
+
+.subjectContext {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.625rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.contextStat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.contextValue {
+    font-size: 1.125rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+    line-height: 1;
+}
+
+.contextLabel {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+}
+
+.contextDivider {
+    width: 1px;
+    height: 24px;
+    background: var(--color-border);
+    flex-shrink: 0;
 }
 
 .footer {

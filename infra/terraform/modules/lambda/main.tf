@@ -196,8 +196,47 @@ resource "aws_lambda_function" "query_concepts" {
 }
 
 # ==============================================================================
+# GYM AI LAMBDA
+# ==============================================================================
+
+resource "aws_lambda_function" "gym_ai" {
+  function_name = "${var.project_name}-gym-ai-${var.environment}"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "gym_ai.handler.lambda_handler"
+  runtime       = "python3.12"
+
+  timeout     = var.gym_ai_timeout
+  memory_size = var.gym_ai_memory_size
+
+  filename         = data.archive_file.lambda_code.output_path
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
+
+  layers = length(aws_lambda_layer_version.python_deps) > 0 ? [
+    aws_lambda_layer_version.python_deps[0].arn
+  ] : []
+
+  environment {
+    variables = {
+      ENVIRONMENT = var.environment
+      LOG_LEVEL   = var.environment == "prod" ? "INFO" : "DEBUG"
+    }
+  }
+
+  tags = merge(var.tags, {
+    Function = "gym-ai"
+  })
+}
+
+# ==============================================================================
 # CLOUDWATCH LOG GROUPS
 # ==============================================================================
+
+resource "aws_cloudwatch_log_group" "gym_ai" {
+  name              = "/aws/lambda/${aws_lambda_function.gym_ai.function_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = var.tags
+}
 
 resource "aws_cloudwatch_log_group" "generate_concepts" {
   name              = "/aws/lambda/${aws_lambda_function.generate_concepts.function_name}"

@@ -18,13 +18,14 @@ export type LearningPhase =
 
 export interface LearningFlow {
     currentPhase: LearningPhase;
+    completedPhases: LearningPhase[];
+    diagnosticSkipped: boolean;
     activeConcept: LearningConcept | null;
     progress: {
         completed: number;
         total: number;
         percentage: number;
     };
-    // Flags for UI decision making
     showDashboard: boolean;
     showStartModal: boolean;
 }
@@ -186,6 +187,48 @@ export function useLearningFlow(): LearningFlow {
 
     }, [currentSession, studySession, diagnosticSession, activeConcept]);
 
+    const { completedPhases, diagnosticSkipped } = useMemo(() => {
+        const completed: LearningPhase[] = [];
+        let diagSkipped = false;
+
+        if (!currentSession || !studySession || !studySession.isActive) {
+            return { completedPhases: completed, diagnosticSkipped: false };
+        }
+
+        if (studySession.primer) {
+            completed.push('PRIME');
+        }
+
+        if (studySession.mapBuilt) {
+            completed.push('BUILD');
+        }
+
+        const rootCount = currentSession.metadata?.rootConcepts ?? 0;
+        const hadDiagnostic = diagnosticSession !== null;
+        const diagnosticDone = diagnosticSession?.isComplete ?? false;
+        const needsDiagnostic = hadDiagnostic || (rootCount >= 5);
+
+        if (needsDiagnostic && diagnosticDone) {
+            completed.push('DIAGNOSE');
+        } else if (!needsDiagnostic && studySession.mapBuilt) {
+            diagSkipped = true;
+        }
+
+        const hasCompletedAnyConcepts = currentSession.progress.completedConcepts.length > 0;
+        const allConceptsDone = hasCompletedAnyConcepts &&
+            currentSession.progress.completedConcepts.length >= currentSession.concepts.length;
+
+        if (allConceptsDone) {
+            completed.push('LEARN');
+        }
+
+        if (studySession.mastered) {
+            completed.push('MASTER');
+        }
+
+        return { completedPhases: completed, diagnosticSkipped: diagSkipped };
+    }, [currentSession, studySession, diagnosticSession]);
+
     // 3. Calculated Metrics
     const progress = useMemo(() => {
         if (!currentSession) return { completed: 0, total: 0, percentage: 0 };
@@ -208,6 +251,8 @@ export function useLearningFlow(): LearningFlow {
 
     return {
         currentPhase,
+        completedPhases,
+        diagnosticSkipped,
         activeConcept,
         progress,
         showDashboard,

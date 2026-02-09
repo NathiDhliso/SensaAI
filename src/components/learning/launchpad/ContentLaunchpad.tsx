@@ -6,7 +6,6 @@ import {
     AlertCircle,
     Sparkles,
     Clock,
-    Lock,
     Map,
     MessageCircle,
     Trophy,
@@ -24,6 +23,8 @@ import {
     FileText,
     Dumbbell,
     BarChart3,
+    TrendingUp,
+    Info,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,10 +34,11 @@ import type { ParsedGeneratedContent } from '@/features/content-generation/parse
 import type { SavedResult } from '@/features/content-storage/types';
 import { auditContent, parseSyllabusText, type ContentAuditResult, type ConceptVerdict } from '@/features/content-audit';
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
-import type { ScheduledReview } from '@/features/learning-session/algorithms/spacing-engine';
+import type { ScheduledReview, SpacingMetrics } from '@/features/learning-session/algorithms/spacing-engine';
 import { moodToBandwidth, type CognitiveBandwidth } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 
+import { formatSafeDate } from '@/shared/utils/utils';
 import styles from './ContentLaunchpad.module.css';
 
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
@@ -92,6 +94,7 @@ export default function ContentLaunchpad() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [dueReviews, setDueReviews] = useState<ScheduledReview[]>([]);
+    const [spacingMetrics, setSpacingMetrics] = useState<SpacingMetrics | null>(null);
     const [expandedConcept, setExpandedConcept] = useState<string | null>(null);
 
     const [objectivesText, setObjectivesText] = useState('');
@@ -108,6 +111,15 @@ export default function ContentLaunchpad() {
     }, [lastSessionMood]);
 
     const bwConfig = BANDWIDTH_CONFIG[bandwidth];
+
+    const tierCounts = useMemo(() => {
+        if (!parsedData) return { root: 0, trunk: 0, leaf: 0, total: 0 };
+        const concepts = parsedData.concepts || [];
+        const root = concepts.filter(c => c.tier === 'root').length;
+        const trunk = concepts.filter(c => c.tier === 'trunk').length;
+        const leaf = concepts.length - root - trunk;
+        return { root, trunk, leaf, total: concepts.length };
+    }, [parsedData]);
 
     const runAudit = useCallback((parsed: ParsedGeneratedContent, objectives: string[]) => {
         setAudit(auditContent(parsed, objectives));
@@ -147,8 +159,8 @@ export default function ContentLaunchpad() {
     useEffect(() => {
         try {
             const spacing = getSpacingEngine();
-            const due = spacing.getDueReviews();
-            setDueReviews(due);
+            setDueReviews(spacing.getDueReviews());
+            setSpacingMetrics(spacing.getMetrics());
         } catch { /* spacing not initialized yet */ }
     }, []);
 
@@ -157,7 +169,11 @@ export default function ContentLaunchpad() {
     };
 
     const handleReviewConcept = (conceptId: string) => {
-        navigate(`/study/${subjectId}?tab=learn&concept=${conceptId}&mode=micro-loop`);
+        navigate(`/study/${subjectId}?tab=learn&concept=${conceptId}`);
+    };
+
+    const handleGymActivity = (activity: string) => {
+        navigate(`/study/${subjectId}?tab=learn&activity=${activity}`);
     };
 
     const handleSaveObjectives = () => {
@@ -222,8 +238,6 @@ export default function ContentLaunchpad() {
         );
     }
 
-    const showBuildLab = bandwidth !== 'low';
-    const showProvingGrounds = bandwidth === 'high';
 
     return (
         <div className={styles.container}>
@@ -237,10 +251,15 @@ export default function ContentLaunchpad() {
                     </div>
                 </div>
                 <div className={styles.headerRight}>
-                    <div className={styles.batteryIndicator} style={{ borderColor: bwConfig.color }}>
+                    <button
+                        className={styles.batteryIndicator}
+                        style={{ borderColor: bwConfig.color }}
+                        onClick={handleStartLearning}
+                        title="Start a session to change your energy level"
+                    >
                         {bwConfig.icon}
                         <span className={styles.batteryLabel}>{bwConfig.label}</span>
-                    </div>
+                    </button>
                     <button onClick={handleStartLearning} className={styles.headerCta}>
                         <Play size={18} /> Start Session
                     </button>
@@ -264,6 +283,33 @@ export default function ContentLaunchpad() {
 
             {activeTab === 'gym' && (
                 <div className={styles.gymLayout}>
+                    {tierCounts.total > 0 && (
+                        <div className={styles.subjectContext}>
+                            <div className={styles.contextStat}>
+                                <span className={styles.contextValue}>{tierCounts.total}</span>
+                                <span className={styles.contextLabel}>Concepts</span>
+                            </div>
+                            <div className={styles.contextDivider} />
+                            <div className={styles.contextStat}>
+                                <span className={styles.contextValue} style={{ color: 'var(--color-root, #ef4444)' }}>{tierCounts.root}</span>
+                                <span className={styles.contextLabel}>Root</span>
+                            </div>
+                            <div className={styles.contextStat}>
+                                <span className={styles.contextValue} style={{ color: 'var(--color-trunk, #f59e0b)' }}>{tierCounts.trunk}</span>
+                                <span className={styles.contextLabel}>Trunk</span>
+                            </div>
+                            <div className={styles.contextStat}>
+                                <span className={styles.contextValue} style={{ color: 'var(--color-leaf, #22c55e)' }}>{tierCounts.leaf}</span>
+                                <span className={styles.contextLabel}>Leaf</span>
+                            </div>
+                            <div className={styles.contextDivider} />
+                            <div className={styles.contextStat}>
+                                <span className={styles.contextValue}>{dueReviews.length}</span>
+                                <span className={styles.contextLabel}>Due</span>
+                            </div>
+                        </div>
+                    )}
+
                     <section className={styles.zone}>
                         <div className={styles.zoneHeader}>
                             <div className={styles.zoneTitle}>
@@ -276,131 +322,149 @@ export default function ContentLaunchpad() {
                         </div>
 
                         {dueReviews.length > 0 ? (
-                            <div className={styles.dailyTicker}>
-                                {dueReviews.slice(0, 8).map(review => {
-                                    const overdueDays = Math.max(0, Math.floor(
-                                        (Date.now() - new Date(review.dueDate).getTime()) / (1000 * 60 * 60 * 24)
-                                    ));
-                                    return (
-                                        <button
-                                            key={review.conceptId}
-                                            className={`${styles.reviewCard} ${overdueDays > 3 ? styles.reviewCardStale : ''}`}
-                                            onClick={() => handleReviewConcept(review.conceptId)}
-                                        >
-                                            <span className={styles.reviewName}>{review.conceptName}</span>
-                                            <span className={styles.reviewMeta}>
-                                                {overdueDays > 0 ? (
-                                                    <><AlertTriangle size={12} /> {overdueDays}d overdue</>
-                                                ) : (
-                                                    <><Zap size={12} /> Due today</>
-                                                )}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <>
+                                <div className={styles.dailyTicker}>
+                                    {dueReviews.slice(0, 8).map(review => {
+                                        const overdueDays = Math.max(0, Math.floor(
+                                            (Date.now() - new Date(review.dueDate).getTime()) / (1000 * 60 * 60 * 24)
+                                        ));
+                                        const easeLabel = review.easeFactor >= 2.2 ? 'Easy' : review.easeFactor >= 1.8 ? 'Medium' : 'Hard';
+                                        const easeColor = review.easeFactor >= 2.2 ? 'var(--color-success)' : review.easeFactor >= 1.8 ? 'var(--color-warning)' : 'var(--color-error)';
+                                        return (
+                                            <button
+                                                key={review.conceptId}
+                                                className={`${styles.reviewCard} ${overdueDays > 3 ? styles.reviewCardStale : ''}`}
+                                                onClick={() => handleReviewConcept(review.conceptId)}
+                                            >
+                                                <span className={styles.reviewName}>{review.conceptName}</span>
+                                                <span className={styles.reviewMeta}>
+                                                    {overdueDays > 0 ? (
+                                                        <><AlertTriangle size={12} /> {overdueDays}d overdue</>
+                                                    ) : (
+                                                        <><Zap size={12} /> Due today</>
+                                                    )}
+                                                </span>
+                                                <div className={styles.reviewSpacing}>
+                                                    <span className={styles.reviewInterval}>
+                                                        <TrendingUp size={10} /> {review.intervalDays}d interval
+                                                    </span>
+                                                    <span className={styles.reviewEase} style={{ color: easeColor }}>
+                                                        {easeLabel}
+                                                    </span>
+                                                    {review.repetitions > 0 && (
+                                                        <span className={styles.reviewStreak}>
+                                                            {review.repetitions}x streak
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {spacingMetrics && (
+                                    <div className={styles.spacingFooter}>
+                                        <div className={styles.spacingMetric}>
+                                            <span className={styles.spacingValue}>{spacingMetrics.retentionRate}%</span>
+                                            <span className={styles.spacingLabel}>Retention</span>
+                                        </div>
+                                        <div className={styles.spacingMetric}>
+                                            <span className={styles.spacingValue}>{spacingMetrics.totalConcepts}</span>
+                                            <span className={styles.spacingLabel}>Tracked</span>
+                                        </div>
+                                        <div className={styles.spacingMetric}>
+                                            <span className={styles.spacingValue}>{spacingMetrics.overdue}</span>
+                                            <span className={styles.spacingLabel}>Overdue</span>
+                                        </div>
+                                        <div className={styles.spacingMetric}>
+                                            <span className={styles.spacingValue}>{spacingMetrics.adherencePercent}%</span>
+                                            <span className={styles.spacingLabel}>Adherence</span>
+                                        </div>
+                                        <div className={styles.spacingInfo}>
+                                            <Info size={12} />
+                                            <span>SM-2 adapts intervals based on your recall quality</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <div className={styles.zoneEmpty}>
                                 <Sparkles size={20} />
-                                <span>No reviews due — you&apos;re all caught up!</span>
+                                <div className={styles.zoneEmptyContent}>
+                                    <span>No reviews due — you&apos;re all caught up!</span>
+                                    <span className={styles.zoneEmptyHint}>Start a learning session to generate spaced reviews</span>
+                                </div>
                             </div>
                         )}
                     </section>
 
-                    <section className={`${styles.zone} ${!showBuildLab ? styles.zoneLocked : ''}`}>
+                    <section className={styles.zone}>
                         <div className={styles.zoneHeader}>
                             <div className={styles.zoneTitle}>
                                 <Map size={18} />
                                 <h2>The Build Lab</h2>
                             </div>
-                            {!showBuildLab && (
-                                <span className={styles.zoneLockBadge}>
-                                    <Lock size={14} /> Needs Steady+
-                                </span>
-                            )}
                         </div>
-
-                        {showBuildLab ? (
-                            <div className={styles.zoneCards}>
-                                <button
-                                    className={styles.activityCard}
-                                    onClick={() => navigate(`/study/${subjectId}?tab=learn&activity=concept-map`)}
-                                >
-                                    <div className={styles.activityIcon}>
-                                        <Map size={24} />
-                                    </div>
-                                    <div className={styles.activityInfo}>
-                                        <span className={styles.activityName}>Concept Map</span>
-                                        <span className={styles.activityDesc}>Build connections between ideas</span>
-                                    </div>
-                                </button>
-                                <button
-                                    className={styles.activityCard}
-                                    onClick={() => navigate(`/study/${subjectId}?tab=learn&activity=peer-review`)}
-                                >
-                                    <div className={styles.activityIcon}>
-                                        <MessageCircle size={24} />
-                                    </div>
-                                    <div className={styles.activityInfo}>
-                                        <span className={styles.activityName}>Peer Review</span>
-                                        <span className={styles.activityDesc}>Defend your understanding</span>
-                                    </div>
-                                </button>
-                            </div>
-                        ) : (
-                            <div className={styles.zoneLockedOverlay}>
-                                <Lock size={28} />
-                                <p>Set battery to Steady or higher to unlock</p>
-                            </div>
-                        )}
+                        <div className={styles.zoneCards}>
+                            <button
+                                className={styles.activityCard}
+                                onClick={() => handleGymActivity('concept-map')}
+                            >
+                                <div className={styles.activityIcon}>
+                                    <Map size={24} />
+                                </div>
+                                <div className={styles.activityInfo}>
+                                    <span className={styles.activityName}>Concept Map</span>
+                                    <span className={styles.activityDesc}>Build connections between ideas</span>
+                                </div>
+                            </button>
+                            <button
+                                className={styles.activityCard}
+                                onClick={() => handleGymActivity('peer-review')}
+                            >
+                                <div className={styles.activityIcon}>
+                                    <MessageCircle size={24} />
+                                </div>
+                                <div className={styles.activityInfo}>
+                                    <span className={styles.activityName}>Peer Review</span>
+                                    <span className={styles.activityDesc}>Defend your understanding</span>
+                                </div>
+                            </button>
+                        </div>
                     </section>
 
-                    <section className={`${styles.zone} ${!showProvingGrounds ? styles.zoneLocked : ''}`}>
+                    <section className={styles.zone}>
                         <div className={styles.zoneHeader}>
                             <div className={styles.zoneTitle}>
                                 <Trophy size={18} />
                                 <h2>The Proving Grounds</h2>
                             </div>
-                            {!showProvingGrounds && (
-                                <span className={styles.zoneLockBadge}>
-                                    <Lock size={14} /> Needs High Focus
-                                </span>
-                            )}
                         </div>
-
-                        {showProvingGrounds ? (
-                            <div className={styles.zoneCards}>
-                                <button
-                                    className={styles.activityCard}
-                                    onClick={() => navigate(`/study/${subjectId}?tab=learn&activity=mastery`)}
-                                >
-                                    <div className={styles.activityIcon}>
-                                        <Trophy size={24} />
-                                    </div>
-                                    <div className={styles.activityInfo}>
-                                        <span className={styles.activityName}>Mastery Challenge</span>
-                                        <span className={styles.activityDesc}>Prove deep understanding</span>
-                                    </div>
-                                </button>
-                                <button
-                                    className={styles.activityCard}
-                                    onClick={() => navigate(`/study/${subjectId}?tab=learn&activity=pre-mortem`)}
-                                >
-                                    <div className={styles.activityIcon}>
-                                        <AlertTriangle size={24} />
-                                    </div>
-                                    <div className={styles.activityInfo}>
-                                        <span className={styles.activityName}>Pre-Mortem</span>
-                                        <span className={styles.activityDesc}>Find the failure before it happens</span>
-                                    </div>
-                                </button>
-                            </div>
-                        ) : (
-                            <div className={styles.zoneLockedOverlay}>
-                                <Lock size={28} />
-                                <p>Set battery to High Focus to unlock</p>
-                            </div>
-                        )}
+                        <div className={styles.zoneCards}>
+                            <button
+                                className={styles.activityCard}
+                                onClick={() => handleGymActivity('mastery')}
+                            >
+                                <div className={styles.activityIcon}>
+                                    <Trophy size={24} />
+                                </div>
+                                <div className={styles.activityInfo}>
+                                    <span className={styles.activityName}>Mastery Challenge</span>
+                                    <span className={styles.activityDesc}>Prove deep understanding</span>
+                                </div>
+                            </button>
+                            <button
+                                className={styles.activityCard}
+                                onClick={() => handleGymActivity('pre-mortem')}
+                            >
+                                <div className={styles.activityIcon}>
+                                    <AlertTriangle size={24} />
+                                </div>
+                                <div className={styles.activityInfo}>
+                                    <span className={styles.activityName}>Pre-Mortem</span>
+                                    <span className={styles.activityDesc}>Find the failure before it happens</span>
+                                </div>
+                            </button>
+                        </div>
                     </section>
                 </div>
             )}
@@ -681,14 +745,9 @@ export default function ContentLaunchpad() {
                 <div className={styles.footerStats}>
                     <div className={styles.footerStat}>
                         <span className={styles.statLabel}>Generated</span>
-                        <span className={styles.statValue}>{new Date(result.generatedAt).toLocaleDateString()}</span>
+                        <span className={styles.statValue}>{formatSafeDate(result.generatedAt)}</span>
                     </div>
-                    {activeTab === 'gym' ? (
-                        <div className={styles.footerStat}>
-                            <span className={styles.statLabel}>Reviews Due</span>
-                            <span className={styles.statValue}>{dueReviews.length}</span>
-                        </div>
-                    ) : audit && (
+                    {activeTab === 'insights' && audit && (
                         <>
                             <div className={styles.footerStat}>
                                 <span className={styles.statLabel}>Overall</span>
@@ -703,9 +762,6 @@ export default function ContentLaunchpad() {
                         </>
                     )}
                 </div>
-                <button onClick={handleStartLearning} className={styles.startButton}>
-                    <Play size={18} /> Start Session
-                </button>
             </footer>
         </div>
     );

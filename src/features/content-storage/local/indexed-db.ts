@@ -176,9 +176,12 @@ class IndexedDBStorage implements StorageProvider {
         request.onsuccess = () => {
           const results = request.result || [];
           // Sort by date, newest first
-          results.sort((a, b) =>
-            new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
-          );
+          const safeTime = (d: string) => {
+            if (/^\d+$/.test(d)) return Number(d);
+            const t = new Date(d).getTime();
+            return isNaN(t) ? 0 : t;
+          };
+          results.sort((a, b) => safeTime(b.generatedAt) - safeTime(a.generatedAt));
           resolve(results);
         };
 
@@ -485,8 +488,8 @@ class IndexedDBStorage implements StorageProvider {
       // Step 1: Evict old results (>90 days)
       const results = await this.listResults();
       const oldResults = results.filter(result => {
-        const generatedTime = new Date(result.generatedAt).getTime();
-        return now - generatedTime > NINETY_DAYS_MS;
+        const generatedTime = /^\d+$/.test(result.generatedAt) ? Number(result.generatedAt) : new Date(result.generatedAt).getTime();
+        return !isNaN(generatedTime) && now - generatedTime > NINETY_DAYS_MS;
       });
 
       for (const oldResult of oldResults) {
