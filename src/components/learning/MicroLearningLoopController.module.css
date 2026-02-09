@@ -393,6 +393,11 @@
  border: 1px solid var(--color-border);
  color: var(--color-text-medium);
 }
+.analogyText {
+ font-style: italic;
+ color: var(--color-text-secondary);
+ line-height: var(--line-height-relaxed);
+}
 .sectionHeader {
  display: flex;
  align-items: flex-start;

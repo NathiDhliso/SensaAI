@@ -145,31 +145,26 @@ const handleMetaphorClick = () => {
 
 ## Integration Status
 
-### Correctly Integrated (uses `useMetaphorContent` hook)
+### Correctly Integrated (uses `useMetaphorContent` or `useMetaphorSettings` hook)
 
 | Component | File | Notes |
 |-----------|------|-------|
 | SensaSynopticView | `src/components/learning/ui/SensaSynopticView.tsx` | Shows analogical model in concept details panel |
 | NeuralResetBanner | `src/components/learning/ui/NeuralResetBanner.tsx` | Displays adapted content in concept explanations |
 | SessionScoutPreview | `src/components/learning/session/SessionScoutPreview.tsx` | ConceptChip uses adapted content |
+| BlankSheetTest | `src/components/learning/activities/BlankSheetTest.tsx` | Uses `metaphorsEnabled` from hook for metaphor exit strategy scoring |
+| MicroLearningLoopController | `src/components/learning/MicroLearningLoopController.tsx` | WorkedExamplePhase and FadedExamplePhase show analogical model between problem and solution |
+| ConfusionDrill | `src/components/learning/activities/ConfusionDrill.tsx` | Shows analogies for both concepts in feedback section to help distinguish them |
+| CreativeTransferActivity | `src/components/learning/activities/CreativeTransferActivity.tsx` | Shows analogical model as contextual hint in the scenario card |
+| PeerReviewActivity | `src/components/learning/activities/PeerReviewActivity.tsx` | Shows analogical model in the initial peer misconception bubble |
+| MasteryChallenge | `src/components/learning/activities/MasteryChallenge.tsx` | Uses `useMetaphorSettings` to adapt synthesis prompt (allows analogies when enabled) |
 
-### Needs Refactor (uses direct `metaphorSettings` check)
+### Not Yet Integrated (deferred)
 
-| Component | File | Issue |
-|-----------|------|-------|
-| BlankSheetTest | `src/components/learning/activities/BlankSheetTest.tsx` | Reads `metaphorSettings.showAnalogies` directly instead of using the hook |
-
-### Not Yet Integrated (high priority)
-
-| Component | File | Integration Points |
-|-----------|------|-------------------|
-| MicroLearningLoopController | `src/components/learning/MicroLearningLoopController.tsx` | WorkedExamplePhase: show/hide analogical explanations. FadedExamplePhase: adapt hint complexity. VerifyPhase: include/exclude metaphor-based distractors |
-| ConceptMapBuilder | `src/components/learning/activities/ConceptMapBuilder.tsx` | Node labels: show concept name + visual anchor. Tooltips: include analogical model in hover state |
-| ConfusionDrill | `src/components/learning/activities/ConfusionDrill.tsx` | Option explanations: add analogical clarifications. Feedback: use metaphors to explain correct/incorrect |
-| CreativeTransferActivity | `src/components/learning/activities/CreativeTransferActivity.tsx` | Scenario generation: include metaphor-based transfer scenarios. Validation: check for analogical thinking |
-| PeerReviewActivity | `src/components/learning/activities/PeerReviewActivity.tsx` | Misconception generation: create metaphor-based confusion. Correction validation: accept metaphor-based explanations |
-| MasteryChallenge | `src/components/learning/activities/MasteryChallenge.tsx` | Prompt: include/exclude analogical framing. Feedback: adapt explanation style |
-| CoachMessage | `src/features/ai-coach/components/CoachMessage.tsx` | AI Coach responses: adjust language to include/exclude metaphors |
+| Component | File | Reason |
+|-----------|------|--------|
+| ConceptMapBuilder | `src/components/learning/activities/ConceptMapBuilder.tsx` | No tooltip system exists -- requires building tooltip infrastructure first |
+| CoachMessage | `src/features/ai-coach/components/CoachMessage.tsx` | Receives pre-built message strings -- metaphor adaptation must happen at the AI prompt generation level, not the display component |
 
 ---
 
@@ -292,11 +287,12 @@ describe('useMetaphorContent', () => {
 - [x] useMetaphorContent hook
 - [x] SensaSynopticView, NeuralResetBanner, SessionScoutPreview integration
 
-### Phase 2: Activity Integration (next)
-- [ ] Refactor BlankSheetTest to use hook instead of direct check
-- [ ] MicroLearningLoopController phases
-- [ ] All practice ground activities (ConceptMapBuilder, ConfusionDrill, CreativeTransferActivity, PeerReviewActivity, MasteryChallenge)
-- [ ] AI Coach message adaptation
+### Phase 2: Activity Integration (complete)
+- [x] Refactor BlankSheetTest to use hook instead of direct check
+- [x] MicroLearningLoopController phases (WorkedExample, FadedExample)
+- [x] ConfusionDrill, CreativeTransferActivity, PeerReviewActivity, MasteryChallenge
+- [ ] ConceptMapBuilder -- deferred, requires tooltip infrastructure
+- [ ] AI Coach message adaptation -- deferred, requires prompt-level changes
 
 ### Phase 3: Advanced Features
 - [ ] Custom metaphor editor -- allow users to replace system metaphors with personal ones

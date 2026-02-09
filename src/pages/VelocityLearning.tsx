@@ -202,14 +202,8 @@ export default function VelocityLearning() {
  if (!activeConcept) return;
  // "Sonic Boom" Effect for Mastery
  if (outcome === 'mastered') {
- try {
- if ('speechSynthesis' in window) {
- const utterance = new SpeechSynthesisUtterance('Excellent! Concept mastered.');
- utterance.rate = 1.1;
- utterance.volume = 0.6;
- window.speechSynthesis.speak(utterance);
- }
- } catch (_) { }
+ // Voice celebration handled by coach messages
+ // Could add a specific mastery celebration here if needed
  }
  const score = outcome === 'mastered' ? 1.0 : outcome === 'needs-review' ? 0.6 : 0.3;
  completeConcept(activeConcept.id, score, outcome);

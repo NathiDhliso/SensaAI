@@ -92,11 +92,10 @@ export function useFormattedContent(concept: LearningConcept | null): {
  const primaryText = coreExplanation || hookSentence || 'No content available';
  // Secondary text - analogical model if enabled
  const secondaryText = analogicalModel;
- // Visual element - anchor if enabled
- const visualElement = visualAnchor;
  return {
  primaryText,
  secondaryText,
+ visualElement: null,
  hasMetaphors: metaphorsEnabled && !!analogicalModel
  };
  }, [adaptedContent]);
@@ -110,6 +109,6 @@ export function useMetaphorSettings() {
  settings: metaphorSettings,
  updateSettings: updateMetaphorSettings,
  trackUsage: trackMetaphorUsage,
- isEnabled: metaphorSettings.metaphorSettings.showAnalogies
+ isEnabled: metaphorSettings.showAnalogies
  };
 }

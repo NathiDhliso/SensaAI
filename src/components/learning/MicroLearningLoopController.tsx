@@ -25,6 +25,7 @@ import type { ConfusionDrillResult, ConfusionPair } from '@/features/learning-se
 import { getRandomElaborationPrompt } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
+import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import styles from './MicroLearningLoopController.module.css';
 // ============================================================================
 // TYPES
@@ -125,6 +126,7 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
  const [revealStep, setRevealStep] = useState(0);
  const [startTime] = useState(() => Date.now());
  const example = useMemo(() => synthesizeExample(concept), [concept]);
+ const { analogicalModel } = useMetaphorContent(concept);
  const handleReveal = () => {
  setIsSolutionRevealed(true);
  };
@@ -171,6 +173,12 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
  <p>{example.problem}</p>
  </div>
  )}
+ {analogicalModel && (
+ <div className={styles.learningSection}>
+ <h5 className={styles.sectionTitle}>Think of it like...</h5>
+ <p className={styles.analogyText}>{analogicalModel}</p>
+ </div>
+ )}
  {!isSolutionRevealed ? (
  <button className={styles.submitButton} onClick={handleReveal}>
  <span>I have a solution in mind</span>
@@ -215,9 +223,9 @@ function FadedExamplePhase({ concept, onComplete, sessionContext }: WorkedExampl
  // eslint-disable-next-line @typescript-eslint/no-unused-vars
  const [userInputs, setUserInputs] = useState<string[]>([]);
  const [startTime] = useState(() => Date.now());
- // Use sessionContext to show intent if available
  const intentMessage = sessionContext?.intent ? `Goal: ${sessionContext.intent}` : null;
  const example = useMemo(() => synthesizeExample(concept), [concept]);
+ const { analogicalModel } = useMetaphorContent(concept);
  // Initialize user inputs for missing steps (fade last 50%)
  const fadedStartIndex = Math.max(1, Math.floor(example.steps.length / 2));
  const handleInput = (idx: number, value: string) => {
@@ -259,6 +267,12 @@ function FadedExamplePhase({ concept, onComplete, sessionContext }: WorkedExampl
  <h5 className={styles.sectionTitle}>The Problem</h5>
  <p>{example.problem}</p>
  </div>
+ {analogicalModel && (
+ <div className={styles.learningSection}>
+ <h5 className={styles.sectionTitle}>Think of it like...</h5>
+ <p className={styles.analogyText}>{analogicalModel}</p>
+ </div>
+ )}
  <div className={styles.learningSection}>
  <div className={styles.sectionHeader}>
  <h5 className={styles.sectionTitle}>The Solution</h5>
@@ -1096,4 +1110,4 @@ export function MicroLearningLoopController({
  </div>
  );
 }
-export default MicroLearningLoopController;
+export default MicroLearningLoopController;

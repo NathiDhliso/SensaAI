@@ -31,6 +31,7 @@ import { usePersonalizationStore, type PracticeMode } from '@/store/personalizat
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { getAllPersonas, getPersonaResponse } from '@/features/ai-coach';
+import { useVoice } from '@/features/ai-coach/voice/useVoice';
 import { MetaphorToggle } from '@/features/personalization';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { toast } from '@/shared/utils/toast';
@@ -69,6 +70,7 @@ export default function SettingsPanel() {
  const progress = currentSession?.progress;
  const personas = getAllPersonas();
  const activePersona = personas.find(p => p.id === selectedPersona) || personas[0];
+ const { play: playVoice } = useVoice();
  useEffect(() => {
  if (isSettingsPanelOpen) {
  triggerRef.current = document.activeElement as HTMLElement;
@@ -134,15 +136,12 @@ export default function SettingsPanel() {
  URL.revokeObjectURL(url);
  toast.success('Data exported');
  };
- const handleVoicePreview = () => {
+ const handleVoicePreview = async () => {
  const sampleMessage = getPersonaResponse(selectedPersona, 'prime', 'intro');
- if ('speechSynthesis' in window) {
- window.speechSynthesis.cancel();
- const utterance = new SpeechSynthesisUtterance(sampleMessage);
- utterance.rate = 1;
- utterance.pitch = 1;
- window.speechSynthesis.speak(utterance);
- } else {
+ try {
+ await playVoice(sampleMessage, selectedPersona);
+ } catch (error) {
+ console.error('Voice preview failed:', error);
  toast.info(`"${sampleMessage}"`);
  }
  };
@@ -411,4 +410,4 @@ export default function SettingsPanel() {
  </>,
  document.body
  );
-}
+}

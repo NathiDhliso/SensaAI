@@ -51,6 +51,14 @@
  border-top-left-radius: var(--radius-lg);
  border-top-right-radius: 0;
 }
+.analogyContext {
+ margin: 0.5rem 0 0;
+ font-style: italic;
+ font-size: 0.85rem;
+ color: var(--color-text-secondary);
+ border-left: 2px solid var(--color-accent);
+ padding-left: 0.5rem;
+}
 .peerName {
  font-size: 0.75rem;
  font-weight: 600;

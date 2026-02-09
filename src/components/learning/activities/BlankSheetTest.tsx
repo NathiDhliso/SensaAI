@@ -36,6 +36,7 @@ import {
  type BlankSheetScore
 } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import { calculateRecallScore } from '@/features/learning-session/scoring/blank-sheet-scorer';
 import { useVisualTheme, stripEmoji } from '@/shared/hooks/useVisualTheme';
 import styles from './BlankSheetTest.module.css';
@@ -221,6 +222,7 @@ export function BlankSheetTest({
  const [lastKeystrokeTime, setLastKeystrokeTime] = useState<number | null>(null);
  const [pauseCount, setPauseCount] = useState(0);
  const { selectedPersona } = usePersonalizationStore();
+ const { metaphorsEnabled } = useMetaphorContent(concept);
  const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
  // Real-time metrics - use callback to calculate on demand
  const getMetrics = useCallback((): TypingMetrics => {
@@ -339,12 +341,11 @@ export function BlankSheetTest({
  blankSheetResult.coachFeedback = feedback;
  // METAPHOR EXIT STRATEGY (Cognitive Science Enhancement)
  // Check if user is relying on metaphor vocabulary instead of technical terms
- const { metaphorSettings, updateGraduationScore, metaphorGraduation } = usePersonalizationStore.getState();
+ const { updateGraduationScore, metaphorGraduation } = usePersonalizationStore.getState();
  const currentGraduation = metaphorGraduation[concept.id] || 0;
  let metaphorPenalty = 0;
  let metaphorFeedback: string | undefined;
- // Only enforce if metaphors are enabled and we have a defined metaphor
- if (metaphorSettings.showAnalogies && concept.metaphor) {
+ if (metaphorsEnabled && concept.metaphor) {
  const metaphorWords = concept.metaphor.toLowerCase()
  .split(/\s+/)
  .filter(w => w.length > 4) // Only significant words
@@ -552,6 +553,12 @@ export function BlankSheetTest({
  className={styles.textarea}
  value={response}
  onChange={handleChange}
+ onKeyDown={(e) => {
+ if (e.key === 'Enter' && e.ctrlKey && isValid && !isSubmitting) {
+ e.preventDefault();
+ handleSubmit();
+ }
+ }}
  placeholder="Start typing everything you remember..."
  autoFocus
  />
@@ -584,4 +591,4 @@ export function BlankSheetTest({
  </motion.div>
  );
 }
-export default BlankSheetTest;
+export default BlankSheetTest;

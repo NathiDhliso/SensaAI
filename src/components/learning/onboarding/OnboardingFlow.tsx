@@ -141,6 +141,12 @@ export function OnboardingFlow({
  placeholder="Write what you know about effective learning techniques..."
  value={practiceText}
  onChange={(e) => setPracticeText(e.target.value)}
+ onKeyDown={(e) => {
+ if (e.key === 'Enter' && e.ctrlKey && practiceText.length >= 10) {
+ e.preventDefault();
+ handlePracticeSubmit();
+ }
+ }}
  autoFocus
  />
  <button
@@ -276,4 +282,4 @@ export function HelpTooltip({ children, content, title }: HelpTooltipProps) {
 // ============================================================================
 // LEARNING SCIENCE EXPLANATIONS
 // ============================================================================
-export default OnboardingFlow;
+export default OnboardingFlow;

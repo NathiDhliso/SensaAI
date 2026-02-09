@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import { usePauseGlobalTimer } from '@/shared/hooks/usePauseGlobalTimer';
+import { useMetaphorSettings } from '@/shared/hooks/useMetaphorContent';
 import styles from './MasteryChallenge.module.css';
 interface MasteryChallengeProps {
  concepts: LearningConcept[];
@@ -143,10 +144,15 @@ export default function MasteryChallenge({ concepts, onComplete }: MasteryChalle
  const [synthesisResponse, setSynthesisResponse] = useState('');
  const recallQuestions = useMemo(() => generateRecallQuestions(concepts), [concepts]);
  const connectionQuestions = useMemo(() => generateConnectionQuestions(concepts), [concepts]);
+ const { isEnabled: metaphorsEnabled } = useMetaphorSettings();
  const synthesisPrompt = useMemo(() => {
  const names = concepts.slice(0, 5).map(c => c.name);
- return `Explain how ${names.join(', ')}${concepts.length > 5 ? ' and others' : ''} work together. Describe the relationships between them and how you would apply them in a real scenario.`;
- }, [concepts]);
+ const base = `Explain how ${names.join(', ')}${concepts.length > 5 ? ' and others' : ''} work together. Describe the relationships between them and how you would apply them in a real scenario.`;
+ if (metaphorsEnabled) {
+ return base + ' You may use analogies to illustrate your points.';
+ }
+ return base;
+ }, [concepts, metaphorsEnabled]);
  const handleRecallAnswer = useCallback((optionIndex: number) => {
  if (recallFeedback) return;
  const q = recallQuestions[currentRecallIndex];
@@ -408,6 +414,13 @@ export default function MasteryChallenge({ concepts, onComplete }: MasteryChalle
  className={styles.textarea}
  value={synthesisResponse}
  onChange={(e) => setSynthesisResponse(e.target.value)}
+ onKeyDown={(e) => {
+ if (e.key === 'Enter' && !e.shiftKey) {
+ e.preventDefault();
+ const wordCount = synthesisResponse.split(/\s+/).filter(Boolean).length;
+ if (wordCount >= 20) handleSynthesisSubmit();
+ }
+ }}
  placeholder="Reference specific concepts by name. Explain how they connect and what steps to take..."
  />
  <div className={styles.synthesisFooter}>

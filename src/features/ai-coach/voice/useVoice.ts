@@ -225,13 +225,37 @@ export function useVoice(): UseVoiceResult {
  stop();
  setIsLoading(true);
  setError(null);
- // Check for exact text match in static lines
+ 
+ // Try exact match first
  if (STATIC_VOICE_LINES[text]) {
  await playInternal(text, STATIC_VOICE_LINES[text]);
+ } else {
+ // Try stripping mood prefixes that might have been added
+ const moodPrefixes = [
+ 'Great energy! ',
+ 'Take it easy. ',
+ 'I see you\'re having a tough time. That\'s okay. ',
+ 'Struggling is part of growth. ',
+ 'Let\'s build some momentum. ',
+ 'Tired? That\'s just your body lying to you. Let\'s start small. '
+ ];
+ 
+ let strippedText = text;
+ for (const prefix of moodPrefixes) {
+ if (text.startsWith(prefix)) {
+ strippedText = text.substring(prefix.length);
+ break;
+ }
+ }
+ 
+ // Try match with stripped text
+ if (strippedText !== text && STATIC_VOICE_LINES[strippedText]) {
+ await playInternal(strippedText, STATIC_VOICE_LINES[strippedText]);
  } else {
  // No static line found - Silent fallback
  // In "Studio Quality Only" mode, dynamic text is intentionally silent.
  console.log('[Voice] No static line for text:', text.substring(0, 50));
+ }
  }
  setIsLoading(false);
  }, [coachVoiceEnabled, stop, playInternal]);
@@ -293,4 +317,4 @@ export function useVoice(): UseVoiceResult {
  linesPlayedCount
  };
 }
-export default useVoice;
+export default useVoice;

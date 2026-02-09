@@ -39,7 +39,8 @@ export default function CoachMessage({
  return;
  }
  try {
- await play(message);
+ // Pass persona ID for better voice matching
+ await play(message, activePersonaId as any);
  } catch (error) {
  console.error('Voice playback failed:', error);
  }
@@ -69,4 +70,4 @@ export default function CoachMessage({
  </div>
  </div>
  );
-}
+}

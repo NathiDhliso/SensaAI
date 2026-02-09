@@ -50,6 +50,15 @@
  color: var(--color-text-dark);
  margin: 0;
 }
+.analogyHint {
+ margin: 0.75rem 0 0;
+ font-style: italic;
+ font-size: 0.95rem;
+ color: var(--color-text-secondary);
+ border-left: 3px solid var(--color-accent);
+ padding-left: 0.75rem;
+ line-height: 1.5;
+}
 .textarea {
  width: 100%;
  padding: 1rem;

@@ -218,6 +218,12 @@ function FlagModal({
  <textarea
  value={description}
  onChange={(e) => setDescription(e.target.value)}
+ onKeyDown={(e) => {
+ if (e.key === 'Enter' && e.ctrlKey && selectedType && !isSubmitting) {
+ e.preventDefault();
+ handleSubmit();
+ }
+ }}
  placeholder={FLAG_TYPES[selectedType].placeholder}
  className="
  w-full p-3 bg-gray-800 border border-gray-700 rounded-lg
@@ -368,4 +374,4 @@ export function FlagInaccuracyIcon({
  );
 }
 export type { ContentFlag, FlagType };
-export default FlagInaccuracyButton;
+export default FlagInaccuracyButton;

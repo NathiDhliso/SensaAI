@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Lightbulb, Rocket, CheckCircle, ArrowRight, XCircle } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { SubjectType } from '@/shared/types/macro-workflow';
+import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import styles from './CreativeTransferActivity.module.css';
 interface CreativeTransferActivityProps {
  concept: LearningConcept;
@@ -55,6 +56,7 @@ function scoreTransferResponse(response: string, concept: LearningConcept): { sc
 }
 export function CreativeTransferActivity({ concept, subjectType, onComplete }: CreativeTransferActivityProps) {
  const scenario = useMemo(() => generateScenario(concept, subjectType), [concept, subjectType]);
+ const { analogicalModel } = useMetaphorContent(concept);
  const [response, setResponse] = useState('');
  const [result, setResult] = useState<{ passed: boolean; score: number } | null>(null);
  const handleSubmit = () => {
@@ -80,6 +82,9 @@ export function CreativeTransferActivity({ concept, subjectType, onComplete }: C
  <Lightbulb size={16} /> Scenario
  </div>
  <p className={styles.scenarioText}>{scenario}</p>
+ {analogicalModel && (
+ <p className={styles.analogyHint}>{analogicalModel}</p>
+ )}
  </div>
  {!result ? (
  <div className={styles.inputSection}>
@@ -87,6 +92,12 @@ export function CreativeTransferActivity({ concept, subjectType, onComplete }: C
  className={styles.textarea}
  value={response}
  onChange={(e) => setResponse(e.target.value)}
+ onKeyDown={(e) => {
+ if (e.key === 'Enter' && !e.shiftKey) {
+ e.preventDefault();
+ if (response.length >= 40) handleSubmit();
+ }
+ }}
  placeholder="Use specific terms and steps from what you learned..."
  rows={6}
  />

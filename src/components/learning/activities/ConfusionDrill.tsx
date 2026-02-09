@@ -11,6 +11,7 @@ import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { useLearningStore } from '@/store/learning-store';
 import { usePauseGlobalTimer } from '@/shared/hooks/usePauseGlobalTimer';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
+import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import { calculateConfusionDrillResult } from '@/features/learning-session/activities/confusion-generator';
 import type { ConfusionPair, ConfusionQuestion, ConfusionAnswer, ConfusionDrillResult } from '@/features/learning-session/activities/confusion-generator';
 import styles from './ConfusionDrill.module.css';
@@ -29,6 +30,8 @@ export default function ConfusionDrill({
 }: ConfusionDrillProps) {
  const { recordInteraction } = useLearningStore();
  const { isScholarly } = useVisualTheme();
+ const { analogicalModel: analogy1 } = useMetaphorContent(pair.concept1);
+ const { analogicalModel: analogy2 } = useMetaphorContent(pair.concept2);
  // Pause global focus session timer during drill
  usePauseGlobalTimer();
  const [currentIndex, setCurrentIndex] = useState(0);
@@ -208,9 +211,15 @@ export default function ConfusionDrill({
  animate={{ opacity: 1, height: 'auto' }}
  >
  <p className={styles.feedbackText}>{currentQuestion.explanation}</p>
+ {(analogy1 || analogy2) && (
+ <div className={styles.feedbackAnalogies}>
+ {analogy1 && <p><strong>{pair.concept1.name}:</strong> {analogy1}</p>}
+ {analogy2 && <p><strong>{pair.concept2.name}:</strong> {analogy2}</p>}
+ </div>
+ )}
  </motion.div>
  )}
  </motion.div>
  </div>
  );
-}
+}

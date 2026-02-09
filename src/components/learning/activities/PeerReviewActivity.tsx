@@ -1,12 +1,11 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { MessageCircle, Send, User, CheckCircle, XCircle, Shield, Loader2 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import { generateReviewer, type AIReviewer } from '@/features/social/types';
+import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import {
- generateAIMisconception,
  generateAIPushback,
- scoreWithAI,
- type AIMisconception
+ scoreWithAI
 } from '@/features/learning-session/activities/gym-ai-service';
 import styles from './PeerReviewActivity.module.css';
 type ConversationStage = 'diagnosis' | 'pushback' | 'defense' | 'resolution';
@@ -102,36 +101,18 @@ function scoreDefense(response: string, concept: LearningConcept): number {
 }
 export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerReviewActivityProps) {
  const [selectedPeer] = useState<AIReviewer>(() => generateReviewer(concept.name));
+ const { analogicalModel } = useMetaphorContent(concept);
  const [stage, setStage] = useState<ConversationStage>('diagnosis');
  const [inputText, setInputText] = useState('');
  const [messages, setMessages] = useState<ChatMessage[]>([]);
  const [finalResult, setFinalResult] = useState<{ passed: boolean; feedback: string } | null>(null);
  const [showInput, setShowInput] = useState(true);
  const [aiLoading, setAiLoading] = useState(false);
- const [aiMisconception, setAiMisconception] = useState<AIMisconception | null>(null);
- const [aiReady, setAiReady] = useState(false);
  const fallbackMisconception = useMemo(() => generateMisconception(concept, allConcepts), [concept, allConcepts]);
  const fallbackPushback = useMemo(() => pickPushbackChallenge(concept), [concept]);
- useEffect(() => {
- let cancelled = false;
- generateAIMisconception(concept, allConcepts).then(result => {
- if (cancelled) return;
- if (result) {
- setAiMisconception(result);
- }
- setAiReady(true);
- });
- return () => { cancelled = true; };
- }, [concept, allConcepts]);
- const misconception = useMemo(() => {
- if (aiMisconception) {
- return {
- statement: aiMisconception.statement,
- correctionKeywords: aiMisconception.correctionHints
- };
- }
- return fallbackMisconception;
- }, [aiMisconception, fallbackMisconception]);
+
+ // Use fallback questions directly - they're already well-formed from syllabus generation
+ const misconception = fallbackMisconception;
  const stageLabel: Record<ConversationStage, string> = {
  diagnosis: 'Diagnose the error',
  pushback: 'Peer pushes back...',
@@ -225,6 +206,9 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  <div className={styles.bubble}>
  <div className={styles.peerName}>{selectedPeer.name} ({selectedPeer.role})</div>
  <p>{misconception.statement}</p>
+ {analogicalModel && (
+ <p className={styles.analogyContext}>{analogicalModel}</p>
+ )}
  </div>
  </div>
  {messages.map((msg, i) => (
@@ -256,6 +240,12 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  <textarea
  value={inputText}
  onChange={(e) => setInputText(e.target.value)}
+ onKeyDown={(e) => {
+ if (e.key === 'Enter' && !e.shiftKey) {
+ e.preventDefault();
+ if (inputText.length >= 20) handleSubmit();
+ }
+ }}
  placeholder={getPlaceholder()}
  className={styles.textarea}
  />

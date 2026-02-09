@@ -62,17 +62,12 @@ def _compress_concept(c: Dict[str, Any]) -> str:
 
 def _handle_misconception(data: Dict[str, Any]) -> Dict[str, Any]:
  concept = data["concept"]
- system = "You generate challenging questions that reveal common misconceptions about learning concepts. Output JSON only."
- user = f"""Concept:\n{_compress_concept(concept)}\n\nGenerate a challenging question that tests whether the student has a common misconception about this concept. The question should:
-- Be phrased as a question (not a statement)
-- Target a specific misconception students often have
-- Require the student to explain or diagnose something
+ system = "You are The Interrogator. You ONLY ask questions ending with '?'. Never make statements. Output JSON only."
+ user = f"""Concept:\n{_compress_concept(concept)}\n\nGenerate a challenging question (NOT a statement) that tests a common misconception.
 
-Return JSON:
-{{"statement":"The challenging question","correctionHints":["hint1 if they get it wrong","hint2 if they get it wrong"]}}
+Format: {{"statement":"Your question ending with ?","correctionHints":["hint1","hint2"]}}
 
-Example for "Network Security Groups":
-{{"statement":"If you allow inbound traffic on port 443 at the subnet NSG level, but the VM's NIC-level NSG blocks port 443, will HTTPS work? Why or why not?","correctionHints":["Traffic must pass BOTH NSGs","The NIC-level NSG will block it"]}}"""
+Example: {{"statement":"If you allow inbound traffic on port 443 at the subnet NSG level, but the VM's NIC-level NSG blocks port 443, will HTTPS work? Why or why not?","correctionHints":["Traffic must pass BOTH NSGs","The NIC-level NSG will block it"]}}"""
  raw = _invoke_haiku(system, user, 300)
  result = _extract_json(raw)
  if not result.get("statement") or not isinstance(result.get("correctionHints"), list):
