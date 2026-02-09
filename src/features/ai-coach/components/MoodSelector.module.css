@@ -141,6 +141,18 @@
   color: var(--color-text-secondary);
 }
 
+.bandwidthTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-tertiary);
+  margin-top: 0.15rem;
+}
+
 .checkmark {
   position: absolute;
   top: 0.75rem;

@@ -254,6 +254,17 @@ class BedrockService:
         if not shape.get("simpleCore"):
             return False
 
+        connections = concept.get("connections", [])
+        if not isinstance(connections, list) or len(connections) < 1:
+            print(f"[BedrockService] Validation fail: '{concept.get('name')}' has no connections")
+            return False
+
+        valid_levels = {"remember", "understand", "apply", "analyze", "evaluate", "create"}
+        level = (concept.get("cognitiveLevel") or "").lower().strip()
+        if level not in valid_levels:
+            print(f"[BedrockService] Validation fail: '{concept.get('name')}' missing cognitiveLevel")
+            return False
+
         return True
 
     def _compute_tiers_from_graph(self, concepts: List[Dict[str, Any]]) -> None:
@@ -284,6 +295,9 @@ class BedrockService:
         DEPENDENCY_TYPES = {"requires", "is-part-of", "is-type-of"}
         ENABLEMENT_TYPES = {"enables", "causes", "constrains"}
 
+        total_connections = 0
+        phantom_connections = 0
+
         for i, concept in enumerate(concepts):
             connections = concept.get("connections", [])
             if not isinstance(connections, list):
@@ -294,8 +308,10 @@ class BedrockService:
                 target_name = conn.get("target", "").strip().lower()
                 conn_type = conn.get("type", "").strip().lower()
                 target_idx = name_to_idx.get(target_name)
+                total_connections += 1
 
                 if target_idx is None:
+                    phantom_connections += 1
                     continue
 
                 if conn_type in DEPENDENCY_TYPES:
@@ -323,6 +339,12 @@ class BedrockService:
         for c in concepts:
             tier_counts[c["tier"]] = tier_counts.get(c["tier"], 0) + 1
         print(f"[BedrockService] Tier distribution: {tier_counts}")
+
+        if total_connections > 0:
+            phantom_pct = (phantom_connections / total_connections) * 100
+            print(f"[BedrockService] Connections: {total_connections} total, {phantom_connections} phantom ({phantom_pct:.0f}%)")
+            if phantom_pct > 10:
+                print(f"[WARNING] >10% phantom connections — tier distribution may be distorted")
 
     def _enforce_blooms_distribution(self, concepts: List[Dict[str, Any]]) -> None:
         VALID_LEVELS = {"remember", "understand", "apply", "analyze", "evaluate", "create"}
@@ -398,10 +420,12 @@ class BedrockService:
             if "mnemonic" not in concept:
                 concept["mnemonic"] = {}
 
-            if "scoring" not in concept:
-                concept["scoring"] = {"keywords": [], "aliases": []}
-            elif not isinstance(concept.get("scoring"), dict):
-                concept["scoring"] = {"keywords": [], "aliases": []}
+            if not self._validate_scoring_field(concept):
+                name_words = [w.lower() for w in concept.get("name", "").split() if len(w) > 2]
+                concept["scoring"] = {
+                    "keywords": name_words[:5] if name_words else [],
+                    "aliases": [],
+                }
 
         self._compute_tiers_from_graph(concepts)
         self._enforce_blooms_distribution(concepts)

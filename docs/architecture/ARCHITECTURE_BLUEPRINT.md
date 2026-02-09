@@ -569,6 +569,31 @@ Holistic fix addressing systemic misalignments across the generation → parsing
 - [x] **Single-source-of-truth tiers** — Removed frontend `assignTiersByPercentile()` that was overwriting Lambda's deterministic tiers. Frontend `calculateTier()` is now fallback-only for skeleton concepts
 - [x] **Hierarchy-aware syllabus parser** — `parseSyllabusText()` now detects domain headers (percentage weights, short capitalized phrases) and skips them. Only counts leaf objectives (action verb lines, substantial content). Fixes inflated objective count (was 192, now ~79)
 
+### Phase 5 — Content Quality Hardening (Implemented)
+
+Closes 5 gaps identified by auditing the pipeline against the Desirable Results spec (`docs/DESIRABLE_RESULTS.md`):
+
+- [x] **Domain-adaptive field guide in prompt** — §4.1 added to `system_prompt.py` instructs the LLM how to fill `phase2`, `phase3`, `workedExample`, and `eliminationLogic` differently per subject type (procedural/conceptual/cyclic/perceptual). Schema unchanged; content interpretation adapts.
+- [x] **Validation bar raised** — `_validate_concept()` in `bedrock_service.py` now requires at least 1 connection and a valid `cognitiveLevel`. Skeleton concepts with only name+mnemonic+simpleCore no longer pass.
+- [x] **Phantom connection logging** — `_compute_tiers_from_graph()` counts connections referencing non-existent concepts and warns if >10%. Prevents silent tier distortion from hallucinated targets.
+- [x] **workedExample scored in audit** — `scoreContentHealth()` in `audit-engine.ts` now awards 5pts for a valid worked example and flags missing examples on apply+ concepts as a warning.
+- [x] **Scoring field auto-repair** — `_validate_scoring_field()` wired into `_post_process_concepts()`. If LLM omits `scoring.keywords`, auto-generates from concept name words.
+- [x] **Legacy tier label fix** — `ContentLaunchpad.tsx` footer fixed from `foundation/keystone/utility` to `root/trunk/leaf`.
+
+### Phase 6 — Cognitive Load Dashboard & Temporal Spacing (Implemented)
+
+Redesigns the main dashboard around Cognitive Load Theory and activates spaced repetition:
+
+- [x] **Cognitive Battery (MoodSelector)** — Renamed from "Mood" to "Cognitive Battery / Focus Level". Consolidated 4 options to 3 bandwidth tiers: High (all features), Medium (standard), Low (fluency only). `CognitiveBandwidth` type and `moodToBandwidth()` mapper added to `ai-coach/index.ts`.
+- [x] **Gym Layout (ContentLaunchpad)** — Replaced audit grid with 3 vertical zones:
+  - **Zone 1: Daily Stack** — Queries `SpacingEngine.getDueReviews()` for stale items, renders horizontal ticker cards. Click triggers micro-loop navigation.
+  - **Zone 2: Build Lab** — Concept Map + Peer Review. Hidden when battery is Low.
+  - **Zone 3: Proving Grounds** — Mastery Challenge + Pre-Mortem. Only unlocked on High Focus.
+- [x] **Temporal Spacing activated** — `ConceptVerdict` extended with `freshness` and `nextReviewDate`. `SpacingEngine.recordReviewWithQuality()` wired into `completeConcept`, `recordConfusionDrill`, `markSessionMapReconstructed`, `markSessionMastered` with activity-specific quality mappings (SM-2).
+- [x] **PeerReview multi-turn** — Refactored from single-turn to 4-stage dialogue (diagnosis → pushback → defense → resolution). Pushback uses `commonPitfalls`/`technicalDetails`.
+- [x] **PreMortemActivity** — New activity: derives steps from concept lifecycle, randomly alters one, user identifies the broken step.
+- [x] **ConceptMapBuilder mode toggle** — `mode` prop ('guided' | 'free') with toolbar toggle. Free mode skips validation and saves directly.
+
 ### Planned — Future
 
 - [ ] Multi-device sync (CRDT-lite field merging)

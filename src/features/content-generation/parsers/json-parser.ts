@@ -981,19 +981,33 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
         };
     }
 
+    const flattenAnnotation = (arr: unknown[]): string[] =>
+        arr.map(item => {
+            if (typeof item === 'string') return item;
+            if (item && typeof item === 'object') {
+                const o = item as Record<string, unknown>;
+                if ('correct' in o && 'incorrect' in o) return `${o.correct} vs ${o.incorrect}`;
+                if ('boundary' in o && 'rationale' in o) return `${o.boundary}: ${o.rationale}`;
+                if ('point' in o) return `${o.point}${o.weight ? ` (${o.weight})` : ''}`;
+                if ('title' in o && 'content' in o) return `${o.title}: ${o.content}`;
+                try { return JSON.stringify(item); } catch { return ''; }
+            }
+            return String(item);
+        }).filter(Boolean);
+
     let criticalDistinctions: string[] = [];
     let designBoundaries: string[] = [];
     let examFocus: string[] = [];
 
-    if (Array.isArray(c.criticalDistinctions)) criticalDistinctions = c.criticalDistinctions as string[];
-    if (Array.isArray(c.designBoundaries)) designBoundaries = c.designBoundaries as string[];
-    if (Array.isArray(c.examFocus)) examFocus = c.examFocus as string[];
+    if (Array.isArray(c.criticalDistinctions)) criticalDistinctions = flattenAnnotation(c.criticalDistinctions);
+    if (Array.isArray(c.designBoundaries)) designBoundaries = flattenAnnotation(c.designBoundaries);
+    if (Array.isArray(c.examFocus)) examFocus = flattenAnnotation(c.examFocus);
 
     if (criticalDistinctions.length === 0 && c.annotations && typeof c.annotations === 'object') {
         const a = c.annotations as Record<string, unknown>;
-        if (Array.isArray(a.criticalDistinctions)) criticalDistinctions = a.criticalDistinctions as string[];
-        if (Array.isArray(a.designBoundaries)) designBoundaries = a.designBoundaries as string[];
-        if (Array.isArray(a.examFocus)) examFocus = a.examFocus as string[];
+        if (Array.isArray(a.criticalDistinctions)) criticalDistinctions = flattenAnnotation(a.criticalDistinctions);
+        if (Array.isArray(a.designBoundaries)) designBoundaries = flattenAnnotation(a.designBoundaries);
+        if (Array.isArray(a.examFocus)) examFocus = flattenAnnotation(a.examFocus);
     }
 
     return {

@@ -97,3 +97,18 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.stageBadge {
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--color-surface-elevated);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+}
+
+.response p {
+    margin: 0;
+}

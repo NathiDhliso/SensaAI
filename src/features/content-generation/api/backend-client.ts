@@ -378,14 +378,21 @@ export function buildDocumentFromConcepts(
             name: concept.name,
             tier: concept.tier,
             stageId: concept.stageId,
+            cognitiveLevel: concept.cognitiveLevel,
+            commonPitfalls: concept.commonPitfalls || [],
             description: concept.description || concept.phase1?.hookSentence || `Core concept in ${subject}`,
+            whyYouNeed: concept.whyYouNeed || '',
+            technicalDetails: concept.technicalDetails || '',
             keyPoints: concept.keyPoints || [],
+            workedExample: concept.workedExample,
+            connections: concept.strictConnections || [],
+            scoring: (concept as ParsedConcept & { scoring?: { keywords: string[]; aliases: string[] } }).scoring || { keywords: [], aliases: [] },
+            dependsOn: concept.dependsOn || [],
             prerequisiteWeight: concept.prerequisiteWeight || 0.5,
             displayProperties: concept.displayProperties || {
                 emoji: '📚',
                 category: concept.tier,
             },
-            // Use real AI-generated content if available, otherwise fallback (which shouldn't happen with strict policy)
             mnemonic: concept.mnemonic || {
                 tier: concept.tier === 'root' ? 'Root' : concept.tier === 'trunk' ? 'Trunk' : 'Leaf',
                 anchor: `${concept.displayProperties?.emoji || '📚'} ${concept.name}`,
@@ -410,7 +417,7 @@ export function buildDocumentFromConcepts(
                 metrics: ['Effectiveness', 'Efficiency'],
                 thresholds: 'Meet all criteria',
             },
-            shape: concept.shape || {}, // Ensure SHAPE is passed through!
+            shape: concept.shape || {},
             criticalDistinctions: concept.criticalDistinctions || [
                 { correct: `Proper use of ${concept.name}`, incorrect: 'Common misunderstanding' },
             ],

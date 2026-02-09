@@ -111,6 +111,47 @@ Lambda returns a JSON array of concepts. Each concept has these fields. Below is
 | `phase3.tool` | Named Azure tool that verifies this concept works | "Testing tool" |
 | `phase3.metrics` | Measurable indicators | ["Security", "Performance"] (vague) |
 
+### Domain-Adaptive Fields
+
+The `phase2`, `phase3`, `workedExample`, `eliminationLogic`, and `commonPitfalls` fields are optimized for procedural subjects (IT, engineering, medicine). For non-procedural subjects, the same JSON fields carry **different content** based on the subject type classification that Lambda already performs.
+
+The schema stays the same — the **interpretation** changes:
+
+| Field | Procedural (AZ-104, Surgery) | Conceptual (History, Philosophy) | Perceptual (Radiology, Chess) |
+|-------|------------------------------|----------------------------------|-------------------------------|
+| `phase2` | Execution steps: "Click here, type this, run that" | Critical inquiry: "What questions should a student ask to analyze this concept?" | Observation protocol: "What to look for first, second, third" |
+| `phase3.tool` | Named verification tool: "Azure Network Watcher" | Primary source or lens: "Robespierre's 'Report on the Principles of Political Morality' (1794)" | Practice environment: "CXR trainer with annotated normals" |
+| `phase3.metrics` | Measurable indicators: "Flow logs, denied count" | Analytical depth markers: "Can identify 3+ competing interpretations" | Perceptual accuracy: "Sensitivity rate, false positive rate" |
+| `workedExample` | Problem → Solution → Steps | Case Study: Context → Analysis → Conclusion | Diagnostic walkthrough: Presentation → Findings → Reasoning |
+| `eliminationLogic` | Binary: "If X → A, if Y → B" | Nuanced: "If the question frames it as [lens] → apply [framework], unless [exception]" | Pattern-based: "If you see [finding] + [finding] → [diagnosis], not [mimic]" |
+| `commonPitfalls` | Wrong config: "Forgetting NSGs are stateful" | Misinterpretation: "Conflating the Reign of Terror with the entire Revolution" | Perceptual error: "Mistaking a skin fold for a pneumothorax line" |
+
+**Example — Conceptual subject (The Reign of Terror):**
+
+```json
+"phase2": [
+  "What triggered the shift from revolutionary idealism to state violence?",
+  "How did the Committee of Public Safety justify mass execution as 'virtue'?",
+  "What structural conditions made the Terror possible (war, famine, factionalism)?"
+],
+"phase3": {
+  "tool": "Robespierre's 'Report on the Principles of Political Morality' (Feb 1794)",
+  "metrics": ["Can distinguish Terror from broader Revolution", "Can name 3 factions and their positions"],
+  "thresholds": "Student can argue FOR and AGAINST the Terror's necessity using primary sources"
+},
+"workedExample": {
+  "problem": "Was the Reign of Terror a betrayal of revolutionary ideals or their logical conclusion?",
+  "solution": "Both positions are defensible. The Terror extended 'liberty' logic (enemies of freedom must be eliminated) while contradicting 'rights of man' (due process abandoned).",
+  "steps": [
+    "Identify the revolutionary ideals (Declaration of the Rights of Man, 1789)",
+    "Map which ideals the Terror upheld (popular sovereignty, defense of republic)",
+    "Map which ideals the Terror violated (individual rights, rule of law)",
+    "Evaluate: Was the context (foreign invasion, civil war) sufficient justification?"
+  ]
+},
+"eliminationLogic": "If the question asks 'cause' → structural factors (war, economic crisis). If it asks 'justification' → ideological arguments (Robespierre's virtue-terror link). If it asks 'consequence' → Thermidorian Reaction and Napoleon's rise."
+```
+
 ---
 
 ### Relationships — connections

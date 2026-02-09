@@ -88,9 +88,12 @@ function cleanConceptName(concept: ParsedConcept): string {
  * Extract key points from concept content for blank sheet test scoring
  */
 function extractKeyPoints(concept: ParsedConcept): string[] {
-  const keyPoints: string[] = [];
+  if (concept.keyPoints && concept.keyPoints.length >= 3) {
+    return concept.keyPoints.slice(0, 7);
+  }
 
-  // Extract from hook sentence and micro-metaphor
+  const keyPoints: string[] = [...(concept.keyPoints || [])];
+
   if (concept.phase1.hookSentence) {
     keyPoints.push(concept.phase1.hookSentence);
   }
@@ -99,27 +102,24 @@ function extractKeyPoints(concept: ParsedConcept): string[] {
     keyPoints.push(concept.phase1.microMetaphor);
   }
 
-  // Extract from selection criteria (key functionality)
   concept.phase1.selection.forEach(item => {
-    if (item.length > 10) { // Filter out very short items
+    if (item.length > 10) {
       keyPoints.push(item);
     }
   });
 
-  // Extract from phase2 configuration items
   concept.phase2.forEach(item => {
-    if (item.includes(':')) {
-      const [key, value] = item.split(':');
+    const text = typeof item === 'string' ? item : safeStr(item);
+    if (text.includes(':')) {
+      const [key, value] = text.split(':');
       if (value && value.trim().length > 5) {
         keyPoints.push(`${key.trim()}: ${value.trim()}`);
       }
     }
   });
 
-  // Extract from critical distinctions
-  keyPoints.push(...concept.criticalDistinctions);
+  keyPoints.push(...concept.criticalDistinctions.map(d => safeStr(d)));
 
-  // Extract from SHAPE sections if available
   if (concept.shape) {
     if (concept.shape.simpleCore) {
       keyPoints.push(concept.shape.simpleCore);
@@ -129,7 +129,6 @@ function extractKeyPoints(concept: ParsedConcept): string[] {
     }
   }
 
-  // Limit to 3-7 key points (cognitive load management)
   return keyPoints.slice(0, 7);
 }
 
@@ -154,15 +153,18 @@ function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion
 
   // Generate from critical distinctions (true/false)
   concept.criticalDistinctions.forEach((distinction, index) => {
-    if (index < 2) { // Limit to 2 to avoid cognitive overload
-      questions.push({
-        id: `${concept.id}-distinction-${index}`,
-        question: `True or False: ${distinction}`,
-        type: 'true-false',
-        correctAnswer: 1, // True since it's a critical distinction
-        expectedTime: 20,
-        keyPoints: [distinction]
-      });
+    if (index < 2) {
+      const text = safeStr(distinction);
+      if (text.length > 5) {
+        questions.push({
+          id: `${concept.id}-distinction-${index}`,
+          question: `True or False: ${text}`,
+          type: 'true-false',
+          correctAnswer: 1,
+          expectedTime: 20,
+          keyPoints: [text]
+        });
+      }
     }
   });
 
@@ -263,8 +265,8 @@ function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, Confusio
           !conceptA.criticalDistinctions.some(ad => safeStr(ad).toLowerCase().includes(safeStr(d).toLowerCase()))
         );
 
-        keyDifferences.push(...uniqueToA.map(d => `${conceptA.name}: ${d}`));
-        keyDifferences.push(...uniqueToB.map(d => `${conceptB.name}: ${d}`));
+        keyDifferences.push(...uniqueToA.map(d => `${conceptA.name}: ${safeStr(d)}`));
+        keyDifferences.push(...uniqueToB.map(d => `${conceptB.name}: ${safeStr(d)}`));
 
         // Create mnemonic distinguisher
         const distinguisher = `${conceptA.name} vs ${conceptB.name}: ${keyDifferences[0] || 'Different use cases'}`;
@@ -790,9 +792,9 @@ export function transformToLearningConcepts(
     }
 
     const technicalDetails = [
-      ...parsedConcept.criticalDistinctions,
-      ...parsedConcept.designBoundaries,
-      ...parsedConcept.examFocus,
+      ...parsedConcept.criticalDistinctions.map(d => safeStr(d)),
+      ...parsedConcept.designBoundaries.map(d => safeStr(d)),
+      ...parsedConcept.examFocus.map(d => safeStr(d)),
     ].join(' ');
 
     const phase1Steps: string[] = [];

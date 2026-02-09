@@ -230,6 +230,35 @@ Break broad topics into domain-specific subtopics:
 
 Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
 
+### 4.1 DOMAIN-ADAPTIVE FIELD GUIDE
+The JSON schema is the same for all subject types. The CONTENT inside these fields adapts:
+
+**phase2** (Application):
+- Procedural: Execution steps — "Click here, type this, run that"
+- Conceptual: Critical inquiry — "What questions should a student ask to analyze this?"
+- Cyclic: Iteration protocol — "What to check at each cycle pass"
+- Perceptual: Observation protocol — "What to look for first, second, third"
+
+**phase3** (Verification):
+- Procedural: tool = named verification tool, metrics = measurable indicators
+- Conceptual: tool = primary source/text/lens, metrics = analytical depth markers
+- Cyclic: tool = retrospective framework, metrics = iteration quality indicators
+- Perceptual: tool = practice environment/trainer, metrics = perceptual accuracy measures
+
+**workedExample**:
+- Procedural: Problem → Solution → Steps (config/troubleshooting walkthrough)
+- Conceptual: Case Study — Context → Analysis → Conclusion (argumentative walkthrough)
+- Cyclic: Iteration Log — Cycle 1 output → Cycle 2 refinement → Final state
+- Perceptual: Diagnostic Walkthrough — Presentation → Findings → Reasoning chain
+
+**eliminationLogic**:
+- Procedural: Binary — "If X → A, if Y → B"
+- Conceptual: Nuanced — "If framed as [lens] → apply [framework], unless [exception]"
+- Cyclic: Phase-aware — "If stuck at [phase] → check [common trap], not [mimic]"
+- Perceptual: Pattern-based — "If you see [finding] + [finding] → [diagnosis], not [mimic]"
+
+### 4.2 JSON TEMPLATE
+
 ```json
 [
   {{

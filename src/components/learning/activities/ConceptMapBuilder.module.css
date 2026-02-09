@@ -838,3 +838,15 @@
         max-width: none;
     }
 }
+
+.modeToggle {
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.modeLabel {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}

@@ -187,15 +187,32 @@ Concepts are classified into 3 tiers **deterministically from the connection gra
 
 **Single Source of Truth:** Lambda's `_compute_tiers_from_graph()` is the ONLY tier computation. The frontend `calculateTier()` in `transformer.ts` is a fallback ONLY for concepts missing a tier field (e.g., skeleton recovery concepts). The frontend MUST NOT re-compute or override Lambda-assigned tiers.
 
+**Validation bar (Phase 5):** `_validate_concept()` requires: `name`, `mnemonic` (anchor or story), `shape.simpleCore`, at least 1 connection, and a valid `cognitiveLevel`. Concepts missing connections or cognitiveLevel are rejected before post-processing.
+
+**Phantom connection detection:** `_compute_tiers_from_graph()` counts connections referencing non-existent concepts and warns if >10% are phantom. This prevents silent tier distortion from hallucinated targets across parallel generation parts.
+
+**Domain-adaptive content:** The prompt's §4.1 Domain-Adaptive Field Guide instructs the LLM to fill `phase2`, `phase3`, `workedExample`, and `eliminationLogic` differently per subject type. The JSON schema is identical for all types — only the content interpretation changes. See `docs/DESIRABLE_RESULTS.md` for field-by-field examples.
+
 **Key files:**
 - Backend computation (authoritative): `backend/lambda/generate_concepts/services/bedrock_service.py` → `_compute_tiers_from_graph()`
 - Backend Bloom's enforcement: `bedrock_service.py` → `_enforce_blooms_distribution()` (≥30% apply+)
+- Backend validation: `bedrock_service.py` → `_validate_concept()` (name + mnemonic + simpleCore + connections + cognitiveLevel)
+- Backend scoring auto-repair: `bedrock_service.py` → `_validate_scoring_field()` wired in `_post_process_concepts()`
+- Prompt domain adaptation: `backend/lambda/shared/system_prompt.py` → §4.1 Domain-Adaptive Field Guide
 - Frontend types: `src/shared/types/sensa-flow.ts` → `TierType = 'root' | 'trunk' | 'leaf'`
 - Frontend fallback only: `src/features/content-generation/parsers/transformer.ts` → `calculateTier()`
+- Audit health scorer: `src/features/content-audit/audit-engine.ts` → `scoreContentHealth()` (includes workedExample)
 - UI display: `src/components/learning/ui/SensaSynopticView.tsx` (orbit rings), `SessionScoutPreview.tsx` (tier columns)
 - CSS variables: `src/index.css` → `--color-root`, `--color-trunk`, `--color-leaf`
+- Desirable results spec: `docs/DESIRABLE_RESULTS.md`
+- Cognitive Battery: `src/features/ai-coach/index.ts` → `CognitiveBandwidth`, `moodToBandwidth()`
+- Gym Layout: `src/components/learning/launchpad/ContentLaunchpad.tsx` → 3-zone layout (Daily Stack / Build Lab / Proving Grounds)
+- Spacing integration: `src/store/slices/createNavigationSlice.ts`, `src/store/slices/createStudySlice.ts` → `SpacingEngine` wired into completion actions
+- Activities: `src/components/learning/activities/` → `PreMortemActivity.tsx` (new), `PeerReviewActivity.tsx` (multi-turn), `ConceptMapBuilder.tsx` (guided/free mode)
 
 **FORBIDDEN**: Using `foundation`, `keystone`, or `utility` as tier names anywhere in the codebase. These are legacy names replaced in v2.0.
+
+**FORBIDDEN**: The old 5-option mood system (`pumped/good/okay/struggling/tired`) is deprecated. Use the 3-tier Cognitive Battery (`energized/neutral/tired` → `high/medium/low` bandwidth). The `stressed` value still exists in the `Mood` type for backward compat but is not shown in the UI.
 
 ---
 

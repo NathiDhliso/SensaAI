@@ -1,57 +1,16 @@
-/**
- * MoodSelector - Pre-Session Mood Selection Modal
- * 
- * Allows users to select their current mood/energy level before starting
- * a learning session. The AI Coach will adjust its messaging based on this.
- */
-
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Battery, BatteryFull, BatteryLow } from 'lucide-react';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { getAllPersonas } from '@/features/ai-coach';
+import { getAllPersonas, MOOD_OPTIONS, type Mood } from '@/features/ai-coach';
 import styles from './MoodSelector.module.css';
 
-export type Mood = 'pumped' | 'good' | 'okay' | 'struggling' | 'tired';
+export type { Mood };
 
-interface MoodOption {
-  id: Mood;
-  emoji: string;
-  label: string;
-  description: string;
-}
-
-const MOOD_OPTIONS: MoodOption[] = [
-  {
-    id: 'pumped',
-    emoji: '🔥',
-    label: 'Pumped',
-    description: 'Ready to crush it!',
-  },
-  {
-    id: 'good',
-    emoji: '😊',
-    label: 'Good',
-    description: 'Feeling focused',
-  },
-  {
-    id: 'okay',
-    emoji: '😐',
-    label: 'Okay',
-    description: 'Could use motivation',
-  },
-  {
-    id: 'struggling',
-    emoji: '😓',
-    label: 'Struggling',
-    description: 'Need encouragement',
-  },
-  {
-    id: 'tired',
-    emoji: '😴',
-    label: 'Tired',
-    description: 'Need gentle guidance',
-  },
-];
+const BATTERY_ICONS: Record<string, React.ReactNode> = {
+  energized: <BatteryFull size={20} />,
+  neutral: <Battery size={20} />,
+  tired: <BatteryLow size={20} />,
+};
 
 interface MoodSelectorProps {
   onSelect: (mood: Mood) => void;
@@ -78,7 +37,7 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
   };
 
   const handleSkip = () => {
-    onSelect('good'); // Default mood
+    onSelect('neutral');
   };
 
   return (
@@ -90,9 +49,9 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
 
         <div className={styles.header}>
           <span className={styles.coachEmoji}>{activePersona.emoji}</span>
-          <h2 className={styles.title}>How are you feeling today?</h2>
+          <h2 className={styles.title}>Set Your Cognitive Battery</h2>
           <p className={styles.subtitle}>
-            {activePersona.name} will adjust their coaching style to match your energy.
+            {activePersona.name} will unlock features based on your current focus level.
           </p>
         </div>
 
@@ -107,6 +66,10 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
               <div className={styles.moodInfo}>
                 <span className={styles.moodLabel}>{mood.label}</span>
                 <span className={styles.moodDescription}>{mood.description}</span>
+                <span className={styles.bandwidthTag}>
+                  {BATTERY_ICONS[mood.id]}
+                  {mood.bandwidthLabel}
+                </span>
               </div>
               {selectedMood === mood.id && (
                 <div className={styles.checkmark}>✓</div>
@@ -127,7 +90,7 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
             disabled={!selectedMood}
             className={styles.continueButton}
           >
-            Start Learning Session
+            Start Session
           </button>
         </div>
       </div>

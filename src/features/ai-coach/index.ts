@@ -12,43 +12,52 @@ export * from './voice/useVoice';
 // Mood types and utilities
 export type Mood = 'energized' | 'neutral' | 'tired' | 'stressed';
 
+export type CognitiveBandwidth = 'high' | 'medium' | 'low';
+
+export function moodToBandwidth(mood: Mood): CognitiveBandwidth {
+    if (mood === 'energized') return 'high';
+    if (mood === 'neutral') return 'medium';
+    return 'low';
+}
+
 export interface MoodOption {
     id: Mood;
     emoji: string;
     label: string;
     description: string;
     sessionAdjustment: string;
+    bandwidth: CognitiveBandwidth;
+    bandwidthLabel: string;
 }
 
 export const MOOD_OPTIONS: MoodOption[] = [
     {
         id: 'energized',
         emoji: '⚡',
-        label: 'Energized',
-        description: 'Push me — I want a challenge',
-        sessionAdjustment: 'Velocity drills, harder concepts first, 45 min'
+        label: 'Pumped / High Focus',
+        description: 'All features unlocked — Pre-Mortem, Mastery, everything',
+        sessionAdjustment: 'Full toolkit, harder concepts first, 45 min',
+        bandwidth: 'high',
+        bandwidthLabel: 'High Bandwidth',
     },
     {
         id: 'neutral',
         emoji: '🧠',
-        label: 'Neutral',
-        description: 'Steady pace, deep understanding',
-        sessionAdjustment: 'Full learning lifecycle, balanced mix, 30 min'
+        label: 'Steady / Good',
+        description: 'Standard features — Concept Map, Peer Review',
+        sessionAdjustment: 'Build Lab active, balanced mix, 30 min',
+        bandwidth: 'medium',
+        bandwidthLabel: 'Med Bandwidth',
     },
     {
         id: 'tired',
-        emoji: '�',
-        label: 'Tired',
-        description: 'Keep it light — review what I know',
-        sessionAdjustment: 'Spaced review, familiar concepts, 15 min'
+        emoji: '🔋',
+        label: 'Low / Brain Fog',
+        description: 'Fluency only — Sprint, Blank Sheet. High-load tools hidden',
+        sessionAdjustment: 'Fluency drills, familiar concepts, 15 min',
+        bandwidth: 'low',
+        bandwidthLabel: 'Low Bandwidth',
     },
-    {
-        id: 'stressed',
-        emoji: '🌊',
-        label: 'Stressed',
-        description: 'No pressure — let me explore freely',
-        sessionAdjustment: 'Free exploration, easy wins, 15 min'
-    }
 ];
 
 /**

@@ -15,6 +15,7 @@ import type {
   SessionPrimer,
   ConceptMapData,
 } from './types';
+import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -157,6 +158,17 @@ export const createStudySlice: StateCreator<
   },
 
   markSessionMapReconstructed: (_passed: boolean) => {
+    const state = get();
+    const currentConceptId = state.currentSession?.progress?.currentConceptId;
+    if (currentConceptId) {
+      try {
+        const spacing = getSpacingEngine();
+        if (spacing.getReview(currentConceptId)) {
+          spacing.recordReviewWithQuality(currentConceptId, 4);
+        }
+      } catch { /* non-critical */ }
+    }
+
     set((state) => ({
       studySession: state.studySession
         ? { ...state.studySession, mapReconstructed: true }
@@ -165,6 +177,17 @@ export const createStudySlice: StateCreator<
   },
 
   markSessionMastered: () => {
+    const state = get();
+    const currentConceptId = state.currentSession?.progress?.currentConceptId;
+    if (currentConceptId) {
+      try {
+        const spacing = getSpacingEngine();
+        if (spacing.getReview(currentConceptId)) {
+          spacing.recordReviewWithQuality(currentConceptId, 5);
+        }
+      } catch { /* non-critical */ }
+    }
+
     set((state) => ({
       studySession: state.studySession
         ? { ...state.studySession, mastered: true }
@@ -236,6 +259,16 @@ export const createStudySlice: StateCreator<
     const newAccuracy = passed
       ? Math.min(100, session.metrics.confusionDrillAccuracy + 10)
       : Math.max(0, session.metrics.confusionDrillAccuracy - 5);
+
+    const currentConceptId = state.currentSession?.progress?.currentConceptId;
+    if (currentConceptId) {
+      try {
+        const spacing = getSpacingEngine();
+        if (spacing.getReview(currentConceptId)) {
+          spacing.recordReviewWithQuality(currentConceptId, passed ? 4 : 1);
+        }
+      } catch { /* non-critical */ }
+    }
 
     set({
       studySession: {

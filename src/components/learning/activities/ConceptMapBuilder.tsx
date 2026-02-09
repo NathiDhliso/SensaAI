@@ -69,6 +69,7 @@ interface ConceptMapBuilderProps {
     userGuesses?: Map<string, string>;
     /** Current subject name for dynamic AI stopwords */
     subjectName?: string;
+    mode?: 'guided' | 'free';
 }
 
 interface MapNode {
@@ -104,9 +105,11 @@ export default function ConceptMapBuilder({
     onBack,
     dependencyGraph,
     userGuesses,
-    subjectName
+    subjectName,
+    mode: initialMode = 'guided',
 }: ConceptMapBuilderProps) {
     // ========== SENSA v2.0 Phase State ==========
+    const [mapMode, setMapMode] = useState<'guided' | 'free'>(initialMode);
     const [mapPhase, setMapPhase] = useState<'build' | 'validate' | 'rebuild'>('build');
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
 
@@ -564,14 +567,16 @@ export default function ConceptMapBuilder({
     }, [mapPhase, validationResult, validateGuesses]);
 
     const handleFinishMap = useCallback(() => {
+        if (mapMode === 'free') {
+            onComplete?.({ nodes, connections });
+            return;
+        }
         if (userGuesses && dependencyGraph) {
-            // Go to validation phase first
             setMapPhase('validate');
         } else {
-            // No validation needed, just complete
             onComplete?.({ nodes, connections });
         }
-    }, [userGuesses, dependencyGraph, nodes, connections, onComplete]);
+    }, [mapMode, userGuesses, dependencyGraph, nodes, connections, onComplete]);
 
     const handleCompleteWithValidation = useCallback(() => {
         onComplete?.({ nodes, connections }, validationResult || undefined);
@@ -1095,6 +1100,14 @@ export default function ConceptMapBuilder({
                                 title="Auto-layout nodes"
                             >
                                 <LayoutGrid size={20} />
+                            </button>
+                            <div className={styles.toolbarDivider} />
+                            <button
+                                className={`${styles.toolButton} ${styles.modeToggle}`}
+                                onClick={() => setMapMode(m => m === 'guided' ? 'free' : 'guided')}
+                                title={mapMode === 'guided' ? 'Switch to Free mode' : 'Switch to Guided mode'}
+                            >
+                                <span className={styles.modeLabel}>{mapMode === 'guided' ? 'Guided' : 'Free'}</span>
                             </button>
                         </div>
                     )}

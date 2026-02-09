@@ -24,6 +24,8 @@ export interface ConceptVerdict {
   matchedObjective: string | null;
   issues: AuditIssue[];
   strengths: string[];
+  freshness: 'fresh' | 'staling' | 'stale';
+  nextReviewDate: Date;
 }
 
 export interface ContentAuditResult {
@@ -193,6 +195,26 @@ function scoreContentHealth(concept: ParsedConcept): { score: number; issues: Au
     strengths.push('Elimination logic');
   }
 
+  const hasWorkedExample = concept.workedExample
+    && concept.workedExample.problem
+    && concept.workedExample.solution
+    && isRealContent(concept.workedExample.problem, concept.name);
+  if (hasWorkedExample) {
+    score += 5;
+    strengths.push('Worked example');
+  } else {
+    const level = concept.cognitiveLevel || 'remember';
+    const isHigherOrder = ['apply', 'analyze', 'evaluate', 'create'].includes(level);
+    if (isHigherOrder) {
+      issues.push({
+        field: 'workedExample',
+        severity: 'warning',
+        message: 'Missing: Worked example',
+        impact: `This is an "${level}" concept — a worked example would reinforce application skills.`,
+      });
+    }
+  }
+
   if (hasEntries(concept.keyPoints)) {
     score += 5;
     strengths.push(`${concept.keyPoints!.length} key points`);
@@ -337,6 +359,8 @@ export function auditContent(
       matchedObjective: objMatch.bestMatch,
       issues: healthResult.issues,
       strengths: healthResult.strengths,
+      freshness: 'fresh' as const,
+      nextReviewDate: new Date(),
     });
   }
 

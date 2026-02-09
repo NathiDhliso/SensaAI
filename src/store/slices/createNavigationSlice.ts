@@ -8,6 +8,8 @@ import type { LearningStore, NavigationSliceActions, UserProgress } from './type
 import { getInitialProgress } from './createSessionSlice';
 import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
 import { saveSessionProgress } from '@/features/learning-session/progress/session-tracker';
+import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
+import type { SM2Quality } from '@/features/learning-session/algorithms/spacing-engine';
 
 // ============================================================================
 // SLICE CREATOR
@@ -128,9 +130,33 @@ export const createNavigationSlice: StateCreator<
       // Don't throw - progress saving is non-critical
     }
 
-    // Show intervention modal if max attempts reached
+    if (shouldComplete) {
+      try {
+        const spacing = getSpacingEngine();
+        const concept = concepts.find(c => c.id === conceptId);
+        const hasConfusion = (concept?.commonPitfalls?.length ?? 0) > 0;
+        const existing = spacing.getReview(conceptId);
+
+        if (!existing) {
+          spacing.scheduleInitialReview(conceptId, concept?.name ?? conceptId, hasConfusion);
+        }
+
+        let quality: SM2Quality = 4;
+        if (status === 'skipped') quality = 1;
+        else if (normalizedScore >= 0.9) quality = 5;
+        else if (normalizedScore >= 0.7) quality = 4;
+        else if (normalizedScore >= 0.5) quality = 3;
+        else quality = 2;
+
+        if (existing) {
+          spacing.recordReviewWithQuality(conceptId, quality);
+        }
+      } catch (e) {
+        console.warn('[Navigation] SpacingEngine integration error:', e);
+      }
+    }
+
     if (status === 'skipped') {
-      // TODO: Trigger intervention modal
       console.log(`[Navigation] Intervention needed for concept ${conceptId} (score: ${normalizedScore.toFixed(2)})`);
     }
 
