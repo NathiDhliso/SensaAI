@@ -26,6 +26,7 @@ import { findConfusionPairs, generateConfusionQuestions } from '@/features/learn
 import type { ConfusionDrillResult, ConfusionPair } from '@/features/learning-session/activities/confusion-generator';
 import { getRandomElaborationPrompt } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './MicroLearningLoopController.module.css';
 
 // ============================================================================
@@ -637,6 +638,7 @@ interface VerifyPhaseProps {
  * Verify Phase: Quick check question
  */
 function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhaseProps) {
+    const { isScholarly } = useVisualTheme();
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
     const [confidence, setConfidence] = useState<number | null>(null);
     const [showConfidencePrompt, setShowConfidencePrompt] = useState(false);
@@ -750,14 +752,14 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
         const wasOverconfident = confidence >= 4 && !isCorrect;
         const wasUnderconfident = confidence <= 2 && isCorrect;
         if (wasOverconfident) {
-            setCalibrationFeedback('💡 Tip: Your confidence was high but the answer was incorrect. Take more time to verify your understanding.');
+            setCalibrationFeedback('Tip: Your confidence was high but the answer was incorrect. Take more time to verify your understanding.');
         } else if (wasUnderconfident) {
-            setCalibrationFeedback('🎯 Great! You knew more than you thought. Trust your learning!');
+            setCalibrationFeedback('You knew more than you thought. Trust your learning!');
         }
 
         // Audio feedback
         if (isCorrect) {
-            const audio = new Audio('/audio/voice/sage_master_success.mp3');
+            const audio = new Audio('/Audio/voice/sage_master_success.mp3');
             audio.volume = 0.2;
             audio.play().catch(() => { });
         }
@@ -769,7 +771,13 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
     };
 
     // Confidence rating labels
-    const confidenceLabels = [
+    const confidenceLabels = isScholarly ? [
+        { value: 1, label: 'Guessing', emoji: '1' },
+        { value: 2, label: 'Unsure', emoji: '2' },
+        { value: 3, label: 'Somewhat', emoji: '3' },
+        { value: 4, label: 'Confident', emoji: '4' },
+        { value: 5, label: 'Certain', emoji: '5' },
+    ] : [
         { value: 1, label: 'Guessing', emoji: '🎲' },
         { value: 2, label: 'Unsure', emoji: '🤔' },
         { value: 3, label: 'Somewhat', emoji: '😐' },

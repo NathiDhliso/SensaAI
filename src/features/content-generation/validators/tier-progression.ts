@@ -7,7 +7,7 @@
  * I = min(h, G × f(M(P(x))))
  */
 
-import { GRAPH_COLORS, COLORS } from '@/shared/constants/theme-colors';
+import { getGraphColors } from '@/shared/constants/theme-colors';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { TierType, TierDistribution } from '@/shared/types/sensa-flow';
 
@@ -15,11 +15,14 @@ import type { TierType, TierDistribution } from '@/shared/types/sensa-flow';
 // Configuration
 // ============================================================================
 
-export const TIER_CONFIG = {
-    root: { color: GRAPH_COLORS.root, label: 'Root' },
-    trunk: { color: GRAPH_COLORS.trunk, label: 'Trunk' },
-    leaf: { color: COLORS.text.muted, label: 'Leaf' }
-} as const;
+export function getTierConfig() {
+    const colors = getGraphColors();
+    return {
+        root: { color: colors.root, label: 'Root' },
+        trunk: { color: colors.trunk, label: 'Trunk' },
+        leaf: { color: colors.leaf, label: 'Leaf' },
+    };
+}
 
 // ============================================================================
 // Tier Access Control

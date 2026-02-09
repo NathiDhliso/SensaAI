@@ -2,14 +2,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type Theme = 'light' | 'dark' | 'system';
+export type VisualTheme = 'playful' | 'scholarly';
 
 type ThemeState = {
     theme: Theme;
     resolvedTheme: 'light' | 'dark';
+    visualTheme: VisualTheme;
 };
 
 type ThemeActions = {
     setTheme: (theme: Theme) => void;
+    setVisualTheme: (visualTheme: VisualTheme) => void;
     initializeTheme: () => void;
 };
 
@@ -31,11 +34,17 @@ const applyTheme = (resolvedTheme: 'light' | 'dark') => {
     }
 };
 
+const applyVisualTheme = (visualTheme: VisualTheme) => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.setAttribute('data-visual-theme', visualTheme);
+};
+
 export const useThemeStore = create<ThemeState & ThemeActions>()(
     persist(
         (set, get) => ({
             theme: 'system',
             resolvedTheme: 'light',
+            visualTheme: 'playful',
 
             setTheme: (theme) => {
                 const resolvedTheme = theme === 'system' ? getSystemTheme() : theme;
@@ -43,10 +52,20 @@ export const useThemeStore = create<ThemeState & ThemeActions>()(
                 set({ theme, resolvedTheme });
             },
 
+            setVisualTheme: (visualTheme) => {
+                const prev = get().visualTheme;
+                applyVisualTheme(visualTheme);
+                set({ visualTheme });
+                if (prev !== visualTheme) {
+                    setTimeout(() => window.location.reload(), 50);
+                }
+            },
+
             initializeTheme: () => {
-                const { theme } = get();
+                const { theme, visualTheme } = get();
                 const resolvedTheme = theme === 'system' ? getSystemTheme() : theme;
                 applyTheme(resolvedTheme);
+                applyVisualTheme(visualTheme);
                 set({ resolvedTheme });
 
                 // Listen for system theme changes
@@ -67,12 +86,12 @@ export const useThemeStore = create<ThemeState & ThemeActions>()(
         }),
         {
             name: 'sensa-theme-storage',
-            partialize: (state) => ({ theme: state.theme }),
+            partialize: (state) => ({ theme: state.theme, visualTheme: state.visualTheme }),
             onRehydrateStorage: () => (state) => {
-                // Apply theme after hydration
                 if (state) {
                     const resolvedTheme = state.theme === 'system' ? getSystemTheme() : state.theme;
                     applyTheme(resolvedTheme);
+                    applyVisualTheme(state.visualTheme ?? 'playful');
                     state.resolvedTheme = resolvedTheme;
                 }
             },

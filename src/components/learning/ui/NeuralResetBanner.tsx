@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { Brain, Lightbulb, RefreshCw } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './NeuralResetBanner.module.css';
 
 interface NeuralResetBannerProps {
@@ -27,6 +28,7 @@ export function NeuralResetBanner({
     onRetry,
 }: NeuralResetBannerProps) {
     // Get content respecting metaphor settings
+    const { isScholarly } = useVisualTheme();
     const adaptedContent = useMetaphorContent(concept);
     const simpleCore = adaptedContent.coreExplanation;
     const analogicalModel = adaptedContent.analogicalModel;
@@ -90,7 +92,7 @@ export function NeuralResetBanner({
 
                 <div className={styles.encouragement}>
                     <p>
-                        💡 <strong>Don't worry!</strong> This is completely normal.
+                        {!isScholarly && '💡 '}<strong>{isScholarly ? 'Note:' : "Don't worry!"}</strong> This is completely normal.
                         Knowledge sticks better when we encounter it multiple times.
                     </p>
                 </div>

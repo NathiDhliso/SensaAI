@@ -1,6 +1,10 @@
-import { useMemo } from 'react';
-import { X, TrendingUp, Clock } from 'lucide-react';
+import { useMemo, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { X, TrendingUp, Clock, ChevronRight } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
+import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
+import type { ScheduledReview } from '@/features/learning-session/algorithms/spacing-engine';
 import styles from './LearningToolbar.module.css';
 
 interface ProgressAnalyticsProps {
@@ -11,11 +15,24 @@ interface ProgressAnalyticsProps {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
+    const navigate = useNavigate();
+    const { isScholarly } = useVisualTheme();
     const { currentSession, getConcepts, getStages } = useLearningStore();
+    const [spacingReviews, setSpacingReviews] = useState<ScheduledReview[]>([]);
 
     const concepts = getConcepts();
     const stages = getStages();
     const progress = currentSession?.progress;
+
+    useEffect(() => {
+        if (!isOpen) return;
+        try {
+            const spacing = getSpacingEngine();
+            const due = spacing.getDueReviews();
+            const upcoming = spacing.getUpcomingReviews(7);
+            setSpacingReviews([...due, ...upcoming].slice(0, 8));
+        } catch { /* spacing not initialized */ }
+    }, [isOpen]);
 
     const stats = useMemo(() => {
         const totalConcepts = concepts.length;
@@ -50,6 +67,18 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
     }, [concepts, stages, progress]);
 
     const dueForReview = useMemo(() => {
+        if (spacingReviews.length > 0) {
+            const now = Date.now();
+            return spacingReviews.slice(0, 5).map(review => {
+                const dueMs = new Date(review.dueDate).getTime();
+                const diffDays = Math.max(0, Math.round((dueMs - now) / (1000 * 60 * 60 * 24)));
+                return {
+                    id: review.conceptId,
+                    name: review.conceptName,
+                    dueIn: dueMs <= now ? 0 : diffDays,
+                };
+            });
+        }
         return (progress?.completedConcepts ?? []).slice(0, 3).map((id: string, idx: number) => {
             const concept = concepts.find(c => c.id === id);
             return {
@@ -58,7 +87,7 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
                 dueIn: idx,
             };
         });
-    }, [progress?.completedConcepts, concepts]);
+    }, [spacingReviews, progress?.completedConcepts, concepts]);
 
     if (!isOpen) return null;
 
@@ -78,7 +107,7 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
                 <div className={styles.modalContent}>
                     {concepts.length === 0 ? (
                         <div className={styles.emptyState}>
-                            <div className={styles.emptyStateIcon}>📊</div>
+                            {!isScholarly && <div className={styles.emptyStateIcon}>📊</div>}
                             <p className={styles.emptyStateText}>
                                 Generate content and start learning to see your analytics
                             </p>
@@ -131,12 +160,23 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
                                     </h3>
                                     <div className={styles.reviewList}>
                                         {dueForReview.map(item => (
-                                            <div key={item.id} className={styles.reviewItem}>
+                                            <button
+                                                key={item.id}
+                                                className={styles.reviewItem}
+                                                onClick={() => {
+                                                    const subjectId = currentSession?.subjectId;
+                                                    if (subjectId) {
+                                                        onClose();
+                                                        navigate(`/study/${subjectId}?tab=learn&concept=${item.id}`);
+                                                    }
+                                                }}
+                                            >
                                                 <span className={styles.reviewItemName}>{item.name}</span>
                                                 <span className={`${styles.reviewItemDue} ${item.dueIn === 0 ? styles.overdue : ''}`}>
                                                     {item.dueIn === 0 ? 'Today' : `In ${item.dueIn} days`}
                                                 </span>
-                                            </div>
+                                                <ChevronRight size={14} />
+                                            </button>
                                         ))}
                                     </div>
                                 </div>

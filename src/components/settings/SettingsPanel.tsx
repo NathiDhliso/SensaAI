@@ -6,6 +6,8 @@ import {
     Moon,
     Monitor,
     Palette,
+    Sparkles,
+    GraduationCap,
     Bot,
     Edit2,
     Volume2,
@@ -24,12 +26,13 @@ import {
 import { useClickOutside } from '@/shared/hooks/useClickOutside';
 import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
 import { useUIStore } from '@/store/ui-store';
-import { useThemeStore, type Theme } from '@/store/theme-store';
+import { useThemeStore, type Theme, type VisualTheme } from '@/store/theme-store';
 import { usePersonalizationStore, type PracticeMode } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { getAllPersonas, getPersonaResponse } from '@/features/ai-coach';
 import { MetaphorToggle } from '@/features/personalization';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { toast } from '@/shared/utils/toast';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './SettingsPanel.module.css';
@@ -44,7 +47,8 @@ export default function SettingsPanel() {
     const [confirmClear, setConfirmClear] = useState<string | null>(null);
 
     const { isSettingsPanelOpen, closeSettingsPanel } = useUIStore();
-    const { theme, setTheme } = useThemeStore();
+    const { theme, setTheme, visualTheme, setVisualTheme } = useThemeStore();
+    const { isScholarly } = useVisualTheme();
 
     const {
         selectedPersona,
@@ -162,6 +166,11 @@ export default function SettingsPanel() {
         { value: 'system', icon: Monitor, label: 'System' },
     ];
 
+    const visualThemeOptions: { value: VisualTheme; icon: typeof Sparkles; label: string; desc: string }[] = [
+        { value: 'playful', icon: Sparkles, label: 'Playful', desc: 'Friendly and approachable' },
+        { value: 'scholarly', icon: GraduationCap, label: 'Scholarly', desc: 'Refined and structured' },
+    ];
+
     const practiceModes: { value: PracticeMode; label: string; desc: string }[] = [
         { value: 'blocked', label: 'Blocked', desc: 'One topic at a time' },
         { value: 'mixed', label: 'Mixed', desc: 'Random topics' },
@@ -213,6 +222,25 @@ export default function SettingsPanel() {
                                 ))}
                             </div>
                         </div>
+                        <div className={styles.settingRow}>
+                            <div className={styles.settingInfo}>
+                                <span className={styles.settingLabel}>Visual Style</span>
+                                <span className={styles.settingDesc}>Choose your interface style</span>
+                            </div>
+                            <div className={styles.themeToggle}>
+                                {visualThemeOptions.map(({ value, icon: Icon, label, desc }) => (
+                                    <button
+                                        key={value}
+                                        onClick={() => setVisualTheme(value)}
+                                        className={`${styles.themeOption} ${visualTheme === value ? styles.themeOptionActive : ''}`}
+                                        title={desc}
+                                    >
+                                        <Icon size={16} />
+                                        <span>{label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </section>
 
                     <section className={styles.section}>
@@ -224,7 +252,7 @@ export default function SettingsPanel() {
                         <div className={styles.settingRow}>
                             <div className={styles.compactPersonaRow}>
                                 <div className={styles.personaPreview}>
-                                    <span className={styles.personaEmoji}>{activePersona.emoji}</span>
+                                    {!isScholarly && <span className={styles.personaEmoji}>{activePersona.emoji}</span>}
                                     <div>
                                         <span className={styles.personaName}>{activePersona.name}</span>
                                         <span className={styles.personaTagline}>{activePersona.tagline}</span>
@@ -250,7 +278,7 @@ export default function SettingsPanel() {
                                             }}
                                             className={`${styles.optionButton} ${selectedPersona === persona.id ? styles.optionActive : ''}`}
                                         >
-                                            <span>{persona.emoji}</span>
+                                            {!isScholarly && <span>{persona.emoji}</span>}
                                             <span>{persona.name}</span>
                                         </button>
                                     ))}

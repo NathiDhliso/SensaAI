@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { X, Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { FOCUS_SESSION_CONFIG } from '@/shared/constants/ui-constants';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './LearningToolbar.module.css';
 
 interface FocusTimerProps {
@@ -17,6 +18,7 @@ interface FocusTimerProps {
 }
 
 export function FocusTimer({ isOpen, onClose }: FocusTimerProps) {
+    const { isScholarly } = useVisualTheme();
     const {
         isSessionActive,
         isPaused,
@@ -97,7 +99,7 @@ export function FocusTimer({ isOpen, onClose }: FocusTimerProps) {
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
                     <h2 className={styles.modalTitle}>
-                        {isBreak ? <Coffee size={20} /> : '🍅'}
+                        {isBreak ? <Coffee size={20} /> : (isScholarly ? null : '🍅')}
                         {isBreak ? 'Break Time' : 'Focus Timer'}
                     </h2>
                     <button className={styles.closeButton} onClick={onClose}>

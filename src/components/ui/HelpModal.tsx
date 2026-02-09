@@ -9,6 +9,7 @@ import React from 'react';
 
 import { X, Keyboard, Navigation, Brain, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './HelpModal.module.css';
 
 interface HelpModalProps {
@@ -17,65 +18,52 @@ interface HelpModalProps {
 }
 
 // Learning flow steps
-const LEARNING_FLOW = [
-    { icon: '📋', label: 'Diagnostic' },
-    { icon: '📚', label: 'Learn' },
-    { icon: '🧠', label: 'Palace' },
-    { icon: '⚡', label: 'Sprint' },
-    { icon: '🎯', label: 'Ready!' },
+const LEARNING_FLOW_PLAYFUL = [
+    { icon: '1', label: 'Diagnostic' },
+    { icon: '2', label: 'Learn' },
+    { icon: '3', label: 'Palace' },
+    { icon: '4', label: 'Sprint' },
+    { icon: '5', label: 'Ready!' },
+];
+
+const LEARNING_FLOW_SCHOLARLY = [
+    { icon: '1', label: 'Diagnostic' },
+    { icon: '2', label: 'Learn' },
+    { icon: '3', label: 'Recall' },
+    { icon: '4', label: 'Verify' },
+    { icon: '5', label: 'Complete' },
 ];
 
 // Navigation tips by area
-const NAVIGATION_TIPS = [
-    {
-        icon: '🏠',
-        title: 'Home Page',
-        desc: 'Enter a subject and click Generate. The diagnostic quiz assesses what you already know.',
-    },
-    {
-        icon: '📚',
-        title: 'Learn Page',
-        desc: 'Work through concepts one by one. Use the journey map on the left to navigate. Click \'Mark as Complete\' when ready.',
-    },
-    {
-        icon: '🗺️',
-        title: 'Memory Palace',
-        desc: 'Visual map of all concepts. Click buildings to review. Use Street View for immersive exploration.',
-    },
-    {
-        icon: '⚡',
-        title: 'Sprint',
-        desc: 'Fast yes/no quiz. Appears at 50% progress. Tests if you can recognize concepts instantly.',
-    },
-    {
-        icon: '⚔️',
-        title: 'Confusion Drills',
-        desc: 'A/B choice questions to distinguish similar concepts. Triggered during learning.',
-    },
+const NAVIGATION_TIPS_PLAYFUL = [
+    { title: 'Home Page', desc: 'Enter a subject and click Generate. The diagnostic quiz assesses what you already know.' },
+    { title: 'Learn Page', desc: 'Work through concepts one by one. Use the journey map on the left to navigate. Click \'Mark as Complete\' when ready.' },
+    { title: 'Memory Palace', desc: 'Visual map of all concepts. Click buildings to review. Use Street View for immersive exploration.' },
+    { title: 'Sprint', desc: 'Fast yes/no quiz. Appears at 50% progress. Tests if you can recognize concepts instantly.' },
+    { title: 'Confusion Drills', desc: 'A/B choice questions to distinguish similar concepts. Triggered during learning.' },
+];
+
+const NAVIGATION_TIPS_SCHOLARLY = [
+    { title: 'Home', desc: 'Enter a subject and generate content. The diagnostic assessment evaluates prior knowledge.' },
+    { title: 'Study', desc: 'Work through concepts sequentially. Use the sidebar to navigate. Mark concepts complete when ready.' },
+    { title: 'Concept Map', desc: 'Visual overview of all concepts and their relationships. Click nodes to review.' },
+    { title: 'Verification', desc: 'Rapid-fire assessment at 50% progress. Tests instant concept recognition.' },
+    { title: 'Discrimination Drills', desc: 'A/B choice questions to distinguish similar concepts. Triggered during study.' },
 ];
 
 // Feature tips
-const FEATURE_TIPS = [
-    {
-        icon: '⏱️',
-        title: 'Speed Reader Timer',
-        desc: 'Tracks your reading time per concept. Aim for 2 minutes. Click to minimize if distracting.',
-    },
-    {
-        icon: '🧠',
-        title: 'Cognitive Load Gauge',
-        desc: 'Shows your mental state. Green = fresh, Purple = focused, Amber = warming, Red = take a break.',
-    },
-    {
-        icon: '🧘',
-        title: 'Neural Reset',
-        desc: 'Appears when you need a break. Follow the 2-minute guided reset to refresh your mind.',
-    },
-    {
-        icon: '🎯',
-        title: 'Sprint Ready Banner',
-        desc: 'Appears when all concepts are complete. Take the sprint to confirm exam readiness.',
-    },
+const FEATURE_TIPS_PLAYFUL = [
+    { title: 'Speed Reader Timer', desc: 'Tracks your reading time per concept. Aim for 2 minutes. Click to minimize if distracting.' },
+    { title: 'Cognitive Load Gauge', desc: 'Shows your mental state. Green = fresh, Purple = focused, Amber = warming, Red = take a break.' },
+    { title: 'Neural Reset', desc: 'Appears when you need a break. Follow the 2-minute guided reset to refresh your mind.' },
+    { title: 'Sprint Ready Banner', desc: 'Appears when all concepts are complete. Take the sprint to confirm exam readiness.' },
+];
+
+const FEATURE_TIPS_SCHOLARLY = [
+    { title: 'Reading Timer', desc: 'Tracks reading time per concept. Target: 2 minutes. Can be minimized.' },
+    { title: 'Cognitive Load Indicator', desc: 'Displays current mental load. Green = optimal, Amber = elevated, Red = rest recommended.' },
+    { title: 'Neural Reset', desc: 'Triggered when cognitive load is high. A 2-minute guided pause to restore focus.' },
+    { title: 'Completion Prompt', desc: 'Appears when all concepts are studied. Proceed to verification to confirm readiness.' },
 ];
 
 // Keyboard shortcuts
@@ -89,7 +77,12 @@ const KEYBOARD_SHORTCUTS = [
 ];
 
 export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
+    const { isScholarly } = useVisualTheme();
     if (!isOpen) return null;
+
+    const LEARNING_FLOW = isScholarly ? LEARNING_FLOW_SCHOLARLY : LEARNING_FLOW_PLAYFUL;
+    const NAVIGATION_TIPS = isScholarly ? NAVIGATION_TIPS_SCHOLARLY : NAVIGATION_TIPS_PLAYFUL;
+    const FEATURE_TIPS = isScholarly ? FEATURE_TIPS_SCHOLARLY : FEATURE_TIPS_PLAYFUL;
 
     return (
         <AnimatePresence>
@@ -104,8 +97,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     {/* Header */}
                     <div className={styles.header}>
                         <div className={styles.headerTitle}>
-                            <span className={styles.headerIcon}>❓</span>
-                            <h2 className={styles.title}>How to Use SensaPBL</h2>
+                            <h2 className={styles.title}>{isScholarly ? 'User Guide' : 'How to Use SensaPBL'}</h2>
                         </div>
                         <button className={styles.closeButton} onClick={onClose}>
                             <X size={20} />
@@ -144,7 +136,6 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             <div className={styles.tipsList}>
                                 {NAVIGATION_TIPS.map(tip => (
                                     <div key={tip.title} className={styles.tip}>
-                                        <span className={styles.tipIcon}>{tip.icon}</span>
                                         <div className={styles.tipContent}>
                                             <div className={styles.tipTitle}>{tip.title}</div>
                                             <div className={styles.tipDesc}>{tip.desc}</div>
@@ -163,7 +154,6 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             <div className={styles.tipsList}>
                                 {FEATURE_TIPS.map(tip => (
                                     <div key={tip.title} className={styles.tip}>
-                                        <span className={styles.tipIcon}>{tip.icon}</span>
                                         <div className={styles.tipContent}>
                                             <div className={styles.tipTitle}>{tip.title}</div>
                                             <div className={styles.tipDesc}>{tip.desc}</div>

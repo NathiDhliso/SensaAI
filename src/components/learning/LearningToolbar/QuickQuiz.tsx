@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { X, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './LearningToolbar.module.css';
 
 interface QuickQuizProps {
@@ -17,6 +18,7 @@ interface QuizQuestion {
 }
 
 export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
+    const { isScholarly } = useVisualTheme();
     const { getConcepts, currentSession } = useLearningStore();
     const concepts = getConcepts();
 
@@ -107,7 +109,7 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
                     <h2 className={styles.modalTitle}>
-                        🧠 Quick Check
+                        {isScholarly ? 'Quick Check' : '🧠 Quick Check'}
                     </h2>
                     <button className={styles.closeButton} onClick={onClose}>
                         <X size={20} />
@@ -117,7 +119,7 @@ export function QuickQuiz({ isOpen, onClose, conceptId }: QuickQuizProps) {
                 <div className={styles.modalContent}>
                     {!targetConcept || questions.length === 0 ? (
                         <div className={styles.emptyState}>
-                            <div className={styles.emptyStateIcon}>📝</div>
+                            {!isScholarly && <div className={styles.emptyStateIcon}>📝</div>}
                             <p className={styles.emptyStateText}>
                                 No concept selected for quiz. Start learning first!
                             </p>

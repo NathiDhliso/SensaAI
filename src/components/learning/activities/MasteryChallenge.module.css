@@ -631,3 +631,270 @@
     border-color: var(--color-accent);
     background: var(--overlay-primary-5);
 }
+
+/* Metrics Card */
+.metricsCard {
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+}
+
+.metricsCard h3 {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--spacing-3) 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.metricsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-3);
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+}
+
+.metricLabel {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    font-weight: var(--font-weight-medium);
+}
+
+.metricValue {
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Tips Card */
+.tipsCard {
+    background: linear-gradient(135deg, var(--overlay-blue-5) 0%, var(--overlay-purple-5) 100%);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-5);
+    margin-bottom: var(--spacing-4);
+}
+
+.tipsCard h3 {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-3) 0;
+}
+
+.tipsCard ul {
+    margin: 0;
+    padding-left: var(--spacing-5);
+    list-style: disc;
+}
+
+.tipsCard li {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-2);
+}
+
+.tipsCard li:last-child {
+    margin-bottom: 0;
+}
+
+.tipsCard strong {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Enhanced response cards */
+.responseCard ul {
+    margin: 0;
+    padding-left: var(--spacing-5);
+    list-style: disc;
+}
+
+.responseCard li {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-2);
+}
+
+.responseCard li:last-child {
+    margin-bottom: 0;
+}
+
+.roundIndicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: var(--spacing-4) var(--spacing-6);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.roundStep {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.roundDot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    background: var(--color-surface-elevated);
+    border: 2px solid var(--color-border);
+    color: var(--color-text-muted);
+    transition: all 0.3s ease;
+}
+
+.roundDot.roundActive {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-on-accent);
+}
+
+.roundDot.roundComplete {
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: var(--color-text-on-accent);
+}
+
+.roundLabel {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+}
+
+.roundLine {
+    width: 40px;
+    height: 2px;
+    background: var(--color-border);
+    margin: 0 var(--spacing-2);
+}
+
+.roundPreviewList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-4);
+}
+
+.roundPreview {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+    background: var(--color-surface-base, var(--color-surface));
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.roundPreview strong {
+    display: block;
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-1);
+}
+
+.roundPreview p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+}
+
+.roundPreview svg {
+    color: var(--color-accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.questionContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-5);
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.questionBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-1) var(--spacing-3);
+    background: var(--overlay-primary-10);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary);
+    align-self: flex-start;
+}
+
+.questionText {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+    line-height: var(--line-height-relaxed);
+}
+
+.connectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.connectionConcept {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    padding: var(--spacing-2) var(--spacing-4);
+    background: var(--overlay-primary-5);
+    border-radius: var(--radius-md);
+}
+
+.connectionArrow {
+    color: var(--color-accent);
+}
+
+.overallScore {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: var(--spacing-2) 0 0;
+}
+
+.celebrationFailed {
+    background: var(--color-warning-bg);
+    border-color: var(--color-warning);
+}
+
+.celebrationFailed h2 {
+    color: var(--color-warning-text);
+}
+
+.celebrationFailed .celebrationIcon {
+    color: var(--color-warning);
+}
+
+.celebrationFailed .overallScore {
+    color: var(--color-warning-text);
+}

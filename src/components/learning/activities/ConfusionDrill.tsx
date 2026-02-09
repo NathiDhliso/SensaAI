@@ -11,6 +11,7 @@ import { Check } from 'lucide-react';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { useLearningStore } from '@/store/learning-store';
 import { usePauseGlobalTimer } from '@/shared/hooks/usePauseGlobalTimer';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { calculateConfusionDrillResult } from '@/features/learning-session/activities/confusion-generator';
 import type { ConfusionPair, ConfusionQuestion, ConfusionAnswer, ConfusionDrillResult } from '@/features/learning-session/activities/confusion-generator';
 import styles from './ConfusionDrill.module.css';
@@ -31,6 +32,7 @@ export default function ConfusionDrill({
     onClose,
 }: ConfusionDrillProps) {
     const { recordInteraction } = useLearningStore();
+    const { isScholarly } = useVisualTheme();
 
     // Pause global focus session timer during drill
     usePauseGlobalTimer();
@@ -134,7 +136,7 @@ export default function ConfusionDrill({
                     animate={{ opacity: 1, scale: 1 }}
                 >
                     <div className={styles.result}>
-                        <span className={styles.resultIcon}>{mastered ? '🎯' : '📚'}</span>
+                        <span className={styles.resultIcon}>{isScholarly ? '' : (mastered ? '🎯' : '📚')}</span>
                         <h2 className={styles.resultTitle}>
                             {mastered ? 'Distinction Mastered!' : 'Keep Practicing'}
                         </h2>
@@ -170,8 +172,8 @@ export default function ConfusionDrill({
                 {/* Header */}
                 <div className={styles.header}>
                     <div className={styles.headerTitle}>
-                        <span className={styles.headerIcon}>⚔️</span>
-                        <h3 className={styles.title}>Confusion Drill</h3>
+                        {!isScholarly && <span className={styles.headerIcon}>⚔️</span>}
+                        <h3 className={styles.title}>{isScholarly ? 'Discrimination Drill' : 'Confusion Drill'}</h3>
                     </div>
                     <span className={styles.progress}>
                         {currentIndex + 1}/{questions.length}

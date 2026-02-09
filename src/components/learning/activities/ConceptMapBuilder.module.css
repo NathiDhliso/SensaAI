@@ -842,6 +842,17 @@
 .modeToggle {
     gap: 0.25rem;
     padding: 0.25rem 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.modeToggle.freeModeActive {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-color: #059669;
+}
+
+.modeToggle.freeModeActive:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
 }
 
 .modeLabel {

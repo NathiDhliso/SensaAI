@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { ShieldCheck, ArrowRight, Loader2, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './Login.module.css';
 
 export function ConfirmSignUp() {
@@ -16,6 +17,7 @@ export function ConfirmSignUp() {
     const [isResending, setIsResending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const { isScholarly } = useVisualTheme();
 
     const storeError = useAuthStore(state => state.error);
 
@@ -86,13 +88,13 @@ export function ConfirmSignUp() {
                         </div>
 
                         <div className={styles.primeDirective}>
-                            <h2 className={styles.primeTitle}>🛡️ Secure Your Data</h2>
+                            <h2 className={styles.primeTitle}>{isScholarly ? 'Secure Your Data' : '🛡️ Secure Your Data'}</h2>
                             <p className={styles.primeStatement}>
                                 We've sent a verification code to <strong>{email}</strong>. This ensures only you can access your personalized learning brain.
                             </p>
                             <div className={styles.primePrinciples}>
-                                <span>🔒 End-to-End Privacy</span>
-                                <span>✅ Verified Identity</span>
+                                <span>{isScholarly ? 'End-to-End Privacy' : '🔒 End-to-End Privacy'}</span>
+                                <span>{isScholarly ? 'Verified Identity' : '✅ Verified Identity'}</span>
                             </div>
                         </div>
                     </div>

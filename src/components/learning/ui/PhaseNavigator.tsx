@@ -23,7 +23,6 @@ import styles from './PhaseNavigator.module.css';
 interface PhaseNavigatorProps {
     currentPhase: LearningPhase;
     completedPhases: LearningPhase[];
-    diagnosticSkipped?: boolean;
     className?: string;
 }
 
@@ -50,12 +49,9 @@ const VISIBLE_PHASES: LearningPhase[] = ['PRIME', 'BUILD', 'DIAGNOSE', 'LEARN', 
 export function PhaseNavigator({
     currentPhase,
     completedPhases,
-    diagnosticSkipped = false,
     className = ''
 }: PhaseNavigatorProps) {
-    const visiblePhases = diagnosticSkipped
-        ? VISIBLE_PHASES.filter(p => p !== 'DIAGNOSE')
-        : VISIBLE_PHASES;
+    const visiblePhases = VISIBLE_PHASES;
 
     return (
         <div className={`${styles.container} ${className}`}>
@@ -63,7 +59,8 @@ export function PhaseNavigator({
                 {visiblePhases.map((phase, index) => {
                     const config = PHASE_CONFIG[phase as keyof typeof PHASE_CONFIG];
                     const Icon = config.icon;
-                    const isActive = phase === currentPhase;
+                    const mappedPhase = (currentPhase === 'SCOUT' || currentPhase === 'PREVIEW') ? 'BUILD' : currentPhase;
+                    const isActive = phase === mappedPhase;
                     const isCompleted = completedPhases.includes(phase);
                     const isUpcoming = !isActive && !isCompleted;
 

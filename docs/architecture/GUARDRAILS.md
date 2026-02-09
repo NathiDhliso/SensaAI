@@ -47,7 +47,7 @@
 | Store | File | Manages |
 |-------|------|---------|
 | `useUIStore` | `ui-store.ts` | Settings panel open/close |
-| `useThemeStore` | `theme-store.ts` | Light / dark / system theme |
+| `useThemeStore` | `theme-store.ts` | Light / dark / system theme + visual theme (playful / scholarly) |
 | `usePersonalizationStore` | `personalization-store.ts` | Persona, voice, coach intensity, practice mode, stress-free mode, metaphor settings, semester date |
 | `useGenerationStore` | `generation-store.ts` | Generation jobs, progress, classification |
 | `useLearningStore` | `learning-store.ts` | Session, navigation, study, cognitive, diagnostic, focus, UI (composed from slices) |
@@ -298,6 +298,8 @@ After making changes, verify:
 | `src/features/learning-session/activities/gym-ai-service.ts` | AI-powered gym activity service. Uses Claude Haiku for cost efficiency. Provides: `generateAIMisconception`, `generateAIPushback`, `scoreWithAI`, `generateMasteryScenario`, `scoreMasteryWithAI`, `generateAIBrokenConfig`. All functions return `null` on failure — callers must implement keyword-based fallback. 30-min client-side cache, max 100 entries. |
 | `src/components/layout/StudyLayout.tsx` | Unified study command center layout wrapper |
 | `src/shared/constants/theme-colors.ts` | All color constants including mood colors, `GRAPH_COLORS` (root/trunk/leaf), lifecycle colors |
+| `src/index.css` → `[data-visual-theme="scholarly"]` | Apple-grade scholarly visual theme CSS overhaul — completely different color palette (Apple system colors), SF Pro typography, no glow/texture, crisp shadows, 4 combos (scholarly+light, scholarly+dark, playful+light, playful+dark). Includes `@media print` reset. |
+| `src/shared/hooks/useVisualTheme.ts` | `useVisualTheme()` hook + `stripEmoji()` + `scholarlyLabel()` utilities. Used by 22+ components to conditionally strip emojis and swap labels in scholarly mode. Page reloads on theme switch (`theme-store.ts`). |
 | `backend/lambda/shared/system_prompt.py` | Generation prompt (classification + silver bullet + surgical fix). Domain-aware partitioning: when user provides exam objectives, `_parse_objective_domains()` splits them into top-level domains and `_distribute_domains_to_parts()` assigns domains to the 5 generation parts so each part covers specific exam domains instead of generic knowledge dimensions. |
 | `src/features/content-generation/validators/tier-progression.ts` | Tier access control, ceiling calculation, mastery breakdown. Uses `root/trunk/leaf` tiers (see §8). |
 | `docs/architecture/ARCHITECTURE_BLUEPRINT.md` | Full architecture reference |

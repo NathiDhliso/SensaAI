@@ -28,6 +28,7 @@ import type { LearningConcept } from '@/shared/types/learning';
 import type { DependencyGraph } from '@/shared/types/sensa-flow';
 import { generatePreviewAnalysis } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { useLearningStore } from '@/store/learning-store';
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import { NomenclatureSprint } from '@/components/learning/activities/NomenclatureSprint';
@@ -57,6 +58,7 @@ const STEPS_ORDER: ExploreStep[] = ['structure', 'sprint', 'prime'];
 // Helper component for concept chips that respects metaphor settings
 const ConceptChip = ({ concept, className }: { concept: LearningConcept; className: string }) => {
     const adaptedContent = useMetaphorContent(concept);
+    const { isScholarly } = useVisualTheme();
     
     return (
         <motion.div
@@ -66,7 +68,7 @@ const ConceptChip = ({ concept, className }: { concept: LearningConcept; classNa
             transition={{ delay: 0.1 }}
             whileHover={{ scale: 1.02 }}
         >
-            {adaptedContent.visualAnchor && (
+            {adaptedContent.visualAnchor && !isScholarly && (
                 <span className={styles.chipEmoji}>
                     {adaptedContent.visualAnchor}
                 </span>

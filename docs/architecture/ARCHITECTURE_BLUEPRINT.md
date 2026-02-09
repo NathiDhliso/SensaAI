@@ -265,7 +265,7 @@ src/
 │   ├── generation-store.ts    # Generation jobs, progress, classification
 │   ├── learning-store.ts      # Composed from slices (below)
 │   ├── personalization-store.ts # Metaphors, stress-free mode, practice mode, coach settings
-│   ├── theme-store.ts         # Dark/light/system theme
+│   ├── theme-store.ts         # Dark/light/system theme + visual theme (playful/scholarly)
 │   ├── ui-store.ts            # Settings panel open/close state
 │   └── slices/                # Learning store slices
 │       ├── createSessionSlice.ts     # Session lifecycle (load, clear, start)
@@ -637,6 +637,7 @@ Current architecture is designed for pilot scale. Known ceilings:
 - [x] Generation progress UI (CognitiveStream, subject type badge)
 - [x] Session time tracking + momentum checkpoints
 - [x] Dark/light/system theme
+- [x] Visual theme system (Playful / Scholarly) — Full Apple-grade UI overhaul. `data-visual-theme` attribute on root, 200+ CSS variable overrides in `index.css` (Apple system colors, SF Pro typography, no glow/texture, crisp shadows). `useVisualTheme()` hook in `src/shared/hooks/useVisualTheme.ts` used by 22+ components to conditionally strip emojis and swap labels. Page reloads on theme switch. 4 combinations: playful+light, playful+dark, scholarly+light, scholarly+dark. Persisted in `theme-store.ts`.
 - [x] Consolidated settings panel (slide-out, all toggles wired to stores)
 - [x] Mood-based session curation (energized/neutral/tired/stressed → auto-set goal + duration)
 - [x] Browser SpeechSynthesis voice preview (no audio file dependency)

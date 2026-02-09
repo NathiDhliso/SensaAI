@@ -26,6 +26,7 @@ import { CognitiveStream } from '@/components/generation/CognitiveStream';
 
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { useCollisionDetection } from '@/shared/hooks/useCollisionDetection';
 import { useGenerationEngine } from '@/shared/hooks/useGenerationEngine';
 import { useGenerationRecovery } from '@/shared/hooks/useGenerationRecovery';
@@ -99,6 +100,8 @@ export default function Generate() {
     subjectType,
     setError: _setError,
   } = useGenerationStore();
+
+  const { isScholarly } = useVisualTheme();
 
   // Refs
   const hasStartedRef = useRef(false);
@@ -350,11 +353,13 @@ export default function Generate() {
               exit={{ opacity: 0 }}
               className={styles.latestConcept}
             >
-              <span className={styles.conceptEmoji}>
-                {streamedConcepts[streamedConcepts.length - 1].mnemonic?.anchor?.match(
-                  /\p{Emoji}/u
-                )?.[0] || '💠'}
-              </span>
+              {!isScholarly && (
+                <span className={styles.conceptEmoji}>
+                  {streamedConcepts[streamedConcepts.length - 1].mnemonic?.anchor?.match(
+                    /\p{Emoji}/u
+                  )?.[0] || '💠'}
+                </span>
+              )}
               {streamedConcepts[streamedConcepts.length - 1].name}
             </motion.div>
           )}

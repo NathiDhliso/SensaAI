@@ -38,6 +38,7 @@ import {
 } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { calculateRecallScore } from '@/features/learning-session/scoring/blank-sheet-scorer';
+import { useVisualTheme, stripEmoji } from '@/shared/hooks/useVisualTheme';
 import styles from './BlankSheetTest.module.css';
 
 // ============================================================================
@@ -238,6 +239,7 @@ export function BlankSheetTest({
     onComplete,
     onNeedRemediation,
 }: BlankSheetTestProps) {
+    const { isScholarly } = useVisualTheme();
     const [response, setResponse] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showResults, setShowResults] = useState(false);
@@ -407,10 +409,14 @@ export function BlankSheetTest({
                 // If they are already "graduated" (>80 score previously), this is a regression
                 if (currentGraduation > 80) {
                     metaphorPenalty = 10; // Penalize for regression
-                    metaphorFeedback = `⚠️ Dependency Detected: You're still relying on the "${concept.metaphor.slice(0, 20)}..." analogy. To graduate, explain this using only technical terms.`;
+                    metaphorFeedback = isScholarly
+                        ? `Dependency Detected: You're still relying on the "${concept.metaphor.slice(0, 20)}..." analogy. To graduate, explain this using only technical terms.`
+                        : `⚠️ Dependency Detected: You're still relying on the "${concept.metaphor.slice(0, 20)}..." analogy. To graduate, explain this using only technical terms.`;
                 } else if (blankSheetResult.score > 70) {
                     // High score but used metaphor -> Warning for next time
-                    metaphorFeedback = `💡 Next Level: You understand this well! Try explaining it next time without using the metaphor to prove deep technical mastery.`;
+                    metaphorFeedback = isScholarly
+                        ? `Next Level: You understand this well. Try explaining it next time without using the metaphor to prove deep technical mastery.`
+                        : `💡 Next Level: You understand this well! Try explaining it next time without using the metaphor to prove deep technical mastery.`;
                 }
             } else {
                 // Clean technical explanation! Boost graduation.

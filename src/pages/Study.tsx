@@ -31,6 +31,7 @@ import { CoachMessage } from '@/features/ai-coach/components';
 import { SessionStartModal, MOOD_GOAL_MAP } from '@/components/learning/session';
 import { MetaphorToggle } from '@/features/personalization';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { useCoachMessage } from '@/shared/hooks/useCoachMessage';
 import { toast } from '@/shared/utils/toast';
 import { getInterleavingAlgorithm } from '@/features/learning-session/algorithms/interleaving';
@@ -57,6 +58,11 @@ export default function Study() {
   // Session configuration state
   const [showSessionConfig, setShowSessionConfig] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  
+  // Track if user has seen session config before (skip for returning users)
+  const [hasSeenSessionConfig, setHasSeenSessionConfig] = useState(() => {
+    return localStorage.getItem('hasSeenSessionConfig') === 'true';
+  });
 
   // Coach message hook with 30s cooldown
   const { currentMessage: coachMessage, showMessage: showCoachMessage } = useCoachMessage({
@@ -77,6 +83,7 @@ export default function Study() {
   } = useLearningStore();
 
   const { currentSubject, pass1Data } = useGenerationStore();
+  const { isScholarly } = useVisualTheme();
 
   const session = getSession();
   const concepts = getConcepts();
@@ -242,6 +249,10 @@ export default function Study() {
   // Handle session start (after user completes session configuration)
   const handleSessionStart = useCallback((goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
     const { startStudySession, setMood } = useLearningStore.getState();
+    
+    // Mark that user has seen session config
+    localStorage.setItem('hasSeenSessionConfig', 'true');
+    setHasSeenSessionConfig(true);
 
     // Get current personalization settings
     const { practiceMode } = usePersonalizationStore.getState();
@@ -276,6 +287,10 @@ export default function Study() {
         .map(c => c.id);
     }
 
+    // Save preferences for next time
+    localStorage.setItem('lastSessionGoal', goal);
+    localStorage.setItem('lastSessionDuration', duration.toString());
+
     // Start the study session with selected parameters and concepts
     startStudySession(goal, duration, targetConcepts, primer);
 
@@ -293,7 +308,7 @@ export default function Study() {
 
     // Navigate to learn tab
     setActiveTab('learn');
-  }, [showCoachMessage]);
+  }, [showCoachMessage, session, setActiveTab]);
 
   const handleTabChange = useCallback((tab: StudyTab) => {
     const { studySession } = useLearningStore.getState();
@@ -417,7 +432,7 @@ export default function Study() {
 
       return (
         <div className={styles.errorState}>
-          <div className={styles.errorIcon}>⚠️</div>
+          <div className={styles.errorIcon}>{isScholarly ? '' : '⚠️'}</div>
           <h2 className={styles.errorTitle}>{errorInfo.title}</h2>
           <p className={styles.errorMessage}>{errorInfo.message}</p>
 
@@ -433,7 +448,7 @@ export default function Study() {
                 onClick={() => window.location.reload()}
                 className={styles.primaryButton}
               >
-                🔄 Refresh Page
+                {isScholarly ? 'Refresh Page' : '🔄 Refresh Page'}
               </button>
             ) : (
               <>
@@ -441,7 +456,7 @@ export default function Study() {
                   onClick={() => navigate('/')}
                   className={styles.primaryButton}
                 >
-                  🏠 {errorInfo.action}
+                  {isScholarly ? errorInfo.action : `🏠 ${errorInfo.action}`}
                 </button>
                 {retryCount >= MAX_RETRIES && (
                   <button
@@ -451,7 +466,7 @@ export default function Study() {
                     }}
                     className={styles.secondaryButton}
                   >
-                    🔄 Try Again
+                    {isScholarly ? 'Try Again' : '🔄 Try Again'}
                   </button>
                 )}
               </>
@@ -469,9 +484,16 @@ export default function Study() {
               concepts={concepts}
               initialPhase="scout"
               onComplete={() => {
-                // When user completes overview and clicks "Start Learning"
-                // Show full session configuration modal
-                setShowSessionConfig(true);
+                // Auto-start with defaults for returning users
+                if (hasSeenSessionConfig) {
+                  // Use last session settings or sensible defaults
+                  const lastGoal = localStorage.getItem('lastSessionGoal') as StudyGoal || 'learn-new';
+                  const lastDuration = parseInt(localStorage.getItem('lastSessionDuration') || '30');
+                  handleSessionStart(lastGoal, lastDuration);
+                } else {
+                  // First time users see the full modal
+                  setShowSessionConfig(true);
+                }
               }}
             />
           </div>
@@ -530,7 +552,7 @@ export default function Study() {
                 title="Recalibrate session — change your energy level"
                 className={styles.recalibrateButton}
               >
-                ⚡ Recalibrate
+                {isScholarly ? 'Recalibrate' : '⚡ Recalibrate'}
               </button>
             )}
             <button
@@ -538,7 +560,7 @@ export default function Study() {
               title="Help & Shortcuts"
               className={styles.helpButton}
             >
-              ❓
+              {isScholarly ? '?' : '❓'}
             </button>
             <MetaphorToggle compact showSettings />
             <CognitiveGauge compact />

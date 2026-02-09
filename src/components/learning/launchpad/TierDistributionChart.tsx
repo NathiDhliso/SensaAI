@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { GRAPH_COLORS } from '@/shared/constants/theme-colors';
+import { getGraphColors } from '@/shared/constants/theme-colors';
 import type { TierDistribution } from '@/shared/types/content-analytics';
 import styles from './TierDistributionChart.module.css';
 
@@ -10,41 +10,44 @@ interface TierDistributionChartProps {
     delay?: number;
 }
 
-const TIER_CONFIG = {
-    root: {
-        label: 'Root',
-        description: 'Entry points',
-        color: GRAPH_COLORS.root,
-    },
-    trunk: {
-        label: 'Trunk',
-        description: 'Core connectors',
-        color: GRAPH_COLORS.trunk,
-    },
-    leaf: {
-        label: 'Leaf',
-        description: 'Specialized applications',
-        color: GRAPH_COLORS.leaf,
-    },
-} as const;
+function getTierConfig() {
+    const colors = getGraphColors();
+    return {
+        root: {
+            label: 'Root',
+            description: 'Entry points',
+            color: colors.root,
+        },
+        trunk: {
+            label: 'Trunk',
+            description: 'Core connectors',
+            color: colors.trunk,
+        },
+        leaf: {
+            label: 'Leaf',
+            description: 'Specialized applications',
+            color: colors.leaf,
+        },
+    };
+}
 
 export const TierDistributionChart: React.FC<TierDistributionChartProps> = ({
     data,
     delay = 0
 }) => {
     const total = data.total || 1; // Prevent division by zero
+    const tierConfig = getTierConfig();
 
     const tiers = [
-        { key: 'root', count: data.root },
-        { key: 'trunk', count: data.trunk },
-        { key: 'leaf', count: data.leaf },
-    ] as const;
+        { key: 'root' as const, count: data.root },
+        { key: 'trunk' as const, count: data.trunk },
+        { key: 'leaf' as const, count: data.leaf },
+    ];
 
-    // Calculate percentages
     const tiersWithPercentage = tiers.map(tier => ({
         ...tier,
         percentage: Math.round((tier.count / total) * 100),
-        config: TIER_CONFIG[tier.key],
+        config: tierConfig[tier.key],
     }));
 
     return (

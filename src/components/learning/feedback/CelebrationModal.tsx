@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { Share2, Check } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { CONFETTI_COLORS } from '@/shared/constants/theme-colors';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import type { CelebrationData, LearningConcept } from '@/shared/types/learning';
 import styles from './CelebrationModal.module.css';
@@ -37,6 +38,7 @@ const CONFETTI_PIECES = generateConfetti();
 export default function CelebrationModal({ data, onContinue, onTakeBreak }: CelebrationModalProps) {
   const getConcepts = useLearningStore(s => s.getConcepts);
   const concepts = getConcepts();
+  const { isScholarly } = useVisualTheme();
   const confettiPieces = CONFETTI_PIECES;
   const [autoDismissCountdown, setAutoDismissCountdown] = useState(4);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -73,7 +75,7 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
   const [shared, setShared] = useState(false);
 
   const handleShare = async () => {
-    const shareText = `🎉 I just completed "${data.title}" on SensaPBL! ${data.conceptsCompleted?.length || 0} concepts mastered. #LearningJourney`;
+    const shareText = `I just completed "${data.title}" on SensaPBL. ${data.conceptsCompleted?.length || 0} concepts mastered. #LearningJourney`;
 
     // Try native share API first
     if (navigator.share) {
@@ -126,7 +128,9 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
         </div>
 
         <div className={`${styles.badgeContainer} ${data.type === 'course' ? styles.badgeCourse : ''}`}>
-          {data.badgeIcon || '🏆'}
+          <svg className={styles.badgeIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+          </svg>
         </div>
 
         <h2 className={styles.title}>{data.title}</h2>

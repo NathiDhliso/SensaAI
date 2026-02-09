@@ -535,10 +535,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1.5rem;
+    width: 100%;
     padding: 0.625rem 0.75rem;
     background: var(--color-surface-subtle);
     border-radius: 0.5rem;
     border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    text-align: left;
+    color: inherit;
+}
+
+.reviewItem:hover {
+    background: var(--color-surface-hover, var(--color-surface-secondary));
+    border-color: var(--color-border-emphasis, var(--color-border));
 }
 
 .reviewItemName {

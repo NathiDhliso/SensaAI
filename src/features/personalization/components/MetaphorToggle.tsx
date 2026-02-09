@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Settings, Lightbulb } from 'lucide-react';
 import { usePersonalizationStore, type MetaphorSettings } from '@/store/personalization-store';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './MetaphorToggle.module.css';
 
 interface MetaphorToggleProps {
@@ -31,6 +32,7 @@ export default function MetaphorToggle({
     trackMetaphorUsage 
   } = usePersonalizationStore();
 
+  const { isScholarly } = useVisualTheme();
   const [showPanel, setShowPanel] = useState(false);
   const [settings, setSettings] = useState<MetaphorSettings>(metaphorSettings);
 
@@ -110,7 +112,7 @@ export default function MetaphorToggle({
                     checked={settings.showVisualAnchors}
                     onChange={(e) => handleSettingChange('showVisualAnchors', e.target.checked)}
                   />
-                  <span>Visual anchors (🧮 icons)</span>
+                  <span>{isScholarly ? 'Visual anchors' : 'Visual anchors (🧮 icons)'}</span>
                 </label>
                 
                 <label className={styles.settingLabel}>
@@ -132,7 +134,7 @@ export default function MetaphorToggle({
                     checked={settings.metaphorComplexity === 'simple'}
                     onChange={() => handleSettingChange('metaphorComplexity', 'simple')}
                   />
-                  <span>Simple (Key 🔑)</span>
+                  <span>{isScholarly ? 'Simple' : 'Simple (Key 🔑)'}</span>
                 </label>
                 <label className={styles.radioLabel}>
                   <input
@@ -184,7 +186,7 @@ export default function MetaphorToggle({
       <div className={styles.settingsGrid}>
         <div className={styles.settingCard}>
           <h4>Visual Anchors</h4>
-          <p>Show emoji icons and visual metaphors for concepts</p>
+          <p>{isScholarly ? 'Show visual metaphors for concepts' : 'Show emoji icons and visual metaphors for concepts'}</p>
           <label className={styles.switch}>
             <input
               type="checkbox"
@@ -195,7 +197,7 @@ export default function MetaphorToggle({
           </label>
           <div className={styles.example}>
             {settings.showVisualAnchors ? (
-              <span>Addition → Abacus 🧮</span>
+              <span>{isScholarly ? 'Addition → Abacus' : 'Addition → Abacus 🧮'}</span>
             ) : (
               <span>Addition → Addition</span>
             )}
@@ -234,7 +236,7 @@ export default function MetaphorToggle({
                 onChange={() => handleSettingChange('metaphorComplexity', 'simple')}
               />
               <span>Simple</span>
-              <div className={styles.radioExample}>Key 🔑</div>
+              <div className={styles.radioExample}>{isScholarly ? 'Key' : 'Key 🔑'}</div>
             </label>
             <label className={styles.radioOption}>
               <input
@@ -244,7 +246,7 @@ export default function MetaphorToggle({
                 onChange={() => handleSettingChange('metaphorComplexity', 'rich')}
               />
               <span>Rich</span>
-              <div className={styles.radioExample}>Master key with timer ⏰🔑</div>
+              <div className={styles.radioExample}>{isScholarly ? 'Master key with timer' : 'Master key with timer ⏰🔑'}</div>
             </label>
           </div>
         </div>
@@ -274,7 +276,7 @@ export default function MetaphorToggle({
         <h4>Preview</h4>
         <div className={styles.previewCard}>
           <div className={styles.conceptPreview}>
-            {settings.showVisualAnchors && <span className={styles.anchor}>🧮</span>}
+            {settings.showVisualAnchors && !isScholarly && <span className={styles.anchor}>🧮</span>}
             <span className={styles.conceptName}>Addition</span>
           </div>
           {settings.showAnalogies && (

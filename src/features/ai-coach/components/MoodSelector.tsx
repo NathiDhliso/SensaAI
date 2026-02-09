@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Battery, BatteryFull, BatteryLow } from 'lucide-react';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { getAllPersonas, MOOD_OPTIONS, type Mood } from '@/features/ai-coach';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './MoodSelector.module.css';
 
 export type { Mood };
@@ -23,6 +24,7 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
   const { selectedPersona } = usePersonalizationStore();
   const personas = getAllPersonas();
   const activePersona = personas.find(p => p.id === selectedPersona) || personas[0];
+  const { isScholarly } = useVisualTheme();
 
   if (!isOpen) return null;
 
@@ -48,8 +50,8 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
         </button>
 
         <div className={styles.header}>
-          <span className={styles.coachEmoji}>{activePersona.emoji}</span>
-          <h2 className={styles.title}>Set Your Cognitive Battery</h2>
+          {!isScholarly && <span className={styles.coachEmoji}>{activePersona.emoji}</span>}
+          <h2 className={styles.title}>{isScholarly ? 'Set Focus Level' : 'Set Your Cognitive Battery'}</h2>
           <p className={styles.subtitle}>
             {activePersona.name} will unlock features based on your current focus level.
           </p>
@@ -62,7 +64,7 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
               onClick={() => handleSelect(mood.id)}
               className={`${styles.moodCard} ${selectedMood === mood.id ? styles.moodCardActive : ''}`}
             >
-              <span className={styles.moodEmoji}>{mood.emoji}</span>
+              {!isScholarly && <span className={styles.moodEmoji}>{mood.emoji}</span>}
               <div className={styles.moodInfo}>
                 <span className={styles.moodLabel}>{mood.label}</span>
                 <span className={styles.moodDescription}>{mood.description}</span>
@@ -72,7 +74,7 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
                 </span>
               </div>
               {selectedMood === mood.id && (
-                <div className={styles.checkmark}>✓</div>
+                <div className={styles.checkmark}>{isScholarly ? '✓' : '✓'}</div>
               )}
             </button>
           ))}

@@ -13,6 +13,7 @@ import { Brain, CheckCircle2, Clock, Play, Target, Zap, ChevronRight, RotateCcw,
 import type { SensaAILearningConcept, DiagnosticQuestion } from '@/features/content-generation/parsers/transformer';
 import { getRootConcepts } from '@/features/content-generation/parsers/ai-integration';
 import { UI_TIMINGS, VELOCITY_CONFIG } from '@/shared/constants/ui-constants';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './DiagnosticLaunchSystem.module.css';
 
 // ============================================================================
@@ -114,6 +115,7 @@ function QuickKnowledgeCheck({
     questionNumber,
     totalQuestions
 }: QuickKnowledgeCheckProps) {
+    const { isScholarly } = useVisualTheme();
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [textAnswer, setTextAnswer] = useState('');
     const [confidence, setConfidence] = useState(3); // 1-5 scale
@@ -154,12 +156,36 @@ function QuickKnowledgeCheck({
         return selectedOption !== null;
     }, [question.question.type, textAnswer, selectedOption]);
 
+    // Handle Enter key press
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && canSubmit && !showFeedback) {
+            e.preventDefault();
+            handleSubmit();
+        }
+    }, [canSubmit, showFeedback, handleSubmit]);
+
+    // Auto-submit for true/false questions
+    const handleTrueFalseSelect = useCallback((value: number) => {
+        setSelectedOption(value);
+        // Auto-submit after a brief delay to show selection
+        setTimeout(() => {
+            const timeMs = Date.now() - startTime;
+            const correct = value === question.question.correctAnswer;
+            setWasCorrect(correct);
+            setShowFeedback(true);
+            setTimeout(() => {
+                onAnswer(correct, confidence, timeMs);
+            }, UI_TIMINGS.TOAST_SHORT);
+        }, 300);
+    }, [startTime, question, confidence, onAnswer]);
+
     return (
         <motion.div
             className={styles.questionCard}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            onKeyDown={handleKeyDown}
         >
             {/* Progress indicator */}
             <div className={styles.progressBar}>
@@ -191,6 +217,7 @@ function QuickKnowledgeCheck({
                                 key={idx}
                                 className={`${styles.optionButton} ${selectedOption === idx ? styles.optionSelected : ''}`}
                                 onClick={() => setSelectedOption(idx)}
+                                disabled={showFeedback}
                             >
                                 <span className={styles.optionLetter}>
                                     {String.fromCharCode(65 + idx)}
@@ -205,14 +232,16 @@ function QuickKnowledgeCheck({
                     <div className={styles.trueFalseOptions}>
                         <button
                             className={`${styles.tfButton} ${selectedOption === 1 ? styles.optionSelected : ''}`}
-                            onClick={() => setSelectedOption(1)}
+                            onClick={() => handleTrueFalseSelect(1)}
+                            disabled={showFeedback}
                         >
                             <CheckCircle2 size={20} />
                             True
                         </button>
                         <button
                             className={`${styles.tfButton} ${selectedOption === 0 ? styles.optionSelected : ''}`}
-                            onClick={() => setSelectedOption(0)}
+                            onClick={() => handleTrueFalseSelect(0)}
+                            disabled={showFeedback}
                         >
                             <RotateCcw size={20} />
                             False
@@ -225,8 +254,10 @@ function QuickKnowledgeCheck({
                         className={styles.shortAnswerInput}
                         value={textAnswer}
                         onChange={(e) => setTextAnswer(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         placeholder="Type your answer here (minimum 10 characters)..."
                         rows={3}
+                        disabled={showFeedback}
                     />
                 )}
             </div>
@@ -243,11 +274,15 @@ function QuickKnowledgeCheck({
                             className={`${styles.confidenceButton} ${confidence === level ? styles.confidenceActive : ''}`}
                             onClick={() => setConfidence(level)}
                         >
-                            {level === 1 && '😕'}
-                            {level === 2 && '🤔'}
-                            {level === 3 && '😐'}
-                            {level === 4 && '🙂'}
-                            {level === 5 && '😎'}
+                            {isScholarly ? level : (
+                                <>
+                                    {level === 1 && '😕'}
+                                    {level === 2 && '🤔'}
+                                    {level === 3 && '😐'}
+                                    {level === 4 && '🙂'}
+                                    {level === 5 && '😎'}
+                                </>
+                            )}
                         </button>
                     ))}
                 </div>
@@ -277,15 +312,17 @@ function QuickKnowledgeCheck({
                 )}
             </AnimatePresence>
 
-            {/* Submit button */}
-            <button
-                className={styles.submitButton}
-                onClick={handleSubmit}
-                disabled={!canSubmit || showFeedback}
-            >
-                <span>Submit Answer</span>
-                <ChevronRight size={20} />
-            </button>
+            {/* Submit button - hidden for true/false since it auto-submits */}
+            {question.question.type !== 'true-false' && (
+                <button
+                    className={styles.submitButton}
+                    onClick={handleSubmit}
+                    disabled={!canSubmit || showFeedback}
+                >
+                    <span>Submit Answer</span>
+                    <ChevronRight size={20} />
+                </button>
+            )}
         </motion.div>
     );
 }

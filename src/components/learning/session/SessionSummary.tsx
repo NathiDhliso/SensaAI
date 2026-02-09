@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Coffee, Play, Clock, BookOpen, Zap, CheckCircle2, Circle, TrendingUp } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { formatDuration, formatPace } from '@/shared/utils/utils';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './SessionSummary.module.css';
 
 export function SessionSummary() {
@@ -24,16 +25,18 @@ export function SessionSummary() {
         sessionsUntilLongBreak,
     } = useLearningStore();
 
+    const { isScholarly } = useVisualTheme();
+
     if (!showSessionSummary || !lastSessionSummary) return null;
 
     const summary = lastSessionSummary;
     const getPaceDisplay = (rating: string) => {
         switch (rating) {
-            case 'optimal': return { emoji: '🟢', label: 'Optimal' };
-            case 'good': return { emoji: '🟡', label: 'Good' };
-            case 'warning': return { emoji: '🟠', label: 'Slow' };
-            case 'overtime': return { emoji: '🔴', label: 'Very Slow' };
-            default: return { emoji: '⚪', label: 'N/A' };
+            case 'optimal': return { emoji: isScholarly ? '' : '🟢', label: 'Optimal' };
+            case 'good': return { emoji: isScholarly ? '' : '🟡', label: 'Good' };
+            case 'warning': return { emoji: isScholarly ? '' : '🟠', label: 'Slow' };
+            case 'overtime': return { emoji: isScholarly ? '' : '🔴', label: 'Very Slow' };
+            default: return { emoji: isScholarly ? '' : '⚪', label: 'N/A' };
         }
     };
 
@@ -70,7 +73,7 @@ export function SessionSummary() {
                     {/* Header */}
                     <div className={styles.header}>
                         <div className={styles.headerContent}>
-                            <span className={styles.headerIcon}>🎉</span>
+                            {!isScholarly && <span className={styles.headerIcon}>🎉</span>}
                             <div>
                                 <h2 className={styles.title}>Focus Session Complete!</h2>
                                 <p className={styles.subtitle}>
@@ -134,7 +137,7 @@ export function SessionSummary() {
 
                     {/* Recommendation */}
                     <div className={styles.recommendation}>
-                        <span className={styles.recommendationIcon}>💡</span>
+                        {!isScholarly && <span className={styles.recommendationIcon}>💡</span>}
                         <p>{summary.recommendation}</p>
                     </div>
 

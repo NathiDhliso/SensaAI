@@ -107,7 +107,8 @@ export const conceptsApi = {
      * Generation happens server-side, concepts stored in DynamoDB
      */
     async generate(request: GenerateConceptsRequest): Promise<GenerateConceptsResponse> {
-        const response = await apiClient.post<GenerateConceptsResponse>('/concepts/generate', request);
+        // AWS API Gateway route is /generate (not /concepts/generate)
+        const response = await apiClient.post<GenerateConceptsResponse>('/generate', request);
         return response;
     },
 

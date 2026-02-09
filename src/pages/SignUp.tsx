@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { Mail, Lock, User, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import styles from './Login.module.css'; // Reusing Login styles for consistency
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
+import styles from './Login.module.css';
 
 export function SignUp() {
     const navigate = useNavigate();
@@ -14,6 +15,7 @@ export function SignUp() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { isScholarly } = useVisualTheme();
 
     const storeError = useAuthStore(state => state.error);
 
@@ -54,14 +56,17 @@ export function SignUp() {
                         </div>
 
                         <div className={styles.primeDirective}>
-                            <h2 className={styles.primeTitle}>🚀 Join SensaAI</h2>
+                            <h2 className={styles.primeTitle}>{isScholarly ? 'Join SensaAI' : '🚀 Join SensaAI'}</h2>
                             <p className={styles.primeStatement}>
-                                Build your personalized learning architecture. Master subjects faster with AI-driven velocity and spatial mnemonics.
+                                {isScholarly
+                                    ? 'Build your personalized learning architecture. Master subjects with structured, evidence-based methodology.'
+                                    : 'Build your personalized learning architecture. Master subjects faster with AI-driven velocity and spatial mnemonics.'
+                                }
                             </p>
                             <div className={styles.primePrinciples}>
-                                <span>⚡ Rapid Acquisition</span>
-                                <span>🧠 Deep Understanding</span>
-                                <span>📈 Measurable Velocity</span>
+                                <span>{isScholarly ? 'Rapid Acquisition' : '⚡ Rapid Acquisition'}</span>
+                                <span>{isScholarly ? 'Deep Understanding' : '🧠 Deep Understanding'}</span>
+                                <span>{isScholarly ? 'Measurable Progress' : '📈 Measurable Velocity'}</span>
                             </div>
                         </div>
 

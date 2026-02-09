@@ -9,6 +9,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { getAllPersonas } from '@/features/ai-coach';
 import { useVoice } from '@/features/ai-coach/voice/useVoice';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './CoachMessage.module.css';
 
 interface CoachMessageProps {
@@ -36,6 +37,7 @@ export default function CoachMessage({
   const persona = personas.find(p => p.id === activePersonaId) || personas[0];
   
   const { play, isPlaying, isLoading } = useVoice();
+  const { isScholarly } = useVisualTheme();
 
   const handlePlayVoice = async () => {
     if (!coachVoiceEnabled) {
@@ -55,7 +57,7 @@ export default function CoachMessage({
     <div className={`${styles.container} ${compact ? styles.compact : ''} ${className}`}>
       <div className={styles.header}>
         <div className={styles.personaInfo}>
-          <span className={styles.emoji}>{persona.emoji}</span>
+          {!isScholarly && <span className={styles.emoji}>{persona.emoji}</span>}
           <span className={styles.name}>{persona.name}</span>
         </div>
         

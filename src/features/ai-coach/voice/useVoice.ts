@@ -229,7 +229,7 @@ export function useVoice(): UseVoiceResult {
         text: string,
         filename: string
     ): Promise<void> => {
-        const localUrl = `/audio/voice/${filename}`;
+        const localUrl = `/Audio/voice/${filename}`;
         setAudioUrl(localUrl);
 
         const audio = new Audio(localUrl);

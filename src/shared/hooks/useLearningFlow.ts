@@ -19,7 +19,6 @@ export type LearningPhase =
 export interface LearningFlow {
     currentPhase: LearningPhase;
     completedPhases: LearningPhase[];
-    diagnosticSkipped: boolean;
     activeConcept: LearningConcept | null;
     progress: {
         completed: number;
@@ -159,12 +158,8 @@ export function useLearningFlow(): LearningFlow {
         if (diagnosticSession && !diagnosticSession.isComplete) {
             return 'DIAGNOSE';
         }
-        // Auto-detect need for diagnostic (Fresh session + Foundation Content)
-        // Only if we haven't started learning yet (no completed concepts)
         const isFresh = currentSession.progress.completedConcepts.length === 0;
-        const rootCount = currentSession.metadata?.rootConcepts ?? 0;
-        if (isFresh && rootCount >= 5 && !activeConcept) {
-            // Note: !activeConcept check acts as a safeguard, but really we check completion
+        if (isFresh && !diagnosticSession?.isComplete) {
             return 'DIAGNOSE';
         }
 
@@ -176,9 +171,8 @@ export function useLearningFlow(): LearningFlow {
         }
 
         // --- Level 6: Master (Final Challenge) ---
-        // After all concepts learned, if map was reconstructed, do mastery challenge
-        // This is available to all goals once they've completed learning
-        if (studySession.mapReconstructed && !studySession.mastered) {
+        // All concepts done (activeConcept is null) and not yet mastered
+        if (!studySession.mastered) {
             return 'MASTER';
         }
 
@@ -187,12 +181,11 @@ export function useLearningFlow(): LearningFlow {
 
     }, [currentSession, studySession, diagnosticSession, activeConcept]);
 
-    const { completedPhases, diagnosticSkipped } = useMemo(() => {
+    const completedPhases = useMemo(() => {
         const completed: LearningPhase[] = [];
-        let diagSkipped = false;
 
         if (!currentSession || !studySession || !studySession.isActive) {
-            return { completedPhases: completed, diagnosticSkipped: false };
+            return completed;
         }
 
         if (studySession.primer) {
@@ -203,15 +196,10 @@ export function useLearningFlow(): LearningFlow {
             completed.push('BUILD');
         }
 
-        const rootCount = currentSession.metadata?.rootConcepts ?? 0;
-        const hadDiagnostic = diagnosticSession !== null;
         const diagnosticDone = diagnosticSession?.isComplete ?? false;
-        const needsDiagnostic = hadDiagnostic || (rootCount >= 5);
 
-        if (needsDiagnostic && diagnosticDone) {
+        if (diagnosticDone) {
             completed.push('DIAGNOSE');
-        } else if (!needsDiagnostic && studySession.mapBuilt) {
-            diagSkipped = true;
         }
 
         const hasCompletedAnyConcepts = currentSession.progress.completedConcepts.length > 0;
@@ -226,7 +214,7 @@ export function useLearningFlow(): LearningFlow {
             completed.push('MASTER');
         }
 
-        return { completedPhases: completed, diagnosticSkipped: diagSkipped };
+        return completed;
     }, [currentSession, studySession, diagnosticSession]);
 
     // 3. Calculated Metrics
@@ -252,7 +240,6 @@ export function useLearningFlow(): LearningFlow {
     return {
         currentPhase,
         completedPhases,
-        diagnosticSkipped,
         activeConcept,
         progress,
         showDashboard,

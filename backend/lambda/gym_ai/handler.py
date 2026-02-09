@@ -66,10 +66,18 @@ def _compress_concept(c: Dict[str, Any]) -> str:
 
 def _handle_misconception(data: Dict[str, Any]) -> Dict[str, Any]:
     concept = data["concept"]
-    system = "You generate plausible misconceptions about learning concepts. Output JSON only."
-    user = f"""Concept:\n{_compress_concept(concept)}\n\nGenerate a plausible misconception a student might have. Return JSON:
-{{"statement":"The misconception statement","correctionHints":["hint1","hint2"]}}"""
-    raw = _invoke_haiku(system, user, 250)
+    system = "You generate challenging questions that reveal common misconceptions about learning concepts. Output JSON only."
+    user = f"""Concept:\n{_compress_concept(concept)}\n\nGenerate a challenging question that tests whether the student has a common misconception about this concept. The question should:
+- Be phrased as a question (not a statement)
+- Target a specific misconception students often have
+- Require the student to explain or diagnose something
+
+Return JSON:
+{{"statement":"The challenging question","correctionHints":["hint1 if they get it wrong","hint2 if they get it wrong"]}}
+
+Example for "Network Security Groups":
+{{"statement":"If you allow inbound traffic on port 443 at the subnet NSG level, but the VM's NIC-level NSG blocks port 443, will HTTPS work? Why or why not?","correctionHints":["Traffic must pass BOTH NSGs","The NIC-level NSG will block it"]}}"""
+    raw = _invoke_haiku(system, user, 300)
     result = _extract_json(raw)
     if not result.get("statement") or not isinstance(result.get("correctionHints"), list):
         return {"error": "Invalid AI response"}
@@ -121,14 +129,58 @@ def _handle_mastery_score(data: Dict[str, Any]) -> Dict[str, Any]:
     concepts = data.get("concepts", [])
     response_text = data.get("response", "")
     names = ", ".join(c.get("name", "") for c in concepts[:5])
-    system = "You evaluate mastery-level responses for depth and synthesis. Output JSON only."
-    user = f"""Concepts: {names}\n\nStudent response: "{response_text[:1500]}"\n\nScore 0-1 for mastery. Return JSON:
-{{"score":0.0,"feedback":"Brief feedback","strengths":["s1"],"gaps":["g1"]}}"""
-    raw = _invoke_haiku(system, user, 250)
+    
+    # Analyze response characteristics
+    word_count = len(response_text.strip().split())
+    concept_mentions = sum(1 for c in concepts if c.get("name", "").lower() in response_text.lower())
+    has_structure = bool(re.search(r'\d+\.|•|-|\n\n', response_text))
+    
+    system = """You evaluate mastery-level responses for technical depth and synthesis. 
+You must be strict but fair. A mastery response should demonstrate:
+1. Deep technical understanding (not just surface-level descriptions)
+2. Specific implementation details (not generic best practices)
+3. Trade-offs and constraints (not just benefits)
+4. Integration between concepts (not isolated explanations)
+
+Score harshly if the response:
+- Uses vague language ("we will configure", "ensure security")
+- Lacks specific technical details (no metrics, no concrete examples)
+- Reads like a consulting proposal rather than technical implementation
+- Covers too many topics superficially instead of few topics deeply
+- Doesn't address failure scenarios or limitations
+
+Output JSON only."""
+
+    user = f"""Concepts: {names}
+
+Student response ({word_count} words, {concept_mentions}/{len(concepts)} concepts mentioned, {'structured' if has_structure else 'unstructured'}):
+"{response_text[:1500]}"
+
+Evaluate this response for MASTERY (not just competence). Return JSON:
+{{
+  "score": 0.0,
+  "feedback": "2-3 sentences explaining the score - be specific about what's missing or what's good",
+  "strengths": ["specific strength 1", "specific strength 2"],
+  "gaps": ["specific gap 1 with example of what's missing", "specific gap 2"],
+  "depthAnalysis": "One sentence on whether response shows surface knowledge or deep understanding"
+}}"""
+    
+    raw = _invoke_haiku(system, user, 400)
     result = _extract_json(raw)
+    
     if not isinstance(result.get("score"), (int, float)):
         return {"error": "Invalid AI response"}
     result["score"] = max(0, min(1, result["score"]))
+    
+    # Add response quality metadata
+    length_category = "too_short" if word_count < 100 else ("adequate" if word_count < 300 else "comprehensive")
+    result["responseMetrics"] = {
+        "wordCount": word_count,
+        "conceptCoverage": f"{concept_mentions}/{len(concepts)}",
+        "hasStructure": has_structure,
+        "lengthCategory": length_category
+    }
+    
     return result
 
 

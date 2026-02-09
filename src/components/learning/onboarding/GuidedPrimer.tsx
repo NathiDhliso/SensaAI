@@ -32,6 +32,7 @@ import {
 } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { VELOCITY_CONFIG } from '@/shared/constants/ui-constants';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './GuidedPrimer.module.css';
 
 interface GuidedPrimerProps {
@@ -43,7 +44,7 @@ interface GuidedPrimerProps {
 }
 
 // Quick-select options for each step
-const REASON_CHIPS = [
+const REASON_CHIPS_PLAYFUL = [
     { label: 'Career growth', icon: '📈' },
     { label: 'Curious mind', icon: '🧠' },
     { label: 'Exam prep', icon: '📚' },
@@ -51,19 +52,42 @@ const REASON_CHIPS = [
     { label: 'Stay relevant', icon: '🔄' },
 ];
 
-const ACTION_CHIPS = [
+const REASON_CHIPS_SCHOLARLY = [
+    { label: 'Career growth', icon: '' },
+    { label: 'Intellectual curiosity', icon: '' },
+    { label: 'Exam preparation', icon: '' },
+    { label: 'Build something', icon: '' },
+    { label: 'Stay current', icon: '' },
+];
+
+const ACTION_CHIPS_PLAYFUL = [
     { label: 'Learn 3 new concepts', icon: '💡' },
     { label: 'Build a concept map', icon: '🗺️' },
     { label: 'Complete one practice', icon: '✅' },
     { label: 'Understand the basics', icon: '📖' },
 ];
 
-const REWARD_CHIPS = [
+const ACTION_CHIPS_SCHOLARLY = [
+    { label: 'Learn 3 new concepts', icon: '' },
+    { label: 'Build a concept map', icon: '' },
+    { label: 'Complete one practice', icon: '' },
+    { label: 'Understand the basics', icon: '' },
+];
+
+const REWARD_CHIPS_PLAYFUL = [
     { label: 'Coffee break', icon: '☕' },
     { label: 'Gaming time', icon: '🎮' },
     { label: 'Social scroll', icon: '📱' },
     { label: 'Short walk', icon: '🚶' },
     { label: 'Snack time', icon: '🍪' },
+];
+
+const REWARD_CHIPS_SCHOLARLY = [
+    { label: 'Coffee break', icon: '' },
+    { label: 'Gaming time', icon: '' },
+    { label: 'Social media', icon: '' },
+    { label: 'Short walk', icon: '' },
+    { label: 'Snack time', icon: '' },
 ];
 
 type Step = 'breathe' | 'reason' | 'action' | 'reward' | 'ready';
@@ -89,7 +113,11 @@ export default function GuidedPrimer({
     const { selectedPersona } = usePersonalizationStore();
     const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
     const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+    const { isScholarly } = useVisualTheme();
 
+    const REASON_CHIPS = isScholarly ? REASON_CHIPS_SCHOLARLY : REASON_CHIPS_PLAYFUL;
+    const ACTION_CHIPS = isScholarly ? ACTION_CHIPS_SCHOLARLY : ACTION_CHIPS_PLAYFUL;
+    const REWARD_CHIPS = isScholarly ? REWARD_CHIPS_SCHOLARLY : REWARD_CHIPS_PLAYFUL;
 
     // Get coach intro and breathing based on mood
     const coachIntro = getMoodAdjustedIntro(selectedPersona, mood);
@@ -333,7 +361,7 @@ export default function GuidedPrimer({
                                     className={`${styles.chip} ${reason === chip.label ? styles.chipSelected : ''}`}
                                     onClick={() => handleChipSelect(chip.label, 'reason')}
                                 >
-                                    <span>{chip.icon}</span>
+                                    {chip.icon && <span>{chip.icon}</span>}
                                     <span>{chip.label}</span>
                                 </button>
                             ))}
@@ -341,7 +369,7 @@ export default function GuidedPrimer({
                                 className={`${styles.chip} ${styles.chipCustom} ${customInput === 'reason' ? styles.chipSelected : ''}`}
                                 onClick={() => setCustomInput('reason')}
                             >
-                                <span>✏️</span>
+                                {!isScholarly && <span>✏️</span>}
                                 <span>Custom...</span>
                             </button>
                         </div>
@@ -390,7 +418,7 @@ export default function GuidedPrimer({
                                     className={`${styles.chip} ${action === chip.label ? styles.chipSelected : ''}`}
                                     onClick={() => handleChipSelect(chip.label, 'action')}
                                 >
-                                    <span>{chip.icon}</span>
+                                    {chip.icon && <span>{chip.icon}</span>}
                                     <span>{chip.label}</span>
                                 </button>
                             ))}
@@ -398,7 +426,7 @@ export default function GuidedPrimer({
                                 className={`${styles.chip} ${styles.chipCustom} ${customInput === 'action' ? styles.chipSelected : ''}`}
                                 onClick={() => setCustomInput('action')}
                             >
-                                <span>✏️</span>
+                                {!isScholarly && <span>✏️</span>}
                                 <span>Custom...</span>
                             </button>
                         </div>
@@ -447,7 +475,7 @@ export default function GuidedPrimer({
                                     className={`${styles.chip} ${reward === chip.label ? styles.chipSelected : ''}`}
                                     onClick={() => handleChipSelect(chip.label, 'reward')}
                                 >
-                                    <span>{chip.icon}</span>
+                                    {chip.icon && <span>{chip.icon}</span>}
                                     <span>{chip.label}</span>
                                 </button>
                             ))}
@@ -455,7 +483,7 @@ export default function GuidedPrimer({
                                 className={`${styles.chip} ${styles.chipCustom} ${customInput === 'reward' ? styles.chipSelected : ''}`}
                                 onClick={() => setCustomInput('reward')}
                             >
-                                <span>✏️</span>
+                                {!isScholarly && <span>✏️</span>}
                                 <span>Custom...</span>
                             </button>
                         </div>

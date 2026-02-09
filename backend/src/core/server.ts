@@ -8,6 +8,7 @@ import { healthRouter } from './routes/health.js';
 import { authRouter } from '../features/auth/routes/auth.js';
 import { conceptsRouter } from '../features/concepts/routes/concepts.js';
 import { proxyRouter } from '../features/proxy/routes/proxy.js';
+import { gymAiRouter } from '../features/gym/routes/gym-ai.js';
 import { authMiddleware } from '../shared/middleware/auth.js';
 import { errorHandler } from '../shared/middleware/error-handler.js';
 import { rateLimiter } from '../shared/middleware/rate-limit.js';
@@ -43,6 +44,7 @@ app.use('/api/v1/proxy', proxyRouter);
 // Protected routes
 app.use('/api/v1/content', authMiddleware, contentRouter);
 app.use('/api/v1/concepts', authMiddleware, conceptsRouter);
+app.use('/api/v1/gym-ai', authMiddleware, gymAiRouter);
 app.use('/api/v1/auth', authRouter);
 
 // Error handling

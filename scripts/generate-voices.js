@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 // Configuration
 const API_KEY = process.argv[2];
 const DATA_FILE = path.join(__dirname, 'voice-data.json');
-const OUTPUT_DIR = path.join(__dirname, '../public/audio/voice');
+const OUTPUT_DIR = path.join(__dirname, '../public/Audio/voice');
 
 if (!API_KEY) {
     console.error('\x1b[31m%s\x1b[0m', 'Error: Please provide your ElevenLabs API Key as an argument.');

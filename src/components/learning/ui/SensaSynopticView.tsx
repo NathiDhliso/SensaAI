@@ -31,6 +31,7 @@ import { useOrientationAwareZoom } from '@/shared/hooks/useOrientationAwareZoom'
 import { useAllNodeSizes } from '@/shared/hooks/useResponsiveNodeSize';
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import { resolveOverlaps, type NodePosition as LayoutNodePosition } from '@/shared/utils/layout-utils';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './SensaSynopticView.module.css';
 
 interface SensaSynopticViewProps {
@@ -51,6 +52,7 @@ const CENTER = { x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 };
 const MIN_NODE_SPACING = 150; // Minimum spacing between node edges (in pixels)
 
 export default function SensaSynopticView({ concepts, subjectName }: SensaSynopticViewProps) {
+    const { isScholarly } = useVisualTheme();
     console.log(`\n🗺️ [SensaSynopticView] Rendering with ${concepts.length} concepts`);
     console.log(`   Subject: "${subjectName}"`);
     console.log(`   First 5 concept names:`);
@@ -264,20 +266,22 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
         if (conceptName && concept) {
             // PRIORITY 1: AI-Generated tierJustification (if real content)
             if (isRealContent(concept.tierJustification, concept.name)) {
-                return `💡 ${concept.tierJustification}`;
+                return isScholarly ? concept.tierJustification! : `💡 ${concept.tierJustification}`;
             }
 
             // PRIORITY 2: Use SHAPE simpleCore (if real content)
             if (isRealContent(concept.shape?.simpleCore, concept.name)) {
-                const tierLabel = tier === 'root' ? 'Root �' :
-                    tier === 'trunk' ? 'Trunk �' : 'Leaf 🍃';
+                const tierLabel = isScholarly
+                    ? (tier === 'root' ? 'Root' : tier === 'trunk' ? 'Trunk' : 'Leaf')
+                    : (tier === 'root' ? 'Root �' : tier === 'trunk' ? 'Trunk �' : 'Leaf 🍃');
                 return `${tierLabel}: ${concept.shape!.simpleCore}`;
             }
 
             // PRIORITY 3: Use hookSentence (if real content)
             if (isRealContent(concept.hookSentence, concept.name)) {
-                const tierLabel = tier === 'root' ? 'Root �' :
-                    tier === 'trunk' ? 'Trunk �' : 'Leaf 🍃';
+                const tierLabel = isScholarly
+                    ? (tier === 'root' ? 'Root' : tier === 'trunk' ? 'Trunk' : 'Leaf')
+                    : (tier === 'root' ? 'Root �' : tier === 'trunk' ? 'Trunk �' : 'Leaf 🍃');
                 return `${tierLabel}: ${concept.hookSentence}`;
             }
 
@@ -292,9 +296,15 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
 
         // General Tier Description covers
         switch (tier) {
-            case 'root': return "ROOT ENTRY POINTS � — These are the starting ideas that everything else grows from!";
-            case 'trunk': return "TRUNK CONNECTORS � — These link your ideas together into a strong structure.";
-            case 'leaf': return "LEAF APPLICATIONS 🍃 — Specialized skills and details for specific problems.";
+            case 'root': return isScholarly
+                ? "Root entry points — foundational concepts that other ideas build upon."
+                : "ROOT ENTRY POINTS � — These are the starting ideas that everything else grows from!";
+            case 'trunk': return isScholarly
+                ? "Trunk connectors — concepts that link foundational ideas into a coherent structure."
+                : "TRUNK CONNECTORS � — These link your ideas together into a strong structure.";
+            case 'leaf': return isScholarly
+                ? "Leaf applications — specialized concepts for specific problem domains."
+                : "LEAF APPLICATIONS 🍃 — Specialized skills and details for specific problems.";
             default: return "";
         }
     };

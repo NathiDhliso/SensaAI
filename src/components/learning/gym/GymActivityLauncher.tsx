@@ -2,13 +2,14 @@ import { useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft,
+    ArrowRight,
     Map,
     MessageCircle,
     Trophy,
     AlertTriangle,
-    Play,
     CheckCircle,
     RefreshCw,
+    Lightbulb,
 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
@@ -52,42 +53,53 @@ const ACTIVITY_META: Record<GymActivity, { label: string; icon: React.ReactNode;
     },
 };
 
-const TIER_COLORS: Record<string, string> = {
-    root: 'var(--color-root, #ef4444)',
-    trunk: 'var(--color-trunk, #f59e0b)',
-    leaf: 'var(--color-leaf, #22c55e)',
-};
-
-type LauncherPhase = 'pick' | 'active' | 'result';
+type LauncherPhase = 'active' | 'result';
 
 export default function GymActivityLauncher({ activity, concepts, onBack }: GymActivityLauncherProps) {
     const navigate = useNavigate();
     const { subjectId } = useParams<{ subjectId: string }>();
     const meta = ACTIVITY_META[activity];
 
-    const [phase, setPhase] = useState<LauncherPhase>(meta.needsConcept ? 'pick' : 'active');
-    const [selectedConceptId, setSelectedConceptId] = useState<string | null>(null);
+    // Auto-select first concept if activity needs one
+    const grouped = meta.needsConcept ? groupByTier(concepts) : null;
+    const firstAvailableConcept = meta.needsConcept 
+        ? (grouped?.root?.[0] || grouped?.trunk?.[0] || grouped?.leaf?.[0])?.id || null
+        : null;
+
+    const [phase, setPhase] = useState<LauncherPhase>('active'); // Start directly in active phase
+    const [selectedConceptId, setSelectedConceptId] = useState<string | null>(firstAvailableConcept);
     const [result, setResult] = useState<{ passed: boolean } | null>(null);
 
     const selectedConcept = concepts.find(c => c.id === selectedConceptId) || null;
 
-    const grouped = meta.needsConcept ? groupByTier(concepts) : null;
-
-    const handleLaunch = useCallback(() => {
-        if (meta.needsConcept && !selectedConceptId) return;
-        setPhase('active');
-    }, [meta.needsConcept, selectedConceptId]);
-
     const handleComplete = useCallback((passed: boolean) => {
         setResult({ passed });
         setPhase('result');
-    }, []);
+        
+        // Auto-advance after 3 seconds if passed
+        if (passed) {
+            setTimeout(() => {
+                // Auto-select next concept and restart
+                const currentIndex = concepts.findIndex(c => c.id === selectedConceptId);
+                const nextConcept = concepts[currentIndex + 1];
+                
+                if (nextConcept) {
+                    setSelectedConceptId(nextConcept.id);
+                    setResult(null);
+                    setPhase('active');
+                } else {
+                    // All concepts done, go back to gym
+                    handleBackToGym();
+                }
+            }, 3000);
+        }
+    }, [concepts, selectedConceptId]);
 
     const handleRetry = useCallback(() => {
         setResult(null);
-        setPhase(meta.needsConcept ? 'pick' : 'active');
-        setSelectedConceptId(null);
-    }, [meta.needsConcept]);
+        setPhase('active');
+        // Keep the same concept selected for retry
+    }, []);
 
     const handleBackToGym = useCallback(() => {
         if (subjectId) {
@@ -96,49 +108,6 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
             onBack();
         }
     }, [subjectId, navigate, onBack]);
-
-    const renderPicker = () => {
-        if (!grouped) return null;
-
-        return (
-            <div className={styles.pickerContainer}>
-                <h2 className={styles.pickerTitle}>{meta.label}</h2>
-                <p className={styles.pickerSubtitle}>{meta.description} — pick a concept to practice</p>
-
-                {(['root', 'trunk', 'leaf'] as const).map(tier => {
-                    const items = grouped[tier];
-                    if (!items || items.length === 0) return null;
-                    return (
-                        <div key={tier} className={styles.tierGroup}>
-                            <span className={styles.tierLabel}>{tier} ({items.length})</span>
-                            <div className={styles.conceptGrid}>
-                                {items.map(c => (
-                                    <button
-                                        key={c.id}
-                                        className={`${styles.conceptOption} ${selectedConceptId === c.id ? styles.conceptOptionSelected : ''}`}
-                                        onClick={() => setSelectedConceptId(c.id)}
-                                    >
-                                        <span className={styles.conceptDot} style={{ background: TIER_COLORS[tier] }} />
-                                        <span className={styles.conceptOptionName}>{c.name}</span>
-                                        <span className={styles.conceptOptionTier}>{tier}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })}
-
-                <button
-                    className={styles.launchButton}
-                    disabled={!selectedConceptId}
-                    onClick={handleLaunch}
-                >
-                    <Play size={16} />
-                    Start {meta.label}
-                </button>
-            </div>
-        );
-    };
 
     const renderActivity = () => {
         switch (activity) {
@@ -198,16 +167,67 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
                 <p className={styles.resultMessage}>
                     {passed
                         ? `You completed the ${meta.label} activity successfully.`
-                        : `This ${meta.label} needs more work. Review the concept and try again.`
+                        : `This ${meta.label} is challenging. The detailed feedback shows what to focus on next time.`
                     }
                 </p>
+                {passed && (
+                    <p className={styles.autoAdvanceHint}>
+                        Auto-advancing to next concept in 3 seconds...
+                    </p>
+                )}
+                {!passed && (
+                    <div className={styles.practiceNote}>
+                        <Lightbulb size={16} />
+                        <span>The Gym is for practice — you can retry, continue, or come back later.</span>
+                    </div>
+                )}
                 <div className={styles.resultActions}>
-                    <button className={styles.resultActionPrimary} onClick={handleRetry}>
+                    <button 
+                        className={styles.resultActionPrimary} 
+                        onClick={handleRetry}
+                        title="Practice makes progress — try again with the feedback in mind"
+                    >
                         <RefreshCw size={14} /> Try Again
                     </button>
-                    <button className={styles.resultActionSecondary} onClick={handleBackToGym}>
-                        <ArrowLeft size={14} /> Back to Gym
-                    </button>
+                    {meta.needsConcept ? (
+                        // For single-concept activities, allow moving to next concept
+                        <button 
+                            className={styles.resultActionSecondary} 
+                            onClick={() => {
+                                const currentIndex = concepts.findIndex(c => c.id === selectedConceptId);
+                                const nextConcept = concepts[currentIndex + 1];
+                                
+                                if (nextConcept) {
+                                    setSelectedConceptId(nextConcept.id);
+                                    setResult(null);
+                                    setPhase('active');
+                                } else {
+                                    handleBackToGym();
+                                }
+                            }}
+                            title="Move forward — you can always come back"
+                        >
+                            <ArrowRight size={14} /> {concepts.findIndex(c => c.id === selectedConceptId) < concepts.length - 1 ? 'Next Concept' : 'Back to Gym'}
+                        </button>
+                    ) : (
+                        // For multi-concept activities (like Mastery), just go back to gym
+                        <button 
+                            className={styles.resultActionSecondary} 
+                            onClick={handleBackToGym}
+                            title="Return to the gym dashboard"
+                        >
+                            <ArrowLeft size={14} /> Back to Gym
+                        </button>
+                    )}
+                    {meta.needsConcept && (
+                        <button 
+                            className={styles.resultActionTertiary} 
+                            onClick={handleBackToGym}
+                            title="Return to the gym dashboard"
+                        >
+                            <ArrowLeft size={14} /> Back to Gym
+                        </button>
+                    )}
                 </div>
             </div>
         );
@@ -217,19 +237,33 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
         <div className={styles.container}>
             <div className={styles.header}>
                 <div className={styles.headerLeft}>
-                    <button className={styles.backButton} onClick={phase === 'active' ? () => setPhase(meta.needsConcept ? 'pick' : 'result') : handleBackToGym}>
+                    <button className={styles.backButton} onClick={handleBackToGym}>
                         <ArrowLeft size={14} />
-                        {phase === 'active' ? 'Cancel' : 'Back to Gym'}
+                        Back to Gym
                     </button>
                     <span className={styles.activityTitle}>
                         {meta.icon}
                         {meta.label}
+                        {selectedConcept && meta.needsConcept && (
+                            <span className={styles.conceptBadge}>{selectedConcept.name}</span>
+                        )}
                     </span>
                 </div>
+                {/* Quick concept switcher for concept-based activities */}
+                {meta.needsConcept && phase === 'active' && concepts.length > 1 && (
+                    <select 
+                        className={styles.conceptSwitcher}
+                        value={selectedConceptId || ''}
+                        onChange={(e) => setSelectedConceptId(e.target.value)}
+                    >
+                        {concepts.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                    </select>
+                )}
             </div>
 
             <div className={styles.activityContent}>
-                {phase === 'pick' && renderPicker()}
                 {phase === 'active' && renderActivity()}
                 {phase === 'result' && renderResult()}
             </div>

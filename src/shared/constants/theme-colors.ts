@@ -136,6 +136,20 @@ export const GRAPH_COLORS = {
     leaf: COLORS.secondary.amber,        // #f59e0b
 } as const;
 
+export const GRAPH_COLORS_SCHOLARLY = {
+    root: '#475569',
+    trunk: '#3b4f6b',
+    leaf: '#2c3e5a',
+} as const;
+
+export function getGraphColors(): { root: string; trunk: string; leaf: string } {
+    if (typeof document !== 'undefined') {
+        const theme = document.documentElement.getAttribute('data-visual-theme');
+        if (theme === 'scholarly') return GRAPH_COLORS_SCHOLARLY;
+    }
+    return GRAPH_COLORS;
+}
+
 // ============================================
 // MOOD COLORS (for SessionStartModal.tsx)
 // ============================================

@@ -61,7 +61,6 @@ export default function VelocityLearning() {
         getNextConcept,
         startSession,
         markSessionMapBuilt,
-        markSessionMapReconstructed,
         markSessionMastered,
         returnToMapBuilding,
         clearSession,
@@ -80,7 +79,6 @@ export default function VelocityLearning() {
     const {
         currentPhase,
         completedPhases,
-        diagnosticSkipped,
         activeConcept,
     } = useLearningFlow();
 
@@ -127,7 +125,10 @@ export default function VelocityLearning() {
     }, [activeConcept, currentSession]);
 
     // 3. Local UI State (MUST be declared before useEffects that reference them)
-    const [lockedIn, setLockedIn] = useState(false);
+    const [lockedIn, setLockedIn] = useState(() => {
+        // Skip lock-in gate for returning users
+        return localStorage.getItem('hasLockedIn') === 'true';
+    });
 
     // ARCHITECT ENHANCEMENT: Skip Diagnostics
     const [showSkipModal, setShowSkipModal] = useState(false);
@@ -169,6 +170,9 @@ export default function VelocityLearning() {
 
     useEffect(() => {
         if (currentPhase === 'PRIME' && lockedIn) {
+            // Mark that user has locked in before
+            localStorage.setItem('hasLockedIn', 'true');
+            
             const timer = setTimeout(() => {
                 const goal = studySession?.goal ?? ('learn-new' as const);
                 const duration = studySession?.targetDuration ?? 30;
@@ -255,20 +259,6 @@ export default function VelocityLearning() {
                 );
             }
         }, 500);
-
-        // Check if all concepts are now completed
-        if (currentSession && studySession) {
-            const completedCount = currentSession.progress.completedConcepts.length + 1; // +1 for the one we just completed
-            const totalCount = currentSession.concepts.length;
-
-            // If all concepts completed, mark map as reconstructed to trigger MASTER phase
-            if (completedCount >= totalCount && !studySession.mapReconstructed) {
-                console.log('[VelocityLearning] All concepts completed, transitioning to MASTER phase');
-                markSessionMapReconstructed(true);
-                // Update SENSA flow
-                sensaFlow.completeStudy(1.0); // Full reconstruction score
-            }
-        }
 
         if (currentSession?.subjectType) {
             const progress = currentSession.progress;
@@ -420,7 +410,6 @@ export default function VelocityLearning() {
                         <PhaseNavigator
                             currentPhase={currentPhase}
                             completedPhases={completedPhases}
-                            diagnosticSkipped={diagnosticSkipped}
                         />
                     )}
 
@@ -626,7 +615,13 @@ export default function VelocityLearning() {
                             domain={currentSession!.subject}
                             diagnosticReady={currentSession!.metadata?.diagnosticReady ?? false}
                             onStartLearning={() => {
-                                startDiagnostic();
+                                // Skip diagnostic and go straight to learning
+                                completeDiagnostic({
+                                    knownConcepts: [],
+                                    knowledgeGaps: [],
+                                    confidenceScores: {},
+                                    canSkipRoot: false,
+                                });
                             }}
                             onDiagnosticComplete={handleDiagnosticComplete}
                         />
@@ -745,7 +740,7 @@ export default function VelocityLearning() {
                             }}
                             streakCount={flowState.streakCount}
                             onReturnHome={handleReturnToDashboard}
-                            onReviewConcepts={() => navigate(`/study/${currentSession?.id}?tab=overview`)}
+                            onReviewConcepts={() => navigate(`/study/${currentSession?.subjectId}?tab=overview`)}
                         />
                     );
                 }

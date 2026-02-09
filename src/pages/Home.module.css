@@ -757,3 +757,88 @@
     font-size: 0.75rem;
   }
 }
+
+:global([data-visual-theme="scholarly"]) .heroContent {
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:global([data-visual-theme="scholarly"]) .input {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+:global([data-visual-theme="scholarly"]) .input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+:global([data-visual-theme="scholarly"]) .objectivesSection {
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 8px;
+}
+
+:global([data-visual-theme="scholarly"]) .learnButton,
+:global([data-visual-theme="scholarly"]) .savedButton,
+:global([data-visual-theme="scholarly"]) .settingsButton,
+:global([data-visual-theme="scholarly"]) .cloudLibraryButton {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 8px;
+}
+
+:global([data-visual-theme="scholarly"]) .learnButton:hover,
+:global([data-visual-theme="scholarly"]) .savedButton:hover,
+:global([data-visual-theme="scholarly"]) .settingsButton:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+:global([data-visual-theme="scholarly"]) .quickStartCard {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+:global([data-visual-theme="scholarly"]) .quickStartCard:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+:global([data-visual-theme="scholarly"]) .recentTag {
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: #ffffff;
+  border-radius: 6px;
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .heroContent {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .input {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #151921;
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .learnButton,
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .savedButton,
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .settingsButton,
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .cloudLibraryButton {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .quickStartCard {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .recentTag {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .objectivesSection {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}

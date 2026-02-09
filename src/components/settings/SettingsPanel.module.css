@@ -433,6 +433,144 @@
     }
 }
 
+/* Scholarly theme overrides */
+:global([data-visual-theme="scholarly"]) .panel {
+    border-left: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
+}
+
+:global([data-visual-theme="scholarly"]) .panelHeader {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+:global([data-visual-theme="scholarly"]) .section {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 1.25rem 0;
+}
+
+:global([data-visual-theme="scholarly"]) .sectionTitle {
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.90);
+}
+
+:global([data-visual-theme="scholarly"]) .themeToggle {
+    background: #f5f5f4;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+:global([data-visual-theme="scholarly"]) .themeOption {
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: rgba(0, 0, 0, 0.55);
+    transition: all 0.15s ease;
+}
+
+:global([data-visual-theme="scholarly"]) .themeOption:hover {
+    background: rgba(0, 0, 0, 0.02);
+    color: rgba(0, 0, 0, 0.75);
+}
+
+:global([data-visual-theme="scholarly"]) .themeOptionActive {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.90);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+:global([data-visual-theme="scholarly"]) .settingRow {
+    border-bottom: none;
+}
+
+:global([data-visual-theme="scholarly"]) .personaSelector {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+:global([data-visual-theme="scholarly"]) .optionButton {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+}
+
+:global([data-visual-theme="scholarly"]) .optionButton:hover {
+    border-color: rgba(0, 0, 0, 0.18);
+}
+
+:global([data-visual-theme="scholarly"]) .optionActive {
+    border-color: #2563eb;
+    background: rgba(37, 99, 235, 0.04);
+}
+
+:global([data-visual-theme="scholarly"]) .closeButton {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+:global([data-visual-theme="scholarly"]) .closeButton:hover {
+    border-color: rgba(0, 0, 0, 0.25);
+    background: #f5f5f4;
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .panel {
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .panelHeader {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .section {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .themeToggle {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .themeOption {
+    color: rgba(255, 255, 255, 0.50);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .themeOption:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .themeOptionActive {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .closeButton {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .closeButton:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .optionButton {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .optionButton:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .optionActive {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.08);
+}
+
+:global([data-visual-theme="scholarly"][data-theme="dark"]) .personaSelector {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 /* Responsive */
 @media (max-width: 500px) {
     .panel {

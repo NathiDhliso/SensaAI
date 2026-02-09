@@ -89,6 +89,13 @@ export interface AIScoreResult {
   feedback: string;
   strengths: string[];
   gaps: string[];
+  depthAnalysis?: string;
+  responseMetrics?: {
+    wordCount: number;
+    conceptCoverage: string;
+    hasStructure: boolean;
+    lengthCategory: 'too_short' | 'adequate' | 'comprehensive';
+  };
 }
 
 export async function scoreWithAI(

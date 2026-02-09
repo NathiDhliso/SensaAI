@@ -38,6 +38,7 @@ import {
 } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import ConnectionTypeModal, { type ConnectionTypeData } from '@/components/learning/feedback/ConnectionTypeModal';
 import styles from './ConceptMapBuilder.module.css';
 
@@ -109,6 +110,7 @@ export default function ConceptMapBuilder({
     mode: initialMode = 'guided',
 }: ConceptMapBuilderProps) {
     // ========== SENSA v2.0 Phase State ==========
+    const { isScholarly } = useVisualTheme();
     const [mapMode, setMapMode] = useState<'guided' | 'free'>(initialMode);
     const [mapPhase, setMapPhase] = useState<'build' | 'validate' | 'rebuild'>('build');
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
@@ -158,6 +160,7 @@ export default function ConceptMapBuilder({
     const { selectedPersona } = usePersonalizationStore();
     const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
     const [detectedGaps, setDetectedGaps] = useState<GapDetection[]>([]);
+    // AI panel only shows in guided mode
     const [showAiPanel, setShowAiPanel] = useState(true);
 
     // Sidebar State
@@ -315,6 +318,13 @@ export default function ConceptMapBuilder({
     // =========================================================================
 
     const analyzeMap = useCallback(() => {
+        // Skip AI analysis in free mode
+        if (mapMode === 'free') {
+            setSuggestions([]);
+            setDetectedGaps([]);
+            return;
+        }
+
         if (nodes.length < 2) return;
 
         const avgConnsPerNode = nodes.length > 0 ? connections.length / nodes.length : 0;
@@ -341,7 +351,7 @@ export default function ConceptMapBuilder({
 
         const gaps = detectGaps(concepts, nodes.map(n => n.conceptId), existingConns, subjectName);
         setDetectedGaps(gaps);
-    }, [nodes, connections, concepts, subjectName]);
+    }, [mapMode, nodes, connections, concepts, subjectName]);
 
     useEffect(() => {
         const timer = setTimeout(analyzeMap, UI_TIMINGS.MAP_LOAD_DELAY);
@@ -700,7 +710,8 @@ export default function ConceptMapBuilder({
     };
 
     const renderAiPanel = () => {
-        if (!showAiPanel || (suggestions.length === 0 && detectedGaps.length === 0)) return null;
+        // AI panel only shows in guided mode
+        if (mapMode === 'free' || !showAiPanel || (suggestions.length === 0 && detectedGaps.length === 0)) return null;
 
         return (
             <div className={styles.aiPanel}>
@@ -828,7 +839,9 @@ export default function ConceptMapBuilder({
                     <div className={styles.phaseInfo}>
                         <h1 className={styles.phaseTitle}>Step 3: Note - Build Your Concept Map</h1>
                         <p className={styles.phaseDescription}>
-                            Connect concepts to show relationships. Click concepts from the sidebar, then use tools to arrange and link them.
+                            {mapMode === 'guided' 
+                                ? 'Connect concepts to show relationships. AI coach will provide suggestions and validate your work.'
+                                : 'Free exploration mode - build your map without AI guidance or validation.'}
                         </p>
                     </div>
                     <div className={styles.phaseProgress}>
@@ -952,7 +965,7 @@ export default function ConceptMapBuilder({
                             <>
                                 <div className={styles.bucketZone}>
                                     <div className={`${styles.bucketHeader} ${styles.bucketRoot}`}>
-                                        <span className={styles.bucketIcon}>🌱</span>
+                                        {!isScholarly && <span className={styles.bucketIcon}>🌱</span>}
                                         <span>Root</span>
                                         <span className={styles.bucketCount}>
                                             {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'root').length}
@@ -976,7 +989,7 @@ export default function ConceptMapBuilder({
 
                                 <div className={styles.bucketZone}>
                                     <div className={`${styles.bucketHeader} ${styles.bucketTrunk}`}>
-                                        <span className={styles.bucketIcon}>🌿</span>
+                                        {!isScholarly && <span className={styles.bucketIcon}>🌿</span>}
                                         <span>Trunk</span>
                                         <span className={styles.bucketCount}>
                                             {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk').length}
@@ -1000,7 +1013,7 @@ export default function ConceptMapBuilder({
 
                                 <div className={styles.bucketZone}>
                                     <div className={`${styles.bucketHeader} ${styles.bucketLeaf}`}>
-                                        <span className={styles.bucketIcon}>🍃</span>
+                                        {!isScholarly && <span className={styles.bucketIcon}>🍃</span>}
                                         <span>Leaf</span>
                                         <span className={styles.bucketCount}>
                                             {concepts.filter(c => {
@@ -1096,11 +1109,17 @@ export default function ConceptMapBuilder({
                             </button>
                             <div className={styles.toolbarDivider} />
                             <button
-                                className={`${styles.toolButton} ${styles.modeToggle}`}
+                                className={`${styles.toolButton} ${styles.modeToggle} ${mapMode === 'free' ? styles.freeModeActive : ''}`}
                                 onClick={() => setMapMode(m => m === 'guided' ? 'free' : 'guided')}
-                                title={mapMode === 'guided' ? 'Switch to Free mode' : 'Switch to Guided mode'}
+                                title={mapMode === 'guided' 
+                                    ? 'Switch to Free mode (no AI suggestions or validation)' 
+                                    : 'Switch to Guided mode (AI suggestions and validation)'}
                             >
-                                <span className={styles.modeLabel}>{mapMode === 'guided' ? 'Guided' : 'Free'}</span>
+                                <span className={styles.modeLabel}>
+                                    {isScholarly
+                                        ? (mapMode === 'guided' ? 'Guided' : 'Free')
+                                        : (mapMode === 'guided' ? '🎯 Guided' : '🆓 Free')}
+                                </span>
                             </button>
                         </div>
                     )}
@@ -1114,7 +1133,9 @@ export default function ConceptMapBuilder({
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                             >
-                                {connectingFromId ? '👆 Click target node' : '👆 Click starting node'}
+                                {isScholarly
+                                    ? (connectingFromId ? 'Click target node' : 'Click starting node')
+                                    : (connectingFromId ? '👆 Click target node' : '👆 Click starting node')}
                             </motion.div>
                         )}
                     </AnimatePresence>
