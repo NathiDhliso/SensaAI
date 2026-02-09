@@ -28,14 +28,14 @@ Lambda returns a JSON array of concepts. Each concept has these fields. Below is
 
 ```json
 {
-  "hookSentence": "Without NSGs, every VM you deploy is wide open to the internet — no firewall, no rules, no protection.",
-  "microMetaphor": "Think of an NSG as a bouncer at a nightclub with a very specific guest list.",
-  "prerequisite": "Virtual Networks, Subnets",
-  "selection": [
-    "When you need to filter traffic at the subnet level → Choose NSG on subnet → Unlocks bulk protection for all VMs",
-    "When you need per-VM rules → Choose NSG on NIC → Unlocks granular control per machine"
-  ],
-  "execution": "Create NSG → Define inbound/outbound rules by priority → Associate to subnet or NIC → Test with Network Watcher"
+ "hookSentence": "Without NSGs, every VM you deploy is wide open to the internet — no firewall, no rules, no protection.",
+ "microMetaphor": "Think of an NSG as a bouncer at a nightclub with a very specific guest list.",
+ "prerequisite": "Virtual Networks, Subnets",
+ "selection": [
+ "When you need to filter traffic at the subnet level Choose NSG on subnet Unlocks bulk protection for all VMs",
+ "When you need per-VM rules Choose NSG on NIC Unlocks granular control per machine"
+ ],
+ "execution": "Create NSG Define inbound/outbound rules by priority Associate to subnet or NIC Test with Network Watcher"
 }
 ```
 
@@ -44,7 +44,7 @@ Lambda returns a JSON array of concepts. Each concept has these fields. Below is
 | `hookSentence` | Specific, creates urgency, mentions real consequence | "NSGs are important." or generic filler |
 | `microMetaphor` | Concrete object OUTSIDE the domain (bouncer, guest list) | "NSGs are like a firewall" (same domain) |
 | `prerequisite` | Names actual other concepts in the set | "None" for everything, or "Basic knowledge" |
-| `selection` | Follows "When [scenario] → Choose [option] → Unlocks [capability]" pattern | Generic bullet points with no decision logic |
+| `selection` | Follows "When [scenario] Choose [option] Unlocks [capability]" pattern | Generic bullet points with no decision logic |
 | `execution` | Step-by-step action sequence a practitioner would follow | "Use NSGs to secure your network" (vague) |
 
 ---
@@ -53,8 +53,8 @@ Lambda returns a JSON array of concepts. Each concept has these fields. Below is
 
 ```json
 {
-  "anchor": "Nightclub Bouncer 🕴️",
-  "story": "The Bouncer (NSG) stands at the Door (subnet). He checks the Guest List (rules) sorted by VIP number (priority). Guests with low numbers get checked first. If your name isn't on the list, you're turned away (default deny)."
+ "anchor": "Nightclub Bouncer ",
+ "story": "The Bouncer (NSG) stands at the Door (subnet). He checks the Guest List (rules) sorted by VIP number (priority). Guests with low numbers get checked first. If your name isn't on the list, you're turned away (default deny)."
 }
 ```
 
@@ -69,14 +69,14 @@ Lambda returns a JSON array of concepts. Each concept has these fields. Below is
 
 ```json
 {
-  "simpleCore": "An NSG is a set of allow/deny rules that filter network traffic to and from Azure resources, evaluated by priority number.",
-  "highStakesExample": "REAL: Capital One (2019) — a misconfigured WAF allowed an attacker to access 100M customer records. Proper NSG rules on the metadata endpoint would have blocked the lateral movement.",
-  "analogicalModel": "Like an airport security checkpoint: each rule is a scanner (priority order), passengers (packets) go through scanners in sequence, first match wins, and anyone not cleared gets rejected.",
-  "patternRecognition": {
-    "question": "Port 443 is open inbound but HTTPS still fails. The VM has a second NSG on its NIC. What's wrong?",
-    "answer": "Traffic must pass BOTH the subnet NSG AND the NIC NSG. The NIC-level NSG is likely missing the port 443 allow rule."
-  },
-  "eliminationLogic": "If the question mentions 'between subnets in the same VNet' → NSG (not Azure Firewall). If it mentions 'across VNets or to internet' → Azure Firewall. If it mentions 'application-layer filtering (URLs)' → Application Gateway WAF."
+ "simpleCore": "An NSG is a set of allow/deny rules that filter network traffic to and from Azure resources, evaluated by priority number.",
+ "highStakesExample": "REAL: Capital One (2019) — a misconfigured WAF allowed an attacker to access 100M customer records. Proper NSG rules on the metadata endpoint would have blocked the lateral movement.",
+ "analogicalModel": "Like an airport security checkpoint: each rule is a scanner (priority order), passengers (packets) go through scanners in sequence, first match wins, and anyone not cleared gets rejected.",
+ "patternRecognition": {
+ "question": "Port 443 is open inbound but HTTPS still fails. The VM has a second NSG on its NIC. What's wrong?",
+ "answer": "Traffic must pass BOTH the subnet NSG AND the NIC NSG. The NIC-level NSG is likely missing the port 443 allow rule."
+ },
+ "eliminationLogic": "If the question mentions 'between subnets in the same VNet' NSG (not Azure Firewall). If it mentions 'across VNets or to internet' Azure Firewall. If it mentions 'application-layer filtering (URLs)' Application Gateway WAF."
 }
 ```
 
@@ -86,7 +86,7 @@ Lambda returns a JSON array of concepts. Each concept has these fields. Below is
 | `highStakesExample` | Real company, real year, real outcome | "A company had a security breach" (fabricated/vague) |
 | `analogicalModel` | Maps concept parts to analogy parts (scanner=rule, passenger=packet) | "It's like a filter" (no mapping) |
 | `patternRecognition` | Exam-style question with a specific trap + clear answer | "What is an NSG?" (recall, not pattern) |
-| `eliminationLogic` | Decision tree: "If X → choose A, if Y → choose B" | "NSGs are used for security" (no decision logic) |
+| `eliminationLogic` | Decision tree: "If X choose A, if Y choose B" | "NSGs are used for security" (no decision logic) |
 
 ---
 
@@ -94,14 +94,14 @@ Lambda returns a JSON array of concepts. Each concept has these fields. Below is
 
 ```json
 "phase2": [
-  "Create an NSG in the Azure Portal: Networking → Network Security Groups → Create",
-  "Add an inbound rule: Priority 100, Source: Any, Destination: VirtualNetwork, Port: 443, Action: Allow",
-  "Associate the NSG to a subnet: Virtual Network → Subnets → Select subnet → NSG dropdown"
+ "Create an NSG in the Azure Portal: Networking Network Security Groups Create",
+ "Add an inbound rule: Priority 100, Source: Any, Destination: VirtualNetwork, Port: 443, Action: Allow",
+ "Associate the NSG to a subnet: Virtual Network Subnets Select subnet NSG dropdown"
 ],
 "phase3": {
-  "tool": "Azure Network Watcher — IP Flow Verify",
-  "metrics": ["Rules evaluated per request", "Denied traffic count", "NSG flow logs"],
-  "thresholds": "Zero unexpected denies in flow logs after rule changes"
+ "tool": "Azure Network Watcher — IP Flow Verify",
+ "metrics": ["Rules evaluated per request", "Denied traffic count", "NSG flow logs"],
+ "thresholds": "Zero unexpected denies in flow logs after rule changes"
 }
 ```
 
@@ -122,34 +122,34 @@ The schema stays the same — the **interpretation** changes:
 | `phase2` | Execution steps: "Click here, type this, run that" | Critical inquiry: "What questions should a student ask to analyze this concept?" | Observation protocol: "What to look for first, second, third" |
 | `phase3.tool` | Named verification tool: "Azure Network Watcher" | Primary source or lens: "Robespierre's 'Report on the Principles of Political Morality' (1794)" | Practice environment: "CXR trainer with annotated normals" |
 | `phase3.metrics` | Measurable indicators: "Flow logs, denied count" | Analytical depth markers: "Can identify 3+ competing interpretations" | Perceptual accuracy: "Sensitivity rate, false positive rate" |
-| `workedExample` | Problem → Solution → Steps | Case Study: Context → Analysis → Conclusion | Diagnostic walkthrough: Presentation → Findings → Reasoning |
-| `eliminationLogic` | Binary: "If X → A, if Y → B" | Nuanced: "If the question frames it as [lens] → apply [framework], unless [exception]" | Pattern-based: "If you see [finding] + [finding] → [diagnosis], not [mimic]" |
+| `workedExample` | Problem Solution Steps | Case Study: Context Analysis Conclusion | Diagnostic walkthrough: Presentation Findings Reasoning |
+| `eliminationLogic` | Binary: "If X A, if Y B" | Nuanced: "If the question frames it as [lens] apply [framework], unless [exception]" | Pattern-based: "If you see [finding] + [finding] [diagnosis], not [mimic]" |
 | `commonPitfalls` | Wrong config: "Forgetting NSGs are stateful" | Misinterpretation: "Conflating the Reign of Terror with the entire Revolution" | Perceptual error: "Mistaking a skin fold for a pneumothorax line" |
 
 **Example — Conceptual subject (The Reign of Terror):**
 
 ```json
 "phase2": [
-  "What triggered the shift from revolutionary idealism to state violence?",
-  "How did the Committee of Public Safety justify mass execution as 'virtue'?",
-  "What structural conditions made the Terror possible (war, famine, factionalism)?"
+ "What triggered the shift from revolutionary idealism to state violence?",
+ "How did the Committee of Public Safety justify mass execution as 'virtue'?",
+ "What structural conditions made the Terror possible (war, famine, factionalism)?"
 ],
 "phase3": {
-  "tool": "Robespierre's 'Report on the Principles of Political Morality' (Feb 1794)",
-  "metrics": ["Can distinguish Terror from broader Revolution", "Can name 3 factions and their positions"],
-  "thresholds": "Student can argue FOR and AGAINST the Terror's necessity using primary sources"
+ "tool": "Robespierre's 'Report on the Principles of Political Morality' (Feb 1794)",
+ "metrics": ["Can distinguish Terror from broader Revolution", "Can name 3 factions and their positions"],
+ "thresholds": "Student can argue FOR and AGAINST the Terror's necessity using primary sources"
 },
 "workedExample": {
-  "problem": "Was the Reign of Terror a betrayal of revolutionary ideals or their logical conclusion?",
-  "solution": "Both positions are defensible. The Terror extended 'liberty' logic (enemies of freedom must be eliminated) while contradicting 'rights of man' (due process abandoned).",
-  "steps": [
-    "Identify the revolutionary ideals (Declaration of the Rights of Man, 1789)",
-    "Map which ideals the Terror upheld (popular sovereignty, defense of republic)",
-    "Map which ideals the Terror violated (individual rights, rule of law)",
-    "Evaluate: Was the context (foreign invasion, civil war) sufficient justification?"
-  ]
+ "problem": "Was the Reign of Terror a betrayal of revolutionary ideals or their logical conclusion?",
+ "solution": "Both positions are defensible. The Terror extended 'liberty' logic (enemies of freedom must be eliminated) while contradicting 'rights of man' (due process abandoned).",
+ "steps": [
+ "Identify the revolutionary ideals (Declaration of the Rights of Man, 1789)",
+ "Map which ideals the Terror upheld (popular sovereignty, defense of republic)",
+ "Map which ideals the Terror violated (individual rights, rule of law)",
+ "Evaluate: Was the context (foreign invasion, civil war) sufficient justification?"
+ ]
 },
-"eliminationLogic": "If the question asks 'cause' → structural factors (war, economic crisis). If it asks 'justification' → ideological arguments (Robespierre's virtue-terror link). If it asks 'consequence' → Thermidorian Reaction and Napoleon's rise."
+"eliminationLogic": "If the question asks 'cause' structural factors (war, economic crisis). If it asks 'justification' ideological arguments (Robespierre's virtue-terror link). If it asks 'consequence' Thermidorian Reaction and Napoleon's rise."
 ```
 
 ---
@@ -158,11 +158,11 @@ The schema stays the same — the **interpretation** changes:
 
 ```json
 "connections": [
-  { "target": "Virtual Networks", "type": "requires" },
-  { "target": "Subnets", "type": "requires" },
-  { "target": "Application Security Groups", "type": "enables" },
-  { "target": "Azure Firewall", "type": "is-type-of" },
-  { "target": "Azure Policy", "type": "constrains" }
+ { "target": "Virtual Networks", "type": "requires" },
+ { "target": "Subnets", "type": "requires" },
+ { "target": "Application Security Groups", "type": "enables" },
+ { "target": "Azure Firewall", "type": "is-type-of" },
+ { "target": "Azure Policy", "type": "constrains" }
 ]
 ```
 
@@ -179,31 +179,31 @@ The schema stays the same — the **interpretation** changes:
 
 ```json
 "keyPoints": [
-  "Rules evaluated by priority (100-4096, lower = first)",
-  "Stateful — return traffic automatically allowed",
-  "Default rules: deny all inbound, allow all outbound",
-  "Can attach to subnet OR NIC (both evaluated if both exist)"
+ "Rules evaluated by priority (100-4096, lower = first)",
+ "Stateful — return traffic automatically allowed",
+ "Default rules: deny all inbound, allow all outbound",
+ "Can attach to subnet OR NIC (both evaluated if both exist)"
 ],
 "technicalDetails": "NSG rules are 5-tuple: source, source port, destination, destination port, protocol. Evaluated in priority order (100 = highest priority). Default rules at priority 65000+ cannot be deleted but can be overridden.",
 "workedExample": {
-  "problem": "Allow HTTPS traffic to a web server VM while blocking all other inbound traffic",
-  "solution": "Create inbound rule: Priority 100, Source Any, Dest port 443, Protocol TCP, Action Allow. Default deny-all handles the rest.",
-  "steps": [
-    "Navigate to the NSG attached to the VM's subnet",
-    "Add inbound security rule",
-    "Set priority to 100, destination port to 443, protocol TCP, action Allow",
-    "Verify with Network Watcher IP Flow Verify"
-  ]
+ "problem": "Allow HTTPS traffic to a web server VM while blocking all other inbound traffic",
+ "solution": "Create inbound rule: Priority 100, Source Any, Dest port 443, Protocol TCP, Action Allow. Default deny-all handles the rest.",
+ "steps": [
+ "Navigate to the NSG attached to the VM's subnet",
+ "Add inbound security rule",
+ "Set priority to 100, destination port to 443, protocol TCP, action Allow",
+ "Verify with Network Watcher IP Flow Verify"
+ ]
 },
 "criticalDistinctions": [
-  { "correct": "NSGs are stateful — if you allow inbound, return traffic is auto-allowed", "incorrect": "Thinking you need separate outbound rules for return traffic" }
+ { "correct": "NSGs are stateful — if you allow inbound, return traffic is auto-allowed", "incorrect": "Thinking you need separate outbound rules for return traffic" }
 ],
 "designBoundaries": [
-  { "boundary": "NSGs operate at Layer 3/4 only", "rationale": "For Layer 7 (URL/header filtering), use Application Gateway WAF" }
+ { "boundary": "NSGs operate at Layer 3/4 only", "rationale": "For Layer 7 (URL/header filtering), use Application Gateway WAF" }
 ],
 "examFocus": [
-  { "point": "NSG rule evaluation order (priority number)", "weight": "High" },
-  { "point": "Subnet vs NIC association behavior", "weight": "High" }
+ { "point": "NSG rule evaluation order (priority number)", "weight": "High" },
+ { "point": "Subnet vs NIC association behavior", "weight": "High" }
 ]
 ```
 
@@ -268,7 +268,7 @@ Quick pass/fail for each concept:
 | `cognitiveLevel` | Present and appropriate for the topic | Missing or everything is "remember" |
 | `phase1.hookSentence` | Creates urgency or curiosity, domain-specific | Generic or empty |
 | `phase1.microMetaphor` | Object outside the domain with mapped parts | Same-domain comparison or empty |
-| `phase1.selection` | "When → Choose → Unlocks" pattern | Generic bullets |
+| `phase1.selection` | "When Choose Unlocks" pattern | Generic bullets |
 | `phase1.execution` | Step-by-step action sequence | Vague instruction |
 | `mnemonic.anchor` | Physical object + emoji | Abstract noun |
 | `mnemonic.story` | Spatial scene with mapped parts | Restates the definition |
@@ -276,7 +276,7 @@ Quick pass/fail for each concept:
 | `shape.highStakesExample` | Real company, year, outcome | Fabricated or vague |
 | `shape.analogicalModel` | System analogy with part-to-part mapping | "It's like X" with no mapping |
 | `shape.patternRecognition` | Exam-style trap question + answer | Recall question or missing |
-| `shape.eliminationLogic` | "If X → A, if Y → B" decision tree | Missing or vague |
+| `shape.eliminationLogic` | "If X A, if Y B" decision tree | Missing or vague |
 | `connections` | >=2, uses correct types, targets exist | 0-1, all "requires", phantom targets |
 | `keyPoints` | 3-5 specific, testable facts | Empty or generic |
 | `commonPitfalls` | Real mistakes practitioners make | Empty or trivial |
@@ -293,12 +293,12 @@ The ContentLaunchpad dashboard validates generated content against pasted exam o
 The dashboard shows 4 metric cards across the top:
 
 ```
-┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│    62 / 78   │  │    0 / 65    │  │     82%      │  │      65      │
-│  Objectives  │  │   Unmapped   │  │   Content    │  │   Concepts   │
-│   Covered    │  │   Concepts   │  │    Health    │  │              │
-└──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘
-     green             green             green             blue
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│ 62 / 78 │ │ 0 / 65 │ │ 82% │ │ 65 │
+│ Objectives │ │ Unmapped │ │ Content │ │ Concepts │
+│ Covered │ │ Concepts │ │ Health │ │ │
+└──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
+ green green green blue
 ```
 
 | Card | Perfect Value | What It Means | Warning Signs |
@@ -312,7 +312,7 @@ The dashboard shows 4 metric cards across the top:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  🎯 78 Exam Objectives Loaded                    ✓ Saved│
+│ 78 Exam Objectives Loaded Saved│
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -327,15 +327,15 @@ The audit engine generates these insight strings. For a **perfect** generation, 
 **What you WANT to see:**
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  ⚠ Honest Assessment                                               │
-│                                                                     │
-│  ✅ "All 65 concepts map to your stated objectives. Coverage looks │
-│      solid — focus on learning depth, not breadth."                │
-│                                                                     │
-│  ⚠️ "16 of your 78 objectives have NO matching concepts:           │
-│      'Configure Azure DNS zones' and 15 more. These are gaps in   │
-│      your generated content — you'll need to regenerate or study   │
-│      these separately."                                            │
+│ Honest Assessment │
+│ │
+│ "All 65 concepts map to your stated objectives. Coverage looks │
+│ solid — focus on learning depth, not breadth." │
+│ │
+│ "16 of your 78 objectives have NO matching concepts: │
+│ 'Configure Azure DNS zones' and 15 more. These are gaps in │
+│ your generated content — you'll need to regenerate or study │
+│ these separately." │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -357,18 +357,18 @@ Each concept row shows:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Network Security Groups (NSGs)    trunk    ✅ Aligned             │
-│  ──────────────────────────────────────────────────────────────────│
-│  Content Health: 85%  │  Objective Match: 72%  │  Bloom's: apply  │
-│                                                                     │
-│  Matched Objective: "Configure network security groups"            │
-│                                                                     │
-│  Strengths: Hook sentence, Professional relevance, Core            │
-│             explanation, High-stakes scenario, Memory anchor,      │
-│             Pattern drill, Elimination logic, 4 key points,       │
-│             2 pitfalls                                              │
-│                                                                     │
-│  Issues: (none)                                                    │
+│ Network Security Groups (NSGs) trunk Aligned │
+│ ──────────────────────────────────────────────────────────────────│
+│ Content Health: 85% │ Objective Match: 72% │ Bloom's: apply │
+│ │
+│ Matched Objective: "Configure network security groups" │
+│ │
+│ Strengths: Hook sentence, Professional relevance, Core │
+│ explanation, High-stakes scenario, Memory anchor, │
+│ Pattern drill, Elimination logic, 4 key points, │
+│ 2 pitfalls │
+│ │
+│ Issues: (none) │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -395,7 +395,7 @@ Each concept row shows:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Generated: 2/9/2026  │  Overall: 85%  │  Tier Split: 13R/33T/19L │
+│ Generated: 2/9/2026 │ Overall: 85% │ Tier Split: 13R/33T/19L │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 

@@ -12,9 +12,9 @@ SensaPBL is an AI-powered learning platform. A user enters any subject, the syst
 
 | Concern | Implementation |
 |---------|---------------|
-| Content generation | Python Lambda (15 min timeout, 10 GB) → Bedrock LLM → DynamoDB |
-| Content delivery | Express.js proxy → Lambda query → paginated concept fetch |
-| Learning engine | React SPA with Zustand slices, SENSA v2.0 flow (SCOUT → BUILD → MASTER) |
+| Content generation | Python Lambda (15 min timeout, 10 GB) Bedrock LLM DynamoDB |
+| Content delivery | Express.js proxy Lambda query paginated concept fetch |
+| Learning engine | React SPA with Zustand slices, SENSA v2.0 flow (SCOUT BUILD MASTER) |
 | Adaptive algorithms | SM-2 spacing, ZPD concept selection, interleaving, cognitive load tracking |
 | Storage | DynamoDB + S3 (cloud truth), IndexedDB (offline cache), localStorage (session progress) |
 | Auth | Cognito OAuth 2.0 + PKCE, HttpOnly cookie tokens |
@@ -22,8 +22,8 @@ SensaPBL is an AI-powered learning platform. A user enters any subject, the syst
 
 **Key data flows:**
 
-1. **Generate** — User enters subject → Express → Lambda invokes Bedrock 5× in parallel → stores concepts in DynamoDB → frontend polls job status → fetches concepts → parses into learning session
-2. **Learn** — Session config (mood → goal + duration) → micro-learning loops (teach → recall → drill → quiz) → spacing engine records quality → next concept selected by ZPD + interleaving
+1. **Generate** — User enters subject Express Lambda invokes Bedrock 5× in parallel stores concepts in DynamoDB frontend polls job status fetches concepts parses into learning session
+2. **Learn** — Session config (mood goal + duration) micro-learning loops (teach recall drill quiz) spacing engine records quality next concept selected by ZPD + interleaving
 3. **Review** — Launchpad gym shows due reviews from SM-2 spacing engine, concept map builder, peer review, mastery challenges
 
 **Error resilience:** 3-retry exponential backoff at both Lambda (Bedrock calls) and frontend (API calls via `resilience.ts`). Offline queue re-sends failed requests on reconnect. Study page hydration retries 3× with backoff. LearningErrorBoundary catches render crashes with recover/abandon paths.
@@ -57,38 +57,38 @@ SensaPBL is an AI-powered learning platform that generates structured educationa
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND (React)                         │
-│  Pages → Hooks → Stores → Features → API Client                │
+│ FRONTEND (React) │
+│ Pages Hooks Stores Features API Client │
 └──────────────┬──────────────────────────────┬───────────────────┘
-               │                              │
-               │ /api/v1/concepts/*           │ /api/v1/auth/*
-               │ /api/v1/content/*            │ /api/v1/proxy/*
-               ▼                              ▼
-┌──────────────────────────────┐  ┌───────────────────────────────┐
-│   EXPRESS BACKEND (Node.js)  │  │      AWS COGNITO              │
-│   - Auth middleware          │  │   - User pools                │
-│   - Concepts proxy to Lambda │  │   - OAuth 2.0 + PKCE          │
-│   - Content CRUD             │  │   - HttpOnly cookie tokens    │
-└──────────────┬───────────────┘  └───────────────────────────────┘
-               │
-               │ Lambda Invoke
-               ▼
+ │ │
+ │ /api/v1/concepts/* │ /api/v1/auth/*
+ │ /api/v1/content/* │ /api/v1/proxy/*
+
+┌──────────────────────────────┐ ┌───────────────────────────────┐
+│ EXPRESS BACKEND (Node.js) │ │ AWS COGNITO │
+│ - Auth middleware │ │ - User pools │
+│ - Concepts proxy to Lambda │ │ - OAuth 2.0 + PKCE │
+│ - Content CRUD │ │ - HttpOnly cookie tokens │
+└──────────────┬───────────────┘ └───────────────────────────────┘
+ │
+ │ Lambda Invoke
+
 ┌──────────────────────────────────────────────────────────────────┐
-│                    AWS LAMBDA (Python 3.12)                       │
-│                                                                   │
-│  ┌─────────────────────┐    ┌──────────────────────┐             │
-│  │  generate_concepts   │    │   query_concepts      │             │
-│  │  - classify_subject  │    │   - Paginated queries  │             │
-│  │  - parallel generate │    │   - Tier filtering     │             │
-│  │  - store to DynamoDB │    │   - Subject management │             │
-│  └──────────┬──────────┘    └──────────┬───────────┘             │
-│             │                          │                          │
-│             ▼                          ▼                          │
-│  ┌──────────────────┐      ┌──────────────────┐                  │
-│  │  AWS Bedrock      │      │  AWS DynamoDB     │                  │
-│  │  (Claude 3 Sonnet)│      │  - concepts table │                  │
-│  └──────────────────┘      │  - jobs table     │                  │
-│                             └──────────────────┘                  │
+│ AWS LAMBDA (Python 3.12) │
+│ │
+│ ┌─────────────────────┐ ┌──────────────────────┐ │
+│ │ generate_concepts │ │ query_concepts │ │
+│ │ - classify_subject │ │ - Paginated queries │ │
+│ │ - parallel generate │ │ - Tier filtering │ │
+│ │ - store to DynamoDB │ │ - Subject management │ │
+│ └──────────┬──────────┘ └──────────┬───────────┘ │
+│ │ │ │
+│ │
+│ ┌──────────────────┐ ┌──────────────────┐ │
+│ │ AWS Bedrock │ │ AWS DynamoDB │ │
+│ │ (Claude 3 Sonnet)│ │ - concepts table │ │
+│ └──────────────────┘ │ - jobs table │ │
+│ └──────────────────┘ │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -124,49 +124,49 @@ The legacy orchestrator files (`multi-phase-orchestrator.ts`, `phase1-domain-ana
 
 ```
 User enters subject + context
-        │
-        ▼
+ │
+
 Frontend: generateWithBackend()
-        │
-        ▼
-conceptsApi.generate() → POST /api/v1/concepts/generate
-        │
-        ▼
+ │
+
+conceptsApi.generate() POST /api/v1/concepts/generate
+ │
+
 Express backend proxies to Lambda (generate_concepts)
-        │
-        ▼
+ │
+
 Lambda handler.py:
-  1. classify_subject() → Bedrock call → returns { subjectType, classification, macroStructure }
-  2. Parallel generate_concepts() × 5 parts (knowledge dimensions) → Bedrock calls
-     Part 1: Core Mechanics (foundations, terminology, prerequisites)
-     Part 2: Workflows & Operations (processes, configuration, modeling)
-     Part 3: Output & Delivery (visualization, reporting, publishing, collaboration)
-     Part 4: Governance & Infrastructure (security, compliance, deployment, admin)
-     Part 5: Advanced & Ecosystem (optimization, AI features, mobile, integrations)
-  3. Post-process: compute tiers from connection graph (root/trunk/leaf), assign stages, validate
-  4. Store concepts + classification in DynamoDB (jobs table + concepts table)
-  5. Return { jobId, sessionId, conceptCount, classification }
-        │
-        ▼
+ 1. classify_subject() Bedrock call returns { subjectType, classification, macroStructure }
+ 2. Parallel generate_concepts() × 5 parts (knowledge dimensions) Bedrock calls
+ Part 1: Core Mechanics (foundations, terminology, prerequisites)
+ Part 2: Workflows & Operations (processes, configuration, modeling)
+ Part 3: Output & Delivery (visualization, reporting, publishing, collaboration)
+ Part 4: Governance & Infrastructure (security, compliance, deployment, admin)
+ Part 5: Advanced & Ecosystem (optimization, AI features, mobile, integrations)
+ 3. Post-process: compute tiers from connection graph (root/trunk/leaf), assign stages, validate
+ 4. Store concepts + classification in DynamoDB (jobs table + concepts table)
+ 5. Return { jobId, sessionId, conceptCount, classification }
+ │
+
 Frontend polls job status via GET /api/v1/concepts/jobs/:jobId
-  - Receives classification data when job completes
-        │
-        ▼
+ - Receives classification data when job completes
+ │
+
 Frontend fetches concepts via GET /api/v1/concepts?sessionId=...
-        │
-        ▼
-buildDocumentFromConcepts() → includes classification in JSON document
-        │
-        ▼
-parseAndLoadContent() → parseDomainAnalysis() extracts classification
-        │
-        ▼
-transformToLearningStages() → uses macroStructure for type-aware stages
-        │
-        ▼
-loadSession() → stores subjectType + macroWorkflow in CurrentSession
-        │
-        ▼
+ │
+
+buildDocumentFromConcepts() includes classification in JSON document
+ │
+
+parseAndLoadContent() parseDomainAnalysis() extracts classification
+ │
+
+transformToLearningStages() uses macroStructure for type-aware stages
+ │
+
+loadSession() stores subjectType + macroWorkflow in CurrentSession
+ │
+
 Navigate to /study/:subjectId
 ```
 
@@ -191,100 +191,100 @@ Classification data flows through the entire pipeline and influences stage namin
 
 ```
 src/
-├── App.tsx                    # Root component, routing, mounts SettingsPanel + BackgroundJobToast
-├── pages/                     # Full page views
-│   ├── Home.tsx               # Landing page
-│   ├── Generate.tsx           # Content generation UI
-│   ├── Study.tsx              # Study session entry + hydration
-│   ├── VelocityLearning.tsx   # SENSA v2.0 learning engine
-│   ├── SavedResults.tsx       # Library of generated content
-│   ├── Login.tsx / SignUp.tsx  # Auth pages
-│   └── DocumentView.tsx       # Raw document viewer
+├── App.tsx # Root component, routing, mounts SettingsPanel + BackgroundJobToast
+├── pages/ # Full page views
+│ ├── Home.tsx # Landing page
+│ ├── Generate.tsx # Content generation UI
+│ ├── Study.tsx # Study session entry + hydration
+│ ├── VelocityLearning.tsx # SENSA v2.0 learning engine
+│ ├── SavedResults.tsx # Library of generated content
+│ ├── Login.tsx / SignUp.tsx # Auth pages
+│ └── DocumentView.tsx # Raw document viewer
 │
-├── components/                # UI components
-│   ├── auth/                  # ProtectedRoute (route guard)
-│   ├── ui/                    # Generic UI widgets
-│   │   ├── EquationTracker    # Universal Learning Equation display
-│   │   ├── FlowProgressBar    # Session progress bar
-│   │   ├── BackgroundJobToast # Generation job notifications
-│   │   ├── MomentumCheckpoint # Momentum milestone celebrations
-│   │   ├── HelpModal          # Contextual help overlay
-│   │   ├── SensaShape         # Brand shape component
-│   │   ├── SessionTimeToast   # Session time notifications
-│   │   └── ConceptProgressIndicator
-│   ├── learning/              # Learning-specific
-│   │   ├── activities/        # BlankSheet, ConfusionDrill, ConceptMapBuilder,
-│   │   │                      # MasteryChallenge, NomenclatureSprint,
-│   │   │                      # CreativeTransfer, PeerReview
-│   │   ├── session/           # SessionStartModal, VelocityLockInGate,
-│   │   │                      # SessionScoutPreview, SessionSummary
-│   │   ├── onboarding/        # DiagnosticLaunchSystem, GuidedPrimer,
-│   │   │                      # OnboardingFlow, PrerequisiteCheck
-│   │   ├── feedback/          # SkipReasonModal, CelebrationModal,
-│   │   │                      # ConnectionTypeModal, NeuralResetModal,
-│   │   │                      # FlagInaccuracyButton
-│   │   ├── launchpad/         # ContentLaunchpad, ScoreCard, TierDistributionChart
-│   │   ├── LearningToolbar/   # FocusTimer, ProgressAnalytics, QuickQuiz
-│   │   ├── ui/                # PhaseNavigator, SensaSynopticView,
-│   │   │                      # CognitiveGauge, NeuralResetBanner
-│   │   └── MicroLearningLoopController.tsx  # Core learning loop orchestrator
-│   ├── generation/            # CognitiveStream, AgentCore
-│   ├── layout/                # StudyLayout (unified study command center wrapper)
-│   ├── settings/              # SettingsPanel (slide-out, always mounted in App.tsx)
-│   ├── dashboard/             # BlueprintFormulaDashboard, MasteryDashboard
-│   ├── storage/               # CloudLibraryModal
-│   └── error/                 # ErrorBoundary
+├── components/ # UI components
+│ ├── auth/ # ProtectedRoute (route guard)
+│ ├── ui/ # Generic UI widgets
+│ │ ├── EquationTracker # Universal Learning Equation display
+│ │ ├── FlowProgressBar # Session progress bar
+│ │ ├── BackgroundJobToast # Generation job notifications
+│ │ ├── MomentumCheckpoint # Momentum milestone celebrations
+│ │ ├── HelpModal # Contextual help overlay
+│ │ ├── SensaShape # Brand shape component
+│ │ ├── SessionTimeToast # Session time notifications
+│ │ └── ConceptProgressIndicator
+│ ├── learning/ # Learning-specific
+│ │ ├── activities/ # BlankSheet, ConfusionDrill, ConceptMapBuilder,
+│ │ │ # MasteryChallenge, NomenclatureSprint,
+│ │ │ # CreativeTransfer, PeerReview
+│ │ ├── session/ # SessionStartModal, VelocityLockInGate,
+│ │ │ # SessionScoutPreview, SessionSummary
+│ │ ├── onboarding/ # DiagnosticLaunchSystem, GuidedPrimer,
+│ │ │ # OnboardingFlow, PrerequisiteCheck
+│ │ ├── feedback/ # SkipReasonModal, CelebrationModal,
+│ │ │ # ConnectionTypeModal, NeuralResetModal,
+│ │ │ # FlagInaccuracyButton
+│ │ ├── launchpad/ # ContentLaunchpad, ScoreCard, TierDistributionChart
+│ │ ├── LearningToolbar/ # FocusTimer, ProgressAnalytics, QuickQuiz
+│ │ ├── ui/ # PhaseNavigator, SensaSynopticView,
+│ │ │ # CognitiveGauge, NeuralResetBanner
+│ │ └── MicroLearningLoopController.tsx # Core learning loop orchestrator
+│ ├── generation/ # CognitiveStream, AgentCore
+│ ├── layout/ # StudyLayout (unified study command center wrapper)
+│ ├── settings/ # SettingsPanel (slide-out, always mounted in App.tsx)
+│ ├── dashboard/ # BlueprintFormulaDashboard, MasteryDashboard
+│ ├── storage/ # CloudLibraryModal
+│ └── error/ # ErrorBoundary
 │
-├── features/                  # Business logic by domain
-│   ├── content-generation/    # AI content generation
-│   │   ├── api/               # backend-client.ts, claude-client.ts
-│   │   ├── parsers/           # json-parser.ts, transformer.ts, ai-integration.ts
-│   │   ├── validators/        # content-quality.ts, tier-progression.ts
-│   │   └── generators/        # dependency-parser.ts, json-merger.ts, tier-calculator.ts
-│   ├── learning-session/      # Learning activities
-│   │   ├── activities/        # confusion-generator.ts, diagnostic-generator.ts
-│   │   ├── algorithms/        # concept-selection.ts, spacing-engine.ts, interleaving.ts
-│   │   ├── phases/            # preview-ai.ts, build-ai.ts, retain-ai.ts, score-map.ts
-│   │   ├── progress/          # session-tracker.ts (throttled localStorage persistence)
-│   │   └── scoring/           # blank-sheet-scorer.ts
-│   ├── content-storage/       # Save/load content
-│   │   ├── cloud/             # s3-dynamodb.ts
-│   │   ├── local/             # indexed-db.ts, browser-storage.ts
-│   │   ├── sync/              # import.ts, sync-engine.ts
-│   │   ├── manager.ts         # StorageManager (orchestrates cloud + local)
-│   │   └── types.ts           # SavedResult, StorageProvider interfaces
-│   ├── ai-coach/              # AI coach personas, voice (useVoice hook, static-lines)
-│   │   ├── components/        # Coach UI components
-│   │   └── voice/             # useVoice.ts, static-lines.ts
-│   ├── personalization/       # User preference features (MetaphorToggle, etc.)
-│   │   └── components/        # MetaphorToggle
-│   └── social/                # Social learning types (PeerReview)
+├── features/ # Business logic by domain
+│ ├── content-generation/ # AI content generation
+│ │ ├── api/ # backend-client.ts, claude-client.ts
+│ │ ├── parsers/ # json-parser.ts, transformer.ts, ai-integration.ts
+│ │ ├── validators/ # content-quality.ts, tier-progression.ts
+│ │ └── generators/ # dependency-parser.ts, json-merger.ts, tier-calculator.ts
+│ ├── learning-session/ # Learning activities
+│ │ ├── activities/ # confusion-generator.ts, diagnostic-generator.ts
+│ │ ├── algorithms/ # concept-selection.ts, spacing-engine.ts, interleaving.ts
+│ │ ├── phases/ # preview-ai.ts, build-ai.ts, retain-ai.ts, score-map.ts
+│ │ ├── progress/ # session-tracker.ts (throttled localStorage persistence)
+│ │ └── scoring/ # blank-sheet-scorer.ts
+│ ├── content-storage/ # Save/load content
+│ │ ├── cloud/ # s3-dynamodb.ts
+│ │ ├── local/ # indexed-db.ts, browser-storage.ts
+│ │ ├── sync/ # import.ts, sync-engine.ts
+│ │ ├── manager.ts # StorageManager (orchestrates cloud + local)
+│ │ └── types.ts # SavedResult, StorageProvider interfaces
+│ ├── ai-coach/ # AI coach personas, voice (useVoice hook, static-lines)
+│ │ ├── components/ # Coach UI components
+│ │ └── voice/ # useVoice.ts, static-lines.ts
+│ ├── personalization/ # User preference features (MetaphorToggle, etc.)
+│ │ └── components/ # MetaphorToggle
+│ └── social/ # Social learning types (PeerReview)
 │
-├── store/                     # Zustand state management
-│   ├── auth-store.ts          # Authentication state
-│   ├── generation-store.ts    # Generation jobs, progress, classification
-│   ├── learning-store.ts      # Composed from slices (below)
-│   ├── personalization-store.ts # Metaphors, stress-free mode, practice mode, coach settings
-│   ├── theme-store.ts         # Dark/light/system theme + visual theme (playful/scholarly)
-│   ├── ui-store.ts            # Settings panel open/close state
-│   └── slices/                # Learning store slices
-│       ├── createSessionSlice.ts     # Session lifecycle (load, clear, start)
-│       ├── createNavigationSlice.ts  # Concept navigation + progress persistence
-│       ├── createStudySlice.ts       # Study session state machine
-│       ├── createCognitiveSlice.ts   # Cognitive load tracking
-│       ├── createDiagnosticSlice.ts  # Diagnostic assessment state
-│       ├── createFocusSlice.ts       # Focus/flow state management
-│       ├── createUISlice.ts          # UI state (celebrations, modals)
-│       └── types.ts                  # CurrentSession, UserProgress, etc.
+├── store/ # Zustand state management
+│ ├── auth-store.ts # Authentication state
+│ ├── generation-store.ts # Generation jobs, progress, classification
+│ ├── learning-store.ts # Composed from slices (below)
+│ ├── personalization-store.ts # Metaphors, stress-free mode, practice mode, coach settings
+│ ├── theme-store.ts # Dark/light/system theme + visual theme (playful/scholarly)
+│ ├── ui-store.ts # Settings panel open/close state
+│ └── slices/ # Learning store slices
+│ ├── createSessionSlice.ts # Session lifecycle (load, clear, start)
+│ ├── createNavigationSlice.ts # Concept navigation + progress persistence
+│ ├── createStudySlice.ts # Study session state machine
+│ ├── createCognitiveSlice.ts # Cognitive load tracking
+│ ├── createDiagnosticSlice.ts # Diagnostic assessment state
+│ ├── createFocusSlice.ts # Focus/flow state management
+│ ├── createUISlice.ts # UI state (celebrations, modals)
+│ └── types.ts # CurrentSession, UserProgress, etc.
 │
-└── shared/                    # Cross-cutting utilities
-    ├── api/                   # API client, concepts API
-    ├── hooks/                 # useLearningFlow, useSensaFlow, useFlowState,
-    │                          # useGenerationEngine, useClickOutside, useEscapeKey
-    ├── types/                 # learning.ts, macro-workflow.ts, sensa-flow.ts, generation.ts
-    ├── constants/             # UI timings, scoring constants, theme-colors
-    ├── services/              # audio.ts (AudioManager + AudioService), exam-objectives-fetcher.ts
-    └── utils/                 # content-loader.ts, toast.ts, score-utils.ts, example-synthesis.ts
+└── shared/ # Cross-cutting utilities
+ ├── api/ # API client, concepts API
+ ├── hooks/ # useLearningFlow, useSensaFlow, useFlowState,
+ │ # useGenerationEngine, useClickOutside, useEscapeKey
+ ├── types/ # learning.ts, macro-workflow.ts, sensa-flow.ts, generation.ts
+ ├── constants/ # UI timings, scoring constants, theme-colors
+ ├── services/ # audio.ts (AudioManager + AudioService), exam-objectives-fetcher.ts
+ └── utils/ # content-loader.ts, toast.ts, score-utils.ts, example-synthesis.ts
 ```
 
 ### Routes (App.tsx)
@@ -323,17 +323,17 @@ Global overlays always mounted: `SettingsPanel` (slide-out), `BackgroundJobToast
 ```
 backend/src/
 ├── core/
-│   └── server.ts              # Express app, middleware, route mounting
+│ └── server.ts # Express app, middleware, route mounting
 ├── features/
-│   ├── auth/routes/           # /api/v1/auth — Cognito token exchange
-│   ├── concepts/routes/       # /api/v1/concepts — Proxy to Lambda
-│   ├── content/routes/        # /api/v1/content — Content CRUD
-│   └── proxy/routes/          # /api/v1/proxy — Public resource proxy
+│ ├── auth/routes/ # /api/v1/auth — Cognito token exchange
+│ ├── concepts/routes/ # /api/v1/concepts — Proxy to Lambda
+│ ├── content/routes/ # /api/v1/content — Content CRUD
+│ └── proxy/routes/ # /api/v1/proxy — Public resource proxy
 ├── shared/
-│   ├── middleware/             # auth.ts (JWT verify), error-handler.ts, rate-limit.ts
-│   └── types/
-│       ├── macro-workflow.ts  # Classification types (shared with frontend)
-│       └── grounding.ts       # Source grounding types for content verification
+│ ├── middleware/ # auth.ts (JWT verify), error-handler.ts, rate-limit.ts
+│ └── types/
+│ ├── macro-workflow.ts # Classification types (shared with frontend)
+│ └── grounding.ts # Source grounding types for content verification
 ```
 
 ### Lambda Functions (`backend/lambda/`)
@@ -341,15 +341,15 @@ backend/src/
 ```
 backend/lambda/
 ├── generate_concepts/
-│   ├── handler.py             # Entry point: routes generate/repair actions
-│   └── services/
-│       ├── bedrock_service.py # classify_subject() + parallel generate_concepts()
-│       └── dynamo_service.py  # Job tracking, concept storage, batch writes
+│ ├── handler.py # Entry point: routes generate/repair actions
+│ └── services/
+│ ├── bedrock_service.py # classify_subject() + parallel generate_concepts()
+│ └── dynamo_service.py # Job tracking, concept storage, batch writes
 ├── query_concepts/
-│   └── handler.py             # Paginated concept queries, subject management, job polling
+│ └── handler.py # Paginated concept queries, subject management, job polling
 ├── shared/
-│   ├── system_prompt.py       # SILVER_BULLET_PROMPT + classification prompt
-│   └── utils.py               # CORS, API response helpers, DynamoDB key builders
+│ ├── system_prompt.py # SILVER_BULLET_PROMPT + classification prompt
+│ └── utils.py # CORS, API response helpers, DynamoDB key builders
 └── requirements.txt
 ```
 
@@ -359,24 +359,24 @@ backend/lambda/
 
 ```
 infra/terraform/
-├── main.tf                    # Root module: wires Cognito, S3, DynamoDB, Lambda, API Gateway
+├── main.tf # Root module: wires Cognito, S3, DynamoDB, Lambda, API Gateway
 ├── modules/
-│   ├── cognito/               # User pool, app client, domain
-│   ├── dynamodb/              # concepts table (GSI1 for tier queries), jobs table
-│   ├── lambda/                # generate_concepts (15min timeout), query_concepts (30s)
-│   ├── api_gateway/           # HTTP API with Lambda integrations
-│   └── s3/                    # Content storage bucket
-├── bootstrap/                 # One-time setup: S3 state bucket + DynamoDB lock table
-│   └── main.tf
+│ ├── cognito/ # User pool, app client, domain
+│ ├── dynamodb/ # concepts table (GSI1 for tier queries), jobs table
+│ ├── lambda/ # generate_concepts (15min timeout), query_concepts (30s)
+│ ├── api_gateway/ # HTTP API with Lambda integrations
+│ └── s3/ # Content storage bucket
+├── bootstrap/ # One-time setup: S3 state bucket + DynamoDB lock table
+│ └── main.tf
 └── environments/
-    ├── pilot/                 # Pilot environment (S3 backend)
-    │   ├── main.tf
-    │   ├── terraform.tfvars
-    │   └── variables.tf
-    └── prod/                  # Production environment (S3 backend)
-        ├── main.tf
-        ├── terraform.tfvars
-        └── variables.tf
+ ├── pilot/ # Pilot environment (S3 backend)
+ │ ├── main.tf
+ │ ├── terraform.tfvars
+ │ └── variables.tf
+ └── prod/ # Production environment (S3 backend)
+ ├── main.tf
+ ├── terraform.tfvars
+ └── variables.tf
 ```
 
 ### Key Infrastructure Details
@@ -417,16 +417,16 @@ infra/terraform/
 ### Learning Phase Flow
 
 ```
-SCOUT → PREVIEW → PRIME → BUILD → MASTER → COMPLETE
-                    │
-                    └── DIAGNOSE (optional, on first visit)
+SCOUT PREVIEW PRIME BUILD MASTER COMPLETE
+ │
+ └── DIAGNOSE (optional, on first visit)
 ```
 
 | Phase | Purpose | Key Component |
 |-------|---------|--------------|
 | SCOUT | Pre-learning overview of content | SessionScoutPreview |
 | PREVIEW | Nomenclature Sprint + Gap Priming | NomenclatureSprint |
-| PRIME | Mood check-in → auto-curates goal + duration | VelocityLockInGate, SessionStartModal (Study.tsx only) |
+| PRIME | Mood check-in auto-curates goal + duration | VelocityLockInGate, SessionStartModal (Study.tsx only) |
 | DIAGNOSE | Assess prior knowledge | DiagnosticLaunchSystem |
 | BUILD | Core learning loop | MicroLearningLoopController |
 | MASTER | Mastery challenges | MasteryChallenge, ConceptMapBuilder |
@@ -439,7 +439,7 @@ Each concept cycles through:
 2. **Blank Sheet** — Recall from memory (fuzzy-scored)
 3. **Confusion Drill** — Distinguish from similar concepts
 4. **Quiz** — Multiple choice assessment
-5. **Outcome** — mastered / needs-review / needs-learning → next concept
+5. **Outcome** — mastered / needs-review / needs-learning next concept
 
 ### Tier System (Root / Trunk / Leaf)
 
@@ -452,13 +452,13 @@ Concepts are classified into 3 dependency-derived tiers. The LLM does **not** as
 | `leaf` | out-degree 0 or isolated | Terminal applications — specialized skills | ~30% |
 
 Direction rules for connection types:
-- `requires`, `is-part-of`, `is-type-of` → source depends on target
-- `enables`, `causes`, `constrains` → target depends on source
+- `requires`, `is-part-of`, `is-type-of` source depends on target
+- `enables`, `causes`, `constrains` target depends on source
 
 Key files:
-- Backend: `backend/lambda/generate_concepts/services/bedrock_service.py` → `_compute_tiers_from_graph()`
-- Frontend type: `src/shared/types/sensa-flow.ts` → `TierType = 'root' | 'trunk' | 'leaf'`
-- Frontend fallback: `src/features/content-generation/parsers/transformer.ts` → `calculateTier()`
+- Backend: `backend/lambda/generate_concepts/services/bedrock_service.py` `_compute_tiers_from_graph()`
+- Frontend type: `src/shared/types/sensa-flow.ts` `TierType = 'root' | 'trunk' | 'leaf'`
+- Frontend fallback: `src/features/content-generation/parsers/transformer.ts` `calculateTier()`
 - Tier progression validator: `src/features/content-generation/validators/tier-progression.ts`
 - CSS variables: `--color-root`, `--color-trunk`, `--color-leaf` in `src/index.css`
 - Graph colors: `GRAPH_COLORS.root`, `.trunk`, `.leaf` in `src/shared/constants/theme-colors.ts`
@@ -505,18 +505,18 @@ Tracked by `EquationTracker` component and `useFlowState` hook.
 ## 9. Authentication Flow
 
 ```
-Login page → Cognito Hosted UI (OAuth 2.0 + PKCE)
-    │
-    ▼
-Callback → Exchange code for tokens
-    │
-    ▼
+Login page Cognito Hosted UI (OAuth 2.0 + PKCE)
+ │
+
+Callback Exchange code for tokens
+ │
+
 Express backend sets HttpOnly cookies (access + refresh tokens)
-    │
-    ▼
-All API calls include cookies → auth middleware verifies JWT
-    │
-    ▼
+ │
+
+All API calls include cookies auth middleware verifies JWT
+ │
+
 Token refresh handled transparently via refresh token cookie
 ```
 
@@ -622,8 +622,8 @@ Current architecture is designed for pilot scale. Known ceilings:
 - [x] AI content generation with subject classification (4 types)
 - [x] Macro workflow blueprint (type-aware stage generation)
 - [x] Multi-tier concept organization (root, trunk, leaf — dependency-derived from connection graph)
-- [x] SENSA v2.0 learning flow (PRIME → BUILD → MASTER)
-- [x] Micro learning loop (teach → blank sheet → confusion drill → quiz)
+- [x] SENSA v2.0 learning flow (PRIME BUILD MASTER)
+- [x] Micro learning loop (teach blank sheet confusion drill quiz)
 - [x] Mnemonic anchor system
 - [x] Diagnostic assessment (pre-learning knowledge check)
 - [x] Session progress persistence + recovery
@@ -639,10 +639,10 @@ Current architecture is designed for pilot scale. Known ceilings:
 - [x] Dark/light/system theme
 - [x] Visual theme system (Playful / Scholarly) — Full Apple-grade UI overhaul. `data-visual-theme` attribute on root, 200+ CSS variable overrides in `index.css` (Apple system colors, SF Pro typography, no glow/texture, crisp shadows). `useVisualTheme()` hook in `src/shared/hooks/useVisualTheme.ts` used by 22+ components to conditionally strip emojis and swap labels. Page reloads on theme switch. 4 combinations: playful+light, playful+dark, scholarly+light, scholarly+dark. Persisted in `theme-store.ts`.
 - [x] Consolidated settings panel (slide-out, all toggles wired to stores)
-- [x] Mood-based session curation (energized/neutral/tired/stressed → auto-set goal + duration)
+- [x] Mood-based session curation (energized/neutral/tired/stressed auto-set goal + duration)
 - [x] Browser SpeechSynthesis voice preview (no audio file dependency)
 - [x] ContentLaunchpad + Content Audit Engine (`/launchpad/:subjectId`) — 2-track audit: (1) Content Health = structural completeness (SHAPE, mnemonic, technical depth), (2) Objective Alignment = fuzzy-match concepts against user-provided exam objectives (pasted in dashboard, stored in localStorage). Classifies as objective-aligned / supplementary / not-in-objectives / unverified. Shows uncovered objectives as content gaps. Expandable per-concept verdicts with matched objective display.
-- [x] Objective-Driven Generation Pipeline — Home page has collapsible "Paste Exam Objectives" textarea with smart cleanup (`parseSyllabusText`) that strips percentages, numbering, answer choices, mark allocations, instructions, and exam paper junk. Cleaned objectives passed as `?context=` URL param to Generate page → Lambda. Lambda `system_prompt.py` parses objectives into domains via `_parse_objective_domains()`, distributes to 5 parts via `_distribute_domains_to_parts()`. `max_tokens` 16384 per part. Post-generation deduplication. Blueprint upload removed (users paste content directly). `exam-objectives-fetcher.ts` deleted (PDF parsing never implemented).
+- [x] Objective-Driven Generation Pipeline — Home page has collapsible "Paste Exam Objectives" textarea with smart cleanup (`parseSyllabusText`) that strips percentages, numbering, answer choices, mark allocations, instructions, and exam paper junk. Cleaned objectives passed as `?context=` URL param to Generate page Lambda. Lambda `system_prompt.py` parses objectives into domains via `_parse_objective_domains()`, distributes to 5 parts via `_distribute_domains_to_parts()`. `max_tokens` 16384 per part. Post-generation deduplication. Blueprint upload removed (users paste content directly). `exam-objectives-fetcher.ts` deleted (PDF parsing never implemented).
 - [x] StudyLayout (unified study command center wrapper with cognitive load indicator)
 - [x] SCOUT phase (pre-learning overview) — SessionScoutPreview wired into VelocityLearning
 - [x] PREVIEW phase (content preview before study) — Nomenclature Sprint + Gap Priming steps
@@ -660,13 +660,13 @@ Current architecture is designed for pilot scale. Known ceilings:
 
 The classification system (Type A/B/C/D) now feeds back into the learning formula via `blueprint-formula.ts`:
 
-- [x] **G baseline scoring** — `calculateGBaseline()` maps classification confidence → G value (procedural: 0.85, conceptual: 0.80, cyclic: 0.75, perceptual: 0.70)
+- [x] **G baseline scoring** — `calculateGBaseline()` maps classification confidence G value (procedural: 0.85, conceptual: 0.80, cyclic: 0.75, perceptual: 0.70)
 - [x] **Type-aware Q metrics** — `calculateTypeAwareMetrics()` adapts Q_f, Q_M, Q_P per subject type:
-  - Procedural: stage completion rate, checkpoint pass rate, hands-on time
-  - Conceptual: move fluency, novel problem success, deliberate case work
-  - Cyclic: cycle completion rate, insight per cycle, loop quality
-  - Perceptual: pattern exposure rate, discrimination accuracy, perception drills
-- [x] **Feedback loop** — `detectBlueprintMismatch()` detects low I + high effort → suggests reclassification, adjusts G
+ - Procedural: stage completion rate, checkpoint pass rate, hands-on time
+ - Conceptual: move fluency, novel problem success, deliberate case work
+ - Cyclic: cycle completion rate, insight per cycle, loop quality
+ - Perceptual: pattern exposure rate, discrimination accuracy, perception drills
+- [x] **Feedback loop** — `detectBlueprintMismatch()` detects low I + high effort suggests reclassification, adjusts G
 - [x] **Blueprint-Formula dashboard** — `BlueprintFormulaDashboard` component shows G, type-aware Q labels, feedback alerts, recommendations
 
 ### Phase 3 — Silver Bullet Audit Fixes (Implemented)
@@ -674,7 +674,7 @@ The classification system (Type A/B/C/D) now feeds back into the learning formul
 Full audit documented in `docs/architecture/AUDIT_SILVER_BULLET.md`. Key changes:
 
 - [x] **Shared example synthesis** — `synthesizeExample()` extracted to `src/shared/utils/example-synthesis.ts`, eliminates duplication between WorkedExample and FadedExample phases
-- [x] **Type-aware activity selection** — `MicroLearningLoopController` accepts `subjectType` prop, selects post-confusion activity per classification (procedural→transfer, conceptual→transfer, cyclic→social, perceptual→transfer)
+- [x] **Type-aware activity selection** — `MicroLearningLoopController` accepts `subjectType` prop, selects post-confusion activity per classification (proceduraltransfer, conceptualtransfer, cyclicsocial, perceptualtransfer)
 - [x] **Blueprint-Formula dashboard wired** — `updateTypeAwareMetrics()` called in `handleLoopComplete` with real cognitive metrics, dashboard now receives live data
 - [x] **PeerReviewActivity rebuilt** — Generates misconceptions from `commonPitfalls` and same-tier concept confusion; validates correction via keyword scoring
 - [x] **CreativeTransferActivity rebuilt** — Type-aware scenario templates (procedural/conceptual/cyclic/perceptual); keyword-based response scoring replaces length check
@@ -688,7 +688,7 @@ Full audit documented in `docs/architecture/AUDIT_SILVER_BULLET.md`. Key changes
 
 ### Phase 4 — Silver Bullet v2: Pipeline Alignment (Implemented)
 
-Holistic fix addressing systemic misalignments across the generation → parsing → learning pipeline:
+Holistic fix addressing systemic misalignments across the generation parsing learning pipeline:
 
 - [x] **Surgical fix prompt aligned** — Updated `SURGICAL_FIX_PROMPT` to use 6 universal connection types (was legacy requires/extends/enables/contains), removed `tier` field (computed from graph), added `cognitiveLevel`, `keyPoints`, `commonPitfalls`, `scoring` fields
 - [x] **Bloom's cognitive level enforcement** — `_enforce_blooms_distribution()` in `bedrock_service.py` ensures ≥30% concepts are `apply` or higher. Keyword-based upgrade for configuration/troubleshooting/decision concepts
@@ -715,13 +715,13 @@ Redesigns the main dashboard around Cognitive Load Theory and activates spaced r
 
 - [x] **Cognitive Battery (MoodSelector)** — Renamed from "Mood" to "Cognitive Battery / Focus Level". Consolidated 4 options to 3 bandwidth tiers: High (all features), Medium (standard), Low (fluency only). `CognitiveBandwidth` type and `moodToBandwidth()` mapper added to `ai-coach/index.ts`.
 - [x] **Gym Layout (ContentLaunchpad)** — Tabbed layout with Gym (default) and Insights tabs:
-  - **Gym tab** — 3 vertical zones gated by cognitive battery:
-    - **Zone 1: Daily Stack** — Queries `SpacingEngine.getDueReviews()` for stale items, renders horizontal ticker cards. Click triggers micro-loop navigation.
-    - **Zone 2: Build Lab** — Concept Map + Peer Review. Hidden when battery is Low.
-    - **Zone 3: Proving Grounds** — Mastery Challenge + Pre-Mortem. Only unlocked on High Focus.
-  - **Insights tab** — Restored audit grid: 4 metric cards (objectives coverage, unmapped concepts, content health, concept count), objectives panel with paste-and-parse, harsh insights, concept-by-concept audit with expandable detail rows (health scores, Bloom's level, issues, strengths).
+ - **Gym tab** — 3 vertical zones gated by cognitive battery:
+ - **Zone 1: Daily Stack** — Queries `SpacingEngine.getDueReviews()` for stale items, renders horizontal ticker cards. Click triggers micro-loop navigation.
+ - **Zone 2: Build Lab** — Concept Map + Peer Review. Hidden when battery is Low.
+ - **Zone 3: Proving Grounds** — Mastery Challenge + Pre-Mortem. Only unlocked on High Focus.
+ - **Insights tab** — Restored audit grid: 4 metric cards (objectives coverage, unmapped concepts, content health, concept count), objectives panel with paste-and-parse, harsh insights, concept-by-concept audit with expandable detail rows (health scores, Bloom's level, issues, strengths).
 - [x] **Temporal Spacing activated** — `ConceptVerdict` extended with `freshness` and `nextReviewDate`. `SpacingEngine.recordReviewWithQuality()` wired into `completeConcept`, `recordConfusionDrill`, `markSessionMapReconstructed`, `markSessionMastered` with activity-specific quality mappings (SM-2).
-- [x] **PeerReview multi-turn** — Refactored from single-turn to 4-stage dialogue (diagnosis → pushback → defense → resolution). Pushback uses `commonPitfalls`/`technicalDetails`.
+- [x] **PeerReview multi-turn** — Refactored from single-turn to 4-stage dialogue (diagnosis pushback defense resolution). Pushback uses `commonPitfalls`/`technicalDetails`.
 - [x] **PreMortemActivity** — New activity: derives steps from concept lifecycle, randomly alters one, user identifies the broken step.
 - [x] **ConceptMapBuilder mode toggle** — `mode` prop ('guided' | 'free') with toolbar toggle. Free mode skips validation and saves directly.
 
@@ -734,7 +734,7 @@ Surfaces hidden adaptive intelligence to the learner so the cognitive value prop
 - [x] **Diagnostic gap breakdown** — `DiagnosticLaunchSystem.tsx` results phase now shows a concept-level breakdown: green chips for known concepts, amber chips for focus areas/gaps. Previously only showed aggregate score.
 - [x] **Flow/struggle state indicator** — `LearningToolbar.tsx` now shows a pulsing green "In Flow" badge when flow state is detected, or an amber "High Load" badge when cognitive load is high. Uses `useFlowState` hook and `getCognitiveLoadLevel()` from learning store.
 - [x] **Spacing feedback toast** — After concept completion, `VelocityLearning.tsx` shows a brief toast with the SM-2 quality label (Perfect/Good/Okay/Weak/Missed) and next review interval. `lastSpacingUpdate` stored in `NavigationSliceState` via `createNavigationSlice.ts`.
-- [x] **Concept selection reason** — `ConceptProgressIndicator.tsx` now accepts a `selectionReason` prop. `VelocityLearning.tsx` computes the reason from tier, interleaving context, and progress state (e.g., "Building foundations first", "Interleaved from root → trunk", "Applying knowledge — leaf concept").
+- [x] **Concept selection reason** — `ConceptProgressIndicator.tsx` now accepts a `selectionReason` prop. `VelocityLearning.tsx` computes the reason from tier, interleaving context, and progress state (e.g., "Building foundations first", "Interleaved from root trunk", "Applying knowledge — leaf concept").
 - [x] **Neural reset trigger reason** — `NeuralResetModal.tsx` now shows WHY the reset was triggered: consecutive error count or cognitive load percentage. Displayed as a monospace pill inside the banner.
 
 ### Phase 8 — Routing, Data Display & Toast Silver Bullet (Implemented)

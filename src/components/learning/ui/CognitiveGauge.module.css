@@ -1,201 +1,171 @@
 .container {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    background: var(--color-surface);
-    border-radius: 2rem;
-    border: 1px solid var(--color-border);
-    position: relative;
-    cursor: help;
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+ padding: 0.5rem 0.75rem;
+ background: var(--color-surface);
+ border-radius: 2rem;
+ border: 1px solid var(--color-border);
+ position: relative;
+ cursor: help;
 }
-
 .label {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.75rem;
-    color: var(--color-text-light);
-    white-space: nowrap;
+ display: flex;
+ align-items: center;
+ gap: 0.375rem;
+ font-size: 0.75rem;
+ color: var(--color-text-light);
+ white-space: nowrap;
 }
-
 .icon {
-    width: 14px;
-    height: 14px;
+ width: 14px;
+ height: 14px;
 }
-
 /* Gauge bar */
 .gaugeBar {
-    flex: 1;
-    min-width: 60px;
-    height: 8px;
-    background: var(--color-bg-neutral);
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
+ flex: 1;
+ min-width: 60px;
+ height: 8px;
+ background: var(--color-bg-neutral);
+ border-radius: 4px;
+ overflow: hidden;
+ position: relative;
 }
-
 .gaugeFill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.5s ease-out, background-color 0.3s ease;
+ height: 100%;
+ border-radius: 4px;
+ transition: width 0.5s ease-out, background-color 0.3s ease;
 }
-
 .gaugeFill.low {
-    background: var(--color-success);
+ background: var(--color-success);
 }
-
 .gaugeFill.optimal {
-    background: var(--gradient-primary);
+ background: var(--gradient-primary);
 }
-
 .gaugeFill.high {
-    background: var(--color-secondary-amber);
+ background: var(--color-secondary-amber);
 }
-
 .gaugeFill.overload {
-    background: var(--color-error);
-    animation: pulse 0.8s ease-in-out infinite;
+ background: var(--color-error);
+ animation: pulse 0.8s ease-in-out infinite;
 }
-
 @keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
+ 0%,
+ 100% {
+ opacity: 1;
+ }
+ 50% {
+ opacity: 0.7;
+ }
 }
-
 /* Status badge */
 .status {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    padding: 0.25rem 0.5rem;
-    border-radius: 1rem;
-    white-space: nowrap;
+ display: flex;
+ align-items: center;
+ gap: 0.25rem;
+ font-size: 0.6875rem;
+ font-weight: 600;
+ padding: 0.25rem 0.5rem;
+ border-radius: 1rem;
+ white-space: nowrap;
 }
-
 .status.low {
-    background: var(--overlay-sage-10);
-    color: var(--color-success);
+ background: var(--overlay-sage-10);
+ color: var(--color-success);
 }
-
 .status.optimal {
-    background: var(--overlay-primary-10);
-    color: var(--color-primary-amethyst);
+ background: var(--overlay-primary-10);
+ color: var(--color-primary-amethyst);
 }
-
 .status.high {
-    background: var(--overlay-amber-10);
-    color: var(--color-secondary-amber);
+ background: var(--overlay-amber-10);
+ color: var(--color-secondary-amber);
 }
-
 .status.overload {
-    background: var(--color-error-bg);
-    color: var(--color-error);
+ background: var(--color-error-bg);
+ color: var(--color-error);
 }
-
 /* Collapsed view for smaller screens */
 .compact {
-    padding: 0.375rem 0.5rem;
+ padding: 0.375rem 0.5rem;
 }
-
 .compact .label {
-    display: none;
+ display: none;
 }
-
 .compact .gaugeBar {
-    min-width: 40px;
+ min-width: 40px;
 }
-
 @media (max-width: 600px) {
-    .label span {
-        display: none;
-    }
+ .label span {
+ display: none;
+ }
 }
-
 /* Help icon */
 .helpIcon {
-    opacity: 0.5;
-    transition: opacity var(--transition-fast);
+ opacity: 0.5;
+ transition: opacity var(--transition-fast);
 }
-
 .container:hover .helpIcon {
-    opacity: 1;
+ opacity: 1;
 }
-
 /* Tooltip */
 .tooltip {
-    position: absolute;
-    bottom: calc(100% + 0.75rem);
-    left: 50%;
-    transform: translateX(-50%);
-    width: 280px;
-    padding: 1rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    z-index: 100;
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    animation: tooltipFadeIn 0.2s ease-out;
+ position: absolute;
+ bottom: calc(100% + 0.75rem);
+ left: 50%;
+ transform: translateX(-50%);
+ width: 280px;
+ padding: 1rem;
+ background: var(--color-surface);
+ border: 1px solid var(--color-border);
+ border-radius: var(--radius-lg);
+ box-shadow: var(--shadow-lg);
+ z-index: 100;
+ font-size: 0.8125rem;
+ line-height: 1.5;
+ animation: tooltipFadeIn 0.2s ease-out;
 }
-
 .tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 8px solid transparent;
-    border-top-color: var(--color-surface);
+ content: '';
+ position: absolute;
+ top: 100%;
+ left: 50%;
+ transform: translateX(-50%);
+ border: 8px solid transparent;
+ border-top-color: var(--color-surface);
 }
-
 .tooltip strong {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--color-text);
-    font-size: 0.875rem;
+ display: block;
+ margin-bottom: 0.5rem;
+ color: var(--color-text);
+ font-size: 0.875rem;
 }
-
 .tooltip p {
-    margin: 0 0 0.75rem;
-    color: var(--color-text-light);
+ margin: 0 0 0.75rem;
+ color: var(--color-text-light);
 }
-
 .tooltip ul {
-    margin: 0;
-    padding-left: 0;
-    list-style: none;
+ margin: 0;
+ padding-left: 0;
+ list-style: none;
 }
-
 .tooltip li {
-    padding: 0.25rem 0;
-    color: var(--color-text-light);
-    font-size: 0.75rem;
+ padding: 0.25rem 0;
+ color: var(--color-text-light);
+ font-size: 0.75rem;
 }
-
 .tooltip li strong {
-    display: inline;
-    font-size: inherit;
-    margin-bottom: 0;
+ display: inline;
+ font-size: inherit;
+ margin-bottom: 0;
 }
-
 @keyframes tooltipFadeIn {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
+ from {
+ opacity: 0;
+ transform: translateX(-50%) translateY(4px);
+ }
+ to {
+ opacity: 1;
+ transform: translateX(-50%) translateY(0);
+ }
 }

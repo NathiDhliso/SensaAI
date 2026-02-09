@@ -61,7 +61,7 @@
 
 | Route | Component | Notes |
 |-------|-----------|-------|
-| `/` | Home | Public. Has settings gear button → `useUIStore.openSettingsPanel()` |
+| `/` | Home | Public. Has settings gear button `useUIStore.openSettingsPanel()` |
 | `/generate/:subject` | Generate | Protected. Content generation flow |
 | `/study/:subjectId` | Study | Protected. Unified study command center |
 | `/launchpad/:subjectId` | ContentLaunchpad | Protected. Analytics + readiness dashboard |
@@ -77,18 +77,18 @@
 ## 5. Learning Engine Phases
 
 ```
-SCOUT → PREVIEW → PRIME → BUILD → MASTER → COMPLETE
-                    │
-                    └── DIAGNOSE (optional, first visit)
+SCOUT PREVIEW PRIME BUILD MASTER COMPLETE
+ │
+ └── DIAGNOSE (optional, first visit)
 ```
 
 | Phase | Component | What it does |
 |-------|-----------|-------------|
 | SCOUT | SessionScoutPreview | Pre-learning content overview |
 | PREVIEW | NomenclatureSprint | Terminology familiarization + gap priming |
-| PRIME | SessionStartModal (Study.tsx) + VelocityLockInGate | Mood selection → auto-curates goal + duration |
+| PRIME | SessionStartModal (Study.tsx) + VelocityLockInGate | Mood selection auto-curates goal + duration |
 | DIAGNOSE | DiagnosticLaunchSystem | Prior knowledge assessment |
-| BUILD | MicroLearningLoopController | Teach → BlankSheet → ConfusionDrill → Quiz → Outcome |
+| BUILD | MicroLearningLoopController | Teach BlankSheet ConfusionDrill Quiz Outcome |
 | MASTER | MasteryChallenge + ConceptMapBuilder | Mastery-level challenges |
 | COMPLETE | MasteryDashboard | Grade, equation breakdown, tier coverage |
 
@@ -100,15 +100,15 @@ Mood selection in `SessionStartModal` auto-sets goal and duration:
 
 | Mood | Goal | Duration | Rationale |
 |------|------|----------|-----------|
-| Energized ⚡ | velocity | 45 min | Push hard, challenging concepts first |
-| Neutral 🧠 | learn-new | 30 min | Full learning lifecycle, balanced mix |
-| Tired 🔋 | review | 15 min | Spaced review, familiar concepts |
-| Stressed 🌊 | explore | 15 min | Free exploration, easy wins |
+| Energized | velocity | 45 min | Push hard, challenging concepts first |
+| Neutral | learn-new | 30 min | Full learning lifecycle, balanced mix |
+| Tired | review | 15 min | Spaced review, familiar concepts |
+| Stressed | explore | 15 min | Free exploration, easy wins |
 
 Duration and goal are **not** manually selectable — mood is the only input. The mapping lives in `MOOD_GOAL_MAP` inside `SessionStartModal.tsx`.
 
-Mood options are defined in `src/features/ai-coach/index.ts` → `MOOD_OPTIONS`.
-Mood colors are in `src/shared/constants/theme-colors.ts` → `MOOD_COLORS`.
+Mood options are defined in `src/features/ai-coach/index.ts` `MOOD_OPTIONS`.
+Mood colors are in `src/shared/constants/theme-colors.ts` `MOOD_COLORS`.
 
 ---
 
@@ -123,7 +123,7 @@ Every subject is classified before content generation:
 | C | Cyclic | Fundamental cycle + meta-awareness |
 | D | Perceptual | Perceptual ladder + practice structures |
 
-Classification flows through the entire pipeline: Lambda → DynamoDB → frontend stores → learning phases → formula dashboard.
+Classification flows through the entire pipeline: Lambda DynamoDB frontend stores learning phases formula dashboard.
 
 ### Generation Prompt — Knowledge Dimensions
 
@@ -137,7 +137,7 @@ Concepts are generated in 5 parallel parts, each covering a distinct knowledge d
 | 4 | Governance & Infrastructure | Security, access control, compliance, deployment, gateways, admin |
 | 5 | Advanced & Ecosystem | Optimization, AI/automation, mobile, integrations, edge cases |
 
-Prompt file: `backend/lambda/shared/system_prompt.py` → `SILVER_BULLET_PROMPT`
+Prompt file: `backend/lambda/shared/system_prompt.py` `SILVER_BULLET_PROMPT`
 
 **When editing the prompt:**
 - Keep dimensions universal — they must work for ANY subject, not just one tool
@@ -181,8 +181,8 @@ Concepts are classified into 3 tiers **deterministically from the connection gra
 **How it works:**
 1. Lambda generates concepts WITHOUT a `tier` field
 2. `_compute_tiers_from_graph()` in `bedrock_service.py` builds a directed graph from connections
-3. Connection types `requires`, `is-part-of`, `is-type-of` → source depends on target (out-degree for source, in-degree for target)
-4. Connection types `enables`, `causes`, `constrains` → target depends on source (reverse direction)
+3. Connection types `requires`, `is-part-of`, `is-type-of` source depends on target (out-degree for source, in-degree for target)
+4. Connection types `enables`, `causes`, `constrains` target depends on source (reverse direction)
 5. Tier is assigned based on in-degree and out-degree per the table above
 
 **Single Source of Truth:** Lambda's `_compute_tiers_from_graph()` is the ONLY tier computation. The frontend `calculateTier()` in `transformer.ts` is a fallback ONLY for concepts missing a tier field (e.g., skeleton recovery concepts). The frontend MUST NOT re-compute or override Lambda-assigned tiers.
@@ -194,25 +194,25 @@ Concepts are classified into 3 tiers **deterministically from the connection gra
 **Domain-adaptive content:** The prompt's §4.1 Domain-Adaptive Field Guide instructs the LLM to fill `phase2`, `phase3`, `workedExample`, and `eliminationLogic` differently per subject type. The JSON schema is identical for all types — only the content interpretation changes. See `docs/DESIRABLE_RESULTS.md` for field-by-field examples.
 
 **Key files:**
-- Backend computation (authoritative): `backend/lambda/generate_concepts/services/bedrock_service.py` → `_compute_tiers_from_graph()`
-- Backend Bloom's enforcement: `bedrock_service.py` → `_enforce_blooms_distribution()` (≥30% apply+)
-- Backend validation: `bedrock_service.py` → `_validate_concept()` (name + mnemonic + simpleCore + connections + cognitiveLevel)
-- Backend scoring auto-repair: `bedrock_service.py` → `_validate_scoring_field()` wired in `_post_process_concepts()`
-- Prompt domain adaptation: `backend/lambda/shared/system_prompt.py` → §4.1 Domain-Adaptive Field Guide
-- Frontend types: `src/shared/types/sensa-flow.ts` → `TierType = 'root' | 'trunk' | 'leaf'`
-- Frontend fallback only: `src/features/content-generation/parsers/transformer.ts` → `calculateTier()`
-- Audit health scorer: `src/features/content-audit/audit-engine.ts` → `scoreContentHealth()` (includes workedExample)
+- Backend computation (authoritative): `backend/lambda/generate_concepts/services/bedrock_service.py` `_compute_tiers_from_graph()`
+- Backend Bloom's enforcement: `bedrock_service.py` `_enforce_blooms_distribution()` (≥30% apply+)
+- Backend validation: `bedrock_service.py` `_validate_concept()` (name + mnemonic + simpleCore + connections + cognitiveLevel)
+- Backend scoring auto-repair: `bedrock_service.py` `_validate_scoring_field()` wired in `_post_process_concepts()`
+- Prompt domain adaptation: `backend/lambda/shared/system_prompt.py` §4.1 Domain-Adaptive Field Guide
+- Frontend types: `src/shared/types/sensa-flow.ts` `TierType = 'root' | 'trunk' | 'leaf'`
+- Frontend fallback only: `src/features/content-generation/parsers/transformer.ts` `calculateTier()`
+- Audit health scorer: `src/features/content-audit/audit-engine.ts` `scoreContentHealth()` (includes workedExample)
 - UI display: `src/components/learning/ui/SensaSynopticView.tsx` (orbit rings), `SessionScoutPreview.tsx` (tier columns)
-- CSS variables: `src/index.css` → `--color-root`, `--color-trunk`, `--color-leaf`
+- CSS variables: `src/index.css` `--color-root`, `--color-trunk`, `--color-leaf`
 - Desirable results spec: `docs/DESIRABLE_RESULTS.md`
-- Cognitive Battery: `src/features/ai-coach/index.ts` → `CognitiveBandwidth`, `moodToBandwidth()`
-- Gym Layout: `src/components/learning/launchpad/ContentLaunchpad.tsx` → 3-zone layout (Daily Stack / Build Lab / Proving Grounds)
-- Spacing integration: `src/store/slices/createNavigationSlice.ts`, `src/store/slices/createStudySlice.ts` → `SpacingEngine` wired into completion actions
-- Activities: `src/components/learning/activities/` → `PreMortemActivity.tsx` (new), `PeerReviewActivity.tsx` (multi-turn), `ConceptMapBuilder.tsx` (guided/free mode)
+- Cognitive Battery: `src/features/ai-coach/index.ts` `CognitiveBandwidth`, `moodToBandwidth()`
+- Gym Layout: `src/components/learning/launchpad/ContentLaunchpad.tsx` 3-zone layout (Daily Stack / Build Lab / Proving Grounds)
+- Spacing integration: `src/store/slices/createNavigationSlice.ts`, `src/store/slices/createStudySlice.ts` `SpacingEngine` wired into completion actions
+- Activities: `src/components/learning/activities/` `PreMortemActivity.tsx` (new), `PeerReviewActivity.tsx` (multi-turn), `ConceptMapBuilder.tsx` (guided/free mode)
 
 **FORBIDDEN**: Using `foundation`, `keystone`, or `utility` as tier names anywhere in the codebase. These are legacy names replaced in v2.0.
 
-**FORBIDDEN**: The old 5-option mood system (`pumped/good/okay/struggling/tired`) is deprecated. Use the 3-tier Cognitive Battery (`energized/neutral/tired` → `high/medium/low` bandwidth). The `stressed` value still exists in the `Mood` type for backward compat but is not shown in the UI.
+**FORBIDDEN**: The old 5-option mood system (`pumped/good/okay/struggling/tired`) is deprecated. Use the 3-tier Cognitive Battery (`energized/neutral/tired` `high/medium/low` bandwidth). The `stressed` value still exists in the `Mood` type for backward compat but is not shown in the UI.
 
 ---
 
@@ -258,18 +258,18 @@ After making changes, verify:
 | Importing mid-file | Always import at the top. If editing, make a separate edit to add imports. |
 | Using `relates-to` connections | There is NO generic fallback. Use one of the 6 universal types: requires, enables, is-part-of, is-type-of, causes, constrains. |
 | Using inline styles in pages | Use `.module.css` for all styling. Never use `style={{}}` in page components. |
-| Duplicating mood mappings | `MOOD_GOAL_MAP` in `SessionStartModal.tsx` is the single source of truth for mood→goal, duration, and store mood. Import it; never re-create. |
+| Duplicating mood mappings | `MOOD_GOAL_MAP` in `SessionStartModal.tsx` is the single source of truth for moodgoal, duration, and store mood. Import it; never re-create. |
 | Duplicate toast systems | The app uses a single custom toast system (`@/shared/utils/toast.ts`). Never add Sonner, react-hot-toast, or other toast libraries. |
 | Duplicate SessionStartModal | `SessionStartModal` is rendered only in `Study.tsx`. Never render it in `VelocityLearning.tsx` — Study.tsx guards the learn tab and handles session config. |
 | Using ContentContext | `ContentContext` was removed. Use `useLearningStore().getConcepts()` to access loaded concepts. |
 | Hardcoding cognitive load | Wire to `getCognitiveLoadLevel()` from the learning store's CognitiveSlice. Never hardcode. |
-| Skip reason with no routing | When a user skips a concept, differentiate behavior: too-easy → mark mastered (0.85), too-hard → route to root prerequisite, not-relevant → skip cleanly. |
+| Skip reason with no routing | When a user skips a concept, differentiate behavior: too-easy mark mastered (0.85), too-hard route to root prerequisite, not-relevant skip cleanly. |
 | Empty algorithm fallback | If concept selection algorithms fail, fall back to sequential (next N incomplete concepts). Never pass empty `targetConcepts[]`. |
 | Oversized border-radius on modals | Modal/card containers use `var(--radius-xl)` (12px) max. Never exceed 16px on modal containers — larger values read as consumer app. |
 | Using red for stressed mood | Stressed mood uses slate (`#64748b`), not red. Red triggers cortisol — the opposite of calming a stressed learner. |
 | Perpetual CSS/motion animations | Animations should fire once on mount, not loop infinitely. `repeat: Infinity` is prohibited on non-loading-state elements. |
 | Adding paper/grid textures | The crumpled paper texture on `body::before` is the only allowed texture. No grid dots, no additional paper overlays. |
-| Saturated dark mode backgrounds | Dark mode backgrounds must stay below ~15% saturation. Current palette: `#16131e` → `#1e1a28` → `#262233`. Never use vivid purple backgrounds. |
+| Saturated dark mode backgrounds | Dark mode backgrounds must stay below ~15% saturation. Current palette: `#16131e` `#1e1a28` `#262233`. Never use vivid purple backgrounds. |
 | Using old tier names | Never use `foundation`, `keystone`, or `utility` as tier names. The tier system uses `root`, `trunk`, `leaf` — see §8. |
 | Silent adaptive logic | When adding adaptive behavior (activity routing, timing, scheduling), always surface a brief explanation to the user. Use `.adaptiveHint` pattern from `MicroLearningLoopController` or `.spacingFooter` pattern from `ContentLaunchpad`. The learner should understand *why* the system made a decision. |
 | Raw `new Date(generatedAt)` | Never use `new Date(generatedAt)` directly — legacy data stores numeric strings from `Date.now().toString()`. Always use `formatSafeDate()` from `@/shared/utils/utils` for display, or the inline `safeTime()` pattern for sorting. Source of truth for new records: ISO strings via `new Date().toISOString()`. |
@@ -286,7 +286,7 @@ After making changes, verify:
 |------|---------------|
 | `src/App.tsx` | All routes defined here. Mounts global overlays. |
 | `src/components/settings/SettingsPanel.tsx` | Consolidated settings (appearance, AI companion, practice mode, cognitive load, academic schedule, data management) |
-| `src/components/learning/session/SessionStartModal.tsx` | Mood-based session curation (PRIME phase entry point). Exports `MOOD_GOAL_MAP` — **single source of truth** for mood→goal+duration+storeMood. |
+| `src/components/learning/session/SessionStartModal.tsx` | Mood-based session curation (PRIME phase entry point). Exports `MOOD_GOAL_MAP` — **single source of truth** for moodgoal+duration+storeMood. |
 | `src/store/personalization-store.ts` | Most user preferences live here |
 | `src/features/ai-coach/index.ts` | Mood options, persona system, coach utilities |
 | `src/components/learning/MicroLearningLoopController.tsx` | Core learning loop orchestrator |
@@ -298,7 +298,7 @@ After making changes, verify:
 | `src/features/learning-session/activities/gym-ai-service.ts` | AI-powered gym activity service. Uses Claude Haiku for cost efficiency. Provides: `generateAIMisconception`, `generateAIPushback`, `scoreWithAI`, `generateMasteryScenario`, `scoreMasteryWithAI`, `generateAIBrokenConfig`. All functions return `null` on failure — callers must implement keyword-based fallback. 30-min client-side cache, max 100 entries. |
 | `src/components/layout/StudyLayout.tsx` | Unified study command center layout wrapper |
 | `src/shared/constants/theme-colors.ts` | All color constants including mood colors, `GRAPH_COLORS` (root/trunk/leaf), lifecycle colors |
-| `src/index.css` → `[data-visual-theme="scholarly"]` | Apple-grade scholarly visual theme CSS overhaul — completely different color palette (Apple system colors), SF Pro typography, no glow/texture, crisp shadows, 4 combos (scholarly+light, scholarly+dark, playful+light, playful+dark). Includes `@media print` reset. |
+| `src/index.css` `[data-visual-theme="scholarly"]` | Apple-grade scholarly visual theme CSS overhaul — completely different color palette (Apple system colors), SF Pro typography, no glow/texture, crisp shadows, 4 combos (scholarly+light, scholarly+dark, playful+light, playful+dark). Includes `@media print` reset. |
 | `src/shared/hooks/useVisualTheme.ts` | `useVisualTheme()` hook + `stripEmoji()` + `scholarlyLabel()` utilities. Used by 22+ components to conditionally strip emojis and swap labels in scholarly mode. Page reloads on theme switch (`theme-store.ts`). |
 | `backend/lambda/shared/system_prompt.py` | Generation prompt (classification + silver bullet + surgical fix). Domain-aware partitioning: when user provides exam objectives, `_parse_objective_domains()` splits them into top-level domains and `_distribute_domains_to_parts()` assigns domains to the 5 generation parts so each part covers specific exam domains instead of generic knowledge dimensions. |
 | `src/features/content-generation/validators/tier-progression.ts` | Tier access control, ceiling calculation, mastery breakdown. Uses `root/trunk/leaf` tiers (see §8). |

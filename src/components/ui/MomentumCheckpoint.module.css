@@ -2,258 +2,222 @@
  * MomentumCheckpoint Styles
  * Premium, calming design that celebrates progress without overwhelming
  */
-
 .overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--overlay-black-60);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 1rem;
+ position: fixed;
+ inset: 0;
+ background: var(--overlay-black-60);
+ backdrop-filter: blur(8px);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ z-index: 9999;
+ padding: 1rem;
 }
-
 .card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-xl);
-    padding: 2rem;
-    max-width: 420px;
-    width: 100%;
-    text-align: center;
-    box-shadow: var(--shadow-xl);
+ background: var(--color-surface);
+ border: 1px solid var(--color-border);
+ border-radius: var(--radius-xl);
+ padding: 2rem;
+ max-width: 420px;
+ width: 100%;
+ text-align: center;
+ box-shadow: var(--shadow-xl);
 }
-
 /* Header */
 .header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 1rem;
+ margin-bottom: 1.5rem;
 }
-
 .iconContainer {
-    width: 72px;
-    height: 72px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--overlay-primary-10);
-    border-radius: 50%;
+ width: 72px;
+ height: 72px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ background: var(--overlay-primary-10);
+ border-radius: 50%;
 }
-
 .trophyIcon {
-    color: var(--color-warning);
+ color: var(--color-warning);
 }
-
 .fireIcon {
-    color: var(--color-danger);
-    animation: pulse 1.5s ease-in-out infinite;
+ color: var(--color-danger);
+ animation: pulse 1.5s ease-in-out infinite;
 }
-
 @keyframes pulse {
-
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.1);
-    }
+ 0%,
+ 100% {
+ transform: scale(1);
+ }
+ 50% {
+ transform: scale(1.1);
+ }
 }
-
 .title {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
+ margin: 0;
+ font-size: 1.5rem;
+ font-weight: 700;
+ color: var(--color-text-primary);
 }
-
 /* Stats */
 .stats {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background: var(--color-surface-secondary);
-    border-radius: 12px;
+ display: flex;
+ justify-content: center;
+ gap: 2rem;
+ margin-bottom: 1.5rem;
+ padding: 1rem;
+ background: var(--color-surface-secondary);
+ border-radius: 12px;
 }
-
 .stat {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--color-text-secondary);
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ color: var(--color-text-secondary);
 }
-
 .stat svg {
-    color: var(--color-primary);
+ color: var(--color-primary);
 }
-
 .statValue {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
+ font-size: 1.25rem;
+ font-weight: 700;
+ color: var(--color-text-primary);
 }
-
 .statLabel {
-    font-size: 0.875rem;
+ font-size: 0.875rem;
 }
-
 /* Up Next (Zeigarnik Teaser) */
 .upNext {
-    background: linear-gradient(135deg, var(--overlay-primary-10) 0%, var(--overlay-sage-10) 100%);
-    border: 1px dashed var(--color-primary);
-    border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    text-align: left;
+ background: linear-gradient(135deg, var(--overlay-primary-10) 0%, var(--overlay-sage-10) 100%);
+ border: 1px dashed var(--color-primary);
+ border-radius: 12px;
+ padding: 1rem;
+ margin-bottom: 1.5rem;
+ text-align: left;
 }
-
 .upNextLabel {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-primary);
-    display: block;
-    margin-bottom: 0.5rem;
+ font-size: 0.6875rem;
+ font-weight: 600;
+ text-transform: uppercase;
+ letter-spacing: 0.1em;
+ color: var(--color-primary);
+ display: block;
+ margin-bottom: 0.5rem;
 }
-
 .upNextConcept {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.25rem;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ margin-bottom: 0.25rem;
 }
-
 .upNextName {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
+ font-size: 1rem;
+ font-weight: 600;
+ color: var(--color-text-primary);
 }
-
 .upNextTier {
-    font-size: 0.6875rem;
-    padding: 0.125rem 0.5rem;
-    background: var(--overlay-white-10);
-    border-radius: 4px;
-    color: var(--color-text-secondary);
-    text-transform: capitalize;
+ font-size: 0.6875rem;
+ padding: 0.125rem 0.5rem;
+ background: var(--overlay-white-10);
+ border-radius: 4px;
+ color: var(--color-text-secondary);
+ text-transform: capitalize;
 }
-
 .upNextHook {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    font-style: italic;
-    line-height: 1.4;
+ margin: 0;
+ font-size: 0.875rem;
+ color: var(--color-text-secondary);
+ font-style: italic;
+ line-height: 1.4;
 }
-
 /* Actions */
 .actions {
-    display: flex;
-    gap: 1rem;
+ display: flex;
+ gap: 1rem;
 }
-
 .exitButton {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
+ flex: 1;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 0.5rem;
+ padding: 1rem;
+ background: var(--color-surface);
+ border: 1px solid var(--color-border);
+ border-radius: 12px;
+ font-size: 1rem;
+ font-weight: 500;
+ color: var(--color-text-secondary);
+ cursor: pointer;
+ transition: all 0.2s ease;
 }
-
 .exitButton:hover {
-    border-color: var(--color-border-emphasis);
-    color: var(--color-text-primary);
-    background: var(--color-surface-hover);
+ border-color: var(--color-border-emphasis);
+ color: var(--color-text-primary);
+ background: var(--color-surface-hover);
 }
-
 .continueButton {
-    flex: 1.5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-text-on-accent);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-glow-primary);
+ flex: 1.5;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 0.5rem;
+ padding: 1rem;
+ background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+ border: none;
+ border-radius: 12px;
+ font-size: 1rem;
+ font-weight: 600;
+ color: var(--color-text-on-accent);
+ cursor: pointer;
+ transition: all 0.2s ease;
+ box-shadow: var(--shadow-glow-primary);
 }
-
 .continueButton:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow-primary-hover);
+ transform: translateY(-2px);
+ box-shadow: var(--shadow-glow-primary-hover);
 }
-
 /* Responsive */
 @media (max-width: 480px) {
-    .card {
-        padding: 1.5rem;
-    }
-
-    .stats {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .actions {
-        flex-direction: column-reverse;
-    }
-
-    .continueButton,
-    .exitButton {
-        flex: 1;
-    }
+ .card {
+ padding: 1.5rem;
+ }
+ .stats {
+ flex-direction: column;
+ gap: 0.75rem;
+ }
+ .actions {
+ flex-direction: column-reverse;
+ }
+ .continueButton,
+ .exitButton {
+ flex: 1;
+ }
 }
-
 /* Compact for small viewports */
 @media (max-height: 700px) {
-    .card {
-        padding: 1.25rem;
-    }
-
-    .header {
-        margin-bottom: 1rem;
-    }
-
-    .iconContainer {
-        width: 56px;
-        height: 56px;
-    }
-
-    .title {
-        font-size: 1.25rem;
-    }
-
-    .stats {
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-    }
-
-    .upNext {
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-    }
+ .card {
+ padding: 1.25rem;
+ }
+ .header {
+ margin-bottom: 1rem;
+ }
+ .iconContainer {
+ width: 56px;
+ height: 56px;
+ }
+ .title {
+ font-size: 1.25rem;
+ }
+ .stats {
+ padding: 0.75rem;
+ margin-bottom: 1rem;
+ }
+ .upNext {
+ padding: 0.75rem;
+ margin-bottom: 1rem;
+ }
 }

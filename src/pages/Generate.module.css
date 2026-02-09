@@ -1,402 +1,354 @@
 /* Cinematic Cockpit Theme */
 .container {
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
-  background-color: var(--color-bg-primary);
-  display: flex;
-  flex-direction: column;
-  color: var(--color-text-medium);
-  font-family: 'Inter', sans-serif;
+ height: 100vh;
+ overflow: hidden;
+ position: relative;
+ background-color: var(--color-bg-primary);
+ display: flex;
+ flex-direction: column;
+ color: var(--color-text-medium);
+ font-family: 'Inter', sans-serif;
 }
-
 /* Background Atmosphere */
 .container::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 50% 50%, var(--overlay-accent-15) 0%, transparent 60%),
-    radial-gradient(circle at 50% 120%, var(--overlay-primary-10) 0%, transparent 50%);
-  z-index: 1;
-  pointer-events: none;
+ content: '';
+ position: absolute;
+ inset: 0;
+ background:
+ radial-gradient(circle at 50% 50%, var(--overlay-accent-15) 0%, transparent 60%),
+ radial-gradient(circle at 50% 120%, var(--overlay-primary-10) 0%, transparent 50%);
+ z-index: 1;
+ pointer-events: none;
 }
-
 /* Scanlines */
 .container::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(var(--overlay-black-40) 50%, var(--overlay-black-60) 50%);
-  background-size: 100% 4px;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.6;
+ content: '';
+ position: absolute;
+ inset: 0;
+ background: linear-gradient(var(--overlay-black-40) 50%, var(--overlay-black-60) 50%);
+ background-size: 100% 4px;
+ z-index: 2;
+ pointer-events: none;
+ opacity: 0.6;
 }
-
 .cockpit {
-  position: relative;
-  z-index: 10;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
+ position: relative;
+ z-index: 10;
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ padding: 2rem;
 }
-
 /* --- CENTER STAGE: AGENT & THOUGHTS --- */
 .centerStage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3rem;
-  transform: translateY(-20px);
-  /* Optically centered */
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ gap: 3rem;
+ transform: translateY(-20px);
+ /* Optically centered */
 }
-
 /* Agent Container Override for Size */
 .agentWrapper {
-  transform: scale(1.5);
-  /* Make the agent imposingly large */
+ transform: scale(1.5);
+ /* Make the agent imposingly large */
 }
-
 /* Cognitive Stream Container */
 .cognitiveStreamContainer {
-  height: 80px;
-  /* Fixed height to prevent layout shift */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+ height: 80px;
+ /* Fixed height to prevent layout shift */
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ gap: 0.5rem;
 }
-
 /* The Cinematic Text */
 .thoughtText {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.5rem;
-  font-weight: 300;
-  color: var(--color-text-dark);
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-shadow: var(--shadow-glow-primary);
-  max-width: 800px;
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 1.5rem;
+ font-weight: 300;
+ color: var(--color-text-dark);
+ text-align: center;
+ text-transform: uppercase;
+ letter-spacing: 0.1em;
+ text-shadow: var(--shadow-glow-primary);
+ max-width: 800px;
 }
-
 .streamDecoration {
-  display: flex;
-  gap: 4px;
-  height: 2px;
+ display: flex;
+ gap: 4px;
+ height: 2px;
 }
-
 .streamBit {
-  width: 20px;
-  height: 100%;
-  background: var(--color-accent-light);
-  border-radius: 1px;
-  transition: background-color 0.3s ease;
+ width: 20px;
+ height: 100%;
+ background: var(--color-accent-light);
+ border-radius: 1px;
+ transition: background-color 0.3s ease;
 }
-
 .streamBitHigh {
-  background: var(--color-error);
+ background: var(--color-error);
 }
-
 /* --- HUD: SOURCE & OUTPUT --- */
 .hudContainer {
-  position: absolute;
-  bottom: 2rem;
-  left: 2rem;
-  right: 2rem;
-  display: grid;
-  grid-template-columns: 300px 1fr 300px;
-  gap: 2rem;
-  align-items: end;
+ position: absolute;
+ bottom: 2rem;
+ left: 2rem;
+ right: 2rem;
+ display: grid;
+ grid-template-columns: 300px 1fr 300px;
+ gap: 2rem;
+ align-items: end;
 }
-
 /* Left HUD: Source Info */
 .sourcePanel {
-  background: var(--color-surface);
-  border-top: 2px solid var(--color-border);
-  padding: 1rem;
-  backdrop-filter: blur(8px);
-  box-shadow: var(--shadow-md);
+ background: var(--color-surface);
+ border-top: 2px solid var(--color-border);
+ padding: 1rem;
+ backdrop-filter: blur(8px);
+ box-shadow: var(--shadow-md);
 }
-
 .hudLabel {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--color-text-light);
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-  display: block;
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 0.65rem;
+ color: var(--color-text-light);
+ text-transform: uppercase;
+ margin-bottom: 0.5rem;
+ display: block;
 }
-
 .sourceTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  color: var(--color-text-dark);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
+ font-family: 'Inter', sans-serif;
+ font-size: 0.9rem;
+ color: var(--color-text-dark);
+ white-space: nowrap;
+ overflow: hidden;
+ text-overflow: ellipsis;
+ display: block;
 }
-
 /* Center HUD: Progress Line */
 .progressPanel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 0.5rem;
 }
-
 .progressLine {
-  width: 100%;
-  height: 2px;
-  background: var(--color-border-light);
-  position: relative;
-  overflow: hidden;
+ width: 100%;
+ height: 2px;
+ background: var(--color-border-light);
+ position: relative;
+ overflow: hidden;
 }
-
 .progressFill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: var(--color-accent-light);
-  background: var(--gradient-accent);
-  box-shadow: var(--shadow-glow-primary);
-  transition: width 0.3s ease-out;
+ position: absolute;
+ top: 0;
+ left: 0;
+ height: 100%;
+ background: var(--color-accent-light);
+ background: var(--gradient-accent);
+ box-shadow: var(--shadow-glow-primary);
+ transition: width 0.3s ease-out;
 }
-
 /* Right HUD: Output Ticker */
 .outputPanel {
-  background: var(--color-surface);
-  border-top: 2px solid var(--color-border);
-  padding: 1rem;
-  backdrop-filter: blur(8px);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+ background: var(--color-surface);
+ border-top: 2px solid var(--color-border);
+ padding: 1rem;
+ backdrop-filter: blur(8px);
+ box-shadow: var(--shadow-md);
+ display: flex;
+ flex-direction: column;
+ align-items: flex-end;
 }
-
 .nodeCounter {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.2rem;
-  color: var(--color-text-dark);
-  font-weight: 700;
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 1.2rem;
+ color: var(--color-text-dark);
+ font-weight: 700;
 }
-
 .nodeLabel {
-  font-size: 0.7rem;
-  color: var(--color-text-medium);
+ font-size: 0.7rem;
+ color: var(--color-text-medium);
 }
-
 /* Latest Concept Pop-up */
 .latestConcept {
-  position: absolute;
-  bottom: 6rem;
-  right: 2rem;
-  background: var(--overlay-accent-10);
-  border: 1px solid var(--overlay-accent-15);
-  padding: 0.75rem 1.5rem;
-  border-radius: 99px;
-  color: var(--color-text-dark);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-glow-primary);
+ position: absolute;
+ bottom: 6rem;
+ right: 2rem;
+ background: var(--overlay-accent-10);
+ border: 1px solid var(--overlay-accent-15);
+ padding: 0.75rem 1.5rem;
+ border-radius: 99px;
+ color: var(--color-text-dark);
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 0.9rem;
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+ backdrop-filter: blur(10px);
+ box-shadow: var(--shadow-glow-primary);
 }
-
 .conceptEmoji {
-  font-size: 1.2rem;
+ font-size: 1.2rem;
 }
-
 /* Cancel / Back Button (Top Left) */
 .abortButton {
-  position: absolute;
-  top: 2rem;
-  left: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-medium);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  transition: all 0.2s;
-  z-index: 20;
-  box-shadow: var(--shadow-sm);
+ position: absolute;
+ top: 2rem;
+ left: 2rem;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ background: var(--color-surface);
+ border: 1px solid var(--color-border);
+ color: var(--color-text-medium);
+ padding: 0.5rem 1rem;
+ border-radius: 4px;
+ cursor: pointer;
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 0.75rem;
+ text-transform: uppercase;
+ transition: all 0.2s;
+ z-index: 20;
+ box-shadow: var(--shadow-sm);
 }
-
 .abortButton:hover {
-  border-color: var(--color-error);
-  color: var(--color-error);
-  background: var(--color-error-bg);
+ border-color: var(--color-error);
+ color: var(--color-error);
+ background: var(--color-error-bg);
 }
-
 /* Error Overlay */
 .confirmOverlay {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay-black-60);
-  backdrop-filter: blur(10px);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+ position: fixed;
+ inset: 0;
+ background: var(--overlay-black-60);
+ backdrop-filter: blur(10px);
+ z-index: 100;
+ display: flex;
+ align-items: center;
+ justify-content: center;
 }
-
 .confirmDialog {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 400px;
-  text-align: center;
+ background: var(--color-surface);
+ border: 1px solid var(--color-border);
+ padding: 2rem;
+ border-radius: 8px;
+ max-width: 400px;
+ text-align: center;
 }
-
 .confirmDialog h3 {
-  margin-bottom: 0.5rem;
-  color: var(--color-text-dark);
+ margin-bottom: 0.5rem;
+ color: var(--color-text-dark);
 }
-
 .confirmDialog p {
-  color: var(--color-text-muted);
-  margin-bottom: 2rem;
+ color: var(--color-text-muted);
+ margin-bottom: 2rem;
 }
-
 .confirmActions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
+ display: flex;
+ gap: 1rem;
+ justify-content: center;
 }
-
 .primaryButton,
 .secondaryButton,
 .cancelConfirmButton {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
+ padding: 0.75rem 1.5rem;
+ border-radius: 4px;
+ cursor: pointer;
+ font-weight: 500;
+ transition: all 0.2s;
 }
-
 .primaryButton {
-  background: var(--color-accent-light);
-  color: var(--color-text-on-accent);
-  border: none;
+ background: var(--color-accent-light);
+ color: var(--color-text-on-accent);
+ border: none;
 }
-
 .secondaryButton {
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-dark);
+ background: transparent;
+ border: 1px solid var(--color-border);
+ color: var(--color-text-dark);
 }
-
-
 .cancelConfirmButton {
-  background: var(--color-error);
-  color: var(--color-text-on-accent);
-  border: none;
+ background: var(--color-error);
+ color: var(--color-text-on-accent);
+ border: none;
 }
-
 /* Agent Core Styles (Restored) */
 .agentContainer {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+ position: relative;
+ width: 200px;
+ height: 200px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
 }
-
 .agentOrbital {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px dashed var(--color-border-emphasis);
-  /* Stronger default */
-  opacity: 0.6;
+ position: absolute;
+ inset: 0;
+ border-radius: 50%;
+ border: 1px dashed var(--color-border-emphasis);
+ /* Stronger default */
+ opacity: 0.6;
 }
-
 .agentCoreWrapper {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+ position: relative;
+ z-index: 10;
+ display: flex;
+ align-items: center;
+ justify-content: center;
 }
-
 .agentCore {
-  width: 80px;
-  height: 80px;
-  background: var(--color-surface);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--color-border-light);
-  position: relative;
-  z-index: 20;
+ width: 80px;
+ height: 80px;
+ background: var(--color-surface);
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ box-shadow: var(--shadow-xl);
+ border: 1px solid var(--color-border-light);
+ position: relative;
+ z-index: 20;
 }
-
 .agentCore.glitch {
-  filter: url('#glitch-filter');
+ filter: url('#glitch-filter');
 }
-
 .agentPulse {
-  position: absolute;
-  inset: -20px;
-  border-radius: 50%;
-  border: 2px solid var(--color-primary);
-  opacity: 0;
-  z-index: 5;
+ position: absolute;
+ inset: -20px;
+ border-radius: 50%;
+ border: 2px solid var(--color-primary);
+ opacity: 0;
+ z-index: 5;
 }
-
 /* ========== Agent Core Icon Styles ========== */
 .coreIcon {
-  width: 3rem;
-  height: 3rem;
+ width: 3rem;
+ height: 3rem;
 }
-
 .coreIconLarge {
-  width: 4rem;
-  height: 4rem;
+ width: 4rem;
+ height: 4rem;
 }
-
 .iconIdle {
-  color: var(--color-info);
+ color: var(--color-info);
 }
-
 .iconScanning {
-  color: var(--color-accent-light);
+ color: var(--color-accent-light);
 }
-
 .iconThinking {
-  color: var(--color-primary);
+ color: var(--color-primary);
 }
-
 .iconWriting {
-  color: var(--color-warning);
+ color: var(--color-warning);
 }
-
 .iconVerifying {
-  color: var(--color-success);
+ color: var(--color-success);
 }
-
 .iconComplete {
-  color: var(--color-success);
+ color: var(--color-success);
 }

@@ -2,9 +2,7 @@
  * Tier calculation utilities for Mind Palace Floor Plan layout.
  * Determines concept importance based on dependency count.
  */
-
 export type Tier = 'Root' | 'Trunk' | 'Leaf';
-
 /**
  * Tier thresholds based on dependent count.
  * These values determine how concepts are classified:
@@ -16,20 +14,18 @@ export type Tier = 'Root' | 'Trunk' | 'Leaf';
  * even with smaller graphs or sparse dependency data.
  */
 export const TIER_THRESHOLDS = {
-    ROOT: 4,
-    TRUNK: 2,
+ ROOT: 4,
+ TRUNK: 2
 } as const;
-
 /**
  * Treemap weighting based on tier.
  * Foundation concepts get 4x the visual area of Utility concepts.
  */
 export const TIER_WEIGHTS = {
-    Root: 4,
-    Trunk: 2,
-    Leaf: 1,
+ Root: 4,
+ Trunk: 2,
+ Leaf: 1
 } as const;
-
 /**
  * Calculate tier based on how many concepts depend on this one.
  * Higher dependent count = more foundational = larger visual presence.
@@ -38,11 +34,10 @@ export const TIER_WEIGHTS = {
  * @returns The calculated tier
  */
 export function calculateTier(dependentCount: number): Tier {
-    if (dependentCount >= TIER_THRESHOLDS.ROOT) return 'Root';
-    if (dependentCount >= TIER_THRESHOLDS.TRUNK) return 'Trunk';
-    return 'Leaf';
+ if (dependentCount >= TIER_THRESHOLDS.ROOT) return 'Root';
+ if (dependentCount >= TIER_THRESHOLDS.TRUNK) return 'Trunk';
+ return 'Leaf';
 }
-
 /**
  * Get treemap weight for a tier.
  * Used by d3-hierarchy to size rectangles in Floor Plan view.
@@ -51,9 +46,8 @@ export function calculateTier(dependentCount: number): Tier {
  * @returns Weight multiplier for treemap sizing
  */
 export function getTierWeight(tier: Tier): number {
-    return TIER_WEIGHTS[tier];
+ return TIER_WEIGHTS[tier];
 }
-
 /**
  * Calculate centrality score (0-1) based on total connections.
  * Higher score = more central/important in the graph.
@@ -63,9 +57,9 @@ export function getTierWeight(tier: Tier): number {
  * @returns Normalized centrality score 0-1
  */
 export function calculateCentralityScore(
-    totalConnections: number,
-    maxConnections: number
+ totalConnections: number,
+ maxConnections: number
 ): number {
-    if (maxConnections === 0) return 0;
-    return Math.min(1, totalConnections / maxConnections);
-}
+ if (maxConnections === 0) return 0;
+ return Math.min(1, totalConnections / maxConnections);
+}

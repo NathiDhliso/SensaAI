@@ -1,863 +1,750 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 700px;
-    background: var(--color-surface-base);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    overflow: hidden;
+ display: flex;
+ flex-direction: column;
+ height: 100%;
+ min-height: 700px;
+ background: var(--color-surface-base);
+ border-radius: var(--radius-lg);
+ border: 1px solid var(--color-border);
+ overflow: hidden;
 }
-
 .mapBuilderContent {
-    display: flex;
-    flex: 1;
-    gap: 1rem;
-    overflow: hidden;
+ display: flex;
+ flex: 1;
+ gap: 1rem;
+ overflow: hidden;
 }
-
 .sidebar {
-    width: 250px;
-    min-width: 250px;
-    background: var(--color-surface-subtle);
-    border-right: 1px solid var(--color-border);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    transition: width 0.3s ease, min-width 0.3s ease;
+ width: 250px;
+ min-width: 250px;
+ background: var(--color-surface-subtle);
+ border-right: 1px solid var(--color-border);
+ display: flex;
+ flex-direction: column;
+ position: relative;
+ transition: width 0.3s ease, min-width 0.3s ease;
 }
-
 /* Collapsed Sidebar State */
 .sidebar.sidebarCollapsed {
-    width: 48px;
-    min-width: 48px;
-    overflow: hidden;
+ width: 48px;
+ min-width: 48px;
+ overflow: hidden;
 }
-
 /* Sidebar Toggle Button */
 .sidebarToggle {
-    position: absolute;
-    top: 50%;
-    right: -12px;
-    transform: translateY(-50%);
-    width: 24px;
-    height: 48px;
-    background: var(--color-surface-base);
-    border: 1px solid var(--color-border);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--color-text-secondary);
-    z-index: 10;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
+ position: absolute;
+ top: 50%;
+ right: -12px;
+ transform: translateY(-50%);
+ width: 24px;
+ height: 48px;
+ background: var(--color-surface-base);
+ border: 1px solid var(--color-border);
+ border-radius: 0 var(--radius-md) var(--radius-md) 0;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ color: var(--color-text-secondary);
+ z-index: 10;
+ transition: all 0.2s ease;
+ box-shadow: var(--shadow-sm);
 }
-
 .sidebarToggle:hover {
-    background: var(--color-surface-hover);
-    color: var(--color-text-primary);
+ background: var(--color-surface-hover);
+ color: var(--color-text-primary);
 }
-
 .sidebarHeader {
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-border);
+ padding: 1rem;
+ border-bottom: 1px solid var(--color-border);
 }
-
 .sidebarTitle {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin: 0;
-    color: var(--color-text-primary);
+ font-size: 0.9rem;
+ font-weight: 600;
+ margin: 0;
+ color: var(--color-text-primary);
 }
-
 .conceptList {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+ flex: 1;
+ overflow-y: auto;
+ padding: 1rem;
+ display: flex;
+ flex-direction: column;
+ gap: 0.5rem;
 }
-
 .connectModeHint {
-    position: absolute;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--overlay-black-60);
-    color: var(--color-text-on-accent);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    pointer-events: none;
-    z-index: 10;
+ position: absolute;
+ top: 1rem;
+ left: 50%;
+ transform: translateX(-50%);
+ background: var(--overlay-black-60);
+ color: var(--color-text-on-accent);
+ padding: 0.5rem 1rem;
+ border-radius: 20px;
+ font-size: 0.8rem;
+ pointer-events: none;
+ z-index: 10;
 }
-
 .sidebarItem {
-    padding: 0.75rem;
-    background: var(--color-surface-base);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: 0.85rem;
-    color: var(--color-text-primary);
-    transition: all 0.2s ease;
+ padding: 0.75rem;
+ background: var(--color-surface-base);
+ border: 1px solid var(--color-border);
+ border-radius: var(--radius-md);
+ cursor: pointer;
+ font-size: 0.85rem;
+ color: var(--color-text-primary);
+ transition: all 0.2s ease;
 }
-
 .sidebarItem:hover {
-    border-color: var(--color-primary);
-    transform: translateX(2px);
+ border-color: var(--color-primary);
+ transform: translateX(2px);
 }
-
 .sidebarItem.added {
-    opacity: 0.5;
-    cursor: default;
-    background: var(--color-surface-subtle);
+ opacity: 0.5;
+ cursor: default;
+ background: var(--color-surface-subtle);
 }
-
 .canvasArea {
-    flex: 1;
-    position: relative;
-    background: radial-gradient(var(--color-border) 1px, transparent 1px);
-    background-size: 20px 20px;
-    overflow: hidden;
-    user-select: none;
+ flex: 1;
+ position: relative;
+ background: radial-gradient(var(--color-border) 1px, transparent 1px);
+ background-size: 20px 20px;
+ overflow: hidden;
+ user-select: none;
 }
-
 .toolbar {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background: var(--color-surface-base);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-    z-index: 10;
+ position: absolute;
+ top: 1rem;
+ left: 1rem;
+ display: flex;
+ gap: 0.5rem;
+ padding: 0.5rem;
+ background: var(--color-surface-base);
+ border: 1px solid var(--color-border);
+ border-radius: var(--radius-md);
+ box-shadow: var(--shadow-md);
+ z-index: 10;
 }
-
 .toolButton {
-    padding: 0.5rem;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    color: var(--color-text-secondary);
-    cursor: pointer;
+ padding: 0.5rem;
+ background: transparent;
+ border: 1px solid transparent;
+ border-radius: var(--radius-sm);
+ color: var(--color-text-secondary);
+ cursor: pointer;
 }
-
 .toolButton:hover {
-    background: var(--color-surface-hover);
-    color: var(--color-text-primary);
+ background: var(--color-surface-hover);
+ color: var(--color-text-primary);
 }
-
 .toolButton.active {
-    background: var(--color-primary-subtle);
-    color: var(--color-primary);
-    border-color: var(--color-primary);
+ background: var(--color-primary-subtle);
+ color: var(--color-primary);
+ border-color: var(--color-primary);
 }
-
 .node {
-    position: absolute;
-    background: var(--color-surface-elevated);
-    border: 2px solid var(--color-accent-light);
-    border-radius: 50px;
-    padding: 0.5rem 1rem;
-    min-width: 100px;
-    text-align: center;
-    box-shadow: var(--shadow-md);
-    cursor: grab;
-    z-index: 2;
-    transform: translate(-50%, -50%);
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--color-text-dark);
+ position: absolute;
+ background: var(--color-surface-elevated);
+ border: 2px solid var(--color-accent-light);
+ border-radius: 50px;
+ padding: 0.5rem 1rem;
+ min-width: 100px;
+ text-align: center;
+ box-shadow: var(--shadow-md);
+ cursor: grab;
+ z-index: 2;
+ transform: translate(-50%, -50%);
+ font-weight: 600;
+ font-size: 0.9rem;
+ color: var(--color-text-dark);
 }
-
 .node:active {
-    cursor: grabbing;
+ cursor: grabbing;
 }
-
 .node.selected {
-    border-color: var(--color-accent-alt);
-    box-shadow: 0 0 0 4px var(--color-warning-border);
-    /* accent-alt-rgb */
+ border-color: var(--color-accent-alt);
+ box-shadow: 0 0 0 4px var(--color-warning-border);
+ /* accent-alt-rgb */
 }
-
 .svgLayer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
+ position: absolute;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ pointer-events: none;
+ z-index: 1;
 }
-
 .connectionLabel {
-    position: absolute;
-    background: var(--color-surface-elevated);
-    border: 1px solid var(--color-accent-light);
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-size: 0.75rem;
-    color: var(--color-text-primary);
-    font-weight: 500;
-    transform: translate(-50%, -50%);
-    z-index: 3;
-    pointer-events: auto;
+ position: absolute;
+ background: var(--color-surface-elevated);
+ border: 1px solid var(--color-accent-light);
+ border-radius: 4px;
+ padding: 2px 8px;
+ font-size: 0.75rem;
+ color: var(--color-text-primary);
+ font-weight: 500;
+ transform: translate(-50%, -50%);
+ z-index: 3;
+ pointer-events: auto;
 }
-
 .completeButton {
-    position: absolute;
-    bottom: 2rem;
-    right: 2rem;
-    padding: 0.75rem 1.5rem;
-    background: var(--color-primary);
-    color: var(--color-text-on-accent);
-    border: none;
-    border-radius: var(--radius-full);
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: var(--shadow-glow-primary);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+ position: absolute;
+ bottom: 2rem;
+ right: 2rem;
+ padding: 0.75rem 1.5rem;
+ background: var(--color-primary);
+ color: var(--color-text-on-accent);
+ border: none;
+ border-radius: var(--radius-full);
+ font-weight: 600;
+ cursor: pointer;
+ box-shadow: var(--shadow-glow-primary);
+ z-index: 10;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
 }
-
 /* AI Suggestions Panel */
 .aiPanel {
-    position: absolute;
-    bottom: 1rem;
-    left: 1rem;
-    max-width: 320px;
-    background: var(--color-surface-base);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-glow-primary);
-    z-index: 10;
-    overflow: hidden;
+ position: absolute;
+ bottom: 1rem;
+ left: 1rem;
+ max-width: 320px;
+ background: var(--color-surface-base);
+ border: 1px solid var(--color-border);
+ border-radius: var(--radius-md);
+ box-shadow: var(--shadow-glow-primary);
+ z-index: 10;
+ overflow: hidden;
 }
-
 .aiPanelHeader {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: var(--overlay-sage-10);
-    border-bottom: 1px solid var(--color-border);
-    color: var(--color-sage);
-    font-weight: 600;
-    font-size: 0.8rem;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ padding: 0.75rem 1rem;
+ background: var(--overlay-sage-10);
+ border-bottom: 1px solid var(--color-border);
+ color: var(--color-sage);
+ font-weight: 600;
+ font-size: 0.8rem;
 }
-
 .aiPanelContent {
-    max-height: 200px;
-    overflow-y: auto;
-    padding: 0.75rem;
+ max-height: 200px;
+ overflow-y: auto;
+ padding: 0.75rem;
 }
-
 .aiSuggestion {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.5rem;
-    background: var(--color-surface-subtle);
-    border-radius: var(--radius-sm);
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
+ display: flex;
+ flex-direction: column;
+ gap: 0.25rem;
+ padding: 0.5rem;
+ background: var(--color-surface-subtle);
+ border-radius: var(--radius-sm);
+ margin-bottom: 0.5rem;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ border: 1px solid transparent;
 }
-
 .aiSuggestion:hover {
-    border-color: var(--color-sage);
-    background: var(--overlay-sage-5);
+ border-color: var(--color-sage);
+ background: var(--overlay-sage-5);
 }
-
 .aiSuggestionText {
-    font-size: 0.8rem;
-    color: var(--color-text-primary);
+ font-size: 0.8rem;
+ color: var(--color-text-primary);
 }
-
 .aiSuggestionMeta {
-    font-size: 0.7rem;
-    color: var(--color-text-muted);
+ font-size: 0.7rem;
+ color: var(--color-text-muted);
 }
-
 .aiGapAlert {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background: var(--overlay-amber-10);
-    border-left: 3px solid var(--color-warning);
-    border-radius: var(--radius-sm);
-    margin-bottom: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--color-text-primary);
+ display: flex;
+ align-items: flex-start;
+ gap: 0.5rem;
+ padding: 0.5rem;
+ background: var(--overlay-amber-10);
+ border-left: 3px solid var(--color-warning);
+ border-radius: var(--radius-sm);
+ margin-bottom: 0.5rem;
+ font-size: 0.75rem;
+ color: var(--color-text-primary);
 }
-
 .aiCoachMessage {
-    padding: 0.75rem;
-    background: var(--overlay-primary-10);
-    border-top: 1px solid var(--color-border);
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
-    font-style: italic;
+ padding: 0.75rem;
+ background: var(--overlay-primary-10);
+ border-top: 1px solid var(--color-border);
+ font-size: 0.75rem;
+ color: var(--color-text-secondary);
+ font-style: italic;
 }
-
 /* ============================================
-   NEW UX ELEMENTS - Delete, Label Editor, Presets
-   ============================================ */
-
+ NEW UX ELEMENTS - Delete, Label Editor, Presets
+ ============================================ */
 /* Sidebar Hint Text */
 .sidebarHint {
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
-    margin-top: 0.25rem;
+ font-size: 0.75rem;
+ color: var(--color-text-secondary);
+ margin-top: 0.25rem;
 }
-
 /* Added Check Icon */
 .addedCheck {
-    float: right;
-    color: var(--color-success);
+ float: right;
+ color: var(--color-success);
 }
-
 /* Toolbar Divider */
 .toolbarDivider {
-    width: 1px;
-    height: 24px;
-    background: var(--color-border);
-    margin: 0 0.25rem;
+ width: 1px;
+ height: 24px;
+ background: var(--color-border);
+ margin: 0 0.25rem;
 }
-
 /* Disabled Tool Button */
 .toolButton.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+ opacity: 0.4;
+ cursor: not-allowed;
 }
-
 .toolButton.disabled:hover {
-    background: transparent;
-    color: var(--color-text-secondary);
+ background: transparent;
+ color: var(--color-text-secondary);
 }
-
 /* Node Delete Button */
 .deleteNodeButton {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--color-error);
-    color: var(--color-text-on-accent);
-    border: 2px solid var(--color-surface-elevated);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease, transform 0.15s ease;
-    z-index: 5;
+ position: absolute;
+ top: -8px;
+ right: -8px;
+ width: 20px;
+ height: 20px;
+ border-radius: 50%;
+ background: var(--color-error);
+ color: var(--color-text-on-accent);
+ border: 2px solid var(--color-surface-elevated);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ opacity: 0;
+ transition: opacity 0.2s ease, transform 0.15s ease;
+ z-index: 5;
 }
-
 .node:hover .deleteNodeButton {
-    opacity: 1;
+ opacity: 1;
 }
-
 .deleteNodeButton:hover {
-    transform: scale(1.15);
-    background: var(--color-error-dark);
+ transform: scale(1.15);
+ background: var(--color-error-dark);
 }
-
 /* Connection Delete Button */
 .deleteConnectionButton {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--color-error);
-    color: var(--color-text-on-accent);
-    border: 1px solid var(--color-surface-elevated);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    z-index: 5;
+ position: absolute;
+ top: -8px;
+ right: -8px;
+ width: 18px;
+ height: 18px;
+ border-radius: 50%;
+ background: var(--color-error);
+ color: var(--color-text-on-accent);
+ border: 1px solid var(--color-surface-elevated);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ opacity: 0;
+ transition: opacity 0.2s ease;
+ z-index: 5;
 }
-
 .connectionLabel:hover .deleteConnectionButton {
-    opacity: 1;
+ opacity: 1;
 }
-
 /* Selected Connection */
 .selectedConnection {
-    border-color: var(--color-accent-alt);
-    box-shadow: 0 0 0 2px var(--color-warning-border);
+ border-color: var(--color-accent-alt);
+ box-shadow: 0 0 0 2px var(--color-warning-border);
 }
-
 /* Inline Label Editor */
 .labelEditor {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background: var(--color-surface-elevated);
-    border: 1px solid var(--color-accent-light);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-xl);
-    min-width: 220px;
-    position: relative;
+ display: flex;
+ flex-direction: column;
+ gap: 0.5rem;
+ padding: 0.5rem;
+ background: var(--color-surface-elevated);
+ border: 1px solid var(--color-accent-light);
+ border-radius: var(--radius-md);
+ box-shadow: var(--shadow-xl);
+ min-width: 220px;
+ position: relative;
 }
-
 .labelEditor input {
-    padding: 0.5rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    font-size: 0.85rem;
-    background: var(--color-surface-base);
-    color: var(--color-text-primary);
-    width: 100%;
+ padding: 0.5rem;
+ border: 1px solid var(--color-border);
+ border-radius: var(--radius-sm);
+ font-size: 0.85rem;
+ background: var(--color-surface-base);
+ color: var(--color-text-primary);
+ width: 100%;
 }
-
 .labelEditor input:focus {
-    outline: none;
-    border-color: var(--color-accent-light);
-    box-shadow: 0 0 0 2px var(--overlay-accent-10);
+ outline: none;
+ border-color: var(--color-accent-light);
+ box-shadow: 0 0 0 2px var(--overlay-accent-10);
 }
-
 .labelEditorActions {
-    display: flex;
-    gap: 0.25rem;
-    justify-content: flex-end;
+ display: flex;
+ gap: 0.25rem;
+ justify-content: flex-end;
 }
-
 .saveButton,
 .cancelButton {
-    padding: 0.35rem;
-    border: none;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
+ padding: 0.35rem;
+ border: none;
+ border-radius: var(--radius-sm);
+ cursor: pointer;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ transition: all 0.15s ease;
 }
-
 .saveButton {
-    background: var(--color-success);
-    color: var(--color-text-on-accent);
+ background: var(--color-success);
+ color: var(--color-text-on-accent);
 }
-
 .saveButton:hover {
-    background: var(--color-sage-dark);
+ background: var(--color-sage-dark);
 }
-
 .cancelButton {
-    background: var(--color-surface-hover);
-    color: var(--color-text-secondary);
+ background: var(--color-surface-hover);
+ color: var(--color-text-secondary);
 }
-
 .cancelButton:hover {
-    background: var(--color-error);
-    color: var(--color-text-on-accent);
+ background: var(--color-error);
+ color: var(--color-text-on-accent);
 }
-
 /* Character Counter */
 .charCounter {
-    font-size: 0.7rem;
-    color: var(--color-text-muted);
-    text-align: right;
+ font-size: 0.7rem;
+ color: var(--color-text-muted);
+ text-align: right;
 }
-
 /* Preset Chips */
 .presetChips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-top: 0.25rem;
+ display: flex;
+ flex-wrap: wrap;
+ gap: 0.25rem;
+ margin-top: 0.25rem;
 }
-
 .presetChip {
-    padding: 0.2rem 0.5rem;
-    font-size: 0.7rem;
-    background: var(--overlay-primary-10);
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-full);
-    cursor: pointer;
-    transition: all 0.15s ease;
+ padding: 0.2rem 0.5rem;
+ font-size: 0.7rem;
+ background: var(--overlay-primary-10);
+ color: var(--color-primary);
+ border: 1px solid var(--color-primary);
+ border-radius: var(--radius-full);
+ cursor: pointer;
+ transition: all 0.15s ease;
 }
-
 .presetChip:hover {
-    background: var(--color-primary);
-    color: var(--color-text-on-accent);
+ background: var(--color-primary);
+ color: var(--color-text-on-accent);
 }
-
 /* AI Panel Close Button */
 .aiPanelClose {
-    margin-left: auto;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: currentColor;
-    font-size: 1.2rem;
-    line-height: 1;
-    padding: 0;
-    opacity: 0.7;
-    transition: opacity 0.15s ease;
+ margin-left: auto;
+ background: none;
+ border: none;
+ cursor: pointer;
+ color: currentColor;
+ font-size: 1.2rem;
+ line-height: 1;
+ padding: 0;
+ opacity: 0.7;
+ transition: opacity 0.15s ease;
 }
-
 .aiPanelClose:hover {
-    opacity: 1;
+ opacity: 1;
 }
-
 /* ============================================
-   VISUAL BUCKET ZONES - Tier-based grouping
-   ============================================ */
-
+ VISUAL BUCKET ZONES - Tier-based grouping
+ ============================================ */
 .bucketZone {
-    border-bottom: 1px solid var(--color-border);
+ border-bottom: 1px solid var(--color-border);
 }
-
 .bucketZone:last-child {
-    border-bottom: none;
+ border-bottom: none;
 }
-
 .bucketHeader {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ padding: 0.625rem 1rem;
+ font-size: 0.75rem;
+ font-weight: 600;
+ text-transform: uppercase;
+ letter-spacing: 0.05em;
 }
-
 .bucketIcon {
-    font-size: 0.875rem;
+ font-size: 0.875rem;
 }
-
 .bucketCount {
-    margin-left: auto;
-    font-size: 0.7rem;
-    font-weight: 500;
-    padding: 0.125rem 0.5rem;
-    border-radius: var(--radius-full);
-    background: var(--overlay-white-10);
+ margin-left: auto;
+ font-size: 0.7rem;
+ font-weight: 500;
+ padding: 0.125rem 0.5rem;
+ border-radius: var(--radius-full);
+ background: var(--overlay-white-10);
 }
-
 .bucketConcepts {
-    padding: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    max-height: 180px;
-    overflow-y: auto;
+ padding: 0.5rem;
+ display: flex;
+ flex-direction: column;
+ gap: 0.375rem;
+ max-height: 180px;
+ overflow-y: auto;
 }
-
 /* Foundation Zone */
 .bucketRoot {
-    background: linear-gradient(90deg, var(--overlay-accent-10) 0%, transparent 100%);
-    color: var(--color-accent);
+ background: linear-gradient(90deg, var(--overlay-accent-10) 0%, transparent 100%);
+ color: var(--color-accent);
 }
-
 .rootItem {
-    border-left: 3px solid var(--color-accent);
+ border-left: 3px solid var(--color-accent);
 }
-
 .rootItem:hover {
-    background: var(--overlay-accent-10);
+ background: var(--overlay-accent-10);
 }
-
 .bucketTrunk {
-    background: linear-gradient(90deg, var(--color-warning-bg) 0%, transparent 100%);
-    color: var(--color-warning);
+ background: linear-gradient(90deg, var(--color-warning-bg) 0%, transparent 100%);
+ color: var(--color-warning);
 }
-
 .trunkItem {
-    border-left: 3px solid var(--color-warning);
+ border-left: 3px solid var(--color-warning);
 }
-
 .trunkItem:hover {
-    background: var(--color-warning-bg);
+ background: var(--color-warning-bg);
 }
-
 .bucketLeaf {
-    background: linear-gradient(90deg, var(--overlay-sage-10) 0%, transparent 100%);
-    color: var(--color-sage);
+ background: linear-gradient(90deg, var(--overlay-sage-10) 0%, transparent 100%);
+ color: var(--color-sage);
 }
-
 .leafItem {
-    border-left: 3px solid var(--color-sage);
+ border-left: 3px solid var(--color-sage);
 }
-
 .leafItem:hover {
-    background: var(--overlay-sage-10);
+ background: var(--overlay-sage-10);
 }
-
 /* ============================================================================
-   PHASE HEADER
-   ============================================================================ */
-
+ PHASE HEADER
+ ============================================================================ */
 .phaseHeader {
-    background: var(--color-surface-base);
-    border-bottom: 2px solid var(--color-border);
-    padding: 1.5rem 2rem;
-    margin-bottom: 0;
+ background: var(--color-surface-base);
+ border-bottom: 2px solid var(--color-border);
+ padding: 1.5rem 2rem;
+ margin-bottom: 0;
 }
-
 .phaseHeaderContent {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+ display: flex;
+ justify-content: space-between;
+ align-items: flex-start;
+ margin-bottom: 1rem;
 }
-
 .phaseInfo {
-    flex: 1;
+ flex: 1;
 }
-
 .phaseTitle {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    margin: 0 0 0.5rem 0;
+ font-size: 1.5rem;
+ font-weight: 700;
+ color: var(--color-text-primary);
+ margin: 0 0 0.5rem 0;
 }
-
 .phaseDescription {
-    font-size: 0.95rem;
-    color: var(--color-text-secondary);
-    margin: 0;
-    line-height: 1.5;
+ font-size: 0.95rem;
+ color: var(--color-text-secondary);
+ margin: 0;
+ line-height: 1.5;
 }
-
 .phaseProgress {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
+ display: flex;
+ gap: 1.5rem;
+ align-items: center;
 }
-
 .progressItem {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.25rem;
+ display: flex;
+ flex-direction: column;
+ align-items: flex-end;
+ gap: 0.25rem;
 }
-
 .progressLabel {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-text-tertiary);
-    font-weight: 600;
+ font-size: 0.75rem;
+ text-transform: uppercase;
+ letter-spacing: 0.05em;
+ color: var(--color-text-tertiary);
+ font-weight: 600;
 }
-
 .progressValue {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--color-primary);
+ font-size: 1.25rem;
+ font-weight: 700;
+ color: var(--color-primary);
 }
-
 .completionRequirements {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border);
+ display: flex;
+ gap: 1.5rem;
+ align-items: center;
+ padding-top: 1rem;
+ border-top: 1px solid var(--color-border);
 }
-
 .requirement {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-    transition: color 0.2s ease;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ font-size: 0.9rem;
+ color: var(--color-text-secondary);
+ transition: color 0.2s ease;
 }
-
 .requirement.requirementComplete {
-    color: var(--color-success);
+ color: var(--color-success);
 }
-
 .requirementIcon {
-    font-size: 1rem;
-    font-weight: 700;
+ font-size: 1rem;
+ font-weight: 700;
 }
-
 .requirementText {
-    font-weight: 500;
+ font-weight: 500;
 }
-
 .requirementSuccess {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--color-success-bg);
-    color: var(--color-success);
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.875rem;
-    margin-left: auto;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ padding: 0.5rem 1rem;
+ background: var(--color-success-bg);
+ color: var(--color-success);
+ border-radius: var(--radius-md);
+ font-weight: 600;
+ font-size: 0.875rem;
+ margin-left: auto;
 }
-
 /* ============================================================================
-   ONBOARDING TOAST
-   ============================================================================ */
-
+ ONBOARDING TOAST
+ ============================================================================ */
 .onboardingToast {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 500px;
-    background: var(--color-surface-base);
-    border: 2px solid var(--color-primary);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    z-index: 100;
-    overflow: hidden;
+ position: absolute;
+ top: 50%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ width: 90%;
+ max-width: 500px;
+ background: var(--color-surface-base);
+ border: 2px solid var(--color-primary);
+ border-radius: var(--radius-lg);
+ box-shadow: var(--shadow-lg);
+ z-index: 100;
+ overflow: hidden;
 }
-
 .onboardingHeader {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1.25rem 1.5rem;
-    background: var(--color-primary-transparent);
-    border-bottom: 1px solid var(--color-border);
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+ padding: 1.25rem 1.5rem;
+ background: var(--color-primary-transparent);
+ border-bottom: 1px solid var(--color-border);
 }
-
 .onboardingIcon {
-    color: var(--color-primary);
-    flex-shrink: 0;
+ color: var(--color-primary);
+ flex-shrink: 0;
 }
-
 .onboardingHeader h3 {
-    flex: 1;
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
+ flex: 1;
+ margin: 0;
+ font-size: 1.1rem;
+ font-weight: 600;
+ color: var(--color-text-primary);
 }
-
 .onboardingClose {
-    background: none;
-    border: none;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    padding: 0.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-sm);
-    transition: all 0.2s ease;
+ background: none;
+ border: none;
+ color: var(--color-text-secondary);
+ cursor: pointer;
+ padding: 0.25rem;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ border-radius: var(--radius-sm);
+ transition: all 0.2s ease;
 }
-
 .onboardingClose:hover {
-    background: var(--overlay-black-10);
-    color: var(--color-text-primary);
+ background: var(--overlay-black-10);
+ color: var(--color-text-primary);
 }
-
 .onboardingContent {
-    padding: 1.5rem;
+ padding: 1.5rem;
 }
-
 .onboardingSteps {
-    margin: 0 0 1.5rem 0;
-    padding-left: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+ margin: 0 0 1.5rem 0;
+ padding-left: 1.5rem;
+ display: flex;
+ flex-direction: column;
+ gap: 0.75rem;
 }
-
 .onboardingSteps li {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: var(--color-text-primary);
+ font-size: 0.95rem;
+ line-height: 1.6;
+ color: var(--color-text-primary);
 }
-
 .onboardingSteps strong {
-    color: var(--color-primary);
-    font-weight: 600;
+ color: var(--color-primary);
+ font-weight: 600;
 }
-
 .onboardingButton {
-    width: 100%;
-    padding: 0.75rem 1.5rem;
-    background: var(--color-primary);
-    color: var(--color-text-on-accent);
-    border: none;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
+ width: 100%;
+ padding: 0.75rem 1.5rem;
+ background: var(--color-primary);
+ color: var(--color-text-on-accent);
+ border: none;
+ border-radius: var(--radius-md);
+ font-weight: 600;
+ font-size: 0.95rem;
+ cursor: pointer;
+ transition: all 0.2s ease;
 }
-
 .onboardingButton:hover {
-    background: var(--color-primary-hover);
-    transform: translateY(-1px);
+ background: var(--color-primary-hover);
+ transform: translateY(-1px);
 }
-
 /* ============================================================================
-   RESPONSIVE ADJUSTMENTS
-   ============================================================================ */
-
+ RESPONSIVE ADJUSTMENTS
+ ============================================================================ */
 @media (max-width: 768px) {
-    .phaseHeader {
-        padding: 1rem;
-    }
-
-    .phaseHeaderContent {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .completionRequirements {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-    }
-
-    .onboardingToast {
-        width: 95%;
-        max-width: none;
-    }
+ .phaseHeader {
+ padding: 1rem;
+ }
+ .phaseHeaderContent {
+ flex-direction: column;
+ gap: 1rem;
+ }
+ .completionRequirements {
+ flex-direction: column;
+ align-items: flex-start;
+ gap: 0.75rem;
+ }
+ .onboardingToast {
+ width: 95%;
+ max-width: none;
+ }
 }
-
 .modeToggle {
-    gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    transition: all 0.2s ease;
+ gap: 0.25rem;
+ padding: 0.25rem 0.5rem;
+ transition: all 0.2s ease;
 }
-
 .modeToggle.freeModeActive {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-color: #059669;
+ background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+ border-color: #059669;
 }
-
 .modeToggle.freeModeActive:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-1px);
+ background: linear-gradient(135deg, #059669 0%, #047857 100%);
+ transform: translateY(-1px);
 }
-
 .modeLabel {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
+ font-size: 0.7rem;
+ font-weight: 600;
+ text-transform: uppercase;
+ letter-spacing: 0.04em;
+}

@@ -1,163 +1,137 @@
 /**
  * FlowProgressBar Styles
  */
-
 .container {
-    position: relative;
-    padding: 1rem 0;
+ position: relative;
+ padding: 1rem 0;
 }
-
 .horizontal {
-    width: 100%;
+ width: 100%;
 }
-
 .vertical {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+ display: flex;
+ flex-direction: column;
+ height: 100%;
 }
-
 .compact .stepLabel,
 .compact .stepEqVar {
-    display: none;
+ display: none;
 }
-
 /* Progress Line */
 .progressLine {
-    position: absolute;
-    top: 50%;
-    left: 2rem;
-    right: 2rem;
-    height: 4px;
-    background: var(--color-border);
-    border-radius: 2px;
-    transform: translateY(-50%);
-    z-index: 0;
+ position: absolute;
+ top: 50%;
+ left: 2rem;
+ right: 2rem;
+ height: 4px;
+ background: var(--color-border);
+ border-radius: 2px;
+ transform: translateY(-50%);
+ z-index: 0;
 }
-
 .vertical .progressLine {
-    left: 50%;
-    top: 2rem;
-    bottom: 2rem;
-    right: auto;
-    width: 4px;
-    height: auto;
-    transform: translateX(-50%);
+ left: 50%;
+ top: 2rem;
+ bottom: 2rem;
+ right: auto;
+ width: 4px;
+ height: auto;
+ transform: translateX(-50%);
 }
-
 .progressFill {
-    height: 100%;
-    background: var(--gradient-accent);
-    border-radius: 2px;
+ height: 100%;
+ background: var(--gradient-accent);
+ border-radius: 2px;
 }
-
 .vertical .progressFill {
-    width: 100%;
-    height: auto;
+ width: 100%;
+ height: auto;
 }
-
 /* Steps */
 .steps {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-    z-index: 1;
+ display: flex;
+ justify-content: space-between;
+ position: relative;
+ z-index: 1;
 }
-
 .vertical .steps {
-    flex-direction: column;
-    gap: 2rem;
+ flex-direction: column;
+ gap: 2rem;
 }
-
 .step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 0.5rem;
 }
-
 .vertical .step {
-    flex-direction: row;
-    gap: 1rem;
+ flex-direction: row;
+ gap: 1rem;
 }
-
 /* Step Icon */
 .stepIcon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-surface);
-    border: 2px solid var(--color-border);
-    color: rgba(255, 255, 255, 0.5);
-    transition: all 0.3s ease;
+ width: 40px;
+ height: 40px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ background: var(--color-surface);
+ border: 2px solid var(--color-border);
+ color: rgba(255, 255, 255, 0.5);
+ transition: all 0.3s ease;
 }
-
 .compact .stepIcon {
-    width: 32px;
-    height: 32px;
+ width: 32px;
+ height: 32px;
 }
-
 /* States */
 .completed .stepIcon {
-    background: var(--color-success);
-    border-color: var(--color-success);
-    color: white;
+ background: var(--color-success);
+ border-color: var(--color-success);
+ color: white;
 }
-
 .active .stepIcon {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: white;
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-    animation: pulse 2s ease-in-out infinite;
+ background: var(--color-accent);
+ border-color: var(--color-accent);
+ color: white;
+ box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+ animation: pulse 2s ease-in-out infinite;
 }
-
 .upcoming .stepIcon {
-    opacity: 0.5;
+ opacity: 0.5;
 }
-
 .completedIcon {
-    color: white;
+ color: white;
 }
-
 /* Labels */
 .stepLabel {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.8);
+ font-size: 0.8rem;
+ font-weight: 600;
+ color: rgba(255, 255, 255, 0.8);
 }
-
 .completed .stepLabel {
-    color: var(--color-success, #22c55e);
+ color: var(--color-success, #22c55e);
 }
-
 .active .stepLabel {
-    color: var(--color-primary-light, #a78bfa);
+ color: var(--color-primary-light, #a78bfa);
 }
-
 .upcoming .stepLabel {
-    color: rgba(255, 255, 255, 0.4);
+ color: rgba(255, 255, 255, 0.4);
 }
-
 .stepEqVar {
-    font-size: 0.65rem;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    color: rgba(255, 255, 255, 0.4);
-    text-transform: uppercase;
+ font-size: 0.65rem;
+ font-family: 'SF Mono', 'Fira Code', monospace;
+ color: rgba(255, 255, 255, 0.4);
+ text-transform: uppercase;
 }
-
 /* Animation */
 @keyframes pulse {
-
-    0%,
-    100% {
-        box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-    }
-
-    50% {
-        box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
-    }
+ 0%,
+ 100% {
+ box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+ }
+ 50% {
+ box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+ }
 }

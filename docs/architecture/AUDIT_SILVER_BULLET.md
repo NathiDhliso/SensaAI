@@ -2,7 +2,7 @@
 
 ## Vision Alignment Check
 
-**Goal:** Search a subject → extract every testable concept + its verbs → cycle through practice grounds (mapping, testing, confusion drills) → guarantee mental model alignment with subject requirements.
+**Goal:** Search a subject extract every testable concept + its verbs cycle through practice grounds (mapping, testing, confusion drills) guarantee mental model alignment with subject requirements.
 
 ---
 
@@ -13,7 +13,7 @@
 | `BlankSheetTest` | Fuzzy scoring, typing metrics, remediation loop, coach feedback. Best activity. |
 | `ConfusionDrill` | Real A/B scenarios, timer, keyboard shortcuts, confidence calibration. |
 | `ConceptMapBuilder` | Undo/redo, drag-drop, AI suggestions, gap detection. Core practice ground. |
-| `Generation Pipeline` | Lambda → classify → parallel generate → poll → hydrate. Working end-to-end. |
+| `Generation Pipeline` | Lambda classify parallel generate poll hydrate. Working end-to-end. |
 | `Tier System` | Root/Trunk/Leaf computed deterministically from connection graph. Strong structural foundation. |
 | `Interleaving Algorithm` | Blocked/mixed/progressive modes with tier balance. Solid selection logic. |
 | `ZPD Concept Selection` | Prerequisite gates, tier balance, phase interleaving. Good cognitive science. |
@@ -55,7 +55,7 @@
 
 ### F5. `MicroLearningLoopController` — Type-Blind Activity Selection
 - **Problem:** Same sequence for all 4 subject types. `Math.random()` picks social vs creative.
-- **Fix:** Add `subjectType` prop. Select post-confusion activity based on type. Procedural → execution drill, Conceptual → case transfer, Cyclic → cycle reflection, Perceptual → discrimination drill.
+- **Fix:** Add `subjectType` prop. Select post-confusion activity based on type. Procedural execution drill, Conceptual case transfer, Cyclic cycle reflection, Perceptual discrimination drill.
 - **Files:** `src/components/learning/MicroLearningLoopController.tsx`, `src/pages/VelocityLearning.tsx`
 - **Risk:** MEDIUM — need to pass subjectType through. VelocityLearning already has it via `currentSession.subjectType`.
 
@@ -66,7 +66,7 @@
 - **Risk:** LOW — additive change to existing handler.
 
 ### F7. `NomenclatureSprint` — Matches Names to Metaphors, Not Verbs to Objects
-- **Problem:** Term↔metaphor matching is trivia recall, not verb-object association.
+- **Problem:** Termmetaphor matching is trivia recall, not verb-object association.
 - **Fix:** Also include `howToUse[0]` as match targets. Show "What do you DO with X?" framing.
 - **Files:** `src/components/learning/activities/NomenclatureSprint.tsx`
 - **Risk:** LOW — only changes match pair generation logic.
@@ -91,17 +91,17 @@
 
 ## INTEGRATION OPPORTUNITIES
 
-### I1. `blank-sheet-scorer.ts` → Used in More Places
+### I1. `blank-sheet-scorer.ts` Used in More Places
 Currently only used in `BlankSheetTest`. Should also power:
 - FadedExample step validation (F3)
 - MasteryChallenge response scoring (F4)
 - CreativeTransfer response validation (F2)
 
-### I2. `confusion-generator.ts` → Powers PeerReview
+### I2. `confusion-generator.ts` Powers PeerReview
 The `identifyConfusingAspects()` function already generates confusion reasons. Use these to generate realistic misconceptions for PeerReviewActivity (F1).
 
-### I3. `blueprint-formula.ts` → Fed by Loop Controller
-`updateTypeAwareMetrics()` needs inputs from `MicroLearningLoopController` completion data. Map `handleLoopComplete` data → `QMetricInputs` (F6).
+### I3. `blueprint-formula.ts` Fed by Loop Controller
+`updateTypeAwareMetrics()` needs inputs from `MicroLearningLoopController` completion data. Map `handleLoopComplete` data `QMetricInputs` (F6).
 
 ---
 

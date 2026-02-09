@@ -4,286 +4,249 @@
  * Full-screen onboarding with smooth transitions
  * Uses CSS variables from index.css
  */
-
 .container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
+ display: flex;
+ flex-direction: column;
+ min-height: 100vh;
+ padding: 1.5rem;
+ background: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
 }
-
 /* ============================================================================
-   PROGRESS
-   ============================================================================ */
-
+ PROGRESS
+ ============================================================================ */
 .progressBar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--overlay-primary-10);
+ position: fixed;
+ top: 0;
+ left: 0;
+ right: 0;
+ height: 4px;
+ background: var(--overlay-primary-10);
 }
-
 .progressFill {
-    height: 100%;
-    background: var(--color-accent);
-    transition: width 0.3s ease;
+ height: 100%;
+ background: var(--color-accent);
+ transition: width 0.3s ease;
 }
-
 .skipButton {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    padding: 0.5rem 0.75rem;
-    background: transparent;
-    border: 1px solid var(--color-border);
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-    cursor: pointer;
+ position: absolute;
+ top: 1rem;
+ right: 1rem;
+ padding: 0.5rem 0.75rem;
+ background: transparent;
+ border: 1px solid var(--color-border);
+ border-radius: 0.5rem;
+ font-size: 0.875rem;
+ color: var(--color-text-muted);
+ cursor: pointer;
 }
-
 .skipButton:hover {
-    background: var(--overlay-primary-5);
-    color: var(--color-text-light);
+ background: var(--overlay-primary-5);
+ color: var(--color-text-light);
 }
-
 /* ============================================================================
-   STEP CONTENT
-   ============================================================================ */
-
+ STEP CONTENT
+ ============================================================================ */
 .stepContent {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    max-width: 560px;
-    margin: 0 auto;
-    text-align: center;
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ max-width: 560px;
+ margin: 0 auto;
+ text-align: center;
 }
-
 .iconWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 96px;
-    height: 96px;
-    margin-bottom: 1.25rem;
-    background: var(--overlay-primary-10);
-    border-radius: 50%;
-    color: var(--color-accent);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 96px;
+ height: 96px;
+ margin-bottom: 1.25rem;
+ background: var(--overlay-primary-10);
+ border-radius: 50%;
+ color: var(--color-accent);
 }
-
 .title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-text-dark);
-    margin: 0 0 0.75rem;
+ font-size: 1.5rem;
+ font-weight: 700;
+ color: var(--color-text-dark);
+ margin: 0 0 0.75rem;
 }
-
 .description {
-    font-size: 1.125rem;
-    color: var(--color-text-light);
-    line-height: 1.6;
-    margin: 0 0 1.25rem;
+ font-size: 1.125rem;
+ color: var(--color-text-light);
+ line-height: 1.6;
+ margin: 0 0 1.25rem;
 }
-
 .tips {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1.5rem;
-    text-align: left;
+ list-style: none;
+ padding: 0;
+ margin: 0 0 1.5rem;
+ text-align: left;
 }
-
 .tips li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0;
-    font-size: 1rem;
-    color: var(--color-text-light);
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ padding: 0.5rem 0;
+ font-size: 1rem;
+ color: var(--color-text-light);
 }
-
 .tips li svg {
-    color: var(--color-warning);
-    flex-shrink: 0;
+ color: var(--color-warning);
+ flex-shrink: 0;
 }
-
 .nextButton {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background: var(--gradient-accent);
-    color: var(--color-text-on-accent);
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-glow-primary);
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ padding: 0.75rem 1.5rem;
+ background: var(--gradient-accent);
+ color: var(--color-text-on-accent);
+ border: none;
+ border-radius: 0.5rem;
+ font-size: 1rem;
+ font-weight: 600;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ box-shadow: var(--shadow-glow-primary);
 }
-
 .nextButton:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow-primary-hover);
+ transform: translateY(-2px);
+ box-shadow: var(--shadow-glow-primary-hover);
 }
-
 /* ============================================================================
-   PRACTICE SECTION
-   ============================================================================ */
-
+ PRACTICE SECTION
+ ============================================================================ */
 .practiceSection {
-    width: 100%;
-    max-width: 480px;
+ width: 100%;
+ max-width: 480px;
 }
-
 .practiceInput {
-    width: 100%;
-    min-height: 120px;
-    padding: 1rem;
-    background: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: 0.75rem;
-    font-size: 1rem;
-    color: var(--color-text-dark);
-    resize: none;
-    margin-bottom: 1rem;
+ width: 100%;
+ min-height: 120px;
+ padding: 1rem;
+ background: var(--color-surface);
+ border: 2px solid var(--color-border);
+ border-radius: 0.75rem;
+ font-size: 1rem;
+ color: var(--color-text-dark);
+ resize: none;
+ margin-bottom: 1rem;
 }
-
 .practiceInput:focus {
-    outline: none;
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-glow-primary-hover);
+ outline: none;
+ border-color: var(--color-accent);
+ box-shadow: var(--shadow-glow-primary-hover);
 }
-
 .submitButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.75rem;
-    background: var(--gradient-accent);
-    color: var(--color-text-on-accent);
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: var(--shadow-glow-primary);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 0.5rem;
+ width: 100%;
+ padding: 0.75rem;
+ background: var(--gradient-accent);
+ color: var(--color-text-on-accent);
+ border: none;
+ border-radius: 0.5rem;
+ font-size: 1rem;
+ font-weight: 600;
+ cursor: pointer;
+ box-shadow: var(--shadow-glow-primary);
 }
-
 .submitButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+ opacity: 0.5;
+ cursor: not-allowed;
 }
-
 .practiceResult {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1.5rem;
-    background: var(--color-surface);
-    border-radius: 0.75rem;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 0.75rem;
+ padding: 1.5rem;
+ background: var(--color-surface);
+ border-radius: 0.75rem;
 }
-
 .successIcon {
-    color: var(--color-success);
+ color: var(--color-success);
 }
-
 .practiceResult h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--color-text-dark);
-    margin: 0;
+ font-size: 1.25rem;
+ font-weight: 700;
+ color: var(--color-text-dark);
+ margin: 0;
 }
-
 .practiceResult p {
-    color: var(--color-text-light);
-    margin: 0;
+ color: var(--color-text-light);
+ margin: 0;
 }
-
 /* ============================================================================
-   STEP INDICATORS
-   ============================================================================ */
-
+ STEP INDICATORS
+ ============================================================================ */
 .stepIndicators {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
+ display: flex;
+ justify-content: center;
+ gap: 0.5rem;
+ padding: 1rem;
 }
-
 .indicator {
-    width: 8px;
-    height: 8px;
-    background: var(--overlay-primary-10);
-    border-radius: 50%;
-    transition: all 0.2s ease;
+ width: 8px;
+ height: 8px;
+ background: var(--overlay-primary-10);
+ border-radius: 50%;
+ transition: all 0.2s ease;
 }
-
 .indicator.active {
-    background: var(--color-accent);
-    transform: scale(1.2);
+ background: var(--color-accent);
+ transform: scale(1.2);
 }
-
 /* ============================================================================
-   HELP TOOLTIP
-   ============================================================================ */
-
+ HELP TOOLTIP
+ ============================================================================ */
 .helpWrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
+ position: relative;
+ display: inline-flex;
+ align-items: center;
+ gap: 0.25rem;
 }
-
 .helpTrigger {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: var(--color-text-muted);
-    cursor: pointer;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ padding: 0;
+ background: transparent;
+ border: none;
+ color: var(--color-text-muted);
+ cursor: pointer;
 }
-
 .helpTrigger:hover {
-    color: var(--color-accent);
+ color: var(--color-accent);
 }
-
 .helpTooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 240px;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 0.5rem;
-    box-shadow: var(--shadow-lg);
-    font-size: 0.875rem;
-    text-align: left;
-    z-index: 100;
+ position: absolute;
+ bottom: 100%;
+ left: 50%;
+ transform: translateX(-50%);
+ width: 240px;
+ padding: 0.75rem;
+ margin-bottom: 0.5rem;
+ background: var(--color-surface);
+ border: 1px solid var(--color-border);
+ border-radius: 0.5rem;
+ box-shadow: var(--shadow-lg);
+ font-size: 0.875rem;
+ text-align: left;
+ z-index: 100;
 }
-
 .helpTooltip strong {
-    display: block;
-    margin-bottom: 0.25rem;
-    color: var(--color-text-dark);
+ display: block;
+ margin-bottom: 0.25rem;
+ color: var(--color-text-dark);
 }
-
 .helpTooltip p {
-    margin: 0;
-    color: var(--color-text-light);
-    line-height: 1.5;
+ margin: 0;
+ color: var(--color-text-light);
+ line-height: 1.5;
 }

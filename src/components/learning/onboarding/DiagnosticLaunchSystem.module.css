@@ -3,543 +3,471 @@
  * 
  * Premium, modern UI for diagnostic assessment flow
  */
-
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: var(--spacing-6);
-    min-height: 400px;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ padding: var(--spacing-6);
+ min-height: 400px;
 }
-
 /* ============================================================================
-   INTRO CARD
-   ============================================================================ */
-
+ INTRO CARD
+ ============================================================================ */
 .introCard,
 .resultsCard {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-8);
-    max-width: 480px;
-    width: 100%;
-    text-align: center;
-    box-shadow: var(--shadow-lg);
-    position: relative;
+ background: var(--color-surface);
+ border: 1px solid var(--color-border-light);
+ border-radius: var(--radius-xl);
+ padding: var(--spacing-8);
+ max-width: 480px;
+ width: 100%;
+ text-align: center;
+ box-shadow: var(--shadow-lg);
+ position: relative;
 }
-
 .backButton {
-    position: absolute;
-    top: var(--spacing-4);
-    left: var(--spacing-4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: none;
-    background: var(--overlay-primary-10);
-    border-radius: var(--radius-md);
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
+ position: absolute;
+ top: var(--spacing-4);
+ left: var(--spacing-4);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 40px;
+ height: 40px;
+ border: none;
+ background: var(--overlay-primary-10);
+ border-radius: var(--radius-md);
+ color: var(--color-text-secondary);
+ cursor: pointer;
+ transition: all 0.2s ease;
 }
-
 .backButton:hover {
-    background: var(--overlay-primary-20);
-    color: var(--color-primary);
+ background: var(--overlay-primary-20);
+ color: var(--color-primary);
 }
-
 .iconContainer {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: var(--overlay-primary-10);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto var(--spacing-4);
-    color: var(--color-primary);
+ width: 80px;
+ height: 80px;
+ border-radius: 50%;
+ background: var(--overlay-primary-10);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ margin: 0 auto var(--spacing-4);
+ color: var(--color-primary);
 }
-
 .title {
-    font-size: var(--font-size-xl);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin: 0 0 var(--spacing-2);
+ font-size: var(--font-size-xl);
+ font-weight: 600;
+ color: var(--color-text-primary);
+ margin: 0 0 var(--spacing-2);
 }
-
 .subtitle {
-    font-size: var(--font-size-md);
-    color: var(--color-text-secondary);
-    margin: 0 0 var(--spacing-6);
+ font-size: var(--font-size-md);
+ color: var(--color-text-secondary);
+ margin: 0 0 var(--spacing-6);
 }
-
 .statsRow {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-6);
-    margin-bottom: var(--spacing-4);
+ display: flex;
+ justify-content: center;
+ gap: var(--spacing-6);
+ margin-bottom: var(--spacing-4);
 }
-
 .statItem {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-sm);
+ display: flex;
+ align-items: center;
+ gap: var(--spacing-2);
+ color: var(--color-text-secondary);
+ font-size: var(--font-size-sm);
 }
-
 .statItem svg {
-    color: var(--color-primary);
+ color: var(--color-primary);
 }
-
 .description {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    line-height: 1.6;
-    margin-bottom: var(--spacing-6);
+ font-size: var(--font-size-sm);
+ color: var(--color-text-secondary);
+ line-height: 1.6;
+ margin-bottom: var(--spacing-6);
 }
-
 .notReadyMessage {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-    background: var(--overlay-amber-10);
-    padding: var(--spacing-4);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-6);
+ font-size: var(--font-size-sm);
+ color: var(--color-text-muted);
+ background: var(--overlay-amber-10);
+ padding: var(--spacing-4);
+ border-radius: var(--radius-md);
+ margin-bottom: var(--spacing-6);
 }
-
 .buttonGroup {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-3);
+ display: flex;
+ flex-direction: column;
+ gap: var(--spacing-3);
 }
-
 .primaryButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-2);
-    padding: var(--spacing-3) var(--spacing-6);
-    background: var(--color-primary);
-    color: var(--color-text-on-accent);
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-md);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: var(--spacing-2);
+ padding: var(--spacing-3) var(--spacing-6);
+ background: var(--color-primary);
+ color: var(--color-text-on-accent);
+ border: none;
+ border-radius: var(--radius-md);
+ font-size: var(--font-size-md);
+ font-weight: 500;
+ cursor: pointer;
+ transition: all 0.2s ease;
 }
-
 .primaryButton:hover {
-    background: var(--color-primary-hover);
-    box-shadow: var(--shadow-glow-primary-hover);
+ background: var(--color-primary-hover);
+ box-shadow: var(--shadow-glow-primary-hover);
 }
-
 .primaryButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+ opacity: 0.5;
+ cursor: not-allowed;
 }
-
 .secondaryButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-2);
-    padding: var(--spacing-3) var(--spacing-6);
-    background: transparent;
-    color: var(--color-text-secondary);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-md);
-    cursor: pointer;
-    transition: all 0.2s ease;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: var(--spacing-2);
+ padding: var(--spacing-3) var(--spacing-6);
+ background: transparent;
+ color: var(--color-text-secondary);
+ border: 1px solid var(--color-border-light);
+ border-radius: var(--radius-md);
+ font-size: var(--font-size-md);
+ cursor: pointer;
+ transition: all 0.2s ease;
 }
-
 .secondaryButton:hover {
-    background: var(--overlay-primary-5);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+ background: var(--overlay-primary-5);
+ border-color: var(--color-primary);
+ color: var(--color-primary);
 }
-
 /* ============================================================================
-   QUESTION CARD
-   ============================================================================ */
-
+ QUESTION CARD
+ ============================================================================ */
 .questionCard {
-    background: var(--card-bg);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-6);
-    max-width: 600px;
-    width: 100%;
-    box-shadow: var(--shadow-lg);
-    position: relative;
-    overflow: hidden;
+ background: var(--card-bg);
+ border: 1px solid var(--color-border-light);
+ border-radius: var(--radius-xl);
+ padding: var(--spacing-6);
+ max-width: 600px;
+ width: 100%;
+ box-shadow: var(--shadow-lg);
+ position: relative;
+ overflow: hidden;
 }
-
 .progressBar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--overlay-primary-10);
+ position: absolute;
+ top: 0;
+ left: 0;
+ right: 0;
+ height: 4px;
+ background: var(--overlay-primary-10);
 }
-
 .progressFill {
-    height: 100%;
-    background: var(--color-primary);
-    transition: width 0.3s ease;
+ height: 100%;
+ background: var(--color-primary);
+ transition: width 0.3s ease;
 }
-
 .questionHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-4);
-    padding-top: var(--spacing-2);
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-bottom: var(--spacing-4);
+ padding-top: var(--spacing-2);
 }
-
 .questionNumber {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
+ font-size: var(--font-size-sm);
+ color: var(--color-text-muted);
 }
-
 .conceptBadge {
-    font-size: var(--font-size-xs);
-    padding: var(--spacing-1) var(--spacing-2);
-    background: var(--overlay-primary-10);
-    color: var(--color-primary);
-    border-radius: var(--radius-full);
+ font-size: var(--font-size-xs);
+ padding: var(--spacing-1) var(--spacing-2);
+ background: var(--overlay-primary-10);
+ color: var(--color-primary);
+ border-radius: var(--radius-full);
 }
-
 .questionText {
-    font-size: var(--font-size-lg);
-    font-weight: 500;
-    color: var(--color-text-primary);
-    margin: 0 0 var(--spacing-6);
-    line-height: 1.5;
+ font-size: var(--font-size-lg);
+ font-weight: 500;
+ color: var(--color-text-primary);
+ margin: 0 0 var(--spacing-6);
+ line-height: 1.5;
 }
-
 .answerSection {
-    margin-bottom: var(--spacing-6);
+ margin-bottom: var(--spacing-6);
 }
-
 .optionsList {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-3);
+ display: flex;
+ flex-direction: column;
+ gap: var(--spacing-3);
 }
-
 .optionButton {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-3);
-    padding: var(--spacing-3) var(--spacing-4);
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border-light);
-    border-radius: var(--radius-md);
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--color-text-primary);
-    font-size: var(--font-size-md);
+ display: flex;
+ align-items: center;
+ gap: var(--spacing-3);
+ padding: var(--spacing-3) var(--spacing-4);
+ background: var(--color-bg-secondary);
+ border: 2px solid var(--color-border-light);
+ border-radius: var(--radius-md);
+ text-align: left;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ color: var(--color-text-primary);
+ font-size: var(--font-size-md);
 }
-
 .optionButton:hover {
-    border-color: var(--color-primary);
-    background: var(--overlay-primary-5);
+ border-color: var(--color-primary);
+ background: var(--overlay-primary-5);
 }
-
 .optionButton.optionSelected {
-    border-color: var(--color-primary);
-    background: var(--overlay-primary-10);
+ border-color: var(--color-primary);
+ background: var(--overlay-primary-10);
 }
-
 .optionLetter {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--overlay-primary-10);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: var(--font-size-sm);
-    color: var(--color-primary);
+ width: 28px;
+ height: 28px;
+ border-radius: 50%;
+ background: var(--overlay-primary-10);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-weight: 600;
+ font-size: var(--font-size-sm);
+ color: var(--color-primary);
 }
-
 .trueFalseOptions {
-    display: flex;
-    gap: var(--spacing-4);
+ display: flex;
+ gap: var(--spacing-4);
 }
-
 .tfButton {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-2);
-    padding: var(--spacing-4);
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border-light);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--color-text-primary);
-    font-size: var(--font-size-md);
-    font-weight: 500;
+ flex: 1;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: var(--spacing-2);
+ padding: var(--spacing-4);
+ background: var(--color-bg-secondary);
+ border: 2px solid var(--color-border-light);
+ border-radius: var(--radius-md);
+ cursor: pointer;
+ transition: all 0.2s ease;
+ color: var(--color-text-primary);
+ font-size: var(--font-size-md);
+ font-weight: 500;
 }
-
 .tfButton:hover {
-    border-color: var(--color-primary);
+ border-color: var(--color-primary);
 }
-
 .tfButton.optionSelected {
-    border-color: var(--color-primary);
-    background: var(--overlay-primary-10);
-    color: var(--color-primary);
+ border-color: var(--color-primary);
+ background: var(--overlay-primary-10);
+ color: var(--color-primary);
 }
-
 .shortAnswerInput {
-    width: 100%;
-    padding: var(--spacing-3);
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border-light);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-md);
-    color: var(--color-text-primary);
-    resize: vertical;
-    min-height: 80px;
+ width: 100%;
+ padding: var(--spacing-3);
+ background: var(--color-bg-secondary);
+ border: 2px solid var(--color-border-light);
+ border-radius: var(--radius-md);
+ font-size: var(--font-size-md);
+ color: var(--color-text-primary);
+ resize: vertical;
+ min-height: 80px;
 }
-
 .shortAnswerInput:focus {
-    outline: none;
-    border-color: var(--color-primary);
+ outline: none;
+ border-color: var(--color-primary);
 }
-
 .shortAnswerInput::placeholder {
-    color: var(--color-text-muted);
+ color: var(--color-text-muted);
 }
-
 /* ============================================================================
-   CONFIDENCE SECTION
-   ============================================================================ */
-
+ CONFIDENCE SECTION
+ ============================================================================ */
 .confidenceSection {
-    margin-bottom: var(--spacing-6);
+ margin-bottom: var(--spacing-6);
 }
-
 .confidenceLabel {
-    display: block;
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    margin-bottom: var(--spacing-2);
+ display: block;
+ font-size: var(--font-size-sm);
+ color: var(--color-text-secondary);
+ margin-bottom: var(--spacing-2);
 }
-
 .confidenceSlider {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-2);
+ display: flex;
+ justify-content: center;
+ gap: var(--spacing-2);
 }
-
 .confidenceButton {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--color-bg-secondary);
-    border: 2px solid var(--color-border-light);
-    cursor: pointer;
-    font-size: 1.5rem;
-    transition: all 0.2s ease;
+ width: 48px;
+ height: 48px;
+ border-radius: 50%;
+ background: var(--color-bg-secondary);
+ border: 2px solid var(--color-border-light);
+ cursor: pointer;
+ font-size: 1.5rem;
+ transition: all 0.2s ease;
 }
-
 .confidenceButton:hover {
-    transform: scale(1.1);
+ transform: scale(1.1);
 }
-
 .confidenceButton.confidenceActive {
-    border-color: var(--color-primary);
-    background: var(--overlay-primary-10);
-    transform: scale(1.1);
+ border-color: var(--color-primary);
+ background: var(--overlay-primary-10);
+ transform: scale(1.1);
 }
-
 /* ============================================================================
-   FEEDBACK OVERLAY
-   ============================================================================ */
-
+ FEEDBACK OVERLAY
+ ============================================================================ */
 .feedbackOverlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-3);
-    background: var(--color-surface);
-    font-size: var(--font-size-xl);
-    font-weight: 600;
-    z-index: 10;
+ position: absolute;
+ inset: 0;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ gap: var(--spacing-3);
+ background: var(--color-surface);
+ font-size: var(--font-size-xl);
+ font-weight: 600;
+ z-index: 10;
 }
-
 .feedbackCorrect {
-    color: var(--color-success);
+ color: var(--color-success);
 }
-
 .feedbackIncorrect {
-    color: var(--color-warning);
+ color: var(--color-warning);
 }
-
 .submitButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-2);
-    width: 100%;
-    padding: var(--spacing-3) var(--spacing-6);
-    background: var(--color-primary);
-    color: var(--color-text-on-accent);
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-md);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: var(--spacing-2);
+ width: 100%;
+ padding: var(--spacing-3) var(--spacing-6);
+ background: var(--color-primary);
+ color: var(--color-text-on-accent);
+ border: none;
+ border-radius: var(--radius-md);
+ font-size: var(--font-size-md);
+ font-weight: 500;
+ cursor: pointer;
+ transition: all 0.2s ease;
 }
-
 .submitButton:hover:not(:disabled) {
-    background: var(--color-primary-hover);
-    box-shadow: var(--shadow-glow-primary-hover);
+ background: var(--color-primary-hover);
+ box-shadow: var(--shadow-glow-primary-hover);
 }
-
 .submitButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+ opacity: 0.5;
+ cursor: not-allowed;
 }
-
 /* ============================================================================
-   RESULTS CARD
-   ============================================================================ */
-
+ RESULTS CARD
+ ============================================================================ */
 .scoreCircle {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: var(--overlay-primary-10);
-    border: 4px solid var(--color-primary);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto var(--spacing-4);
+ width: 120px;
+ height: 120px;
+ border-radius: 50%;
+ background: var(--overlay-primary-10);
+ border: 4px solid var(--color-primary);
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ margin: 0 auto var(--spacing-4);
 }
-
 .scoreValue {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    color: var(--color-primary);
+ font-size: var(--font-size-2xl);
+ font-weight: 700;
+ color: var(--color-primary);
 }
-
 .scoreLabel {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
+ font-size: var(--font-size-sm);
+ color: var(--color-text-secondary);
 }
-
 .resultsTitle {
-    font-size: var(--font-size-xl);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin: 0 0 var(--spacing-4);
+ font-size: var(--font-size-xl);
+ font-weight: 600;
+ color: var(--color-text-primary);
+ margin: 0 0 var(--spacing-4);
 }
-
 .resultsStats {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-6);
-    margin-bottom: var(--spacing-4);
+ display: flex;
+ justify-content: center;
+ gap: var(--spacing-6);
+ margin-bottom: var(--spacing-4);
 }
-
 .resultStat {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-sm);
+ display: flex;
+ align-items: center;
+ gap: var(--spacing-2);
+ color: var(--color-text-secondary);
+ font-size: var(--font-size-sm);
 }
-
 .correctIcon {
-    color: var(--color-success);
+ color: var(--color-success);
 }
-
 .resultsMessage {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    line-height: 1.6;
-    margin-bottom: var(--spacing-4);
+ font-size: var(--font-size-sm);
+ color: var(--color-text-secondary);
+ line-height: 1.6;
+ margin-bottom: var(--spacing-4);
 }
-
 .gapBreakdown {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-3);
-    width: 100%;
-    margin-bottom: var(--spacing-6);
+ display: flex;
+ flex-direction: column;
+ gap: var(--spacing-3);
+ width: 100%;
+ margin-bottom: var(--spacing-6);
 }
-
 .gapSection {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-2);
+ display: flex;
+ flex-direction: column;
+ gap: var(--spacing-2);
 }
-
 .gapSectionHeader {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--color-text-secondary);
+ display: flex;
+ align-items: center;
+ gap: var(--spacing-2);
+ font-size: 0.8125rem;
+ font-weight: 600;
+ color: var(--color-text-secondary);
 }
-
 .gapIcon {
-    color: var(--color-warning);
+ color: var(--color-warning);
 }
-
 .gapChips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
+ display: flex;
+ flex-wrap: wrap;
+ gap: 0.35rem;
 }
-
 .gapChipKnown {
-    display: inline-block;
-    padding: 0.25rem 0.6rem;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    border-radius: var(--radius-full, 9999px);
-    background: var(--overlay-sage-10);
-    color: var(--color-success);
-    border: 1px solid var(--color-success);
+ display: inline-block;
+ padding: 0.25rem 0.6rem;
+ font-size: 0.6875rem;
+ font-weight: 500;
+ border-radius: var(--radius-full, 9999px);
+ background: var(--overlay-sage-10);
+ color: var(--color-success);
+ border: 1px solid var(--color-success);
 }
-
 .gapChipGap {
-    display: inline-block;
-    padding: 0.25rem 0.6rem;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    border-radius: var(--radius-full, 9999px);
-    background: var(--overlay-amber-10);
-    color: var(--color-warning);
-    border: 1px solid var(--color-warning);
+ display: inline-block;
+ padding: 0.25rem 0.6rem;
+ font-size: 0.6875rem;
+ font-weight: 500;
+ border-radius: var(--radius-full, 9999px);
+ background: var(--overlay-amber-10);
+ color: var(--color-warning);
+ border: 1px solid var(--color-warning);
 }
-
 /* ============================================================================
-   DARK MODE ADJUSTMENTS
-   ============================================================================ */
-
+ DARK MODE ADJUSTMENTS
+ ============================================================================ */
 :root[data-theme="dark"] .feedbackOverlay {
-    background: var(--color-surface-elevated);
+ background: var(--color-surface-elevated);
 }

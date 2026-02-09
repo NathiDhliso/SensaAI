@@ -1,68 +1,61 @@
 /* Neural Reset Banner - Non-blocking notification */
 .banner {
-    position: fixed;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.875rem 1rem 0.875rem 1.25rem;
-    background: linear-gradient(135deg, var(--color-secondary-amber) 0%, var(--color-warning) 100%);
-    border-radius: 1rem;
-    box-shadow: var(--shadow-lg);
-    z-index: var(--z-overlay);
-    max-width: calc(100% - 2rem);
+ position: fixed;
+ top: 1rem;
+ left: 50%;
+ transform: translateX(-50%);
+ display: flex;
+ align-items: center;
+ gap: 1rem;
+ padding: 0.875rem 1rem 0.875rem 1.25rem;
+ background: linear-gradient(135deg, var(--color-secondary-amber) 0%, var(--color-warning) 100%);
+ border-radius: 1rem;
+ box-shadow: var(--shadow-lg);
+ z-index: var(--z-overlay);
+ max-width: calc(100% - 2rem);
 }
-
 .bannerContent {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
 }
-
 .bannerIcon {
-    color: var(--color-text-on-accent);
-    flex-shrink: 0;
+ color: var(--color-text-on-accent);
+ flex-shrink: 0;
 }
-
 .bannerText {
-    color: var(--color-text-on-accent);
-    font-size: 0.9375rem;
-    line-height: 1.4;
+ color: var(--color-text-on-accent);
+ font-size: 0.9375rem;
+ line-height: 1.4;
 }
-
 .bannerText strong {
-    font-weight: 600;
+ font-weight: 600;
 }
-
 .bannerDismiss {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: var(--overlay-white-20);
-    border: none;
-    border-radius: 0.5rem;
-    color: var(--color-text-on-accent);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.2s;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 32px;
+ height: 32px;
+ background: var(--overlay-white-20);
+ border: none;
+ border-radius: 0.5rem;
+ color: var(--color-text-on-accent);
+ cursor: pointer;
+ flex-shrink: 0;
+ transition: background 0.2s;
 }
-
 .bannerReason {
-    display: inline-block;
-    padding: 0.2rem 0.5rem;
-    background: var(--overlay-white-20);
-    border-radius: var(--radius-full, 9999px);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: var(--color-text-on-accent);
-    white-space: nowrap;
-    font-family: 'JetBrains Mono', monospace;
+ display: inline-block;
+ padding: 0.2rem 0.5rem;
+ background: var(--overlay-white-20);
+ border-radius: var(--radius-full, 9999px);
+ font-size: 0.6875rem;
+ font-weight: 600;
+ color: var(--color-text-on-accent);
+ white-space: nowrap;
+ font-family: 'JetBrains Mono', monospace;
 }
-
 .bannerDismiss:hover {
-    background: var(--overlay-white-30);
+ background: var(--overlay-white-30);
 }

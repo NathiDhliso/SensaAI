@@ -1,477 +1,428 @@
 /* ============================================
-   SensaShape - Pure CSS Geometric Icon System
-   "Twilight Geometry" - Abstract Premium Identifiers
-   ============================================ */
-
+ SensaShape - Pure CSS Geometric Icon System
+ "Twilight Geometry" - Abstract Premium Identifiers
+ ============================================ */
 .shapeWrapper {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    flex-shrink: 0;
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ position: relative;
+ flex-shrink: 0;
 }
-
 /* Inner shape container - takes full size of wrapper */
 .shapeWrapper > div {
-    width: 100%;
-    height: 100%;
-    position: relative;
+ width: 100%;
+ height: 100%;
+ position: relative;
 }
-
 /* ============================================
-   SIZING
-   ============================================ */
+ SIZING
+ ============================================ */
 .sizeSm {
-    width: 16px;
-    height: 16px;
-    --node-size: 3px;
-    --layer-size: 2px;
-    --border-width: 1.5px;
+ width: 16px;
+ height: 16px;
+ --node-size: 3px;
+ --layer-size: 2px;
+ --border-width: 1.5px;
 }
-
 .sizeMd {
-    width: 20px;
-    height: 20px;
-    --node-size: 4px;
-    --layer-size: 3px;
-    --border-width: 2px;
+ width: 20px;
+ height: 20px;
+ --node-size: 4px;
+ --layer-size: 3px;
+ --border-width: 2px;
 }
-
 .sizeLg {
-    width: 24px;
-    height: 24px;
-    --node-size: 5px;
-    --layer-size: 4px;
-    --border-width: 2px;
+ width: 24px;
+ height: 24px;
+ --node-size: 5px;
+ --layer-size: 4px;
+ --border-width: 2px;
 }
-
 .sizeXl {
-    width: 32px;
-    height: 32px;
-    --node-size: 7px;
-    --layer-size: 6px;
-    --border-width: 2.5px;
+ width: 32px;
+ height: 32px;
+ --node-size: 7px;
+ --layer-size: 6px;
+ --border-width: 2.5px;
 }
-
 .size2xl {
-    width: 48px;
-    height: 48px;
-    --node-size: 10px;
-    --layer-size: 8px;
-    --border-width: 3px;
+ width: 48px;
+ height: 48px;
+ --node-size: 10px;
+ --layer-size: 8px;
+ --border-width: 3px;
 }
-
 /* ============================================
-   CATEGORY SHAPES
-   ============================================ */
-
+ CATEGORY SHAPES
+ ============================================ */
 /* 1. Nebula (Cloud/Network)
-   Visual: Soft, multi-layered radial gradients - distributed systems */
+ Visual: Soft, multi-layered radial gradients - distributed systems */
 .nebula {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: 
-        radial-gradient(circle at 30% 30%, var(--color-info) 0%, transparent 50%),
-        radial-gradient(circle at 70% 70%, var(--color-accent) 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, var(--color-accent-light) 0%, transparent 70%);
-    box-shadow: 
-        0 0 8px var(--color-info),
-        inset 0 0 6px var(--overlay-white-30);
-    opacity: 0.9;
+ width: 100%;
+ height: 100%;
+ border-radius: 50%;
+ background: 
+ radial-gradient(circle at 30% 30%, var(--color-info) 0%, transparent 50%),
+ radial-gradient(circle at 70% 70%, var(--color-accent) 0%, transparent 50%),
+ radial-gradient(circle at 50% 50%, var(--color-accent-light) 0%, transparent 70%);
+ box-shadow: 
+ 0 0 8px var(--color-info),
+ inset 0 0 6px var(--overlay-white-30);
+ opacity: 0.9;
 }
-
 .animate .nebula {
-    animation: nebula-breathe 4s ease-in-out infinite;
+ animation: nebula-breathe 4s ease-in-out infinite;
 }
-
 /* 2. Synapse (AI/Data)
-   Visual: Central pulsing orb with orbital rings - intelligence & connectivity */
+ Visual: Central pulsing orb with orbital rings - intelligence & connectivity */
 .synapse {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+ width: 100%;
+ height: 100%;
+ position: relative;
+ display: flex;
+ align-items: center;
+ justify-content: center;
 }
-
 .synapse::before {
-    content: '';
-    position: absolute;
-    width: 40%;
-    height: 40%;
-    background: var(--color-accent);
-    border-radius: 50%;
-    box-shadow: 
-        0 0 10px var(--color-accent),
-        0 0 20px var(--color-accent-light);
+ content: '';
+ position: absolute;
+ width: 40%;
+ height: 40%;
+ background: var(--color-accent);
+ border-radius: 50%;
+ box-shadow: 
+ 0 0 10px var(--color-accent),
+ 0 0 20px var(--color-accent-light);
 }
-
 .synapse::after {
-    content: '';
-    position: absolute;
-    width: 90%;
-    height: 90%;
-    border: var(--border-width) solid var(--color-accent-light);
-    border-radius: 50%;
-    opacity: 0.4;
+ content: '';
+ position: absolute;
+ width: 90%;
+ height: 90%;
+ border: var(--border-width) solid var(--color-accent-light);
+ border-radius: 50%;
+ opacity: 0.4;
 }
-
 .animate .synapse::before {
-    animation: synapse-pulse 2.5s ease-in-out infinite;
+ animation: synapse-pulse 2.5s ease-in-out infinite;
 }
-
 .animate .synapse::after {
-    animation: synapse-orbit 8s linear infinite;
+ animation: synapse-orbit 8s linear infinite;
 }
-
 /* 3. Construct (Development)
-   Visual: Interlocking angular brackets forming solid core - structure & logic */
+ Visual: Interlocking angular brackets forming solid core - structure & logic */
 .construct {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--color-secondary-sage) 0%, var(--color-sage-dark) 100%);
-    clip-path: polygon(
-        50% 0%, 
-        100% 25%, 
-        100% 75%, 
-        50% 100%, 
-        0% 75%, 
-        0% 25%
-    );
-    box-shadow: inset 0 0 10px var(--overlay-white-20);
+ width: 100%;
+ height: 100%;
+ background: linear-gradient(135deg, var(--color-secondary-sage) 0%, var(--color-sage-dark) 100%);
+ clip-path: polygon(
+ 50% 0%, 
+ 100% 25%, 
+ 100% 75%, 
+ 50% 100%, 
+ 0% 75%, 
+ 0% 25%
+ );
+ box-shadow: inset 0 0 10px var(--overlay-white-20);
 }
-
 .construct::after {
-    content: '';
-    position: absolute;
-    top: 25%;
-    left: 25%;
-    width: 50%;
-    height: 50%;
-    background: var(--color-bg-primary);
-    clip-path: polygon(
-        50% 0%, 
-        100% 25%, 
-        100% 75%, 
-        50% 100%, 
-        0% 75%, 
-        0% 25%
-    );
-    opacity: 0.6;
+ content: '';
+ position: absolute;
+ top: 25%;
+ left: 25%;
+ width: 50%;
+ height: 50%;
+ background: var(--color-bg-primary);
+ clip-path: polygon(
+ 50% 0%, 
+ 100% 25%, 
+ 100% 75%, 
+ 50% 100%, 
+ 0% 75%, 
+ 0% 25%
+ );
+ opacity: 0.6;
 }
-
 .animate .construct {
-    animation: construct-rotate 12s linear infinite;
+ animation: construct-rotate 12s linear infinite;
 }
-
 /* 4. Bastion (Security)
-   Visual: Concentric hexagonal shields with glowing core - defense */
+ Visual: Concentric hexagonal shields with glowing core - defense */
 .bastion {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, var(--color-error) 0%, var(--color-error-dark) 100%);
-    clip-path: polygon(
-        50% 0%, 
-        100% 25%, 
-        100% 75%, 
-        50% 100%, 
-        0% 75%, 
-        0% 25%
-    );
-    box-shadow: 
-        0 0 8px var(--color-error),
-        inset 0 0 8px var(--overlay-white-30);
+ width: 100%;
+ height: 100%;
+ background: linear-gradient(180deg, var(--color-error) 0%, var(--color-error-dark) 100%);
+ clip-path: polygon(
+ 50% 0%, 
+ 100% 25%, 
+ 100% 75%, 
+ 50% 100%, 
+ 0% 75%, 
+ 0% 25%
+ );
+ box-shadow: 
+ 0 0 8px var(--color-error),
+ inset 0 0 8px var(--overlay-white-30);
 }
-
 .bastion::before {
-    content: '';
-    position: absolute;
-    top: 15%;
-    left: 15%;
-    width: 70%;
-    height: 70%;
-    border: var(--border-width) solid var(--overlay-white-50);
-    clip-path: polygon(
-        50% 0%, 
-        100% 25%, 
-        100% 75%, 
-        50% 100%, 
-        0% 75%, 
-        0% 25%
-    );
+ content: '';
+ position: absolute;
+ top: 15%;
+ left: 15%;
+ width: 70%;
+ height: 70%;
+ border: var(--border-width) solid var(--overlay-white-50);
+ clip-path: polygon(
+ 50% 0%, 
+ 100% 25%, 
+ 100% 75%, 
+ 50% 100%, 
+ 0% 75%, 
+ 0% 25%
+ );
 }
-
 .bastion::after {
-    content: '';
-    position: absolute;
-    top: 35%;
-    left: 35%;
-    width: 30%;
-    height: 30%;
-    background: var(--overlay-white-60);
-    border-radius: 50%;
-    box-shadow: 0 0 6px var(--overlay-white-80);
+ content: '';
+ position: absolute;
+ top: 35%;
+ left: 35%;
+ width: 30%;
+ height: 30%;
+ background: var(--overlay-white-60);
+ border-radius: 50%;
+ box-shadow: 0 0 6px var(--overlay-white-80);
 }
-
 .animate .bastion {
-    animation: bastion-pulse 3s ease-in-out infinite;
+ animation: bastion-pulse 3s ease-in-out infinite;
 }
-
 /* 5. Prism (Business)
-   Visual: Sharp upward-pointing triangular structure - growth & direction */
+ Visual: Sharp upward-pointing triangular structure - growth & direction */
 .prism {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, var(--color-secondary-amber) 0%, var(--color-amber-dark) 100%);
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    box-shadow: 0 0 8px var(--color-secondary-amber);
+ width: 100%;
+ height: 100%;
+ background: linear-gradient(180deg, var(--color-secondary-amber) 0%, var(--color-amber-dark) 100%);
+ clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+ box-shadow: 0 0 8px var(--color-secondary-amber);
 }
-
 .prism::before {
-    content: '';
-    position: absolute;
-    top: 30%;
-    left: 30%;
-    width: 40%;
-    height: 50%;
-    background: linear-gradient(180deg, var(--overlay-white-40) 0%, transparent 100%);
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+ content: '';
+ position: absolute;
+ top: 30%;
+ left: 30%;
+ width: 40%;
+ height: 50%;
+ background: linear-gradient(180deg, var(--overlay-white-40) 0%, transparent 100%);
+ clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
-
 .animate .prism {
-    animation: prism-float 3.5s ease-in-out infinite;
+ animation: prism-float 3.5s ease-in-out infinite;
 }
-
 /* ============================================
-   DIFFICULTY SHAPES
-   ============================================ */
-
+ DIFFICULTY SHAPES
+ ============================================ */
 /* Seed (Beginner) - Small, contained potential */
 .seed {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-sage-dark) 100%);
-    border-radius: 50% 50% 50% 0%;
-    transform: rotate(-45deg);
-    box-shadow: 0 0 6px var(--color-success);
+ width: 100%;
+ height: 100%;
+ background: linear-gradient(135deg, var(--color-success) 0%, var(--color-sage-dark) 100%);
+ border-radius: 50% 50% 50% 0%;
+ transform: rotate(-45deg);
+ box-shadow: 0 0 6px var(--color-success);
 }
-
 .animate .seed {
-    animation: seed-glow 3s ease-in-out infinite;
+ animation: seed-glow 3s ease-in-out infinite;
 }
-
 /* Sprout (Intermediate) - Growing upward */
 .sprout {
-    width: 100%;
-    height: 100%;
-    position: relative;
+ width: 100%;
+ height: 100%;
+ position: relative;
 }
-
 .sprout::before {
-    content: '';
-    position: absolute;
-    bottom: 10%;
-    left: 45%;
-    width: 10%;
-    height: 50%;
-    background: linear-gradient(180deg, var(--color-warning) 0%, var(--color-amber-darker) 100%);
-    border-radius: 2px;
+ content: '';
+ position: absolute;
+ bottom: 10%;
+ left: 45%;
+ width: 10%;
+ height: 50%;
+ background: linear-gradient(180deg, var(--color-warning) 0%, var(--color-amber-darker) 100%);
+ border-radius: 2px;
 }
-
 .sprout::after {
-    content: '';
-    position: absolute;
-    top: 15%;
-    left: 25%;
-    width: 50%;
-    height: 40%;
-    background: var(--color-warning);
-    border-radius: 50% 50% 0 50%;
-    transform: rotate(-30deg);
-    box-shadow: 0 0 6px var(--color-warning);
+ content: '';
+ position: absolute;
+ top: 15%;
+ left: 25%;
+ width: 50%;
+ height: 40%;
+ background: var(--color-warning);
+ border-radius: 50% 50% 0 50%;
+ transform: rotate(-30deg);
+ box-shadow: 0 0 6px var(--color-warning);
 }
-
 .animate .sprout {
-    animation: sprout-sway 4s ease-in-out infinite;
+ animation: sprout-sway 4s ease-in-out infinite;
 }
-
 /* Bloom (Advanced) - Full flourishing */
 .bloom {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+ width: 100%;
+ height: 100%;
+ position: relative;
+ display: flex;
+ align-items: center;
+ justify-content: center;
 }
-
 .bloom::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: 
-        radial-gradient(circle at 50% 30%, var(--color-error) 15%, transparent 16%),
-        radial-gradient(circle at 70% 50%, var(--color-error) 15%, transparent 16%),
-        radial-gradient(circle at 60% 70%, var(--color-error) 15%, transparent 16%),
-        radial-gradient(circle at 40% 70%, var(--color-error) 15%, transparent 16%),
-        radial-gradient(circle at 30% 50%, var(--color-error) 15%, transparent 16%);
-    filter: drop-shadow(0 0 3px var(--color-error));
+ content: '';
+ position: absolute;
+ width: 100%;
+ height: 100%;
+ background: 
+ radial-gradient(circle at 50% 30%, var(--color-error) 15%, transparent 16%),
+ radial-gradient(circle at 70% 50%, var(--color-error) 15%, transparent 16%),
+ radial-gradient(circle at 60% 70%, var(--color-error) 15%, transparent 16%),
+ radial-gradient(circle at 40% 70%, var(--color-error) 15%, transparent 16%),
+ radial-gradient(circle at 30% 50%, var(--color-error) 15%, transparent 16%);
+ filter: drop-shadow(0 0 3px var(--color-error));
 }
-
 .bloom::after {
-    content: '';
-    position: absolute;
-    width: 25%;
-    height: 25%;
-    background: var(--color-gold-highlight);
-    border-radius: 50%;
-    box-shadow: 0 0 6px var(--color-gold-highlight);
+ content: '';
+ position: absolute;
+ width: 25%;
+ height: 25%;
+ background: var(--color-gold-highlight);
+ border-radius: 50%;
+ box-shadow: 0 0 6px var(--color-gold-highlight);
 }
-
 .animate .bloom {
-    animation: bloom-pulse 3s ease-in-out infinite;
+ animation: bloom-pulse 3s ease-in-out infinite;
 }
-
 /* Crown (Expert) - Mastery achieved */
 .crown {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-primary-plum) 100%);
-    clip-path: polygon(
-        10% 100%, 
-        0% 40%, 
-        25% 55%, 
-        50% 10%, 
-        75% 55%, 
-        100% 40%, 
-        90% 100%
-    );
-    box-shadow: 0 0 10px var(--color-accent);
+ width: 100%;
+ height: 100%;
+ background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-primary-plum) 100%);
+ clip-path: polygon(
+ 10% 100%, 
+ 0% 40%, 
+ 25% 55%, 
+ 50% 10%, 
+ 75% 55%, 
+ 100% 40%, 
+ 90% 100%
+ );
+ box-shadow: 0 0 10px var(--color-accent);
 }
-
 .crown::after {
-    content: '';
-    position: absolute;
-    top: 25%;
-    left: 42%;
-    width: 16%;
-    height: 16%;
-    background: var(--color-gold-highlight);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--color-gold-highlight);
+ content: '';
+ position: absolute;
+ top: 25%;
+ left: 42%;
+ width: 16%;
+ height: 16%;
+ background: var(--color-gold-highlight);
+ border-radius: 50%;
+ box-shadow: 0 0 8px var(--color-gold-highlight);
 }
-
 .animate .crown {
-    animation: crown-shine 4s ease-in-out infinite;
+ animation: crown-shine 4s ease-in-out infinite;
 }
-
 /* ============================================
-   ANIMATIONS
-   ============================================ */
+ ANIMATIONS
+ ============================================ */
 @keyframes nebula-breathe {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 0.85;
-    }
-    50% {
-        transform: scale(1.08);
-        opacity: 1;
-    }
+ 0%, 100% {
+ transform: scale(1);
+ opacity: 0.85;
+ }
+ 50% {
+ transform: scale(1.08);
+ opacity: 1;
+ }
 }
-
 @keyframes synapse-pulse {
-    0%, 100% {
-        transform: scale(1);
-        box-shadow: 
-            0 0 10px var(--color-accent),
-            0 0 20px var(--color-accent-light);
-    }
-    50% {
-        transform: scale(1.15);
-        box-shadow: 
-            0 0 15px var(--color-accent),
-            0 0 30px var(--color-accent-light);
-    }
+ 0%, 100% {
+ transform: scale(1);
+ box-shadow: 
+ 0 0 10px var(--color-accent),
+ 0 0 20px var(--color-accent-light);
+ }
+ 50% {
+ transform: scale(1.15);
+ box-shadow: 
+ 0 0 15px var(--color-accent),
+ 0 0 30px var(--color-accent-light);
+ }
 }
-
 @keyframes synapse-orbit {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+ from {
+ transform: rotate(0deg);
+ }
+ to {
+ transform: rotate(360deg);
+ }
 }
-
 @keyframes construct-rotate {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+ from {
+ transform: rotate(0deg);
+ }
+ to {
+ transform: rotate(360deg);
+ }
 }
-
 @keyframes bastion-pulse {
-    0%, 100% {
-        box-shadow: 
-            0 0 8px var(--color-error),
-            inset 0 0 8px var(--overlay-white-30);
-    }
-    50% {
-        box-shadow: 
-            0 0 15px var(--color-error),
-            inset 0 0 12px var(--overlay-white-50);
-    }
+ 0%, 100% {
+ box-shadow: 
+ 0 0 8px var(--color-error),
+ inset 0 0 8px var(--overlay-white-30);
+ }
+ 50% {
+ box-shadow: 
+ 0 0 15px var(--color-error),
+ inset 0 0 12px var(--overlay-white-50);
+ }
 }
-
 @keyframes prism-float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-3px);
-    }
+ 0%, 100% {
+ transform: translateY(0);
+ }
+ 50% {
+ transform: translateY(-3px);
+ }
 }
-
 @keyframes seed-glow {
-    0%, 100% {
-        box-shadow: 0 0 6px var(--color-success);
-    }
-    50% {
-        box-shadow: 0 0 12px var(--color-success);
-    }
+ 0%, 100% {
+ box-shadow: 0 0 6px var(--color-success);
+ }
+ 50% {
+ box-shadow: 0 0 12px var(--color-success);
+ }
 }
-
 @keyframes sprout-sway {
-    0%, 100% {
-        transform: rotate(0deg);
-    }
-    25% {
-        transform: rotate(3deg);
-    }
-    75% {
-        transform: rotate(-3deg);
-    }
+ 0%, 100% {
+ transform: rotate(0deg);
+ }
+ 25% {
+ transform: rotate(3deg);
+ }
+ 75% {
+ transform: rotate(-3deg);
+ }
 }
-
 @keyframes bloom-pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
+ 0%, 100% {
+ transform: scale(1);
+ }
+ 50% {
+ transform: scale(1.05);
+ }
 }
-
 @keyframes crown-shine {
-    0%, 100% {
-        box-shadow: 0 0 10px var(--color-accent);
-    }
-    50% {
-        box-shadow: 0 0 18px var(--color-accent), 0 0 25px var(--color-accent-light);
-    }
+ 0%, 100% {
+ box-shadow: 0 0 10px var(--color-accent);
+ }
+ 50% {
+ box-shadow: 0 0 18px var(--color-accent), 0 0 25px var(--color-accent-light);
+ }
 }

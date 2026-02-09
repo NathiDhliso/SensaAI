@@ -9,16 +9,16 @@
 | # | System | Core Responsibility |
 |---|--------|-------------------|
 | 1 | **Authentication** | User identity, PKCE OAuth, route protection |
-| 2 | **Generation** | AI content generation orchestration (subject → concepts) |
-| 3 | **Content Parsing & Transform** | Raw JSON → typed stages, concepts, graphs |
+| 2 | **Generation** | AI content generation orchestration (subject concepts) |
+| 3 | **Content Parsing & Transform** | Raw JSON typed stages, concepts, graphs |
 | 4 | **Backend (Express + Lambda)** | API routing, auth middleware, Bedrock LLM calls, DynamoDB |
 | 5 | **Storage** | Cloud (DynamoDB) + local (IndexedDB) + session (localStorage) + memory (Zustand) |
-| 6 | **Learning Session Engine** | 7-slice Zustand store + phase state machine (SCOUT→COMPLETE) |
+| 6 | **Learning Session Engine** | 7-slice Zustand store + phase state machine (SCOUTCOMPLETE) |
 | 7 | **Adaptive Intelligence** | Concept selection, interleaving, spacing, prerequisite gates |
 | 8 | **AI Coach** | 5 personas, voice lines, proactive struggle detection |
 | 9 | **Personalization** | Mood, metaphors, stress-free mode, practice mode, coach settings |
 | 10 | **Diagnostic** | Pre-learning knowledge assessment for root concepts |
-| 11 | **Micro Learning Loop** | Teach → blank sheet → confusion drill → quiz → outcome |
+| 11 | **Micro Learning Loop** | Teach blank sheet confusion drill quiz outcome |
 | 12 | **Concept Map** | Interactive mapping + orbital visualization + scoring |
 | 13 | **Flow & Momentum** | Flow state detection, equation tracking (I = min(h, G×Q_f×Q_M×Q_P)) |
 | 14 | **Content Audit** | 2-track audit (content health + objective alignment) |
@@ -31,30 +31,30 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                           SYSTEM INTERACTION MAP                             │
-│                                                                              │
-│  ┌──────────┐  subject   ┌──────────────┐  concepts   ┌──────────────────┐  │
-│  │   AUTH    │───────────▶│  GENERATION   │────────────▶│  CONTENT PARSING │  │
-│  │  SYSTEM   │  (guard)   │   SYSTEM      │  (raw JSON) │  & TRANSFORM     │  │
-│  └────┬─────┘            └──────┬───────┘             └────────┬─────────┘  │
-│       │                         │                              │             │
-│       │ user identity           │ job status                   │ stages +    │
-│       │                         │ classification               │ concepts    │
-│       ▼                         ▼                              ▼             │
-│  ┌──────────┐            ┌──────────────┐             ┌──────────────────┐  │
-│  │ STORAGE  │◀───────────│  BACKEND     │             │  LEARNING        │  │
-│  │ SYSTEM   │  save/load │  (Lambda +   │             │  SESSION ENGINE  │  │
-│  │          │────────────│   Express)   │             │                  │  │
-│  └────┬─────┘            └──────────────┘             └────────┬─────────┘  │
-│       │                                                        │             │
-│       │ hydrate session                                        │ phase +     │
-│       │                                                        │ concept     │
-│       ▼                                                        ▼             │
-│  ┌──────────┐  mood/persona  ┌──────────────┐  struggle  ┌──────────────┐   │
-│  │ PERSONAL-│───────────────▶│  AI COACH    │◀───────────│  ADAPTIVE    │   │
-│  │ IZATION  │                │  SYSTEM      │            │  INTELLIGENCE│   │
-│  └──────────┘                └──────────────┘            └──────────────┘   │
-│                                                                              │
+│ SYSTEM INTERACTION MAP │
+│ │
+│ ┌──────────┐ subject ┌──────────────┐ concepts ┌──────────────────┐ │
+│ │ AUTH │───────────│ GENERATION │────────────│ CONTENT PARSING │ │
+│ │ SYSTEM │ (guard) │ SYSTEM │ (raw JSON) │ & TRANSFORM │ │
+│ └────┬─────┘ └──────┬───────┘ └────────┬─────────┘ │
+│ │ │ │ │
+│ │ user identity │ job status │ stages + │
+│ │ │ classification │ concepts │
+│ │
+│ ┌──────────┐ ┌──────────────┐ ┌──────────────────┐ │
+│ │ STORAGE │───────────│ BACKEND │ │ LEARNING │ │
+│ │ SYSTEM │ save/load │ (Lambda + │ │ SESSION ENGINE │ │
+│ │ │────────────│ Express) │ │ │ │
+│ └────┬─────┘ └──────────────┘ └────────┬─────────┘ │
+│ │ │ │
+│ │ hydrate session │ phase + │
+│ │ │ concept │
+│ │
+│ ┌──────────┐ mood/persona ┌──────────────┐ struggle ┌──────────────┐ │
+│ │ PERSONAL-│───────────────│ AI COACH │───────────│ ADAPTIVE │ │
+│ │ IZATION │ │ SYSTEM │ │ INTELLIGENCE│ │
+│ └──────────┘ └──────────────┘ └──────────────┘ │
+│ │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -104,16 +104,16 @@
 
 **Data flow**:
 ```
-Generate.tsx → useGenerationEngine.startGenerationProcess()
-  → generation-store.startGeneration()
-  → generateWithBackend(subject, progressCallback, context)
-    → conceptsApi.generate() → POST /api/v1/concepts/generate
-    → Lambda: classify_subject() → parallel generate × 5 parts → DynamoDB
-    → Poll job status until complete
-    → conceptsApi.getConcepts() → GET /api/v1/concepts
-    → buildDocumentFromConcepts() → JSON document string
-  → parseAndLoadContent() → json-parser → transformer → learning-store.loadSession()
-  → navigate('/study/:subjectId')
+Generate.tsx useGenerationEngine.startGenerationProcess()
+ generation-store.startGeneration()
+ generateWithBackend(subject, progressCallback, context)
+ conceptsApi.generate() POST /api/v1/concepts/generate
+ Lambda: classify_subject() parallel generate × 5 parts DynamoDB
+ Poll job status until complete
+ conceptsApi.getConcepts() GET /api/v1/concepts
+ buildDocumentFromConcepts() JSON document string
+ parseAndLoadContent() json-parser transformer learning-store.loadSession()
+ navigate('/study/:subjectId')
 ```
 
 ---
@@ -124,8 +124,8 @@ Generate.tsx → useGenerationEngine.startGenerationProcess()
 
 | Key File | Role |
 |----------|------|
-| `src/features/content-generation/parsers/json-parser.ts` | Parses raw JSON string → `ParsedGeneratedContent` (concepts, domain analysis, mnemonics) |
-| `src/features/content-generation/parsers/transformer.ts` | Transforms parsed content → `SensaAILearningConcept[]` + `LearningStage[]` + `SubjectGraph` + metadata |
+| `src/features/content-generation/parsers/json-parser.ts` | Parses raw JSON string `ParsedGeneratedContent` (concepts, domain analysis, mnemonics) |
+| `src/features/content-generation/parsers/transformer.ts` | Transforms parsed content `SensaAILearningConcept[]` + `LearningStage[]` + `SubjectGraph` + metadata |
 | `src/features/content-generation/parsers/ai-integration.ts` | Utility functions: `getRootConcepts()`, `getConfusionRiskConcepts()`, `getTierDistribution()` |
 | `src/features/content-generation/parsers/types.ts` | `ParsedConcept`, `ParsedMnemonic`, `ParsedMentalAnchor` types |
 | `src/features/content-generation/generators/dependency-parser.ts` | `buildSubjectGraph()` — builds the concept dependency graph from parsed connections |
@@ -178,7 +178,7 @@ Generate.tsx → useGenerationEngine.startGenerationProcess()
 | `src/features/content-storage/local/indexed-db.ts` | IndexedDB storage for offline document access |
 | `src/features/content-storage/local/browser-storage.ts` | localStorage utilities |
 | `src/features/content-storage/sync/import.ts` | File import (JSON document import) |
-| `src/features/content-storage/sync/sync-engine.ts` | Sync engine for cloud ↔ local reconciliation |
+| `src/features/content-storage/sync/sync-engine.ts` | Sync engine for cloud local reconciliation |
 | `src/features/learning-session/progress/session-tracker.ts` | Throttled localStorage persistence for session progress (2s throttle, flush-on-unmount) |
 
 **Talks to**:
@@ -190,13 +190,13 @@ Generate.tsx → useGenerationEngine.startGenerationProcess()
 
 **Storage layers**:
 ```
-Cloud (DynamoDB)  ← Lambda writes during generation
-       ↕               ← StorageManager reads via API
-Local (IndexedDB) ← Full documents cached for offline
-       ↕
-Session (localStorage) ← Session progress, 24h TTL
-       ↕
-Memory (Zustand)  ← Active session state, page lifetime
+Cloud (DynamoDB) Lambda writes during generation
+ StorageManager reads via API
+Local (IndexedDB) Full documents cached for offline
+
+Session (localStorage) Session progress, 24h TTL
+
+Memory (Zustand) Active session state, page lifetime
 ```
 
 ---
@@ -220,20 +220,20 @@ Memory (Zustand)  ← Active session state, page lifetime
 | `src/pages/VelocityLearning.tsx` | Master orchestrator — renders the correct component for each phase |
 | `src/pages/Study.tsx` | Entry point — hydrates content, manages tabs (Overview/Learn), mounts VelocityLearning |
 
-**Phase → Component mapping** (orchestrated by `VelocityLearning.tsx`):
+**Phase Component mapping** (orchestrated by `VelocityLearning.tsx`):
 ```
 useLearningFlow() returns phase
-       │
-       ├── IDLE      → (no session)
-       ├── PRIME     → SessionStartModal (mood → goal + duration)
-       ├── LOCK_IN   → VelocityLockInGate (confirmation)
-       ├── SCOUT     → SessionScoutPreview (tier overview)
-       ├── PREVIEW   → SessionScoutPreview (nomenclature sprint)
-       ├── BUILD     → ConceptMapBuilder (concept mapping)
-       ├── DIAGNOSE  → DiagnosticLaunchSystem (pre-test)
-       ├── LEARN     → MicroLearningLoopController (core loop)
-       ├── MASTER    → MasteryChallenge (final challenge)
-       └── COMPLETE  → MasteryDashboard (summary)
+ │
+ ├── IDLE (no session)
+ ├── PRIME SessionStartModal (mood goal + duration)
+ ├── LOCK_IN VelocityLockInGate (confirmation)
+ ├── SCOUT SessionScoutPreview (tier overview)
+ ├── PREVIEW SessionScoutPreview (nomenclature sprint)
+ ├── BUILD ConceptMapBuilder (concept mapping)
+ ├── DIAGNOSE DiagnosticLaunchSystem (pre-test)
+ ├── LEARN MicroLearningLoopController (core loop)
+ ├── MASTER MasteryChallenge (final challenge)
+ └── COMPLETE MasteryDashboard (summary)
 ```
 
 **Talks to**:
@@ -300,7 +300,7 @@ useLearningFlow() returns phase
 | `src/store/personalization-store.ts` | Zustand store (persisted) — role, familiar system, coach settings, metaphor settings, stress-free mode, practice mode, semester date |
 | `src/features/personalization/components/MetaphorToggle.tsx` | Toggle for visual anchors and analogies |
 | `src/components/settings/SettingsPanel.tsx` | Slide-out panel — all personalization toggles wired to store |
-| `src/components/learning/session/SessionStartModal.tsx` | Mood selection → auto-sets study goal + duration |
+| `src/components/learning/session/SessionStartModal.tsx` | Mood selection auto-sets study goal + duration |
 
 **Talks to**:
 - **AI Coach System** — `selectedPersona`, `coachVoiceEnabled`, `coachIntensity` control which persona speaks and how
@@ -336,7 +336,7 @@ useLearningFlow() returns phase
 
 | Key File | Role |
 |----------|------|
-| `src/components/learning/MicroLearningLoopController.tsx` | Orchestrator — cycles each concept through teach → blank sheet → confusion drill → quiz → outcome |
+| `src/components/learning/MicroLearningLoopController.tsx` | Orchestrator — cycles each concept through teach blank sheet confusion drill quiz outcome |
 | `src/components/learning/activities/BlankSheetTest.tsx` | Recall from memory — fuzzy-scored against key points |
 | `src/components/learning/activities/ConfusionDrill.tsx` | Distinguish concept from similar concepts using confusion pairs |
 | `src/components/learning/activities/NomenclatureSprint.tsx` | Verb-object matching for terminology recall |
@@ -349,7 +349,7 @@ useLearningFlow() returns phase
 - **Learning Session Engine** — Reads active concept from store; calls `completeConcept()` on mastery; calls `setCurrentConcept()` to advance
 - **Adaptive Intelligence** — `retain-ai.ts` generates coach feedback for blank sheet; `build-ai.ts` suggests connections
 - **AI Coach System** — Struggle detection triggers coach messages mid-loop
-- **Personalization System** — `subjectType` prop selects post-confusion activity (procedural→transfer, cyclic→social, etc.)
+- **Personalization System** — `subjectType` prop selects post-confusion activity (proceduraltransfer, cyclicsocial, etc.)
 
 ---
 
