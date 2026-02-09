@@ -28,6 +28,11 @@ export interface ConceptVerdict {
   nextReviewDate: Date;
 }
 
+export interface AuditInsight {
+  message: string;
+  tone: 'positive' | 'negative' | 'neutral';
+}
+
 export interface ContentAuditResult {
   hasObjectives: boolean;
   overallScore: number;
@@ -40,7 +45,7 @@ export interface ContentAuditResult {
   tierDistribution: { root: number; trunk: number; leaf: number };
   bloomsDistribution: Record<string, number>;
   verdicts: ConceptVerdict[];
-  harshInsights: string[];
+  harshInsights: AuditInsight[];
 }
 
 function hasEntries(arr: unknown[] | undefined): boolean {
@@ -234,23 +239,25 @@ function generateHarshInsights(
   tierDist: ContentAuditResult['tierDistribution'],
   bloomsDist: Record<string, number>,
   totalConcepts: number,
-): string[] {
-  const insights: string[] = [];
+): AuditInsight[] {
+  const insights: AuditInsight[] = [];
   const hasObjectives = objectives.length > 0;
 
   if (!hasObjectives) {
-    insights.push(
-      'No exam objectives provided. This audit can only check structural content quality \u2014 it CANNOT tell you whether these concepts are actually on your exam. Paste your exam objectives below to get real alignment scoring.',
-    );
+    insights.push({
+      message: 'No exam objectives provided. This audit can only check structural content quality \u2014 it CANNOT tell you whether these concepts are actually on your exam. Paste your exam objectives below to get real alignment scoring.',
+      tone: 'neutral',
+    });
   }
 
   if (hasObjectives) {
     const unmapped = verdicts.filter(v => v.verdict === 'not-in-objectives');
     if (unmapped.length > 0) {
       const names = unmapped.map(v => v.conceptName).slice(0, 4);
-      insights.push(
-        `${unmapped.length} of ${totalConcepts} concepts don't match any of your ${objectives.length} objectives (${names.join(', ')}${unmapped.length > 4 ? ', ...' : ''}). These may be background knowledge or genuine fluff \u2014 they won't be directly tested.`,
-      );
+      insights.push({
+        message: `${unmapped.length} of ${totalConcepts} concepts don't match any of your ${objectives.length} objectives (${names.join(', ')}${unmapped.length > 4 ? ', ...' : ''}). These may be background knowledge or genuine fluff \u2014 they won't be directly tested.`,
+        tone: 'negative',
+      });
     }
 
     const coveredObjectives = new Set<string>();
@@ -259,38 +266,43 @@ function generateHarshInsights(
     }
     const uncovered = objectives.filter(o => !coveredObjectives.has(o));
     if (uncovered.length > 0) {
-      insights.push(
-        `${uncovered.length} of your ${objectives.length} objectives have NO matching concepts: "${uncovered[0]}"${uncovered.length > 1 ? ` and ${uncovered.length - 1} more` : ''}. These are gaps in your generated content \u2014 you'll need to regenerate or study these separately.`,
-      );
+      insights.push({
+        message: `${uncovered.length} of your ${objectives.length} objectives have NO matching concepts: "${uncovered[0]}"${uncovered.length > 1 ? ` and ${uncovered.length - 1} more` : ''}. These are gaps in your generated content \u2014 you'll need to regenerate or study these separately.`,
+        tone: 'negative',
+      });
     }
 
     const aligned = verdicts.filter(v => v.verdict === 'objective-aligned').length;
     if (aligned === totalConcepts && totalConcepts > 0) {
-      insights.push(
-        `All ${totalConcepts} concepts map to your stated objectives. Coverage looks solid \u2014 focus on learning depth, not breadth.`,
-      );
+      insights.push({
+        message: `All ${totalConcepts} concepts map to your stated objectives. Coverage looks solid \u2014 focus on learning depth, not breadth.`,
+        tone: 'positive',
+      });
     }
   }
 
   const lowHealth = verdicts.filter(v => v.contentHealth < 40);
   if (lowHealth.length > 0) {
-    insights.push(
-      `${lowHealth.length} concepts have content health below 40%. They're missing core explanations, examples, or memory aids. Even if they're on the exam, you can't learn from incomplete content.`,
-    );
+    insights.push({
+      message: `${lowHealth.length} concepts have content health below 40%. They're missing core explanations, examples, or memory aids. Even if they're on the exam, you can't learn from incomplete content.`,
+      tone: 'negative',
+    });
   }
 
   const lowerOrder = (bloomsDist['remember'] || 0) + (bloomsDist['understand'] || 0);
   const higherOrder = (bloomsDist['analyze'] || 0) + (bloomsDist['evaluate'] || 0) + (bloomsDist['create'] || 0);
   if (lowerOrder > 0 && higherOrder === 0 && totalConcepts > 5) {
-    insights.push(
-      '100% of content targets lower-order thinking (remember/understand). Zero concepts reach analyze, evaluate, or create. Certification exams test higher-order reasoning \u2014 your content doesn\'t prepare you for that.',
-    );
+    insights.push({
+      message: '100% of content targets lower-order thinking (remember/understand). Zero concepts reach analyze, evaluate, or create. Exams test higher-order reasoning \u2014 your content doesn\'t prepare you for that.',
+      tone: 'negative',
+    });
   }
 
   if (tierDist.leaf > tierDist.trunk * 2 && totalConcepts > 8) {
-    insights.push(
-      `${tierDist.leaf} leaf concepts vs only ${tierDist.trunk} trunk. The generation over-indexed on peripheral topics.`,
-    );
+    insights.push({
+      message: `${tierDist.leaf} leaf concepts vs only ${tierDist.trunk} trunk. The generation over-indexed on peripheral topics.`,
+      tone: 'negative',
+    });
   }
 
   return insights;

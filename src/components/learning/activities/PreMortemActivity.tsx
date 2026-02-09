@@ -34,10 +34,10 @@ function buildBrokenConfig(concept: LearningConcept): BrokenConfig {
 
     if (sourceSteps.length < 3) {
         sourceSteps = [
-            `Identify the core requirement for ${concept.name}`,
-            `Configure the primary settings`,
-            `Validate the configuration against standards`,
-            `Deploy and monitor the outcome`,
+            `Identify the core principle behind ${concept.name}`,
+            `Apply ${concept.name} to a specific scenario`,
+            `Verify the outcome meets the expected criteria`,
+            `Reflect on edge cases or exceptions`,
         ];
     }
 

@@ -585,10 +585,12 @@ Closes 5 gaps identified by auditing the pipeline against the Desirable Results 
 Redesigns the main dashboard around Cognitive Load Theory and activates spaced repetition:
 
 - [x] **Cognitive Battery (MoodSelector)** — Renamed from "Mood" to "Cognitive Battery / Focus Level". Consolidated 4 options to 3 bandwidth tiers: High (all features), Medium (standard), Low (fluency only). `CognitiveBandwidth` type and `moodToBandwidth()` mapper added to `ai-coach/index.ts`.
-- [x] **Gym Layout (ContentLaunchpad)** — Replaced audit grid with 3 vertical zones:
-  - **Zone 1: Daily Stack** — Queries `SpacingEngine.getDueReviews()` for stale items, renders horizontal ticker cards. Click triggers micro-loop navigation.
-  - **Zone 2: Build Lab** — Concept Map + Peer Review. Hidden when battery is Low.
-  - **Zone 3: Proving Grounds** — Mastery Challenge + Pre-Mortem. Only unlocked on High Focus.
+- [x] **Gym Layout (ContentLaunchpad)** — Tabbed layout with Gym (default) and Insights tabs:
+  - **Gym tab** — 3 vertical zones gated by cognitive battery:
+    - **Zone 1: Daily Stack** — Queries `SpacingEngine.getDueReviews()` for stale items, renders horizontal ticker cards. Click triggers micro-loop navigation.
+    - **Zone 2: Build Lab** — Concept Map + Peer Review. Hidden when battery is Low.
+    - **Zone 3: Proving Grounds** — Mastery Challenge + Pre-Mortem. Only unlocked on High Focus.
+  - **Insights tab** — Restored audit grid: 4 metric cards (objectives coverage, unmapped concepts, content health, concept count), objectives panel with paste-and-parse, harsh insights, concept-by-concept audit with expandable detail rows (health scores, Bloom's level, issues, strengths).
 - [x] **Temporal Spacing activated** — `ConceptVerdict` extended with `freshness` and `nextReviewDate`. `SpacingEngine.recordReviewWithQuality()` wired into `completeConcept`, `recordConfusionDrill`, `markSessionMapReconstructed`, `markSessionMastered` with activity-specific quality mappings (SM-2).
 - [x] **PeerReview multi-turn** — Refactored from single-turn to 4-stage dialogue (diagnosis → pushback → defense → resolution). Pushback uses `commonPitfalls`/`technicalDetails`.
 - [x] **PreMortemActivity** — New activity: derives steps from concept lifecycle, randomly alters one, user identifies the broken step.
