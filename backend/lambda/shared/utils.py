@@ -60,6 +60,8 @@ ALLOWED_ORIGINS = [
     "https://SensaAI.com",
     "https://www.SensaAI.com",
     "https://app.SensaAI.com",
+    "https://main.dckqci84h8ffk.amplifyapp.com",
+    "https://dckqci84h8ffk.amplifyapp.com",
     "http://localhost:5173",
     "http://localhost:3000",
 ]
