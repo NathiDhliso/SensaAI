@@ -118,11 +118,14 @@ function formatAuthError(error: unknown): string {
  if (message.includes('Password attempts exceeded')) {
  return 'Too many failed attempts. Please try again later.';
  }
- if (message.includes('Invalid verification code')) {
- return 'Invalid verification code. Please check and try again.';
+ if (message.includes('Invalid verification code') || message.includes('CodeMismatchException')) {
+ return 'Invalid verification code. Please check the code and try again, or request a new one.';
  }
- if (message.includes('expired')) {
- return 'Verification code has expired. Please request a new one.';
+ if (message.includes('expired') || message.includes('ExpiredCodeException')) {
+ return 'Verification code has expired. Please click "Resend Code" below to get a new one.';
+ }
+ if (message.includes('LimitExceededException') || message.includes('Attempt limit exceeded')) {
+ return 'Too many attempts. Please wait a few minutes before trying again.';
  }
  if (message.includes('InvalidParameterException')) {
  return 'Invalid input. Please check your details.';
@@ -473,4 +476,4 @@ export const isSessionValid = (): boolean => {
 export const getAccessToken = async (): Promise<string | null> => {
  console.warn('[Auth] getAccessToken() is deprecated. Tokens are now in HttpOnly cookies.');
  return null;
-};
+};

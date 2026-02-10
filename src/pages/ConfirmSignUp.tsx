@@ -24,6 +24,7 @@ export function ConfirmSignUp() {
  return;
  }
  setError(null);
+ setSuccess(null);
  setIsLoading(true);
  try {
  await confirmSignUp(email, code);
@@ -32,7 +33,9 @@ export function ConfirmSignUp() {
  navigate('/login');
  }, 2000);
  } catch (err: unknown) {
- console.error(err);
+ console.error('[ConfirmSignUp] Error:', err);
+ // Error is already set in the store by confirmSignUp
+ // Just log it here for debugging
  } finally {
  setIsLoading(false);
  }
@@ -44,9 +47,11 @@ export function ConfirmSignUp() {
  setSuccess(null);
  try {
  await resendConfirmationCode(email);
- setSuccess('A new code has been sent to your email.');
+ setSuccess('A new verification code has been sent to your email. Please check your inbox.');
+ setCode(''); // Clear the old code
  } catch (err: unknown) {
- console.error(err);
+ console.error('[ConfirmSignUp] Resend error:', err);
+ // Error is already set in the store by resendConfirmationCode
  } finally {
  setIsResending(false);
  }
