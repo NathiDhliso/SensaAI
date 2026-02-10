@@ -11,7 +11,6 @@ import { useState, useCallback, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
- BookOpen,
  LayoutDashboard,
  Zap,
  ChevronDown,
@@ -38,7 +37,7 @@ interface StudyLayoutProps {
 interface TabConfig {
  id: StudyTab;
  label: string;
- icon: typeof BookOpen;
+ icon: typeof LayoutDashboard;
  description: string;
  color: string;
 }
