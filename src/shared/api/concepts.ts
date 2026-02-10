@@ -125,14 +125,14 @@ export const conceptsApi = {
  * List all generation jobs for a user
  */
  async listJobs(userId: string): Promise<{ jobs: JobSummary[] }> {
- return apiClient.get<{ jobs: JobSummary[] }>(`/concepts/jobs?userId=${userId}`);
+ return apiClient.get<{ jobs: JobSummary[] }>(`/concepts/jobs?userId=${userId}&action=list_subjects`);
  },
  /**
  * Check status of a generation job
  */
  async getJobStatus(jobId: string, userId?: string): Promise<JobStatus> {
- const query = userId ? `?userId=${encodeURIComponent(userId)}` : '';
- const response = await apiClient.get<JobStatus>(`/concepts/jobs/${jobId}${query}`);
+ const query = userId ? `?userId=${encodeURIComponent(userId)}&action=get_job_progress&jobId=${jobId}` : `?action=get_job_progress&jobId=${jobId}`;
+ const response = await apiClient.get<JobStatus>(`/concepts${query}`);
  return response;
  },
  /**
@@ -263,4 +263,4 @@ export const conceptsApi = {
  }
  }
 };
-export type { ParsedConcept };
+export type { ParsedConcept };

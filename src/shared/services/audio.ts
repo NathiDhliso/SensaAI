@@ -105,7 +105,7 @@ class AudioManager {
  if (this.audioCache.has(src)) {
  return this.audioCache.get(src)!;
  }
- return new Promise((resolve, reject) => {
+ return new Promise((resolve, _reject) => {
  const audio = new Audio(src);
  audio.preload = 'auto';
  audio.addEventListener('canplaythrough', () => {
