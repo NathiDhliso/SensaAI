@@ -48,12 +48,6 @@ const CENTER = { x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 };
 const MIN_NODE_SPACING = 150; // Minimum spacing between node edges (in pixels)
 export default function SensaSynopticView({ concepts, subjectName }: SensaSynopticViewProps) {
  const { isScholarly } = useVisualTheme();
- console.log(`\n [SensaSynopticView] Rendering with ${concepts.length} concepts`);
- console.log(` Subject: "${subjectName}"`);
- console.log(` First 5 concept names:`);
- concepts.slice(0, 5).forEach((c, i) => {
- console.log(` ${i + 1}. "${c.name}" (tier: ${c.tier}, phase: ${c.lifecyclePhase})`);
- });
  const [selectedId, setSelectedId] = useState<string | null>(null);
  const [focusedTier, setFocusedTier] = useState<'root' | 'trunk' | 'leaf' | null>(null);
  const [showHelp, setShowHelp] = useState(false);
@@ -608,7 +602,7 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
  </div>
  )}
  {/* Memory Anchor - only show if metaphors enabled and real content */}
- {selectedConceptContent.visualAnchor && selectedConcept?.mnemonic && isRealContent(selectedConcept.mnemonic.story, selectedConcept.name) && (
+ {selectedConcept?.mnemonic && isRealContent(selectedConcept.mnemonic.story, selectedConcept.name) && (
  <div className={styles.section}>
  <h4><Anchor size={16} /> Memory Anchor</h4>
  <p>{selectedConcept.mnemonic.story}</p>
@@ -645,4 +639,4 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
  </div>
  </div>
  );
-}
+}

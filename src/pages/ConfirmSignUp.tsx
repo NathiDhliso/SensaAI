@@ -15,7 +15,7 @@ export function ConfirmSignUp() {
  const [isResending, setIsResending] = useState(false);
  const [error, setError] = useState<string | null>(null);
  const [success, setSuccess] = useState<string | null>(null);
- const { isScholarly } = useVisualTheme();
+ const { isScholarly: _isScholarly } = useVisualTheme();
  const storeError = useAuthStore(state => state.error);
  const handleSubmit = async (e: FormEvent) => {
  e.preventDefault();
@@ -176,4 +176,4 @@ export function ConfirmSignUp() {
  </motion.div>
  </div>
  );
-}
+}

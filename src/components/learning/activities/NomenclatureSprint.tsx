@@ -54,7 +54,7 @@ export function NomenclatureSprint({
  .slice(0, 15)
  .map(c => {
  const hasAction = c.howToUse && c.howToUse.length > 0;
- const useAnchor = !hasAction || Math.random() > 0.5;
+ const useAnchor = !hasAction || c.id.charCodeAt(0) % 2 === 0;
  return {
  id: c.id,
  term: c.name,
@@ -79,11 +79,9 @@ export function NomenclatureSprint({
  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
  useEffect(() => {
  if (!currentPair) {
- // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid initialization when currentPair changes
- setShuffledOptions([]);
+ setShuffledOptions([]); // eslint-disable-line react-hooks/set-state-in-effect
  return;
  }
- // Get 3 wrong options + 1 correct
  const wrongOptions = shuffleArray(
  matchPairs.filter(p => p.id !== currentPair.id)
  )
@@ -309,4 +307,4 @@ export function NomenclatureSprint({
  </motion.div>
  );
 }
-export default NomenclatureSprint;
+export default NomenclatureSprint;

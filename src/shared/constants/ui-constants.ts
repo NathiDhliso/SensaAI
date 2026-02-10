@@ -129,6 +129,14 @@ export const UI_TIMINGS = {
  // Drill timings
  CONFUSION_QUESTION_MS: 15000, // 15 seconds per confusion drill question
  MASTERY_TIME_SECONDS: 600, // 10 minutes for mastery challenge
+ // Activity completion delays
+ ACTIVITY_COMPLETE: 2000, // Delay before calling onComplete after activity ends
+ ACTIVITY_RESULT_CLEAR: 3000, // Delay before clearing activity result
+ ACTIVITY_FEEDBACK: 2500, // Delay for showing feedback before advancing
+ OBJECTIVE_SAVED_RESET: 2500, // Delay before resetting "objectives saved" state
+ // Auth redirect delays
+ AUTH_REDIRECT: 1000, // Delay before redirecting to login
+ RECOVERY_REDIRECT: 2000, // Delay before redirecting after recovery
 } as const;
 /**
  * Diagnostic configuration constants
@@ -269,4 +277,4 @@ export const KNOWLEDGE_WARMTH = {
  COOL_THRESHOLD_HOURS: 168,
  /** Cold: Last recall over 7 days ago (triggers Prime Refresh) */
 } as const;
-export type KnowledgeWarmthLevel = 'hot' | 'warm' | 'cool' | 'cold';
+export type KnowledgeWarmthLevel = 'hot' | 'warm' | 'cool' | 'cold';

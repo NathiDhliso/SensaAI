@@ -30,6 +30,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
  goggins: {
  id: 'goggins',
  name: 'David Goggins',
+ emoji: '',
  tagline: "Stay hard! No excuses.",
  description: "Intense motivation. Pushes you through comfort zones. No shortcuts.",
  voiceStyle: "commanding, intense, no-nonsense",
@@ -49,6 +50,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
  sage: {
  id: 'sage',
  name: 'Calm Sage',
+ emoji: '',
  tagline: "Wisdom through patience.",
  description: "Gentle guidance. Patient explanations. Celebrates small wins.",
  voiceStyle: "calm, measured, reassuring",
@@ -67,6 +69,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
  socratic: {
  id: 'socratic',
  name: 'Socratic Guide',
+ emoji: '',
  tagline: "The answer is within you.",
  description: "Never gives answers. Asks questions that lead to insight.",
  voiceStyle: "curious, probing, thoughtful",
@@ -85,6 +88,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
  coach: {
  id: 'coach',
  name: 'Sports Coach',
+ emoji: '',
  tagline: "Let's go team!",
  description: "High energy. Celebrates victories. Keeps you pumped.",
  voiceStyle: "energetic, encouraging, team-oriented",
@@ -103,6 +107,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
  buddy: {
  id: 'buddy',
  name: 'Study Buddy',
+ emoji: '',
  tagline: "We're in this together!",
  description: "Casual and friendly. Like studying with a smart friend.",
  voiceStyle: "casual, friendly, relatable",
@@ -542,4 +547,4 @@ export function getPersonaVoiceLines(personaId: PersonaId): Array<{
  }
  }
  return lines;
-}
+}

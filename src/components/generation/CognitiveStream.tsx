@@ -20,7 +20,6 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
  const [thought, setThought] = useState('');
  useEffect(() => {
  if (!isGenerating) {
- // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid reset when not generating
  setThought("SYSTEM_READY :: WAITING_FOR_INPUT");
  return;
  }
@@ -114,6 +113,7 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
  pickNextThought();
  const intervalId = setInterval(pickNextThought, intervalTime);
  return () => clearInterval(intervalId);
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [pass, intensity, isGenerating, subjectType]);
  return (
  <div className={styles.cognitiveStreamContainer}>
@@ -155,4 +155,4 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
  </div>
  </div>
  );
-};
+};

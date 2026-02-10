@@ -53,7 +53,7 @@ export function useMetaphorContent(concept: LearningConcept | null): AdaptedCont
  // For simple complexity, try to extract just the core metaphor
  const fullAnalogy = concept.shape.analogicalModel;
  // Look for patterns like "Think of X like Y:" and extract the Y part
- const simpleMatch = fullAnalogy.match(/think of .+ like (.+?)[:\.]/i);
+ const simpleMatch = fullAnalogy.match(/think of .+ like (.+?)[:.]/i);
  analogicalModel = simpleMatch ? simpleMatch[1] : fullAnalogy;
  } else {
  // Rich complexity - show full analogical model

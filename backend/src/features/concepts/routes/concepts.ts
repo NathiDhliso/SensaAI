@@ -177,7 +177,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
  console.error('[Backend /generate] Lambda returned error:', invokeResponse.FunctionError);
  throw new Error(`Lambda invocation failed: ${invokeResponse.FunctionError}`);
  }
- } catch (lambdaError: any) {
+ } catch (lambdaError: unknown) {
  console.error('[Backend /generate] Lambda invocation error:', lambdaError);
  // Mark job as failed
  await docClient.send(new PutCommand({
@@ -188,7 +188,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
  sessionId,
  subject,
  status: 'failed',
- error: `Lambda invocation failed: ${lambdaError.message}`,
+ error: `Lambda invocation failed: ${lambdaError instanceof Error ? lambdaError.message : String(lambdaError)}`,
  createdAt: Math.floor(Date.now() / 1000),
  expiresAt: Math.floor(Date.now() / 1000) + 86400
  }
@@ -234,14 +234,15 @@ conceptsRouter.get('/jobs', async (req: AuthenticatedRequest, res: Response) => 
  // Sort by createdAt desc
  jobs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
  res.json({ jobs });
- } catch (error: any) {
+ } catch (error: unknown) {
+ const errMsg = error instanceof Error ? error.message : String(error);
+ const errStack = error instanceof Error ? error.stack : undefined;
  console.error('[Backend /jobs] ERROR:', error);
- // Debug logging
  try {
  const fs = await import('fs');
- fs.appendFileSync('debug_jobs_error.txt', `[${new Date().toISOString()}] ${error.message}\nStack: ${error.stack}\n`);
+ fs.appendFileSync('debug_jobs_error.txt', `[${new Date().toISOString()}] ${errMsg}\nStack: ${errStack}\n`);
  } catch (e) { console.error('Failed to write debug log', e); }
- res.status(500).json({ error: 'Failed to list jobs', details: error.message });
+ res.status(500).json({ error: 'Failed to list jobs', details: errMsg });
  }
 });
 // Get job status
@@ -326,7 +327,7 @@ conceptsRouter.post('/repair', async (req: AuthenticatedRequest, res: Response) 
  const lambdaBody = JSON.parse(responsePayload.body);
  console.log('[Backend /repair] Repair completed successfully');
  res.json(lambdaBody.concept);
- } catch (lambdaError: any) {
+ } catch (lambdaError: unknown) {
  console.error('[Backend /repair] Lambda invocation error:', lambdaError);
  throw lambdaError;
  }
@@ -357,4 +358,4 @@ conceptsRouter.delete('/:jobId', async (req: AuthenticatedRequest, res: Response
  console.error('[Backend DELETE /concepts/:jobId] ERROR:', error);
  res.status(500).json({ error: 'Failed to delete job' });
  }
-});
+});

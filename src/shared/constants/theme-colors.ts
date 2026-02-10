@@ -47,7 +47,18 @@ export const COLORS = {
  },
  // Base colors
  white: '#ffffff',
- black: '#000000'
+ black: '#000000',
+ // Certificate colors (canvas fallbacks)
+ cert: {
+ bg: '#fdfcfb',
+ border: '#1e293b',
+ borderInner: '#cbd5e1',
+ heading: '#0f172a',
+ subtext: '#475569',
+ muted: '#64748b',
+ divider: '#94a3b8',
+ badgeBg: '#f1f5f9'
+ }
 } as const;
 // ============================================
 // CATEGORY COLORS (for Home.tsx categories)
@@ -171,4 +182,4 @@ export function hexToRgba(hex: string, alpha: number): string {
  const g = parseInt(hex.slice(3, 5), 16);
  const b = parseInt(hex.slice(5, 7), 16);
  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+}

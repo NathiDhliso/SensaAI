@@ -93,6 +93,7 @@ export default function VelocityLearning() {
  const confidence = currentSession.macroWorkflow?.classification?.confidence;
  sensaFlow.initializeFromClassification(currentSession.subjectType, confidence);
  }
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [currentSession?.subjectType]);
  const selectionReason = useMemo(() => {
  if (!activeConcept || !currentSession) return null;
@@ -142,6 +143,7 @@ export default function VelocityLearning() {
  toast.success(`Resumed from where you left off (${age})`, { duration: 4000 });
  }
  }
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [currentSession?.id]);
  useEffect(() => {
  if (currentPhase === 'PRIME' && lockedIn) {
@@ -154,6 +156,7 @@ export default function VelocityLearning() {
  }, UI_TIMINGS.DELAY_SHORT);
  return () => clearTimeout(timer);
  }
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [currentPhase, lockedIn, startStudySession, currentSession]);
  // Momentum Checkpoint: Show time toast when goal exceeded
  useEffect(() => {
@@ -601,8 +604,7 @@ export default function VelocityLearning() {
  </motion.div>
  );
  case 'COMPLETE':
- default:
- // Check if user has actually completed any concepts
+ default: {
  const hasCompletedConcepts = (currentSession?.progress?.completedConcepts?.length ?? 0) > 0;
  const hasStartedSession = studySession !== null;
  // For explore mode (stressed users): Show calming browse experience
@@ -661,11 +663,6 @@ export default function VelocityLearning() {
  streakCount={flowState.streakCount}
  onReturnHome={handleReturnToDashboard}
  onReviewConcepts={() => {
- console.log('[VelocityLearning] Review Concepts clicked', {
- currentSession,
- subjectId: currentSession?.subjectId,
- id: currentSession?.id
- });
  const targetId = currentSession?.subjectId || currentSession?.id;
  if (targetId) {
  navigate(`/study/${targetId}?tab=overview`);
@@ -694,6 +691,7 @@ export default function VelocityLearning() {
  </div>
  </div>
  );
+ }
  }
  }
 }

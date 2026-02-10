@@ -46,7 +46,7 @@ export default function MetaphorToggle({
  // Track usage for analytics
  trackMetaphorUsage('quick_toggle', newSettings.showAnalogies ? 'enabled' : 'disabled');
  };
- const handleSettingChange = (key: keyof MetaphorSettings, value: any) => {
+ const handleSettingChange = (key: keyof MetaphorSettings, value: MetaphorSettings[keyof MetaphorSettings]) => {
  const newSettings = { ...settings, [key]: value };
  setSettings(newSettings);
  updateMetaphorSettings(newSettings);

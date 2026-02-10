@@ -1,6 +1,6 @@
 import { useThemeStore } from '@/store/theme-store';
 
-const EMOJI_REGEX = /[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\uFE0F]/gu;
+const EMOJI_REGEX = /\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u200D|\uFE0F/gu;
 
 export function useVisualTheme() {
  const visualTheme = useThemeStore((s) => s.visualTheme);

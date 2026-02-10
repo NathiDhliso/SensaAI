@@ -7,7 +7,7 @@ export function errorHandler(
  err: ErrorWithStatus,
  req: Request,
  res: Response,
- next: NextFunction
+ _next: NextFunction
 ): void {
  const statusCode = err.statusCode || 500;
  const message = err.isOperational ? err.message : 'Internal server error';
@@ -31,4 +31,4 @@ export class AppError extends Error {
  this.isOperational = true;
  Error.captureStackTrace(this, this.constructor);
  }
-}
+}

@@ -87,7 +87,6 @@ export const EXPECTED_DURATIONS = {
  * @param h - Ceiling cap (default 1.0)
  * @returns The mastery index I (0-1) - Information absorbed
  */
- */
 export function calculateMasteryIndex(
  G: number,
  Q_P: number,

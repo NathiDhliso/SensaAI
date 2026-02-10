@@ -92,7 +92,7 @@ class SyncEngineClass {
  ): SyncResult<UserProgress> {
  const conflicts: SyncConflict[] = [];
  let localWins = 0;
- let cloudWins = 0;
+ const cloudWins = 0;
  // Handle null cases
  if (!local && !cloud) {
  throw new Error('Cannot merge: both local and cloud are null');
@@ -377,4 +377,4 @@ class SyncEngineClass {
 // EXPORTS
 // ============================================================================
 export const SyncEngine = SyncEngineClass.getInstance();
-export default SyncEngine;
+export default SyncEngine;

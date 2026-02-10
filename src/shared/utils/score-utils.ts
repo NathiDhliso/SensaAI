@@ -62,7 +62,6 @@ export function determineStatus(
  if (normalized >= 0.8) {
  // High score, but if verification failed, downgrade to needs-review
  if (verified === false) {
- console.log('[ScoreUtils] High score but verification failed, downgrading to needs-review');
  return 'needs-review';
  }
  return 'mastered';

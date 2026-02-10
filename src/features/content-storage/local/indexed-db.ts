@@ -373,11 +373,6 @@ class IndexedDBStorage implements StorageProvider {
  return false;
  }
  const isPersisted = await navigator.storage.persist();
- if (isPersisted) {
- console.log('[IndexedDB] Storage is now persistent');
- } else {
- console.log('[IndexedDB] Persistent storage request denied by browser');
- }
  return isPersisted;
  } catch (error) {
  console.error('[IndexedDB] Failed to request persistent storage:', error);
@@ -401,7 +396,6 @@ class IndexedDBStorage implements StorageProvider {
  if (!quotaInfo || quotaInfo.usagePercent <= targetUsagePercent) {
  return 0; // No eviction needed
  }
- console.log(`[IndexedDB] Running eviction policy. Current: ${quotaInfo.usagePercent.toFixed(1)}%, Target: ${targetUsagePercent}%`);
  let evictedCount = 0;
  const now = Date.now();
  const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
@@ -439,12 +433,6 @@ class IndexedDBStorage implements StorageProvider {
  break;
  }
  }
- }
- console.log(`[IndexedDB] Eviction complete. ${evictedCount} items removed.`);
- // Log final state
- const finalQuota = await this.checkStorageQuota();
- if (finalQuota) {
- console.log(`[IndexedDB] Final usage: ${finalQuota.usagePercent.toFixed(1)}%`);
  }
  return evictedCount;
  } catch (error) {
@@ -487,4 +475,4 @@ class IndexedDBStorage implements StorageProvider {
  }
 }
 export const indexedDBStorage = new IndexedDBStorage();
-export { IndexedDBStorage };
+export { IndexedDBStorage };

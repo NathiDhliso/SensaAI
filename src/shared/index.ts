@@ -57,7 +57,6 @@ export type {
 export * from './hooks/useBackgroundJobRecovery';
 export * from './hooks/useClickOutside';
 export * from './hooks/useCollisionDetection';
-export * from './hooks/useContent';
 export * from './hooks/useCountdownTimer';
 export * from './hooks/useEscapeKey';
 export * from './hooks/useFlowState';
@@ -78,4 +77,4 @@ export * from './constants/theme-colors';
 export * from './constants/ui-constants';
 export * from './constants/z-index';
 // Services
-export * from './services/audio';
+export * from './services/audio';

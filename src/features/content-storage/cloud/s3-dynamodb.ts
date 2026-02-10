@@ -253,11 +253,7 @@ export class CloudStorage implements StorageProvider {
  return localProgress;
  }
  // 4. Merge using SyncEngine
- const { merged, conflicts } = SyncEngine.mergeUserData(localProgress, cloudProgress);
- // Log conflicts for debugging
- if (conflicts.length > 0) {
- console.log('[CloudStorage] Sync conflicts resolved:', conflicts);
- }
+ const { merged } = SyncEngine.mergeUserData(localProgress, cloudProgress);
  // 5. Save merged data back to cloud
  await this.saveUserProgress(userId, subjectId, merged);
  return merged;
@@ -378,4 +374,4 @@ export class CloudStorage implements StorageProvider {
  }
  }
 }
-export const cloudStorage = new CloudStorage();
+export const cloudStorage = new CloudStorage();

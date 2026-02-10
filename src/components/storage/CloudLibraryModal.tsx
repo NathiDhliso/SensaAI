@@ -28,7 +28,7 @@ interface ToastState {
 function WarmthBadge({ subjectId }: { subjectId: string }) {
  const tracker = getMetricsTracker();
  const warmth = tracker.getKnowledgeWarmth(subjectId);
- const { isScholarly } = useVisualTheme();
+ const { isScholarly: _isScholarly } = useVisualTheme();
  const config = {
  hot: { label: 'Hot', className: styles.warmthHot },
  warm: { label: 'Warm', className: styles.warmthWarm },

@@ -39,9 +39,7 @@ export class StorageManager {
  try {
  // 1. Get job status to know subject and session
  const authUserId = useAuthStore.getState().user?.id;
- console.log('[StorageManager] loadResult called with id:', id, 'authUserId:', authUserId);
  const jobStatus = await conceptsApi.getJobStatus(id, authUserId);
- console.log('[StorageManager] Job status response:', JSON.stringify(jobStatus, null, 2));
  if (!jobStatus || jobStatus.status === 'failed') {
  console.error('[StorageManager] Job not found or failed:', id);
  return null;
@@ -49,19 +47,16 @@ export class StorageManager {
  const resolvedUserId = jobStatus.userId || authUserId;
  const resolvedSessionId = jobStatus.sessionId || jobStatus.jobId || id;
  const resolvedSubject = jobStatus.subject || 'Study Session';
- console.log('[StorageManager] Resolved IDs - userId:', resolvedUserId, 'sessionId:', resolvedSessionId, 'subject:', resolvedSubject);
  if (!resolvedUserId) {
  console.warn('[StorageManager] No userId available for loadResult:', id);
  }
  // 2. Fetch all concepts
  // We need to fetch all tiers to reconstruct the document
- console.log(`[StorageManager] Fetching concepts for userId="${resolvedUserId}" sessionId="${resolvedSessionId}"`);
  const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'root'),
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'trunk'),
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'leaf')
  ]);
- console.log(`[StorageManager] Tier counts - root: ${rootConcepts.length}, trunk: ${trunkConcepts.length}, leaf: ${leafConcepts.length}`);
  const allConcepts = [...rootConcepts, ...trunkConcepts, ...leafConcepts];
  if (allConcepts.length === 0) {
  console.warn('[StorageManager] No concepts found for result:', id);
@@ -69,13 +64,11 @@ export class StorageManager {
  if (jobStatus.conceptCount && jobStatus.conceptCount > 0) {
  console.warn('[StorageManager] Retrying concept fetch with jobId as sessionId fallback:', id);
  const fallbackSessionId = jobStatus.jobId || id;
- console.log(`[StorageManager] Fallback query - userId="${resolvedUserId}" sessionId="${fallbackSessionId}"`);
  const [fRoot, fTrunk, fLeaf] = await Promise.all([
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'root'),
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'trunk'),
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'leaf')
  ]);
- console.log(`[StorageManager] Fallback tier counts - root: ${fRoot.length}, trunk: ${fTrunk.length}, leaf: ${fLeaf.length}`);
  allConcepts.push(...fRoot, ...fTrunk, ...fLeaf);
  }
  if (allConcepts.length === 0 && jobStatus.conceptCount && jobStatus.conceptCount > 0) {
@@ -86,7 +79,6 @@ export class StorageManager {
  sessionId: unfilteredSessionId,
  limit: 100
  });
- console.log(`[StorageManager] Unfiltered query returned ${unfiltered.count} concepts`);
  if (unfiltered.concepts.length > 0) {
  allConcepts.push(...unfiltered.concepts);
  let page = unfiltered;
@@ -99,7 +91,6 @@ export class StorageManager {
  });
  allConcepts.push(...page.concepts);
  }
- console.log(`[StorageManager] Recovered ${allConcepts.length} concepts via unfiltered query`);
  }
  }
  }
@@ -180,4 +171,4 @@ export class StorageManager {
  }
  }
 }
-export const storageManager = new StorageManager();
+export const storageManager = new StorageManager();

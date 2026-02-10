@@ -650,9 +650,6 @@ export function transformToLearningConcepts(
  stages: LearningStage[],
  fallbackConcepts: string[] = []
 ): LearningConcept[] {
- console.log(`\n [Transformer] transformToLearningConcepts called`);
- console.log(` Total parsed concepts: ${parsed.concepts.length}`);
- console.log(` Fallback concepts: ${fallbackConcepts.length}`);
  const concepts: LearningConcept[] = [];
  // SANITIZE FALLBACKS: Ideally we should fix the source, but we filter here to be safe
  const validFallbacks = fallbackConcepts.filter(name =>
@@ -771,9 +768,6 @@ export function transformToLearningConcepts(
  // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
  connections: extractSemanticConnections(parsedConcept, parsed.concepts)
  });
- // Log the final concept name
- const finalConcept = concepts[concepts.length - 1];
- console.log(` Created concept #${finalConcept.order}: "${finalConcept.name}"`);
  }
  // RECOVERY: Inject skeleton concepts for any missing names in validFallbacks
  if (validFallbacks.length > 0) {
@@ -1106,4 +1100,4 @@ export function validateSensaAIMetadata(concepts: SensaAILearningConcept[]): {
  issues,
  recommendations
  };
-}
+}

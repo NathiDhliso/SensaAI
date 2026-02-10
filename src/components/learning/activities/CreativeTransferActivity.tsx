@@ -3,6 +3,7 @@ import { Lightbulb, Rocket, CheckCircle, ArrowRight, XCircle } from 'lucide-reac
 import type { LearningConcept } from '@/shared/types/learning';
 import type { SubjectType } from '@/shared/types/macro-workflow';
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './CreativeTransferActivity.module.css';
 interface CreativeTransferActivityProps {
  concept: LearningConcept;
@@ -63,9 +64,9 @@ export function CreativeTransferActivity({ concept, subjectType, onComplete }: C
  const r = scoreTransferResponse(response, concept);
  setResult(r);
  if (r.passed) {
- setTimeout(() => onComplete(true), 2000);
+ setTimeout(() => onComplete(true), UI_TIMINGS.ACTIVITY_COMPLETE);
  } else {
- setTimeout(() => setResult(null), 3000);
+ setTimeout(() => setResult(null), UI_TIMINGS.ACTIVITY_RESULT_CLEAR);
  }
  };
  return (

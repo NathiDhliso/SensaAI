@@ -3,16 +3,16 @@
  flex-direction: column;
  gap: 0.75rem;
  padding: 1rem;
- background: var(--surface-secondary, rgba(255, 255, 255, 0.05));
+ background: var(--color-surface-secondary, rgba(255, 255, 255, 0.05));
  border-radius: 12px;
- border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+ border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
 }
 
 .header {
  display: flex;
  align-items: center;
  gap: 0.5rem;
- color: var(--text-secondary);
+ color: var(--color-text-secondary);
 }
 
 .headerTitle {
@@ -44,13 +44,13 @@
 
 .gLabel {
  font-size: 0.75rem;
- color: var(--text-secondary);
+ color: var(--color-text-secondary);
 }
 
 .gValue {
  font-size: 0.875rem;
  font-weight: 700;
- color: var(--text-primary);
+ color: var(--color-text-primary);
  display: flex;
  align-items: center;
  gap: 0.35rem;
@@ -79,7 +79,7 @@
 }
 
 .metricRow.weakest {
- background: var(--surface-tertiary, rgba(255, 255, 255, 0.03));
+ background: var(--color-surface-tertiary, rgba(255, 255, 255, 0.03));
  margin: 0 -0.5rem;
  padding: 0.35rem 0.5rem;
  border-radius: 6px;
@@ -87,7 +87,7 @@
 
 .metricLabel {
  font-size: 0.7rem;
- color: var(--text-secondary);
+ color: var(--color-text-secondary);
  min-width: 110px;
  flex-shrink: 0;
  display: flex;
@@ -107,7 +107,7 @@
 .barTrack {
  flex: 1;
  height: 6px;
- background: var(--surface-tertiary, rgba(255, 255, 255, 0.03));
+ background: var(--color-surface-tertiary, rgba(255, 255, 255, 0.03));
  border-radius: 3px;
  overflow: hidden;
 }
@@ -120,7 +120,7 @@
 .metricValue {
  font-size: 0.7rem;
  font-weight: 600;
- color: var(--text-primary);
+ color: var(--color-text-primary);
  min-width: 30px;
  text-align: right;
 }
@@ -130,7 +130,7 @@
  justify-content: space-between;
  align-items: center;
  padding-top: 0.5rem;
- border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+ border-top: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.06));
 }
 
 .efficiencyLabel {
@@ -139,7 +139,7 @@
  gap: 0.35rem;
  font-size: 0.75rem;
  font-weight: 600;
- color: var(--text-secondary);
+ color: var(--color-text-secondary);
 }
 
 .efficiencyValue {
@@ -166,7 +166,7 @@
 
 .alertText {
  font-size: 0.75rem;
- color: var(--text-secondary);
+ color: var(--color-text-secondary);
  line-height: 1.4;
  margin: 0;
 }
@@ -187,7 +187,7 @@
 
 .insightText {
  font-size: 0.7rem;
- color: var(--text-tertiary);
+ color: var(--color-text-tertiary);
  line-height: 1.4;
  margin: 0;
 }

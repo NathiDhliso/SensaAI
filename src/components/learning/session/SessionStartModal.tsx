@@ -10,7 +10,9 @@ import { MOOD_OPTIONS, type Mood } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { MOOD_COLORS } from '@/shared/constants/theme-colors';
 import GuidedPrimer from '@/components/learning/onboarding/GuidedPrimer';
+import { MOOD_GOAL_MAP } from '@/shared/constants/mood-constants';
 import styles from './SessionStartModal.module.css';
+export { MOOD_GOAL_MAP };
 interface SessionStartModalProps {
  /** Subject name */
  subjectName: string;
@@ -25,12 +27,6 @@ interface SessionStartModalProps {
  /** Optional callback to exit/go back */
  onBack?: () => void;
 }
-export const MOOD_GOAL_MAP: Record<Mood, { goal: StudyGoal; duration: number; storeMood: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired' }> = {
- energized: { goal: 'velocity', duration: 45, storeMood: 'pumped' },
- neutral: { goal: 'learn-new', duration: 30, storeMood: 'good' },
- tired: { goal: 'review', duration: 15, storeMood: 'tired' },
- stressed: { goal: 'explore', duration: 15, storeMood: 'struggling' }
-};
 export function SessionStartModal({
  subjectName,
  totalConcepts,
@@ -208,4 +204,4 @@ export function SessionStartModal({
  </div >
  );
 }
-export default SessionStartModal;
+export default SessionStartModal;

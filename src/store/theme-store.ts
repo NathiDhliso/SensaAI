@@ -43,12 +43,8 @@ export const useThemeStore = create<ThemeState & ThemeActions>()(
  set({ theme, resolvedTheme });
  },
  setVisualTheme: (visualTheme) => {
- const prev = get().visualTheme;
  applyVisualTheme(visualTheme);
  set({ visualTheme });
- if (prev !== visualTheme) {
- setTimeout(() => window.location.reload(), 50);
- }
  },
  initializeTheme: () => {
  const { theme, visualTheme } = get();
@@ -91,4 +87,4 @@ if (typeof window !== 'undefined') {
  setTimeout(() => {
  useThemeStore.getState().initializeTheme();
  }, 0);
-}
+}

@@ -220,7 +220,6 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
  */
 function FadedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamplePhaseProps) {
  const [revealStep, setRevealStep] = useState(0);
- // eslint-disable-next-line @typescript-eslint/no-unused-vars
  const [userInputs, setUserInputs] = useState<string[]>([]);
  const [startTime] = useState(() => Date.now());
  const intentMessage = sessionContext?.intent ? `Goal: ${sessionContext.intent}` : null;
@@ -707,11 +706,11 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
  { value: 4, label: 'Confident', emoji: '4' },
  { value: 5, label: 'Certain', emoji: '5' }
  ] : [
- { value: 1, label: 'Guessing' },
- { value: 2, label: 'Unsure' },
- { value: 3, label: 'Somewhat' },
- { value: 4, label: 'Confident' },
- { value: 5, label: 'Certain' }
+ { value: 1, label: 'Guessing', emoji: '' },
+ { value: 2, label: 'Unsure', emoji: '' },
+ { value: 3, label: 'Somewhat', emoji: '' },
+ { value: 4, label: 'Confident', emoji: '' },
+ { value: 5, label: 'Certain', emoji: '' }
  ];
  return (
  <motion.div
@@ -835,7 +834,7 @@ export function MicroLearningLoopController({
  if (userVelocity && userVelocity > 1.2) return 'faded-example';
  return 'worked-example';
  });
- const [loopStartTime] = useState(Date.now());
+ const [loopStartTime] = useState(() => Date.now());
  const [keyPoints, setKeyPoints] = useState<string[]>([]);
  const [sessionContext, setSessionContext] = useState<{ intent?: string; prediction?: string }>({});
  const [testResult, setTestResult] = useState<TestPhaseResult | null>(null);
@@ -845,10 +844,10 @@ export function MicroLearningLoopController({
  const [confusionQueue, setConfusionQueue] = useState<ConfusionPair[]>([]);
  const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
  // 3. Handlers
- const handleLoopCompleteInternal = (outcome: LoopOutcome) => {
+ const handleLoopCompleteInternal = useCallback((outcome: LoopOutcome) => {
  const timeSpent = (Date.now() - loopStartTime) / 1000;
  onLoopComplete(outcome, timeSpent);
- };
+ }, [loopStartTime, onLoopComplete]);
  const loopDuration = useMemo(() =>
  calculateLoopDuration(complexityScore, userVelocity),
  [complexityScore, userVelocity]
@@ -890,7 +889,7 @@ export function MicroLearningLoopController({
  if (concept.technicalDetails) points.push(concept.technicalDetails);
  // Filter duplicates and empty strings
  const uniquePoints = Array.from(new Set(points.filter(p => p && p.length > 5)));
- setKeyPoints(uniquePoints.slice(0, 7)); // Max 7 key points
+ setKeyPoints(uniquePoints.slice(0, 7)); // eslint-disable-line react-hooks/set-state-in-effect
  setSessionContext({
  intent: studySession?.primer?.reason,
  prediction: studySession?.predictions?.[concept.id]

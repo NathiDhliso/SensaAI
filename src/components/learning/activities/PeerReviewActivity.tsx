@@ -7,6 +7,7 @@ import {
  generateAIPushback,
  scoreWithAI
 } from '@/features/learning-session/activities/gym-ai-service';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './PeerReviewActivity.module.css';
 type ConversationStage = 'diagnosis' | 'pushback' | 'defense' | 'resolution';
 interface PeerReviewActivityProps {
@@ -144,7 +145,7 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  setFinalResult({ passed: false, feedback: failFeedback });
  setMessages(prev => [...prev, { sender: 'peer', text: failFeedback, icon: 'x' }]);
  setStage('resolution');
- setTimeout(() => onComplete(false), 2500);
+ setTimeout(() => onComplete(false), UI_TIMINGS.ACTIVITY_FEEDBACK);
  }
  }, [concept, misconception.correctionKeywords, fallbackPushback, onComplete]);
  const handleDefenseSubmit = useCallback(async (userText: string) => {
@@ -164,7 +165,7 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  setFinalResult({ passed: defensePassed, feedback });
  setMessages(prev => [...prev, { sender: 'peer', text: feedback, icon: defensePassed ? 'check' : 'x' }]);
  setStage('resolution');
- setTimeout(() => onComplete(defensePassed), 2500);
+ setTimeout(() => onComplete(defensePassed), UI_TIMINGS.ACTIVITY_FEEDBACK);
  }, 800);
  }, [concept, onComplete]);
  const handleSubmit = () => {

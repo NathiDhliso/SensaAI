@@ -181,7 +181,7 @@ export function useLearningFlow(): LearningFlow {
  completed.push('MASTER');
  }
  return completed;
- }, [currentSession, studySession, diagnosticSession]);
+ }, [currentSession, studySession, diagnosticSession, currentPhase]);
  // 3. Calculated Metrics
  const progress = useMemo(() => {
  if (!currentSession) return { completed: 0, total: 0, percentage: 0 };

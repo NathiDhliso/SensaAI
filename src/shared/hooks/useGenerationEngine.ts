@@ -11,6 +11,7 @@
  * @module hooks/useGenerationEngine
  */
 import { useState, useCallback, useRef } from 'react';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { useNavigate } from 'react-router-dom';
 import { generateAlias } from '@/shared/utils/alias-generator';
 import { useGenerationStore } from '@/store/generation-store';
@@ -259,7 +260,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  navigate('/');
  } else if (message.includes('401') || message.includes('Unauthorized') || message.includes('Session expired')) {
  setError('Session expired. Redirecting to login...');
- setTimeout(() => navigate('/login'), 1000);
+ setTimeout(() => navigate('/login'), UI_TIMINGS.AUTH_REDIRECT);
  } else {
  setError(message || 'Generation failed.');
  }
@@ -282,7 +283,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  if (!user?.id) {
  console.error('[Generation] No authenticated user - redirecting to login');
  setError('Please log in to generate content');
- setTimeout(() => navigate('/login'), 1000);
+ setTimeout(() => navigate('/login'), UI_TIMINGS.AUTH_REDIRECT);
  return;
  }
  const alias = generateAlias();
@@ -333,7 +334,9 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  startGeneration,
  addRecentSubject,
  handleGenerationSuccess,
- handleGenerationError
+ handleGenerationError,
+ navigate,
+ setError
  ]
  );
  /**
@@ -354,4 +357,4 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  startGenerationProcess,
  handleRetry
  };
-}
+}

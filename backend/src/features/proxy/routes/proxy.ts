@@ -30,7 +30,7 @@ proxyRouter.get('/exam-objectives', async (req: Request, res: Response) => {
  let url: URL;
  try {
  url = new URL(targetUrl);
- } catch (urlError) {
+ } catch (_urlError) {
  console.error('[Proxy] Invalid URL:', targetUrl);
  res.status(400).json({ error: 'Invalid URL' });
  return;
@@ -132,4 +132,4 @@ proxyRouter.get('/exam-objectives', async (req: Request, res: Response) => {
  details: error instanceof Error ? error.message : String(error)
  });
  }
-});
+});

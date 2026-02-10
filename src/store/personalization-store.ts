@@ -123,10 +123,7 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
  updateMetaphorSettings: (settings) => {
  set({ metaphorSettings: settings });
  },
- trackMetaphorUsage: (action, value) => {
- if (import.meta.env.DEV) {
- console.debug('[MetaphorAnalytics]', { action, value, timestamp: Date.now() });
- }
+ trackMetaphorUsage: (_action, _value) => {
  },
  // Graduation Actions
  updateGraduationScore: (conceptId, score) => {

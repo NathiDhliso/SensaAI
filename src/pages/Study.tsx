@@ -116,14 +116,13 @@ export default function Study() {
  setHydrationError(null);
  try {
  // Attempt 1: Load from storage using the ID directly
- let result = await storageManager.loadResult(subjectId);
+ const result = await storageManager.loadResult(subjectId);
  // Attempt 2: Check if it's an active job (generation in progress)
  if (!result) {
  const { hasActiveJob, getActiveJob } = useGenerationStore.getState();
  if (hasActiveJob()) {
  const activeJob = getActiveJob();
  if (activeJob?.sessionId === subjectId || activeJob?.jobId === subjectId) {
- console.log('[Study] Found active generation job, waiting...');
  setHydrationError('GENERATION_IN_PROGRESS');
  return;
  }
@@ -158,7 +157,6 @@ export default function Study() {
  setHydrationError(`PARSE_ERROR: ${loadResult.error}`);
  // Retry logic for transient errors
  if (retryCount < MAX_RETRIES) {
- console.log(`[Study] Retrying hydration (${retryCount + 1}/${MAX_RETRIES})...`);
  setTimeout(() => {
  setRetryCount(prev => prev + 1);
  setIsHydrating(false);
@@ -173,7 +171,6 @@ export default function Study() {
  console.error('[Study] Failed to load from storage:', error);
  // Retry logic for network/storage errors
  if (retryCount < MAX_RETRIES) {
- console.log(`[Study] Retrying after error (${retryCount + 1}/${MAX_RETRIES})...`);
  setTimeout(() => {
  setRetryCount(prev => prev + 1);
  setIsHydrating(false);
@@ -186,6 +183,7 @@ export default function Study() {
  }
  };
  hydrateFromStorage();
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [subjectId, currentSession?.id, currentSession?.subjectId, retryCount]);
  // Start learning session on mount
  useEffect(() => {
@@ -538,4 +536,4 @@ export default function Study() {
  <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
  </>
  );
-}
+}

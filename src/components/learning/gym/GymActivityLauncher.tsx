@@ -72,14 +72,20 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
 
  const selectedConcept = concepts.find(c => c.id === selectedConceptId) || null;
 
+ const handleBackToGym = useCallback(() => {
+ if (subjectId) {
+ navigate(`/launchpad/${subjectId}`);
+ } else {
+ onBack();
+ }
+ }, [subjectId, navigate, onBack]);
+
  const handleComplete = useCallback((passed: boolean) => {
  setResult({ passed });
  setPhase('result');
 
- // Auto-advance after 3 seconds if passed
  if (passed) {
  setTimeout(() => {
- // Auto-select next concept and restart
  const currentIndex = concepts.findIndex(c => c.id === selectedConceptId);
  const nextConcept = concepts[currentIndex + 1];
 
@@ -88,26 +94,16 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
  setResult(null);
  setPhase('active');
  } else {
- // All concepts done, go back to gym
  handleBackToGym();
  }
  }, 3000);
  }
- }, [concepts, selectedConceptId]);
+ }, [concepts, selectedConceptId, handleBackToGym]);
 
  const handleRetry = useCallback(() => {
  setResult(null);
  setPhase('active');
- // Keep the same concept selected for retry
  }, []);
-
- const handleBackToGym = useCallback(() => {
- if (subjectId) {
- navigate(`/launchpad/${subjectId}`);
- } else {
- onBack();
- }
- }, [subjectId, navigate, onBack]);
 
  const renderActivity = () => {
  switch (activity) {

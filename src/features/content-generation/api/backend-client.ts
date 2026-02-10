@@ -168,17 +168,11 @@ export async function generateWithBackend(
  message: 'Fetching foundation concepts...',
  progress: 65
  });
- console.log('[Backend Generator] Fetching concepts with:', { userId, sessionId });
  const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
  conceptsApi.getAllByTier(userId, sessionId, 'root'),
  conceptsApi.getAllByTier(userId, sessionId, 'trunk'),
  conceptsApi.getAllByTier(userId, sessionId, 'leaf')
  ]);
- console.log('[Backend Generator] Tier results:', {
- root: rootConcepts?.length ?? 0,
- trunk: trunkConcepts?.length ?? 0,
- leaf: leafConcepts?.length ?? 0
- });
  allConcepts = [
  ...(rootConcepts || []),
  ...(trunkConcepts || []),
@@ -193,15 +187,8 @@ export async function generateWithBackend(
  sessionId,
  limit: 100
  });
- console.log('[Backend Generator] Unfiltered fetch:', {
- count: unfilteredResponse.count,
- hasMore: unfilteredResponse.hasMore,
- firstConcept: unfilteredResponse.concepts[0]?.name,
- firstTier: unfilteredResponse.concepts[0]?.tier
- });
  if (unfilteredResponse.concepts.length > 0) {
  allConcepts = unfilteredResponse.concepts;
- console.log(`[Backend Generator] Recovered ${allConcepts.length} concepts via unfiltered query`);
  } else {
  console.error('[Backend Generator] No concepts generated');
  clearActiveJob();
@@ -232,7 +219,7 @@ export async function generateWithBackend(
  progress: 90
  });
  // Convert concepts to the full document format
- let fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
+ const fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
  ...c,
  tier: c.tier || 'leaf'
  })), jobClassification);

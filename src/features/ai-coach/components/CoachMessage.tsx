@@ -6,7 +6,7 @@
  */
 import { Volume2, VolumeX } from 'lucide-react';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import { getAllPersonas } from '@/features/ai-coach';
+import { getAllPersonas, type PersonaId } from '@/features/ai-coach';
 import { useVoice } from '@/features/ai-coach/voice/useVoice';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './CoachMessage.module.css';
@@ -40,7 +40,7 @@ export default function CoachMessage({
  }
  try {
  // Pass persona ID for better voice matching
- await play(message, activePersonaId as any);
+ await play(message, activePersonaId as PersonaId);
  } catch (error) {
  console.error('Voice playback failed:', error);
  }

@@ -101,7 +101,6 @@ export function loadSessionProgress(sessionId: string): SessionProgressData | nu
  // Check expiry
  const age = Date.now() - data.timestamp;
  if (age > EXPIRY_MS) {
- console.log('[SessionProgress] Progress expired (age:', Math.round(age / 1000 / 60), 'minutes)');
  deleteSessionProgress(sessionId);
  return null;
  }
@@ -161,9 +160,6 @@ export function cleanupExpiredProgress(): number {
  cleaned++;
  }
  }
- if (cleaned > 0) {
- console.log('[SessionProgress] Cleaned up', cleaned, 'expired sessions');
- }
  } catch (error) {
  console.error('[SessionProgress] Failed to cleanup:', error);
  }
@@ -183,4 +179,4 @@ export function getProgressAge(sessionId: string): string | null {
  if (ageHours < 24) return `${ageHours} hour${ageHours > 1 ? 's' : ''} ago`;
  const ageDays = Math.floor(ageHours / 24);
  return `${ageDays} day${ageDays > 1 ? 's' : ''} ago`;
-}
+}

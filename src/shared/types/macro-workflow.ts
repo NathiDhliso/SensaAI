@@ -1,3 +1,5 @@
+import { COLORS } from '@/shared/constants/theme-colors';
+
 export type SubjectType = 'procedural' | 'conceptual' | 'cyclic' | 'perceptual';
 
 export type SubjectTypeLabel = 'Procedural Mastery' | 'Conceptual Fluency' | 'Adaptive Integration' | 'Embodied Judgment';
@@ -122,22 +124,26 @@ export const SUBJECT_TYPE_META: Record<SubjectType, {
 }> = {
  procedural: {
  label: 'Procedural Mastery',
- color: '#3b82f6',
+ icon: 'A',
+ color: COLORS.info,
  description: 'Execute a repeatable process on defined objects'
  },
  conceptual: {
  label: 'Conceptual Fluency',
- color: '#8b5cf6',
+ icon: 'B',
+ color: COLORS.accent.light,
  description: 'Wield a toolkit of moves across unpredictable contexts'
  },
  cyclic: {
  label: 'Adaptive Integration',
- color: '#10b981',
+ icon: 'C',
+ color: COLORS.secondary.sage,
  description: 'Fluidly combine modes based on context'
  },
  perceptual: {
  label: 'Embodied Judgment',
- color: '#f59e0b',
+ icon: 'D',
+ color: COLORS.secondary.amber,
  description: 'Develop tacit discernment that transcends rules'
  }
 };

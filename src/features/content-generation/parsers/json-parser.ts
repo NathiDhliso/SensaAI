@@ -728,7 +728,6 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  const order = typeof c.order === 'number' ? c.order : 1;
  const name = typeof c.name === 'string' ? c.name : 'Unknown Concept';
  // Simple logging - the prompt should now generate proper names
- console.log(`[Parser] Processing concept #${order}: "${name}"`);
  // Extract lifecycle phases - check BOTH lifecycle.phase1 AND root-level phase1
  let hookSentence = '';
  let microMetaphor = '';

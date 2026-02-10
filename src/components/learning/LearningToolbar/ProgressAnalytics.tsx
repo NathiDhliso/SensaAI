@@ -25,7 +25,7 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
  const spacing = getSpacingEngine();
  const due = spacing.getDueReviews();
  const upcoming = spacing.getUpcomingReviews(7);
- setSpacingReviews([...due, ...upcoming].slice(0, 8));
+ setSpacingReviews([...due, ...upcoming].slice(0, 8)); // eslint-disable-line react-hooks/set-state-in-effect
  } catch { /* spacing not initialized */ }
  }, [isOpen]);
  const stats = useMemo(() => {
@@ -56,9 +56,10 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
  maxCount
  };
  }, [concepts, stages, progress]);
+ const [reviewSnapshotTime] = useState(() => Date.now());
  const dueForReview = useMemo(() => {
  if (spacingReviews.length > 0) {
- const now = Date.now();
+ const now = reviewSnapshotTime;
  return spacingReviews.slice(0, 5).map(review => {
  const dueMs = new Date(review.dueDate).getTime();
  const diffDays = Math.max(0, Math.round((dueMs - now) / (1000 * 60 * 60 * 24)));
@@ -77,7 +78,7 @@ export function ProgressAnalytics({ isOpen, onClose }: ProgressAnalyticsProps) {
  dueIn: idx
  };
  });
- }, [spacingReviews, progress?.completedConcepts, concepts]);
+ }, [spacingReviews, progress?.completedConcepts, concepts, reviewSnapshotTime]);
  if (!isOpen) return null;
  return (
  <div className={styles.overlay} onClick={onClose}>

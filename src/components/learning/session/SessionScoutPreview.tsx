@@ -52,7 +52,7 @@ const STEPS_ORDER: ExploreStep[] = ['structure', 'sprint', 'prime'];
 // Helper component for concept chips that respects metaphor settings
 const ConceptChip = ({ concept, className }: { concept: LearningConcept; className: string }) => {
  const adaptedContent = useMetaphorContent(concept);
- const { isScholarly } = useVisualTheme();
+ useVisualTheme();
  return (
  <motion.div
  className={className}
@@ -61,9 +61,9 @@ const ConceptChip = ({ concept, className }: { concept: LearningConcept; classNa
  transition={{ delay: 0.1 }}
  whileHover={{ scale: 1.02 }}
  >
- {adaptedContent.visualAnchor && (
+ {adaptedContent.hookSentence && (
  <span className={styles.chipIcon}>
- {adaptedContent.visualAnchor}
+ {adaptedContent.hookSentence.charAt(0)}
  </span>
  )}
  <span className={styles.chipName}>{concept.name}</span>

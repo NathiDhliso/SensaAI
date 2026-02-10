@@ -157,9 +157,6 @@ export const createNavigationSlice: StateCreator<
  console.warn('[Navigation] SpacingEngine integration error:', e);
  }
  }
- if (status === 'skipped') {
- console.log(`[Navigation] Intervention needed for concept ${conceptId} (score: ${normalizedScore.toFixed(2)})`);
- }
  // Trigger celebrations
  if (allStageConceptsComplete) {
  const allStagesComplete = stages.every((s) => newCompletedStages.includes(s.id));
@@ -169,7 +166,8 @@ export const createNavigationSlice: StateCreator<
  title: 'Course Complete!',
  message: "Congratulations! You've mastered all the core concepts!",
  conceptsCompleted: newCompletedConcepts,
- timeSpent: currentProgress.totalTimeSpentMinutes
+ timeSpent: currentProgress.totalTimeSpentMinutes,
+ badgeIcon: 'trophy'
  });
  } else {
  get().triggerCelebration({
@@ -259,7 +257,6 @@ export const createNavigationSlice: StateCreator<
  }
  // EXIT CONDITION: No more available concepts
  // All concepts are either completed or have reached max attempts
- console.log('[Navigation] No more available concepts - all completed or max attempts reached');
  return null;
  },
  getPreviousConcept: () => {
@@ -305,4 +302,4 @@ export const createNavigationSlice: StateCreator<
  isExploreMode: false
  });
  }
-});
+});

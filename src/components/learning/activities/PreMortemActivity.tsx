@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import { generateAIBrokenConfig } from '@/features/learning-session/activities/gym-ai-service';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './PreMortemActivity.module.css';
 
 interface PreMortemActivityProps {
@@ -95,7 +96,7 @@ export default function PreMortemActivity({ concept, onComplete }: PreMortemActi
  setResolved(true);
 
  const correct = index === config.alteredIndex;
- setTimeout(() => onComplete(correct), 3000);
+ setTimeout(() => onComplete(correct), UI_TIMINGS.ACTIVITY_RESULT_CLEAR);
  };
 
  const isCorrect = selectedIndex === config.alteredIndex;

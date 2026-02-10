@@ -325,7 +325,6 @@ export default function GuidedPrimer({
  className={`${styles.chip} ${reason === chip.label ? styles.chipSelected : ''}`}
  onClick={() => handleChipSelect(chip.label, 'reason')}
  >
- {chip.icon && <span>{chip.icon}</span>}
  <span>{chip.label}</span>
  </button>
  ))}
@@ -379,7 +378,6 @@ export default function GuidedPrimer({
  className={`${styles.chip} ${action === chip.label ? styles.chipSelected : ''}`}
  onClick={() => handleChipSelect(chip.label, 'action')}
  >
- {chip.icon && <span>{chip.icon}</span>}
  <span>{chip.label}</span>
  </button>
  ))}
@@ -433,7 +431,6 @@ export default function GuidedPrimer({
  className={`${styles.chip} ${reward === chip.label ? styles.chipSelected : ''}`}
  onClick={() => handleChipSelect(chip.label, 'reward')}
  >
- {chip.icon && <span>{chip.icon}</span>}
  <span>{chip.label}</span>
  </button>
  ))}
@@ -576,4 +573,4 @@ export default function GuidedPrimer({
  </AnimatePresence>
  </div>
  );
-}
+}

@@ -30,7 +30,7 @@ const EXAM_SKIP_PATTERNS = [
  /^(choose|select|pick|mark|circle|indicate|identify which|tick)\s+(the|all|one|two|three|correct|best|most)/i,
  /^(instructions?|directions?|read|note|time allowed|duration|attempt|answer all|section [a-z])\s*[:.\-–]/i,
  /^(true|false)\s*$/i,
- /^[a-e][\.\)]\s*.{1,80}$/i,
+ /^[a-e][.)]\s*.{1,80}$/i,
  /^(none of the above|all of the above|both [a-e] and [a-e]|not applicable)/i,
  /^(figure|diagram|table|image|refer to|see|shown below|given below|the following)/i,
  /^\d+\s*\/\s*\d+\s*$/,
@@ -43,8 +43,8 @@ const EXAM_SKIP_PATTERNS = [
 function cleanText(line: string): string {
  let text = line;
  text = text.replace(/^[\s]*[-–—•*·∙]+\s*/, '');
- text = text.replace(/^[\s]*(?:q(?:uestion)?\s*)?\d+[\.\)\:]\s*/i, '');
- text = text.replace(/^[\s]*[a-zA-Z][\.\)]\s*/, '');
+ text = text.replace(/^[\s]*(?:q(?:uestion)?\s*)?\d+[.):]\s*/i, '');
+ text = text.replace(/^[\s]*[a-zA-Z][.):]\s*/, '');
  text = text.replace(/^[\s]*(?:module|unit|chapter|section|topic|week|lesson|part|lecture)\s*\d*[\s:\-–]*/i, '');
  text = text.replace(/\(\s*\d+[\s\-–]*\d*\s*%?\s*\)/g, '');
  text = text.replace(/\d+[\s\-–]+\d+\s*%/g, '');
@@ -52,8 +52,8 @@ function cleanText(line: string): string {
  text = text.replace(/\d+\s*(?:marks?|points?|hrs?|hours?|credits?|minutes?)\s*$/gi, '');
  text = text.replace(/\[\s*\d+\s*\]\s*$/g, '');
  text = text.replace(/\/\s*\d+\s*$/g, '');
- text = text.replace(/\s*[\-–—:]+\s*$/, '');
- text = text.replace(/^\s*[\-–—:]+\s*/, '');
+ text = text.replace(/\s*[-\u2013\u2014:]+\s*$/, '');
+ text = text.replace(/^\s*[-\u2013\u2014:]+\s*/, '');
  text = text.replace(/\s{2}/g, ' ').trim();
  return text;
 }
@@ -63,7 +63,7 @@ function shouldSkip(text: string): boolean {
  const lower = text.toLowerCase();
  if (SKIP_PATTERNS.some(p => p.test(lower))) return true;
  if (EXAM_SKIP_PATTERNS.some(p => p.test(lower))) return true;
- if (/^[a-e][\.\)]\s/i.test(text) && text.length < 100) return true;
+ if (/^[a-e][.):]/i.test(text) && text.length < 100) return true;
  return false;
 }
 

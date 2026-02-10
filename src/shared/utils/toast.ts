@@ -91,7 +91,7 @@ class ToastManager {
  color: ${s.text};
  font-size: 0.875rem;
  font-weight: 500;
- box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+ box-shadow: var(--shadow-toast, 0 4px 12px rgba(0,0,0,0.25));
  pointer-events: auto;
  cursor: pointer;
  transition: all 0.2s ease;

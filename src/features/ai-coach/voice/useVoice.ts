@@ -108,7 +108,6 @@ function selectNonRepeatedLine(
  );
  // If all lines are in cooldown, pick the oldest one (LRU)
  if (freshLines.length === 0) {
- console.log('[Voice] All lines in cooldown, selecting least recent');
  // Sort history by timestamp (oldest first)
  const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
  // Find the oldest line that's in our available set
@@ -254,7 +253,6 @@ export function useVoice(): UseVoiceResult {
  } else {
  // No static line found - Silent fallback
  // In "Studio Quality Only" mode, dynamic text is intentionally silent.
- console.log('[Voice] No static line for text:', text.substring(0, 50));
  }
  }
  setIsLoading(false);
@@ -274,7 +272,6 @@ export function useVoice(): UseVoiceResult {
  // Get all available lines for this situation
  const availableLines = getVoiceLinesForSituation(situation, personaId);
  if (availableLines.length === 0) {
- console.log(`[Voice] No lines available for: ${situation} (${personaId || 'any'})`);
  setIsLoading(false);
  return;
  }

@@ -2,7 +2,7 @@
  * AI Coach Feature
  * AI coach personalities, voice, and mood-based adjustments
  */
-import { getPersona, getPersonaResponse, type PersonaId } from './personas';
+import { getPersona, getPersonaResponse, type PersonaId, type PhaseKey, type PhaseResponses } from './personas';
 export { getPersona, getPersonaResponse, getAllPersonas, PERSONAS, type PersonaId, type PhaseKey, type PhaseResponses } from './personas';
 export * from './voice/static-lines';
 export * from './voice/useVoice';
@@ -16,7 +16,7 @@ export function moodToBandwidth(mood: Mood): CognitiveBandwidth {
 }
 export interface MoodOption {
  id: Mood;
- emoji: string;
+ emoji?: string;
  label: string;
  description: string;
  sessionAdjustment: string;
@@ -268,7 +268,7 @@ class AICoachService {
  }
  getResponse(personaId: PersonaId, situation: string, phase?: string): string {
  const targetPhase = phase || this.currentPhase;
- return getPersonaResponse(personaId, targetPhase as any, situation as any);
+ return getPersonaResponse(personaId, targetPhase as PhaseKey, situation as keyof PhaseResponses);
  }
  getIntro(personaId: PersonaId, mood?: Mood): string {
  return getMoodAdjustedIntro(personaId, mood || this.sessionMood);
@@ -293,4 +293,4 @@ class AICoachService {
  return getRandomElaborationPrompt(personaId, conceptName);
  }
 }
-export const aiCoach = AICoachService.getInstance();
+export const aiCoach = AICoachService.getInstance();

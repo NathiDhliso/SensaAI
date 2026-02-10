@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useRef } from 'react';
+import { useMemo, useCallback, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
  Trophy,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { SensaPhase } from '@/shared/types/sensa-flow';
-import { getCSSVariable } from '@/shared/constants/theme-colors';
+import { getCSSVariable, COLORS } from '@/shared/constants/theme-colors';
 import styles from './MasteryDashboard.module.css';
 
 interface MasteryDashboardProps {
@@ -50,14 +50,14 @@ function drawCertificate(
  timeMin: number,
  date: string,
 ) {
- const certBg = getCSSVariable('--color-cert-bg') || '#fdfcfb';
- const certBorder = getCSSVariable('--color-cert-border') || '#1e293b';
- const certBorderInner = getCSSVariable('--color-cert-border-inner') || '#cbd5e1';
- const certHeading = getCSSVariable('--color-cert-heading') || '#0f172a';
- const certSubtext = getCSSVariable('--color-cert-subtext') || '#475569';
- const certMuted = getCSSVariable('--color-cert-muted') || '#64748b';
- const certDivider = getCSSVariable('--color-cert-divider') || '#94a3b8';
- const certBadgeBg = getCSSVariable('--color-cert-badge-bg') || '#f1f5f9';
+ const certBg = getCSSVariable('--color-cert-bg') || COLORS.cert.bg;
+ const certBorder = getCSSVariable('--color-cert-border') || COLORS.cert.border;
+ const certBorderInner = getCSSVariable('--color-cert-border-inner') || COLORS.cert.borderInner;
+ const certHeading = getCSSVariable('--color-cert-heading') || COLORS.cert.heading;
+ const certSubtext = getCSSVariable('--color-cert-subtext') || COLORS.cert.subtext;
+ const certMuted = getCSSVariable('--color-cert-muted') || COLORS.cert.muted;
+ const certDivider = getCSSVariable('--color-cert-divider') || COLORS.cert.divider;
+ const certBadgeBg = getCSSVariable('--color-cert-badge-bg') || COLORS.cert.badgeBg;
 
  ctx.fillStyle = certBg;
  ctx.fillRect(0, 0, CERT_WIDTH, CERT_HEIGHT);
@@ -160,11 +160,12 @@ export function MasteryDashboard({
 }: MasteryDashboardProps) {
  const canvasRef = useRef<HTMLCanvasElement>(null);
 
+ const [snapshotTime] = useState(() => Date.now());
  const stats = useMemo(() => {
  const totalConcepts = concepts.length;
  const mastered = completedConcepts.length;
  const completionRate = totalConcepts > 0 ? Math.round((mastered / totalConcepts) * 100) : 0;
- const timeSpentMs = Date.now() - sessionStartTime;
+ const timeSpentMs = snapshotTime - sessionStartTime;
  const timeSpentMin = Math.floor(timeSpentMs / 60000);
  const avgTimePerConcept = mastered > 0 ? Math.round(timeSpentMs / mastered / 1000) : 0;
 
@@ -188,7 +189,7 @@ export function MasteryDashboard({
  tierBreakdown,
  efficiencyScore
  };
- }, [concepts, completedConcepts, sessionStartTime, equation]);
+ }, [concepts, completedConcepts, sessionStartTime, equation, snapshotTime]);
 
  const grade = useMemo(() => {
  if (stats.efficiencyScore >= 80) return { label: 'S', color: getCSSVariable('--color-grade-s') || 'var(--color-grade-s)', message: 'Exceptional mastery!' };

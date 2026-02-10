@@ -33,7 +33,7 @@ const CONFETTI_PIECES = generateConfetti();
 export default function CelebrationModal({ data, onContinue, onTakeBreak }: CelebrationModalProps) {
  const getConcepts = useLearningStore(s => s.getConcepts);
  const concepts = getConcepts();
- const { isScholarly } = useVisualTheme();
+ const { isScholarly: _isScholarly } = useVisualTheme();
  const confettiPieces = CONFETTI_PIECES;
  const [autoDismissCountdown, setAutoDismissCountdown] = useState(4);
  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -162,4 +162,4 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
  </div>
  </div>
  );
-}
+}

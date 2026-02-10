@@ -166,7 +166,7 @@ async function handleBrokenConfig(data: { concept: ConceptData }): Promise<Recor
  }
  return result;
 }
-const HANDLERS: Record<string, (data: any) => Promise<Record<string, unknown>>> = {
+const HANDLERS: Record<string, (data: Record<string, unknown>) => Promise<Record<string, unknown>>> = {
  misconception: handleMisconception,
  pushback: handlePushback,
  score: handleScore,
@@ -195,4 +195,4 @@ router.post('/', async (req: Request, res: Response) => {
  });
  }
 });
-export { router as gymAiRouter };
+export { router as gymAiRouter };

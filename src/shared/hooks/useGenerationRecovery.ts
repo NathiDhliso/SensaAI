@@ -7,6 +7,7 @@
  * @module hooks/useGenerationRecovery
  */
 import { useEffect, useRef } from 'react';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { useNavigate } from 'react-router-dom';
 import { useGenerationStore } from '@/store/generation-store';
 import { conceptsApi } from '@/shared/api';
@@ -20,10 +21,9 @@ export function useGenerationRecovery() {
  useEffect(() => {
  // Expose global function to manually clear stuck jobs (for debugging)
  if (typeof window !== 'undefined') {
- (window as any).clearStuckJob = () => {
+ (window as unknown as Record<string, unknown>).clearStuckJob = () => {
  const { clearActiveJob } = useGenerationStore.getState();
  clearActiveJob();
- console.log('[Recovery] Manually cleared stuck job');
  window.location.href = '/';
  };
  }
@@ -55,7 +55,6 @@ export function useGenerationRecovery() {
  clearActiveJob();
  return;
  }
- console.log('[Recovery] Found active job, resuming polling:', activeJob);
  // Set initial state to show we're recovering
  updateGenerationProgress({
  pass: 2,
@@ -63,7 +62,6 @@ export function useGenerationRecovery() {
  activity: 'Reconnecting to generation in progress...',
  progress: 10
  });
- console.log('[Recovery] Starting polling function...');
  // Start polling the backend
  const pollForCompletion = async () => {
  let pollInterval = 2000;
@@ -81,13 +79,10 @@ export function useGenerationRecovery() {
  return;
  }
  try {
- console.log('[Recovery] Polling job status...', { jobId: activeJob.jobId, userId: activeJob.userId });
  const status = await conceptsApi.getJobStatus(activeJob.jobId, activeJob.userId);
- console.log('[Recovery] Job status received:', status);
  // Reset error counter on successful poll
  consecutiveErrors = 0;
  if (status.status === 'completed') {
- console.log('[Recovery] Job completed, loading results');
  updateGenerationProgress({
  pass: 3,
  status: 'in-progress',
@@ -108,16 +103,15 @@ export function useGenerationRecovery() {
  allConcepts.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
  // Build full document
  const fullDocument = allConcepts
- .map(c => `# ${c.name}\n\n${(c as any).explanation || ''}\n\n`)
+ .map(c => `# ${c.name}\n\n${(c as unknown as Record<string, string>).explanation || ''}\n\n`)
  .join('\n');
  // TODO: Fix type mismatch - result needs proper GenerationResult structure
- const result: any = {
+ completeGeneration({
  fullDocument,
  sessionId: activeJob.sessionId,
  tier: 'root' as const,
  conceptCount: allConcepts.length
- };
- completeGeneration(result);
+ } as unknown as Parameters<typeof completeGeneration>[0]);
  clearActiveJob();
  // Save and navigate
  const resultId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -142,7 +136,7 @@ export function useGenerationRecovery() {
  };
  // TODO: Fix type mismatch - savedResult needs proper SavedResult structure
  const { storageManager } = await import('@/features/content-storage');
- await storageManager.saveResult(savedResult as any);
+ await storageManager.saveResult(savedResult as unknown as import('@/features/content-storage/types').SavedResult);
  parseAndLoadContent(fullDocument, resultId);
  setTimeout(() => navigate(`/study/${resultId}`, { replace: true }), 500);
  return;
@@ -175,7 +169,7 @@ export function useGenerationRecovery() {
  console.error('[Recovery] Auth failed during recovery');
  setError('Session expired. Please log in again.');
  clearActiveJob();
- setTimeout(() => navigate('/login'), 1000);
+ setTimeout(() => navigate('/login'), UI_TIMINGS.AUTH_REDIRECT);
  return;
  }
  // Check for job not found (404) - job never existed
@@ -183,7 +177,7 @@ export function useGenerationRecovery() {
  console.error('[Recovery] Job not found on backend - likely never started');
  setError('Generation job not found. The previous session may have failed to start.');
  clearActiveJob();
- setTimeout(() => navigate('/'), 2000);
+ setTimeout(() => navigate('/'), UI_TIMINGS.RECOVERY_REDIRECT);
  return;
  }
  // If too many consecutive errors, give up
@@ -191,7 +185,7 @@ export function useGenerationRecovery() {
  console.error('[Recovery] Too many consecutive errors, giving up');
  setError('Unable to connect to generation job. Please try starting a new generation.');
  clearActiveJob();
- setTimeout(() => navigate('/'), 2000);
+ setTimeout(() => navigate('/'), UI_TIMINGS.RECOVERY_REDIRECT);
  return;
  }
  // Exponential backoff
@@ -207,5 +201,6 @@ export function useGenerationRecovery() {
  setError('Failed to recover generation. Please try again.');
  clearActiveJob();
  });
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, []); // Only run on mount
-}
+}

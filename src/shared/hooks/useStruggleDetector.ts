@@ -105,7 +105,7 @@ export function useStruggleDetector(
  // State
  const [state, setState] = useState<StruggleState>(INITIAL_STATE);
  // Refs for tracking without causing re-renders
- const lastInteractionRef = useRef<number>(Date.now());
+ const lastInteractionRef = useRef<number>(0);
  const consecutiveErrorsRef = useRef<number>(0);
  const backspaceTimestampsRef = useRef<number[]>([]);
  const previousStruggleRef = useRef<boolean>(false);
@@ -292,4 +292,4 @@ export function useStruggleDetector(
  reset
  };
 }
-export default useStruggleDetector;
+export default useStruggleDetector;

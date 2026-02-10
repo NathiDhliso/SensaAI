@@ -37,6 +37,7 @@ import type { ScheduledReview, SpacingMetrics } from '@/features/learning-sessio
 import { moodToBandwidth, type CognitiveBandwidth } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { formatSafeDate } from '@/shared/utils/utils';
+import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './ContentLaunchpad.module.css';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
 type LaunchpadTab = 'gym' | 'insights';
@@ -159,7 +160,7 @@ export default function ContentLaunchpad() {
  runAudit(parsedData, cleaned);
  setObjectivesSaved(true);
  setObjectivesPanelOpen(false);
- setTimeout(() => setObjectivesSaved(false), 2500);
+ setTimeout(() => setObjectivesSaved(false), UI_TIMINGS.OBJECTIVE_SAVED_RESET);
  };
  const handleClearObjectives = () => {
  if (!parsedData || !subjectId) return;
