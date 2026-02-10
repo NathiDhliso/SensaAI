@@ -5,7 +5,7 @@
 resource "aws_apigatewayv2_api" "main" {
   name          = "${var.project_name}-api-${var.environment}"
   protocol_type = "HTTP"
-  description   = "SensaPBL Learning API"
+  description   = "SensaAI Learning API"
 
   cors_configuration {
     allow_origins     = var.cors_allowed_origins

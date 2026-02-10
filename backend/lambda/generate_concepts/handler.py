@@ -56,19 +56,19 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if not request.get("subject"):
             print("[Handler] ERROR: Subject is required")
-            return api_response(400, {"error": "Subject is required"})
+            return api_response(400, {"error": "Subject is required"}, event)
 
         # Route based on action
         action = request.get("action", "generate")
         
         if action == "repair":
-            return _handle_repair(request)
+            return _handle_repair(request, event)
         else:
-            return _handle_generate(request)
+            return _handle_generate(request, event)
 
     except Exception as e:
         print(f"[Handler] UNHANDLED ERROR: {str(e)}")
-        return api_response(500, {"error": str(e)})
+        return api_response(500, {"error": str(e)}, event)
 
 
 def _parse_request(event: Dict[str, Any]) -> Dict[str, Any]:
@@ -97,7 +97,7 @@ def _parse_request(event: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
+def _handle_generate(request: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:
     """
     Handle concept generation request using parallel Bedrock calls.
     
@@ -143,7 +143,7 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         print(f"[Handler] ERROR: Bedrock generation failed: {str(e)}")
         dynamo_service.mark_job_failed(job_id, user_id, str(e))
-        return api_response(500, {"error": f"Generation failed: {str(e)}"})
+        return api_response(500, {"error": f"Generation failed: {str(e)}"}, event)
 
     # Step 4: Store concepts in DynamoDB
     print(f"[Handler] Storing concepts...")
@@ -160,10 +160,10 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
         "status": "completed",
         "conceptCount": len(concepts),
         "classification": classification,
-    })
+    }, event)
 
 
-def _handle_repair(request: Dict[str, Any]) -> Dict[str, Any]:
+def _handle_repair(request: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:
     """
     Handle single concept repair request.
     
@@ -180,16 +180,16 @@ def _handle_repair(request: Dict[str, Any]) -> Dict[str, Any]:
     if not concept_name or not issue:
         return api_response(400, {
             "error": "conceptName and issue are required for repair"
-        })
+        }, event)
 
     print(f"[Handler] Repair: concept={concept_name}, issue={issue}")
 
     repaired_concept = bedrock_service.repair_concept(subject, concept_name, issue)
     
     if not repaired_concept:
-        return api_response(500, {"error": "Failed to repair concept"})
+        return api_response(500, {"error": "Failed to repair concept"}, event)
 
     return api_response(200, {
         "status": "completed",
         "concept": repaired_concept,
-    })
+    }, event)

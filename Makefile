@@ -9,7 +9,7 @@ RED := \033[0;31m
 NC := \033[0m # No Color
 
 help: ## Show this help message
-	@echo "$(BLUE)SensaPBL Operations$(NC)"
+	@echo "$(BLUE)SensaAI Operations$(NC)"
 	@echo "$(BLUE)===================$(NC)"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-20s$(NC) %s\n", $$1, $$2}'

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Scans the SensaPBL codebase for hardcoded subject logic patterns.
+    Scans the SensaAI codebase for hardcoded subject logic patterns.
     This script MUST be run before each commit or as part of CI/CD.
 
 .DESCRIPTION
@@ -124,7 +124,7 @@ function Find-Violations {
 
 # Main
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " SensaPBL Hardcoded Subject Check" -ForegroundColor Cyan
+Write-Host " SensaAI Hardcoded Subject Check" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

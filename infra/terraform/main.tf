@@ -1,4 +1,4 @@
-# SensaPBL Infrastructure - Terraform Root Module
+# SensaAI Infrastructure - Terraform Root Module
 # 
 # Serverless-first architecture for the learning platform:
 # - Cognito: User authentication
@@ -31,7 +31,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "SensaPBL"
+      Project     = "SensaAI"
       Environment = var.environment
       ManagedBy   = "Terraform"
     }
@@ -45,11 +45,11 @@ provider "aws" {
 module "cognito" {
   source = "./modules/cognito"
 
-  user_pool_name = "sensapbl-${var.environment}"
+  user_pool_name = "SensaAI-${var.environment}"
   environment    = var.environment
   callback_urls  = var.cognito_callback_urls
   logout_urls    = var.cognito_logout_urls
-  domain_prefix  = "sensapbl-${var.environment}"
+  domain_prefix  = "SensaAI-${var.environment}"
 }
 
 # ==============================================================================
@@ -70,7 +70,7 @@ module "dynamodb" {
   source = "./modules/dynamodb"
 
   environment  = var.environment
-  project_name = "sensapbl"
+  project_name = "SensaAI"
 
   tags = {
     Component = "DataStorage"
@@ -85,7 +85,7 @@ module "lambda" {
   source = "./modules/lambda"
 
   environment  = var.environment
-  project_name = "sensapbl"
+  project_name = "SensaAI"
 
   # DynamoDB integration
   concepts_table_arn  = module.dynamodb.concepts_table_arn
@@ -121,7 +121,7 @@ module "api_gateway" {
   source = "./modules/api_gateway"
 
   environment  = var.environment
-  project_name = "sensapbl"
+  project_name = "SensaAI"
   aws_region   = var.aws_region
 
   # Lambda integration

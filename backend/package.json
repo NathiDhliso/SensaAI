@@ -1,7 +1,7 @@
 {
-    "name": "sensapbl-backend",
+    "name": "SensaAI-backend",
     "version": "1.0.0",
-    "description": "SensaPBL Backend API Service",
+    "description": "SensaAI Backend API Service",
     "main": "dist/core/server.js",
     "type": "module",
     "scripts": {

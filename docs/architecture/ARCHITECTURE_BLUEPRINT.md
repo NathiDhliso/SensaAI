@@ -1,4 +1,4 @@
-# SensaPBL Architecture Blueprint
+# SensaAI Architecture Blueprint
 
 > Last Updated: February 9, 2026
 
@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-SensaPBL is an AI-powered learning platform. A user enters any subject, the system generates structured educational content via AWS Lambda + Bedrock (Claude 3 Sonnet), then guides them through an adaptive multi-phase learning session in the browser.
+SensaAI is an AI-powered learning platform. A user enters any subject, the system generates structured educational content via AWS Lambda + Bedrock (Claude 3 Sonnet), then guides them through an adaptive multi-phase learning session in the browser.
 
 **Architecture at a glance:**
 
@@ -34,7 +34,7 @@ SensaPBL is an AI-powered learning platform. A user enters any subject, the syst
 
 ## 1. System Overview
 
-SensaPBL is an AI-powered learning platform that generates structured educational content from any subject, then guides users through a multi-phase learning session with adaptive pacing, diagnostic assessments, and mastery challenges.
+SensaAI is an AI-powered learning platform that generates structured educational content from any subject, then guides users through a multi-phase learning session with adaptive pacing, diagnostic assessments, and mastery challenges.
 
 ### Tech Stack
 
@@ -385,7 +385,7 @@ infra/terraform/
 - **Generate Lambda**: 10,240 MB memory (10 GB), 900s timeout (15 min for LLM calls)
 - **Query Lambda**: 512 MB memory, 30s timeout
 - **API Gateway**: `https://c4kxjdukwj.execute-api.us-east-1.amazonaws.com`
-- **DynamoDB tables**: `sensapbl-concepts-pilot`, `sensapbl-jobs-pilot`
+- **DynamoDB tables**: `SensaAI-concepts-pilot`, `SensaAI-jobs-pilot`
 
 ---
 
@@ -393,12 +393,12 @@ infra/terraform/
 
 ### DynamoDB Schema
 
-**Concepts Table** (`sensapbl-concepts-pilot`)
+**Concepts Table** (`SensaAI-concepts-pilot`)
 - PK: `USER#{userId}#SESSION#{sessionId}`
 - SK: `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}` (tier = root|trunk|leaf)
 - GSI1: For tier-based queries
 
-**Jobs Table** (`sensapbl-jobs-pilot`)
+**Jobs Table** (`SensaAI-jobs-pilot`)
 - Tracks generation job status, progress, classification data
 - TTL: 24 hours
 

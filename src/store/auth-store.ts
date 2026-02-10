@@ -18,7 +18,7 @@ const COGNITO_CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID || '';
 const COGNITO_REDIRECT_URI = import.meta.env.VITE_COGNITO_REDIRECT_URI || window.location.origin + '/auth/callback';
 const AWS_REGION = import.meta.env.VITE_AWS_REGION || 'us-east-1';
 // Storage key for the PKCE code verifier (temporary, cleared after exchange)
-const CODE_VERIFIER_KEY = 'sensapbl_code_verifier';
+const CODE_VERIFIER_KEY = 'SensaAI_code_verifier';
 // ============================================================================
 // Interfaces
 // ============================================================================
@@ -401,7 +401,7 @@ export const useAuthStore = create<AuthStore>()(
  });
  // Clear localStorage items
  localStorage.removeItem(CODE_VERIFIER_KEY);
- localStorage.removeItem('sensapbl-auth');
+ localStorage.removeItem('SensaAI-auth');
  // Clear session storage
  sessionStorage.clear();
  },
@@ -427,7 +427,7 @@ export const useAuthStore = create<AuthStore>()(
  }
  }),
  {
- name: 'sensapbl-auth',
+ name: 'SensaAI-auth',
  // Only persist user info, not tokens (those are in HttpOnly cookies)
  partialize: (state) => ({
  user: state.user,

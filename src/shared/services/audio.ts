@@ -137,7 +137,7 @@ class AudioManager {
  this.backgroundMusic.loop = true;
  this.backgroundMusic.volume = this.musicVolume;
  await this.backgroundMusic.play();
- } catch (error) {
+ } catch (_error) {
  // Silently fail - audio may not be available
  }
  }
@@ -208,7 +208,7 @@ class AudioManager {
  resolve();
  }, { once: true });
  });
- } catch (error) {
+ } catch (_error) {
  // Silently fail - narration may not be available
  }
  }
@@ -323,7 +323,7 @@ class AudioManager {
  }, { once: true });
  try {
  await el.play();
- } catch (error: unknown) {
+ } catch (_error: unknown) {
  // Silently fail - audio may not be available
  this.activeEffect = null;
  this.currentPriority = 'background';

@@ -7,14 +7,14 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "sensapbl-terraform-state"
+  bucket = "SensaAI-terraform-state"
 
   lifecycle {
     prevent_destroy = true
   }
 
   tags = {
-    Name        = "SensaPBL Terraform State"
+    Name        = "SensaAI Terraform State"
     Environment = "shared"
     ManagedBy   = "terraform-bootstrap"
   }

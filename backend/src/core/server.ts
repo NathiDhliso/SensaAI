@@ -43,7 +43,7 @@ app.use('/api/v1/auth', authRouter);
 app.use(errorHandler);
 // Start server
 app.listen(PORT, () => {
- console.log(` SensaPBL Backend running on port ${PORT}`);
+ console.log(` SensaAI Backend running on port ${PORT}`);
  console.log(` Health check: http://localhost:${PORT}/health`);
  // Server ready
 });

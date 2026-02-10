@@ -4,9 +4,9 @@
 Write-Host "=== Deploying Auth Lambda Function ===" -ForegroundColor Cyan
 Write-Host ""
 
-$FUNCTION_NAME = "sensapbl-auth-lambda"
+$FUNCTION_NAME = "SensaAI-auth-lambda"
 $REGION = "us-east-1"
-$ROLE_NAME = "sensapbl-lambda-execution-role"
+$ROLE_NAME = "SensaAI-lambda-execution-role"
 
 # Check AWS CLI
 Write-Host "Checking AWS CLI..." -ForegroundColor Yellow

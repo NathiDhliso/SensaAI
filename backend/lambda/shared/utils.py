@@ -55,11 +55,13 @@ def create_gsi1_sk(tier: str, concept_id: str) -> str:
 
 # Allowed origins for CORS (supports HttpOnly cookie auth)
 ALLOWED_ORIGINS = [
-    "https://sensapbl.com",
-    "https://www.sensapbl.com",
-    "https://app.sensapbl.com",
-    "http://localhost:5173",  # Vite dev server
-    "http://localhost:3000",  # Alternative dev port
+    "https://sensaai.co.za",
+    "https://www.sensaai.co.za",
+    "https://SensaAI.com",
+    "https://www.SensaAI.com",
+    "https://app.SensaAI.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
 ]
 
 

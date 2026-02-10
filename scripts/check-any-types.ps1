@@ -110,7 +110,7 @@ function Find-Violations {
 
 # Main
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " SensaPBL Explicit 'any' Type Check" -ForegroundColor Cyan
+Write-Host " SensaAI Explicit 'any' Type Check" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

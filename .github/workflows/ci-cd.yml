@@ -185,7 +185,7 @@ jobs:
         id: secrets
         run: |
           SECRETS=$(aws secretsmanager get-secret-value \
-            --secret-id sensapbl/${{ needs.setup.outputs.environment }}/config \
+            --secret-id SensaAI/${{ needs.setup.outputs.environment }}/config \
             --query SecretString \
             --output text)
           
@@ -246,7 +246,7 @@ jobs:
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "SensaPBL CI/CD Notification"
+                    "text": "SensaAI CI/CD Notification"
                   }
                 },
                 {

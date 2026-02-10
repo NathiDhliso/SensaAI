@@ -106,7 +106,7 @@ function Find-Violations {
 
 # Main
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " SensaPBL Magic Timeout Check" -ForegroundColor Cyan
+Write-Host " SensaAI Magic Timeout Check" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

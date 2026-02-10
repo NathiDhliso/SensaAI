@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-const rootDir = 'c:/Users/nathi/OneDrive/Documents/Projects/SensaPBL';
-const outputFile = 'c:/Users/nathi/OneDrive/Documents/Projects/SensaPBL/project_tree.md';
+const rootDir = 'c:/Users/nathi/OneDrive/Documents/Projects/SensaAI';
+const outputFile = 'c:/Users/nathi/OneDrive/Documents/Projects/SensaAI/project_tree.md';
 const EXCLUDED_DIRS = [
  'node_modules',
  '.git',

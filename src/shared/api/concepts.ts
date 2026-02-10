@@ -103,8 +103,7 @@ export const conceptsApi = {
  * Surgically repair a specific concept
  */
  async repair(request: { subject: string; conceptName: string; issue: string; userId: string }): Promise<ParsedConcept> {
- return await apiClient.post<ParsedConcept>('/concepts/repair', request);
- return apiClient.post<ParsedConcept>('/concepts/generate', {
+ return apiClient.post<ParsedConcept>('/generate', {
  ...request,
  action: 'repair'
  });

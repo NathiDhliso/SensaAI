@@ -32,7 +32,7 @@ if (-not (Test-Path ".elasticbeanstalk/config.yml")) {
     Write-Host ""
     
     # Initialize EB
-    eb init -p "Node.js 20" sensapbl-backend --region us-east-1
+    eb init -p "Node.js 20" SensaAI-backend --region us-east-1
     
     Write-Host ""
     Write-Host "Creating environment..." -ForegroundColor Yellow
@@ -40,9 +40,9 @@ if (-not (Test-Path ".elasticbeanstalk/config.yml")) {
     Write-Host ""
     
     # Create environment with environment variables
-    eb create sensapbl-backend-prod `
+    eb create SensaAI-backend-prod `
         --instance-type t3.small `
-        --envvars AWS_REGION=us-east-1,NODE_ENV=production,CONCEPTS_TABLE=sensapbl-concepts-pilot,JOBS_TABLE=sensapbl-jobs-pilot,GENERATE_LAMBDA=sensapbl-generate-concepts-pilot
+        --envvars AWS_REGION=us-east-1,NODE_ENV=production,CONCEPTS_TABLE=SensaAI-concepts-pilot,JOBS_TABLE=SensaAI-jobs-pilot,GENERATE_LAMBDA=SensaAI-generate-concepts-pilot
     
     Write-Host ""
     Write-Host "✅ Environment created!" -ForegroundColor Green

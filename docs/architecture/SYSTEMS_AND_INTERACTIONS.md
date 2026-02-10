@@ -1,4 +1,4 @@
-# SensaPBL — Systems & Interactions
+# SensaAI — Systems & Interactions
 
 > Last Updated: February 8, 2026
 

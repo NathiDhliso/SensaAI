@@ -84,7 +84,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
  {/* Header */}
  <div className={styles.header}>
  <div className={styles.headerTitle}>
- <h2 className={styles.title}>{isScholarly ? 'User Guide' : 'How to Use SensaPBL'}</h2>
+ <h2 className={styles.title}>{isScholarly ? 'User Guide' : 'How to Use SensaAI'}</h2>
  </div>
  <button className={styles.closeButton} onClick={onClose}>
  <X size={20} />

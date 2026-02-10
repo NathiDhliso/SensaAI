@@ -2,8 +2,8 @@
 const { DynamoDBClient, ScanCommand, QueryCommand } = require("@aws-sdk/client-dynamodb");
 const { unmarshall } = require("@aws-sdk/util-dynamodb");
 const REGION = "us-east-1";
-const JOBS_TABLE = "sensapbl-jobs-pilot";
-const CONCEPTS_TABLE = "sensapbl-concepts-pilot";
+const JOBS_TABLE = "SensaAI-jobs-pilot";
+const CONCEPTS_TABLE = "SensaAI-concepts-pilot";
 const client = new DynamoDBClient({ region: REGION });
 async function monitor() {
  console.log(" Starting Job Monitor...");

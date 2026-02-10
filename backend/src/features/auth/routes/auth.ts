@@ -32,7 +32,7 @@ interface CookieOptions {
  */
 function getCookieOptions(isAccessToken: boolean = true): CookieOptions {
  const isProduction = process.env.NODE_ENV === 'production';
- const cookieDomain = process.env.COOKIE_DOMAIN; // e.g., '.sensapbl.com'
+ const cookieDomain = process.env.COOKIE_DOMAIN; // e.g., '.SensaAI.com'
  const options: CookieOptions = {
  httpOnly: true,
  secure: isProduction, // HTTPS only in production
@@ -191,7 +191,7 @@ authRouter.post('/session/login', async (req: Request, res: Response) => {
  if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
  const user = {
  id: 'dev-user',
- email: 'dev@sensapbl.com',
+ email: 'dev@SensaAI.com',
  name: 'Developer'
  };
  // Set dummy cookies for consistency
@@ -301,7 +301,7 @@ authRouter.get('/session/validate', async (req: Request, res: Response) => {
  valid: true,
  user: {
  id: 'dev-user',
- email: 'dev@sensapbl.com',
+ email: 'dev@SensaAI.com',
  name: 'Developer'
  }
  });

@@ -123,7 +123,7 @@ function Find-Violations {
 
 # Main
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " SensaPBL CSS Variable Prefix Check" -ForegroundColor Cyan
+Write-Host " SensaAI CSS Variable Prefix Check" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

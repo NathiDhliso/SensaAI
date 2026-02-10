@@ -96,7 +96,7 @@ function Find-Violations {
 
 # Main
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " SensaPBL Console.log Check" -ForegroundColor Cyan
+Write-Host " SensaAI Console.log Check" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

@@ -32,7 +32,7 @@ Write-Host ""
 Write-Host "1. Go to AWS Amplify Console:" -ForegroundColor White
 Write-Host "   https://console.aws.amazon.com/amplify/" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "2. Select your app (SensaPBL)" -ForegroundColor White
+Write-Host "2. Select your app (SensaAI)" -ForegroundColor White
 Write-Host ""
 Write-Host "3. Go to: App settings > Environment variables" -ForegroundColor White
 Write-Host ""

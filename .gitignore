@@ -47,6 +47,11 @@ backend/dist/
 .build/
 *.zip
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
 # Temporary files
 *.tmp
 *.temp

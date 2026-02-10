@@ -1,4 +1,4 @@
-# SensaPBL Infrastructure Variables
+# SensaAI Infrastructure Variables
 # Serverless-only configuration
 
 variable "environment" {

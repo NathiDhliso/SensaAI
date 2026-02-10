@@ -9,70 +9,43 @@ import urllib.request
 import urllib.parse
 from datetime import datetime, timedelta
 
+from shared.utils import api_response
+
+
 def lambda_handler(event, context):
     """Main Lambda handler for auth endpoints"""
     
     try:
-        # Parse the route
-        route_key = event.get('routeKey', '')
         http_method = event.get('requestContext', {}).get('http', {}).get('method', '')
         path = event.get('rawPath', '')
         
-        print(f"[Auth Lambda] Route: {route_key}, Method: {http_method}, Path: {path}")
+        print(f"[Auth Lambda] Method: {http_method}, Path: {path}")
         
-        # CORS headers
-        headers = {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': os.environ.get('CORS_ORIGIN', '*'),
-            'Access-Control-Allow-Credentials': 'true',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
-        }
-        
-        # Handle OPTIONS for CORS preflight
         if http_method == 'OPTIONS':
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': ''
-            }
+            return api_response(200, {}, event)
         
-        # Parse body
         body = {}
         if event.get('body'):
             body = json.loads(event['body'])
         
-        # Route to appropriate handler
         if 'login' in path:
-            return handle_login(body, headers)
+            return handle_login(body, event)
         elif 'validate' in path:
-            return handle_validate(event, headers)
+            return handle_validate(event)
         elif 'refresh' in path:
-            return handle_refresh(event, headers)
+            return handle_refresh(event)
         elif 'clear' in path:
-            return handle_clear(headers)
+            return handle_clear(event)
         else:
-            return {
-                'statusCode': 404,
-                'headers': headers,
-                'body': json.dumps({'error': 'Route not found'})
-            }
+            return api_response(404, {'error': 'Route not found'}, event)
             
     except Exception as e:
         print(f"[Auth Lambda] Error: {str(e)}")
         import traceback
         traceback.print_exc()
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': os.environ.get('CORS_ORIGIN', '*'),
-                'Access-Control-Allow-Credentials': 'true'
-            },
-            'body': json.dumps({'error': 'Internal server error', 'details': str(e)})
-        }
+        return api_response(500, {'error': 'Internal server error', 'details': str(e)}, event)
 
-def handle_login(body, headers):
+def handle_login(body, event):
     """Handle login with credentials"""
     email = body.get('email')
     password = body.get('password')
@@ -80,48 +53,29 @@ def handle_login(body, headers):
     print(f"[Auth Lambda] Login attempt for: {email}")
     
     if not email or not password:
-        return {
-            'statusCode': 400,
-            'headers': headers,
-            'body': json.dumps({'error': 'Email and password required'})
-        }
+        return api_response(400, {'error': 'Email and password required'}, event)
     
-    # Development mode bypass
     if os.environ.get('SKIP_AUTH') == 'true':
         print("[Auth Lambda] SKIP_AUTH enabled, bypassing Cognito")
         user = {
             'id': 'dev-user',
-            'email': 'dev@sensapbl.com',
+            'email': 'dev@SensaAI.com',
             'name': 'Developer'
         }
-        
-        # For API Gateway v2, cookies must be in the 'cookies' array
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'cookies': [
-                'access_token=dev-access-token; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600',
-                'refresh_token=dev-refresh-token; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000'
-            ],
-            'body': json.dumps({'user': user})
-        }
+        return api_response(200, {'user': user}, event, cookies=[
+            'access_token=dev-access-token; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600',
+            'refresh_token=dev-refresh-token; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000'
+        ])
     
-    # Use Cognito USER_PASSWORD_AUTH
     try:
         import boto3
-        print("[Auth Lambda] Importing boto3")
     except ImportError as e:
         print(f"[Auth Lambda] boto3 not available: {e}")
-        return {
-            'statusCode': 500,
-            'headers': headers,
-            'body': json.dumps({'error': 'boto3 not available in Lambda environment'})
-        }
+        return api_response(500, {'error': 'boto3 not available in Lambda environment'}, event)
     
     try:
         cognito = boto3.client('cognito-idp', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
         
-        print(f"[Auth Lambda] Calling Cognito InitiateAuth")
         response = cognito.initiate_auth(
             ClientId=os.environ['COGNITO_CLIENT_ID'],
             AuthFlow='USER_PASSWORD_AUTH',
@@ -133,43 +87,26 @@ def handle_login(body, headers):
         
         auth_result = response['AuthenticationResult']
         id_token = auth_result['IdToken']
-        
-        # Extract user from ID token
         user = extract_user_from_token(id_token)
         
         print(f"[Auth Lambda] Login successful for: {email}")
         
-        # For API Gateway v2, cookies must be in the 'cookies' array, not 'Set-Cookie' header
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'cookies': [
-                f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}",
-                f"refresh_token={auth_result['RefreshToken']}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000"
-            ],
-            'body': json.dumps({'user': user})
-        }
+        return api_response(200, {'user': user}, event, cookies=[
+            f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}",
+            f"refresh_token={auth_result['RefreshToken']}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000"
+        ])
         
     except Exception as e:
         error_name = getattr(e, 'response', {}).get('Error', {}).get('Code', type(e).__name__)
         print(f"[Auth Lambda] Cognito error: {error_name} - {str(e)}")
         
         if error_name == 'NotAuthorizedException':
-            return {
-                'statusCode': 401,
-                'headers': headers,
-                'body': json.dumps({'error': 'Invalid email or password'})
-            }
+            return api_response(401, {'error': 'Invalid email or password'}, event)
         else:
-            return {
-                'statusCode': 500,
-                'headers': headers,
-                'body': json.dumps({'error': 'Authentication failed', 'details': str(e)})
-            }
+            return api_response(500, {'error': 'Authentication failed', 'details': str(e)}, event)
 
-def handle_validate(event, headers):
+def handle_validate(event):
     """Validate current session"""
-    # Get access token from cookie
     cookies = event.get('cookies', [])
     access_token = None
     
@@ -179,45 +116,26 @@ def handle_validate(event, headers):
             break
     
     if not access_token:
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'body': json.dumps({'valid': False})
-        }
+        return api_response(200, {'valid': False}, event)
     
-    # Development mode
     if os.environ.get('SKIP_AUTH') == 'true':
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'body': json.dumps({
-                'valid': True,
-                'user': {
-                    'id': 'dev-user',
-                    'email': 'dev@sensapbl.com',
-                    'name': 'Developer'
-                }
-            })
-        }
+        return api_response(200, {
+            'valid': True,
+            'user': {
+                'id': 'dev-user',
+                'email': 'dev@SensaAI.com',
+                'name': 'Developer'
+            }
+        }, event)
     
-    # Decode and validate token
     try:
         user = extract_user_from_token(access_token)
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'body': json.dumps({'valid': True, 'user': user})
-        }
+        return api_response(200, {'valid': True, 'user': user}, event)
     except:
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'body': json.dumps({'valid': False})
-        }
+        return api_response(200, {'valid': False}, event)
 
-def handle_refresh(event, headers):
+def handle_refresh(event):
     """Refresh session"""
-    # Get refresh token from cookie
     cookies = event.get('cookies', [])
     refresh_token = None
     
@@ -227,11 +145,7 @@ def handle_refresh(event, headers):
             break
     
     if not refresh_token:
-        return {
-            'statusCode': 401,
-            'headers': headers,
-            'body': json.dumps({'error': 'No refresh token'})
-        }
+        return api_response(401, {'error': 'No refresh token'}, event)
     
     import boto3
     cognito = boto3.client('cognito-idp', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
@@ -247,36 +161,20 @@ def handle_refresh(event, headers):
         
         auth_result = response['AuthenticationResult']
         
-        # For API Gateway v2, cookies must be in the 'cookies' array
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'cookies': [
-                f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}"
-            ],
-            'body': json.dumps({'success': True})
-        }
+        return api_response(200, {'success': True}, event, cookies=[
+            f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}"
+        ])
         
     except Exception as e:
         print(f"Refresh error: {str(e)}")
-        return {
-            'statusCode': 401,
-            'headers': headers,
-            'body': json.dumps({'error': 'Session expired'})
-        }
+        return api_response(401, {'error': 'Session expired'}, event)
 
-def handle_clear(headers):
+def handle_clear(event):
     """Clear session (logout)"""
-    # For API Gateway v2, cookies must be in the 'cookies' array
-    return {
-        'statusCode': 200,
-        'headers': headers,
-        'cookies': [
-            'access_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0',
-            'refresh_token=; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=0'
-        ],
-        'body': json.dumps({'success': True})
-    }
+    return api_response(200, {'success': True}, event, cookies=[
+        'access_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0',
+        'refresh_token=; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=0'
+    ])
 
 def extract_user_from_token(token):
     """Extract user info from JWT token"""

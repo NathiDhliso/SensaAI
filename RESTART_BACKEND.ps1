@@ -33,7 +33,7 @@ Write-Host ""
 Write-Host "Starting backend with multi-phase system..." -ForegroundColor Yellow
 Write-Host ""
 Write-Host "📝 Backend will start in a new window" -ForegroundColor Cyan
-Write-Host "   Watch for: '🚀 SensaPBL Backend running on port 3000'" -ForegroundColor Cyan
+Write-Host "   Watch for: '🚀 SensaAI Backend running on port 3000'" -ForegroundColor Cyan
 Write-Host ""
 
 # Start in new window

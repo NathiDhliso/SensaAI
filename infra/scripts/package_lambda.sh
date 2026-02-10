@@ -16,7 +16,7 @@ LAMBDA_DIR="$PROJECT_ROOT/backend/lambda"
 TF_LAMBDA_DIR="$PROJECT_ROOT/infra/terraform/modules/lambda"
 BUILD_DIR="$PROJECT_ROOT/.build"
 
-echo "=== SensaPBL Lambda Packaging ==="
+echo "=== SensaAI Lambda Packaging ==="
 echo "Lambda source: $LAMBDA_DIR"
 echo "Output: $TF_LAMBDA_DIR"
 

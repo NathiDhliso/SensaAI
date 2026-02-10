@@ -1,4 +1,4 @@
-# Silver Bullet Audit — SensaPBL
+# Silver Bullet Audit — SensaAI
 
 ## Vision Alignment Check
 

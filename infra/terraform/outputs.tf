@@ -1,4 +1,4 @@
-# SensaPBL Infrastructure Outputs
+# SensaAI Infrastructure Outputs
 # Frontend configuration values
 
 # ==============================================================================

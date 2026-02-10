@@ -1346,7 +1346,7 @@ User navigates to: /settings Import/Export tab
 │ ┌────────────────────────────────────────────────┐ │
 │ │ Drop JSON file here or click to browse │ │
 │ │ │ │
-│ │ Supported: .json (SensaPBL format) │ │
+│ │ Supported: .json (SensaAI format) │ │
 │ └────────────────────────────────────────────────┘ │
 │ │
 │ [Browse Files] │
@@ -1398,14 +1398,14 @@ If invalid format:
 ┌─────────────────────────────────────────────────────┐
 │ Import Failed │
 │ │
-│ This file is not a valid SensaPBL export. │
+│ This file is not a valid SensaAI export. │
 │ │
 │ Expected format: │
 │ • JSON file │
 │ • Contains subject, concepts, stages fields │
 │ │
 │ Try: │
-│ • Re-export from SensaPBL │
+│ • Re-export from SensaAI │
 │ • Check file wasn't corrupted during transfer │
 │ │
 │ [Try Another File] [Close] │
@@ -1417,7 +1417,7 @@ User clicks [Export] on subject card:
 │ │
 │ Choose format: │
 │ │
-│ JSON (SensaPBL Format) │
+│ JSON (SensaAI Format) │
 │ ├─ Complete data export │
 │ ├─ Can re-import later │
 │ └─ File size: ~800 KB │

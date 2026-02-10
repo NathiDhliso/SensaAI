@@ -1,4 +1,4 @@
-# SensaPBL Guardrails
+# SensaAI Guardrails
 
 > A pre-flight checklist for AI tools and prompters working on this codebase.
 > Read this before making changes. Update it when the architecture shifts.
@@ -312,9 +312,9 @@ Terraform S3 backend is currently unavailable. Deploy Lambda code changes via AW
 
 ```bash
 Compress-Archive -Path "backend\lambda\*" -DestinationPath "backend\lambda_deploy.zip" -Force
-aws lambda update-function-code --function-name sensapbl-generate-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
-aws lambda update-function-code --function-name sensapbl-query-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
-aws lambda update-function-code --function-name sensapbl-gym-ai-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+aws lambda update-function-code --function-name SensaAI-generate-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+aws lambda update-function-code --function-name SensaAI-query-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+aws lambda update-function-code --function-name SensaAI-gym-ai-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
 Remove-Item "backend\lambda_deploy.zip"
 ```
 
