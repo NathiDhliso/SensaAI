@@ -124,7 +124,10 @@ export const conceptsApi = {
  * List all generation jobs for a user
  */
  async listJobs(userId: string): Promise<{ jobs: JobSummary[] }> {
- return apiClient.get<{ jobs: JobSummary[] }>(`/concepts/jobs?userId=${userId}&action=list_subjects`);
+ const response = await apiClient.get<{ jobs: JobSummary[] }>(
+ `/concepts/jobs?userId=${encodeURIComponent(userId)}`
+ );
+ return response;
  },
  /**
  * Check status of a generation job

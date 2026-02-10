@@ -103,7 +103,7 @@ if ($LASTEXITCODE -eq 0) {
         --timeout 30 `
         --memory-size 512 `
         --region $REGION `
-        --environment "Variables={AWS_REGION=us-east-1,COGNITO_CLIENT_ID=1f2i3813o3f1jdet7j6ifo1eea,COGNITO_USER_POOL_ID=us-east-1_nNdVox578,SKIP_AUTH=false,CORS_ORIGIN=https://main.dckqci84h8ffk.amplifyapp.com}"
+        --environment "Variables={COGNITO_CLIENT_ID=1f2i3813o3f1jdet7j6ifo1eea,COGNITO_USER_POOL_ID=us-east-1_nNdVox578,SKIP_AUTH=false,CORS_ORIGIN=https://main.dckqci84h8ffk.amplifyapp.com}"
     
     Write-Host "✅ Function created" -ForegroundColor Green
 }
