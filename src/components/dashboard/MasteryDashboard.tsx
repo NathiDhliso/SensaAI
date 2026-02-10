@@ -133,7 +133,7 @@ function drawCertificate(
 
  ctx.fillStyle = certHeading;
  ctx.font = '700 18px system-ui, sans-serif';
- ctx.fillText('SensaPBL', cx, 610);
+ ctx.fillText('SensaAI', cx, 610);
 
  ctx.fillStyle = certDivider;
  ctx.font = '400 12px system-ui, sans-serif';
@@ -229,7 +229,7 @@ export function MasteryDashboard({
  const canvas = renderCertificateToCanvas();
  if (!canvas) return;
  const link = document.createElement('a');
- link.download = `SensaPBL-Certificate-${subjectName.replace(/\s+/g, '-')}.png`;
+ link.download = `SensaAI-Certificate-${subjectName.replace(/\s+/g, '-')}.png`;
  link.href = canvas.toDataURL('image/png');
  link.click();
  }, [renderCertificateToCanvas, subjectName]);

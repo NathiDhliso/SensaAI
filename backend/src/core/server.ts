@@ -38,13 +38,20 @@ app.use('/api/v1/proxy', proxyRouter);
 app.use('/api/v1/content', authMiddleware, contentRouter);
 app.use('/api/v1/concepts', authMiddleware, conceptsRouter);
 app.use('/api/v1/gym-ai', authMiddleware, gymAiRouter);
+
+// Alias: frontend calls POST /generate directly (matches API Gateway route pattern)
+app.post('/api/v1/generate', authMiddleware, (req, res, next) => {
+ // Forward to concepts router's /generate handler
+ req.url = '/generate';
+ conceptsRouter(req, res, next);
+});
 app.use('/api/v1/auth', authRouter);
 // Error handling
 app.use(errorHandler);
 // Start server
 app.listen(PORT, () => {
- console.log(` SensaPBL Backend running on port ${PORT}`);
+ console.log(` SensaAI Backend running on port ${PORT}`);
  console.log(` Health check: http://localhost:${PORT}/health`);
  // Server ready
 });
-export default app;
+export default app;

@@ -1,5 +1,5 @@
 /**
- * API Client for SensaPBL Backend
+ * API Client for SensaAI Backend
  * 
  * Supports two authentication modes:
  * 1. HttpOnly Cookie auth (preferred, more secure)
@@ -271,4 +271,4 @@ export const authSessionApi = {
  return { valid: false };
  }
  }
-};
+};

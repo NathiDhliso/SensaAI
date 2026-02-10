@@ -63,12 +63,12 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
  }, [data.conceptsCompleted, concepts]);
  const [shared, setShared] = useState(false);
  const handleShare = async () => {
- const shareText = `I just completed "${data.title}" on SensaPBL. ${data.conceptsCompleted?.length || 0} concepts mastered. #LearningJourney`;
+ const shareText = `I just completed "${data.title}" on SensaAI. ${data.conceptsCompleted?.length || 0} concepts mastered. #LearningJourney`;
  // Try native share API first
  if (navigator.share) {
  try {
  await navigator.share({
- title: 'SensaPBL Achievement',
+ title: 'SensaAI Achievement',
  text: shareText
  });
  setShared(true);
@@ -162,4 +162,4 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
  </div>
  </div>
  );
-}
+}

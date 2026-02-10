@@ -1,4 +1,4 @@
-# SensaPBL - AI-Powered Learning Platform
+# SensaAI - AI-Powered Learning Platform
 
 AI-powered educational platform that generates structured learning materials and provides adaptive learning experiences using Claude via AWS Bedrock.
 
@@ -28,7 +28,7 @@ npm run build
 ### Root Structure
 
 ```
-SensaPBL/
+SensaAI/
 ├── src/ # Frontend application source code
 ├── backend/ # Serverless backend (Lambda functions)
 ├── infra/ # Infrastructure as Code (Terraform, AWS)
@@ -157,7 +157,7 @@ infra/
 ├── terraform/ # Terraform configurations for AWS resources
 ├── scripts/ # Deployment and setup scripts
 ├── client_info.json # AWS client configuration
-└── sensapbl-storage-policy.json # S3 bucket policies
+└── sensaai-storage-policy.json # S3 bucket policies
 ```
 
 **Managed Resources**:
