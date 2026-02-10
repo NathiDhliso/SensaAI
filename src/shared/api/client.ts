@@ -100,17 +100,35 @@ class ApiClient {
  } catch {
  body = await response.text().catch(() => null);
  }
- const error = new Error(
- `API Error: ${response.status} ${response.statusText} - ${typeof body === 'object' ? JSON.stringify(body) : String(body)}`
- ) as ApiError;
+ 
+ // Create user-friendly error messages
+ let userMessage = 'An error occurred. Please try again.';
+ 
+ if (response.status === 401) {
+ userMessage = 'Your session has expired. Please log in again.';
+ } else if (response.status === 403) {
+ userMessage = 'You do not have permission to perform this action.';
+ } else if (response.status === 404) {
+ userMessage = 'The requested resource was not found.';
+ } else if (response.status === 429) {
+ userMessage = 'Too many requests. Please wait a moment and try again.';
+ } else if (response.status >= 500) {
+ userMessage = 'Server error. Please try again later.';
+ } else if (typeof body === 'object' && body !== null && 'error' in body) {
+ userMessage = String((body as { error: unknown }).error);
+ }
+ 
+ const error = new Error(userMessage) as ApiError;
  error.status = response.status;
  error.statusText = response.statusText;
  error.body = body;
+ 
  // Handle specific error codes
  if (response.status === 401) {
  // Emit auth error event for store to handle
  window.dispatchEvent(new CustomEvent('auth:unauthorized'));
  }
+ 
  throw error;
  }
  /**
@@ -271,4 +289,4 @@ export const authSessionApi = {
  return { valid: false };
  }
  }
-};
+};

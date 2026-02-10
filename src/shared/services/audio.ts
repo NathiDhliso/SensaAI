@@ -113,8 +113,8 @@ class AudioManager {
  resolve(audio);
  }, { once: true });
  audio.addEventListener('error', () => {
- console.warn(`Failed to preload audio: ${src}`);
- reject(new Error(`Failed to load ${src}`));
+ // Silently fail - audio files may not exist yet
+ resolve(audio); // Resolve anyway to not block preloading
  }, { once: true });
  // Start loading
  audio.load();
@@ -138,7 +138,7 @@ class AudioManager {
  this.backgroundMusic.volume = this.musicVolume;
  await this.backgroundMusic.play();
  } catch (error) {
- console.warn('Failed to play background music:', error);
+ // Silently fail - audio may not be available
  }
  }
  /**
@@ -209,7 +209,7 @@ class AudioManager {
  }, { once: true });
  });
  } catch (error) {
- console.warn('Failed to play narration:', error);
+ // Silently fail - narration may not be available
  }
  }
  /**
@@ -278,10 +278,8 @@ class AudioManager {
  if (!audio) return Promise.resolve();
  audio.currentTime = 0;
  audio.volume = this.narrationVolume;
- return audio.play().catch((error) => {
- if (error.name !== 'NotAllowedError') {
- console.error('[AudioManager] Playback error:', error);
- }
+ return audio.play().catch(() => {
+ // Silently fail - user may not have interacted yet
  });
  }
  stopCurrent(fade: boolean = false): Promise<void> {
@@ -326,10 +324,7 @@ class AudioManager {
  try {
  await el.play();
  } catch (error: unknown) {
- const err = error as { name?: string };
- if (err.name !== 'NotAllowedError') {
- console.error('[AudioManager] Priority playback error:', error);
- }
+ // Silently fail - audio may not be available
  this.activeEffect = null;
  this.currentPriority = 'background';
  this.processQueue();
@@ -408,4 +403,4 @@ if (typeof window !== 'undefined') {
  };
  document.addEventListener('click', initOnInteraction, { once: true });
  document.addEventListener('keydown', initOnInteraction, { once: true });
-}
+}
