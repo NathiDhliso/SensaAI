@@ -63,8 +63,8 @@ def handle_login(body, event):
             'name': 'Developer'
         }
         return api_response(200, {'user': user}, event, cookies=[
-            'access_token=dev-access-token; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600',
-            'refresh_token=dev-refresh-token; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000'
+            'access_token=dev-access-token; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=3600',
+            'refresh_token=dev-refresh-token; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=2592000'
         ])
     
     try:
@@ -92,8 +92,8 @@ def handle_login(body, event):
         print(f"[Auth Lambda] Login successful for: {email}")
         
         return api_response(200, {'user': user}, event, cookies=[
-            f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}",
-            f"refresh_token={auth_result['RefreshToken']}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000"
+            f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}",
+            f"refresh_token={auth_result['RefreshToken']}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=2592000"
         ])
         
     except Exception as e:
@@ -162,7 +162,7 @@ def handle_refresh(event):
         auth_result = response['AuthenticationResult']
         
         return api_response(200, {'success': True}, event, cookies=[
-            f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}"
+            f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}"
         ])
         
     except Exception as e:
@@ -172,8 +172,8 @@ def handle_refresh(event):
 def handle_clear(event):
     """Clear session (logout)"""
     return api_response(200, {'success': True}, event, cookies=[
-        'access_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0',
-        'refresh_token=; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=0'
+        'access_token=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0',
+        'refresh_token=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0'
     ])
 
 def extract_user_from_token(token):

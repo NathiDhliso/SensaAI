@@ -62,12 +62,12 @@ export function useCollisionDetection(
  }
  try {
  const result = await conceptsApi.listJobs(user.id);
- // Import fuzzy matching utilities
+ const jobs = result?.jobs ?? [];
  const { normalizeSubject, levenshtein } = await import(
  '@/shared/utils/alias-generator'
  );
  const normalizedInput = normalizeSubject(subject);
- const duplicate = result.jobs.find((j) => {
+ const duplicate = jobs.find((j) => {
  if (j.status !== 'completed') return false;
  const normalizedJob = normalizeSubject(j.subject);
  // Exact match after normalization?

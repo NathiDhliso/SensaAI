@@ -54,8 +54,17 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     try:
         params = event.get("queryStringParameters", {}) or {}
+        raw_path = event.get("rawPath", "")
         action = params.get("action", "get_concepts")
         user_id = params.get("userId")
+        
+        if "/jobs" in raw_path and action == "get_concepts":
+            job_id = event.get("pathParameters", {}).get("jobId") if event.get("pathParameters") else params.get("jobId")
+            if job_id:
+                action = "get_job_progress"
+                params["jobId"] = job_id
+            else:
+                action = "list_subjects"
         
         if not user_id:
             return api_response(400, {"error": "userId is required"}, event)
@@ -126,22 +135,23 @@ def handle_list_subjects(user_id: str, event: Dict[str, Any]) -> Dict[str, Any]:
         KeyConditionExpression=Key("PK").eq(user_pk) & Key("SK").begins_with("SUBJECT#")
     )
     
-    subjects = []
+    jobs = []
     for item in response.get("Items", []):
-        subjects.append({
-            "sessionId": item.get("sessionId"),
+        session_id = item.get("sessionId", "")
+        jobs.append({
+            "jobId": item.get("jobId", session_id),
+            "sessionId": session_id,
             "subject": item.get("subject"),
+            "status": item.get("status", "completed"),
             "conceptCount": int(item.get("conceptCount", 0)),
             "createdAt": int(item.get("createdAt", 0)),
-            "expiresAt": int(item.get("expiresAt", 0)),
         })
         
-    # Sort by createdAt desc
-    subjects.sort(key=lambda x: x["createdAt"], reverse=True)
+    jobs.sort(key=lambda x: x["createdAt"], reverse=True)
     
     return api_response(200, {
-        "subjects": subjects,
-        "count": len(subjects)
+        "jobs": jobs,
+        "count": len(jobs)
     }, event)
 
 

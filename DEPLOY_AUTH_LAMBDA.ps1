@@ -65,18 +65,24 @@ Write-Host ""
 # Get role ARN
 $roleArn = (aws iam get-role --role-name $ROLE_NAME --query 'Role.Arn' --output text)
 
-# Package Lambda
+# Package Lambda (includes shared/ directory for utils and CORS)
 Write-Host "Packaging Lambda function..." -ForegroundColor Yellow
 $packageDir = "backend/lambda/auth"
+$sharedDir = "backend/lambda/shared"
 $zipFile = "auth-lambda.zip"
+$stagingDir = "lambda-staging-auth"
 
-if (Test-Path $zipFile) {
-    Remove-Item $zipFile
-}
+if (Test-Path $zipFile) { Remove-Item $zipFile }
+if (Test-Path $stagingDir) { Remove-Item -Recurse -Force $stagingDir }
+New-Item -ItemType Directory -Path $stagingDir | Out-Null
 
-Compress-Archive -Path "$packageDir/*" -DestinationPath $zipFile
+Copy-Item -Path "$packageDir/*" -Destination "$stagingDir/" -Recurse
+Copy-Item -Path "$sharedDir" -Destination "$stagingDir/shared" -Recurse
 
-Write-Host "✅ Package created" -ForegroundColor Green
+Compress-Archive -Path "$stagingDir/*" -DestinationPath $zipFile
+Remove-Item -Recurse -Force $stagingDir
+
+Write-Host "✅ Package created (includes shared/)" -ForegroundColor Green
 Write-Host ""
 
 # Check if function exists

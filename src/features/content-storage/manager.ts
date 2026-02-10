@@ -145,7 +145,8 @@ export class StorageManager {
  return [];
  }
  const response = await conceptsApi.listJobs(user.id);
- return response.jobs.map(job => ({
+ const jobs = response?.jobs ?? [];
+ return jobs.map(job => ({
  id: job.jobId,
  subject: job.subject,
  generatedAt: job.createdAt ? new Date(job.createdAt * 1000).toISOString() : new Date().toISOString(),

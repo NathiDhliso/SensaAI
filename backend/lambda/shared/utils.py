@@ -57,11 +57,7 @@ def create_gsi1_sk(tier: str, concept_id: str) -> str:
 ALLOWED_ORIGINS = [
     "https://sensaai.co.za",
     "https://www.sensaai.co.za",
-    "https://SensaAI.com",
-    "https://www.SensaAI.com",
-    "https://app.SensaAI.com",
     "https://main.dckqci84h8ffk.amplifyapp.com",
-    "https://dckqci84h8ffk.amplifyapp.com",
     "http://localhost:5173",
     "http://localhost:3000",
 ]
@@ -155,7 +151,7 @@ def create_session_cookie(
     max_age: int = 3600,
     secure: bool = True,
     http_only: bool = True,
-    same_site: str = "Strict",
+    same_site: str = "None",
 ) -> str:
     """
     Create a properly formatted Set-Cookie header value.
@@ -200,7 +196,7 @@ def clear_session_cookie(name: str = "session_token") -> str:
     Returns:
         Set-Cookie header value that expires the cookie
     """
-    return f"{name}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Strict"
+    return f"{name}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None"
 
 
 def parse_cursor(cursor: Optional[str]) -> Optional[Dict[str, Any]]:
