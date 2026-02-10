@@ -95,16 +95,14 @@ def handle_login(body, headers):
             'name': 'Developer'
         }
         
-        # Set cookies
-        cookie_headers = headers.copy()
-        cookie_headers['Set-Cookie'] = [
-            'access_token=dev-access-token; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600',
-            'refresh_token=dev-refresh-token; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000'
-        ]
-        
+        # For API Gateway v2, cookies must be in the 'cookies' array
         return {
             'statusCode': 200,
-            'headers': cookie_headers,
+            'headers': headers,
+            'cookies': [
+                'access_token=dev-access-token; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600',
+                'refresh_token=dev-refresh-token; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000'
+            ],
             'body': json.dumps({'user': user})
         }
     
@@ -141,16 +139,14 @@ def handle_login(body, headers):
         
         print(f"[Auth Lambda] Login successful for: {email}")
         
-        # Set cookies
-        cookie_headers = headers.copy()
-        cookie_headers['Set-Cookie'] = [
-            f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}",
-            f"refresh_token={auth_result['RefreshToken']}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000"
-        ]
-        
+        # For API Gateway v2, cookies must be in the 'cookies' array, not 'Set-Cookie' header
         return {
             'statusCode': 200,
-            'headers': cookie_headers,
+            'headers': headers,
+            'cookies': [
+                f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}",
+                f"refresh_token={auth_result['RefreshToken']}; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000"
+            ],
             'body': json.dumps({'user': user})
         }
         
@@ -251,13 +247,13 @@ def handle_refresh(event, headers):
         
         auth_result = response['AuthenticationResult']
         
-        # Set new access token cookie
-        cookie_headers = headers.copy()
-        cookie_headers['Set-Cookie'] = f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}"
-        
+        # For API Gateway v2, cookies must be in the 'cookies' array
         return {
             'statusCode': 200,
-            'headers': cookie_headers,
+            'headers': headers,
+            'cookies': [
+                f"access_token={auth_result['AccessToken']}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age={auth_result.get('ExpiresIn', 3600)}"
+            ],
             'body': json.dumps({'success': True})
         }
         
@@ -271,15 +267,14 @@ def handle_refresh(event, headers):
 
 def handle_clear(headers):
     """Clear session (logout)"""
-    cookie_headers = headers.copy()
-    cookie_headers['Set-Cookie'] = [
-        'access_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0',
-        'refresh_token=; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=0'
-    ]
-    
+    # For API Gateway v2, cookies must be in the 'cookies' array
     return {
         'statusCode': 200,
-        'headers': cookie_headers,
+        'headers': headers,
+        'cookies': [
+            'access_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0',
+            'refresh_token=; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=0'
+        ],
         'body': json.dumps({'success': True})
     }
 
