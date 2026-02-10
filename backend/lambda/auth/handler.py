@@ -12,29 +12,31 @@ from datetime import datetime, timedelta
 def lambda_handler(event, context):
     """Main Lambda handler for auth endpoints"""
     
-    # Parse the route
-    route_key = event.get('routeKey', '')
-    http_method = event.get('requestContext', {}).get('http', {}).get('method', '')
-    path = event.get('rawPath', '')
-    
-    # CORS headers
-    headers = {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': os.environ.get('CORS_ORIGIN', '*'),
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
-    }
-    
-    # Handle OPTIONS for CORS preflight
-    if http_method == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'body': ''
-        }
-    
     try:
+        # Parse the route
+        route_key = event.get('routeKey', '')
+        http_method = event.get('requestContext', {}).get('http', {}).get('method', '')
+        path = event.get('rawPath', '')
+        
+        print(f"[Auth Lambda] Route: {route_key}, Method: {http_method}, Path: {path}")
+        
+        # CORS headers
+        headers = {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': os.environ.get('CORS_ORIGIN', '*'),
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+        }
+        
+        # Handle OPTIONS for CORS preflight
+        if http_method == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': ''
+            }
+        
         # Parse body
         body = {}
         if event.get('body'):
@@ -57,17 +59,25 @@ def lambda_handler(event, context):
             }
             
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"[Auth Lambda] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return {
             'statusCode': 500,
-            'headers': headers,
-            'body': json.dumps({'error': 'Internal server error'})
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': os.environ.get('CORS_ORIGIN', '*'),
+                'Access-Control-Allow-Credentials': 'true'
+            },
+            'body': json.dumps({'error': 'Internal server error', 'details': str(e)})
         }
 
 def handle_login(body, headers):
     """Handle login with credentials"""
     email = body.get('email')
     password = body.get('password')
+    
+    print(f"[Auth Lambda] Login attempt for: {email}")
     
     if not email or not password:
         return {
@@ -78,6 +88,7 @@ def handle_login(body, headers):
     
     # Development mode bypass
     if os.environ.get('SKIP_AUTH') == 'true':
+        print("[Auth Lambda] SKIP_AUTH enabled, bypassing Cognito")
         user = {
             'id': 'dev-user',
             'email': 'dev@sensapbl.com',
@@ -98,11 +109,21 @@ def handle_login(body, headers):
         }
     
     # Use Cognito USER_PASSWORD_AUTH
-    import boto3
-    
-    cognito = boto3.client('cognito-idp', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
+    try:
+        import boto3
+        print("[Auth Lambda] Importing boto3")
+    except ImportError as e:
+        print(f"[Auth Lambda] boto3 not available: {e}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': 'boto3 not available in Lambda environment'})
+        }
     
     try:
+        cognito = boto3.client('cognito-idp', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
+        
+        print(f"[Auth Lambda] Calling Cognito InitiateAuth")
         response = cognito.initiate_auth(
             ClientId=os.environ['COGNITO_CLIENT_ID'],
             AuthFlow='USER_PASSWORD_AUTH',
@@ -118,6 +139,8 @@ def handle_login(body, headers):
         # Extract user from ID token
         user = extract_user_from_token(id_token)
         
+        print(f"[Auth Lambda] Login successful for: {email}")
+        
         # Set cookies
         cookie_headers = headers.copy()
         cookie_headers['Set-Cookie'] = [
@@ -131,19 +154,22 @@ def handle_login(body, headers):
             'body': json.dumps({'user': user})
         }
         
-    except cognito.exceptions.NotAuthorizedException:
-        return {
-            'statusCode': 401,
-            'headers': headers,
-            'body': json.dumps({'error': 'Invalid email or password'})
-        }
     except Exception as e:
-        print(f"Cognito error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'headers': headers,
-            'body': json.dumps({'error': 'Authentication failed'})
-        }
+        error_name = getattr(e, 'response', {}).get('Error', {}).get('Code', type(e).__name__)
+        print(f"[Auth Lambda] Cognito error: {error_name} - {str(e)}")
+        
+        if error_name == 'NotAuthorizedException':
+            return {
+                'statusCode': 401,
+                'headers': headers,
+                'body': json.dumps({'error': 'Invalid email or password'})
+            }
+        else:
+            return {
+                'statusCode': 500,
+                'headers': headers,
+                'body': json.dumps({'error': 'Authentication failed', 'details': str(e)})
+            }
 
 def handle_validate(event, headers):
     """Validate current session"""
