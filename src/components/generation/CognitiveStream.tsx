@@ -13,15 +13,16 @@ interface CognitiveStreamProps {
  pass: number;
  intensity: number;
  isGenerating: boolean;
+ isInitializing?: boolean;
  subject?: string;
  subjectType?: SubjectType | null;
 }
-export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensity, isGenerating, subject, subjectType }) => {
+export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensity, isGenerating, isInitializing, subject, subjectType }) => {
  const [thought, setThought] = useState('');
  useEffect(() => {
  if (!isGenerating) {
  // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid reset when not generating
- setThought("SYSTEM_READY :: WAITING_FOR_INPUT");
+ setThought(isInitializing ? "CONNECTING :: PREPARING_GENERATION" : "SYSTEM_READY :: WAITING_FOR_INPUT");
  return;
  }
  const getThoughts = () => {
@@ -114,7 +115,7 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
  pickNextThought();
  const intervalId = setInterval(pickNextThought, intervalTime);
  return () => clearInterval(intervalId);
- }, [pass, intensity, isGenerating, subjectType]);
+ }, [pass, intensity, isGenerating, isInitializing, subjectType]);
  return (
  <div className={styles.cognitiveStreamContainer}>
  <AnimatePresence mode="wait">
@@ -155,4 +156,4 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
  </div>
  </div>
  );
-};
+};

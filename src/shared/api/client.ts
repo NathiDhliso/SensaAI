@@ -19,7 +19,12 @@ interface ApiRequestOptions {
   headers?: HeadersInit;
   /** AbortSignal for request cancellation */
   signal?: AbortSignal;
+  /** Request timeout in milliseconds. Defaults to DEFAULT_REQUEST_TIMEOUT_MS. Set 0 to disable. */
+  timeout?: number;
 }
+
+/** Default timeout for API requests (30 seconds). Prevents fetch from hanging indefinitely. */
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 
 export interface ApiError extends Error {
   status?: number;
@@ -280,12 +285,33 @@ class ApiClient {
   ): Promise<T> {
     const fetchOptions = this.buildFetchOptions(method, options, body);
 
+    // Apply a default timeout via AbortController so fetch can never hang indefinitely.
+    // If the caller already provided a signal, chain both so either can abort.
+    const timeoutMs = options?.timeout ?? DEFAULT_REQUEST_TIMEOUT_MS;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    if (timeoutMs > 0 && !fetchOptions.signal) {
+      const controller = new AbortController();
+      fetchOptions.signal = controller.signal;
+      timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    }
+
     let response: Response;
     try {
       response = await fetch(`${API_BASE}${path}`, fetchOptions);
     } catch (error) {
+      if (timeoutId) clearTimeout(timeoutId);
+      // Distinguish timeout aborts from user-initiated aborts
+      if (error instanceof DOMException && error.name === 'AbortError' && timeoutMs > 0) {
+        throw createApiError({
+          message: `Request timed out after ${timeoutMs / 1000}s. The server may be slow or unreachable.`,
+          requestMethod: method,
+          requestPath: path,
+          isNetworkError: true
+        });
+      }
       throw this.createNetworkError(error, method, path);
     }
+    if (timeoutId) clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw await this.createResponseError(response, method, path, !options?.skipAuth);

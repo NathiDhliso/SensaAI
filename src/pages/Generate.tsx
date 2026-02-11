@@ -106,7 +106,8 @@ export default function Generate() {
  showOverwriteModal,
  handleOverwrite,
  handleCancelOverwrite,
- checkForDuplicates
+ checkForDuplicates,
+ isCheckingCollision
  } = useCollisionDetection({
  onNoDuplicate: () => {
  if (!subject) return;
@@ -154,6 +155,27 @@ export default function Generate() {
  window.addEventListener('beforeunload', handleBeforeUnload);
  return () => window.removeEventListener('beforeunload', handleBeforeUnload);
  }, [isGenerating]);
+ // Stuck-state detection: if page is idle with no error after 15s, show error
+ // This catches cases where collision detection or API calls hang silently
+ useEffect(() => {
+ // Only trigger if we're in the "stuck" state: not generating, no error
+ if (isGenerating || error) return;
+
+ const timeout = setTimeout(() => {
+ // Double-check current store state (not stale closure)
+ const currentState = useGenerationStore.getState();
+ if (!currentState.isGenerating && !currentState.error) {
+ _setError(
+ 'Unable to connect to the generation server. ' +
+ 'This usually means the backend is unreachable or took too long to respond. ' +
+ 'Please check your connection and try again.'
+ );
+ }
+ }, 15000);
+
+ return () => clearTimeout(timeout);
+ }, [isGenerating, error, _setError]);
+
  // Slow network detection for link validation phase
  useEffect(() => {
  if (passes[4] === 'in-progress' && !verifyingStartTimeRef.current) {
@@ -206,6 +228,7 @@ export default function Generate() {
  pass={currentPass}
  intensity={intensity}
  isGenerating={isGenerating}
+ isInitializing={isCheckingCollision && !isGenerating && !error}
  subject={subject ? decodeURIComponent(subject) : undefined}
  subjectType={subjectType}
  />

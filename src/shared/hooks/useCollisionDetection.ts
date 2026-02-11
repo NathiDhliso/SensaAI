@@ -48,8 +48,21 @@ export function useCollisionDetection(
  navigateRef.current = navigate;
  });
  /**
+ * Race a promise against a timeout. Rejects if the timeout fires first.
+ */
+ const withTimeout = <T>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+ return Promise.race([
+ promise,
+ new Promise<never>((_resolve, reject) =>
+ setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+ )
+ ]);
+ };
+
+ /**
  * Check for duplicate subjects using fuzzy matching
  * Returns true if a duplicate was found (and modal is shown)
+ * Times out after 10s to prevent the page from hanging indefinitely
  */
  const checkForDuplicates = useCallback(
  async (subject: string): Promise<boolean> => {
@@ -61,7 +74,11 @@ export function useCollisionDetection(
  return false;
  }
  try {
- const result = await conceptsApi.listJobs(user.id);
+ const result = await withTimeout(
+ conceptsApi.listJobs(user.id),
+ 10_000,
+ 'Duplicate check'
+ );
  // Import fuzzy matching utilities
  const { normalizeSubject, levenshtein } = await import(
  '@/shared/utils/alias-generator'
@@ -82,8 +99,12 @@ export function useCollisionDetection(
  setIsCheckingCollision(false);
  return true;
  }
- // No duplicate found - check for local existing content
- await checkForLocalExisting(subject);
+ // No duplicate found - check for local existing content (also with timeout)
+ await withTimeout(
+ checkForLocalExisting(subject),
+ 5_000,
+ 'Local storage check'
+ );
  return false;
  } catch (err) {
  console.error('Failed to check duplicates:', err);
