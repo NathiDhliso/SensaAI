@@ -1,12 +1,16 @@
-# SensaPBL Architecture Blueprint
+# SensaAI Architecture Blueprint
 
-> Last Updated: February 9, 2026
+> Last Updated: February 11, 2026
+
+> **Naming convention:** User-facing brand is **SensaAI**. All AWS resources use the `sensapbl-*` prefix internally.
 
 ---
 
 ## Executive Summary
 
-SensaPBL is an AI-powered learning platform. A user enters any subject, the system generates structured educational content via AWS Lambda + Bedrock (Claude 3 Sonnet), then guides them through an adaptive multi-phase learning session in the browser.
+SensaAI is an AI-powered learning platform. A user enters any subject, the system generates structured educational content via AWS Lambda + Bedrock (Claude 3 Sonnet), then guides them through an adaptive multi-phase learning session in the browser.
+
+**Production URL:** `https://main.dckqci84h8ffk.amplifyapp.com`
 
 **Architecture at a glance:**
 
@@ -34,7 +38,7 @@ SensaPBL is an AI-powered learning platform. A user enters any subject, the syst
 
 ## 1. System Overview
 
-SensaPBL is an AI-powered learning platform that generates structured educational content from any subject, then guides users through a multi-phase learning session with adaptive pacing, diagnostic assessments, and mastery challenges.
+SensaAI is an AI-powered learning platform that generates structured educational content from any subject, then guides users through a multi-phase learning session with adaptive pacing, diagnostic assessments, and mastery challenges.
 
 ### Tech Stack
 
@@ -48,8 +52,22 @@ SensaPBL is an AI-powered learning platform that generates structured educationa
 | Auth | AWS Cognito (OAuth 2.0 + PKCE, HttpOnly cookies) |
 | Database | AWS DynamoDB (concepts table, jobs table) |
 | Storage | AWS S3 (content), IndexedDB (local cache), localStorage (session progress) |
-| Infrastructure | Terraform (modules: Lambda, API Gateway, DynamoDB, Cognito, S3) |
-| CI/Deployment | Terraform apply from `infra/terraform/environments/pilot/` |
+| Infrastructure | Terraform (modules: Lambda, API Gateway, DynamoDB, Cognito, S3), S3 backend for state |
+| CI/Deployment | AWS Amplify (auto-deploy on push to `main`), Terraform for infra, AWS CLI for Lambda code |
+
+### Deployment Infrastructure
+
+| Resource | Details |
+|----------|---------|
+| **Amplify** | App `SensaArchitect` (ID: `dckqci84h8ffk`), branch `main`, auto-deploys on push |
+| **Production URL** | `https://main.dckqci84h8ffk.amplifyapp.com` |
+| **API Gateway** | HTTP API `c4kxjdukwj`, auto-deploy stage `$default` |
+| **Lambda Functions** | `sensapbl-generate-concepts-pilot`, `sensapbl-query-concepts-pilot`, `sensapbl-gym-ai-pilot` |
+| **DynamoDB Tables** | `sensapbl-concepts-pilot`, `sensapbl-jobs-pilot` |
+| **Cognito** | User Pool `us-east-1_nNdVox578`, domain `sensapbl-pilot` |
+| **S3 Buckets** | `sensapbl-pilot-content-311964231104` (content), `sensapbl-terraform-state` (TF state) |
+| **Terraform Backend** | S3 `sensapbl-terraform-state/pilot/terraform.tfstate`, DynamoDB lock `terraform-locks` |
+| **AWS Region** | `us-east-1` |
 
 ---
 

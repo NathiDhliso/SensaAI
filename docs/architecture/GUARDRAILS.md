@@ -1,7 +1,9 @@
-# SensaPBL Guardrails
+# SensaAI Guardrails
 
 > A pre-flight checklist for AI tools and prompters working on this codebase.
 > Read this before making changes. Update it when the architecture shifts.
+
+> **Naming convention:** The user-facing brand is **SensaAI**. All AWS resource names, DynamoDB tables, Lambda functions, Cognito resources, and internal code identifiers still use the `sensapbl-*` prefix. Do not rename infrastructure resources — only user-visible strings (UI text, page titles, share messages) use "SensaAI".
 
 ---
 
@@ -308,15 +310,34 @@ After making changes, verify:
 
 ### Lambda Deployment
 
-Terraform S3 backend is currently unavailable. Deploy Lambda code changes via AWS CLI:
+Terraform manages all infrastructure via S3 backend (`sensapbl-terraform-state/pilot/terraform.tfstate`) with DynamoDB lock table (`terraform-locks`). To deploy Lambda code changes:
 
-```bash
+```powershell
 Compress-Archive -Path "backend\lambda\*" -DestinationPath "backend\lambda_deploy.zip" -Force
 aws lambda update-function-code --function-name sensapbl-generate-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
 aws lambda update-function-code --function-name sensapbl-query-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
 aws lambda update-function-code --function-name sensapbl-gym-ai-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
 Remove-Item "backend\lambda_deploy.zip"
 ```
+
+For infrastructure changes (DynamoDB, Cognito, API Gateway, S3, IAM):
+
+```powershell
+cd infra/terraform/environments/pilot
+terraform plan    # Review changes
+terraform apply   # Apply changes
+```
+
+### Frontend Deployment
+
+Frontend is deployed via **AWS Amplify** (App ID: `dckqci84h8ffk`), connected to the `main` branch of `NathiDhliso/SensaArchitect` on GitHub. Every push to `main` triggers an automatic build and deploy.
+
+- **Production URL:** `https://main.dckqci84h8ffk.amplifyapp.com`
+- **Build command:** `npm ci && npm run build` (which runs `tsc -b && vite build`)
+- **Build artifacts:** `dist/`
+- **Environment variables:** Set in Amplify console (VITE_API_URL, VITE_COGNITO_*, VITE_AWS_*)
+
+**Important:** `tsc -b` runs in strict mode during Amplify builds. All TypeScript errors must be resolved before pushing — unused imports, missing type properties, and type mismatches will fail the build even though `vite build` alone would succeed.
 
 ---
 
