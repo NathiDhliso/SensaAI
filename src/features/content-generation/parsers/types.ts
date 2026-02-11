@@ -2,19 +2,22 @@
  * Parsed mnemonic context for Memory Palace
  */
 export interface ParsedMnemonic {
- tier?: 'root' | 'trunk' | 'leaf';
+ tier?: 'trunk' | 'branch' | 'leaf';
  anchor: string; // e.g., "Volcano "
  story: string; // Bizarre scene linking anchor to concept
  imageUrl?: string; // Generated image URL (Silver Bullet)
  parentName?: string; // Parent concept name (pre-resolution)
  parentId?: string; // Resolved parent ID
  dependsOn?: string[]; // Array of concept names this depends on
+ trunkDomain?: string;
 }
 export interface ParsedConcept {
  id: string;
  name: string;
  order: number;
- tier?: 'root' | 'trunk' | 'leaf';
+ tier?: 'trunk' | 'branch' | 'leaf';
+ parentName?: string;
+ trunkDomain?: string;
  tierJustification?: string; // Explain WHY it fits this tier
  stageId: string;
  logicalConnection?: string;
@@ -130,4 +133,4 @@ export interface ParsedGeneratedContent {
  mentalAnchors: ParsedMentalAnchor[];
  confusionPairs: ParsedConfusionPair[];
  rawContent: string;
-}
+}

@@ -15,8 +15,8 @@ import type { TierType, TierDistribution } from '@/shared/types/sensa-flow';
 export function getTierConfig() {
  const colors = getGraphColors();
  return {
- root: { color: colors.root, label: 'Root' },
  trunk: { color: colors.trunk, label: 'Trunk' },
+ branch: { color: colors.branch, label: 'Branch' },
  leaf: { color: colors.leaf, label: 'Leaf' }
  };
 }
@@ -35,14 +35,14 @@ export function canAccessConcept(
  allConcepts: LearningConcept[]
 ): boolean {
  // Foundation concepts are always accessible
- if (concept.tier === 'root') {
+ if (concept.tier === 'trunk') {
  return true;
  }
- if (concept.tier === 'trunk') {
+ if (concept.tier === 'branch') {
  return concept.dependencies.every(depId => {
  const dep = allConcepts.find(c => c.id === depId);
  if (!dep) return false;
- if (dep.tier === 'root') {
+ if (dep.tier === 'trunk') {
  return masteredConceptIds.has(depId);
  }
  return masteredConceptIds.has(depId);
@@ -74,8 +74,8 @@ export function getConceptsByTierWithAccess(
  masteredConceptIds: Set<string>
 ): Record<TierType, Array<{ concept: LearningConcept; accessible: boolean; mastered: boolean }>> {
  const result: Record<TierType, Array<{ concept: LearningConcept; accessible: boolean; mastered: boolean }>> = {
- root: [],
  trunk: [],
+ branch: [],
  leaf: []
  };
  for (const concept of concepts) {
@@ -102,13 +102,13 @@ export function calculateTierCeiling(
  masteredConceptIds: Set<string>
 ): number {
  const tierProgress: Record<TierType, number> = {
- root: 0,
  trunk: 0,
+ branch: 0,
  leaf: 0
  };
  const tierCounts: Record<TierType, number> = {
- root: 0,
  trunk: 0,
+ branch: 0,
  leaf: 0
  };
  for (const concept of concepts) {
@@ -117,16 +117,16 @@ export function calculateTierCeiling(
  tierProgress[concept.tier]++;
  }
  }
- const rootPct = tierCounts.root > 0
- ? tierProgress.root / tierCounts.root
- : 0;
  const trunkPct = tierCounts.trunk > 0
  ? tierProgress.trunk / tierCounts.trunk
+ : 0;
+ const branchPct = tierCounts.branch > 0
+ ? tierProgress.branch / tierCounts.branch
  : 0;
  const leafPct = tierCounts.leaf > 0
  ? tierProgress.leaf / tierCounts.leaf
  : 0;
- return Math.min(rootPct, trunkPct, leafPct);
+ return Math.min(trunkPct, branchPct, leafPct);
 }
 /**
  * Returns detailed tier mastery breakdown.
@@ -135,8 +135,8 @@ export function getTierMasteryBreakdown(
  concepts: LearningConcept[],
  masteredConceptIds: Set<string>
 ): TierDistribution & { masteryPerTier: Record<TierType, number> } {
- const counts: Record<TierType, number> = { root: 0, trunk: 0, leaf: 0 };
- const mastered: Record<TierType, number> = { root: 0, trunk: 0, leaf: 0 };
+ const counts: Record<TierType, number> = { trunk: 0, branch: 0, leaf: 0 };
+ const mastered: Record<TierType, number> = { trunk: 0, branch: 0, leaf: 0 };
  for (const concept of concepts) {
  counts[concept.tier]++;
  if (masteredConceptIds.has(concept.id)) {
@@ -144,13 +144,13 @@ export function getTierMasteryBreakdown(
  }
  }
  return {
- root: counts.root,
  trunk: counts.trunk,
+ branch: counts.branch,
  leaf: counts.leaf,
  total: concepts.length,
  masteryPerTier: {
- root: counts.root > 0 ? mastered.root / counts.root : 0,
  trunk: counts.trunk > 0 ? mastered.trunk / counts.trunk : 0,
+ branch: counts.branch > 0 ? mastered.branch / counts.branch : 0,
  leaf: counts.leaf > 0 ? mastered.leaf / counts.leaf : 0
  }
  };
@@ -233,4 +233,4 @@ export function validateProgressionPath(
  valid: violations.length === 0,
  violations
  };
-}
+}

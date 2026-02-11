@@ -847,14 +847,14 @@ export default function ConceptMapBuilder({
  <div className={styles.bucketZone}>
  <div className={`${styles.bucketHeader} ${styles.bucketRoot}`}>
  {!isScholarly && <span className={styles.bucketIcon}></span>}
- <span>Root</span>
+ <span>Trunk</span>
  <span className={styles.bucketCount}>
- {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'root').length}
+ {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk').length}
  </span>
  </div>
  <div className={styles.bucketConcepts}>
  {concepts
- .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'root')
+ .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk')
  .map(c => (
  <div
  key={c.id}
@@ -870,14 +870,14 @@ export default function ConceptMapBuilder({
  <div className={styles.bucketZone}>
  <div className={`${styles.bucketHeader} ${styles.bucketTrunk}`}>
  {!isScholarly && <span className={styles.bucketIcon}></span>}
- <span>Trunk</span>
+ <span>Branch</span>
  <span className={styles.bucketCount}>
- {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk').length}
+ {concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'branch').length}
  </span>
  </div>
  <div className={styles.bucketConcepts}>
  {concepts
- .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk')
+ .filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'branch')
  .map(c => (
  <div
  key={c.id}
@@ -897,7 +897,7 @@ export default function ConceptMapBuilder({
  <span className={styles.bucketCount}>
  {concepts.filter(c => {
  const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
- return t !== 'root' && t !== 'trunk';
+ return t !== 'trunk' && t !== 'branch';
  }).length}
  </span>
  </div>
@@ -905,7 +905,7 @@ export default function ConceptMapBuilder({
  {concepts
  .filter(c => {
  const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
- return t !== 'root' && t !== 'trunk';
+ return t !== 'trunk' && t !== 'branch';
  })
  .map(c => (
  <div
@@ -1086,4 +1086,4 @@ export default function ConceptMapBuilder({
  </AnimatePresence>
  </div>
  );
-}
+}

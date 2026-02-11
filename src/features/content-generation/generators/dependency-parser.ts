@@ -181,7 +181,7 @@ export function calculateDependencyMetrics(
  dependentCount,
  dependencyCount,
  totalConnections,
- calculatedTier: calculateTier(dependentCount).toLowerCase() as 'root' | 'trunk' | 'leaf',
+ calculatedTier: calculateTier(dependentCount).toLowerCase() as 'trunk' | 'branch' | 'leaf',
  centralityScore: calculateCentralityScore(totalConnections, maxConnections),
  clusterGroup: concept.stageId
  });
@@ -210,18 +210,18 @@ export function buildSubjectGraph(
  metrics: metricsMap.get(concept.id)!
  }));
  // Calculate stats
- let rootCount = 0;
  let trunkCount = 0;
+ let branchCount = 0;
  let leafCount = 0;
  let centralHub = '';
  let maxConnections = 0;
  for (const [id, metrics] of metricsMap) {
  switch (metrics.calculatedTier) {
- case 'root':
- rootCount++;
- break;
  case 'trunk':
  trunkCount++;
+ break;
+ case 'branch':
+ branchCount++;
  break;
  case 'leaf':
  leafCount++;
@@ -240,8 +240,8 @@ export function buildSubjectGraph(
  stats: {
  totalNodes: nodes.length,
  totalEdges: edges.length,
- rootCount,
  trunkCount,
+ branchCount,
  leafCount,
  centralHub
  }
@@ -268,4 +268,4 @@ export function updateIncrementalMetrics(
  // optimization to only update neighbors can be done if perf is an issue)
  // For <100 nodes, O(N) is negligible.
  return calculateDependencyMetrics(allConcepts, edges);
-}
+}

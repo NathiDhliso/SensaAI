@@ -25,8 +25,8 @@ export interface SensaAILearningConcept extends Omit<LearningConcept, 'confusion
  diagnosticQuestions: DiagnosticQuestion[]; // For diagnostic assessments
  confusionPairs: ConfusionPairMetadata[]; // For prevention system
  // Metadata for intelligent systems
- rootLevel: boolean; // Eligible for diagnostic inclusion
- tier: 'root' | 'trunk' | 'leaf'; // For interleaving algorithm
+ trunkLevel: boolean; // Eligible for diagnostic inclusion (is this a trunk concept?)
+ tier: 'trunk' | 'branch' | 'leaf'; // Tree level for interleaving algorithm
  complexityScore: number; // 1-10 for adaptive timing
  prerequisiteWeight: number; // How many concepts depend on this
  frequencyWeight: number; // How often this concept is used
@@ -261,7 +261,7 @@ function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, Confusio
 /**
  * Determine if concept is foundation level (eligible for diagnostics)
  */
-function isRootLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]): boolean {
+function isTrunkLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]): boolean {
  // Foundation concepts typically:
  // 1. Have fewer prerequisites
  // 2. Are referenced by other concepts
@@ -284,7 +284,7 @@ function isRootLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]): bool
 /**
  * Calculate concept tier for interleaving algorithm
  */
-function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'root' | 'trunk' | 'leaf' {
+function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'trunk' | 'branch' | 'leaf' {
  if (concept.tier) {
  return concept.tier;
  }
@@ -298,8 +298,8 @@ function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'r
  ).length;
  const dependencyCount = concept.phase1.prerequisite &&
  !safeStr(concept.phase1.prerequisite).toLowerCase().includes('none') ? 1 : 0;
- if (dependentCount >= 3) return 'root';
- if (dependentCount >= 1 || dependencyCount > 0) return 'trunk';
+ if (dependentCount >= 3) return 'trunk';
+ if (dependentCount >= 1 || dependencyCount > 0) return 'branch';
  return 'leaf';
 }
 /**
@@ -640,9 +640,9 @@ function distributeConceptsToStages(
 function safeSlugify(text: string): string {
  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 }
-function determineTierFallback(order: number, _name: string): 'root' | 'trunk' | 'leaf' {
- if (order <= 5) return 'root';
- if (order <= 20) return 'trunk';
+function determineTierFallback(order: number, _name: string): 'trunk' | 'branch' | 'leaf' {
+ if (order <= 5) return 'trunk';
+ if (order <= 20) return 'branch';
  return 'leaf';
 }
 export function transformToLearningConcepts(
@@ -906,8 +906,8 @@ export function transformToSensaAIConcepts(
  Object.assign(existing, c);
  }
  // If conflicting tiers, prefer Foundation
- if (c.tier === 'root' && existing.tier !== 'root') {
- existing.tier = 'root';
+ if (c.tier === 'trunk' && existing.tier !== 'trunk') {
+ existing.tier = 'trunk';
  }
  } else {
  seenNames.set(norm, c);
@@ -931,7 +931,7 @@ export function transformToSensaAIConcepts(
  keyPoints: ['Core domain concept', 'Essential for completeness', 'Recovered during analysis'],
  diagnosticQuestions: [],
  confusionPairs: [],
- rootLevel: (baseConcept.tier === 'root'),
+ trunkLevel: (baseConcept.tier === 'trunk'),
  tier: baseConcept.tier || 'leaf',
  complexityScore: 3,
  prerequisiteWeight: 0,
@@ -942,7 +942,7 @@ export function transformToSensaAIConcepts(
  // Extract SensaAI metadata
  const keyPoints = extractKeyPoints(parsedConcept);
  const diagnosticQuestions = generateDiagnosticQuestions(parsedConcept);
- const rootLevel = isRootLevel(parsedConcept, parsed.concepts);
+ const trunkLevel = isTrunkLevel(parsedConcept, parsed.concepts);
  const tier = calculateTier(parsedConcept, parsed.concepts);
  const complexityScore = calculateComplexityScore(parsedConcept);
  // Calculate weights for diagnostic selection
@@ -960,7 +960,7 @@ export function transformToSensaAIConcepts(
  keyPoints,
  diagnosticQuestions,
  confusionPairs: conceptConfusionPairs,
- rootLevel,
+ trunkLevel,
  tier,
  complexityScore,
  prerequisiteWeight,
@@ -1018,7 +1018,7 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
  role: string;
  source: string;
  conceptCount: number;
- rootConcepts: number;
+ trunkConcepts: number;
  diagnosticReady: boolean;
  metadataCompleteness: number;
  };
@@ -1031,8 +1031,8 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
  parsed.concepts
  );
  // Calculate SensaAI metrics
- const rootConcepts = concepts.filter(c => c.rootLevel).length;
- const diagnosticReady = rootConcepts >= 5; // Need at least 5 for diagnostic
+ const trunkConcepts = concepts.filter(c => c.trunkLevel).length;
+ const diagnosticReady = trunkConcepts >= 5; // Need at least 5 for diagnostic
  // Calculate metadata completeness
  let completenessScore = 0;
  let totalChecks = 0;
@@ -1040,7 +1040,7 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
  totalChecks += 6; // 6 checks per concept
  if (concept.keyPoints.length >= 3) completenessScore++;
  if (concept.diagnosticQuestions.length >= 1) completenessScore++;
- if (concept.rootLevel !== undefined) completenessScore++;
+ if (concept.trunkLevel !== undefined) completenessScore++;
  if (concept.tier) completenessScore++;
  if (concept.complexityScore > 0) completenessScore++;
  if (concept.confusionPairs.length >= 0) completenessScore++; // Always true, validates structure
@@ -1055,7 +1055,7 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
  role: parsed.domainAnalysis.professionalRole,
  source: parsed.domainAnalysis.sourceVerification,
  conceptCount: concepts.length,
- rootConcepts,
+ trunkConcepts,
  diagnosticReady,
  metadataCompleteness
  }
@@ -1072,9 +1072,9 @@ export function validateSensaAIMetadata(concepts: SensaAILearningConcept[]): {
  const issues: string[] = [];
  const recommendations: string[] = [];
  // Check foundation concepts for diagnostics
- const rootCount = concepts.filter(c => c.rootLevel).length;
- if (rootCount < 5) {
- issues.push(`Only ${rootCount} root concepts found, need at least 5 for diagnostics`);
+ const trunkCount = concepts.filter(c => c.trunkLevel).length;
+ if (trunkCount < 5) {
+ issues.push(`Only ${trunkCount} trunk concepts found, need at least 5 for diagnostics`);
  recommendations.push('Ensure concepts have minimal prerequisites and concrete examples');
  }
  // Check key points coverage
@@ -1091,19 +1091,19 @@ export function validateSensaAIMetadata(concepts: SensaAILearningConcept[]): {
  }
  // Check tier distribution
  const tierCounts = {
- Root: concepts.filter(c => c.tier === 'root').length,
  Trunk: concepts.filter(c => c.tier === 'trunk').length,
+ Branch: concepts.filter(c => c.tier === 'branch').length,
  Leaf: concepts.filter(c => c.tier === 'leaf').length
  };
  const total = concepts.length;
- const rootPercent = (tierCounts.Root / total) * 100;
- if (rootPercent < 10 || rootPercent > 40) {
- issues.push(`Root concepts: ${rootPercent.toFixed(1)}% (target: ~20%)`);
- recommendations.push('Adjust concept connections to achieve better tier balance');
+ const trunkPercent = (tierCounts.Trunk / total) * 100;
+ if (trunkPercent < 5 || trunkPercent > 30) {
+ issues.push(`Trunk concepts: ${trunkPercent.toFixed(1)}% (target: ~10-20%)`);
+ recommendations.push('Adjust concept tree structure to achieve better tier balance');
  }
  return {
  isValid: issues.length === 0,
  issues,
  recommendations
  };
-}
+}

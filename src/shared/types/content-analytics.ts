@@ -16,8 +16,8 @@ export interface MnemonicCoverage {
  percentage: number;
 }
 export interface TierDistribution {
- root: number;
  trunk: number;
+ branch: number;
  leaf: number;
  total: number;
 }
@@ -26,4 +26,4 @@ export interface TreePacket {
  value: number;
  color: string;
  [key: string]: unknown;
-}
+}

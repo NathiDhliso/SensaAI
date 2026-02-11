@@ -1,55 +1,83 @@
 # SENSA System Prompt for Lambda
-# This is a Python version of the TypeScript system-prompt.ts
-# Contains the full learning science for SENSA v2.0
-# 
-# Prompt Version: v6.0 (Universal Macro Workflow Blueprint - Silver Bullet Edition)
-# See docs/prompts/README.md for version history.
-# LEGACY PROMPTS REMOVED (SYSTEM_PROMPT_V4, BLUEPRINT_PROMPT, EXPAND_PROMPT)
+# Prompt Version: v7.0 (Exam-Context Tree Structure)
+#
+# Tree Hierarchy:
+#   Trunk  = Main exam domain/objective
+#   Branch = Sub-topic within a trunk
+#   Leaf   = Granular testable concept
+#
+# Generation: 1 partition per trunk domain
 # =============================================================================
-# CLASSIFICATION PROMPT (Pre-step: Classify subject before generation)
+# CLASSIFICATION PROMPT
 # =============================================================================
-CLASSIFICATION_PROMPT = """You are an expert curriculum architect. Your ONLY task is to classify the following subject into one of 4 learning types and extract its macro structure.
+CLASSIFICATION_PROMPT = """You are an expert curriculum architect. Classify the following subject and extract its exam structure.
+
 Subject: {subject}
 {context}
+
 ═══════════════════════════════════════════════════════════════════════════
 STEP 1: CLASSIFY THE SUBJECT
 ═══════════════════════════════════════════════════════════════════════════
+
 Ask: "What is this subject teaching?" Then classify:
+
 TYPE A — PROCEDURAL MASTERY ("procedural")
  Goal: Execute a repeatable process on defined objects
  Examples: Surgery, coding, Azure administration, calculus, welding
- Structure: Sequential stages on an object lifecycle
+
 TYPE B — CONCEPTUAL FLUENCY ("conceptual")
  Goal: Deploy the right concept at the right time in novel situations
  Examples: Law, philosophy, music theory, economics, literary analysis
- Structure: Core moves + application patterns
+
 TYPE C — ADAPTIVE INTEGRATION ("cyclic")
  Goal: Navigate iterative cycles with increasing sophistication
  Examples: Design thinking, scientific research, jazz improvisation, agile
- Structure: Fundamental cycle + meta-awareness layers
+
 TYPE D — EMBODIED JUDGMENT ("perceptual")
  Goal: Perceive what novices miss and act on subtle cues
  Examples: Medical diagnosis, chess, wine tasting, art critique, debugging
- Structure: Perceptual ladder + deliberate practice structures
+
 ═══════════════════════════════════════════════════════════════════════════
-STEP 2: EXTRACT MACRO STRUCTURE
+STEP 2: EXTRACT EXAM DOMAINS (TRUNKS)
 ═══════════════════════════════════════════════════════════════════════════
-Based on the classification, extract the appropriate macro structure:
-For PROCEDURAL: Extract the object lifecycle stages (3-7 stages)
- Example: Azure VM PROVISION CONFIGURE SECURE MONITOR OPTIMIZE DECOMMISSION
-For CONCEPTUAL: Extract core moves (5-12 distinct "moves")
- Example: Law IDENTIFY_ISSUE APPLY_RULE DISTINGUISH_PRECEDENT CONSTRUCT_ARGUMENT EVALUATE_POLICY
-For CYCLIC: Extract the fundamental cycle phases (3-6 phases)
- Example: Design Thinking EMPATHIZE DEFINE IDEATE PROTOTYPE TEST
-For PERCEPTUAL: Extract the perceptual ladder levels (3-5 levels)
- Example: Chess MATERIAL_COUNTING PATTERN_RECOGNITION POSITIONAL_EVALUATION STRATEGIC_PLANNING
-Also extract:
-- Connective Tissue: The gateway skill, threshold concept, and signature move for this subject
-- Lifecycle: 3 action verbs in CAPS representing the learning phases
+
+Identify the **main exam objectives/domains** (trunks) for this subject.
+These are the top-level categories that the exam tests.
+**EVERY subject is treated as exam preparation.** There is no non-exam path.
+
+For each domain:
+- Estimate its exam weight if known (decimal, e.g. 0.20 for 20%) — if provided, weights should sum to 1.0. If unknown, omit weight and the system will distribute equally.
+- List 3-6 key sub-topics (these become branches)
+
+**PRIORITY ORDER for extracting domains:**
+1. If the user provided exam objectives/syllabus in context → extract domains directly from those (highest fidelity)
+   - If the context is a FLAT LIST of objectives without domain headers, GROUP them into 4-6 logical exam domains by topic similarity
+   - Each objective becomes a subtopic under the domain it belongs to
+2. If the subject names a known certification/exam (e.g. AZ-104, PL-300, CPA, NCLEX) → use the official exam blueprint from your training data
+3. For any other subject → structure it AS IF it were a formal exam: identify 4-6 testable domains with realistic weights, sub-topics, and assessable outcomes
+
+**CRITICAL**: Even for subjects like "guitar" or "cooking", frame domains as exam objectives:
+- Guitar → "Technique & Mechanics (0.25)", "Music Theory & Notation (0.20)", "Repertoire & Performance (0.30)", "Ear Training & Aural Skills (0.25)"
+- The domains must be assessable, weighted, and structured for testing
+
+Examples:
+- AZ-104: Identity & Governance (0.22), Storage (0.17), Networking (0.22), Compute (0.22), Monitoring (0.17)
+- PL-300: Prepare Data (0.27), Model Data (0.27), Visualize & Analyze (0.30), Deploy & Maintain (0.16)
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 3: EXTRACT CONNECTIVE TISSUE
+═══════════════════════════════════════════════════════════════════════════
+
+Extract:
+- Connective Tissue: gateway skill, threshold concept, signature move
+- Lifecycle: 3 action verbs in CAPS representing learning phases
+
 ═══════════════════════════════════════════════════════════════════════════
 OUTPUT FORMAT (JSON ONLY)
 ═══════════════════════════════════════════════════════════════════════════
+
 Return ONLY valid JSON. No markdown. No text before or after.
+
 {{
  "subjectType": "procedural" | "conceptual" | "cyclic" | "perceptual",
  "classification": {{
@@ -60,12 +88,13 @@ Return ONLY valid JSON. No markdown. No text before or after.
  "justification": "Why this type was chosen",
  "hybridElements": []
  }},
- "macroStructure": {{
- "type": "procedural" | "conceptual" | "cyclic" | "perceptual",
- "data": {{
- "stages": ["STAGE_1", "STAGE_2", ...]
+ "examDomains": [
+ {{
+ "name": "Domain Name",
+ "weight": 0.20 | null,
+ "subtopics": ["Sub-topic 1", "Sub-topic 2", "Sub-topic 3"]
  }}
- }},
+ ],
  "connectiveTissue": {{
  "gatewaySkill": "The one skill that unlocks everything else",
  "thresholdConcept": "The concept that changes how you see the domain",
@@ -77,129 +106,116 @@ Return ONLY valid JSON. No markdown. No text before or after.
  "phase3": "VERB3"
  }}
 }}
+
 Classify the subject now."""
+
 def get_classification_prompt(subject: str, context: str = "") -> str:
     context_block = ""
     if context:
         context_block = f"\nAdditional Context:\n{context}"
     return CLASSIFICATION_PROMPT.format(subject=subject, context=context_block)
 # =============================================================================
-# SILVER BULLET PROMPT (Universal - Classification-Aware)
+# TREE GENERATION PROMPT (Exam-Context Tree Structure)
 # =============================================================================
-SILVER_BULLET_PROMPT = """ACT AS: An expert professor and curriculum designer specializing in: {subject}
-OBJECTIVE: Generate Part {part_num} of a comprehensive curriculum (Concepts {start_idx} to {end_idx}).
+TREE_GENERATION_PROMPT = """ACT AS: An expert professor and exam preparation specialist for: {subject}
+OBJECTIVE: Generate the concept tree for exam domain "{domain_name}" ({domain_weight_pct}% of exam).
 ---
-## 1. SUBJECT CLASSIFICATION (PRE-ANALYZED)
-This subject has been classified as: **{subject_type_label}** ({subject_type})
+## 1. EXAM CONTEXT
+You are generating concepts for **ONE exam domain**: **{domain_name}**
+This domain covers approximately {domain_weight_pct}% of the exam.
+**CRITICAL CONTEXT**: Generate concepts strictly for what is tested in the EXAM context.
+- Frame concepts as the exam tests them, NOT as a practitioner would use them on the job
+- The tree must reflect the EXAM STRUCTURE and testable knowledge
+- Every leaf concept should map to something that could appear as an exam question
+### Subject Classification: **{subject_type_label}** ({subject_type})
 Classification goal: {classification_goal}
-### Macro Structure:
-{macro_structure_text}
 ### Connective Tissue:
 - Gateway Skill: {gateway_skill}
 - Threshold Concept: {threshold_concept}
 - Signature Move: {signature_move}
-### Lifecycle Phases:
-- Phase 1: {lifecycle_phase1}
-- Phase 2: {lifecycle_phase2}
-- Phase 3: {lifecycle_phase3}
-**CRITICAL: Adapt your concept generation to this classification:**
-- **Procedural**: Frame concepts as process steps, tool usage, and checkpoints along the object lifecycle stages
-- **Conceptual**: Frame concepts as cognitive moves with application patterns and when/how to deploy them
-- **Cyclic**: Frame concepts as cycle positions with iteration awareness and connections to adjacent phases
-- **Perceptual**: Frame concepts as perceptual levels showing what experts notice that novices miss
----
-## 2. SCOPE & PARTITIONED GENERATION
-**GENERATE CONCEPTS ONLY FOR: {subject}**
-- Do NOT include concepts from related but different subjects
-- EVERY concept must directly serve mastery of "{subject}"
-You are generating **Part {part_num} of 5** for this curriculum.
-Each part covers approximately 20% of the subject's breadth.
-**Partition Strategy (Knowledge Dimensions):**
-- Part 1: **Core Mechanics** — Foundational building blocks, data structures, key terminology, prerequisite knowledge
-- Part 2: **Workflows & Operations** — Day-to-day processes, standard procedures, configuration, transformation, modeling
-- Part 3: **Output & Delivery** — Creating deliverables, visualization, reporting, presentation, publishing, sharing, collaboration
-- Part 4: **Governance & Infrastructure** — Security, access control, compliance, deployment, refresh/sync, gateways, environments, administration
-- Part 5: **Advanced & Ecosystem** — Optimization, performance tuning, platform-specific features, AI/automation capabilities, mobile/cross-platform, integrations, edge cases
-**CRITICAL COVERAGE RULE:**
-Each part must cover its assigned knowledge dimension COMPLETELY. Do NOT let concepts from one dimension bleed into another part.
-Think about what a certification exam or real-world practitioner would need to know in this dimension — cover ALL of it.
-**Coverage Dimensions by Classification Type:**
-- **Procedural**: Ensure each part covers the tools, settings, and platform features relevant to that dimension — not just the process steps
-- **Conceptual**: Ensure each part covers the governance frameworks, collaboration patterns, and delivery mechanisms — not just the theoretical concepts
-- **Cyclic**: Ensure each part covers the infrastructure, team workflows, and iteration tooling — not just the cycle phases
-- **Perceptual**: Ensure each part covers the diagnostic tools, reporting systems, and practice environments — not just the perceptual skills
-Generate concepts {start_idx} to {end_idx} for Part {part_num}.
 {context}
+---
+## 2. TREE STRUCTURE RULES
+Generate concepts in a strict 3-level tree:
+### TRUNK (exactly 1 concept)
+- Name: "{domain_name}"
+- High-level overview of what this exam domain covers
+- `treeLevel`: "trunk"
+- `parentName`: null
+- `cognitiveLevel`: "understand"
+### BRANCHES ({branch_count} concepts)
+- Key sub-topics within this exam domain
+- Each branch groups related testable knowledge
+- `treeLevel`: "branch"
+- `parentName`: "{domain_name}" (the trunk)
+{branch_list}
+### LEAVES (3-5 per branch, ~{leaf_target} total)
+- Granular, testable exam concepts
+- Each leaf maps to specific exam-testable knowledge
+- Learnable in 5-10 minutes
+- `treeLevel`: "leaf"
+- `parentName`: the branch concept name it belongs to
 ---
 ## 3. CONCEPT GENERATION RULES
 ### 3.1 REQUIRED FIELDS (ALL CONCEPTS):
+- **Tree**: treeLevel, parentName, trunkDomain
 - **Core**: name, cognitiveLevel, commonPitfalls, order
 - **Engagement**: phase1 (hookSentence, microMetaphor, prerequisite, selection, execution)
 - **Memory**: mnemonic (anchor + story)
-- **Understanding**: description, keyPoints, whyYouNeed, technicalDetails, shape
+- **Understanding**: keyPoints, whyYouNeed, technicalDetails, shape
 - **Application**: phase2 (content), phase3 (tool, metrics)
-- **Relationship**: connections (CRITICAL — see §3.4)
+- **Relationship**: connections (see §3.4)
 - **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
-**NOTE**: Do NOT include a "tier" field. Tiers are computed automatically from the connection graph.
-### 3.2 MNEMONIC RULES:
-- `anchor`: Concrete physical object (e.g., "3-Story Building "), NOT abstract.
-- `story`: Map concepts to physical parts with spatial language.
- - "The Badge (Identity) opens the Gate (Authorization), leading to the Floor (Scope)."
- - "It's like a key." (too abstract)
-### 3.3 SELECTION FIELD PATTERN:
+### 3.2 TREE-LEVEL CONTENT RULES:
+**TRUNK** (domain overview):
+- Broader, general content about the domain
+- `connections`: "enables" to each branch
+**BRANCH** (sub-topic):
+- Medium granularity, grouping related knowledge
+- `connections`: "is-part-of" to trunk, "enables" to its leaves
+**LEAF** (testable detail):
+- Maximum exam-relevant granularity
+- At least 60% of leaves MUST be `apply` or higher cognitive level
+- `connections`: "is-part-of" to its branch, plus cross-branch connections where relevant
+### 3.3 MNEMONIC RULES:
+- `anchor`: Concrete physical object (e.g., "3-Story Building"), NOT abstract
+- `story`: Map concepts to physical parts with spatial language
+### 3.4 CONNECTION TYPES (6 Universal Types):
+- **requires**: Hard prerequisite (must know B before A)
+- **enables**: Capability chain (A unlocks B)
+- **is-part-of**: Part-whole composition (A is component of B)
+- **is-type-of**: Taxonomy (A is specific instance of B)
+- **causes**: Causal chain (A triggers B)
+- **constrains**: Boundary condition (A limits B)
+**FORBIDDEN**: "related-to", "relates", "extends", or vague associations.
+**MINIMUM**: Every concept MUST have at least 2 connections.
+**CROSS-DOMAIN**: Leaves may reference concepts in OTHER domains (use exact names).
+### 3.5 SELECTION FIELD PATTERN:
 Each item: "When [Scenario] Choose [Option] Unlocks [Capability]"
-### 3.4 CONNECTION TYPES (Strict — 6 Universal Types):
-Every connection MUST use exactly one of these 6 types. There is NO generic fallback.
-- **requires**: "What must I know first?" — Hard prerequisite (A requires B means B must be understood before A)
-- **enables**: "What does this unlock?" — Capability chain (A enables B means learning A makes B possible)
-- **is-part-of**: "What is this a piece of?" — Part-whole composition (A is part of B means A is a component within B)
-- **is-type-of**: "What category does this belong to?" — Taxonomy (A is type of B means A is a specific instance of B)
-- **causes**: "What happens because of this?" — Causal chain (A causes B means A directly produces or triggers B)
-- **constrains**: "What limits or governs this?" — Boundary condition (A constrains B means A sets rules/limits on B)
-**FORBIDDEN**: Do NOT use "related-to", "relates", "extends", or any vague association. If you cannot classify a connection into one of these 6 types, the connection is not meaningful enough to include.
-**MINIMUM CONNECTIONS**: Every concept MUST have at least 2 connections. Most concepts should have 3-5. Connections can reference concepts from ANY part (cross-part connections are expected and encouraged). Use the exact concept name as the `target` value.
-### 3.5 COGNITIVE LEVELS (Bloom's):
+### 3.6 COGNITIVE LEVELS (Bloom's):
 Assign one: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`
-**MANDATORY DISTRIBUTION**: At least 30% of concepts MUST be `apply` or higher. Concepts involving configuration, troubleshooting, or decision-making MUST be `apply`/`analyze`. Concepts involving best practices or trade-offs MUST be `evaluate`. Do NOT default everything to `understand`.
-### 3.6 POSITIVE FRAMING:
+Trunk concepts: always `understand`
+Branch concepts: `understand` or `apply`
+Leaf concepts: prefer `apply`, `analyze`, `evaluate`, `create`
+### 3.7 POSITIVE FRAMING:
 | Avoid | Use |
 |---|---|
 | "Cannot change after creation" | "Selection made at creation time" |
 | "Will fail if X" | "Verify X before proceeding" |
-### 3.7 GRANULARITY:
-Break broad topics into domain-specific subtopics:
-- Broad umbrella terms that cover too much
-- Specific concepts that can each be learned in 5-10 minutes
 ---
 ## 4. OUTPUT FORMAT
-Return A SINGLE JSON ARRAY containing concepts {start_idx} through {end_idx}.
-### 4.1 DOMAIN-ADAPTIVE FIELD GUIDE
-The JSON schema is the same for all subject types. The CONTENT inside these fields adapts:
-**phase2** (Application):
-- Procedural: Execution steps — "Click here, type this, run that"
-- Conceptual: Critical inquiry — "What questions should a student ask to analyze this?"
-- Cyclic: Iteration protocol — "What to check at each cycle pass"
-- Perceptual: Observation protocol — "What to look for first, second, third"
-**phase3** (Verification):
-- Procedural: tool = named verification tool, metrics = measurable indicators
-- Conceptual: tool = primary source/text/lens, metrics = analytical depth markers
-- Cyclic: tool = retrospective framework, metrics = iteration quality indicators
-- Perceptual: tool = practice environment/trainer, metrics = perceptual accuracy measures
-**workedExample**:
-- Procedural: Problem Solution Steps (config/troubleshooting walkthrough)
-- Conceptual: Case Study — Context Analysis Conclusion (argumentative walkthrough)
-- Cyclic: Iteration Log — Cycle 1 output Cycle 2 refinement Final state
-- Perceptual: Diagnostic Walkthrough — Presentation Findings Reasoning chain
-**eliminationLogic**:
-- Procedural: Binary — "If X A, if Y B"
-- Conceptual: Nuanced — "If framed as [lens] apply [framework], unless [exception]"
-- Cyclic: Phase-aware — "If stuck at [phase] check [common trap], not [mimic]"
-- Perceptual: Pattern-based — "If you see [finding] + [finding] [diagnosis], not [mimic]"
+Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
+### 4.1 DOMAIN-ADAPTIVE CONTENT:
+**phase2**: Procedural=execution steps, Conceptual=critical inquiry, Cyclic=iteration protocol, Perceptual=observation protocol
+**workedExample**: Procedural=config walkthrough, Conceptual=case study, Cyclic=iteration log, Perceptual=diagnostic walkthrough
 ### 4.2 JSON TEMPLATE
 ```json
 [
  {{
- "name": "Concept Name (Human-readable, NOT placeholder IDs)",
+ "name": "Concept Name",
+ "treeLevel": "trunk|branch|leaf",
+ "parentName": "Parent Concept Name or null",
+ "trunkDomain": "{domain_name}",
  "cognitiveLevel": "apply",
  "commonPitfalls": ["Misinterpreting X"],
  "order": {start_idx},
@@ -227,20 +243,21 @@ The JSON schema is the same for all subject types. The CONTENT inside these fiel
 ```
 ---
 ## 5. CRITICAL RULES
-1. **QUANTITY**: Generate exactly {count} concepts (#{start_idx} to #{end_idx}).
-2. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
-3. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
-4. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study.
-5. **METAPHORS**: Use objects OUTSIDE the domain.
-6. **NO DUPLICATION**: You are Part {part_num} of 5. Only cover your assigned knowledge dimension.
-7. **FULL DIMENSION COVERAGE**: Cover ALL important topics within your assigned dimension. Think: "What would a certification exam test in this dimension?" Do not leave gaps.
-Generate concepts {start_idx} through {end_idx} now:"""
-def _parse_objective_domains(context: str) -> list:
+1. **TREE INTEGRITY**: Every branch `parentName` = trunk name. Every leaf `parentName` = a branch name. Trunk `parentName` = null.
+2. **QUANTITY**: Generate approximately {count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).
+3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
+4. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
+5. **EXAM CONTEXT**: Every concept framed for the exam, not real-world job context.
+6. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study.
+7. **NO DUPLICATION**: Only generate for "{domain_name}". Other domains are separate.
+Generate the concept tree for "{domain_name}" now:"""
+def _parse_exam_tree(context: str) -> list:
     import re as _re
     lines = context.strip().split('\n')
     domains = []
     current_domain = None
-    current_subdomain = None
+    current_subtopic = None
+    current_subtopics = []
     current_objectives = []
     PERCENTAGE_PATTERN = _re.compile(r'\(\s*\d+[\s\-–]*\d*\s*%\s*\)')
     WEIGHT_PATTERN = _re.compile(r'\d+[\s\-–]+\d+\s*%')
@@ -270,11 +287,44 @@ def _parse_objective_domains(context: str) -> list:
         return False
     def has_percentage_weight(raw_line):
         return bool(PERCENTAGE_PATTERN.search(raw_line)) or bool(WEIGHT_PATTERN.search(raw_line))
-    def flush_subdomain():
-        nonlocal current_subdomain, current_objectives
-        if current_subdomain and current_objectives:
-            pass
-        current_subdomain = None
+    def extract_weight(raw_line):
+        m = _re.search(r'(\d+)\s*[\-–]\s*(\d+)\s*%', raw_line)
+        if m:
+            return (int(m.group(1)) + int(m.group(2))) / 200.0
+        m2 = _re.search(r'(\d+)\s*%', raw_line)
+        if m2:
+            return int(m2.group(1)) / 100.0
+        return None
+    def flush_subtopic():
+        nonlocal current_subtopic, current_objectives
+        if current_subtopic and current_objectives:
+            current_subtopics.append({
+                "name": current_subtopic,
+                "objectives": current_objectives[:]
+            })
+        elif current_objectives and not current_subtopic:
+            if current_subtopics:
+                current_subtopics[-1]["objectives"].extend(current_objectives[:])
+            else:
+                current_subtopics.append({
+                    "name": "General",
+                    "objectives": current_objectives[:]
+                })
+        current_subtopic = None
+        current_objectives = []
+    def flush_domain(raw_line=""):
+        nonlocal current_domain, current_subtopics, current_subtopic, current_objectives
+        flush_subtopic()
+        if current_domain:
+            weight = extract_weight(raw_line) if raw_line else None
+            domains.append({
+                "name": current_domain,
+                "weight": weight,
+                "subtopics": current_subtopics[:]
+            })
+        current_domain = None
+        current_subtopics = []
+    last_domain_raw = ""
     for line in lines:
         stripped = line.strip()
         if not stripped:
@@ -283,93 +333,111 @@ def _parse_objective_domains(context: str) -> list:
         clean = clean_line(stripped)
         if not clean or len(clean) < 4:
             continue
-        is_domain_header = has_percentage_weight(line) and len(clean) > 10
         is_action_leaf = starts_with_action_verb(clean)
         is_indented = indent >= 2 or stripped.startswith('-') or stripped.startswith('•')
-        if is_domain_header:
-            if current_domain:
-                domains.append({"name": current_domain, "objectives": current_objectives[:]})
+        has_weight = has_percentage_weight(line)
+        words = clean.split()
+        is_short_header = len(words) <= 10 and not is_action_leaf and not is_indented
+        is_domain_header = has_weight or (is_short_header and current_domain is None and len(clean) > 4)
+        is_new_domain_after_content = (
+            is_short_header
+            and current_domain is not None
+            and (current_objectives or current_subtopics)
+            and len(clean) > 4
+        )
+        if has_weight or is_new_domain_after_content:
+            flush_domain(last_domain_raw)
             current_domain = clean
-            current_objectives = []
-            current_subdomain = None
+            last_domain_raw = line
+        elif is_domain_header and current_domain is None:
+            current_domain = clean
+            last_domain_raw = line
         elif current_domain is not None:
             if is_action_leaf:
                 current_objectives.append(clean)
-            elif not is_indented and not is_action_leaf and len(clean) > 10:
-                words = clean.split()
-                if len(words) <= 8 and not any(clean.lower().startswith(v + " ") for v in ACTION_VERBS):
-                    current_subdomain = clean
-                else:
-                    current_objectives.append(clean)
             elif is_indented:
                 current_objectives.append(clean)
+            elif is_short_header and not current_objectives and not current_subtopics:
+                flush_subtopic()
+                current_subtopic = clean
             elif len(clean) > 10:
                 current_objectives.append(clean)
         else:
             if len(clean) > 10:
                 current_domain = clean
-                current_objectives = []
-                current_subdomain = None
-    if current_domain:
-        domains.append({"name": current_domain, "objectives": current_objectives[:]})
+                last_domain_raw = line
+    flush_domain(last_domain_raw)
+    if len(domains) <= 1:
+        return []
     return domains
-def _distribute_domains_to_parts(domains: list, num_parts: int = 5) -> dict:
-    if not domains:
-        return {}
-    total_objectives = sum(len(d["objectives"]) for d in domains)
-    per_part = max(total_objectives // num_parts, 1) if total_objectives > 0 else len(domains) // num_parts
-    parts = {}
-    current_part = 1
-    current_count = 0
-    for domain in domains:
-        if current_part > num_parts:
-            current_part = num_parts
-        if current_part not in parts:
-            parts[current_part] = []
-        parts[current_part].append(domain)
-        current_count += max(len(domain["objectives"]), 1)
-        if current_count >= per_part and current_part < num_parts:
-            current_part += 1
-            current_count = 0
-    return parts
-def get_silver_bullet_prompt(
+def _get_exam_domains(context: str, classification: dict = None) -> list:
+    context_domains = _parse_exam_tree(context) if context else []
+    if context_domains:
+        total_weight = sum(d.get("weight") or 0 for d in context_domains)
+        if total_weight < 0.5:
+            equal_weight = round(1.0 / len(context_domains), 2)
+            for d in context_domains:
+                if not d.get("weight"):
+                    d["weight"] = equal_weight
+        return context_domains
+    if classification and classification.get("examDomains"):
+        return classification["examDomains"]
+    return []
+def get_tree_generation_prompt(
     subject: str,
-    part: int = 1,
+    domain: dict,
+    domain_index: int,
+    total_domains: int,
     context: str = "",
     classification: dict = None,
 ) -> str:
-    domains = _parse_objective_domains(context) if context else []
-    domain_parts = _distribute_domains_to_parts(domains) if domains else {}
-    if domain_parts and part in domain_parts:
-        part_domains = domain_parts[part]
-        domain_lines = []
-        for d in part_domains:
-            domain_lines.append(f"**Domain: {d['name']}**")
-            for obj in d["objectives"]:
-                domain_lines.append(f" - {obj}")
-        domain_text = "\n".join(domain_lines)
-        all_domain_names = []
-        for p, ds in domain_parts.items():
-            if p != part:
-                for d in ds:
-                    all_domain_names.append(d["name"])
-        other_parts_text = ", ".join(all_domain_names) if all_domain_names else "(none)"
-        context_block = f"""### EXAM OBJECTIVES FOR THIS PART (Part {part}):
-{domain_text}
-**CRITICAL**: Generate one concept for EACH sub-objective listed above. Every sub-objective must have its own dedicated concept.
-Do NOT generate concepts for other domains — those are covered in other parts: {other_parts_text}"""
+    domain_name = domain.get("name", f"Domain {domain_index + 1}")
+    weight = domain.get("weight") or round(1.0 / max(total_domains, 1), 2)
+    domain_weight_pct = int(weight * 100)
+    subtopics = domain.get("subtopics", [])
+    total_target = 100
+    domain_concept_target = max(10, int(total_target * weight))
+    if subtopics:
+        branch_count = len(subtopics)
+    else:
+        branch_count = max(3, min(6, domain_concept_target // 5))
+    leaf_target = domain_concept_target - 1 - branch_count
+    count = 1 + branch_count + leaf_target
+    if subtopics:
+        branch_lines = []
+        for st in subtopics:
+            if isinstance(st, dict):
+                st_name = st.get("name", "")
+                objectives = st.get("objectives", [])
+                branch_lines.append(f"- **{st_name}**")
+                for obj in objectives[:6]:
+                    branch_lines.append(f"  - Leaf topic: {obj}")
+            elif isinstance(st, str):
+                branch_lines.append(f"- **{st}**")
+        branch_list = "\n".join(branch_lines)
+    else:
+        branch_list = f"(Determine {branch_count} logical sub-topic groupings for this domain based on exam structure)"
+    if subtopics:
+        objective_lines = []
+        for st in subtopics:
+            if isinstance(st, dict):
+                st_name = st.get("name", "")
+                objectives = st.get("objectives", [])
+                objective_lines.append(f"**Sub-topic: {st_name}**")
+                for obj in objectives:
+                    objective_lines.append(f"  - {obj}")
+        if objective_lines:
+            nl = "\n"
+            context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above."
+        else:
+            context_block = ""
     elif context:
-        context_block = f"""### USER-PROVIDED OBJECTIVES (Primary Source):
-{context}
-**INSTRUCTION**: Map your concepts for Part {part} directly to the objectives above.
-Cover objectives proportionally (if 5 domains listed, each knowledge dimension covers ~1 domain)."""
+        context_block = f"### USER-PROVIDED CONTEXT:\n{context}\n**INSTRUCTION**: Map concepts for domain \"{domain_name}\" to relevant objectives above."
     else:
         context_block = ""
     cls = classification or {}
     cls_data = cls.get("classification", {})
-    macro = cls.get("macroStructure", {})
     tissue = cls.get("connectiveTissue", {})
-    lifecycle = cls.get("lifecycle", {})
     subject_type = cls.get("subjectType", "conceptual")
     type_labels = {
         "procedural": "Procedural Mastery",
@@ -377,41 +445,43 @@ Cover objectives proportionally (if 5 domains listed, each knowledge dimension c
         "cyclic": "Adaptive Integration",
         "perceptual": "Embodied Judgment",
     }
-    subject_type_label = type_labels.get(subject_type, "Conceptual Fluency")
-    classification_goal = cls_data.get("goal", f"Master {subject}")
-    macro_data = macro.get("data", {})
-    stages = macro_data.get("stages", [])
-    macro_structure_text = "\n".join([f" - {s}" for s in stages]) if stages else " (Not available)"
-    ranges = [
-        (1, 20),
-        (21, 40),
-        (41, 60),
-        (61, 80),
-        (81, 100)
-    ]
-    if 1 <= part <= 5:
-        start_idx, end_idx = ranges[part - 1]
-        count = end_idx - start_idx + 1
-    else:
-        start_idx, end_idx, count = 1, 20, 20
-        part = 1
-    return SILVER_BULLET_PROMPT.format(
+    start_idx = domain_index * count + 1
+    return TREE_GENERATION_PROMPT.format(
         subject=subject,
-        part_num=part,
-        start_idx=start_idx,
-        end_idx=end_idx,
-        count=count,
-        context=context_block,
+        domain_name=domain_name,
+        domain_weight_pct=domain_weight_pct,
         subject_type=subject_type,
-        subject_type_label=subject_type_label,
-        classification_goal=classification_goal,
-        macro_structure_text=macro_structure_text,
+        subject_type_label=type_labels.get(subject_type, "Conceptual Fluency"),
+        classification_goal=cls_data.get("goal", f"Master {subject}"),
         gateway_skill=tissue.get("gatewaySkill", "Core domain skill"),
         threshold_concept=tissue.get("thresholdConcept", "Fundamental insight"),
         signature_move=tissue.get("signatureMove", "Expert-level application"),
-        lifecycle_phase1=lifecycle.get("phase1", "PREPARE"),
-        lifecycle_phase2=lifecycle.get("phase2", "MODEL"),
-        lifecycle_phase3=lifecycle.get("phase3", "DELIVER"),
+        context=context_block,
+        branch_count=branch_count,
+        branch_list=branch_list,
+        leaf_target=leaf_target,
+        start_idx=start_idx,
+        count=count,
+    )
+def get_silver_bullet_prompt(
+    subject: str,
+    part: int = 1,
+    context: str = "",
+    classification: dict = None,
+) -> str:
+    domains = _get_exam_domains(context, classification)
+    if not domains:
+        default_weight = 0.20
+        domains = [{"name": f"Domain {i+1}", "weight": default_weight, "subtopics": []} for i in range(5)]
+    domain_index = max(0, min(part - 1, len(domains) - 1))
+    domain = domains[domain_index]
+    return get_tree_generation_prompt(
+        subject=subject,
+        domain=domain,
+        domain_index=domain_index,
+        total_domains=len(domains),
+        context=context,
+        classification=classification,
     )
 # =============================================================================
 # SURGICAL FIX PROMPT (Single Concept Repair)
@@ -424,12 +494,14 @@ Issue: {issue_description}
 ## REQUIREMENTS:
 Generate a FULLY REPAIRED JSON object for this single concept.
 Focus specifically on resolving the issue described above while maintaining high quality in all other fields.
-**NOTE**: Do NOT include a "tier" field. Tiers are computed automatically from the connection graph.
 ## OUTPUT FORMAT:
 Return ONLY the raw JSON object for this concept.
 ```json
 {{
  "name": "{concept_name}",
+ "treeLevel": "trunk|branch|leaf",
+ "parentName": "Parent Concept Name or null",
+ "trunkDomain": "Exam Domain Name",
  "cognitiveLevel": "remember|understand|apply|analyze|evaluate|create",
  "order": 1,
  "whyYouNeed": "...",

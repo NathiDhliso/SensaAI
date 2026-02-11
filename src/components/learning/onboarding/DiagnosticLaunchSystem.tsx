@@ -10,7 +10,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, CheckCircle2, Clock, Play, Target, Zap, ChevronRight, RotateCcw, ArrowLeft } from 'lucide-react';
 import type { SensaAILearningConcept, DiagnosticQuestion } from '@/features/content-generation/parsers/transformer';
-import { getRootConcepts } from '@/features/content-generation/parsers/ai-integration';
+import { getTrunkConcepts } from '@/features/content-generation/parsers/ai-integration';
 import { UI_TIMINGS, VELOCITY_CONFIG } from '@/shared/constants/ui-constants';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './DiagnosticLaunchSystem.module.css';
@@ -41,7 +41,7 @@ export interface DiagnosticResults {
  /** Confidence scores per concept */
  confidenceScores: Record<string, number>;
  /** Whether to skip to advanced content */
- canSkipRoot: boolean;
+ canSkipTrunk: boolean;
 }
 interface QuestionWithMeta {
  question: DiagnosticQuestion;
@@ -62,7 +62,7 @@ function selectDiagnosticConcepts(
  maxConcepts: number = VELOCITY_CONFIG.DIAGNOSTIC.CONCEPTS_TO_TEST
 ): SensaAILearningConcept[] {
  // Use the integration utility which implements the ranking logic
- return getRootConcepts(concepts).slice(0, maxConcepts);
+ return getTrunkConcepts(concepts).slice(0, maxConcepts);
 }
 /**
  * Build assessment questions from selected concepts
@@ -366,7 +366,7 @@ export function DiagnosticLaunchSystem({
  knowledgeGaps,
  totalTimeSeconds,
  confidenceScores,
- canSkipRoot: knownConcepts.length >= selectedConcepts.length * VELOCITY_CONFIG.DIAGNOSTIC.PASS_THRESHOLD, // 70% threshold
+ canSkipTrunk: knownConcepts.length >= selectedConcepts.length * VELOCITY_CONFIG.DIAGNOSTIC.PASS_THRESHOLD, // 70% threshold
  };
  setPhase('results');
  onDiagnosticComplete(results);
@@ -544,4 +544,4 @@ export function DiagnosticLaunchSystem({
  }
  return null;
 }
-export default DiagnosticLaunchSystem;
+export default DiagnosticLaunchSystem;

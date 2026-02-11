@@ -187,14 +187,14 @@ class DynamoService:
         pk = create_pk(user_id, session_id)
         gsi1_pk = create_gsi1_pk(user_id, session_id)
         concept_id = concept.get("id", generate_id())
-        tier = concept.get("tier", "leaf")
+        tier = concept.get("tier", concept.get("treeLevel", "leaf"))
         try:
             self.concepts_table.put_item(
                 Item=self._build_concept_item(
                     pk, gsi1_pk, tier, concept_id, concept
                 )
             )
-            print(f"[DynamoService] Stored concept '{concept.get('name')}' (tier={tier})")
+            print(f"[DynamoService] Stored concept '{concept.get('name')}' (treeLevel={tier})")
             return True
         except ClientError as e:
             print(f"[DynamoService] Failed to store concept: {e}")
@@ -312,7 +312,7 @@ class DynamoService:
             # Write all concepts
             for concept in concepts:
                 concept_id = concept.get("id", generate_id())
-                tier = concept.get("tier", "leaf")
+                tier = concept.get("tier", concept.get("treeLevel", "leaf"))
                 batch.put_item(
                     Item=self._build_concept_item(
                         pk, gsi1_pk, tier, concept_id, concept
@@ -346,7 +346,10 @@ class DynamoService:
             "GSI1SK": create_gsi1_sk(tier, concept_id),
             "conceptId": concept_id,
             "tier": tier,
-            "order": concept.get("order", concept.get("_stream_order", 0)), # Support streaming order
+            "treeLevel": concept.get("treeLevel", tier),
+            "parentName": concept.get("parentName", None),
+            "trunkDomain": concept.get("trunkDomain", ""),
+            "order": concept.get("order", concept.get("_stream_order", 0)),
             "stageId": concept.get("stageId", "PREPARE"),
             "name": concept.get("name", "Unnamed Concept"),
             "description": concept.get("description", ""),

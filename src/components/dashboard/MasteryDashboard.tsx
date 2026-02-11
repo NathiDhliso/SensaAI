@@ -169,11 +169,11 @@ export function MasteryDashboard({
  const avgTimePerConcept = mastered > 0 ? Math.round(timeSpentMs / mastered / 1000) : 0;
 
  const tierBreakdown = {
- root: concepts.filter(c => (c.tier || '').toLowerCase() === 'root').length,
  trunk: concepts.filter(c => (c.tier || '').toLowerCase() === 'trunk').length,
+ branch: concepts.filter(c => (c.tier || '').toLowerCase() === 'branch').length,
  leaf: concepts.filter(c => {
  const t = (c.tier || '').toLowerCase();
- return t !== 'root' && t !== 'trunk';
+ return t !== 'trunk' && t !== 'branch';
  }).length
  };
 
@@ -339,8 +339,8 @@ export function MasteryDashboard({
  Tier Coverage
  </h3>
  <div className={styles.tierBars}>
- <TierBar label="Root" count={stats.tierBreakdown.root} total={stats.totalConcepts} color="var(--color-root)" />
  <TierBar label="Trunk" count={stats.tierBreakdown.trunk} total={stats.totalConcepts} color="var(--color-trunk)" />
+ <TierBar label="Branch" count={stats.tierBreakdown.branch} total={stats.totalConcepts} color="var(--color-branch)" />
  <TierBar label="Leaf" count={stats.tierBreakdown.leaf} total={stats.totalConcepts} color="var(--color-leaf)" />
  </div>
  </motion.div>

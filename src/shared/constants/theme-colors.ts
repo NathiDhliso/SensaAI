@@ -116,16 +116,16 @@ export const LIFECYCLE_COLORS = {
 // GRAPH COLORS (for Results.tsx & GraphView)
 // ============================================
 export const GRAPH_COLORS = {
- root: COLORS.secondary.sage, // #10b981
- trunk: COLORS.accent.light, // #8b5cf6
+ trunk: COLORS.secondary.sage, // #10b981
+ branch: COLORS.accent.light, // #8b5cf6
  leaf: COLORS.secondary.amber, // #f59e0b
 } as const;
 export const GRAPH_COLORS_SCHOLARLY = {
- root: '#475569',
- trunk: '#3b4f6b',
+ trunk: '#475569',
+ branch: '#3b4f6b',
  leaf: '#2c3e5a'
 } as const;
-export function getGraphColors(): { root: string; trunk: string; leaf: string } {
+export function getGraphColors(): { trunk: string; branch: string; leaf: string } {
  if (typeof document !== 'undefined') {
  const theme = document.documentElement.getAttribute('data-visual-theme');
  if (theme === 'scholarly') return GRAPH_COLORS_SCHOLARLY;
@@ -171,4 +171,4 @@ export function hexToRgba(hex: string, alpha: number): string {
  const g = parseInt(hex.slice(3, 5), 16);
  const b = parseInt(hex.slice(5, 7), 16);
  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+}

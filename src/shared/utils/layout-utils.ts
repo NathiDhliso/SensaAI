@@ -15,7 +15,7 @@ export interface NodeDimensions {
  height: number;
 }
 export type ScreenOrientation = 'portrait' | 'landscape';
-export type TierType = 'root' | 'trunk' | 'leaf';
+export type TierType = 'trunk' | 'branch' | 'leaf';
 /**
  * Detect if two circular nodes overlap
  * @param node1 First node with position and radius
@@ -59,8 +59,8 @@ export function calculateNodeSize(
  const multiplier = orientationMultipliers[orientation];
  // Tier-specific size adjustments
  const tierMultipliers: Record<TierType, number> = {
- root: 1.0,
- trunk: 1.17,
+ trunk: 1.0,
+ branch: 1.17,
  leaf: 0.83
  };
  const tierFactor = tierMultipliers[tier];
@@ -174,4 +174,4 @@ export function constrainToCanvas(
  x: Math.max(margin, Math.min(canvasSize - margin, x)),
  y: Math.max(margin, Math.min(canvasSize - margin, y))
  };
-}
+}

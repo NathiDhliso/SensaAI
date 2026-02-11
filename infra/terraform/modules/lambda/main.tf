@@ -89,6 +89,12 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "cognito-idp:AdminGetUser"
         ]
         Resource = "arn:aws:cognito-idp:*:*:userpool/*"
+      },
+      # Lambda self-invocation (for async generation pattern)
+      {
+        Effect   = "Allow"
+        Action   = ["lambda:InvokeFunction"]
+        Resource = aws_lambda_function.generate_concepts.arn
       }
     ]
   })
@@ -178,6 +184,7 @@ resource "aws_lambda_function" "query_concepts" {
   role          = aws_iam_role.lambda_execution.arn
   handler       = "query_concepts.handler.lambda_handler"
   runtime       = "python3.12"
+  publish       = true
 
   # Short timeout for queries
   timeout     = var.query_timeout

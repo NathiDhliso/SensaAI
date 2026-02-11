@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
 import BackgroundJobToast from './components/ui/BackgroundJobToast';
+import { useAuthStore } from './store/auth-store';
 
 const Home = lazy(() => import('./pages/Home'));
 const Generate = lazy(() => import('./pages/Generate'));
@@ -27,6 +28,12 @@ function LoadingFallback() {
 }
 
 function App() {
+ const initializeAuthListeners = useAuthStore(state => state.initializeAuthListeners);
+
+ useEffect(() => {
+ return initializeAuthListeners();
+ }, [initializeAuthListeners]);
+
  return (
  <BrowserRouter>
  <Suspense fallback={<LoadingFallback />}>

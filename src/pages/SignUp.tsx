@@ -1,13 +1,14 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
+import { getErrorMessage } from '@/shared/api/client';
 import { Mail, Lock, User, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './Login.module.css';
 export function SignUp() {
  const navigate = useNavigate();
- const { signUp } = useAuthStore();
+ const { signUp, clearError } = useAuthStore();
  const [name, setName] = useState('');
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
@@ -15,8 +16,14 @@ export function SignUp() {
  const [error, setError] = useState<string | null>(null);
  const { isScholarly } = useVisualTheme();
  const storeError = useAuthStore(state => state.error);
+
+ useEffect(() => {
+ return () => clearError();
+ }, [clearError]);
+
  const handleSubmit = async (e: FormEvent) => {
  e.preventDefault();
+ clearError();
  if (!name || !email || !password) {
  setError('Please fill in all fields');
  return;
@@ -28,7 +35,7 @@ export function SignUp() {
  // After successful sign up, move to verification
  navigate('/confirm-signup', { state: { email } });
  } catch (err: unknown) {
- console.error(err);
+ setError(getErrorMessage(err, 'Unable to create your account. Please try again.'));
  } finally {
  setIsLoading(false);
  }
@@ -104,7 +111,11 @@ export function SignUp() {
  className={styles.input}
  placeholder="John Doe"
  value={name}
- onChange={(e) => setName(e.target.value)}
+ onChange={(e) => {
+ setName(e.target.value);
+ if (error) setError(null);
+ if (storeError) clearError();
+ }}
  disabled={isLoading}
  />
  </div>
@@ -119,7 +130,11 @@ export function SignUp() {
  className={styles.input}
  placeholder="name@example.com"
  value={email}
- onChange={(e) => setEmail(e.target.value)}
+ onChange={(e) => {
+ setEmail(e.target.value);
+ if (error) setError(null);
+ if (storeError) clearError();
+ }}
  disabled={isLoading}
  />
  </div>
@@ -134,7 +149,11 @@ export function SignUp() {
  className={styles.input}
  placeholder="••••••••"
  value={password}
- onChange={(e) => setPassword(e.target.value)}
+ onChange={(e) => {
+ setPassword(e.target.value);
+ if (error) setError(null);
+ if (storeError) clearError();
+ }}
  disabled={isLoading}
  />
  </div>
@@ -166,4 +185,4 @@ export function SignUp() {
  </motion.div>
  </div>
  );
-}
+}

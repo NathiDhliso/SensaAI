@@ -860,8 +860,8 @@ export function MicroLearningLoopController({
  } else if (userVelocity < 0.8) {
  reasons.push('Full scaffold — building foundations');
  }
- if (concept.tier === 'root') {
- reasons.push('Root concept — prerequisite for others');
+ if (concept.tier === 'trunk') {
+ reasons.push('Trunk concept — prerequisite for others');
  } else if (concept.tier === 'leaf') {
  reasons.push('Leaf concept — specialized application');
  }

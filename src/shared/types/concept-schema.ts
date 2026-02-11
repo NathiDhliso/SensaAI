@@ -5,7 +5,7 @@
 import { z } from 'zod';
 // Mnemonic context for Memory Palace integration
 export const MnemonicSchema = z.object({
- tier: z.enum(['Root', 'Trunk', 'Leaf', 'root', 'trunk', 'leaf']).optional(),
+ tier: z.enum(['Trunk', 'Branch', 'Leaf', 'trunk', 'branch', 'leaf']).optional(),
  anchor: z.string().min(1),
  story: z.string(),
  imageUrl: z.string().optional(),
@@ -54,7 +54,7 @@ export const AnnotationsSchema = z.object({
 export const ConceptSchema = z.object({
  order: z.number().int().positive(),
  name: z.string().min(1),
- tier: z.enum(['root', 'trunk', 'leaf']).default('leaf'),
+ tier: z.enum(['trunk', 'branch', 'leaf']).default('leaf'),
  shape: ShapeSchema.optional(),
  lifecycle: LifecycleSchema.optional(),
  mnemonic: MnemonicSchema.optional(),
@@ -106,4 +106,4 @@ export function extractPartialConcepts(data: unknown): PartialConcept[] {
  }
  }
  return validConcepts;
-}
+}

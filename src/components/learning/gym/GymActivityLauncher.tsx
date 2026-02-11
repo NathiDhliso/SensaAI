@@ -63,7 +63,7 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
  // Auto-select first concept if activity needs one
  const grouped = meta.needsConcept ? groupByTier(concepts) : null;
  const firstAvailableConcept = meta.needsConcept 
- ? (grouped?.root?.[0] || grouped?.trunk?.[0] || grouped?.leaf?.[0])?.id || null
+ ? (grouped?.trunk?.[0] || grouped?.branch?.[0] || grouped?.leaf?.[0])?.id || null
  : null;
 
  const [phase, setPhase] = useState<LauncherPhase>('active'); // Start directly in active phase
@@ -272,7 +272,7 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
 }
 
 function groupByTier(concepts: LearningConcept[]): Record<string, LearningConcept[]> {
- const groups: Record<string, LearningConcept[]> = { root: [], trunk: [], leaf: [] };
+ const groups: Record<string, LearningConcept[]> = { trunk: [], branch: [], leaf: [] };
  for (const c of concepts) {
  const tier = c.tier || 'leaf';
  if (!groups[tier]) groups[tier] = [];

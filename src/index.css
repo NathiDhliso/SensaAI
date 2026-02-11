@@ -198,9 +198,9 @@
  --color-info-bg: #dbeafe;
  --color-info-border: #60a5fa;
 
- /* ========== TIER COLORS (Root/Trunk/Leaf) ========== */
- --color-root: #6366f1;
- --color-trunk: #8b5cf6;
+ /* ========== TIER COLORS (Trunk/Branch/Leaf) ========== */
+ --color-trunk: #6366f1;
+ --color-branch: #8b5cf6;
  --color-leaf: #a78bfa;
  --color-info-text: #1e40af;
 
@@ -648,8 +648,8 @@
  --color-info-border: rgba(37, 99, 235, 0.2);
  --color-info-text: #1d4ed8;
 
- --color-root: #475569;
- --color-trunk: #3b4f6b;
+ --color-trunk: #475569;
+ --color-branch: #3b4f6b;
  --color-leaf: #2c3e5a;
 
  --gradient-primary: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -812,8 +812,8 @@
  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.5);
  --shadow-glow-primary-hover: none;
 
- --color-root: #64748b;
- --color-trunk: #475569;
+ --color-trunk: #64748b;
+ --color-branch: #475569;
  --color-leaf: #334155;
 
  --color-success: #22c55e;

@@ -10,6 +10,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGenerationStore } from '@/store/generation-store';
 import { conceptsApi } from '@/shared/api';
+import { getErrorMessage, isAuthError } from '@/shared/api/client';
 import { parseAndLoadContent } from '@/shared/utils/content-loader';
 /**
  * Hook to recover from page refresh during active generation
@@ -95,14 +96,14 @@ export function useGenerationRecovery() {
  progress: 60
  });
  // Fetch all concepts
- const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
- conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'root'),
+ const [trunkConcepts, branchConcepts, leafConcepts] = await Promise.all([
  conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'trunk'),
+ conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'branch'),
  conceptsApi.getAllByTier(activeJob.userId, activeJob.sessionId, 'leaf')
  ]);
  const allConcepts = [
- ...(rootConcepts || []),
  ...(trunkConcepts || []),
+ ...(branchConcepts || []),
  ...(leafConcepts || [])
  ];
  allConcepts.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
@@ -114,7 +115,7 @@ export function useGenerationRecovery() {
  const result: any = {
  fullDocument,
  sessionId: activeJob.sessionId,
- tier: 'root' as const,
+ tier: 'trunk' as const,
  conceptCount: allConcepts.length
  };
  completeGeneration(result);
@@ -169,9 +170,9 @@ export function useGenerationRecovery() {
  consecutiveErrors, 
  maxConsecutiveErrors 
  });
- const errorMessage = err instanceof Error ? err.message : String(err);
+ const errorMessage = getErrorMessage(err, 'Generation recovery failed');
  // Check for auth errors
- if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+ if (isAuthError(err)) {
  console.error('[Recovery] Auth failed during recovery');
  setError('Session expired. Please log in again.');
  clearActiveJob();
@@ -179,7 +180,7 @@ export function useGenerationRecovery() {
  return;
  }
  // Check for job not found (404) - job never existed
- if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+ if (errorMessage.toLowerCase().includes('404') || errorMessage.toLowerCase().includes('not found')) {
  console.error('[Recovery] Job not found on backend - likely never started');
  setError('Generation job not found. The previous session may have failed to start.');
  clearActiveJob();
@@ -208,4 +209,4 @@ export function useGenerationRecovery() {
  clearActiveJob();
  });
  }, []); // Only run on mount
-}
+}

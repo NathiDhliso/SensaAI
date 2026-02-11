@@ -94,7 +94,7 @@ class AudioManager {
  */
  async preloadPrimerAudio(): Promise<void> {
  const audioFiles = Object.values(PRIMER_AUDIO);
- await Promise.all(
+ await Promise.allSettled(
  audioFiles.map(src => this.preloadAudio(src))
  );
  }
@@ -408,4 +408,4 @@ if (typeof window !== 'undefined') {
  };
  document.addEventListener('click', initOnInteraction, { once: true });
  document.addEventListener('keydown', initOnInteraction, { once: true });
-}
+}

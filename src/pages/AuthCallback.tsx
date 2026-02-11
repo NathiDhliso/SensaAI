@@ -6,25 +6,68 @@ import styles from './Login.module.css';
 export function AuthCallback() {
  const navigate = useNavigate();
  const [searchParams] = useSearchParams();
- const { handleCallback, error } = useAuthStore();
- useEffect(() => {
- const code = searchParams.get('code');
- if (code) {
- handleCallback(code).then(() => {
- // Redirect to home after successful auth
- navigate('/', { replace: true });
- });
- } else {
- // No code, redirect to login
- navigate('/login', { replace: true });
+ const { handleCallback, clearError, error } = useAuthStore();
+
+ const decodeParam = (value: string): string => {
+ try {
+ return decodeURIComponent(value.replace(/\+/g, ' '));
+ } catch {
+ return value;
  }
- }, [searchParams, handleCallback, navigate]);
- if (error) {
+ };
+
+ const oauthErrorParam = searchParams.get('error');
+ const oauthErrorDescription = searchParams.get('error_description');
+ const oauthError = oauthErrorParam
+ ? decodeParam(oauthErrorDescription || oauthErrorParam)
+ : null;
+
+ useEffect(() => {
+ let isCancelled = false;
+ clearError();
+
+ if (oauthError) {
+ return () => {
+ isCancelled = true;
+ };
+ }
+
+ const code = searchParams.get('code');
+ if (!code) {
+ navigate('/login', {
+ replace: true,
+ state: { authError: 'Authentication code was missing. Please try signing in again.' }
+ });
+ return () => {
+ isCancelled = true;
+ };
+ }
+
+ const runCallback = async () => {
+ try {
+ await handleCallback(code);
+ if (!isCancelled) {
+  navigate('/', { replace: true });
+ }
+ } catch {
+ // Error state is set by the auth store
+ }
+ };
+ runCallback();
+
+ return () => {
+ isCancelled = true;
+ };
+ }, [searchParams, handleCallback, navigate, clearError, oauthError]);
+
+ const displayError = oauthError || error;
+
+ if (displayError) {
  return (
  <div className={styles.container}>
  <div className={styles.card}>
  <div className={styles.error}>
- Authentication failed: {error}
+ Authentication failed: {displayError}
  </div>
  <button
  className={styles.primaryButton}
@@ -48,4 +91,4 @@ export function AuthCallback() {
  </div>
  </div>
  );
-}
+}

@@ -49,15 +49,15 @@ export async function generateEnhancedDiagnosticQuestions(
  questionsPerConcept: number = 2
 ): Promise<Map<string, DiagnosticQuestion[]>> {
  const questionMap = new Map<string, DiagnosticQuestion[]>();
- // Only generate for root concepts (diagnostic eligible)
- const rootConcepts = concepts.filter(c => c.rootLevel);
- if (rootConcepts.length === 0) {
+ // Only generate for trunk concepts (diagnostic eligible)
+ const trunkConcepts = concepts.filter(c => c.trunkLevel);
+ if (trunkConcepts.length === 0) {
  return questionMap;
  }
  // Process concepts in batches to avoid overwhelming the API
  const batchSize = 3;
- for (let i = 0; i < rootConcepts.length; i += batchSize) {
- const batch = rootConcepts.slice(i, i + batchSize);
+ for (let i = 0; i < trunkConcepts.length; i += batchSize) {
+ const batch = trunkConcepts.slice(i, i + batchSize);
  try {
  const batchQuestions = await generateDiagnosticBatch(batch, subject, config, questionsPerConcept);
  // Merge batch results into main map
@@ -65,7 +65,7 @@ export async function generateEnhancedDiagnosticQuestions(
  questionMap.set(conceptId, questions);
  });
  // Small delay between batches to be respectful to the API
- if (i + batchSize < rootConcepts.length) {
+ if (i + batchSize < trunkConcepts.length) {
  await new Promise(resolve => setTimeout(resolve, UI_TIMINGS.ONE_SECOND));
  }
  } catch (error) {
@@ -196,15 +196,15 @@ export function createDiagnosticAssessment(
  questions: DiagnosticQuestion[];
  totalTime: number;
  metadata: {
- rootCount: number;
+ trunkCount: number;
  questionCount: number;
  avgComplexity: number;
  tierDistribution: Record<string, number>;
  };
 } {
- // Select 5-7 root concepts for diagnostic (cognitive load management)
- const rootConcepts = concepts
- .filter(c => c.rootLevel)
+ // Select 5-7 trunk concepts for diagnostic (cognitive load management)
+ const trunkConcepts = concepts
+ .filter(c => c.trunkLevel)
  .sort((a, b) => {
  // Prioritize by diagnostic suitability score
  const scoreA = a.prerequisiteWeight * 0.4 + a.frequencyWeight * 0.3 +
@@ -216,7 +216,7 @@ export function createDiagnosticAssessment(
  .slice(0, 7);
  // Collect questions for selected concepts
  const allQuestions: DiagnosticQuestion[] = [];
- rootConcepts.forEach(concept => {
+ trunkConcepts.forEach(concept => {
  const conceptQuestions = enhancedQuestions?.get(concept.id) || concept.diagnosticQuestions;
  // Limit to 1-2 questions per concept to keep diagnostic under 3 minutes
  const selectedQuestions = conceptQuestions.slice(0, 2);
@@ -224,17 +224,17 @@ export function createDiagnosticAssessment(
  });
  // Calculate metadata
  const totalTime = allQuestions.reduce((sum, q) => sum + q.expectedTime, 0);
- const avgComplexity = rootConcepts.reduce((sum, c) => sum + c.complexityScore, 0) / rootConcepts.length;
- const tierDistribution = rootConcepts.reduce((dist, c) => {
+ const avgComplexity = trunkConcepts.reduce((sum, c) => sum + c.complexityScore, 0) / trunkConcepts.length;
+ const tierDistribution = trunkConcepts.reduce((dist, c) => {
  dist[c.tier] = (dist[c.tier] || 0) + 1;
  return dist;
  }, {} as Record<string, number>);
  return {
- concepts: rootConcepts,
+ concepts: trunkConcepts,
  questions: allQuestions,
  totalTime,
  metadata: {
- rootCount: rootConcepts.length,
+ trunkCount: trunkConcepts.length,
  questionCount: allQuestions.length,
  avgComplexity: Math.round(avgComplexity * 10) / 10,
  tierDistribution
@@ -253,8 +253,8 @@ export function validateDiagnosticAssessment(assessment: ReturnType<typeof creat
  const recommendations: string[] = [];
  // Check concept count (5-7 optimal)
  if (assessment.concepts.length < 5) {
- issues.push(`Only ${assessment.concepts.length} root concepts, need at least 5`);
- recommendations.push('Ensure more concepts are marked as root level');
+ issues.push(`Only ${assessment.concepts.length} trunk concepts, need at least 5`);
+ recommendations.push('Ensure more concepts are marked as trunk level');
  }
  if (assessment.concepts.length > 7) {
  issues.push(`${assessment.concepts.length} concepts may cause cognitive overload`);
@@ -268,7 +268,7 @@ export function validateDiagnosticAssessment(assessment: ReturnType<typeof creat
  // Check question distribution
  if (assessment.questions.length < assessment.concepts.length) {
  issues.push('Some concepts have no diagnostic questions');
- recommendations.push('Ensure all root concepts have at least one diagnostic question');
+ recommendations.push('Ensure all trunk concepts have at least one diagnostic question');
  }
  // Check tier balance (should have some variety)
  const tierCount = Object.keys(assessment.metadata.tierDistribution).length;
@@ -339,9 +339,9 @@ export function createPreTestAssessment(
  answerRevealTiming = 'after_learning',
  questionsPerConcept = 1
  } = options;
- // Select root concepts prioritized by importance
- const rootConcepts = concepts
- .filter(c => c.rootLevel)
+ // Select trunk concepts prioritized by importance
+ const trunkConcepts = concepts
+ .filter(c => c.trunkLevel)
  .sort((a, b) => {
  // Prioritize by prerequisite weight (most important first)
  const scoreA = a.prerequisiteWeight * 0.5 + a.frequencyWeight * 0.3 +
@@ -354,7 +354,7 @@ export function createPreTestAssessment(
  // Collect ONE question per concept for quick pre-test
  const preTestQuestions: DiagnosticQuestion[] = [];
  const primedConceptIds: string[] = [];
- rootConcepts.forEach(concept => {
+ trunkConcepts.forEach(concept => {
  primedConceptIds.push(concept.id);
  // Take first N questions (already validated during generation)
  const conceptQuestions = concept.diagnosticQuestions.slice(0, questionsPerConcept);

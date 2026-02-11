@@ -86,11 +86,11 @@ export async function loadSensaAIContent(
  }
 }
 /**
- * Get root concepts suitable for diagnostic assessment
+ * Get trunk concepts suitable for diagnostic assessment
  */
-export function getRootConcepts(concepts: SensaAILearningConcept[]): SensaAILearningConcept[] {
+export function getTrunkConcepts(concepts: SensaAILearningConcept[]): SensaAILearningConcept[] {
  return concepts
- .filter(concept => concept.rootLevel)
+ .filter(concept => concept.trunkLevel)
  .sort((a, b) => {
  // Sort by diagnostic suitability
  const scoreA = a.prerequisiteWeight * 0.4 + a.frequencyWeight * 0.3 + (a.abstractionLevel === 'concrete' ? 0.3 : 0);
@@ -116,22 +116,22 @@ export function getConfusionRiskConcepts(concepts: SensaAILearningConcept[]): Se
  * Get tier distribution for interleaving algorithm
  */
 export function getTierDistribution(concepts: SensaAILearningConcept[]): {
- root: SensaAILearningConcept[];
  trunk: SensaAILearningConcept[];
+ branch: SensaAILearningConcept[];
  leaf: SensaAILearningConcept[];
- distribution: { root: number; trunk: number; leaf: number };
+ distribution: { trunk: number; branch: number; leaf: number };
 } {
- const root = concepts.filter(c => c.tier === 'root');
  const trunk = concepts.filter(c => c.tier === 'trunk');
+ const branch = concepts.filter(c => c.tier === 'branch');
  const leaf = concepts.filter(c => c.tier === 'leaf');
  const total = concepts.length;
  return {
- root,
  trunk,
+ branch,
  leaf,
  distribution: {
- root: Math.round((root.length / total) * 100),
  trunk: Math.round((trunk.length / total) * 100),
+ branch: Math.round((branch.length / total) * 100),
  leaf: Math.round((leaf.length / total) * 100)
  }
  };
@@ -161,14 +161,14 @@ export function createReadyDiagnosticAssessment(
  */
 export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
  totalConcepts: number;
- rootConcepts: number;
+ trunkConcepts: number;
  diagnosticQuestions: number;
  confusionPairs: number;
  avgComplexity: number;
  tierDistribution: Record<string, number>;
  readinessScore: number;
 } {
- const rootLevelConcepts = concepts.filter(c => c.rootLevel);
+ const trunkLevelConcepts = concepts.filter(c => c.trunkLevel);
  const totalQuestions = concepts.reduce((sum, c) => sum + c.diagnosticQuestions.length, 0);
  const totalConfusionPairs = concepts.reduce((sum, c) => sum + c.confusionPairs.length, 0);
  const avgComplexity = concepts.reduce((sum, c) => sum + c.complexityScore, 0) / concepts.length;
@@ -179,7 +179,7 @@ export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
  // Calculate readiness score (0-100)
  let readinessScore = 0;
  // Foundation concepts (40 points max)
- readinessScore += Math.min(40, (rootLevelConcepts.length / 7) * 40);
+ readinessScore += Math.min(40, (trunkLevelConcepts.length / 7) * 40);
  // Diagnostic questions (30 points max)
  readinessScore += Math.min(30, (totalQuestions / (concepts.length * 2)) * 30);
  // Confusion pairs (20 points max)
@@ -189,7 +189,7 @@ export function getAssessmentSummary(concepts: SensaAILearningConcept[]): {
  readinessScore += Math.min(10, (tierCount / 3) * 10);
  return {
  totalConcepts: concepts.length,
- rootConcepts: rootLevelConcepts.length,
+ trunkConcepts: trunkLevelConcepts.length,
  diagnosticQuestions: totalQuestions,
  confusionPairs: totalConfusionPairs,
  avgComplexity: Math.round(avgComplexity * 10) / 10,

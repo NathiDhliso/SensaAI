@@ -910,11 +910,11 @@
  border-radius: var(--radius-sm);
 }
 .tierRoot {
- background: linear-gradient(135deg, var(--color-root) 0%, color-mix(in srgb, var(--color-root) 80%, black) 100%);
+ background: linear-gradient(135deg, var(--color-trunk) 0%, color-mix(in srgb, var(--color-trunk) 80%, black) 100%);
  color: white;
 }
 .tierTrunk {
- background: linear-gradient(135deg, var(--color-trunk) 0%, color-mix(in srgb, var(--color-trunk) 80%, black) 100%);
+ background: linear-gradient(135deg, var(--color-branch) 0%, color-mix(in srgb, var(--color-branch) 80%, black) 100%);
  color: white;
 }
 .tierLeaf {
@@ -955,10 +955,10 @@
  text-overflow: ellipsis;
 }
 .rootChip {
- border-left: 3px solid var(--color-root);
+ border-left: 3px solid var(--color-trunk);
 }
 .trunkChip {
- border-left: 3px solid var(--color-trunk);
+ border-left: 3px solid var(--color-branch);
 }
 .leafChip {
  border-left: 3px solid var(--color-leaf);
@@ -1005,7 +1005,7 @@
  align-items: center;
  gap: 0.5rem;
  padding: 0.625rem 1rem;
- background: var(--color-root);
+ background: var(--color-trunk);
  color: white;
  border-radius: var(--radius-md);
  font-weight: 600;

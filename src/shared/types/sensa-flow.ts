@@ -8,7 +8,7 @@ import type { ConceptMapData } from './learning';
 // Core Type Aliases
 // ============================================================================
 /** Concept tier classification */
-export type TierType = 'root' | 'trunk' | 'leaf';
+export type TierType = 'trunk' | 'branch' | 'leaf';
 /** SENSA v2.0 learning flow phases */
 export type SensaPhase = 'see' | 'explore' | 'note' | 'study' | 'apply' | 'complete';
 /** Dependency edge types */
@@ -118,8 +118,8 @@ export interface ConfusionPair {
  whenToUseB: string;
 }
 export interface TierDistribution {
- root: number;
  trunk: number;
+ branch: number;
  leaf: number;
  total: number;
 }

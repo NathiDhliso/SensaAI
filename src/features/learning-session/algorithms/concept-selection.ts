@@ -66,10 +66,10 @@ function getConceptPhase(concept: LearningConcept): string | null {
 /**
  * Get the tier of a concept.
  */
-function getConceptTier(concept: LearningConcept): 'Root' | 'Trunk' | 'Leaf' {
+function getConceptTier(concept: LearningConcept): 'Trunk' | 'Branch' | 'Leaf' {
  const t = concept.tier || concept.mnemonic?.tier || 'leaf';
  const pascal = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
- return pascal as 'Root' | 'Trunk' | 'Leaf';
+ return pascal as 'Trunk' | 'Branch' | 'Leaf';
 }
 /**
  * Check if all prerequisites for a concept are met.
@@ -96,12 +96,12 @@ function prerequisitesMet(
 function calculateTierDistribution(
  completedConcepts: string[],
  allConcepts: LearningConcept[]
-): { root: number; trunk: number; leaf: number } {
+): { trunk: number; branch: number; leaf: number } {
  const completed = allConcepts.filter(c => completedConcepts.includes(c.id));
  const total = completed.length || 1;
  return {
- root: completed.filter(c => getConceptTier(c) === 'Root').length / total,
  trunk: completed.filter(c => getConceptTier(c) === 'Trunk').length / total,
+ branch: completed.filter(c => getConceptTier(c) === 'Branch').length / total,
  leaf: completed.filter(c => getConceptTier(c) === 'Leaf').length / total
  };
 }
@@ -110,18 +110,18 @@ function calculateTierDistribution(
  * Ideal progression: Root ~20%, Trunk ~50%, Leaf ~30%
  */
 function getIdealNextTier(
- distribution: { root: number; trunk: number; leaf: number }
-): 'Root' | 'Trunk' | 'Leaf' {
- const idealRoot = 0.2;
- const idealTrunk = 0.5;
- const idealLeaf = 0.3;
- const rootDelta = idealRoot - distribution.root;
+ distribution: { trunk: number; branch: number; leaf: number }
+): 'Trunk' | 'Branch' | 'Leaf' {
+ const idealTrunk = 0.15;
+ const idealBranch = 0.35;
+ const idealLeaf = 0.50;
  const trunkDelta = idealTrunk - distribution.trunk;
+ const branchDelta = idealBranch - distribution.branch;
  const leafDelta = idealLeaf - distribution.leaf;
- if (rootDelta >= trunkDelta && rootDelta >= leafDelta) {
- return 'Root';
- } else if (trunkDelta >= leafDelta) {
+ if (trunkDelta >= branchDelta && trunkDelta >= leafDelta) {
  return 'Trunk';
+ } else if (branchDelta >= leafDelta) {
+ return 'Branch';
  }
  return 'Leaf';
 }
@@ -176,8 +176,8 @@ function scoreConcept(
  if (candidateTier === idealTier) {
  tierBalanceScore = 1.0;
  } else if (
- (idealTier === 'Root' && candidateTier === 'Trunk') ||
- (idealTier === 'Trunk' && candidateTier === 'Leaf')
+ (idealTier === 'Trunk' && candidateTier === 'Branch') ||
+ (idealTier === 'Branch' && candidateTier === 'Leaf')
  ) {
  tierBalanceScore = 0.6;
  }
@@ -526,4 +526,4 @@ export function getAdaptiveDifficultyRecommendation(
  tooEasyCount,
  tooHardCount
  };
-}
+}

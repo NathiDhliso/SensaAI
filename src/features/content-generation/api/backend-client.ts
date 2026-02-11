@@ -1,4 +1,5 @@
 import { conceptsApi } from '@/shared/api';
+import { getErrorMessage, isAuthError } from '@/shared/api/client';
 import { useAuthStore } from '@/store/auth-store';
 import { useGenerationStore } from '@/store/generation-store';
 import type { ProgressCallback, GenerationResult, ValidationResult } from '@/shared/types/generation';
@@ -127,9 +128,7 @@ export async function generateWithBackend(
  // Reset interval on successful status check
  pollInterval = 2000;
  } catch (err) {
- // Check if it's an auth error (401)
- const errorMessage = err instanceof Error ? err.message : String(err);
- if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('Session expired')) {
+ if (isAuthError(err)) {
  console.error('[Backend Generator] Authentication failed during polling');
  clearActiveJob();
  throw new Error('Session expired. Please log in again.');
@@ -138,7 +137,7 @@ export async function generateWithBackend(
  if (pollInterval >= 8000) {
  console.error('[Backend Generator] Polling failing repeatedly, giving up');
  clearActiveJob();
- throw new Error('Unable to connect to server. Please check your connection and try again.');
+ throw new Error(getErrorMessage(err, 'Unable to connect to server. Please check your connection and try again.'));
  }
  // Exponential backoff on error (including 429)
  console.warn('[Backend Generator] Polling error, backing off:', { pollInterval, error: err });
@@ -169,19 +168,19 @@ export async function generateWithBackend(
  progress: 65
  });
  console.log('[Backend Generator] Fetching concepts with:', { userId, sessionId });
- const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
- conceptsApi.getAllByTier(userId, sessionId, 'root'),
+ const [trunkConcepts, branchConcepts, leafConcepts] = await Promise.all([
  conceptsApi.getAllByTier(userId, sessionId, 'trunk'),
+ conceptsApi.getAllByTier(userId, sessionId, 'branch'),
  conceptsApi.getAllByTier(userId, sessionId, 'leaf')
  ]);
  console.log('[Backend Generator] Tier results:', {
- root: rootConcepts?.length ?? 0,
  trunk: trunkConcepts?.length ?? 0,
+ branch: branchConcepts?.length ?? 0,
  leaf: leafConcepts?.length ?? 0
  });
  allConcepts = [
- ...(rootConcepts || []),
  ...(trunkConcepts || []),
+ ...(branchConcepts || []),
  ...(leafConcepts || [])
  ];
  // Sort by order if available
@@ -224,7 +223,7 @@ export async function generateWithBackend(
  });
  } catch (fetchError) {
  console.error('[Backend Generator] Failed to fetch concepts:', fetchError);
- throw new Error('Failed to load generated concepts');
+ throw new Error(getErrorMessage(fetchError, 'Failed to load generated concepts'));
  }
  // Pass 4: Build result document
  onProgress(4, 'in-progress', {
@@ -232,7 +231,7 @@ export async function generateWithBackend(
  progress: 90
  });
  // Convert concepts to the full document format
- let fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
+ const fullDocument = buildDocumentFromConcepts(subject, allConcepts.map(c => ({
  ...c,
  tier: c.tier || 'leaf'
  })), jobClassification);
@@ -341,7 +340,7 @@ export function buildDocumentFromConcepts(
  category: concept.tier
  },
  mnemonic: concept.mnemonic || {
- tier: concept.tier === 'root' ? 'Root' : concept.tier === 'trunk' ? 'Trunk' : 'Leaf',
+ tier: concept.tier === 'trunk' ? 'Trunk' : concept.tier === 'branch' ? 'Branch' : 'Leaf',
  anchor: concept.name,
  story: `Understanding ${concept.name} in the context of ${subject}`
  },
@@ -416,7 +415,7 @@ export async function surgicallyRepairConcept(
  return response;
  } catch (error) {
  console.error("Surgical repair failed:", error);
- throw error;
+ throw new Error(getErrorMessage(error, 'Failed to repair concept. Please try again.'));
  }
 }
 // Export with legacy name for compatibility

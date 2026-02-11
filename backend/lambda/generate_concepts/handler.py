@@ -8,14 +8,26 @@ The handler is responsible for:
 2. Routing based on action type
 3. Orchestrating service calls
 4. Response formatting
+
+When invoked via API Gateway (synchronously), the handler creates the job
+record and self-invokes asynchronously to avoid the 30s API Gateway timeout.
+
 @module generate_concepts/handler
 """
+import json
+import os
 from typing import Any, Dict
+import boto3
 from shared.utils import generate_id, api_response
 from .services import BedrockService, DynamoService
+
 # Initialize services (cold start optimization)
 bedrock_service = BedrockService()
 dynamo_service = DynamoService()
+
+# Lambda client for self-invocation
+lambda_client = boto3.client("lambda", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+FUNCTION_NAME = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "sensapbl-generate-concepts-pilot")
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Main Lambda handler for content generation.
@@ -48,12 +60,30 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if not request.get("subject"):
             print("[Handler] ERROR: Subject is required")
             return api_response(400, {"error": "Subject is required"})
+
         # Route based on action
         action = request.get("action", "generate")
         if action == "repair":
             return _handle_repair(request)
-        else:
+        elif action == "_async_generate":
+            # Internal: async self-invocation - run full generation
+            print("[Handler] Running async generation (self-invoked)")
             return _handle_generate(request)
+        else:
+            # Check if invoked via API Gateway (synchronously) by looking for
+            # requestContext.http or routeKey - indicators of API Gateway v2
+            is_api_gateway = bool(
+                event.get("requestContext", {}).get("http")
+                or event.get("routeKey")
+            )
+
+            if is_api_gateway:
+                # API Gateway has a 30s timeout. Generation takes much longer.
+                # Create job, self-invoke async, return immediately.
+                return _handle_generate_async(request, event)
+            else:
+                # Direct/async invocation (from Express backend or self)
+                return _handle_generate(request)
     except Exception as e:
         print(f"[Handler] UNHANDLED ERROR: {str(e)}")
         return api_response(500, {"error": str(e)})
@@ -76,6 +106,7 @@ def _parse_request(event: Dict[str, Any]) -> Dict[str, Any]:
         "action": body.get("action", "generate"),
         "conceptName": body.get("conceptName"),
         "issue": body.get("issue"),
+        "_skip_job_creation": body.get("_skip_job_creation", False),
     }
 def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -96,13 +127,19 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     session_id = request["sessionId"]
     job_id = request["jobId"]
     context = request["context"]
+    # skip_job_creation is set when _handle_generate_async already created the job
+    skip_job_creation = request.get("_skip_job_creation", False)
     print(f"[Handler] Generate: subject={subject}, userId={user_id}, jobId={job_id}")
-    # Step 1: Create job record
-    print(f"[Handler] Creating job record...")
-    dynamo_service.create_job(job_id, user_id, session_id, subject)
-    # Step 2: Initialize subject metadata for tracking
-    print(f"[Handler] Initializing subject metadata...")
-    dynamo_service.initialize_subject_metadata(user_id, session_id, subject)
+    if not skip_job_creation:
+        # Step 1: Create job record
+        print(f"[Handler] Creating job record...")
+        dynamo_service.create_job(job_id, user_id, session_id, subject)
+        # Step 2: Initialize subject metadata for tracking
+        print(f"[Handler] Initializing subject metadata...")
+        dynamo_service.initialize_subject_metadata(user_id, session_id, subject)
+    else:
+        print(f"[Handler] Job record already created by async dispatcher, skipping...")
+
     # Step 3: Generate concepts with Bedrock (parallel 5-partition strategy)
     # The prompt dynamically analyzes the subject - no hardcoded blueprints needed
     print(f"[Handler] Starting parallel generation for: {subject}")
@@ -131,6 +168,60 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
         "conceptCount": len(concepts),
         "classification": classification,
     })
+
+
+def _handle_generate_async(request: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Handle API Gateway invocation by creating the job record and self-invoking
+    asynchronously. Returns immediately with in_progress status to avoid
+    the 30s API Gateway timeout.
+    """
+    subject = request["subject"]
+    user_id = request["userId"]
+    session_id = request["sessionId"]
+    job_id = request["jobId"]
+    context = request["context"]
+
+    print(f"[Handler] Async dispatch: subject={subject}, userId={user_id}, jobId={job_id}")
+
+    # Step 1: Create job record immediately
+    dynamo_service.create_job(job_id, user_id, session_id, subject)
+    dynamo_service.initialize_subject_metadata(user_id, session_id, subject)
+
+    # Step 2: Self-invoke asynchronously to run the actual generation
+    async_payload = {
+        "body": json.dumps({
+            "subject": subject,
+            "userId": user_id,
+            "sessionId": session_id,
+            "jobId": job_id,
+            "context": context,
+            "action": "_async_generate",
+            "_skip_job_creation": True,
+        })
+    }
+
+    try:
+        lambda_client.invoke(
+            FunctionName=FUNCTION_NAME,
+            InvocationType="Event",  # Async invocation
+            Payload=json.dumps(async_payload),
+        )
+        print(f"[Handler] Async self-invocation dispatched for job {job_id}")
+    except Exception as e:
+        print(f"[Handler] ERROR: Failed to self-invoke: {str(e)}")
+        dynamo_service.mark_job_failed(job_id, user_id, f"Failed to start generation: {str(e)}")
+        return api_response(500, {"error": f"Failed to start generation: {str(e)}"}, event)
+
+    # Step 3: Return immediately with in_progress status
+    return api_response(200, {
+        "jobId": job_id,
+        "sessionId": session_id,
+        "status": "in_progress",
+        "conceptCount": 0,
+    }, event)
+
+
 def _handle_repair(request: Dict[str, Any]) -> Dict[str, Any]:
     """
     Handle single concept repair request.

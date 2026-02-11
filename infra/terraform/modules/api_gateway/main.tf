@@ -112,6 +112,16 @@ resource "aws_apigatewayv2_route" "query_concepts" {
   authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
 }
 
+# Query concepts with query params (GET /concepts?userId=...&sessionId=...&tier=...)
+resource "aws_apigatewayv2_route" "query_concepts_by_params" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /concepts"
+  target    = "integrations/${aws_apigatewayv2_integration.query_concepts.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
+}
+
 # Query by tier route
 resource "aws_apigatewayv2_route" "query_concepts_by_tier" {
   api_id    = aws_apigatewayv2_api.main.id

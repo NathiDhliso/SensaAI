@@ -1,13 +1,14 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
+import { getErrorMessage } from '@/shared/api/client';
 import { ShieldCheck, ArrowRight, Loader2, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './Login.module.css';
 export function ConfirmSignUp() {
  const navigate = useNavigate();
  const location = useLocation();
- const { confirmSignUp, resendConfirmationCode } = useAuthStore();
+ const { confirmSignUp, resendConfirmationCode, clearError } = useAuthStore();
  const email = (location.state as { email?: string })?.email || '';
  const [code, setCode] = useState('');
  const [isLoading, setIsLoading] = useState(false);
@@ -15,8 +16,14 @@ export function ConfirmSignUp() {
  const [error, setError] = useState<string | null>(null);
  const [success, setSuccess] = useState<string | null>(null);
  const storeError = useAuthStore(state => state.error);
+
+ useEffect(() => {
+ return () => clearError();
+ }, [clearError]);
+
  const handleSubmit = async (e: FormEvent) => {
  e.preventDefault();
+ clearError();
  if (!code) {
  setError('Please enter the verification code');
  return;
@@ -30,7 +37,7 @@ export function ConfirmSignUp() {
  navigate('/login');
  }, 2000);
  } catch (err: unknown) {
- console.error(err);
+ setError(getErrorMessage(err, 'Could not verify code. Please try again.'));
  } finally {
  setIsLoading(false);
  }
@@ -40,11 +47,12 @@ export function ConfirmSignUp() {
  setIsResending(true);
  setError(null);
  setSuccess(null);
+ clearError();
  try {
  await resendConfirmationCode(email);
  setSuccess('A new code has been sent to your email.');
  } catch (err: unknown) {
- console.error(err);
+ setError(getErrorMessage(err, 'Unable to resend code. Please try again.'));
  } finally {
  setIsResending(false);
  }
@@ -137,7 +145,11 @@ export function ConfirmSignUp() {
  className={styles.input}
  placeholder="123456"
  value={code}
- onChange={(e) => setCode(e.target.value)}
+ onChange={(e) => {
+ setCode(e.target.value);
+ if (error) setError(null);
+ if (storeError) clearError();
+ }}
  disabled={isLoading}
  />
  </div>

@@ -13,6 +13,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateAlias } from '@/shared/utils/alias-generator';
+import { getErrorMessage, isAuthError } from '@/shared/api/client';
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
 import { generateWithBackend, uploadExamBlueprint } from '@/features/content-generation/api/backend-client';
@@ -156,7 +157,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  order: concept.order,
  stageId: 'stage-1',
  mnemonic: concept.anchor
- ? { tier: 'root', anchor: concept.anchor, story: '' }
+ ? { tier: 'trunk', anchor: concept.anchor, story: '' }
  : undefined,
  phase1: {
  hookSentence: '',
@@ -253,11 +254,11 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  const handleGenerationError = useCallback(
  (err: unknown) => {
  console.error('Generation error:', err);
- const message = err instanceof Error ? err.message : String(err);
+ const message = getErrorMessage(err, 'Generation failed.');
  // Handle specific error types
  if (message === 'Generation cancelled by user') {
  navigate('/');
- } else if (message.includes('401') || message.includes('Unauthorized') || message.includes('Session expired')) {
+ } else if (isAuthError(err) || message.toLowerCase().includes('session expired')) {
  setError('Session expired. Redirecting to login...');
  setTimeout(() => navigate('/login'), 1000);
  } else {
@@ -332,6 +333,8 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  createProgressCallback,
  startGeneration,
  addRecentSubject,
+ navigate,
+ setError,
  handleGenerationSuccess,
  handleGenerationError
  ]
@@ -354,4 +357,4 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  startGenerationProcess,
  handleRetry
  };
-}
+}

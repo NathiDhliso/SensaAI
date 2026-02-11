@@ -42,7 +42,7 @@ export interface ContentAuditResult {
  objectivesProvided: number;
  objectivesCovered: number;
  unmappedConcepts: number;
- tierDistribution: { root: number; trunk: number; leaf: number };
+ tierDistribution: { trunk: number; branch: number; leaf: number };
  bloomsDistribution: Record<string, number>;
  verdicts: ConceptVerdict[];
  harshInsights: AuditInsight[];
@@ -315,7 +315,7 @@ export function auditContent(
  const { concepts } = parsedContent;
  const hasObjectives = examObjectives.length > 0;
 
- const tierDist = { root: 0, trunk: 0, leaf: 0 };
+ const tierDist = { trunk: 0, branch: 0, leaf: 0 };
  const bloomsDist: Record<string, number> = {};
  const verdicts: ConceptVerdict[] = [];
  const coveredObjectives = new Set<string>();

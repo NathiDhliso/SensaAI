@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
+import { getErrorMessage } from '@/shared/api/client';
 import { Mail, Lock, LogIn, Loader2, ArrowRight, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { SensaShape } from '@/components/ui/SensaShape';
 import styles from './Login.module.css';
@@ -19,6 +20,9 @@ export function Login() {
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
  const [showPassword, setShowPassword] = useState(false);
+ const [formError, setFormError] = useState<string | null>(null);
+ const locationAuthError = (location.state as { authError?: string } | null)?.authError || null;
+ const displayError = formError || locationAuthError || error;
  // Redirect if already authenticated
  useEffect(() => {
  if (isAuthenticated) {
@@ -26,18 +30,25 @@ export function Login() {
  navigate(from, { replace: true });
  }
  }, [isAuthenticated, navigate, location]);
+
+ useEffect(() => {
+ return () => clearError();
+ }, [clearError]);
+
  const handleSubmit = async (e: FormEvent) => {
  e.preventDefault();
  clearError();
+ setFormError(null);
  if (!email || !password) {
+ setFormError('Please enter both email and password.');
  return;
  }
  try {
  await loginWithCredentials(email, password);
  const from = (location.state as { from?: string })?.from || '/';
  navigate(from, { replace: true });
- } catch {
- // Error is handled by the store
+ } catch (error) {
+ setFormError(getErrorMessage(error, 'Unable to sign in. Please try again.'));
  }
  };
  return (
@@ -80,10 +91,10 @@ export function Login() {
  <h1 className={styles.title}>Welcome Back</h1>
  <p className={styles.subtitle}>Sign in to continue your learning journey</p>
  </div>
- {error && (
+ {displayError && (
  <div className={styles.errorBox}>
  <div className={styles.alertIcon}>!</div>
- <span>{error}</span>
+ <span>{displayError}</span>
  </div>
  )}
  <form className={styles.form} onSubmit={handleSubmit}>
@@ -100,7 +111,10 @@ export function Login() {
  className={styles.input}
  placeholder="you@example.com"
  value={email}
- onChange={(e) => setEmail(e.target.value)}
+ onChange={(e) => {
+ setEmail(e.target.value);
+ if (formError) setFormError(null);
+ }}
  disabled={isLoading}
  autoComplete="email"
  required
@@ -120,7 +134,10 @@ export function Login() {
  className={styles.input}
  placeholder="••••••••"
  value={password}
- onChange={(e) => setPassword(e.target.value)}
+ onChange={(e) => {
+ setPassword(e.target.value);
+ if (formError) setFormError(null);
+ }}
  disabled={isLoading}
  autoComplete="current-password"
  required
@@ -172,4 +189,4 @@ export function Login() {
  </div>
  </div>
  );
-}
+}

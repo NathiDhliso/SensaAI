@@ -56,13 +56,13 @@ export class StorageManager {
  // 2. Fetch all concepts
  // We need to fetch all tiers to reconstruct the document
  console.log(`[StorageManager] Fetching concepts for userId="${resolvedUserId}" sessionId="${resolvedSessionId}"`);
- const [rootConcepts, trunkConcepts, leafConcepts] = await Promise.all([
- conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'root'),
+ const [trunkConcepts, branchConcepts, leafConcepts] = await Promise.all([
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'trunk'),
+ conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'branch'),
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', resolvedSessionId, 'leaf')
  ]);
- console.log(`[StorageManager] Tier counts - root: ${rootConcepts.length}, trunk: ${trunkConcepts.length}, leaf: ${leafConcepts.length}`);
- const allConcepts = [...rootConcepts, ...trunkConcepts, ...leafConcepts];
+ console.log(`[StorageManager] Tier counts - trunk: ${trunkConcepts.length}, branch: ${branchConcepts.length}, leaf: ${leafConcepts.length}`);
+ const allConcepts = [...trunkConcepts, ...branchConcepts, ...leafConcepts];
  if (allConcepts.length === 0) {
  console.warn('[StorageManager] No concepts found for result:', id);
  console.warn('[StorageManager] JobStatus conceptCount:', jobStatus.conceptCount);
@@ -70,13 +70,13 @@ export class StorageManager {
  console.warn('[StorageManager] Retrying concept fetch with jobId as sessionId fallback:', id);
  const fallbackSessionId = jobStatus.jobId || id;
  console.log(`[StorageManager] Fallback query - userId="${resolvedUserId}" sessionId="${fallbackSessionId}"`);
- const [fRoot, fTrunk, fLeaf] = await Promise.all([
- conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'root'),
+ const [fTrunk, fBranch, fLeaf] = await Promise.all([
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'trunk'),
+ conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'branch'),
  conceptsApi.getAllByTier(resolvedUserId ?? 'anonymous', fallbackSessionId, 'leaf')
  ]);
- console.log(`[StorageManager] Fallback tier counts - root: ${fRoot.length}, trunk: ${fTrunk.length}, leaf: ${fLeaf.length}`);
- allConcepts.push(...fRoot, ...fTrunk, ...fLeaf);
+ console.log(`[StorageManager] Fallback tier counts - trunk: ${fTrunk.length}, branch: ${fBranch.length}, leaf: ${fLeaf.length}`);
+ allConcepts.push(...fTrunk, ...fBranch, ...fLeaf);
  }
  if (allConcepts.length === 0 && jobStatus.conceptCount && jobStatus.conceptCount > 0) {
  console.warn('[StorageManager] Tier-based queries returned 0. Trying unfiltered query...');

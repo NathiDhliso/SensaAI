@@ -525,7 +525,7 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
  const curAnchor = concept.mnemonic?.anchor || '';
  const curStory = concept.mnemonic?.story || '';
  concept.mnemonic = {
- tier: (mItem.tier as 'root' | 'trunk' | 'leaf') || curTier,
+ tier: (['trunk', 'branch', 'leaf'].includes(String(mItem.tier).toLowerCase()) ? String(mItem.tier).toLowerCase() as 'trunk' | 'branch' | 'leaf' : curTier) || 'leaf',
  anchor: anchor || curAnchor,
  story: story || curStory,
  parentName: mItem.parentConcept || mItem.parentName || undefined
@@ -579,9 +579,9 @@ function extractFirstSentence(text: string): string {
  * Determine tier based on concept order and name (fallback only — tiers are
  * normally computed from the connection graph in post-processing).
  */
-function determineTier(order: number, _name: string): 'root' | 'trunk' | 'leaf' {
- if (order <= 5) return 'root';
- if (order <= 30) return 'trunk';
+function determineTier(order: number, _name: string): 'trunk' | 'branch' | 'leaf' {
+ if (order <= 5) return 'trunk';
+ if (order <= 30) return 'branch';
  return 'leaf';
 }
 function parseConceptsFromEscapedContent(content: string): ParsedConcept[] {
@@ -653,7 +653,7 @@ function extractMnemonic(content: string, conceptName: string): ParsedMnemonic |
  const storyMatch = match[1].match(/\\"story\\":\s*\\"([^"]{0,500})/);
  const imageMatch = match[1].match(/\\"imageUrl\\":\s*\\"([^"]+)\\"/);
  return {
- tier: (tierMatch?.[1]?.toLowerCase() as 'root' | 'trunk' | 'leaf') || 'root',
+ tier: (['trunk', 'branch', 'leaf'].includes(tierMatch?.[1]?.toLowerCase() || '') ? tierMatch![1].toLowerCase() as 'trunk' | 'branch' | 'leaf' : 'leaf'),
  anchor: anchorMatch?.[1]?.replace(/\\"/g, '"') || '',
  story: storyMatch?.[1]?.replace(/\\"/g, '"') || '',
  imageUrl: imageMatch?.[1]?.replace(/\\"/g, '"')
@@ -809,29 +809,33 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  eliminationLogic: typeof s.eliminationLogic === 'string' ? s.eliminationLogic : ''
  };
  }
- // Extract mnemonic
- // Extract mnemonic and Tier (checking root level first for Sensa v2.0 compliance)
- let tier: 'root' | 'trunk' | 'leaf' | undefined;
- if (typeof c.tier === 'string') {
+ let tier: 'trunk' | 'branch' | 'leaf' | undefined;
+ const treeLevel = typeof c.treeLevel === 'string' ? c.treeLevel.toLowerCase() : '';
+ if (treeLevel === 'trunk' || treeLevel === 'branch' || treeLevel === 'leaf') {
+ tier = treeLevel as 'trunk' | 'branch' | 'leaf';
+ } else if (typeof c.tier === 'string') {
  const t = c.tier.toLowerCase();
- if (t === 'root') tier = 'root';
- else if (t === 'trunk') tier = 'trunk';
+ if (t === 'trunk') tier = 'trunk';
+ else if (t === 'branch') tier = 'branch';
  else if (t === 'leaf') tier = 'leaf';
+ else if (t === 'root') tier = 'trunk';
  }
+ const parentName = typeof c.parentName === 'string' ? c.parentName : undefined;
+ const trunkDomain = typeof c.trunkDomain === 'string' ? c.trunkDomain : undefined;
  let mnemonic: ParsedMnemonic | undefined;
  if (c.mnemonic && typeof c.mnemonic === 'object') {
  const m = c.mnemonic as Record<string, unknown>;
  if (!tier && typeof m.tier === 'string') {
  const t = m.tier.toLowerCase();
- if (t === 'root') tier = 'root';
- else if (t === 'trunk') tier = 'trunk';
+ if (t === 'trunk') tier = 'trunk';
+ else if (t === 'branch') tier = 'branch';
  else if (t === 'leaf') tier = 'leaf';
  }
  mnemonic = {
- tier: tier || 'root',
+ tier: tier || 'leaf',
  anchor: typeof m.anchor === 'string' ? m.anchor : '',
  story: typeof m.story === 'string' ? m.story : '',
- parentName: typeof m.parentConcept === 'string' ? m.parentConcept : undefined
+ parentName: parentName || (typeof m.parentConcept === 'string' ? m.parentConcept : undefined)
  };
  } else if (tier) {
  mnemonic = {
@@ -910,8 +914,9 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  // SILVER BULLET: Extract semantic connections from AI output
  // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
  strictConnections: extractStrictConnections(c),
- // Also store tier at root for transformer
- tier: tier
+ tier: tier,
+ parentName: parentName,
+ trunkDomain: trunkDomain
  };
 }
 // ============================================================================
@@ -970,4 +975,4 @@ function parseMentalAnchors(concepts: ParsedConcept[]): ParsedMentalAnchor[] {
  whyItHelps: c.mnemonic!.story || 'Provides a memorable visual anchor for the concept'
  }));
 }
-export default parseContent;
+export default parseContent;

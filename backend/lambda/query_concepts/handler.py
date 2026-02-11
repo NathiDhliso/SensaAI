@@ -64,6 +64,23 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         # Parse query parameters
         params = event.get("queryStringParameters", {}) or {}
+        path_params = event.get("pathParameters", {}) or {}
+        raw_path = event.get("rawPath", "")
+        route_key = event.get("routeKey", "")
+
+        # Route-aware dispatching for API Gateway paths
+        # GET /concepts/jobs → list all jobs for a user
+        # GET /concepts/jobs/{jobId} → get specific job status
+        if raw_path.startswith("/concepts/jobs") or route_key.startswith("GET /concepts/jobs"):
+            user_id = params.get("userId")
+            if not user_id:
+                return api_response(400, {"error": "userId is required"}, event)
+            job_id = path_params.get("jobId")
+            if job_id:
+                return handle_get_job_status(user_id, job_id, event)
+            else:
+                return handle_list_jobs(user_id, event)
+
         action = params.get("action", "get_concepts")
         user_id = params.get("userId")
         if not user_id:
@@ -138,6 +155,61 @@ def handle_list_subjects(user_id: str) -> Dict[str, Any]:
         "subjects": subjects,
         "count": len(subjects)
     })
+
+
+def handle_list_jobs(user_id: str, event=None) -> Dict[str, Any]:
+    """
+    List all generation jobs for a user from the JOBS_TABLE.
+    Matches Express backend GET /concepts/jobs behavior.
+    Returns { jobs: [...] } format expected by the frontend.
+    """
+    jobs_table = dynamodb.Table(JOBS_TABLE)
+    try:
+        response = jobs_table.scan(
+            FilterExpression=Attr("userId").eq(user_id)
+        )
+        jobs = []
+        for item in response.get("Items", []):
+            jobs.append({
+                "jobId": item.get("jobId"),
+                "status": item.get("status"),
+                "subject": item.get("subject"),
+                "createdAt": int(item.get("createdAt", 0)),
+                "conceptCount": int(item.get("conceptCount", 0)),
+                "sessionId": item.get("sessionId"),
+            })
+        # Sort by createdAt desc
+        jobs.sort(key=lambda x: x["createdAt"], reverse=True)
+        return api_response(200, {"jobs": jobs}, event)
+    except Exception as e:
+        return api_response(500, {"error": f"Failed to list jobs: {str(e)}"}, event)
+
+
+def handle_get_job_status(user_id: str, job_id: str, event=None) -> Dict[str, Any]:
+    """
+    Get status of a specific generation job from the JOBS_TABLE.
+    Matches Express backend GET /concepts/jobs/:jobId behavior.
+    """
+    jobs_table = dynamodb.Table(JOBS_TABLE)
+    try:
+        response = jobs_table.get_item(
+            Key={"jobId": job_id, "userId": user_id}
+        )
+        item = response.get("Item")
+        if not item:
+            return api_response(404, {"error": "Job not found"}, event)
+        return api_response(200, {
+            "jobId": item.get("jobId"),
+            "userId": item.get("userId"),
+            "sessionId": item.get("sessionId"),
+            "subject": item.get("subject"),
+            "status": item.get("status"),
+            "conceptCount": int(item.get("conceptCount", 0)),
+            "error": item.get("error"),
+            "classification": item.get("classification"),
+        }, event)
+    except Exception as e:
+        return api_response(500, {"error": f"Failed to get job status: {str(e)}"}, event)
 
 def handle_delete_subject(user_id: str, session_id: str) -> Dict[str, Any]:
     """

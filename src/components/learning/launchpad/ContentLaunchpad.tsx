@@ -96,12 +96,12 @@ export default function ContentLaunchpad() {
  }, [lastSessionMood]);
  const bwConfig = BANDWIDTH_CONFIG[bandwidth];
  const tierCounts = useMemo(() => {
- if (!parsedData) return { root: 0, trunk: 0, leaf: 0, total: 0 };
+ if (!parsedData) return { trunk: 0, branch: 0, leaf: 0, total: 0 };
  const concepts = parsedData.concepts || [];
- const root = concepts.filter(c => c.tier === 'root').length;
  const trunk = concepts.filter(c => c.tier === 'trunk').length;
- const leaf = concepts.length - root - trunk;
- return { root, trunk, leaf, total: concepts.length };
+ const branch = concepts.filter(c => c.tier === 'branch').length;
+ const leaf = concepts.length - trunk - branch;
+ return { trunk, branch, leaf, total: concepts.length };
  }, [parsedData]);
  const runAudit = useCallback((parsed: ParsedGeneratedContent, objectives: string[]) => {
  setAudit(auditContent(parsed, objectives));
@@ -260,12 +260,12 @@ export default function ContentLaunchpad() {
  </div>
  <div className={styles.contextDivider} />
  <div className={styles.contextStat}>
- <span className={styles.contextValue} style={{ color: 'var(--color-root)' }}>{tierCounts.root}</span>
- <span className={styles.contextLabel}>Root</span>
- </div>
- <div className={styles.contextStat}>
  <span className={styles.contextValue} style={{ color: 'var(--color-trunk)' }}>{tierCounts.trunk}</span>
  <span className={styles.contextLabel}>Trunk</span>
+ </div>
+ <div className={styles.contextStat}>
+ <span className={styles.contextValue} style={{ color: 'var(--color-branch)' }}>{tierCounts.branch}</span>
+ <span className={styles.contextLabel}>Branch</span>
  </div>
  <div className={styles.contextStat}>
  <span className={styles.contextValue} style={{ color: 'var(--color-leaf)' }}>{tierCounts.leaf}</span>
@@ -708,7 +708,7 @@ export default function ContentLaunchpad() {
  <div className={styles.footerStat}>
  <span className={styles.statLabel}>Tier Split</span>
  <span className={styles.statValue}>
- {audit.tierDistribution.root}R / {audit.tierDistribution.trunk}T / {audit.tierDistribution.leaf}L
+ {audit.tierDistribution.trunk}T / {audit.tierDistribution.branch}B / {audit.tierDistribution.leaf}L
  </span>
  </div>
  </>

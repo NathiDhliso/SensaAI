@@ -56,11 +56,10 @@ def create_gsi1_sk(tier: str, concept_id: str) -> str:
 # Allowed origins for CORS
 ALLOWED_ORIGINS = [
     "https://main.dckqci84h8ffk.amplifyapp.com",
-    "https://sensapbl.com",
-    "https://www.sensapbl.com",
-    "https://app.sensapbl.com",
     "https://sensaai.com",
     "https://www.sensaai.com",
+    "https://sensaai.co.za",
+    "https://www.sensaai.co.za",
     "http://localhost:5173",
     "http://localhost:3000",
 ]
@@ -148,6 +147,6 @@ def create_cursor(last_evaluated_key=None):
 
 
 # Tier definitions matching TypeScript types
-TIERS = ["root", "trunk", "leaf"]
+TIERS = ["trunk", "branch", "leaf"]
 # Lifecycle stages
 STAGES = ["PREPARE", "MODEL", "DELIVER"]

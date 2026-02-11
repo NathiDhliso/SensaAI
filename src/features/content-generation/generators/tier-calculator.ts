@@ -2,7 +2,7 @@
  * Tier calculation utilities for Mind Palace Floor Plan layout.
  * Determines concept importance based on dependency count.
  */
-export type Tier = 'Root' | 'Trunk' | 'Leaf';
+export type Tier = 'Trunk' | 'Branch' | 'Leaf';
 /**
  * Tier thresholds based on dependent count.
  * These values determine how concepts are classified:
@@ -14,16 +14,16 @@ export type Tier = 'Root' | 'Trunk' | 'Leaf';
  * even with smaller graphs or sparse dependency data.
  */
 export const TIER_THRESHOLDS = {
- ROOT: 4,
- TRUNK: 2
+ TRUNK: 4,
+ BRANCH: 2
 } as const;
 /**
  * Treemap weighting based on tier.
  * Foundation concepts get 4x the visual area of Utility concepts.
  */
 export const TIER_WEIGHTS = {
- Root: 4,
- Trunk: 2,
+ Trunk: 4,
+ Branch: 2,
  Leaf: 1
 } as const;
 /**
@@ -34,8 +34,8 @@ export const TIER_WEIGHTS = {
  * @returns The calculated tier
  */
 export function calculateTier(dependentCount: number): Tier {
- if (dependentCount >= TIER_THRESHOLDS.ROOT) return 'Root';
  if (dependentCount >= TIER_THRESHOLDS.TRUNK) return 'Trunk';
+ if (dependentCount >= TIER_THRESHOLDS.BRANCH) return 'Branch';
  return 'Leaf';
 }
 /**
@@ -62,4 +62,4 @@ export function calculateCentralityScore(
 ): number {
  if (maxConnections === 0) return 0;
  return Math.min(1, totalConnections / maxConnections);
-}
+}

@@ -13,8 +13,8 @@ import { getPersonaResponse, type PersonaId } from '@/features/ai-coach';
 // TYPES
 // ============================================================================
 export interface MapScoreBreakdown {
- rootCoverage: number;
  trunkCoverage: number;
+ branchCoverage: number;
  leafCoverage: number;
  correctConnections: number; // Count of connections matching AI
  missingConnections: string[]; // List of missing important connections
@@ -54,15 +54,15 @@ export function scoreConceptMap(
  const userConceptIds = new Set(mapData.nodes.map(n => n.conceptId));
  const userConceptNames = new Map(mapData.nodes.map(n => [n.conceptId, n.conceptName]));
  // Group AI concepts by tier
- const rootConcepts = aiConcepts.filter(c => c.tier === 'root');
  const trunkConcepts = aiConcepts.filter(c => c.tier === 'trunk');
+ const branchConcepts = aiConcepts.filter(c => c.tier === 'branch');
  const leafConcepts = aiConcepts.filter(c => c.tier === 'leaf' || !c.tier);
- const rootCoverage = calculateCoverage(rootConcepts, userConceptIds);
  const trunkCoverage = calculateCoverage(trunkConcepts, userConceptIds);
+ const branchCoverage = calculateCoverage(branchConcepts, userConceptIds);
  const leafCoverage = calculateCoverage(leafConcepts, userConceptIds);
  const completeness = Math.round(
- (rootCoverage * 0.3) +
- (trunkCoverage * 0.5) +
+ (trunkCoverage * 0.3) +
+ (branchCoverage * 0.5) +
  (leafCoverage * 0.2)
  );
  // Analyze connections
@@ -96,8 +96,8 @@ export function scoreConceptMap(
  structuralQuality,
  tierBalance,
  breakdown: {
- rootCoverage,
  trunkCoverage,
+ branchCoverage,
  leafCoverage,
  correctConnections: connectionAnalysis.correctCount,
  missingConnections: connectionAnalysis.missingConnections,
@@ -202,7 +202,7 @@ function calculateStructuralQuality(
 ): number {
  if (userConnections.length === 0) return 0;
  // Build tier map
- const tierMap = new Map<string, 'root' | 'trunk' | 'leaf'>();
+ const tierMap = new Map<string, 'trunk' | 'branch' | 'leaf'>();
  for (const concept of aiConcepts) {
  tierMap.set(concept.id, concept.tier || 'leaf');
  }
@@ -213,7 +213,7 @@ function calculateStructuralQuality(
  const toTier = tierMap.get(conn.toId);
  if (!fromTier || !toTier) continue;
  totalConnections++;
- const tierOrder = { root: 0, trunk: 1, leaf: 2 };
+ const tierOrder = { trunk: 0, branch: 1, leaf: 2 } as const;
  const fromOrder = tierOrder[fromTier];
  const toOrder = tierOrder[toTier];
  // Connections should flow from lower tier to higher, or same
@@ -233,23 +233,23 @@ function calculateTierBalance(
  aiConcepts: LearningConcept[]
 ): number {
  const includedConcepts = aiConcepts.filter(c => userConceptIds.has(c.id));
- const rootCount = includedConcepts.filter(c => c.tier === 'root').length;
  const trunkCount = includedConcepts.filter(c => c.tier === 'trunk').length;
+ const branchCount = includedConcepts.filter(c => c.tier === 'branch').length;
  const leafCount = includedConcepts.filter(c => c.tier === 'leaf' || !c.tier).length;
- const hasAllTiers = rootCount > 0 && trunkCount > 0 && leafCount > 0;
+ const hasAllTiers = trunkCount > 0 && branchCount > 0 && leafCount > 0;
  if (!hasAllTiers) {
- const tiersPresent = [rootCount > 0, trunkCount > 0, leafCount > 0]
+ const tiersPresent = [trunkCount > 0, branchCount > 0, leafCount > 0]
  .filter(Boolean).length;
  return Math.round((tiersPresent / 3) * 100);
  }
- const total = rootCount + trunkCount + leafCount;
- const idealRoot = total * 0.20;
- const idealTrunk = total * 0.50;
- const idealLeaf = total * 0.30;
- const rootDeviation = Math.abs(rootCount - idealRoot) / idealRoot;
+ const total = trunkCount + branchCount + leafCount;
+ const idealTrunk = total * 0.15;
+ const idealBranch = total * 0.35;
+ const idealLeaf = total * 0.50;
  const trunkDeviation = Math.abs(trunkCount - idealTrunk) / idealTrunk;
+ const branchDeviation = Math.abs(branchCount - idealBranch) / idealBranch;
  const leafDeviation = Math.abs(leafCount - idealLeaf) / idealLeaf;
- const avgDeviation = (rootDeviation + trunkDeviation + leafDeviation) / 3;
+ const avgDeviation = (trunkDeviation + branchDeviation + leafDeviation) / 3;
  // Convert deviation to score (0 deviation = 100, high deviation = lower)
  return Math.round(Math.max(0, 100 - (avgDeviation * 100)));
 }
@@ -298,4 +298,4 @@ export function getScoreCoachMessage(
  score: MapScore
 ): string {
  return score.feedback;
-}
+}

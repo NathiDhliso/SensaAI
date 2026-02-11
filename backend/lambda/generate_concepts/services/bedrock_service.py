@@ -80,17 +80,41 @@ class BedrockService:
         print("[BedrockService] Classification failed, using default (conceptual)")
         return None
     def generate_concepts(self, subject: str, context: str = "") -> tuple:
-        from shared.system_prompt import get_silver_bullet_prompt
+        from shared.system_prompt import get_tree_generation_prompt, _get_exam_domains
         classification = self.classify_subject(subject, context)
-        def generate_part_with_retry(part_num: int) -> List[Dict[str, Any]]:
-            if part_num > 1:
-                time.sleep(1.5 * part_num)
-            prompt = get_silver_bullet_prompt(subject, part_num, context, classification)
+        domains = _get_exam_domains(context, classification)
+        if not domains:
+            print("[BedrockService] WARNING: No exam domains from classification. Retrying classification...")
+            retry_cls = self.classify_subject(subject, context)
+            if retry_cls:
+                domains = _get_exam_domains(context, retry_cls)
+                if domains:
+                    classification = retry_cls
+        if not domains:
+            print("[BedrockService] FALLBACK: Generating single-domain tree for subject")
+            domains = [{"name": subject, "weight": 1.0, "subtopics": []}]
+        num_partitions = len(domains)
+        print(f"[BedrockService] Tree generation: {num_partitions} domains (trunks)")
+        for i, d in enumerate(domains):
+            print(f"[BedrockService]   Trunk {i+1}: {d.get('name')} (weight={d.get('weight', 'N/A')})")
+        def generate_domain_with_retry(domain_index: int) -> List[Dict[str, Any]]:
+            if domain_index > 0:
+                time.sleep(1.5 * domain_index)
+            domain = domains[domain_index]
+            prompt = get_tree_generation_prompt(
+                subject=subject,
+                domain=domain,
+                domain_index=domain_index,
+                total_domains=num_partitions,
+                context=context,
+                classification=classification,
+            )
             last_error = None
-            print(f"[BedrockService] Part {part_num}: Starting with model={self.model_id}")
+            domain_name = domain.get("name", f"Domain {domain_index + 1}")
+            print(f"[BedrockService] Trunk '{domain_name}': Starting with model={self.model_id}")
             for attempt in range(self.MAX_RETRIES):
                 try:
-                    print(f"[BedrockService] Part {part_num}: Attempt {attempt + 1}/{self.MAX_RETRIES}")
+                    print(f"[BedrockService] Trunk '{domain_name}': Attempt {attempt + 1}/{self.MAX_RETRIES}")
                     response = self.client.invoke_model(
                         modelId=self.model_id,
                         contentType="application/json",
@@ -104,26 +128,29 @@ class BedrockService:
                     )
                     response_body = json.loads(response.get("body").read())
                     raw_content = response_body.get("content", [])[0].get("text", "")
-                    print(f"[BedrockService] Part {part_num}: Got {len(raw_content)} chars")
+                    print(f"[BedrockService] Trunk '{domain_name}': Got {len(raw_content)} chars")
                     parsed = self._parse_concepts_from_response(raw_content)
-                    print(f"[BedrockService] Part {part_num}: Parsed {len(parsed)} concepts")
+                    print(f"[BedrockService] Trunk '{domain_name}': Parsed {len(parsed)} concepts")
+                    for c in parsed:
+                        if not c.get("trunkDomain"):
+                            c["trunkDomain"] = domain_name
                     validated = [c for c in parsed if self._validate_concept(c)]
-                    print(f"[BedrockService] Part {part_num}: Validated {len(validated)} concepts")
+                    print(f"[BedrockService] Trunk '{domain_name}': Validated {len(validated)} concepts")
                     if validated:
                         return validated
-                    last_error = f"Part {part_num}: All {len(parsed)} concepts failed validation"
+                    last_error = f"Trunk '{domain_name}': All {len(parsed)} concepts failed validation"
                 except Exception as e:
                     last_error = str(e)
-                    print(f"[BedrockService] Part {part_num}: Error on attempt {attempt + 1}: {last_error}")
+                    print(f"[BedrockService] Trunk '{domain_name}': Error on attempt {attempt + 1}: {last_error}")
                     if attempt < self.MAX_RETRIES - 1:
                         sleep_time = self.RETRY_BACKOFF_BASE ** (attempt + 1)
                         time.sleep(sleep_time)
-            print(f"[ERROR] generate_part_with_retry failed after {self.MAX_RETRIES} attempts: {last_error}")
+            print(f"[ERROR] generate_domain_with_retry failed after {self.MAX_RETRIES} attempts: {last_error}")
             return []
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
             futures = [
-                executor.submit(generate_part_with_retry, i)
-                for i in range(1, self.NUM_PARTITIONS + 1)
+                executor.submit(generate_domain_with_retry, i)
+                for i in range(num_partitions)
             ]
             results = [f.result() for f in futures]
         all_concepts = []
@@ -182,14 +209,14 @@ class BedrockService:
             print(f"[ERROR] Repair failed: {e}")
             return None
     def _validate_concept(self, concept: Dict[str, Any]) -> bool:
-        """
-        Validate that a concept has mandatory fields for frontend rendering.
-        Tier is NOT required from LLM — it is computed from the connection graph.
-        """
         if not isinstance(concept, dict):
             return False
         if not concept.get("name"):
             return False
+        valid_tree_levels = {"trunk", "branch", "leaf"}
+        tree_level = (concept.get("treeLevel") or "").lower().strip()
+        if tree_level not in valid_tree_levels:
+            concept["treeLevel"] = "leaf"
         mnemonic = concept.get("mnemonic", {})
         if not isinstance(mnemonic, dict):
             return False
@@ -210,73 +237,35 @@ class BedrockService:
             print(f"[BedrockService] Validation fail: '{concept.get('name')}' missing cognitiveLevel")
             return False
         return True
-    def _compute_tiers_from_graph(self, concepts: List[Dict[str, Any]]) -> None:
-        """
-        Compute tiers deterministically from the connection graph.
-        Algorithm:
-        - Build a directed graph from connections (requires, enables, etc.)
-        - For directional types (requires, enables, is-part-of, is-type-of, causes, constrains),
-        determine which direction implies "A depends on B" vs "A is depended upon by B"
-        - Compute in-degree (how many concepts point TO this one) and
-        out-degree (how many concepts this one points TO)
-        - Assign tiers:
-            ROOT: in_degree == 0 AND out_degree >= 1 (entry points)
-            TRUNK: in_degree >= 1 AND out_degree >= 1 (connectors)
-            LEAF: out_degree == 0 OR isolated (terminal/specialized)
-        """
-        name_to_idx = {}
-        for i, c in enumerate(concepts):
-            key = c.get("name", "").strip().lower()
-            if key:
-                name_to_idx[key] = i
-        n = len(concepts)
-        in_degree = [0] * n
-        out_degree = [0] * n
-        DEPENDENCY_TYPES = {"requires", "is-part-of", "is-type-of"}
-        ENABLEMENT_TYPES = {"enables", "causes", "constrains"}
-        total_connections = 0
-        phantom_connections = 0
-        for i, concept in enumerate(concepts):
-            connections = concept.get("connections", [])
-            if not isinstance(connections, list):
-                continue
-            for conn in connections:
-                if not isinstance(conn, dict):
-                    continue
-                target_name = conn.get("target", "").strip().lower()
-                conn_type = conn.get("type", "").strip().lower()
-                target_idx = name_to_idx.get(target_name)
-                total_connections += 1
-                if target_idx is None:
-                    phantom_connections += 1
-                    continue
-                if conn_type in DEPENDENCY_TYPES:
-                    out_degree[i] += 1
-                    in_degree[target_idx] += 1
-                elif conn_type in ENABLEMENT_TYPES:
-                    in_degree[i] += 1
-                    out_degree[target_idx] += 1
-                else:
-                    out_degree[i] += 1
-                    in_degree[target_idx] += 1
-        for i, concept in enumerate(concepts):
-            ind = in_degree[i]
-            outd = out_degree[i]
-            if ind == 0 and outd >= 1:
-                concept["tier"] = "root"
-            elif ind >= 1 and outd >= 1:
-                concept["tier"] = "trunk"
-            else:
-                concept["tier"] = "leaf"
-        tier_counts = {"root": 0, "trunk": 0, "leaf": 0}
+    def _validate_tree_structure(self, concepts: List[Dict[str, Any]]) -> None:
+        name_set = {c.get("name", "").strip().lower() for c in concepts if c.get("name")}
+        trunk_names = set()
+        branch_names = set()
+        tree_counts = {"trunk": 0, "branch": 0, "leaf": 0}
         for c in concepts:
-            tier_counts[c["tier"]] = tier_counts.get(c["tier"], 0) + 1
-        print(f"[BedrockService] Tier distribution: {tier_counts}")
-        if total_connections > 0:
-            phantom_pct = (phantom_connections / total_connections) * 100
-            print(f"[BedrockService] Connections: {total_connections} total, {phantom_connections} phantom ({phantom_pct:.0f}%)")
-            if phantom_pct > 10:
-                print(f"[WARNING] >10% phantom connections — tier distribution may be distorted")
+            level = (c.get("treeLevel") or "leaf").lower().strip()
+            c["treeLevel"] = level
+            tree_counts[level] = tree_counts.get(level, 0) + 1
+            if level == "trunk":
+                trunk_names.add(c.get("name", "").strip().lower())
+            elif level == "branch":
+                branch_names.add(c.get("name", "").strip().lower())
+        for c in concepts:
+            level = c.get("treeLevel", "leaf")
+            parent = (c.get("parentName") or "").strip().lower()
+            if level == "branch" and parent and parent not in trunk_names:
+                print(f"[BedrockService] Tree fix: branch '{c.get('name')}' parent '{c.get('parentName')}' not found in trunks")
+            elif level == "leaf" and parent and parent not in branch_names:
+                if parent in trunk_names:
+                    print(f"[BedrockService] Tree fix: leaf '{c.get('name')}' parent points to trunk, should be branch")
+            c["tier"] = c["treeLevel"]
+        print(f"[BedrockService] Tree distribution: {tree_counts}")
+        domains = set()
+        for c in concepts:
+            d = c.get("trunkDomain", "")
+            if d:
+                domains.add(d)
+        print(f"[BedrockService] Domains: {domains}")
     def _enforce_blooms_distribution(self, concepts: List[Dict[str, Any]]) -> None:
         VALID_LEVELS = {"remember", "understand", "apply", "analyze", "evaluate", "create"}
         HIGHER_ORDER = {"apply", "analyze", "evaluate", "create"}
@@ -325,16 +314,10 @@ class BedrockService:
         final_higher = sum(1 for c in concepts if c.get("cognitiveLevel", "").lower() in HIGHER_ORDER)
         print(f"[BedrockService] Bloom's final: {final_higher}/{total} higher-order ({final_higher/total*100:.0f}%)")
     def _post_process_concepts(self, concepts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Post-process concepts: assign IDs, compute tiers from connection graph,
-        enforce Bloom's distribution, and normalize required fields.
-        """
         from shared.utils import generate_id
         for concept in concepts:
             if "id" not in concept:
                 concept["id"] = generate_id()
-            concept.pop("tier", None)
-            concept.pop("tierJustification", None)
             concept["stageId"] = concept.get("stageId", "PREPARE")
             if "mnemonic" not in concept:
                 concept["mnemonic"] = {}
@@ -344,7 +327,7 @@ class BedrockService:
                     "keywords": name_words[:5] if name_words else [],
                     "aliases": [],
                 }
-        self._compute_tiers_from_graph(concepts)
+        self._validate_tree_structure(concepts)
         self._enforce_blooms_distribution(concepts)
         return concepts
     def _repair_json(self, raw_text: str) -> str:

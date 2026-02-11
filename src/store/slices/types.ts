@@ -26,7 +26,7 @@ export type ContentMetadata = {
  role: string;
  source: string;
  conceptCount: number;
- rootConcepts?: number;
+ trunkConcepts?: number;
  diagnosticReady?: boolean;
  metadataCompleteness?: number;
  fullDocument?: string;
@@ -100,7 +100,7 @@ export interface DiagnosticSession {
  knownConcepts: string[];
  knowledgeGaps: string[];
  confidenceScores: Record<string, number>;
- canSkipRoot: boolean;
+ canSkipTrunk: boolean;
  isComplete: boolean;
 }
 /**
@@ -140,7 +140,7 @@ export type DiagnosticSliceActions = {
  knownConcepts: string[];
  knowledgeGaps: string[];
  confidenceScores: Record<string, number>;
- canSkipRoot: boolean;
+ canSkipTrunk: boolean;
  }) => void;
  clearDiagnostic: () => void;
  getDiagnosticSession: () => DiagnosticSession | null;
@@ -282,4 +282,4 @@ export type {
  EnhancedCognitiveMetrics,
  SessionPrimer,
  ConceptMapData
-};
+};

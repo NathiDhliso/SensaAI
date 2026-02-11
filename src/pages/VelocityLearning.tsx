@@ -63,7 +63,7 @@ export default function VelocityLearning() {
  knownConcepts: string[];
  knowledgeGaps: string[];
  confidenceScores: Record<string, number>;
- canSkipRoot: boolean;
+ canSkipTrunk: boolean;
  };
  // 2. The State Machine Hook (legacy - used for phase detection)
  const {
@@ -98,7 +98,7 @@ export default function VelocityLearning() {
  if (!activeConcept || !currentSession) return null;
  const completed = currentSession.progress.completedConcepts;
  const tier = activeConcept.tier;
- if (tier === 'root' && completed.length < 3) return 'Building foundations first';
+ if (tier === 'trunk' && completed.length < 3) return 'Building foundations first';
  if (tier === 'leaf') return 'Applying knowledge — leaf concept';
  const lastCompleted = completed[completed.length - 1];
  if (lastCompleted) {
@@ -255,12 +255,12 @@ export default function VelocityLearning() {
  const nextId = getNextConcept();
  if (nextId) setCurrentConcept(nextId);
  } else if (data.reason === 'too-hard') {
- const rootConcept = currentSession?.concepts.find(
- c => c.tier === 'root' && !currentSession.progress.completedConcepts.includes(c.id) && c.id !== pendingSkipConcept
+ const trunkConcept = currentSession?.concepts.find(
+ c => c.tier === 'trunk' && !currentSession.progress.completedConcepts.includes(c.id) && c.id !== pendingSkipConcept
  );
- if (rootConcept) {
- setCurrentConcept(rootConcept.id);
- toast.info(`Routing to prerequisite: ${rootConcept.name}`, { duration: 4000 });
+ if (trunkConcept) {
+ setCurrentConcept(trunkConcept.id);
+ toast.info(`Routing to prerequisite: ${trunkConcept.name}`, { duration: 4000 });
  } else {
  const nextId = getNextConcept();
  if (nextId) setCurrentConcept(nextId);
@@ -548,7 +548,7 @@ export default function VelocityLearning() {
  knownConcepts: [],
  knowledgeGaps: [],
  confidenceScores: {},
- canSkipRoot: false
+ canSkipTrunk: false
  });
  }}
  onDiagnosticComplete={handleDiagnosticComplete}

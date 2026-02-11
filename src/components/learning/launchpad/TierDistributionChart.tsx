@@ -11,19 +11,19 @@ interface TierDistributionChartProps {
 function getTierConfig() {
  const colors = getGraphColors();
  return {
- root: {
- label: 'Root',
- description: 'Entry points',
- color: colors.root
- },
  trunk: {
  label: 'Trunk',
- description: 'Core connectors',
+ description: 'Main domains',
  color: colors.trunk
+ },
+ branch: {
+ label: 'Branch',
+ description: 'Sub-topics',
+ color: colors.branch
  },
  leaf: {
  label: 'Leaf',
- description: 'Specialized applications',
+ description: 'Granular details',
  color: colors.leaf
  }
  };
@@ -35,8 +35,8 @@ export const TierDistributionChart: React.FC<TierDistributionChartProps> = ({
  const total = data.total || 1; // Prevent division by zero
  const tierConfig = getTierConfig();
  const tiers = [
- { key: 'root' as const, count: data.root },
  { key: 'trunk' as const, count: data.trunk },
+ { key: 'branch' as const, count: data.branch },
  { key: 'leaf' as const, count: data.leaf }
  ];
  const tiersWithPercentage = tiers.map(tier => ({
@@ -90,4 +90,4 @@ export const TierDistributionChart: React.FC<TierDistributionChartProps> = ({
  </div>
  </motion.div>
  );
-};
+};

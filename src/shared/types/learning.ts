@@ -5,7 +5,7 @@
 export interface MnemonicContext {
  anchor: string;
  story: string;
- tier?: 'root' | 'trunk' | 'leaf';
+ tier?: 'trunk' | 'branch' | 'leaf';
  parentName?: string;
  parentId?: string;
  dependsOn?: string[];
@@ -24,7 +24,7 @@ export interface DependencyMetrics {
  dependentCount: number;
  dependencyCount: number;
  totalConnections: number;
- calculatedTier: 'root' | 'trunk' | 'leaf';
+ calculatedTier: 'trunk' | 'branch' | 'leaf';
  centralityScore: number;
  clusterGroup: string;
 }
@@ -37,8 +37,8 @@ export interface SubjectGraphNode {
 export interface SubjectGraphStats {
  totalNodes: number;
  totalEdges: number;
- rootCount: number;
  trunkCount: number;
+ branchCount: number;
  leafCount: number;
  centralHub: string;
 }
@@ -112,14 +112,16 @@ export interface LearningConcept {
  stageId: string;
  order: number;
  icon?: string;
- // ========== SENSA v2.0 TIER SYSTEM (REQUIRED) ==========
+ // ========== SENSA v2.0 TREE SYSTEM (REQUIRED) ==========
  /**
- * Dependency-derived tier classification computed from the connection graph.
- * - root: Entry points (in-degree 0, out-degree ≥ 1) — learn these first
- * - trunk: Core connectors (in-degree ≥ 1, out-degree ≥ 1) — the meat of the subject
- * - leaf: Terminal applications (out-degree 0 or isolated) — specialized skills
+ * Tree-level classification declared by the LLM.
+ * - trunk: Main exam domain/objective — top-level container
+ * - branch: Sub-topic within a trunk — groups related knowledge
+ * - leaf: Granular testable concept — exam-level detail
  */
- tier: 'root' | 'trunk' | 'leaf';
+ tier: 'trunk' | 'branch' | 'leaf';
+ parentName?: string;
+ trunkDomain?: string;
  /**
  * Bloom's Taxonomy Level (Phase 2 Cognitive Model)
  */

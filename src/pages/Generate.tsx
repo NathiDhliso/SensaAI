@@ -217,19 +217,19 @@ export default function Generate() {
  <div className={styles.sourcePanel}>
  <span className={styles.hudLabel}>Exam Blueprint</span>
  <span className={styles.sourceTitle}>
- {pendingFile ? pendingFile.name : 'Standard Parametric Knowledge'}
+ {pendingFile ? pendingFile.name : context ? 'Pasted Exam Objectives' : 'Standard Parametric Knowledge'}
  </span>
  <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', opacity: 0.6 }}>
  <div
  style={{
  width: '8px',
  height: '8px',
- background: pendingFile ? COLORS.success : COLORS.warning,
+ background: (pendingFile || context) ? COLORS.success : COLORS.warning,
  borderRadius: '50%'
  }}
  />
  <span style={{ fontSize: '0.7rem' }}>
- {pendingFile ? 'OBJECTIVES_LOCKED' : 'UNGROUNDED_MODE'}
+ {(pendingFile || context) ? 'OBJECTIVES_LOCKED' : 'UNGROUNDED_MODE'}
  </span>
  </div>
  <AnimatePresence>
@@ -392,4 +392,4 @@ export default function Generate() {
  )}
  </div>
  );
-}
+}

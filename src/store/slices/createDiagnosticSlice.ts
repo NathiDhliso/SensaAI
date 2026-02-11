@@ -29,7 +29,7 @@ export const createDiagnosticSlice: StateCreator<
  knownConcepts: [],
  knowledgeGaps: [],
  confidenceScores: {},
- canSkipRoot: false,
+ canSkipTrunk: false,
  isComplete: false
  };
  set({ diagnosticSession });
@@ -44,7 +44,7 @@ export const createDiagnosticSlice: StateCreator<
  knownConcepts: results.knownConcepts,
  knowledgeGaps: results.knowledgeGaps,
  confidenceScores: results.confidenceScores,
- canSkipRoot: results.canSkipRoot,
+ canSkipTrunk: results.canSkipTrunk,
  isComplete: true
  }
  });
@@ -53,4 +53,4 @@ export const createDiagnosticSlice: StateCreator<
  set({ diagnosticSession: null });
  },
  getDiagnosticSession: () => get().diagnosticSession
-});
+});

@@ -84,13 +84,13 @@ export function SessionScoutPreview({
  const navigate = useNavigate();
  // Group concepts by tier
  const conceptsByTier = useMemo(() => {
- const root = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'root');
  const trunk = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk');
+ const branch = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'branch');
  const leaf = concepts.filter(c => {
  const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
- return t !== 'root' && t !== 'trunk';
+ return t !== 'trunk' && t !== 'branch';
  });
- return { root, trunk, leaf };
+ return { trunk, branch, leaf };
  }, [concepts]);
  // Generate AI Preview Analysis for priming step
  const aiPreview = useMemo(() => {
@@ -132,11 +132,11 @@ export function SessionScoutPreview({
  <div className={styles.tierFlow}>
  <div className={styles.tierColumn}>
  <div className={`${styles.tierHeader} ${styles.tierRoot}`}>
- <span className={styles.tierLabel}>Root</span>
- <span className={styles.tierCount}>{conceptsByTier.root.length}</span>
+ <span className={styles.tierLabel}>Trunk</span>
+ <span className={styles.tierCount}>{conceptsByTier.trunk.length}</span>
  </div>
  <div className={styles.conceptList}>
- {conceptsByTier.root.map(c => (
+ {conceptsByTier.trunk.map(c => (
  <ConceptChip
  key={c.id}
  concept={c}
@@ -148,11 +148,11 @@ export function SessionScoutPreview({
  <ArrowRight className={styles.flowArrow} size={24} />
  <div className={styles.tierColumn}>
  <div className={`${styles.tierHeader} ${styles.tierTrunk}`}>
- <span className={styles.tierLabel}>Trunk</span>
- <span className={styles.tierCount}>{conceptsByTier.trunk.length}</span>
+ <span className={styles.tierLabel}>Branch</span>
+ <span className={styles.tierCount}>{conceptsByTier.branch.length}</span>
  </div>
  <div className={styles.conceptList}>
- {conceptsByTier.trunk.map(c => (
+ {conceptsByTier.branch.map(c => (
  <ConceptChip
  key={c.id}
  concept={c}
@@ -186,9 +186,9 @@ export function SessionScoutPreview({
  <div className={styles.tierInsight}>
  <Sparkles size={16} />
  <span>
- <strong>{conceptsByTier.root.length}</strong> root concepts
- grow into <strong>{conceptsByTier.trunk.length}</strong> trunks
- branching into <strong>{conceptsByTier.leaf.length}</strong> leaves.
+ <strong>{conceptsByTier.trunk.length}</strong> trunk domains
+ grow into <strong>{conceptsByTier.branch.length}</strong> branches
+ with <strong>{conceptsByTier.leaf.length}</strong> leaf details.
  </span>
  </div>
  </div>

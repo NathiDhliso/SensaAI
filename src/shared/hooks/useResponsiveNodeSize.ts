@@ -15,14 +15,14 @@ interface NodeSizeConfig {
 }
 // Base node sizes (matching current implementation)
 const BASE_SIZES: Record<TierType, number> = {
- root: 120,
- trunk: 140,
+ trunk: 120,
+ branch: 140,
  leaf: 100
 };
 // Font size ranges for readability
 const FONT_SIZE_RANGES: Record<TierType, { min: number; max: number; base: number }> = {
- root: { min: 11, max: 16, base: 13 },
- trunk: { min: 12, max: 18, base: 14 },
+ trunk: { min: 11, max: 16, base: 13 },
+ branch: { min: 12, max: 18, base: 14 },
  leaf: { min: 10, max: 14, base: 11 }
 };
 /**
@@ -76,12 +76,12 @@ export function useResponsiveNodeSize(
  * @returns Object with sizes for all tiers
  */
 export function useAllNodeSizes(zoomLevel: number): Record<TierType, NodeSizeConfig> {
- const rootSize = useResponsiveNodeSize(zoomLevel, 'root');
  const trunkSize = useResponsiveNodeSize(zoomLevel, 'trunk');
+ const branchSize = useResponsiveNodeSize(zoomLevel, 'branch');
  const leafSize = useResponsiveNodeSize(zoomLevel, 'leaf');
  return {
- root: rootSize,
  trunk: trunkSize,
+ branch: branchSize,
  leaf: leafSize
  };
-}
+}

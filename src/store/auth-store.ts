@@ -11,7 +11,7 @@
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authSessionApi } from '@/shared/api/client';
+import { authSessionApi, getErrorMessage, isApiError, isAuthError } from '@/shared/api/client';
 
 // Configuration from environment
 const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || '').replace(/^(https?:\/\/)?/, 'https://');
@@ -120,40 +120,91 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
 /**
  * Maps AWS Cognito error messages to user-friendly messages
  */
+function getAuthErrorName(error: unknown): string {
+ if (!error || typeof error !== 'object') return '';
+ const maybeName = (error as { name?: unknown }).name;
+ if (typeof maybeName === 'string') return maybeName;
+ const maybeCode = (error as { code?: unknown }).code;
+ if (typeof maybeCode === 'string') return maybeCode;
+ const maybeAwsCode = (error as { Code?: unknown }).Code;
+ if (typeof maybeAwsCode === 'string') return maybeAwsCode;
+ return '';
+}
+
 function formatAuthError(error: unknown): string {
- if (error instanceof Error) {
- const message = error.message;
- // Handle specific Cognito error messages
- if (message.includes('Incorrect username or password')) {
+ const message = getErrorMessage(error, 'An unexpected error occurred. Please try again.');
+ const normalized = message.toLowerCase();
+ const errorName = getAuthErrorName(error);
+
+ switch (errorName) {
+ case 'UsernameExistsException':
+  return 'An account with this email already exists. Please sign in instead.';
+ case 'InvalidPasswordException':
+  return 'Password does not meet requirements. Please use a stronger password.';
+ case 'InvalidParameterException':
+  return 'Invalid input. Please review your details and try again.';
+ case 'CodeMismatchException':
+  return 'Invalid verification code. Please check and try again.';
+ case 'ExpiredCodeException':
+  return 'Verification code has expired. Please request a new one.';
+ case 'TooManyFailedAttemptsException':
+ case 'LimitExceededException':
+ case 'TooManyRequestsException':
+  return 'Too many attempts. Please wait a few minutes and try again.';
+ case 'UserNotConfirmedException':
+  return 'Please verify your email before signing in.';
+ case 'NotAuthorizedException':
+  return 'Invalid email or password. Please try again.';
+ default:
+  break;
+ }
+
+ if (isApiError(error)) {
+ if (error.isAbortError) {
+ return 'Request was cancelled.';
+ }
+ if (error.isNetworkError) {
+ return 'Network error. Please check your connection and try again.';
+ }
+ if (error.status === 401) {
+  if (normalized.includes('invalid email or password')) {
+  return 'Invalid email or password. Please try again.';
+  }
+  return 'Your session has expired. Please sign in again.';
+ }
+ if (error.status === 403 && normalized.includes('verify')) {
+  return 'Please verify your email before signing in.';
+ }
+ if (error.status === 429) {
+  return 'Too many attempts. Please wait a few minutes and try again.';
+ }
+ if (typeof error.status === 'number' && error.status >= 500) {
+  return 'Authentication service is temporarily unavailable. Please try again shortly.';
+ }
+ }
+
+ if (normalized.includes('incorrect username or password') || normalized.includes('invalid email or password')) {
  return 'Invalid email or password. Please try again.';
  }
- if (message.includes('User does not exist')) {
+ if (normalized.includes('user does not exist') || normalized.includes('no account found')) {
  return 'No account found with this email. Please sign up first.';
  }
- if (message.includes('User is not confirmed')) {
+ if (normalized.includes('user is not confirmed')) {
  return 'Please verify your email before signing in.';
  }
- if (message.includes('Password attempts exceeded')) {
- return 'Too many failed attempts. Please try again later.';
- }
- if (message.includes('Invalid verification code')) {
- return 'Invalid verification code. Please check and try again.';
- }
- if (message.includes('expired')) {
+ if (normalized.includes('expired code') || normalized.includes('verification code has expired')) {
  return 'Verification code has expired. Please request a new one.';
  }
- if (message.includes('InvalidParameterException')) {
- return 'Invalid input. Please check your details.';
+ if (normalized.includes('invalid verification code')) {
+ return 'Invalid verification code. Please check and try again.';
  }
- if (message.includes('Session expired') || message.includes('session')) {
+ if (normalized.includes('session expired') || normalized.includes('unauthorized') || isAuthError(error)) {
  return 'Your session has expired. Please sign in again.';
  }
- if (message.includes('Network') || message.includes('fetch')) {
+ if (normalized.includes('network') || normalized.includes('fetch') || normalized.includes('offline')) {
  return 'Network error. Please check your connection and try again.';
  }
  return message;
- }
- return 'An unexpected error occurred. Please try again.';
 }
 // ============================================================================
 // Auth Store
@@ -233,9 +284,10 @@ export const useAuthStore = create<AuthStore>()(
  isLoading: false,
  isAuthenticated: false,
  user: null,
- tokens: null
+ tokens: null,
+ lastValidated: null
  });
- throw error;
+ throw new Error(errorMessage);
  }
  },
 
@@ -262,7 +314,7 @@ export const useAuthStore = create<AuthStore>()(
  console.error('[Auth] Sign up error:', error);
  const errorMessage = formatAuthError(error);
  set({ error: errorMessage, isLoading: false });
- throw error;
+ throw new Error(errorMessage);
  }
  },
 
@@ -285,7 +337,7 @@ export const useAuthStore = create<AuthStore>()(
  console.error('[Auth] Confirm sign up error:', error);
  const errorMessage = formatAuthError(error);
  set({ error: errorMessage, isLoading: false });
- throw error;
+ throw new Error(errorMessage);
  }
  },
 
@@ -294,6 +346,7 @@ export const useAuthStore = create<AuthStore>()(
  // ----------------------------------------------------------------
  resendConfirmationCode: async (email: string) => {
  try {
+ set({ isLoading: true, error: null });
  const { CognitoIdentityProviderClient, ResendConfirmationCodeCommand } = await import('@aws-sdk/client-cognito-identity-provider');
  const client = new CognitoIdentityProviderClient({ region: AWS_REGION });
  const command = new ResendConfirmationCodeCommand({
@@ -301,11 +354,12 @@ export const useAuthStore = create<AuthStore>()(
  Username: email
  });
  await client.send(command);
+ set({ isLoading: false, error: null });
  } catch (error) {
  console.error('[Auth] Resend code error:', error);
  const errorMessage = formatAuthError(error);
- set({ error: errorMessage });
- throw error;
+ set({ error: errorMessage, isLoading: false });
+ throw new Error(errorMessage);
  }
  },
 
@@ -342,10 +396,17 @@ export const useAuthStore = create<AuthStore>()(
  try {
  const codeVerifier = localStorage.getItem(CODE_VERIFIER_KEY);
  if (!codeVerifier) {
- console.warn('[Auth] PKCE code verifier missing, redirecting to login...');
- set({ user: null, isAuthenticated: false, isLoading: false, tokens: null });
- get().login();
- return;
+ const message = 'Authentication session expired. Please sign in again.';
+ console.warn('[Auth] PKCE code verifier missing.');
+ set({
+ user: null,
+ isAuthenticated: false,
+ isLoading: false,
+ tokens: null,
+ error: message,
+ lastValidated: null
+ });
+ throw new Error(message);
  }
  // Exchange code for tokens
  const result = await authSessionApi.exchangeCode(
@@ -365,20 +426,24 @@ export const useAuthStore = create<AuthStore>()(
  tokens,
  isAuthenticated: true,
  isLoading: false,
+ error: null,
  lastValidated: Date.now()
  });
  // Schedule auto-refresh
  scheduleTokenRefresh(tokens.expires_in);
  } catch (error) {
  console.error('[Auth] Callback error:', error);
+ const errorMessage = formatAuthError(error);
  localStorage.removeItem(CODE_VERIFIER_KEY);
  set({
- error: error instanceof Error ? error.message : 'Authentication failed',
+ error: errorMessage,
  isLoading: false,
  isAuthenticated: false,
  user: null,
- tokens: null
+ tokens: null,
+ lastValidated: null
  });
+ throw new Error(errorMessage);
  }
  },
 
@@ -459,6 +524,15 @@ export const useAuthStore = create<AuthStore>()(
  return false;
  } catch (error) {
  console.warn('[Auth] Session refresh failed:', error);
+ if (isAuthError(error)) {
+  set({
+  user: null,
+  isAuthenticated: false,
+  tokens: null,
+  error: 'Session expired. Please sign in again.',
+  lastValidated: null
+  });
+ }
  return false;
  }
  },
