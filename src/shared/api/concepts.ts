@@ -103,18 +103,15 @@ export const conceptsApi = {
  * Surgically repair a specific concept
  */
  async repair(request: { subject: string; conceptName: string; issue: string; userId: string }): Promise<ParsedConcept> {
- return await apiClient.post<ParsedConcept>('/concepts/repair', request);
- return apiClient.post<ParsedConcept>('/concepts/generate', {
- ...request,
- action: 'repair'
- });
+ return apiClient.post<ParsedConcept>('/concepts/repair', request);
  },
+
  /**
- * Delete a generation job and its concepts
+ * Delete a subject and all its concepts
  */
- async deleteJob(jobId: string): Promise<boolean> {
+ async deleteJob(sessionId: string, userId: string): Promise<boolean> {
  try {
- await apiClient.delete(`/concepts/${jobId}`);
+ await apiClient.delete(`/concepts/${sessionId}?userId=${encodeURIComponent(userId)}`);
  return true;
  } catch (error) {
  console.error('[ConceptsAPI] Failed to delete job:', error);
@@ -263,4 +260,4 @@ export const conceptsApi = {
  }
  }
 };
-export type { ParsedConcept };
+export type { ParsedConcept };

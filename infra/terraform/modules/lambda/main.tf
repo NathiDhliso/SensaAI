@@ -79,6 +79,16 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "bedrock:InvokeModelWithResponseStream"
         ]
         Resource = "*"
+      },
+      # Cognito access (for auth Lambda)
+      {
+        Effect = "Allow"
+        Action = [
+          "cognito-idp:InitiateAuth",
+          "cognito-idp:GlobalSignOut",
+          "cognito-idp:AdminGetUser"
+        ]
+        Resource = "arn:aws:cognito-idp:*:*:userpool/*"
       }
     ]
   })
@@ -228,8 +238,51 @@ resource "aws_lambda_function" "gym_ai" {
 }
 
 # ==============================================================================
+# AUTH LAMBDA
+# ==============================================================================
+
+resource "aws_lambda_function" "auth" {
+  function_name = "${var.project_name}-auth-${var.environment}"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "auth.handler.lambda_handler"
+  runtime       = "python3.12"
+
+  timeout     = var.auth_timeout
+  memory_size = var.auth_memory_size
+
+  filename         = data.archive_file.lambda_code.output_path
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
+
+  layers = length(aws_lambda_layer_version.python_deps) > 0 ? [
+    aws_lambda_layer_version.python_deps[0].arn
+  ] : []
+
+  environment {
+    variables = {
+      ENVIRONMENT          = var.environment
+      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
+      COGNITO_CLIENT_ID    = var.cognito_client_id
+      COGNITO_DOMAIN       = var.cognito_domain
+      AWS_REGION_OVERRIDE  = var.aws_region
+      LOG_LEVEL            = var.environment == "prod" ? "INFO" : "DEBUG"
+    }
+  }
+
+  tags = merge(var.tags, {
+    Function = "auth"
+  })
+}
+
+# ==============================================================================
 # CLOUDWATCH LOG GROUPS
 # ==============================================================================
+
+resource "aws_cloudwatch_log_group" "auth" {
+  name              = "/aws/lambda/${aws_lambda_function.auth.function_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = var.tags
+}
 
 resource "aws_cloudwatch_log_group" "gym_ai" {
   name              = "/aws/lambda/${aws_lambda_function.gym_ai.function_name}"

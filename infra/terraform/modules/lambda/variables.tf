@@ -97,6 +97,43 @@ variable "provisioned_concurrent_executions" {
   default     = 1
 }
 
+# Auth Lambda Configuration
+variable "auth_timeout" {
+  description = "Timeout for auth Lambda (seconds)"
+  type        = number
+  default     = 15
+}
+
+variable "auth_memory_size" {
+  description = "Memory size for auth Lambda (MB)"
+  type        = number
+  default     = 256
+}
+
+variable "cognito_user_pool_id" {
+  description = "Cognito User Pool ID for auth Lambda"
+  type        = string
+  default     = ""
+}
+
+variable "cognito_client_id" {
+  description = "Cognito App Client ID for auth Lambda"
+  type        = string
+  default     = ""
+}
+
+variable "cognito_domain" {
+  description = "Cognito domain prefix for auth Lambda"
+  type        = string
+  default     = ""
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
+
 # Tags
 variable "tags" {
   description = "Common tags for all resources"

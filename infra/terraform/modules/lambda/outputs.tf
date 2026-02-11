@@ -54,3 +54,18 @@ output "lambda_layer_arn" {
   description = "ARN of the Python dependencies layer (if created)"
   value       = length(aws_lambda_layer_version.python_deps) > 0 ? aws_lambda_layer_version.python_deps[0].arn : null
 }
+
+output "auth_function_name" {
+  description = "Name of the auth Lambda function"
+  value       = aws_lambda_function.auth.function_name
+}
+
+output "auth_function_arn" {
+  description = "ARN of the auth Lambda function"
+  value       = aws_lambda_function.auth.arn
+}
+
+output "auth_invoke_arn" {
+  description = "Invoke ARN for API Gateway integration"
+  value       = aws_lambda_function.auth.invoke_arn
+}

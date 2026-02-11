@@ -139,7 +139,8 @@ export class StorageManager {
  }
  async deleteResult(id: string): Promise<boolean> {
  try {
- const success = await conceptsApi.deleteJob(id);
+ const userId = useAuthStore.getState().user?.id || '';
+ const success = await conceptsApi.deleteJob(id, userId);
  return success;
  } catch (error) {
  console.error('[StorageManager] Failed to delete result:', error);
@@ -180,4 +181,4 @@ export class StorageManager {
  }
  }
 }
-export const storageManager = new StorageManager();
+export const storageManager = new StorageManager();

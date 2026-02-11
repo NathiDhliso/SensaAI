@@ -9,7 +9,7 @@ resource "aws_apigatewayv2_api" "main" {
 
   cors_configuration {
     allow_origins     = var.cors_allowed_origins
-    allow_methods     = ["GET", "POST", "OPTIONS"]
+    allow_methods     = ["GET", "POST", "DELETE", "OPTIONS"]
     allow_headers     = ["Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key"]
     expose_headers    = ["Content-Type"]
     allow_credentials = true
@@ -172,6 +172,105 @@ resource "aws_lambda_permission" "gym_ai" {
   function_name = var.gym_ai_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
+}
+
+# ==============================================================================
+# Auth Routes (POST /auth/exchange, /auth/login, /auth/refresh, /auth/logout, GET /auth/validate)
+# ==============================================================================
+
+resource "aws_apigatewayv2_integration" "auth" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = var.auth_invoke_arn
+  integration_method     = "POST"
+  payload_format_version = "2.0"
+  timeout_milliseconds   = 15000
+}
+
+resource "aws_apigatewayv2_route" "auth_exchange" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /auth/exchange"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+resource "aws_apigatewayv2_route" "auth_login" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /auth/login"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+resource "aws_apigatewayv2_route" "auth_refresh" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /auth/refresh"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+resource "aws_apigatewayv2_route" "auth_validate" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /auth/validate"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+resource "aws_apigatewayv2_route" "auth_logout" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /auth/logout"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+resource "aws_lambda_permission" "auth" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = var.auth_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
+}
+
+# ==============================================================================
+# DELETE /concepts/{subjectId} (subject deletion via query_concepts Lambda)
+# ==============================================================================
+
+resource "aws_apigatewayv2_route" "delete_subject" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "DELETE /concepts/{subjectId}"
+  target    = "integrations/${aws_apigatewayv2_integration.query_concepts.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
+}
+
+# ==============================================================================
+# POST /concepts/repair (concept repair via generate_concepts Lambda)
+# ==============================================================================
+
+resource "aws_apigatewayv2_route" "concepts_repair" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /concepts/repair"
+  target    = "integrations/${aws_apigatewayv2_integration.generate_concepts.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
+}
+
+# ==============================================================================
+# Concepts Jobs Routes (GET /concepts/jobs, GET /concepts/jobs/{jobId})
+# ==============================================================================
+
+resource "aws_apigatewayv2_route" "concepts_jobs" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /concepts/jobs"
+  target    = "integrations/${aws_apigatewayv2_integration.query_concepts.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
+}
+
+resource "aws_apigatewayv2_route" "concepts_job_status" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /concepts/jobs/{jobId}"
+  target    = "integrations/${aws_apigatewayv2_integration.query_concepts.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
 }
 
 # ==============================================================================

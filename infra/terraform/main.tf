@@ -102,6 +102,12 @@ module "lambda" {
   query_timeout        = 30
   query_memory_size    = 512
 
+  # Auth Lambda Cognito config
+  cognito_user_pool_id = module.cognito.user_pool_id
+  cognito_client_id    = module.cognito.client_id
+  cognito_domain       = "sensapbl-${var.environment}"
+  aws_region           = var.aws_region
+
   # Provisioned concurrency (production only)
   enable_provisioned_concurrency    = var.environment == "prod"
   provisioned_concurrent_executions = 1
@@ -131,6 +137,8 @@ module "api_gateway" {
   query_concepts_invoke_arn       = module.lambda.query_concepts_invoke_arn
   gym_ai_function_name            = module.lambda.gym_ai_function_name
   gym_ai_invoke_arn               = module.lambda.gym_ai_invoke_arn
+  auth_function_name              = module.lambda.auth_function_name
+  auth_invoke_arn                 = module.lambda.auth_invoke_arn
 
   # CORS configuration
   cors_allowed_origins = var.cors_allowed_origins

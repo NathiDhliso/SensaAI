@@ -1,24 +1,27 @@
 /**
  * @file auth-store.ts
  * @description Zustand store for authentication state management.
- * Uses HttpOnly cookies for secure token storage - tokens are never exposed to JavaScript.
+ * Uses Bearer JWT tokens stored in memory for serverless API Gateway auth.
  * 
  * Security Model:
- * - Access/Refresh tokens stored in HttpOnly cookies (managed by backend)
- * - Only user profile data stored in client state
- * - Session validation via backend API
- * - Automatic logout on 401 responses
+ * - Tokens stored in Zustand state (memory) and persisted in localStorage
+ * - Authorization: Bearer <token> sent on every API request
+ * - Automatic token refresh before expiry
+ * - Session validation via local JWT decode (no backend call needed)
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authSessionApi } from '@/shared/api/client';
+
 // Configuration from environment
 const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || '').replace(/^(https?:\/\/)?/, 'https://');
 const COGNITO_CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID || '';
 const COGNITO_REDIRECT_URI = import.meta.env.VITE_COGNITO_REDIRECT_URI || window.location.origin + '/auth/callback';
 const AWS_REGION = import.meta.env.VITE_AWS_REGION || 'us-east-1';
+
 // Storage key for the PKCE code verifier (temporary, cleared after exchange)
 const CODE_VERIFIER_KEY = 'sensapbl_code_verifier';
+
 // ============================================================================
 // Interfaces
 // ============================================================================
@@ -27,20 +30,32 @@ export interface User {
  email: string;
  name?: string;
 }
-// Note: AuthTokens interface removed - tokens now in HttpOnly cookies
-// We keep a minimal session state for UI purposes
+
+/** JWT tokens returned by auth Lambda */
+interface AuthTokens {
+ access_token: string;
+ id_token: string;
+ refresh_token: string;
+ expires_in: number;
+ /** Absolute timestamp (ms) when access_token expires */
+ expires_at?: number;
+}
+
 interface AuthState {
  user: User | null;
  isAuthenticated: boolean;
  isLoading: boolean;
  error: string | null;
+ /** JWT tokens (stored in memory, persisted via Zustand) */
+ tokens: AuthTokens | null;
  /** Timestamp of last successful session validation */
  lastValidated: number | null;
 }
+
 interface AuthActions {
  /** Redirect to Cognito hosted UI for OAuth login */
  login: () => void;
- /** Direct login with email/password (sets HttpOnly cookie) */
+ /** Direct login with email/password */
  loginWithCredentials: (email: string, password: string) => Promise<void>;
  /** Sign up new user */
  signUp: (email: string, password: string, name: string) => Promise<void>;
@@ -48,13 +63,13 @@ interface AuthActions {
  confirmSignUp: (email: string, code: string) => Promise<void>;
  /** Resend confirmation code */
  resendConfirmationCode: (email: string) => Promise<void>;
- /** Logout and clear session cookie */
+ /** Logout and clear tokens */
  logout: () => Promise<void>;
- /** Handle OAuth callback - exchange code for session */
+ /** Handle OAuth callback - exchange code for tokens */
  handleCallback: (code: string) => Promise<void>;
- /** Validate current session with backend */
+ /** Validate current session (local JWT decode) */
  validateSession: () => Promise<boolean>;
- /** Refresh session (backend handles token refresh) */
+ /** Refresh access token using refresh_token */
  refreshSession: () => Promise<boolean>;
  /** Clear error state */
  clearError: () => void;
@@ -62,7 +77,10 @@ interface AuthActions {
  clearAllAuthData: () => Promise<void>;
  /** Initialize auth listeners (call once on app mount) */
  initializeAuthListeners: () => () => void;
+ /** Get current access token (for API client) */
+ getAccessToken: () => string | null;
 }
+
 export type AuthStore = AuthState & AuthActions;
 // ============================================================================
 // PKCE Helper Functions (for OAuth flow)
@@ -143,12 +161,22 @@ function formatAuthError(error: unknown): string {
 export const useAuthStore = create<AuthStore>()(
  persist(
  (set, get) => ({
- // Initial State - No tokens stored (they're in HttpOnly cookies)
+ // Initial State
  user: null,
  isAuthenticated: false,
  isLoading: false,
  error: null,
+ tokens: null,
  lastValidated: null,
+
+ // ----------------------------------------------------------------
+ // Get Access Token (for API client to read)
+ // ----------------------------------------------------------------
+ getAccessToken: () => {
+ const { tokens } = get();
+ return tokens?.access_token || null;
+ },
+
  // ----------------------------------------------------------------
  // OAuth Login (Redirect to Cognito Hosted UI)
  // ----------------------------------------------------------------
@@ -175,20 +203,28 @@ export const useAuthStore = create<AuthStore>()(
  set({ error: 'Failed to start login process. Please try again.' });
  }
  },
+
  // ----------------------------------------------------------------
- // Direct Credentials Login (HttpOnly cookie set by backend)
+ // Direct Credentials Login (returns tokens as JSON)
  // ----------------------------------------------------------------
  loginWithCredentials: async (email: string, password: string) => {
  set({ isLoading: true, error: null });
  try {
  const result = await authSessionApi.loginWithCredentials(email, password);
+ const tokens: AuthTokens = {
+ ...result.tokens,
+ expires_at: Date.now() + (result.tokens.expires_in * 1000),
+ };
  set({
  user: result.user,
+ tokens,
  isAuthenticated: true,
  isLoading: false,
  error: null,
  lastValidated: Date.now()
  });
+ // Schedule auto-refresh
+ scheduleTokenRefresh(tokens.expires_in);
  } catch (error) {
  console.error('[Auth] Login error:', error);
  const errorMessage = formatAuthError(error);
@@ -196,11 +232,13 @@ export const useAuthStore = create<AuthStore>()(
  error: errorMessage,
  isLoading: false,
  isAuthenticated: false,
- user: null
+ user: null,
+ tokens: null
  });
  throw error;
  }
  },
+
  // ----------------------------------------------------------------
  // Sign Up (Uses Cognito SDK - no tokens involved)
  // ----------------------------------------------------------------
@@ -227,6 +265,7 @@ export const useAuthStore = create<AuthStore>()(
  throw error;
  }
  },
+
  // ----------------------------------------------------------------
  // Confirm Sign Up
  // ----------------------------------------------------------------
@@ -249,6 +288,7 @@ export const useAuthStore = create<AuthStore>()(
  throw error;
  }
  },
+
  // ----------------------------------------------------------------
  // Resend Confirmation Code
  // ----------------------------------------------------------------
@@ -268,31 +308,34 @@ export const useAuthStore = create<AuthStore>()(
  throw error;
  }
  },
+
  // ----------------------------------------------------------------
- // Logout (Clears HttpOnly cookie via backend)
+ // Logout (clear local tokens, optionally sign out from Cognito)
  // ----------------------------------------------------------------
  logout: async () => {
  try {
- // Clear the HttpOnly cookie via backend
  await authSessionApi.clearSession();
  } catch (error) {
- console.warn('[Auth] Error clearing session cookie:', error);
- // Continue with local cleanup even if backend call fails
+ console.warn('[Auth] Error during remote logout:', error);
  }
  // Clear local state
  set({
  user: null,
  isAuthenticated: false,
+ tokens: null,
  error: null,
  lastValidated: null
  });
  // Clear PKCE verifier if present
  localStorage.removeItem(CODE_VERIFIER_KEY);
+ // Clear any pending refresh timers
+ clearScheduledRefresh();
  // Redirect to login page
  window.location.href = '/login';
  },
+
  // ----------------------------------------------------------------
- // Handle OAuth Callback (Exchange code for session cookie)
+ // Handle OAuth Callback (Exchange code for tokens)
  // ----------------------------------------------------------------
  handleCallback: async (code: string) => {
  set({ isLoading: true, error: null });
@@ -300,11 +343,11 @@ export const useAuthStore = create<AuthStore>()(
  const codeVerifier = localStorage.getItem(CODE_VERIFIER_KEY);
  if (!codeVerifier) {
  console.warn('[Auth] PKCE code verifier missing, redirecting to login...');
- set({ user: null, isAuthenticated: false, isLoading: false });
+ set({ user: null, isAuthenticated: false, isLoading: false, tokens: null });
  get().login();
  return;
  }
- // Exchange code for session (backend sets HttpOnly cookie)
+ // Exchange code for tokens
  const result = await authSessionApi.exchangeCode(
  code,
  COGNITO_REDIRECT_URI,
@@ -312,12 +355,20 @@ export const useAuthStore = create<AuthStore>()(
  );
  // Clear the verifier
  localStorage.removeItem(CODE_VERIFIER_KEY);
+
+ const tokens: AuthTokens = {
+ ...result.tokens,
+ expires_at: Date.now() + (result.tokens.expires_in * 1000),
+ };
  set({
  user: result.user,
+ tokens,
  isAuthenticated: true,
  isLoading: false,
  lastValidated: Date.now()
  });
+ // Schedule auto-refresh
+ scheduleTokenRefresh(tokens.expires_in);
  } catch (error) {
  console.error('[Auth] Callback error:', error);
  localStorage.removeItem(CODE_VERIFIER_KEY);
@@ -325,15 +376,35 @@ export const useAuthStore = create<AuthStore>()(
  error: error instanceof Error ? error.message : 'Authentication failed',
  isLoading: false,
  isAuthenticated: false,
- user: null
+ user: null,
+ tokens: null
  });
  }
  },
+
  // ----------------------------------------------------------------
- // Validate Session (Check with backend if session is still valid)
+ // Validate Session (local JWT decode — no backend call)
  // ----------------------------------------------------------------
  validateSession: async () => {
  try {
+ const { tokens } = get();
+ if (!tokens?.access_token) {
+ set({ user: null, isAuthenticated: false, lastValidated: null, tokens: null });
+ return false;
+ }
+
+ // Check if token is expired locally
+ if (tokens.expires_at && Date.now() >= tokens.expires_at) {
+ // Try to refresh
+ const refreshed = await get().refreshSession();
+ if (!refreshed) {
+  set({ user: null, isAuthenticated: false, lastValidated: null, tokens: null });
+  return false;
+ }
+ return true;
+ }
+
+ // Validate via backend for user info
  const result = await authSessionApi.validateSession();
  if (result.valid && result.user) {
  set({
@@ -346,7 +417,8 @@ export const useAuthStore = create<AuthStore>()(
  set({
  user: null,
  isAuthenticated: false,
- lastValidated: null
+ lastValidated: null,
+ tokens: null
  });
  return false;
  }
@@ -355,19 +427,33 @@ export const useAuthStore = create<AuthStore>()(
  set({
  user: null,
  isAuthenticated: false,
- lastValidated: null
+ lastValidated: null,
+ tokens: null
  });
  return false;
  }
  },
+
  // ----------------------------------------------------------------
- // Refresh Session (Backend handles token refresh, sets new cookie)
+ // Refresh Session (send refresh_token, get new access_token)
  // ----------------------------------------------------------------
  refreshSession: async () => {
  try {
- const result = await authSessionApi.refreshSession();
- if (result.success) {
- set({ lastValidated: Date.now() });
+ const { tokens } = get();
+ if (!tokens?.refresh_token) {
+ return false;
+ }
+ const result = await authSessionApi.refreshSession(tokens.refresh_token);
+ if (result.access_token) {
+ const newTokens: AuthTokens = {
+ ...tokens,
+ access_token: result.access_token,
+ id_token: result.id_token || tokens.id_token,
+ expires_in: result.expires_in,
+ expires_at: Date.now() + (result.expires_in * 1000),
+ };
+ set({ tokens: newTokens, lastValidated: Date.now() });
+ scheduleTokenRefresh(result.expires_in);
  return true;
  }
  return false;
@@ -376,10 +462,12 @@ export const useAuthStore = create<AuthStore>()(
  return false;
  }
  },
+
  // ----------------------------------------------------------------
  // Clear Error
  // ----------------------------------------------------------------
  clearError: () => set({ error: null }),
+
  // ----------------------------------------------------------------
  // Clear All Auth Data (Debug/Support utility)
  // ----------------------------------------------------------------
@@ -389,62 +477,73 @@ export const useAuthStore = create<AuthStore>()(
  } catch (_e) {
  // Ignore errors
  }
- // Clear Zustand persisted state
+ clearScheduledRefresh();
  set({
  user: null,
  isAuthenticated: false,
+ tokens: null,
  error: null,
  lastValidated: null
  });
- // Clear localStorage items
  localStorage.removeItem(CODE_VERIFIER_KEY);
  localStorage.removeItem('sensapbl-auth');
- // Clear session storage
  sessionStorage.clear();
  },
+
  // ----------------------------------------------------------------
  // Initialize Auth Listeners (call on app mount)
  // ----------------------------------------------------------------
  initializeAuthListeners: () => {
- // Listen for 401 unauthorized events from API client
- const handleUnauthorized = () => {
- console.warn('[Auth] Received unauthorized event, clearing session...');
- set({
- user: null,
- isAuthenticated: false,
- error: 'Session expired. Please sign in again.',
- lastValidated: null
- });
+ const handleUnauthorized = async () => {
+ console.warn('[Auth] Received unauthorized event, trying refresh...');
+ const refreshed = await get().refreshSession();
+ if (!refreshed) {
+  set({
+  user: null,
+  isAuthenticated: false,
+  tokens: null,
+  error: 'Session expired. Please sign in again.',
+  lastValidated: null
+  });
+ }
  };
  window.addEventListener('auth:unauthorized', handleUnauthorized);
- // Return cleanup function
+ // If we have tokens, schedule refresh
+ const { tokens } = get();
+ if (tokens?.expires_at) {
+ const remainingSec = Math.max(0, Math.floor((tokens.expires_at - Date.now()) / 1000));
+ if (remainingSec > 0) {
+  scheduleTokenRefresh(remainingSec);
+ }
+ }
  return () => {
  window.removeEventListener('auth:unauthorized', handleUnauthorized);
+ clearScheduledRefresh();
  };
  }
  }),
  {
  name: 'sensapbl-auth',
- // Only persist user info, not tokens (those are in HttpOnly cookies)
+ // Persist user info and tokens
  partialize: (state) => ({
  user: state.user,
  isAuthenticated: state.isAuthenticated,
+ tokens: state.tokens,
  lastValidated: state.lastValidated
  }),
  onRehydrateStorage: () => (state) => {
- if (state?.isAuthenticated) {
- // Validate session with backend after hydration
- // Use setTimeout to ensure store is ready
+ if (state?.isAuthenticated && state?.tokens) {
  setTimeout(async () => {
- const isValid = await useAuthStore.getState().validateSession();
- if (!isValid) {
- console.warn('[Auth] Session invalid on hydration, clearing state');
- useAuthStore.setState({
- user: null,
- isAuthenticated: false,
- lastValidated: null
- });
- }
+  const isValid = await useAuthStore.getState().validateSession();
+  if (!isValid) {
+  console.warn('[Auth] Session invalid on hydration, clearing state');
+  useAuthStore.setState({
+  user: null,
+  isAuthenticated: false,
+  tokens: null,
+  lastValidated: null
+  });
+  }
  }, 100);
  }
  }
@@ -452,25 +551,56 @@ export const useAuthStore = create<AuthStore>()(
  )
 );
 // ============================================================================
+// Token Refresh Scheduler
+// ============================================================================
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleTokenRefresh(expiresInSec: number): void {
+ clearScheduledRefresh();
+ // Refresh 60 seconds before expiry (or halfway if < 120s)
+ const refreshInMs = Math.max(1000, (expiresInSec - 60) * 1000);
+ refreshTimer = setTimeout(async () => {
+ const store = useAuthStore.getState();
+ if (store.isAuthenticated && store.tokens?.refresh_token) {
+ console.info('[Auth] Auto-refreshing token...');
+ await store.refreshSession();
+ }
+ }, refreshInMs);
+}
+
+function clearScheduledRefresh(): void {
+ if (refreshTimer) {
+ clearTimeout(refreshTimer);
+ refreshTimer = null;
+ }
+}
+
+// ============================================================================
 // Backward Compatibility Exports
 // ============================================================================
+
 /**
- * @deprecated Use validateSession() instead
- * This is kept for backward compatibility during migration
+ * Quick local check for session validity
  */
 export const isSessionValid = (): boolean => {
  const state = useAuthStore.getState();
- // Session validity is now determined by backend, but we can do a quick local check
- if (!state.isAuthenticated || !state.lastValidated) return false;
- // Consider session potentially invalid if not validated in last 5 minutes
- const VALIDATION_TTL = 5 * 60 * 1000; // 5 minutes
- return Date.now() - state.lastValidated < VALIDATION_TTL;
+ if (!state.isAuthenticated || !state.tokens) return false;
+ // Check token expiry
+ if (state.tokens.expires_at && Date.now() >= state.tokens.expires_at) return false;
+ return true;
 };
+
 /**
- * @deprecated Tokens are now in HttpOnly cookies, inaccessible to JavaScript
- * This function now always returns null - API client handles auth automatically
+ * Get access token for API calls
  */
 export const getAccessToken = async (): Promise<string | null> => {
- console.warn('[Auth] getAccessToken() is deprecated. Tokens are now in HttpOnly cookies.');
- return null;
-};
+ const state = useAuthStore.getState();
+ if (!state.tokens?.access_token) return null;
+ // If expired, try refresh
+ if (state.tokens.expires_at && Date.now() >= state.tokens.expires_at) {
+ const refreshed = await state.refreshSession();
+ if (!refreshed) return null;
+ return useAuthStore.getState().tokens?.access_token || null;
+ }
+ return state.tokens.access_token;
+};

@@ -48,6 +48,17 @@ variable "gym_ai_invoke_arn" {
   type        = string
 }
 
+# Auth Lambda Integration
+variable "auth_function_name" {
+  description = "Name of the auth Lambda function"
+  type        = string
+}
+
+variable "auth_invoke_arn" {
+  description = "Invoke ARN of the auth Lambda function"
+  type        = string
+}
+
 # CORS Configuration
 variable "cors_allowed_origins" {
   description = "Allowed CORS origins"

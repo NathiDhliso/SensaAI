@@ -135,7 +135,8 @@ export function useCollisionDetection(
  const handleOverwrite = useCallback(async () => {
  if (collisionJobId) {
  try {
- await conceptsApi.deleteJob(collisionJobId);
+ const userId = useAuthStore.getState().user?.id || '';
+ await conceptsApi.deleteJob(collisionJobId, userId);
  } catch (_e) {
  console.warn('Failed to delete old job, continuing anyway');
  }
@@ -175,4 +176,4 @@ export function useCollisionDetection(
  handleCancelOverwrite,
  resetCollisionState
  };
-}
+}

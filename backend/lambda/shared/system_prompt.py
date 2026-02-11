@@ -79,10 +79,10 @@ Return ONLY valid JSON. No markdown. No text before or after.
 }}
 Classify the subject now."""
 def get_classification_prompt(subject: str, context: str = "") -> str:
- context_block = ""
- if context:
- context_block = f"\nAdditional Context:\n{context}"
- return CLASSIFICATION_PROMPT.format(subject=subject, context=context_block)
+    context_block = ""
+    if context:
+        context_block = f"\nAdditional Context:\n{context}"
+    return CLASSIFICATION_PROMPT.format(subject=subject, context=context_block)
 # =============================================================================
 # SILVER BULLET PROMPT (Universal - Classification-Aware)
 # =============================================================================
@@ -236,183 +236,183 @@ The JSON schema is the same for all subject types. The CONTENT inside these fiel
 7. **FULL DIMENSION COVERAGE**: Cover ALL important topics within your assigned dimension. Think: "What would a certification exam test in this dimension?" Do not leave gaps.
 Generate concepts {start_idx} through {end_idx} now:"""
 def _parse_objective_domains(context: str) -> list:
- import re as _re
- lines = context.strip().split('\n')
- domains = []
- current_domain = None
- current_subdomain = None
- current_objectives = []
- PERCENTAGE_PATTERN = _re.compile(r'\(\s*\d+[\s\-–]*\d*\s*%\s*\)')
- WEIGHT_PATTERN = _re.compile(r'\d+[\s\-–]+\d+\s*%')
- BULLET_PREFIX = _re.compile(r'^[\s]*[-–—•*]+\s*')
- NUMBERING_PREFIX = _re.compile(r'^[\s]*\d+[\.\)\:]\s*')
- LETTER_PREFIX = _re.compile(r'^[\s]*[a-zA-Z][\.\)]\s*')
- ACTION_VERBS = {
- "create", "configure", "manage", "implement", "deploy", "monitor",
- "assign", "apply", "interpret", "provision", "troubleshoot", "set up",
- "perform", "export", "modify", "map", "query", "analyze", "evaluate",
- "design", "build", "define", "establish", "develop", "integrate",
- "secure", "optimize", "migrate", "backup", "restore", "connect",
- }
- def clean_line(text):
- text = BULLET_PREFIX.sub('', text)
- text = NUMBERING_PREFIX.sub('', text)
- text = LETTER_PREFIX.sub('', text)
- text = PERCENTAGE_PATTERN.sub('', text)
- text = WEIGHT_PATTERN.sub('', text)
- text = text.strip().rstrip(':').rstrip('-').rstrip('–').strip()
- return text
- def starts_with_action_verb(text):
- lower = text.lower()
- for verb in ACTION_VERBS:
- if lower.startswith(verb + " ") or lower.startswith(verb + "\t"):
- return True
- return False
- def has_percentage_weight(raw_line):
- return bool(PERCENTAGE_PATTERN.search(raw_line)) or bool(WEIGHT_PATTERN.search(raw_line))
- def flush_subdomain():
- nonlocal current_subdomain, current_objectives
- if current_subdomain and current_objectives:
- pass
- current_subdomain = None
- for line in lines:
- stripped = line.strip()
- if not stripped:
- continue
- indent = len(line) - len(line.lstrip())
- clean = clean_line(stripped)
- if not clean or len(clean) < 4:
- continue
- is_domain_header = has_percentage_weight(line) and len(clean) > 10
- is_action_leaf = starts_with_action_verb(clean)
- is_indented = indent >= 2 or stripped.startswith('-') or stripped.startswith('•')
- if is_domain_header:
- if current_domain:
- domains.append({"name": current_domain, "objectives": current_objectives[:]})
- current_domain = clean
- current_objectives = []
- current_subdomain = None
- elif current_domain is not None:
- if is_action_leaf:
- current_objectives.append(clean)
- elif not is_indented and not is_action_leaf and len(clean) > 10:
- words = clean.split()
- if len(words) <= 8 and not any(clean.lower().startswith(v + " ") for v in ACTION_VERBS):
- current_subdomain = clean
- else:
- current_objectives.append(clean)
- elif is_indented:
- current_objectives.append(clean)
- elif len(clean) > 10:
- current_objectives.append(clean)
- else:
- if len(clean) > 10:
- current_domain = clean
- current_objectives = []
- current_subdomain = None
- if current_domain:
- domains.append({"name": current_domain, "objectives": current_objectives[:]})
- return domains
+    import re as _re
+    lines = context.strip().split('\n')
+    domains = []
+    current_domain = None
+    current_subdomain = None
+    current_objectives = []
+    PERCENTAGE_PATTERN = _re.compile(r'\(\s*\d+[\s\-–]*\d*\s*%\s*\)')
+    WEIGHT_PATTERN = _re.compile(r'\d+[\s\-–]+\d+\s*%')
+    BULLET_PREFIX = _re.compile(r'^[\s]*[-–—•*]+\s*')
+    NUMBERING_PREFIX = _re.compile(r'^[\s]*\d+[\.\)\:]\s*')
+    LETTER_PREFIX = _re.compile(r'^[\s]*[a-zA-Z][\.\)]\s*')
+    ACTION_VERBS = {
+        "create", "configure", "manage", "implement", "deploy", "monitor",
+        "assign", "apply", "interpret", "provision", "troubleshoot", "set up",
+        "perform", "export", "modify", "map", "query", "analyze", "evaluate",
+        "design", "build", "define", "establish", "develop", "integrate",
+        "secure", "optimize", "migrate", "backup", "restore", "connect",
+    }
+    def clean_line(text):
+        text = BULLET_PREFIX.sub('', text)
+        text = NUMBERING_PREFIX.sub('', text)
+        text = LETTER_PREFIX.sub('', text)
+        text = PERCENTAGE_PATTERN.sub('', text)
+        text = WEIGHT_PATTERN.sub('', text)
+        text = text.strip().rstrip(':').rstrip('-').rstrip('–').strip()
+        return text
+    def starts_with_action_verb(text):
+        lower = text.lower()
+        for verb in ACTION_VERBS:
+            if lower.startswith(verb + " ") or lower.startswith(verb + "\t"):
+                return True
+        return False
+    def has_percentage_weight(raw_line):
+        return bool(PERCENTAGE_PATTERN.search(raw_line)) or bool(WEIGHT_PATTERN.search(raw_line))
+    def flush_subdomain():
+        nonlocal current_subdomain, current_objectives
+        if current_subdomain and current_objectives:
+            pass
+        current_subdomain = None
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        indent = len(line) - len(line.lstrip())
+        clean = clean_line(stripped)
+        if not clean or len(clean) < 4:
+            continue
+        is_domain_header = has_percentage_weight(line) and len(clean) > 10
+        is_action_leaf = starts_with_action_verb(clean)
+        is_indented = indent >= 2 or stripped.startswith('-') or stripped.startswith('•')
+        if is_domain_header:
+            if current_domain:
+                domains.append({"name": current_domain, "objectives": current_objectives[:]})
+            current_domain = clean
+            current_objectives = []
+            current_subdomain = None
+        elif current_domain is not None:
+            if is_action_leaf:
+                current_objectives.append(clean)
+            elif not is_indented and not is_action_leaf and len(clean) > 10:
+                words = clean.split()
+                if len(words) <= 8 and not any(clean.lower().startswith(v + " ") for v in ACTION_VERBS):
+                    current_subdomain = clean
+                else:
+                    current_objectives.append(clean)
+            elif is_indented:
+                current_objectives.append(clean)
+            elif len(clean) > 10:
+                current_objectives.append(clean)
+        else:
+            if len(clean) > 10:
+                current_domain = clean
+                current_objectives = []
+                current_subdomain = None
+    if current_domain:
+        domains.append({"name": current_domain, "objectives": current_objectives[:]})
+    return domains
 def _distribute_domains_to_parts(domains: list, num_parts: int = 5) -> dict:
- if not domains:
- return {}
- total_objectives = sum(len(d["objectives"]) for d in domains)
- per_part = max(total_objectives // num_parts, 1) if total_objectives > 0 else len(domains) // num_parts
- parts = {}
- current_part = 1
- current_count = 0
- for domain in domains:
- if current_part > num_parts:
- current_part = num_parts
- if current_part not in parts:
- parts[current_part] = []
- parts[current_part].append(domain)
- current_count += max(len(domain["objectives"]), 1)
- if current_count >= per_part and current_part < num_parts:
- current_part += 1
- current_count = 0
- return parts
+    if not domains:
+        return {}
+    total_objectives = sum(len(d["objectives"]) for d in domains)
+    per_part = max(total_objectives // num_parts, 1) if total_objectives > 0 else len(domains) // num_parts
+    parts = {}
+    current_part = 1
+    current_count = 0
+    for domain in domains:
+        if current_part > num_parts:
+            current_part = num_parts
+        if current_part not in parts:
+            parts[current_part] = []
+        parts[current_part].append(domain)
+        current_count += max(len(domain["objectives"]), 1)
+        if current_count >= per_part and current_part < num_parts:
+            current_part += 1
+            current_count = 0
+    return parts
 def get_silver_bullet_prompt(
- subject: str,
- part: int = 1,
- context: str = "",
- classification: dict = None,
+    subject: str,
+    part: int = 1,
+    context: str = "",
+    classification: dict = None,
 ) -> str:
- domains = _parse_objective_domains(context) if context else []
- domain_parts = _distribute_domains_to_parts(domains) if domains else {}
- if domain_parts and part in domain_parts:
- part_domains = domain_parts[part]
- domain_lines = []
- for d in part_domains:
- domain_lines.append(f"**Domain: {d['name']}**")
- for obj in d["objectives"]:
- domain_lines.append(f" - {obj}")
- domain_text = "\n".join(domain_lines)
- all_domain_names = []
- for p, ds in domain_parts.items():
- if p != part:
- for d in ds:
- all_domain_names.append(d["name"])
- other_parts_text = ", ".join(all_domain_names) if all_domain_names else "(none)"
- context_block = f"""### EXAM OBJECTIVES FOR THIS PART (Part {part}):
+    domains = _parse_objective_domains(context) if context else []
+    domain_parts = _distribute_domains_to_parts(domains) if domains else {}
+    if domain_parts and part in domain_parts:
+        part_domains = domain_parts[part]
+        domain_lines = []
+        for d in part_domains:
+            domain_lines.append(f"**Domain: {d['name']}**")
+            for obj in d["objectives"]:
+                domain_lines.append(f" - {obj}")
+        domain_text = "\n".join(domain_lines)
+        all_domain_names = []
+        for p, ds in domain_parts.items():
+            if p != part:
+                for d in ds:
+                    all_domain_names.append(d["name"])
+        other_parts_text = ", ".join(all_domain_names) if all_domain_names else "(none)"
+        context_block = f"""### EXAM OBJECTIVES FOR THIS PART (Part {part}):
 {domain_text}
 **CRITICAL**: Generate one concept for EACH sub-objective listed above. Every sub-objective must have its own dedicated concept.
 Do NOT generate concepts for other domains — those are covered in other parts: {other_parts_text}"""
- elif context:
- context_block = f"""### USER-PROVIDED OBJECTIVES (Primary Source):
+    elif context:
+        context_block = f"""### USER-PROVIDED OBJECTIVES (Primary Source):
 {context}
 **INSTRUCTION**: Map your concepts for Part {part} directly to the objectives above.
 Cover objectives proportionally (if 5 domains listed, each knowledge dimension covers ~1 domain)."""
- else:
- context_block = ""
- cls = classification or {}
- cls_data = cls.get("classification", {})
- macro = cls.get("macroStructure", {})
- tissue = cls.get("connectiveTissue", {})
- lifecycle = cls.get("lifecycle", {})
- subject_type = cls.get("subjectType", "conceptual")
- type_labels = {
- "procedural": "Procedural Mastery",
- "conceptual": "Conceptual Fluency",
- "cyclic": "Adaptive Integration",
- "perceptual": "Embodied Judgment",
- }
- subject_type_label = type_labels.get(subject_type, "Conceptual Fluency")
- classification_goal = cls_data.get("goal", f"Master {subject}")
- macro_data = macro.get("data", {})
- stages = macro_data.get("stages", [])
- macro_structure_text = "\n".join([f" - {s}" for s in stages]) if stages else " (Not available)"
- ranges = [
- (1, 20),
- (21, 40),
- (41, 60),
- (61, 80),
- (81, 100)
- ]
- if 1 <= part <= 5:
- start_idx, end_idx = ranges[part - 1]
- count = end_idx - start_idx + 1
- else:
- start_idx, end_idx, count = 1, 20, 20
- part = 1
- return SILVER_BULLET_PROMPT.format(
- subject=subject,
- part_num=part,
- start_idx=start_idx,
- end_idx=end_idx,
- count=count,
- context=context_block,
- subject_type=subject_type,
- subject_type_label=subject_type_label,
- classification_goal=classification_goal,
- macro_structure_text=macro_structure_text,
- gateway_skill=tissue.get("gatewaySkill", "Core domain skill"),
- threshold_concept=tissue.get("thresholdConcept", "Fundamental insight"),
- signature_move=tissue.get("signatureMove", "Expert-level application"),
- lifecycle_phase1=lifecycle.get("phase1", "PREPARE"),
- lifecycle_phase2=lifecycle.get("phase2", "MODEL"),
- lifecycle_phase3=lifecycle.get("phase3", "DELIVER"),
- )
+    else:
+        context_block = ""
+    cls = classification or {}
+    cls_data = cls.get("classification", {})
+    macro = cls.get("macroStructure", {})
+    tissue = cls.get("connectiveTissue", {})
+    lifecycle = cls.get("lifecycle", {})
+    subject_type = cls.get("subjectType", "conceptual")
+    type_labels = {
+        "procedural": "Procedural Mastery",
+        "conceptual": "Conceptual Fluency",
+        "cyclic": "Adaptive Integration",
+        "perceptual": "Embodied Judgment",
+    }
+    subject_type_label = type_labels.get(subject_type, "Conceptual Fluency")
+    classification_goal = cls_data.get("goal", f"Master {subject}")
+    macro_data = macro.get("data", {})
+    stages = macro_data.get("stages", [])
+    macro_structure_text = "\n".join([f" - {s}" for s in stages]) if stages else " (Not available)"
+    ranges = [
+        (1, 20),
+        (21, 40),
+        (41, 60),
+        (61, 80),
+        (81, 100)
+    ]
+    if 1 <= part <= 5:
+        start_idx, end_idx = ranges[part - 1]
+        count = end_idx - start_idx + 1
+    else:
+        start_idx, end_idx, count = 1, 20, 20
+        part = 1
+    return SILVER_BULLET_PROMPT.format(
+        subject=subject,
+        part_num=part,
+        start_idx=start_idx,
+        end_idx=end_idx,
+        count=count,
+        context=context_block,
+        subject_type=subject_type,
+        subject_type_label=subject_type_label,
+        classification_goal=classification_goal,
+        macro_structure_text=macro_structure_text,
+        gateway_skill=tissue.get("gatewaySkill", "Core domain skill"),
+        threshold_concept=tissue.get("thresholdConcept", "Fundamental insight"),
+        signature_move=tissue.get("signatureMove", "Expert-level application"),
+        lifecycle_phase1=lifecycle.get("phase1", "PREPARE"),
+        lifecycle_phase2=lifecycle.get("phase2", "MODEL"),
+        lifecycle_phase3=lifecycle.get("phase3", "DELIVER"),
+    )
 # =============================================================================
 # SURGICAL FIX PROMPT (Single Concept Repair)
 # =============================================================================
@@ -473,9 +473,9 @@ Return ONLY the raw JSON object for this concept.
 6. Every connection MUST use one of the 6 types above. Do NOT use "related-to", "extends", or "contains".
 """
 def get_surgical_fix_prompt(subject: str, concept_name: str, issue: str) -> str:
- """Returns the surgical fix prompt for a single concept"""
- return SURGICAL_FIX_PROMPT.format(
- subject=subject, 
- concept_name=concept_name, 
- issue_description=issue
- )
+    """Returns the surgical fix prompt for a single concept"""
+    return SURGICAL_FIX_PROMPT.format(
+        subject=subject, 
+        concept_name=concept_name, 
+        issue_description=issue
+    )
