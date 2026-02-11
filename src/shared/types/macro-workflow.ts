@@ -116,7 +116,7 @@ export interface MacroWorkflowResult {
 
 export const SUBJECT_TYPE_META: Record<SubjectType, {
  label: SubjectTypeLabel;
- icon: string;
+ icon?: string;
  color: string;
  description: string;
 }> = {

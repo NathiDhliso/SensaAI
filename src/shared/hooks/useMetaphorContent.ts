@@ -18,6 +18,8 @@ interface AdaptedContent {
  metaphorsEnabled: boolean;
  /** Complexity level for metaphors */
  metaphorComplexity: 'simple' | 'rich';
+ /** Visual anchor emoji/icon for the concept */
+ visualAnchor?: string;
 }
 /**
  * Adapts concept content based on user metaphor preferences

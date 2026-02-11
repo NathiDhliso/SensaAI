@@ -40,41 +40,47 @@ interface GuidedPrimerProps {
  onComplete: (data: { reason: string; action: string; reward: string }) => void;
  onBack: () => void;
 }
+// Quick-select chip type
+interface ChipOption {
+ label: string;
+ icon?: string;
+}
+
 // Quick-select options for each step
-const REASON_CHIPS_PLAYFUL = [
+const REASON_CHIPS_PLAYFUL: ChipOption[] = [
  { label: 'Career growth' },
  { label: 'Curious mind' },
  { label: 'Exam prep' },
  { label: 'Build something' },
  { label: 'Stay relevant' }
 ];
-const REASON_CHIPS_SCHOLARLY = [
+const REASON_CHIPS_SCHOLARLY: ChipOption[] = [
  { label: 'Career growth' },
  { label: 'Intellectual curiosity' },
  { label: 'Exam preparation' },
  { label: 'Build something' },
  { label: 'Stay current' }
 ];
-const ACTION_CHIPS_PLAYFUL = [
+const ACTION_CHIPS_PLAYFUL: ChipOption[] = [
  { label: 'Learn 3 new concepts' },
  { label: 'Build a concept map' },
  { label: 'Complete one practice' },
  { label: 'Understand the basics' }
 ];
-const ACTION_CHIPS_SCHOLARLY = [
+const ACTION_CHIPS_SCHOLARLY: ChipOption[] = [
  { label: 'Learn 3 new concepts' },
  { label: 'Build a concept map' },
  { label: 'Complete one practice' },
  { label: 'Understand the basics' }
 ];
-const REWARD_CHIPS_PLAYFUL = [
+const REWARD_CHIPS_PLAYFUL: ChipOption[] = [
  { label: 'Coffee break' },
  { label: 'Gaming time' },
  { label: 'Social scroll' },
  { label: 'Short walk' },
  { label: 'Snack time' }
 ];
-const REWARD_CHIPS_SCHOLARLY = [
+const REWARD_CHIPS_SCHOLARLY: ChipOption[] = [
  { label: 'Coffee break' },
  { label: 'Gaming time' },
  { label: 'Social media' },
@@ -576,4 +582,4 @@ export default function GuidedPrimer({
  </AnimatePresence>
  </div>
  );
-}
+}

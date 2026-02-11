@@ -9,7 +9,7 @@ import { COLORS } from '@/shared/constants/theme-colors';
 export interface Persona {
  id: PersonaId;
  name: string;
- emoji: string;
+ emoji?: string;
  tagline: string;
  description: string;
  voiceStyle: string;
@@ -542,4 +542,4 @@ export function getPersonaVoiceLines(personaId: PersonaId): Array<{
  }
  }
  return lines;
-}
+}

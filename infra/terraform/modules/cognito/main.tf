@@ -69,6 +69,10 @@ resource "aws_cognito_user_pool_client" "main" {
   allowed_oauth_flows                  = ["code", "implicit"]
   allowed_oauth_scopes                 = ["email", "openid", "profile"]
   allowed_oauth_flows_user_pool_client = true
+
+  lifecycle {
+    ignore_changes = [generate_secret]
+  }
 }
 
 resource "aws_cognito_user_pool_domain" "main" {

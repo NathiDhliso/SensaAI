@@ -11,7 +11,6 @@ import { useState, useCallback, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
- ArrowLeft,
  BookOpen,
  LayoutDashboard,
  Zap,
@@ -89,10 +88,7 @@ export function StudyLayout({
  }
  setIsTabMenuOpen(false);
  }, [onTabChange]);
- const handleBack = useCallback(() => {
- // Always go home - prevents returning to generate page which causes duplicates
- navigate('/');
- }, [navigate]);
+
  const activeTabConfig = TABS.find(t => t.id === activeTab) || TABS[0];
  // Cognitive load indicator color
  const cognitiveColor = {
@@ -215,4 +211,4 @@ export function StudyLayout({
  </div>
  );
 }
-export default StudyLayout;
+export default StudyLayout;

@@ -214,7 +214,7 @@ export interface CelebrationData {
  message: string;
  conceptsCompleted: string[];
  timeSpent?: number;
- badgeIcon: string;
+ badgeIcon?: string;
 }
 export interface StudySession {
  id: string;
@@ -263,4 +263,4 @@ export interface StudySession {
 export interface ConceptMapData {
  nodes: { id: string; conceptId: string; conceptName: string; x: number; y: number }[];
  connections: { id: string; fromId: string; toId: string; label: string }[];
-}
+}

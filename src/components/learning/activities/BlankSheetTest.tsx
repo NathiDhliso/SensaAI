@@ -38,7 +38,7 @@ import {
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import { calculateRecallScore } from '@/features/learning-session/scoring/blank-sheet-scorer';
-import { useVisualTheme, stripEmoji } from '@/shared/hooks/useVisualTheme';
+import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './BlankSheetTest.module.css';
 // ============================================================================
 // TYPES

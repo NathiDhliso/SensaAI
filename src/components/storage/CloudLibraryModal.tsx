@@ -9,7 +9,6 @@ import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { getMetricsTracker } from '@/features/learning-session/progress/metrics-tracker';
 import { formatSafeDate } from '@/shared/utils/utils';
-import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './CloudLibraryModal.module.css';
 interface CloudLibraryModalProps {
  isOpen: boolean;
@@ -28,7 +27,6 @@ interface ToastState {
 function WarmthBadge({ subjectId }: { subjectId: string }) {
  const tracker = getMetricsTracker();
  const warmth = tracker.getKnowledgeWarmth(subjectId);
- const { isScholarly } = useVisualTheme();
  const config = {
  hot: { label: 'Hot', className: styles.warmthHot },
  warm: { label: 'Warm', className: styles.warmthWarm },

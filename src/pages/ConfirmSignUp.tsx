@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { ShieldCheck, ArrowRight, Loader2, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './Login.module.css';
 export function ConfirmSignUp() {
  const navigate = useNavigate();
@@ -15,7 +14,6 @@ export function ConfirmSignUp() {
  const [isResending, setIsResending] = useState(false);
  const [error, setError] = useState<string | null>(null);
  const [success, setSuccess] = useState<string | null>(null);
- const { isScholarly } = useVisualTheme();
  const storeError = useAuthStore(state => state.error);
  const handleSubmit = async (e: FormEvent) => {
  e.preventDefault();
@@ -176,4 +174,4 @@ export function ConfirmSignUp() {
  </motion.div>
  </div>
  );
-}
+}

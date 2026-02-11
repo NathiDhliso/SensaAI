@@ -707,11 +707,11 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
  { value: 4, label: 'Confident', emoji: '4' },
  { value: 5, label: 'Certain', emoji: '5' }
  ] : [
- { value: 1, label: 'Guessing' },
- { value: 2, label: 'Unsure' },
- { value: 3, label: 'Somewhat' },
- { value: 4, label: 'Confident' },
- { value: 5, label: 'Certain' }
+ { value: 1, label: 'Guessing', emoji: '1' },
+ { value: 2, label: 'Unsure', emoji: '2' },
+ { value: 3, label: 'Somewhat', emoji: '3' },
+ { value: 4, label: 'Confident', emoji: '4' },
+ { value: 5, label: 'Certain', emoji: '5' }
  ];
  return (
  <motion.div

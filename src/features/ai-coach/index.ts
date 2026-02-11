@@ -16,7 +16,7 @@ export function moodToBandwidth(mood: Mood): CognitiveBandwidth {
 }
 export interface MoodOption {
  id: Mood;
- emoji: string;
+ emoji?: string;
  label: string;
  description: string;
  sessionAdjustment: string;
@@ -293,4 +293,4 @@ class AICoachService {
  return getRandomElaborationPrompt(personaId, conceptName);
  }
 }
-export const aiCoach = AICoachService.getInstance();
+export const aiCoach = AICoachService.getInstance();
