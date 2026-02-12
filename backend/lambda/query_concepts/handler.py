@@ -250,10 +250,25 @@ def handle_delete_subject(user_id: str, session_id: str, event=None) -> Dict[str
                     "SK": item["SK"]
                 }
             )
+    jobs_deleted = 0
+    try:
+        jobs_table = dynamodb.Table(JOBS_TABLE)
+        job_response = jobs_table.scan(
+            FilterExpression=Attr("sessionId").eq(session_id) & Attr("userId").eq(user_id)
+        )
+        job_items = job_response.get("Items", [])
+        for job_item in job_items:
+            jobs_table.delete_item(
+                Key={"jobId": job_item["jobId"], "userId": job_item["userId"]}
+            )
+            jobs_deleted += 1
+    except Exception as e:
+        print(f"[Handler] Warning: Failed to clean up job records: {str(e)}")
+
     return api_response(200, {
         "status": "deleted",
         "sessionId": session_id,
-        "itemsDeleted": len(items_to_delete) + 1  # +1 for metadata
+        "itemsDeleted": len(items_to_delete) + 1 + jobs_deleted
     }, event)
 
 def handle_get_job_progress(user_id: str, job_id: str, event=None) -> Dict[str, Any]:
