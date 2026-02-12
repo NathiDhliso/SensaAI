@@ -13,7 +13,6 @@
  */
 import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
-import { Copy, Check } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
@@ -80,7 +79,6 @@ export default function Study() {
  const concepts = getConcepts();
  const [hydrationError, setHydrationError] = useState<string | null>(null);
  const [retryCount, setRetryCount] = useState(0);
- const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
  const MAX_RETRIES = 3;
  // Struggle detection with adjusted thresholds
  useStruggleDetector({
@@ -318,125 +316,6 @@ export default function Study() {
  // Determine subject name for header
  const subjectName = session?.subject || currentSubject || pass1Data?.domain || 'Study Session';
 
- /**
- * Format concepts into a clean, readable text document and copy to clipboard
- */
- const handleCopyConcepts = useCallback(async () => {
- if (concepts.length === 0) {
- toast.warning('No concepts loaded to copy');
- return;
- }
-
- const lines: string[] = [];
- lines.push(`# ${subjectName}`);
- lines.push(`Generated: ${new Date().toLocaleDateString()}`);
- lines.push(`Concepts: ${concepts.length}`);
- lines.push('='.repeat(60));
- lines.push('');
-
- concepts.forEach((concept, index) => {
- lines.push(`## ${index + 1}. ${concept.name}`);
- if (concept.tier) lines.push(`Tier: ${concept.tier}`);
- if (concept.lifecyclePhase) lines.push(`Phase: ${concept.lifecyclePhase}`);
- lines.push('');
-
- if (concept.hookSentence) {
- lines.push(`Why it matters: ${concept.hookSentence}`);
- lines.push('');
- }
- if (concept.metaphor) {
- lines.push(`Think of it as: ${concept.metaphor}`);
- lines.push('');
- }
- if (concept.whyYouNeed) {
- lines.push(`Why you need this: ${concept.whyYouNeed}`);
- lines.push('');
- }
- if (concept.keyPoints && concept.keyPoints.length > 0) {
- lines.push('Key Points:');
- concept.keyPoints.forEach((point) => lines.push(`  - ${point}`));
- lines.push('');
- }
- if (concept.howToUse && concept.howToUse.length > 0) {
- lines.push('How to Use:');
- concept.howToUse.forEach((step) => lines.push(`  - ${step}`));
- lines.push('');
- }
- if (concept.shape) {
- const s = concept.shape;
- if (s.simpleCore) {
- lines.push(`Simple Core: ${s.simpleCore}`);
- lines.push('');
- }
- if (s.highStakesExample) {
- lines.push(`High-Stakes Example: ${s.highStakesExample}`);
- lines.push('');
- }
- if (s.analogicalModel) {
- lines.push(`Analogy: ${s.analogicalModel}`);
- lines.push('');
- }
- if (s.patternRecognition) {
- lines.push('Pattern Recognition:');
- lines.push(`  Q: ${s.patternRecognition.question}`);
- lines.push(`  A: ${s.patternRecognition.answer}`);
- lines.push('');
- }
- if (s.eliminationLogic) {
- lines.push(`Elimination Logic: ${s.eliminationLogic}`);
- lines.push('');
- }
- }
- if (concept.technicalDetails) {
- lines.push(`Technical Details: ${concept.technicalDetails}`);
- lines.push('');
- }
- if (concept.workedExample) {
- lines.push('Worked Example:');
- lines.push(`  Problem: ${concept.workedExample.problem}`);
- if (concept.workedExample.steps?.length) {
- lines.push('  Steps:');
- concept.workedExample.steps.forEach((step: string, i: number) => {
- lines.push(`    ${i + 1}. ${step}`);
- });
- }
- lines.push(`  Solution: ${concept.workedExample.solution}`);
- lines.push('');
- }
- if (concept.commonPitfalls?.length) {
- lines.push('Common Pitfalls:');
- concept.commonPitfalls.forEach((p) => lines.push(`  - ${p}`));
- lines.push('');
- }
- if (concept.realWorldExample) {
- lines.push(`Real-World Example: ${concept.realWorldExample}`);
- lines.push('');
- }
- lines.push('-'.repeat(60));
- lines.push('');
- });
-
- const text = lines.join('\n');
- try {
- await navigator.clipboard.writeText(text);
- setCopyState('copied');
- toast.success(`Copied ${concepts.length} concepts to clipboard`);
- setTimeout(() => setCopyState('idle'), 2000);
- } catch {
- const textarea = document.createElement('textarea');
- textarea.value = text;
- textarea.style.position = 'fixed';
- textarea.style.opacity = '0';
- document.body.appendChild(textarea);
- textarea.select();
- document.execCommand('copy');
- document.body.removeChild(textarea);
- setCopyState('copied');
- toast.success(`Copied ${concepts.length} concepts to clipboard`);
- setTimeout(() => setCopyState('idle'), 2000);
- }
- }, [concepts, subjectName]);
-
  // Render active tab content
  const renderTabContent = () => {
  // Show loading spinner while hydrating
@@ -601,16 +480,6 @@ export default function Study() {
  subjectName={subjectName}
  headerActions={
  <div className={styles.headerActions}>
- {concepts.length > 0 && (
- <button
- onClick={handleCopyConcepts}
- title="Copy all concepts as text"
- className={styles.copyButton}
- >
- {copyState === 'copied' ? <Check size={14} /> : <Copy size={14} />}
- {copyState === 'copied' ? 'Copied!' : 'Copy'}
- </button>
- )}
  {useLearningStore.getState().studySession && (
  <button
  onClick={() => setShowSessionConfig(true)}

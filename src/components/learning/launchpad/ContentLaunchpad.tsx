@@ -19,6 +19,7 @@ import {
  ClipboardCheck,
  Target,
  Check,
+ Copy,
  X,
  FileText,
  Dumbbell,
@@ -37,6 +38,7 @@ import type { ScheduledReview, SpacingMetrics } from '@/features/learning-sessio
 import { moodToBandwidth, type CognitiveBandwidth } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { formatSafeDate } from '@/shared/utils/utils';
+import { toast } from '@/shared/utils/toast';
 import styles from './ContentLaunchpad.module.css';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
 type LaunchpadTab = 'gym' | 'insights';
@@ -87,6 +89,7 @@ export default function ContentLaunchpad() {
  const [objectivesText, setObjectivesText] = useState('');
  const [objectivesPanelOpen, setObjectivesPanelOpen] = useState(false);
  const [objectivesSaved, setObjectivesSaved] = useState(false);
+ const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
  const parsedPreview = useMemo(() => {
  if (!objectivesText.trim()) return [];
  return parseSyllabusText(objectivesText);
@@ -106,6 +109,124 @@ export default function ContentLaunchpad() {
  const runAudit = useCallback((parsed: ParsedGeneratedContent, objectives: string[]) => {
  setAudit(auditContent(parsed, objectives));
  }, []);
+ const handleCopyConcepts = useCallback(async () => {
+ if (!parsedData || parsedData.concepts.length === 0) return;
+ const concepts = parsedData.concepts;
+ const domain = parsedData.domainAnalysis?.domain || 'Study Material';
+ const lines: string[] = [];
+ lines.push(`# ${domain}`);
+ lines.push(`Generated: ${new Date().toLocaleDateString()}`);
+ lines.push(`Concepts: ${concepts.length}`);
+ lines.push('='.repeat(60));
+ lines.push('');
+ concepts.forEach((concept, index) => {
+ lines.push(`## ${index + 1}. ${concept.name}`);
+ if (concept.tier) lines.push(`Tier: ${concept.tier}`);
+ lines.push('');
+ if (concept.phase1?.hookSentence) {
+ lines.push(`Why it matters: ${concept.phase1.hookSentence}`);
+ lines.push('');
+ }
+ if (concept.phase1?.microMetaphor) {
+ lines.push(`Think of it as: ${concept.phase1.microMetaphor}`);
+ lines.push('');
+ }
+ if (concept.whyYouNeed) {
+ lines.push(`Why you need this: ${concept.whyYouNeed}`);
+ lines.push('');
+ }
+ if (concept.keyPoints && concept.keyPoints.length > 0) {
+ lines.push('Key Points:');
+ concept.keyPoints.forEach((point) => lines.push(`  - ${point}`));
+ lines.push('');
+ }
+ if (concept.phase2 && concept.phase2.length > 0) {
+ lines.push('Core Knowledge:');
+ concept.phase2.forEach((point) => lines.push(`  - ${point}`));
+ lines.push('');
+ }
+ if (concept.shape) {
+ const s = concept.shape;
+ if (s.simpleCore || s.simple) {
+ lines.push(`Simple Core: ${s.simpleCore || s.simple}`);
+ lines.push('');
+ }
+ if (s.highStakesExample || s.highStakes) {
+ lines.push(`High-Stakes Example: ${s.highStakesExample || s.highStakes}`);
+ lines.push('');
+ }
+ if (s.analogicalModel || s.analogy) {
+ lines.push(`Analogy: ${s.analogicalModel || s.analogy}`);
+ lines.push('');
+ }
+ if (s.patternRecognition || s.pattern) {
+ const p = s.patternRecognition || s.pattern;
+ if (p) {
+ lines.push('Pattern Recognition:');
+ lines.push(`  Q: ${p.question}`);
+ lines.push(`  A: ${p.answer}`);
+ lines.push('');
+ }
+ }
+ if (s.eliminationLogic || s.elimination) {
+ lines.push(`Elimination Logic: ${s.eliminationLogic || s.elimination}`);
+ lines.push('');
+ }
+ }
+ if (concept.technicalDetails) {
+ lines.push(`Technical Details: ${concept.technicalDetails}`);
+ lines.push('');
+ }
+ if (concept.workedExample) {
+ lines.push('Worked Example:');
+ lines.push(`  Problem: ${concept.workedExample.problem}`);
+ if (concept.workedExample.steps?.length) {
+ lines.push('  Steps:');
+ concept.workedExample.steps.forEach((step, i) => {
+ lines.push(`    ${i + 1}. ${step}`);
+ });
+ }
+ lines.push(`  Solution: ${concept.workedExample.solution}`);
+ lines.push('');
+ }
+ if (concept.criticalDistinctions?.length) {
+ lines.push('Critical Distinctions:');
+ concept.criticalDistinctions.forEach((d) => lines.push(`  - ${d}`));
+ lines.push('');
+ }
+ if (concept.examFocus?.length) {
+ lines.push('Exam Focus:');
+ concept.examFocus.forEach((e) => lines.push(`  - ${e}`));
+ lines.push('');
+ }
+ if (concept.commonPitfalls?.length) {
+ lines.push('Common Pitfalls:');
+ concept.commonPitfalls.forEach((p) => lines.push(`  - ${p}`));
+ lines.push('');
+ }
+ lines.push('-'.repeat(60));
+ lines.push('');
+ });
+ const text = lines.join('\n');
+ try {
+ await navigator.clipboard.writeText(text);
+ setCopyState('copied');
+ toast.success(`Copied ${concepts.length} concepts to clipboard`);
+ setTimeout(() => setCopyState('idle'), 2000);
+ } catch {
+ const textarea = document.createElement('textarea');
+ textarea.value = text;
+ textarea.style.position = 'fixed';
+ textarea.style.opacity = '0';
+ document.body.appendChild(textarea);
+ textarea.select();
+ document.execCommand('copy');
+ document.body.removeChild(textarea);
+ setCopyState('copied');
+ toast.success(`Copied ${concepts.length} concepts to clipboard`);
+ setTimeout(() => setCopyState('idle'), 2000);
+ }
+ }, [parsedData]);
  useEffect(() => {
  const loadData = async () => {
  if (!subjectId) return;
@@ -236,6 +357,7 @@ export default function ContentLaunchpad() {
  </button>
  </div>
  </header>
+ <div className={styles.tabRow}>
  <nav className={styles.tabBar}>
  <button
  className={`${styles.tab} ${activeTab === 'gym' ? styles.tabActive : ''}`}
@@ -250,6 +372,17 @@ export default function ContentLaunchpad() {
  <BarChart3 size={16} /> Insights
  </button>
  </nav>
+ {parsedData && parsedData.concepts.length > 0 && (
+ <button
+ onClick={handleCopyConcepts}
+ title="Copy all concepts as text"
+ className={styles.copyButton}
+ >
+ {copyState === 'copied' ? <Check size={14} /> : <Copy size={14} />}
+ {copyState === 'copied' ? 'Copied!' : 'Copy Concepts'}
+ </button>
+ )}
+ </div>
  {activeTab === 'gym' && (
  <div className={styles.gymLayout}>
  {tierCounts.total > 0 && (
