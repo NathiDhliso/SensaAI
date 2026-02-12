@@ -128,7 +128,7 @@ class BedrockService:
                         body=json.dumps({
                             "anthropic_version": "bedrock-2023-05-31",
                             "max_tokens": 16384,
-                            "temperature": 0.7,
+                            "temperature": 0.5,
                             "messages": [{"role": "user", "content": prompt}],
                         }),
                     )
@@ -214,25 +214,40 @@ class BedrockService:
         except Exception as e:
             print(f"[ERROR] Repair failed: {e}")
             return None
-    TEMPLATE_PATTERNS = [
+    TEMPLATE_STARTS = [
         "why {name} matters",
         "think of {name} as a building block",
+        "think of {name} as a",
         "detailed explanation of",
-        "proper use of {name} vs common misunderstanding",
+        "proper use of {name}",
         "{name} is a core concept",
         "key exam topic for {name}",
-        "think of {name} as a",
-        "why {name} matters in",
+        "understanding {name} is important",
+        "why you need {name}",
+        "{name} matters in",
+        "{name} matters because",
+    ]
+
+    TEMPLATE_EXACT = [
+        "proper use of {name} vs common misunderstanding",
+        "key exam topic for {name} (high)",
+        "common misunderstanding",
     ]
 
     def _is_template_content(self, text: str, concept_name: str) -> bool:
         if not text or not text.strip():
-            return False
+            return True
         lower = text.lower().strip()
         name_lower = concept_name.lower().strip()
-        for pattern in self.TEMPLATE_PATTERNS:
+        if lower == "...":
+            return True
+        for pattern in self.TEMPLATE_STARTS:
             check = pattern.replace("{name}", name_lower)
-            if lower.startswith(check) or lower == check:
+            if lower.startswith(check):
+                return True
+        for pattern in self.TEMPLATE_EXACT:
+            check = pattern.replace("{name}", name_lower)
+            if lower == check or check in lower:
                 return True
         if lower.startswith("detailed explanation of "):
             return True
@@ -273,26 +288,45 @@ class BedrockService:
             "whyYouNeed": concept.get("whyYouNeed", ""),
             "shape.simpleCore": shape.get("simpleCore", ""),
         }
-        template_count = 0
         for field_name, value in template_fields.items():
             if self._is_template_content(value, name):
-                template_count += 1
-                print(f"[BedrockService] Template content in '{name}'.{field_name}: '{value[:60]}'")
-        if template_count >= 2:
-            print(f"[BedrockService] Validation fail: '{name}' has {template_count} template fields")
-            return False
+                print(f"[BedrockService] Template content in '{name}'.{field_name}: '{value[:80]}'")
+                return False
         phase2 = concept.get("phase2", [])
-        if isinstance(phase2, list):
-            template_phase2 = sum(
-                1 for item in phase2
-                if isinstance(item, (str, dict)) and
-                self._is_template_content(
-                    item if isinstance(item, str) else (item.get("content", "") if isinstance(item, dict) else ""),
-                    name
-                )
-            )
-            if template_phase2 > 0 and len(phase2) > 0 and template_phase2 == len(phase2):
-                print(f"[BedrockService] Validation fail: '{name}' phase2 is all template content")
+        if isinstance(phase2, list) and len(phase2) > 0:
+            for item in phase2:
+                content = ""
+                if isinstance(item, str):
+                    content = item
+                elif isinstance(item, dict):
+                    content = item.get("content", "")
+                if self._is_template_content(content, name):
+                    print(f"[BedrockService] Template phase2 in '{name}': '{content[:80]}'")
+                    return False
+        crit = concept.get("criticalDistinctions", [])
+        if isinstance(crit, list):
+            for item in crit:
+                text = ""
+                if isinstance(item, str):
+                    text = item
+                elif isinstance(item, dict):
+                    text = f"{item.get('correct', '')} {item.get('incorrect', '')}"
+                if self._is_template_content(text, name):
+                    print(f"[BedrockService] Template criticalDistinctions in '{name}': '{text[:80]}'")
+                    return False
+        exam = concept.get("examFocus", [])
+        if isinstance(exam, list):
+            for item in exam:
+                text = item if isinstance(item, str) else str(item)
+                if self._is_template_content(text, name):
+                    print(f"[BedrockService] Template examFocus in '{name}': '{text[:80]}'")
+                    return False
+        pr = (shape.get("patternRecognition") or {})
+        if isinstance(pr, dict):
+            q = (pr.get("question") or "").strip()
+            a = (pr.get("answer") or "").strip()
+            if not q or not a:
+                print(f"[BedrockService] Template patternRecognition in '{name}': empty Q or A")
                 return False
         return True
     def _validate_tree_structure(self, concepts: List[Dict[str, Any]]) -> None:

@@ -202,71 +202,106 @@ Leaf concepts: prefer `apply`, `analyze`, `evaluate`, `create`
 |---|---|
 | "Cannot change after creation" | "Selection made at creation time" |
 | "Will fail if X" | "Verify X before proceeding" |
-### 3.8 ANTI-TEMPLATE RULE (CRITICAL — READ CAREFULLY):
-Every field MUST contain SPECIFIC, SUBSTANTIVE content. The following patterns are **STRICTLY FORBIDDEN** and will cause the entire output to be rejected:
-
-**FORBIDDEN hookSentence patterns:**
-- "Why [X] matters in [exam]" → INSTEAD write a specific insight, e.g. "Without proper NSG rules, a VM is exposed to the entire internet even inside a VNet"
-- "Understanding [X] is important" → INSTEAD explain the specific consequence of not knowing it
-
-**FORBIDDEN microMetaphor patterns:**
-- "Think of [X] as a building block" → INSTEAD use a vivid, specific metaphor, e.g. "Think of NSGs as bouncers at a nightclub — they check every packet's ID (IP, port, protocol) before letting it through"
-
-**FORBIDDEN whyYouNeed patterns:**
-- "Why [X] matters" or "Detailed explanation of [keyPoint]" → INSTEAD write 2-3 sentences explaining the SPECIFIC technical reason
-
-**FORBIDDEN phase2 patterns:**
-- "Detailed explanation of [keyPoint]" → INSTEAD write actual technical content explaining HOW and WHY
-
-**FORBIDDEN patternRecognition patterns:**
-- Empty question/answer → INSTEAD write a specific exam-style scenario question with a concrete answer
-
-**FORBIDDEN criticalDistinctions patterns:**
-- "Proper use of [X] vs Common misunderstanding" → INSTEAD write specific correct vs incorrect statements, e.g. {{"correct": "NSGs are stateful — return traffic is auto-allowed", "incorrect": "You need separate inbound and outbound rules for the same connection"}}
-
-**FORBIDDEN shape.simpleCore patterns:**
-- "[X] is a core concept in [Y]" → INSTEAD write one plain-English sentence explaining what it DOES
-
-**TEST YOURSELF**: Before outputting, verify that EVERY field contains domain-specific technical content. If you can swap the concept name and the field still makes sense, the content is too generic.
 ---
 ## 4. OUTPUT FORMAT
 Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
 ### 4.1 DOMAIN-ADAPTIVE CONTENT:
 **phase2**: Procedural=execution steps, Conceptual=critical inquiry, Cyclic=iteration protocol, Perceptual=observation protocol
 **workedExample**: Procedural=config walkthrough, Conceptual=case study, Cyclic=iteration log, Perceptual=diagnostic walkthrough
-### 4.2 JSON TEMPLATE
+### 4.2 QUALITY STANDARD — CONCRETE EXAMPLE
+Below is ONE fully-worked leaf concept. **Every concept you generate must match this depth and specificity.** Do NOT use placeholder text like "Detailed explanation of..." or "Why X matters" — write real technical content.
 ```json
-[
- {{
- "name": "Concept Name",
- "treeLevel": "trunk|branch|leaf",
- "parentName": "Parent Concept Name or null",
- "trunkDomain": "{domain_name}",
+{{
+ "name": "Network Security Groups",
+ "treeLevel": "leaf",
+ "parentName": "Virtual Network Security",
+ "trunkDomain": "Azure Virtual Networking",
  "cognitiveLevel": "apply",
- "commonPitfalls": ["Misinterpreting X"],
- "order": {start_idx},
- "whyYouNeed": "...",
- "technicalDetails": "...",
- "workedExample": {{ "problem": "...", "solution": "...", "steps": ["..."] }},
- "mnemonic": {{ "anchor": "Object + Emoji", "story": "Spatial scene..." }},
- "phase1": {{ "hookSentence": "...", "microMetaphor": "...", "prerequisite": "...", "selection": ["When..."], "execution": "..." }},
- "phase2": [ {{ "title": "...", "content": "..." }} ],
- "phase3": {{ "tool": "...", "metrics": [...] }},
- "shape": {{
- "simpleCore": "One sentence, no jargon.",
- "highStakesExample": "REAL: [Company] ([Year]) [outcome].",
- "analogicalModel": "Like [system]: [mapping]...",
- "patternRecognition": {{ "question": "...", "answer": "..." }},
- "eliminationLogic": "[A] for [X], [B] for [Y]."
+ "commonPitfalls": [
+   "Forgetting that NSG rules are stateful — if you allow inbound TCP 443, the return traffic is automatically allowed without an explicit outbound rule",
+   "Applying an NSG to both the subnet AND the NIC without realizing both rule sets are evaluated (most restrictive wins)"
+ ],
+ "order": 15,
+ "whyYouNeed": "NSGs are the primary firewall mechanism inside Azure VNets. Without them, any VM in a subnet can communicate with any other VM on any port. On the AZ-104 exam, you must configure NSG rules that balance security with connectivity — a single misconfigured priority number can lock out RDP access or expose a database to the internet.",
+ "technicalDetails": "NSGs contain inbound and outbound security rules evaluated by priority (100-4096, lower = higher priority). Each rule specifies source, destination, port, protocol, and action (Allow/Deny). Default rules allow VNet-to-VNet and outbound internet but deny all inbound from internet. NSGs can be associated with subnets (affects all NICs in subnet) or individual NICs (affects only that VM). When both are applied, traffic must pass BOTH rule sets.",
+ "workedExample": {{
+   "problem": "A web app VM in subnet WebTier needs to accept HTTPS (443) from the internet and communicate with a SQL VM in subnet DataTier on port 1433, but the SQL VM must not be reachable from the internet.",
+   "solution": "Create two NSGs: WebTier-NSG allows inbound 443 from Internet and outbound 1433 to DataTier subnet. DataTier-NSG allows inbound 1433 only from WebTier subnet CIDR and denies all inbound from Internet with a high-priority deny rule.",
+   "steps": [
+     "Create WebTier-NSG with inbound rule: priority 100, source=Internet, dest=*, port=443, protocol=TCP, action=Allow",
+     "Create DataTier-NSG with inbound rule: priority 100, source=10.0.1.0/24 (WebTier CIDR), dest=*, port=1433, protocol=TCP, action=Allow",
+     "Add DataTier-NSG inbound rule: priority 200, source=Internet, dest=*, port=*, protocol=*, action=Deny",
+     "Associate WebTier-NSG with WebTier subnet, DataTier-NSG with DataTier subnet"
+   ]
  }},
- "keyPoints": ["..."],
- "scoring": {{ "keywords": ["..."], "aliases": ["..."] }},
- "criticalDistinctions": [{{ "correct": "...", "incorrect": "..." }}],
- "designBoundaries": [{{ "boundary": "...", "rationale": "..." }}],
- "connections": [{{ "target": "Other Concept", "type": "requires|enables|is-part-of|is-type-of|causes|constrains" }}]
- }}
-]
+ "mnemonic": {{
+   "anchor": "Nightclub Bouncer 🚪",
+   "story": "Picture a bouncer at a nightclub door holding a clipboard. Each line on the clipboard is a rule with a priority number. The bouncer checks IDs (source IP), dress code (port number), and VIP list (protocol) from top to bottom. First matching rule wins — if rule #100 says Allow and rule #200 says Deny, you get in. The bouncer remembers who entered (stateful), so they can leave without re-checking."
+ }},
+ "phase1": {{
+   "hookSentence": "Without NSG rules, every VM in your VNet is wide open to every other VM on every port — NSGs are the only thing standing between your database and the internet.",
+   "microMetaphor": "NSGs are bouncers at every door in your building — they check every packet's source IP, destination port, and protocol against a priority-ordered guest list before letting it through.",
+   "prerequisite": "Understanding of IP addressing, subnets, and TCP/UDP port numbers",
+   "selection": [
+     "When isolating web tier from data tier → Choose subnet-level NSGs with CIDR-based source rules → Unlocks zero-trust network segmentation",
+     "When a single VM needs unique rules → Choose NIC-level NSG → Unlocks per-VM security without affecting other VMs in the subnet"
+   ],
+   "execution": "Create NSG → Define inbound/outbound rules with priority, source, destination, port, protocol, action → Associate with subnet or NIC → Test connectivity with Network Watcher IP flow verify"
+ }},
+ "phase2": [
+   {{
+     "title": "Rule evaluation order",
+     "content": "Rules are processed by priority number (lowest first). Once a matching rule is found, processing stops. Default rules at priority 65000+ allow VNet-to-VNet and outbound internet. You cannot delete default rules but can override them with higher-priority (lower number) custom rules."
+   }},
+   {{
+     "title": "Subnet vs NIC association",
+     "content": "When an NSG is on both the subnet and the NIC, inbound traffic must pass the subnet NSG first, then the NIC NSG. Outbound traffic passes NIC NSG first, then subnet NSG. This means the effective rules are the intersection (most restrictive combination) of both NSGs."
+   }},
+   {{
+     "title": "Service Tags and ASGs",
+     "content": "Instead of hardcoding IP ranges, use Service Tags (e.g., Internet, VirtualNetwork, AzureLoadBalancer, Storage) as source/destination. Application Security Groups let you group VM NICs and reference them in rules, eliminating the need to manage individual IPs."
+   }}
+ ],
+ "phase3": {{
+   "tool": "Azure Network Watcher → IP Flow Verify",
+   "metrics": ["Verify specific traffic is allowed/denied between two VMs", "Check which NSG rule is blocking traffic"]
+ }},
+ "shape": {{
+   "simpleCore": "NSGs filter network traffic to and from Azure resources using priority-ordered allow/deny rules based on source, destination, port, and protocol.",
+   "highStakesExample": "Capital One (2019) — a misconfigured WAF allowed a former employee to access S3 buckets containing 100M+ customer records. Proper network segmentation rules (equivalent to NSGs) would have limited lateral movement after the initial breach.",
+   "analogicalModel": "Like airport security checkpoints: each checkpoint (NSG) has a rulebook (security rules). Passengers (packets) are checked against rules in order. First matching rule determines if you board (Allow) or get turned away (Deny). Having checkpoints at both the terminal entrance (subnet) and the gate (NIC) means you pass through two screenings.",
+   "patternRecognition": {{
+     "question": "A VM in SubnetA cannot reach a VM in SubnetB on port 3306. Both subnets have NSGs. SubnetA NSG has an outbound Allow rule for port 3306. SubnetB NSG has no custom inbound rules. Why is traffic blocked?",
+     "answer": "The default inbound rules in SubnetB's NSG allow VirtualNetwork traffic, so VNet-to-VNet on 3306 should work. Check if there is a higher-priority Deny rule in SubnetB's NSG, or if NIC-level NSGs on the destination VM are blocking port 3306."
+   }},
+   "eliminationLogic": "NSG for L3/L4 filtering (IP, port, protocol); Azure Firewall for L7 filtering (FQDN, URL path, TLS inspection); WAF for HTTP-specific attacks (SQL injection, XSS)."
+ }},
+ "keyPoints": [
+   "Rules evaluated by priority number — lowest number wins",
+   "Stateful: return traffic automatically allowed",
+   "Can attach to subnet (all VMs) or NIC (single VM)",
+   "Default rules allow VNet-to-VNet and outbound internet",
+   "Service Tags replace hardcoded IP ranges"
+ ],
+ "scoring": {{
+   "keywords": ["NSG", "security rules", "priority", "stateful", "subnet association"],
+   "aliases": ["network security group", "NSG rules", "traffic filtering"]
+ }},
+ "criticalDistinctions": [
+   {{ "correct": "NSGs are stateful — if inbound TCP 443 is allowed, the response traffic is automatically permitted without an outbound rule", "incorrect": "You need matching inbound AND outbound rules for every connection" }},
+   {{ "correct": "When NSGs are on both subnet and NIC, traffic must pass BOTH (intersection/most restrictive)", "incorrect": "NIC-level NSG overrides subnet-level NSG" }}
+ ],
+ "designBoundaries": [
+   {{ "boundary": "NSGs operate at L3/L4 only", "rationale": "They cannot inspect HTTP headers, URLs, or payload content — use Azure Firewall or WAF for L7 filtering" }}
+ ],
+ "connections": [
+   {{ "target": "Virtual Network Security", "type": "is-part-of" }},
+   {{ "target": "Application Security Groups", "type": "enables" }},
+   {{ "target": "Service Endpoints", "type": "constrains" }}
+ ]
+}}
 ```
+**CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must have this level of technical depth. If a field could apply to any concept by just swapping the name, the content is too generic and will be rejected.
 ---
 ## 5. CRITICAL RULES
 1. **TREE INTEGRITY**: Every branch `parentName` = trunk name. Every leaf `parentName` = a branch name. Trunk `parentName` = null.
@@ -274,8 +309,9 @@ Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
 3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
 4. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
 5. **EXAM CONTEXT**: Every concept framed for the exam, not real-world job context.
-6. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study.
+6. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study with company name and year.
 7. **NO DUPLICATION**: Only generate for "{domain_name}". Other domains are separate.
+8. **NO GENERIC FILLER**: Every field must contain domain-specific technical content. Phrases like "Why X matters", "Think of X as a building block", "Detailed explanation of Y", or "Proper use of X vs Common misunderstanding" will cause rejection. Write real content.
 Generate the concept tree for "{domain_name}" now:"""
 def _parse_exam_tree(context: str) -> list:
     import re as _re
