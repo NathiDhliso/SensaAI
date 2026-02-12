@@ -433,12 +433,29 @@ function categorizeKeyPoints(keyPoints: string[], howToUse: string[]): {
 function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
  const { architecture, execution, systemPhysics } = categorizeKeyPoints(keyPoints, concept.howToUse || []);
  const { selectedPersona } = usePersonalizationStore();
- // Get a random elaboration prompt for this concept
  const [elaboration] = useState(() =>
  getRandomElaborationPrompt(selectedPersona || 'coach', concept.name)
  );
+ const lc = concept.lifecycle;
+ const hasLifecycle = lc?.phase1?.title && lc?.phase2?.title && lc?.phase3?.title;
+ const sectionLabels = hasLifecycle
+ ? {
+ s1Title: lc!.phase1.title,
+ s1Sub: lc!.phase1.steps?.[0] ?? 'What Goes Where',
+ s2Title: lc!.phase2.title,
+ s2Sub: lc!.phase2.steps?.[0] ?? 'How To Do It',
+ s3Title: lc!.phase3.title,
+ s3Sub: lc!.phase3.steps?.[0] ?? 'Immutable Laws',
+ }
+ : {
+ s1Title: 'The Architecture',
+ s1Sub: 'What Goes Where',
+ s2Title: 'The Execution',
+ s2Sub: 'How To Do It',
+ s3Title: 'The System Physics',
+ s3Sub: 'Immutable Laws',
+ };
  const renderShapeOrIcon = (icon: string | undefined, _unused?: unknown, size: 'sm' | 'md' | 'lg' = 'md') => {
- // Simplified icon renderer to avoid require() issues in ESM
  if (!icon) return null;
  return <Brain size={size === 'lg' ? 24 : 20} />;
  };
@@ -459,7 +476,6 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
  </div>
  </div>
  <div className={styles.phaseContent}>
- {/* Concept Overview */}
  <div className={styles.conceptHighlight}>
  <div className={styles.conceptIcon}>
  {renderShapeOrIcon(concept.icon, null, 'lg')}
@@ -474,22 +490,26 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
  )}
  </div>
  <p className={styles.hookSentence}>{concept.hookSentence}</p>
+ {concept.trunkDomain && concept.tier !== 'trunk' && (
+ <span className={styles.breadcrumbHint}>
+ {concept.trunkDomain}
+ {concept.parentName && concept.parentName !== concept.trunkDomain && ` › ${concept.parentName}`}
+ </span>
+ )}
  </div>
  </div>
- {/* Mental Model */}
  {concept.metaphor && (
  <div className={styles.metaphor}>
  <em>Think of it as:</em> {concept.metaphor}
  </div>
  )}
- {/* Section 1: Architecture (What Goes Where) */}
  {architecture.length > 0 && (
  <div className={styles.learningSection}>
  <div className={styles.sectionHeader}>
  <span className={styles.sectionNumber}>1</span>
  <div>
- <h5 className={styles.sectionTitle}>The Architecture</h5>
- <span className={styles.sectionSubtitle}>What Goes Where</span>
+ <h5 className={styles.sectionTitle}>{sectionLabels.s1Title}</h5>
+ <span className={styles.sectionSubtitle}>{sectionLabels.s1Sub}</span>
  </div>
  </div>
  <ul className={styles.sectionList}>
@@ -499,14 +519,13 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
  </ul>
  </div>
  )}
- {/* Section 2: Execution (How-To) */}
  {execution.length > 0 && (
  <div className={styles.learningSection}>
  <div className={styles.sectionHeader}>
  <span className={styles.sectionNumber}>2</span>
  <div>
- <h5 className={styles.sectionTitle}>The Execution</h5>
- <span className={styles.sectionSubtitle}>How To Do It</span>
+ <h5 className={styles.sectionTitle}>{sectionLabels.s2Title}</h5>
+ <span className={styles.sectionSubtitle}>{sectionLabels.s2Sub}</span>
  </div>
  </div>
  <ol className={styles.executionList}>
@@ -516,14 +535,13 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
  </ol>
  </div>
  )}
- {/* Section 3: System Physics (Immutable Laws) */}
  {systemPhysics.length > 0 && (
  <div className={styles.learningSection}>
  <div className={styles.sectionHeader}>
  <span className={styles.sectionNumber}>3</span>
  <div>
- <h5 className={styles.sectionTitle}>The System Physics</h5>
- <span className={styles.sectionSubtitle}>Immutable Laws</span>
+ <h5 className={styles.sectionTitle}>{sectionLabels.s3Title}</h5>
+ <span className={styles.sectionSubtitle}>{sectionLabels.s3Sub}</span>
  </div>
  </div>
  <ul className={styles.systemPhysicsList}>
@@ -533,7 +551,6 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
  </ul>
  </div>
  )}
- {/* Section 4: Critical Clarifications (Common Pitfalls) [PHASE 2] */}
  {concept.commonPitfalls && concept.commonPitfalls.length > 0 && (
  <div className={`${styles.learningSection} ${styles.clarificationSection}`}>
  <div className={styles.sectionHeader}>
@@ -553,7 +570,6 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
  </ul>
  </div>
  )}
- {/* Technical Details - hide if generic */}
  {concept.technicalDetails &&
  !concept.technicalDetails.includes('is a core concept') &&
  concept.technicalDetails.trim() !== '' && (
@@ -562,7 +578,18 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
  <p>{concept.technicalDetails}</p>
  </div>
  )}
- {/* Section 5: Elaboration Prompt (Metacognition) */}
+ {concept.shape?.highStakesExample && (
+ <div className={styles.learningSection}>
+ <div className={styles.sectionHeader}>
+ <span className={styles.sectionNumber}>!</span>
+ <div>
+ <h5 className={styles.sectionTitle}>High-Stakes Scenario</h5>
+ <span className={styles.sectionSubtitle}>When Getting It Wrong Matters</span>
+ </div>
+ </div>
+ <p className={styles.highStakesText}>{concept.shape.highStakesExample}</p>
+ </div>
+ )}
  <div className={styles.elaborationSection}>
  <div className={styles.elaborationHeader}>
  <Lightbulb size={18} />

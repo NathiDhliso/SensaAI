@@ -577,6 +577,15 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
  <span className={`${styles.drawerTier} ${styles[selectedConcept.tier || 'leaf']}_bg`}>
  {selectedConcept.tier || 'Leaf'}
  </span>
+ {selectedConcept.trunkDomain && selectedConcept.tier !== 'trunk' && (
+ <span className={styles.drawerBreadcrumb}>
+ {selectedConcept.trunkDomain}
+ {selectedConcept.parentName && selectedConcept.parentName !== selectedConcept.trunkDomain && (
+ <> &rsaquo; {selectedConcept.parentName}</>
+ )}
+ &rsaquo;
+ </span>
+ )}
  <h3 className={styles.drawerTitle}>{selectedConcept.name}</h3>
  </div>
  <button onClick={() => setSelectedId(null)} className={styles.closeButton}>

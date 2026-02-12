@@ -257,6 +257,13 @@
  justify-content: space-between;
  align-items: flex-start;
 }
+.drawerBreadcrumb {
+ display: block;
+ font-size: var(--font-xs);
+ color: var(--color-text-tertiary);
+ margin-top: var(--spacing-xs);
+ letter-spacing: 0.02em;
+}
 .drawerTitle {
  font-size: var(--font-xl);
  font-weight: 700;

@@ -8,7 +8,8 @@
  * - Interleaving Effect: Mixed practice improves long-term retention
  * - Spacing Effect: Distributed practice > massed practice
  * - Prerequisite Gates: Only suggest concepts with satisfied dependencies
- * - Tier Balance: Maintain Root (~20%) Trunk (~50%) Leaf (~30%) progression
+ * - Connection-Aware: Uses semantic relationships (requires/enables) for ordering
+ * - Tier Balance: Maintain Trunk (~20%) Branch (~50%) Leaf (~30%) progression
  */
 import type { LearningConcept, LearningStage, LifecyclePhaseKey } from '@/shared/types/learning';
 /**
@@ -79,15 +80,21 @@ function prerequisitesMet(
  allConcepts: LearningConcept[],
  completedConcepts: string[]
 ): boolean {
- if (!concept.prerequisites || concept.prerequisites.length === 0) {
- return true;
+ const requiredNames = new Set<string>();
+ if (concept.prerequisites) {
+ concept.prerequisites.forEach(p => requiredNames.add(p.toLowerCase()));
  }
- return concept.prerequisites.every(prereq => {
- const prereqConcept = allConcepts.find(c =>
- c.name.toLowerCase() === prereq.toLowerCase() ||
- c.id === prereq
+ if (concept.connections) {
+ concept.connections
+ .filter(c => c.type === 'requires')
+ .forEach(c => requiredNames.add(c.target.toLowerCase()));
+ }
+ if (requiredNames.size === 0) return true;
+ return Array.from(requiredNames).every(req => {
+ const match = allConcepts.find(c =>
+ c.name.toLowerCase() === req || c.id === req
  );
- return prereqConcept ? completedConcepts.includes(prereqConcept.id) : true;
+ return match ? completedConcepts.includes(match.id) : true;
  });
 }
 /**
@@ -107,7 +114,7 @@ function calculateTierDistribution(
 }
 /**
  * Get the ideal next tier based on current distribution.
- * Ideal progression: Root ~20%, Trunk ~50%, Leaf ~30%
+ * Ideal progression: Trunk ~15%, Branch ~35%, Leaf ~50%
  */
 function getIdealNextTier(
  distribution: { trunk: number; branch: number; leaf: number }
@@ -142,12 +149,24 @@ function scoreConcept(
  let prerequisiteScore = 1.0;
  let interleavingScore = 0.5;
  let tierBalanceScore = 0.5;
- // 1. Prerequisite Score (0 or 1 if strict, gradual otherwise)
+ // 1. Prerequisite Score — uses both prerequisites[] and connections[type=requires]
  const prereqsMet = prerequisitesMet(candidate, context.allConcepts, context.completedConcepts);
  if (strictPrerequisites && !prereqsMet) {
  prerequisiteScore = 0;
  } else if (!prereqsMet) {
  prerequisiteScore = 0.3;
+ }
+ // 1b. Outdegree bonus — concepts that many others depend on should be learned first
+ const outdegree = candidate.outdegree ?? 0;
+ if (outdegree > 0) {
+ const maxOutdegree = Math.max(...context.allConcepts.map(c => c.outdegree ?? 0), 1);
+ prerequisiteScore = Math.min(prerequisiteScore + (outdegree / maxOutdegree) * 0.15, 1.0);
+ }
+ // 1c. Enabler bonus — concepts that enable many others via connections
+ const enabledCount = candidate.connections
+ ?.filter(c => c.type === 'enables').length ?? 0;
+ if (enabledCount > 0) {
+ prerequisiteScore = Math.min(prerequisiteScore + enabledCount * 0.05, 1.0);
  }
  // 2. Interleaving Score
  if (context.lastConceptId) {
@@ -157,11 +176,9 @@ function scoreConcept(
  const candidatePhase = getConceptPhase(candidate);
  const lastTier = getConceptTier(lastConcept);
  const candidateTier = getConceptTier(candidate);
- // Prefer different phases (interleaving effect)
  if (interleavePhases && lastPhase && candidatePhase) {
  interleavingScore = lastPhase !== candidatePhase ? 1.0 : 0.3;
  }
- // Prefer different tiers
  if (interleaveTiers) {
  if (lastTier !== candidateTier) {
  interleavingScore = Math.min(interleavingScore + 0.3, 1.0);
@@ -181,7 +198,6 @@ function scoreConcept(
  ) {
  tierBalanceScore = 0.6;
  }
- // Weight and combine
  const total =
  (prerequisiteScore * 0.4) +
  (interleavingScore * (0.3 - tierBalanceWeight / 2)) +
@@ -361,18 +377,20 @@ export function calculateConceptDifficulty(
  }
 ): ConceptDifficulty {
  // Calculate inherent difficulty from concept properties
- let inherentDifficulty = 3; // Default medium
- // Higher order = typically harder
+ let inherentDifficulty = 3;
  if (concept.order && concept.order > 15) inherentDifficulty += 2;
  else if (concept.order && concept.order > 8) inherentDifficulty += 1;
- // Tier affects difficulty
  const tier = getConceptTier(concept);
  if (tier === 'Leaf') inherentDifficulty += 2;
  else if (tier === 'Trunk') inherentDifficulty += 1;
- // Prerequisites add difficulty
  if (concept.prerequisites && concept.prerequisites.length > 2) {
  inherentDifficulty += 1;
  }
+ const cogLevel = concept.cognitiveLevel;
+ if (cogLevel === 'evaluate' || cogLevel === 'create') inherentDifficulty += 2;
+ else if (cogLevel === 'analyze' || cogLevel === 'apply') inherentDifficulty += 1;
+ const od = concept.outdegree ?? 0;
+ if (od >= 5) inherentDifficulty += 1;
  // Clamp to 1-10
  inherentDifficulty = Math.max(1, Math.min(10, inherentDifficulty));
  // Calculate personal difficulty based on performance

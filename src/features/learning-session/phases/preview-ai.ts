@@ -38,21 +38,37 @@ export function generatePracticeQuestions(concepts: LearningConcept[]): Practice
  * Generate a question from a concept
  */
 function generateQuestionFromConcept(concept: LearningConcept): string {
- const questionTemplates = [
+ if (concept.shape?.patternRecognition?.question) {
+ return concept.shape.patternRecognition.question;
+ }
+ if (concept.commonPitfalls && concept.commonPitfalls.length > 0) {
+ return `What is a common misconception about ${concept.name}?`;
+ }
+ if (concept.workedExample?.problem) {
+ return concept.workedExample.problem;
+ }
+ if (concept.lifecycle?.phase1?.steps?.[0]) {
+ return `What is the first step in ${concept.lifecycle.phase1.title || concept.name}?`;
+ }
+ const fallbacks = [
  `What is the purpose of ${concept.name}?`,
  `How does ${concept.name} work?`,
  `When would you use ${concept.name}?`,
  `What are the key components of ${concept.name}?`,
  `How does ${concept.name} relate to other concepts?`
  ];
- // Select template based on concept properties
- const templateIndex = concept.name.length % questionTemplates.length;
- return questionTemplates[templateIndex];
+ return fallbacks[concept.name.length % fallbacks.length];
 }
 /**
  * Generate a hint for a concept
  */
 function generateHint(concept: LearningConcept): string {
+ if (concept.shape?.simpleCore) {
+ return concept.shape.simpleCore;
+ }
+ if (concept.hookSentence) {
+ return concept.hookSentence;
+ }
  if (concept.keyPoints && concept.keyPoints.length > 0) {
  return `Focus on: ${concept.keyPoints[0]}`;
  }
@@ -62,10 +78,18 @@ function generateHint(concept: LearningConcept): string {
  * Determine difficulty level based on concept data
  */
 function getDifficultyLevel(concept: LearningConcept): 'easy' | 'medium' | 'hard' {
+ let score = 0;
  const keyPointCount = concept.keyPoints?.length || 0;
- if (keyPointCount <= 2) return 'easy';
- if (keyPointCount <= 4) return 'medium';
- return 'hard';
+ if (keyPointCount > 4) score += 2;
+ else if (keyPointCount > 2) score += 1;
+ if (concept.tier === 'leaf') score += 2;
+ else if (concept.tier === 'branch') score += 1;
+ const cog = concept.cognitiveLevel;
+ if (cog === 'evaluate' || cog === 'create') score += 2;
+ else if (cog === 'analyze' || cog === 'apply') score += 1;
+ if (score >= 4) return 'hard';
+ if (score >= 2) return 'medium';
+ return 'easy';
 }
 /**
  * Get prerequisites list from concepts
@@ -113,4 +137,4 @@ export function generatePreviewAnalysis(
  estimatedDifficulty,
  coachMessage: getPreviewCoachMessage(personaId, questions.length)
  };
-}
+}

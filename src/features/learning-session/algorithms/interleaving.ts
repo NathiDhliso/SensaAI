@@ -2,7 +2,7 @@
  * SensaAI Interleaving Algorithm
  * 
  * Implements concept selection with tier balance and weighted prioritization.
- * Target distribution: Root ~20%, Trunk ~50%, Leaf ~30%
+ * Target distribution: Trunk ~15%, Branch ~35%, Leaf ~50%
  * 
  * PRACTICE MODES:
  * - Blocked: Master one concept before moving on (easier but less transfer)
@@ -128,18 +128,28 @@ export class InterleavingAlgorithm {
  */
  private calculatePrerequisiteScore(
  concept: LearningConcept,
- _allConcepts: LearningConcept[]
+ allConcepts: LearningConcept[]
  ): number {
- // If no mnemonic parent, concept is independent
- if (!concept.mnemonic?.parentId) {
- return 1.0;
+ const requiredNames = new Set<string>();
+ if (concept.prerequisites) {
+ concept.prerequisites.forEach(p => requiredNames.add(p.toLowerCase()));
  }
- // Check if parent is completed
- if (this.completedConcepts.has(concept.mnemonic.parentId)) {
- return 1.0;
+ if (concept.connections) {
+ concept.connections
+ .filter(c => c.type === 'requires')
+ .forEach(c => requiredNames.add(c.target.toLowerCase()));
  }
- // Parent not complete - lower priority
+ if (concept.mnemonic?.parentId && !this.completedConcepts.has(concept.mnemonic.parentId)) {
  return 0.3;
+ }
+ if (requiredNames.size === 0) return 1.0;
+ const allMet = Array.from(requiredNames).every(req => {
+ const match = allConcepts.find(c => c.name.toLowerCase() === req || c.id === req);
+ return match ? this.completedConcepts.has(match.id) : true;
+ });
+ if (!allMet) return 0.2;
+ const od = concept.outdegree ?? 0;
+ return od > 0 ? Math.min(1.0 + od * 0.02, 1.15) : 1.0;
  }
  /**
  * Calculate interleaving score
@@ -243,11 +253,33 @@ export class InterleavingAlgorithm {
  if (!from) {
  transitionMessage = `Let's start with ${to.name}, a ${toTier} concept.`;
  } else {
+ const conn = from.connections?.find(
+ c => c.target.toLowerCase() === to.name.toLowerCase()
+ );
+ const reverseConn = to.connections?.find(
+ c => c.target.toLowerCase() === from.name.toLowerCase()
+ );
+ if (to.logicalConnection && to.logicalConnection.length > 10) {
+ transitionMessage = to.logicalConnection;
+ } else if (conn) {
+ const verbMap: Record<string, string> = {
+ 'requires': `${to.name} requires ${from.name} — let's build on that foundation.`,
+ 'enables': `${from.name} enables ${to.name} — time to unlock this next layer.`,
+ 'is-part-of': `${to.name} is part of ${from.name} — let's zoom in.`,
+ 'is-type-of': `${to.name} is a type of ${from.name} — a specific variant.`,
+ 'causes': `${from.name} causes ${to.name} — let's follow the chain.`,
+ 'constrains': `${from.name} constrains ${to.name} — understanding the boundaries.`,
+ };
+ transitionMessage = verbMap[conn.type] || `Building on ${from.name}, let's explore ${to.name}.`;
+ } else if (reverseConn && reverseConn.type === 'requires') {
+ transitionMessage = `${from.name} requires ${to.name} — solidifying the foundation.`;
+ } else {
  const fromTier = this.getConceptTier(from);
  if (fromTier === toTier) {
  transitionMessage = `Building on ${from.name}, let's explore ${to.name}.`;
  } else {
  transitionMessage = `Now shifting from ${fromTier} to ${toTier}: ${to.name}.`;
+ }
  }
  }
  return {
