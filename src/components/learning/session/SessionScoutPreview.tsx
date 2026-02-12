@@ -126,12 +126,12 @@ export function SessionScoutPreview({
  <BookOpen size={20} className={styles.instructionIcon} />
  <div>
  <h3>Scan the Tier Structure</h3>
- <p>Root concepts grow into Trunks, which branch into Leaves. Notice the flow.</p>
+ <p>Trunks are exam domains, Branches are sub-topics, and Leaves are testable concepts. Notice the flow.</p>
  </div>
  </div>
  <div className={styles.tierFlow}>
  <div className={styles.tierColumn}>
- <div className={`${styles.tierHeader} ${styles.tierRoot}`}>
+ <div className={`${styles.tierHeader} ${styles.tierTrunk}`}>
  <span className={styles.tierLabel}>Trunk</span>
  <span className={styles.tierCount}>{conceptsByTier.trunk.length}</span>
  </div>
@@ -140,14 +140,14 @@ export function SessionScoutPreview({
  <ConceptChip
  key={c.id}
  concept={c}
- className={`${styles.conceptChip} ${styles.rootChip}`}
+ className={`${styles.conceptChip} ${styles.trunkChip}`}
  />
  ))}
  </div>
  </div>
  <ArrowRight className={styles.flowArrow} size={24} />
  <div className={styles.tierColumn}>
- <div className={`${styles.tierHeader} ${styles.tierTrunk}`}>
+ <div className={`${styles.tierHeader} ${styles.tierBranch}`}>
  <span className={styles.tierLabel}>Branch</span>
  <span className={styles.tierCount}>{conceptsByTier.branch.length}</span>
  </div>
@@ -156,7 +156,7 @@ export function SessionScoutPreview({
  <ConceptChip
  key={c.id}
  concept={c}
- className={`${styles.conceptChip} ${styles.trunkChip}`}
+ className={`${styles.conceptChip} ${styles.branchChip}`}
  />
  ))}
  </div>

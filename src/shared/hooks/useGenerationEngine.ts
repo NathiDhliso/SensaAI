@@ -48,7 +48,8 @@ interface GenerationEngineState {
 interface GenerationEngineActions {
  startGenerationProcess: (
  subject: string,
- context?: string | null
+ context?: string | null,
+ trunks?: string[],
  ) => void;
  handleRetry: (subject: string) => void;
 }
@@ -276,7 +277,8 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  const startGenerationProcess = useCallback(
  (
  subject: string,
- context?: string | null
+ context?: string | null,
+ trunks?: string[],
  ) => {
  // AUTH GUARD: Check if user is logged in before attempting generation
  const { user } = useAuthStore.getState();
@@ -305,7 +307,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  .then((s3Url) => {
  const blueprintContext = `[BLUEPRINT_ID]: ${s3Url}\n[FILENAME]: ${pendingFile.name}`;
  setPendingFile(null);
- return generateWithBackend(subject, progressCallback, blueprintContext);
+ return generateWithBackend(subject, progressCallback, blueprintContext, 1, trunks);
  })
  .then((result) => handleGenerationSuccess(result))
  .catch(handleGenerationError)
@@ -323,7 +325,9 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  generateWithBackend(
  subject,
  progressCallback,
- effectiveContext || undefined
+ effectiveContext || undefined,
+ 1,
+ trunks,
  )
  .then((result) => handleGenerationSuccess(result))
  .catch(handleGenerationError)

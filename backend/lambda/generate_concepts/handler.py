@@ -103,6 +103,7 @@ def _parse_request(event: Dict[str, Any]) -> Dict[str, Any]:
         "sessionId": body.get("sessionId", generate_id()),
         "jobId": body.get("jobId", generate_id()),
         "context": body.get("context", ""),
+        "trunks": body.get("trunks", []),
         "action": body.get("action", "generate"),
         "conceptName": body.get("conceptName"),
         "issue": body.get("issue"),
@@ -127,9 +128,11 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     session_id = request["sessionId"]
     job_id = request["jobId"]
     context = request["context"]
-    # skip_job_creation is set when _handle_generate_async already created the job
+    trunks = request.get("trunks", [])
     skip_job_creation = request.get("_skip_job_creation", False)
     print(f"[Handler] Generate: subject={subject}, userId={user_id}, jobId={job_id}")
+    if trunks:
+        print(f"[Handler] User-defined trunks ({len(trunks)}): {trunks}")
     if not skip_job_creation:
         # Step 1: Create job record
         print(f"[Handler] Creating job record...")
@@ -146,7 +149,7 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     if context:
         print(f"[Handler] Using user-provided context ({len(context)} chars)")
     try:
-        concepts, classification = bedrock_service.generate_concepts(subject, context)
+        concepts, classification = bedrock_service.generate_concepts(subject, context, trunks=trunks)
         print(f"[Handler] Generation complete: {len(concepts)} concepts")
         if classification:
             print(f"[Handler] Classification: {classification.get('subjectType', 'unknown')}")
@@ -196,6 +199,7 @@ def _handle_generate_async(request: Dict[str, Any], event: Dict[str, Any]) -> Di
             "sessionId": session_id,
             "jobId": job_id,
             "context": context,
+            "trunks": request.get("trunks", []),
             "action": "_async_generate",
             "_skip_job_creation": True,
         })

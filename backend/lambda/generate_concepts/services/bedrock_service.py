@@ -79,20 +79,26 @@ class BedrockService:
                     time.sleep(self.RETRY_BACKOFF_BASE ** (attempt + 1))
         print("[BedrockService] Classification failed, using default (conceptual)")
         return None
-    def generate_concepts(self, subject: str, context: str = "") -> tuple:
+    def generate_concepts(self, subject: str, context: str = "", trunks: list = None) -> tuple:
         from shared.system_prompt import get_tree_generation_prompt, _get_exam_domains
-        classification = self.classify_subject(subject, context)
-        domains = _get_exam_domains(context, classification)
-        if not domains:
-            print("[BedrockService] WARNING: No exam domains from classification. Retrying classification...")
-            retry_cls = self.classify_subject(subject, context)
-            if retry_cls:
-                domains = _get_exam_domains(context, retry_cls)
-                if domains:
-                    classification = retry_cls
-        if not domains:
-            print("[BedrockService] FALLBACK: Generating single-domain tree for subject")
-            domains = [{"name": subject, "weight": 1.0, "subtopics": []}]
+        if trunks and len(trunks) >= 2:
+            print(f"[BedrockService] Using {len(trunks)} user-defined trunks (skipping classification)")
+            equal_weight = round(1.0 / len(trunks), 2)
+            domains = [{"name": t, "weight": equal_weight, "subtopics": []} for t in trunks]
+            classification = self.classify_subject(subject, context)
+        else:
+            classification = self.classify_subject(subject, context)
+            domains = _get_exam_domains(context, classification)
+            if not domains:
+                print("[BedrockService] WARNING: No exam domains from classification. Retrying classification...")
+                retry_cls = self.classify_subject(subject, context)
+                if retry_cls:
+                    domains = _get_exam_domains(context, retry_cls)
+                    if domains:
+                        classification = retry_cls
+            if not domains:
+                print("[BedrockService] FALLBACK: Generating single-domain tree for subject")
+                domains = [{"name": subject, "weight": 1.0, "subtopics": []}]
         num_partitions = len(domains)
         print(f"[BedrockService] Tree generation: {num_partitions} domains (trunks)")
         for i, d in enumerate(domains):

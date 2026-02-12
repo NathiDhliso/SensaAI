@@ -31,7 +31,8 @@ export async function generateWithBackend(
  subject: string,
  onProgress: ProgressCallback,
  context?: string,
- _startFromPass: number = 1
+ _startFromPass: number = 1,
+ trunks?: string[],
 ): Promise<GenerationResult> {
  // Get user ID from auth store
  const { user } = useAuthStore.getState();
@@ -65,7 +66,8 @@ export async function generateWithBackend(
  conceptsApi.generate({
  subject,
  userId,
- context: enhancedContext, // Pass enhanced context with exam objectives
+ context: enhancedContext,
+ ...(trunks && trunks.length >= 2 && { trunks }),
  }),
  timeoutPromise
  ]);

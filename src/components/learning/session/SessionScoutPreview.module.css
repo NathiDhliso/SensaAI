@@ -909,11 +909,11 @@
  padding: 0.2rem 0.5rem;
  border-radius: var(--radius-sm);
 }
-.tierRoot {
+.tierTrunk {
  background: linear-gradient(135deg, var(--color-trunk) 0%, color-mix(in srgb, var(--color-trunk) 80%, black) 100%);
  color: white;
 }
-.tierTrunk {
+.tierBranch {
  background: linear-gradient(135deg, var(--color-branch) 0%, color-mix(in srgb, var(--color-branch) 80%, black) 100%);
  color: white;
 }
@@ -954,10 +954,10 @@
  overflow: hidden;
  text-overflow: ellipsis;
 }
-.rootChip {
+.trunkChip {
  border-left: 3px solid var(--color-trunk);
 }
-.trunkChip {
+.branchChip {
  border-left: 3px solid var(--color-branch);
 }
 .leafChip {
@@ -985,101 +985,6 @@
 .tierInsight svg {
  color: var(--color-primary);
  flex-shrink: 0;
-}
-/* ============================================================================
- SENSA v2.0: Prediction Grid (Step 2)
- ============================================================================ */
-.predictionGrid {
- display: flex;
- flex-direction: column;
- gap: 1rem;
-}
-.predictionRow {
- display: flex;
- align-items: center;
- gap: 1rem;
- flex-wrap: wrap;
-}
-.rootBadge {
- display: flex;
- align-items: center;
- gap: 0.5rem;
- padding: 0.625rem 1rem;
- background: var(--color-trunk);
- color: white;
- border-radius: var(--radius-md);
- font-weight: 600;
- font-size: 0.875rem;
- min-width: 160px;
-}
-.badgeEmoji {
- font-size: 1rem;
-}
-.predictionArrow {
- color: var(--color-text-tertiary);
- flex-shrink: 0;
-}
-.trunkSelect {
- flex: 1;
- min-width: 200px;
- padding: 0.625rem 1rem;
- background: var(--color-surface-base);
- border: 2px solid var(--color-border);
- border-radius: var(--radius-md);
- color: var(--color-text-primary);
- font-size: 0.875rem;
- font-weight: 500;
- cursor: pointer;
- transition: all 0.2s ease;
-}
-.trunkSelect:hover {
- border-color: var(--color-border-hover);
-}
-.trunkSelect:focus {
- outline: none;
- border-color: var(--color-primary);
-}
-.trunkSelect.selected {
- border-color: var(--color-success);
- background: var(--color-success-subtle);
-}
-.guessCheck {
- width: 24px;
- height: 24px;
- display: flex;
- align-items: center;
- justify-content: center;
- background: var(--color-success);
- color: white;
- border-radius: 50%;
- font-size: 0.75rem;
- font-weight: bold;
- flex-shrink: 0;
-}
-.guessProgress {
- display: flex;
- align-items: center;
- gap: 1rem;
- margin-top: 0.5rem;
-}
-.guessProgressBar {
- flex: 1;
- height: 6px;
- background: var(--color-surface-subtle);
- border-radius: var(--radius-full);
- overflow: hidden;
-}
-.guessProgressFill {
- height: 100%;
- background: var(--color-success);
- border-radius: var(--radius-full);
- transition: width 0.3s ease;
-}
-.guessCount {
- font-size: 0.85rem;
- color: var(--color-text-secondary);
- font-weight: 500;
- white-space: nowrap;
 }
 /* ============================================================================
  SENSA v2.0: Step Navigation
@@ -1146,15 +1051,5 @@
  .flowArrow {
  transform: rotate(90deg);
  margin: 0 auto;
- }
- .predictionRow {
- flex-direction: column;
- align-items: stretch;
- }
- .rootBadge {
- min-width: auto;
- }
- .trunkSelect {
- min-width: auto;
  }
 }

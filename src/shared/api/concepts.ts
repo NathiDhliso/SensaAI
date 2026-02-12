@@ -21,6 +21,7 @@ export interface GenerateConceptsRequest {
  userId: string;
  sessionId?: string;
  context?: string;
+ trunks?: string[];
 }
 export interface GenerateConceptsResponse {
  jobId: string;

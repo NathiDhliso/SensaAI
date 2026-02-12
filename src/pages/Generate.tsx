@@ -76,6 +76,8 @@ export default function Generate() {
  const location = useLocation();
  const searchParams = new URLSearchParams(location.search);
  const context = searchParams.get('context');
+ const trunksParam = searchParams.get('trunks');
+ const trunks = trunksParam ? (() => { try { return JSON.parse(trunksParam) as string[]; } catch { return undefined; } })() : undefined;
  // Generation store state
  const {
  bedrockConfig,
@@ -113,7 +115,7 @@ export default function Generate() {
  if (!subject) return;
  const decodedSubject = decodeURIComponent(subject);
  // Generation is unstoppable - just start it
- startGenerationProcess(decodedSubject, context);
+ startGenerationProcess(decodedSubject, context, trunks);
  },
  onExistingFound: (resultId) => {
  navigate(`/study/${resultId}`);

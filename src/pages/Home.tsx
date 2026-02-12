@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, Zap, Cloud, ChevronDown, ChevronUp, Target } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud, ChevronDown, ChevronUp, Target, Plus, X, GitBranch, AlertTriangle } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import { parseSyllabusText } from '@/features/content-audit';
 import type { SensaShapeType } from '@/components/ui';
@@ -91,6 +91,9 @@ export default function Home() {
  const [objectivesText, setObjectivesText] = useState('');
  const [objectivesOpen, setObjectivesOpen] = useState(false);
  const [showPreview, setShowPreview] = useState(false);
+ const [trunks, setTrunks] = useState<string[]>(['', '']);
+ const [trunksOpen, setTrunksOpen] = useState(false);
+ const validTrunks = trunks.filter(t => t.trim().length > 0);
  const navigate = useNavigate();
  /* Hooks & Store */
  const { openSettingsPanel } = useUIStore();
@@ -116,12 +119,26 @@ export default function Home() {
  setSubject(name);
  setShowSuggestions(false);
  };
+ const addTrunk = () => {
+ if (trunks.length < 6) setTrunks([...trunks, '']);
+ };
+ const removeTrunk = (index: number) => {
+ if (trunks.length > 2) setTrunks(trunks.filter((_, i) => i !== index));
+ };
+ const updateTrunk = (index: number, value: string) => {
+ const updated = [...trunks];
+ updated[index] = value;
+ setTrunks(updated);
+ };
  const handleGenerate = () => {
  if (subject.trim()) {
  setShowSuggestions(false);
  const params = new URLSearchParams();
  if (parsedObjectives.length > 0) {
  params.set('context', parsedObjectives.join('\n'));
+ }
+ if (validTrunks.length >= 2) {
+ params.set('trunks', JSON.stringify(validTrunks));
  }
  const query = params.toString();
  navigate(`/generate/${encodeURIComponent(subject)}${query ? `?${query}` : ''}`);
@@ -267,16 +284,86 @@ export default function Home() {
  )}
  </AnimatePresence>
  </div>
+ <div className={styles.trunksSection}>
+ <button
+ className={styles.objectivesToggle}
+ onClick={() => setTrunksOpen(!trunksOpen)}
+ >
+ <GitBranch size={14} />
+ <span>{validTrunks.length >= 2 ? `${validTrunks.length} Exam Domains Locked` : 'Define Exam Domains (Recommended)'}</span>
+ {trunksOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+ </button>
+ <AnimatePresence>
+ {trunksOpen && (
+ <motion.div
+ initial={{ height: 0, opacity: 0 }}
+ animate={{ height: 'auto', opacity: 1 }}
+ exit={{ height: 0, opacity: 0 }}
+ transition={{ duration: 0.2 }}
+ className={styles.trunksBody}
+ >
+ <p className={styles.trunksHint}>
+ These are the top-level exam domains. They become fixed trunks in the output — the AI cannot change or remove them.
+ </p>
+ <div className={styles.trunksList}>
+ {trunks.map((trunk, i) => (
+ <div key={i} className={styles.trunkRow}>
+ <span className={styles.trunkIndex}>{i + 1}</span>
+ <input
+ type="text"
+ value={trunk}
+ onChange={e => updateTrunk(i, e.target.value)}
+ placeholder={`Domain ${i + 1} (e.g. Identity & Governance)`}
+ className={styles.trunkInput}
+ />
+ {trunks.length > 2 && (
+ <button
+ type="button"
+ onClick={() => removeTrunk(i)}
+ className={styles.trunkRemove}
+ >
+ <X size={14} />
+ </button>
+ )}
+ </div>
+ ))}
+ </div>
+ {trunks.length < 6 && (
+ <button type="button" onClick={addTrunk} className={styles.trunkAdd}>
+ <Plus size={14} /> Add Domain
+ </button>
+ )}
+ </motion.div>
+ )}
+ </AnimatePresence>
+ </div>
  <div className={styles.groundingStatus}>
- {parsedObjectives.length > 0 ? (
+ {validTrunks.length >= 2 ? (
+ <div className={styles.groundedStatus}>
+ <GitBranch size={14} />
+ <span>Domain-Locked — {validTrunks.length} trunks fixed{parsedObjectives.length > 0 ? `, ${parsedObjectives.length} objectives as context` : ''}</span>
+ </div>
+ ) : parsedObjectives.length > 0 ? (
+ <>
  <div className={styles.groundedStatus}>
  <Target size={14} />
  <span>Objective-Driven — AI will generate concepts mapped to your {parsedObjectives.length} objectives</span>
  </div>
- ) : (
- <div className={styles.ungroundedStatus}>
- <span>Standard Mode — Paste exam objectives above for targeted content</span>
+ <div className={styles.hallucinationNotice}>
+ <AlertTriangle size={12} />
+ <span>Trunk domains will be AI-generated — define them above for guaranteed accuracy</span>
  </div>
+ </>
+ ) : (
+ <>
+ <div className={styles.ungroundedStatus}>
+ <span>Standard Mode — Define domains or paste objectives above for targeted content</span>
+ </div>
+ <div className={styles.hallucinationWarning}>
+ <AlertTriangle size={13} />
+ <span>AI will infer all domains, branches, and leaves — hallucination is possible. Define your exam domains above for reliable results.</span>
+ </div>
+ </>
  )}
  </div>
  <button
@@ -326,4 +413,4 @@ export default function Home() {
  </div>
  </div >
  );
-}
+}
