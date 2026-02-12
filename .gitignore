@@ -48,6 +48,15 @@ backend/dist/
 .build/
 *.zip
 
+# Python
+__pycache__/
+*.pyc
+
+# Test files
+test_generate.py
+test_validate.py
+test_output.json
+
 # Temporary files
 *.tmp
 *.temp
