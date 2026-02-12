@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, QueryCommandOutput, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, QueryCommandOutput, ScanCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { v4 as uuidv4 } from 'uuid';
 export const conceptsRouter = Router();
@@ -336,7 +336,6 @@ conceptsRouter.post('/repair', async (req: AuthenticatedRequest, res: Response) 
  res.status(500).json({ error: 'Failed to repair concept' });
  }
 });
-// Delete a job and its concepts
 conceptsRouter.delete('/:jobId', async (req: AuthenticatedRequest, res: Response) => {
  try {
  const { jobId } = req.params;
@@ -346,14 +345,61 @@ conceptsRouter.delete('/:jobId', async (req: AuthenticatedRequest, res: Response
  return;
  }
  console.log('[Backend DELETE /concepts/:jobId] Deleting:', { jobId, userId });
- // Delete from jobs table
- const { DeleteCommand } = await import('@aws-sdk/lib-dynamodb');
+ let sessionId = jobId;
+ const jobResult = await docClient.send(new GetCommand({
+ TableName: JOBS_TABLE,
+ Key: { jobId, userId }
+ }));
+ if (jobResult.Item?.sessionId) {
+ sessionId = jobResult.Item.sessionId;
+ }
+ console.log('[Backend DELETE] Resolved sessionId:', sessionId);
+ const conceptsPK = `USER#${userId}#SESSION#${sessionId}`;
+ let conceptsDeleted = 0;
+ let lastEvaluatedKey: Record<string, unknown> | undefined;
+ do {
+ const queryResult = await docClient.send(new QueryCommand({
+ TableName: CONCEPTS_TABLE,
+ KeyConditionExpression: 'PK = :pk',
+ ExpressionAttributeValues: { ':pk': conceptsPK },
+ ProjectionExpression: 'PK, SK',
+ ExclusiveStartKey: lastEvaluatedKey
+ }));
+ const items = queryResult.Items || [];
+ if (items.length > 0) {
+ const chunks: Record<string, unknown>[][] = [];
+ for (let i = 0; i < items.length; i += 25) {
+ chunks.push(items.slice(i, i + 25));
+ }
+ for (const chunk of chunks) {
+ await docClient.send(new BatchWriteCommand({
+ RequestItems: {
+ [CONCEPTS_TABLE]: chunk.map(item => ({
+ DeleteRequest: { Key: { PK: item.PK, SK: item.SK } }
+ }))
+ }
+ }));
+ conceptsDeleted += chunk.length;
+ }
+ }
+ lastEvaluatedKey = queryResult.LastEvaluatedKey as Record<string, unknown> | undefined;
+ } while (lastEvaluatedKey);
+ try {
+ const userPK = `USER#${userId}`;
+ const subjectSK = `SUBJECT#${sessionId}`;
+ await docClient.send(new DeleteCommand({
+ TableName: CONCEPTS_TABLE,
+ Key: { PK: userPK, SK: subjectSK }
+ }));
+ } catch (metaErr) {
+ console.warn('[Backend DELETE] Metadata cleanup warning:', metaErr);
+ }
  await docClient.send(new DeleteCommand({
  TableName: JOBS_TABLE,
  Key: { jobId, userId }
  }));
- console.log('[Backend DELETE /concepts/:jobId] Job deleted:', jobId);
- res.json({ success: true, deletedJobId: jobId });
+ console.log(`[Backend DELETE] Complete - job: ${jobId}, concepts: ${conceptsDeleted}`);
+ res.json({ success: true, deletedJobId: jobId, conceptsDeleted });
  } catch (error) {
  console.error('[Backend DELETE /concepts/:jobId] ERROR:', error);
  res.status(500).json({ error: 'Failed to delete job' });

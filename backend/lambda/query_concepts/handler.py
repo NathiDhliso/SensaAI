@@ -211,15 +211,26 @@ def handle_get_job_status(user_id: str, job_id: str, event=None) -> Dict[str, An
     except Exception as e:
         return api_response(500, {"error": f"Failed to get job status: {str(e)}"}, event)
 
-def handle_delete_subject(user_id: str, session_id: str, event=None) -> Dict[str, Any]:
+def handle_delete_subject(user_id: str, subject_or_job_id: str, event=None) -> Dict[str, Any]:
     """
     Securely delete a subject and all its concepts.
     Only allows deletion if the userId matches the PK.
+    The subject_or_job_id may be a sessionId OR a jobId (frontend sends jobId).
+    We resolve to the real sessionId by checking the jobs table first.
     """
     table = dynamodb.Table(CONCEPTS_TABLE)
-    # 1. Verify ownership & Existence by deleting metadata item
-    # PK = USER#{userId}, SK = SUBJECT#{sessionId}
-    # If this delete succeeds, we are authorized (since we constructed PK from userId)
+    jobs_table = dynamodb.Table(JOBS_TABLE)
+
+    session_id = subject_or_job_id
+    job_id = subject_or_job_id
+    try:
+        job_result = jobs_table.get_item(Key={"jobId": subject_or_job_id, "userId": user_id})
+        if "Item" in job_result and job_result["Item"].get("sessionId"):
+            session_id = job_result["Item"]["sessionId"]
+            print(f"[Delete] Resolved jobId={subject_or_job_id} -> sessionId={session_id}")
+    except Exception as e:
+        print(f"[Delete] Job lookup failed (proceeding with id as sessionId): {str(e)}")
+
     user_pk = f"USER#{user_id}"
     subject_sk = create_subject_sk(session_id)
     try:
@@ -231,17 +242,19 @@ def handle_delete_subject(user_id: str, session_id: str, event=None) -> Dict[str
         )
     except Exception as e:
         return api_response(500, {"error": f"Failed to delete metadata: {str(e)}"}, event)
-    # 2. Query and Batch Delete all Concepts
-    # PK = USER#{userId}#SESSION#{session_id}
-    # We need to find all items in this partition to delete them
+
     concepts_pk = create_pk(user_id, session_id)
-    # Iterate and delete
-    # Note: Scans/Queries on partition key are efficient
     response = table.query(
         KeyConditionExpression=Key("PK").eq(concepts_pk)
     )
     items_to_delete = response.get("Items", [])
-    # Batch delete context manager
+    while response.get("LastEvaluatedKey"):
+        response = table.query(
+            KeyConditionExpression=Key("PK").eq(concepts_pk),
+            ExclusiveStartKey=response["LastEvaluatedKey"]
+        )
+        items_to_delete.extend(response.get("Items", []))
+
     with table.batch_writer() as batch:
         for item in items_to_delete:
             batch.delete_item(
@@ -250,21 +263,27 @@ def handle_delete_subject(user_id: str, session_id: str, event=None) -> Dict[str
                     "SK": item["SK"]
                 }
             )
+
     jobs_deleted = 0
     try:
-        jobs_table = dynamodb.Table(JOBS_TABLE)
-        job_response = jobs_table.scan(
-            FilterExpression=Attr("sessionId").eq(session_id) & Attr("userId").eq(user_id)
-        )
-        job_items = job_response.get("Items", [])
-        for job_item in job_items:
-            jobs_table.delete_item(
-                Key={"jobId": job_item["jobId"], "userId": job_item["userId"]}
+        jobs_table.delete_item(Key={"jobId": job_id, "userId": user_id})
+        jobs_deleted += 1
+    except Exception:
+        pass
+    if session_id != subject_or_job_id:
+        try:
+            job_scan = jobs_table.scan(
+                FilterExpression=Attr("sessionId").eq(session_id) & Attr("userId").eq(user_id)
             )
-            jobs_deleted += 1
-    except Exception as e:
-        print(f"[Handler] Warning: Failed to clean up job records: {str(e)}")
+            for job_item in job_scan.get("Items", []):
+                jobs_table.delete_item(
+                    Key={"jobId": job_item["jobId"], "userId": job_item["userId"]}
+                )
+                jobs_deleted += 1
+        except Exception as e:
+            print(f"[Delete] Warning: Failed to clean up extra job records: {str(e)}")
 
+    print(f"[Delete] Complete - sessionId={session_id}, concepts={len(items_to_delete)}, jobs={jobs_deleted}")
     return api_response(200, {
         "status": "deleted",
         "sessionId": session_id,

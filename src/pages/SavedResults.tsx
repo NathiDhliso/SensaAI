@@ -44,10 +44,16 @@ export default function SavedResults() {
  if (!confirm('Are you sure you want to delete this result? This cannot be undone.')) return;
  setDeletingId(id);
  try {
- await storageManager.deleteResult(id);
+ const success = await storageManager.deleteResult(id);
+ if (success) {
  setResults(prev => prev.filter(r => r.id !== id));
+ toast.success('Result deleted successfully.');
+ } else {
+ toast.error('Failed to delete result. Please try again.');
+ }
  } catch (error) {
  console.error('Failed to delete result:', error);
+ toast.error('Failed to delete result. Please try again.');
  } finally {
  setDeletingId(null);
  }
