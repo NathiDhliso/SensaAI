@@ -4,17 +4,19 @@
 environment = "prod"
 aws_region  = "us-east-1"
 
-# Production URLs - UPDATE these with your actual domain
 cognito_callback_urls = [
-  "https://app.sensapbl.com/callback",
-  "https://sensapbl.com/callback"
+  "https://sensaai.co.za/callback",
+  "https://sensaai.co.za/auth/callback",
+  "https://www.sensaai.co.za/callback",
+  "https://www.sensaai.co.za/auth/callback"
 ]
 
 cognito_logout_urls = [
-  "https://app.sensapbl.com"
+  "https://sensaai.co.za",
+  "https://www.sensaai.co.za"
 ]
 
 cors_allowed_origins = [
-  "https://app.sensapbl.com",
-  "https://sensapbl.com"
+  "https://sensaai.co.za",
+  "https://www.sensaai.co.za"
 ]

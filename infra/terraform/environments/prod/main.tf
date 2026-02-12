@@ -24,6 +24,9 @@ module "sensapbl" {
   cognito_callback_urls = var.cognito_callback_urls
   cognito_logout_urls   = var.cognito_logout_urls
 
+  # Cognito domain prefix
+  cognito_domain_prefix = var.cognito_domain_prefix
+
   # API Gateway CORS
   cors_allowed_origins = var.cors_allowed_origins
 }

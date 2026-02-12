@@ -202,6 +202,32 @@ Leaf concepts: prefer `apply`, `analyze`, `evaluate`, `create`
 |---|---|
 | "Cannot change after creation" | "Selection made at creation time" |
 | "Will fail if X" | "Verify X before proceeding" |
+### 3.8 ANTI-TEMPLATE RULE (CRITICAL — READ CAREFULLY):
+Every field MUST contain SPECIFIC, SUBSTANTIVE content. The following patterns are **STRICTLY FORBIDDEN** and will cause the entire output to be rejected:
+
+**FORBIDDEN hookSentence patterns:**
+- "Why [X] matters in [exam]" → INSTEAD write a specific insight, e.g. "Without proper NSG rules, a VM is exposed to the entire internet even inside a VNet"
+- "Understanding [X] is important" → INSTEAD explain the specific consequence of not knowing it
+
+**FORBIDDEN microMetaphor patterns:**
+- "Think of [X] as a building block" → INSTEAD use a vivid, specific metaphor, e.g. "Think of NSGs as bouncers at a nightclub — they check every packet's ID (IP, port, protocol) before letting it through"
+
+**FORBIDDEN whyYouNeed patterns:**
+- "Why [X] matters" or "Detailed explanation of [keyPoint]" → INSTEAD write 2-3 sentences explaining the SPECIFIC technical reason
+
+**FORBIDDEN phase2 patterns:**
+- "Detailed explanation of [keyPoint]" → INSTEAD write actual technical content explaining HOW and WHY
+
+**FORBIDDEN patternRecognition patterns:**
+- Empty question/answer → INSTEAD write a specific exam-style scenario question with a concrete answer
+
+**FORBIDDEN criticalDistinctions patterns:**
+- "Proper use of [X] vs Common misunderstanding" → INSTEAD write specific correct vs incorrect statements, e.g. {{"correct": "NSGs are stateful — return traffic is auto-allowed", "incorrect": "You need separate inbound and outbound rules for the same connection"}}
+
+**FORBIDDEN shape.simpleCore patterns:**
+- "[X] is a core concept in [Y]" → INSTEAD write one plain-English sentence explaining what it DOES
+
+**TEST YOURSELF**: Before outputting, verify that EVERY field contains domain-specific technical content. If you can swap the concept name and the field still makes sense, the content is too generic.
 ---
 ## 4. OUTPUT FORMAT
 Return A SINGLE JSON ARRAY containing ALL concepts for this domain.

@@ -22,6 +22,12 @@ variable "cognito_logout_urls" {
   type        = list(string)
 }
 
+variable "cognito_domain_prefix" {
+  description = "Cognito hosted UI domain prefix (must be globally unique)"
+  type        = string
+  default     = "sensapbl"
+}
+
 variable "cors_allowed_origins" {
   description = "CORS allowed origins for API Gateway"
   type        = list(string)

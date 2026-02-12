@@ -28,6 +28,8 @@ dynamo_service = DynamoService()
 # Lambda client for self-invocation
 lambda_client = boto3.client("lambda", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 FUNCTION_NAME = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "sensapbl-generate-concepts-pilot")
+_current_event = None
+
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Main Lambda handler for content generation.
@@ -47,6 +49,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Returns:
     API Gateway response with job status and concept count
     """
+    global _current_event
+    _current_event = event
     print(f"[Handler] Invoked with event type: {type(event)}")
     try:
         # Parse and validate request
@@ -59,7 +63,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         if not request.get("subject"):
             print("[Handler] ERROR: Subject is required")
-            return api_response(400, {"error": "Subject is required"})
+            return api_response(400, {"error": "Subject is required"}, event)
 
         # Route based on action
         action = request.get("action", "generate")
@@ -86,7 +90,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return _handle_generate(request)
     except Exception as e:
         print(f"[Handler] UNHANDLED ERROR: {str(e)}")
-        return api_response(500, {"error": str(e)})
+        return api_response(500, {"error": str(e)}, event)
 def _parse_request(event: Dict[str, Any]) -> Dict[str, Any]:
     """
     Parse and normalize request from API Gateway event.
@@ -156,7 +160,7 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         print(f"[Handler] ERROR: Bedrock generation failed: {str(e)}")
         dynamo_service.mark_job_failed(job_id, user_id, str(e))
-        return api_response(500, {"error": f"Generation failed: {str(e)}"})
+        return api_response(500, {"error": f"Generation failed: {str(e)}"}, _current_event)
     # Step 4: Store concepts in DynamoDB
     print(f"[Handler] Storing concepts...")
     dynamo_service.store_concepts(user_id, session_id, concepts, subject)
@@ -170,7 +174,7 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
         "status": "completed",
         "conceptCount": len(concepts),
         "classification": classification,
-    })
+    }, _current_event)
 
 
 def _handle_generate_async(request: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:
@@ -240,12 +244,12 @@ def _handle_repair(request: Dict[str, Any]) -> Dict[str, Any]:
     if not concept_name or not issue:
         return api_response(400, {
             "error": "conceptName and issue are required for repair"
-        })
+        }, _current_event)
     print(f"[Handler] Repair: concept={concept_name}, issue={issue}")
     repaired_concept = bedrock_service.repair_concept(subject, concept_name, issue)
     if not repaired_concept:
-        return api_response(500, {"error": "Failed to repair concept"})
+        return api_response(500, {"error": "Failed to repair concept"}, _current_event)
     return api_response(200, {
         "status": "completed",
         "concept": repaired_concept,
-    })
+    }, _current_event)

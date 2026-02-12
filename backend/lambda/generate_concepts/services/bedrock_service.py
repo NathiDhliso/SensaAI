@@ -214,11 +214,36 @@ class BedrockService:
         except Exception as e:
             print(f"[ERROR] Repair failed: {e}")
             return None
+    TEMPLATE_PATTERNS = [
+        "why {name} matters",
+        "think of {name} as a building block",
+        "detailed explanation of",
+        "proper use of {name} vs common misunderstanding",
+        "{name} is a core concept",
+        "key exam topic for {name}",
+        "think of {name} as a",
+        "why {name} matters in",
+    ]
+
+    def _is_template_content(self, text: str, concept_name: str) -> bool:
+        if not text or not text.strip():
+            return False
+        lower = text.lower().strip()
+        name_lower = concept_name.lower().strip()
+        for pattern in self.TEMPLATE_PATTERNS:
+            check = pattern.replace("{name}", name_lower)
+            if lower.startswith(check) or lower == check:
+                return True
+        if lower.startswith("detailed explanation of "):
+            return True
+        return False
+
     def _validate_concept(self, concept: Dict[str, Any]) -> bool:
         if not isinstance(concept, dict):
             return False
         if not concept.get("name"):
             return False
+        name = concept.get("name", "")
         valid_tree_levels = {"trunk", "branch", "leaf"}
         tree_level = (concept.get("treeLevel") or "").lower().strip()
         if tree_level not in valid_tree_levels:
@@ -235,13 +260,40 @@ class BedrockService:
             return False
         connections = concept.get("connections", [])
         if not isinstance(connections, list) or len(connections) < 1:
-            print(f"[BedrockService] Validation fail: '{concept.get('name')}' has no connections")
+            print(f"[BedrockService] Validation fail: '{name}' has no connections")
             return False
         valid_levels = {"remember", "understand", "apply", "analyze", "evaluate", "create"}
         level = (concept.get("cognitiveLevel") or "").lower().strip()
         if level not in valid_levels:
-            print(f"[BedrockService] Validation fail: '{concept.get('name')}' missing cognitiveLevel")
+            print(f"[BedrockService] Validation fail: '{name}' missing cognitiveLevel")
             return False
+        template_fields = {
+            "phase1.hookSentence": (concept.get("phase1") or {}).get("hookSentence", ""),
+            "phase1.microMetaphor": (concept.get("phase1") or {}).get("microMetaphor", ""),
+            "whyYouNeed": concept.get("whyYouNeed", ""),
+            "shape.simpleCore": shape.get("simpleCore", ""),
+        }
+        template_count = 0
+        for field_name, value in template_fields.items():
+            if self._is_template_content(value, name):
+                template_count += 1
+                print(f"[BedrockService] Template content in '{name}'.{field_name}: '{value[:60]}'")
+        if template_count >= 2:
+            print(f"[BedrockService] Validation fail: '{name}' has {template_count} template fields")
+            return False
+        phase2 = concept.get("phase2", [])
+        if isinstance(phase2, list):
+            template_phase2 = sum(
+                1 for item in phase2
+                if isinstance(item, (str, dict)) and
+                self._is_template_content(
+                    item if isinstance(item, str) else (item.get("content", "") if isinstance(item, dict) else ""),
+                    name
+                )
+            )
+            if template_phase2 > 0 and len(phase2) > 0 and template_phase2 == len(phase2):
+                print(f"[BedrockService] Validation fail: '{name}' phase2 is all template content")
+                return False
         return True
     def _validate_tree_structure(self, concepts: List[Dict[str, Any]]) -> None:
         name_set = {c.get("name", "").strip().lower() for c in concepts if c.get("name")}

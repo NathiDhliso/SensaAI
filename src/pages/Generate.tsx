@@ -156,26 +156,25 @@ export default function Generate() {
  window.addEventListener('beforeunload', handleBeforeUnload);
  return () => window.removeEventListener('beforeunload', handleBeforeUnload);
  }, [isGenerating]);
- // Stuck-state detection: if page is idle with no error after 15s, show error
- // This catches cases where collision detection or API calls hang silently
+ // Stuck-state detection: if page is idle with no error after timeout, show error
+ // Accounts for collision detection (10s + 5s) plus Lambda cold starts
  useEffect(() => {
- // Only trigger if we're in the "stuck" state: not generating, no error
- if (isGenerating || error) return;
+ if (isGenerating || error || isCheckingCollision || showOverwriteModal) return;
 
  const timeout = setTimeout(() => {
- // Double-check current store state (not stale closure)
  const currentState = useGenerationStore.getState();
  if (!currentState.isGenerating && !currentState.error) {
+ const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
  _setError(
- 'Unable to connect to the generation server. ' +
+ `Unable to connect to the generation server (${apiUrl}). ` +
  'This usually means the backend is unreachable or took too long to respond. ' +
  'Please check your connection and try again.'
  );
  }
- }, 15000);
+ }, 30000);
 
  return () => clearTimeout(timeout);
- }, [isGenerating, error, _setError]);
+ }, [isGenerating, error, isCheckingCollision, showOverwriteModal, _setError]);
 
  // Slow network detection for link validation phase
  useEffect(() => {

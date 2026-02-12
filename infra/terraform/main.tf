@@ -49,7 +49,7 @@ module "cognito" {
   environment    = var.environment
   callback_urls  = var.cognito_callback_urls
   logout_urls    = var.cognito_logout_urls
-  domain_prefix  = "sensapbl-${var.environment}"
+  domain_prefix  = "${var.cognito_domain_prefix}-${var.environment}"
 }
 
 # ==============================================================================
@@ -105,7 +105,7 @@ module "lambda" {
   # Auth Lambda Cognito config
   cognito_user_pool_id = module.cognito.user_pool_id
   cognito_client_id    = module.cognito.client_id
-  cognito_domain       = "sensapbl-${var.environment}"
+  cognito_domain       = "${var.cognito_domain_prefix}-${var.environment}"
   aws_region           = var.aws_region
 
   # Provisioned concurrency (production only)

@@ -26,6 +26,13 @@ variable "cognito_logout_urls" {
   default     = ["http://localhost:5173"]
 }
 
+# Cognito Domain Prefix (globally unique across all AWS accounts)
+variable "cognito_domain_prefix" {
+  description = "Cognito hosted UI domain prefix (must be globally unique)"
+  type        = string
+  default     = "sensapbl"
+}
+
 # API Gateway CORS
 variable "cors_allowed_origins" {
   description = "Allowed CORS origins for API Gateway"
