@@ -222,6 +222,17 @@ Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
 **workedExample**: Procedural=config walkthrough, Conceptual=case study, Cyclic=iteration log, Perceptual=diagnostic walkthrough
 ### 4.2 QUALITY STANDARD — CONCRETE EXAMPLE
 Below is ONE fully-worked leaf concept. **Every concept you generate must match this depth and specificity.** Do NOT use placeholder text like "Detailed explanation of..." or "Why X matters" — write real technical content.
+### FIELD STYLE GUIDE (violating these causes automatic rejection):
+**hookSentence** — Lead with a surprising technical fact, a specific failure scenario, or a concrete exam trap. BANNED: "Without proper X...", "Without X...", "Improperly configured X...". GOOD examples:
+  - "Every VM in your VNet can talk to every other VM on every port by default..."
+  - "A single misconfigured priority number can lock out RDP access to every VM in the subnet..."
+  - "SAS tokens with no expiry date grant permanent access — and 40% of storage breaches start here..."
+**microMetaphor** — Use "[Concept] are/is [concrete metaphor] — [how the mapping works]". BANNED: "Think of X as...". GOOD examples:
+  - "NSGs are bouncers at every door — they check every packet against a priority-ordered guest list."
+  - "SAS tokens are hotel key cards — they open specific rooms for a limited time, then expire."
+**whyYouNeed** — State the specific technical problem, then explain how the exam tests it. BANNED: "X is crucial/critical/essential...", "X provides a secure way...", "X are essential for...". GOOD examples:
+  - "The AZ-104 exam presents scenarios where you must choose between LRS, ZRS, GRS, and RA-GRS based on RPO, RTO, and cost constraints..."
+  - "On the exam, you'll configure firewall rules that must allow app traffic while blocking public internet access..."
 ```json
 {{
  "name": "Network Security Groups",
@@ -251,7 +262,7 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
    "story": "Picture a bouncer at a nightclub door holding a clipboard. Each line on the clipboard is a rule with a priority number. The bouncer checks IDs (source IP), dress code (port number), and VIP list (protocol) from top to bottom. First matching rule wins — if rule #100 says Allow and rule #200 says Deny, you get in. The bouncer remembers who entered (stateful), so they can leave without re-checking."
  }},
  "phase1": {{
-   "hookSentence": "Without NSG rules, every VM in your VNet is wide open to every other VM on every port — NSGs are the only thing standing between your database and the internet.",
+   "hookSentence": "Every VM in your VNet can talk to every other VM on every port by default — NSGs are the only thing standing between your database and the internet.",
    "microMetaphor": "NSGs are bouncers at every door in your building — they check every packet's source IP, destination port, and protocol against a priority-ordered guest list before letting it through.",
    "prerequisite": "Understanding of IP addressing, subnets, and TCP/UDP port numbers",
    "selection": [
@@ -325,7 +336,10 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
 5. **EXAM CONTEXT**: Every concept framed for the exam, not real-world job context.
 6. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study with company name and year.
 7. **NO DUPLICATION**: Only generate for "{domain_name}". Other domains are separate.
-8. **NO GENERIC FILLER**: Every field must contain domain-specific technical content. Phrases like "Why X matters", "Think of X as a building block", "Detailed explanation of Y", or "Proper use of X vs Common misunderstanding" will cause rejection. Write real content.
+8. **NO GENERIC FILLER**: Every field must contain domain-specific technical content. The following patterns cause **automatic rejection**:
+   - "Why X matters", "Think of X as...", "Detailed explanation of Y", "Proper use of X vs Common misunderstanding"
+   - "Without proper X, your/you...", "Improperly configured X...", "Without X security/access/controls..."
+   - "X is a crucial/critical/essential component/part/aspect", "X provides a secure way to", "X are essential/crucial for"
 Generate the concept tree for "{domain_name}" now:"""
 def _parse_exam_tree(context: str) -> list:
     import re as _re

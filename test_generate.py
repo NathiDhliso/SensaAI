@@ -66,21 +66,15 @@ response_body = json.loads(response.get("body").read())
 raw = response_body.get("content", [])[0].get("text", "")
 print(f"Response: {len(raw)} chars")
 
-json_match = re.search(r'\[.*\]', raw, re.DOTALL)
-if not json_match:
-    print("ERROR: No JSON array found in response")
-    print(raw[:2000])
-    sys.exit(1)
+from generate_concepts.services.bedrock_service import BedrockService
+svc = BedrockService.__new__(BedrockService)
 
-concepts = json.loads(json_match.group())
+concepts = svc._parse_concepts_from_response(raw)
 print(f"Parsed {len(concepts)} concepts")
 
 with open("test_output.json", "w") as f:
     json.dump(concepts, f, indent=2)
 print("Saved raw output to test_output.json")
-
-from generate_concepts.services.bedrock_service import BedrockService
-svc = BedrockService.__new__(BedrockService)
 
 passed = 0
 failed = 0

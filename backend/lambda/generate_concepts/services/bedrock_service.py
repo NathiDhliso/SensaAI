@@ -230,7 +230,7 @@ class BedrockService:
             else:
                 system_part = prompt
                 user_part = f'Generate the concept tree for "{domain_name}" now. Return ONLY valid JSON array.'
-        user_part += "\n\nIMPORTANT REMINDER: Every field must contain REAL technical content specific to the concept. Do NOT use placeholder patterns like 'Why X matters', 'Think of X as a building block', 'Detailed explanation of Y', 'Proper use of X vs Common misunderstanding', or empty Q/A fields. Concepts with generic filler will be rejected and you will be asked to regenerate. Write as if you are a subject matter expert authoring a study guide."
+        user_part += "\n\nIMPORTANT — AUTOMATIC REJECTION PATTERNS (do NOT use these):\n- hookSentence: Never 'Without proper X...', 'Without X...', 'Improperly configured X...'. Lead with a technical fact or scenario.\n- microMetaphor: Never 'Think of X as...'. Use 'X are/is [metaphor] — [mapping]' pattern.\n- whyYouNeed: Never 'X is crucial/critical/essential...', 'X provides a secure way...', 'X are essential for...'. Explain the specific technical problem and exam relevance.\nWrite as a subject matter expert. Every field must have domain-specific technical depth."
         return system_part, user_part
     TEMPLATE_REGEX_PATTERNS = None
 
@@ -239,7 +239,7 @@ class BedrockService:
         if cls.TEMPLATE_REGEX_PATTERNS is None:
             cls.TEMPLATE_REGEX_PATTERNS = [
                 re.compile(r"^why\s+.+\s+matters", re.IGNORECASE),
-                re.compile(r"^think of\s+.+\s+as a", re.IGNORECASE),
+                re.compile(r"^think of\s+.+\s+as\b", re.IGNORECASE),
                 re.compile(r"^detailed explanation of\s+", re.IGNORECASE),
                 re.compile(r"^proper use of\s+.+\s+vs\s+", re.IGNORECASE),
                 re.compile(r"^understanding\s+.+\s+in the context of", re.IGNORECASE),
@@ -257,6 +257,12 @@ class BedrockService:
                 re.compile(r"^efficiency$", re.IGNORECASE),
                 re.compile(r"^common misunderstanding$", re.IGNORECASE),
                 re.compile(r"^none$", re.IGNORECASE),
+                re.compile(r"^without proper\s+.+,\s+(your|you)", re.IGNORECASE),
+                re.compile(r"^without\s+\w+\s+(security |access |controls?|rules?|configuration)", re.IGNORECASE),
+                re.compile(r"^improperly configured\s+", re.IGNORECASE),
+                re.compile(r"^.+\s+is (a |the )?(crucial|critical|essential|important|fundamental)\s+(component|part|aspect|element)", re.IGNORECASE),
+                re.compile(r"^.+\s+provides?\s+a\s+secure.+way to\s+", re.IGNORECASE),
+                re.compile(r"^.+\s+are\s+(essential|crucial|critical|important)\s+for\s+", re.IGNORECASE),
             ]
         return cls.TEMPLATE_REGEX_PATTERNS
 
