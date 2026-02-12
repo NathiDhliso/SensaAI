@@ -1,7 +1,37 @@
 import { useState, useMemo, useCallback } from 'react';
 import { MessageCircle, Send, User, CheckCircle, XCircle, Shield, Loader2 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
-import { generateReviewer, type AIReviewer } from '@/features/social/types';
+interface AIReviewer {
+ id: string;
+ name: string;
+ role: string;
+ expertise: 'novice' | 'intermediate' | 'expert';
+ personality: 'critical' | 'supportive' | 'curious';
+}
+const REVIEWER_NAMES = [
+ 'Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey',
+ 'Riley', 'Quinn', 'Avery', 'Cameron', 'Drew'
+];
+function generateReviewer(conceptName: string, cognitiveLevel?: string): AIReviewer {
+ const hash = conceptName.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+ const name = REVIEWER_NAMES[hash % REVIEWER_NAMES.length];
+ const expertiseByLevel: Record<string, AIReviewer['expertise']> = {
+ 'remember': 'novice', 'understand': 'novice',
+ 'apply': 'intermediate', 'analyze': 'intermediate',
+ 'evaluate': 'expert', 'create': 'expert'
+ };
+ const expertise = cognitiveLevel ? (expertiseByLevel[cognitiveLevel] ?? 'intermediate') : 'intermediate';
+ const personalities: AIReviewer['personality'][] = ['critical', 'supportive', 'curious'];
+ const personality = personalities[hash % personalities.length];
+ const rolesByExpertise: Record<AIReviewer['expertise'], string[]> = {
+ novice: ['Student', 'Trainee', 'Apprentice'],
+ intermediate: ['Practitioner', 'Analyst', 'Specialist'],
+ expert: ['Senior Specialist', 'Lead', 'Consultant']
+ };
+ const roles = rolesByExpertise[expertise];
+ const role = roles[hash % roles.length];
+ return { id: `reviewer-${hash}`, name, role, expertise, personality };
+}
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import {
  generateAIPushback,
@@ -23,52 +53,68 @@ function generateMisconception(concept: LearningConcept, allConcepts?: LearningC
  const pitfalls = concept.commonPitfalls ?? [];
  const keyPoints = concept.keyPoints ?? [];
  const howToUse = concept.howToUse ?? [];
+ const baseKeywords = [
+ ...keyPoints.slice(0, 3).flatMap(kp => kp.toLowerCase().split(/\s+/).filter(w => w.length > 4)),
+ ...(concept.shape?.simpleCore?.toLowerCase().split(/\s+/).filter(w => w.length > 4) ?? [])
+ ];
+ const keywords = baseKeywords.length > 0 ? [...new Set(baseKeywords)] : [concept.name.toLowerCase()];
  if (pitfalls.length > 0) {
  const pitfall = pitfalls[Math.floor(Math.random() * pitfalls.length)];
- const keywords = keyPoints.slice(0, 3).flatMap(kp => kp.toLowerCase().split(/\s+/).filter(w => w.length > 4));
  return {
  statement: `I was reading about ${concept.name} and I think ${pitfall.charAt(0).toLowerCase() + pitfall.slice(1)}. That's correct, right?`,
- correctionKeywords: keywords.length > 0 ? keywords : [concept.name.toLowerCase()]
+ correctionKeywords: keywords
+ };
+ }
+ const requires = concept.connections?.filter(c => c.type === 'requires') ?? [];
+ if (requires.length > 0) {
+ const dep = requires[Math.floor(Math.random() * requires.length)];
+ return {
+ statement: `I'm pretty sure you can learn ${concept.name} without knowing ${dep.target} first. The dependency is just a suggestion, right?`,
+ correctionKeywords: [...keywords, dep.target.toLowerCase()]
  };
  }
  const sameTier = allConcepts?.filter(c => c.id !== concept.id && c.tier === concept.tier) ?? [];
  if (sameTier.length > 0) {
  const confused = sameTier[Math.floor(Math.random() * sameTier.length)];
- const keywords = [
- concept.name.toLowerCase(),
- ...(howToUse.slice(0, 2).flatMap(s => s.toLowerCase().split(/\s+/).filter(w => w.length > 4)))
- ];
+ const extra = howToUse.slice(0, 2).flatMap(s => s.toLowerCase().split(/\s+/).filter(w => w.length > 4));
  return {
  statement: `I keep mixing up ${concept.name} and ${confused.name}. They're basically the same thing, aren't they? You use them interchangeably.`,
- correctionKeywords: keywords.length > 0 ? keywords : [concept.name.toLowerCase()]
+ correctionKeywords: [...new Set([concept.name.toLowerCase(), ...extra, ...keywords])]
  };
  }
- const keywords = [
- concept.name.toLowerCase(),
- ...(keyPoints.slice(0, 2).flatMap(kp => kp.toLowerCase().split(/\s+/).filter(w => w.length > 4)))
- ];
  return {
  statement: `I think ${concept.name} is only used in very specific edge cases and most people never need to understand it deeply. The details don't really matter.`,
- correctionKeywords: keywords.length > 0 ? keywords : [concept.name.toLowerCase()]
+ correctionKeywords: keywords
  };
 }
 function pickPushbackChallenge(concept: LearningConcept): string {
  const pitfalls = concept.commonPitfalls ?? [];
  const technicalDetails = concept.technicalDetails ?? '';
  const howToUse = concept.howToUse ?? [];
+ const challenges: string[] = [];
+ if (concept.shape?.highStakesExample) {
+ challenges.push(`Okay, but consider this real scenario: "${concept.shape.highStakesExample.slice(0, 150)}". How does your explanation hold up?`);
+ }
  if (pitfalls.length > 0) {
  const pitfall = pitfalls[Math.floor(Math.random() * pitfalls.length)];
- return `Okay, but if that's true, then why does this happen: "${pitfall}"?`;
+ challenges.push(`Okay, but if that's true, then why does this happen: "${pitfall}"?`);
+ }
+ if (concept.lifecycle?.phase3?.steps && concept.lifecycle.phase3.steps.length > 0) {
+ const validation = concept.lifecycle.phase3.steps[0];
+ challenges.push(`Then how would you verify that using: "${validation}"?`);
  }
  if (technicalDetails.length > 20) {
  const snippet = technicalDetails.slice(0, 120);
- return `Interesting, but how does that square with this: "${snippet}..."?`;
+ challenges.push(`Interesting, but how does that square with this: "${snippet}..."?`);
  }
  if (howToUse.length > 0) {
  const step = howToUse[Math.floor(Math.random() * howToUse.length)];
- return `Sure, but then explain why the process includes: "${step}"?`;
+ challenges.push(`Sure, but then explain why the process includes: "${step}"?`);
  }
+ if (challenges.length === 0) {
  return `Okay, but can you explain why that distinction actually matters in practice?`;
+ }
+ return challenges[Math.floor(Math.random() * challenges.length)];
 }
 function scoreCorrection(response: string, keywords: string[]): { score: number; matched: string[]; missed: string[] } {
  const lower = response.toLowerCase();
@@ -100,7 +146,7 @@ function scoreDefense(response: string, concept: LearningConcept): number {
  return Math.min(1, coverage * 0.85 + lengthBonus);
 }
 export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerReviewActivityProps) {
- const [selectedPeer] = useState<AIReviewer>(() => generateReviewer(concept.name));
+ const [selectedPeer] = useState<AIReviewer>(() => generateReviewer(concept.name, concept.cognitiveLevel));
  const { analogicalModel } = useMetaphorContent(concept);
  const [stage, setStage] = useState<ConversationStage>('diagnosis');
  const [inputText, setInputText] = useState('');
