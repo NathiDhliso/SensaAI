@@ -24,7 +24,10 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: { cookies: [], origins: [] },
+      },
       testIgnore: /auth\.setup\.ts|learner-experience\.spec\.ts/,
     },
     {

@@ -1,10 +1,15 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Generation Flow (Unauthenticated)', () => {
-  test('full flow: home → type subject → click generate → redirects to login', async ({ page }) => {
+  test('full flow: home → type subject + domains → click generate → redirects to login', async ({ page }) => {
     await page.goto('/');
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('Machine Learning Fundamentals');
+    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    await domainToggle.click();
+    const domainInputs = page.locator('input[placeholder*="Domain"]');
+    await domainInputs.nth(0).fill('Supervised Learning');
+    await domainInputs.nth(1).fill('Neural Networks');
     await page.locator('button').filter({ hasText: /generate learning system/i }).click();
     await page.waitForURL(/\/(generate|login)/);
     expect(page.url()).toMatch(/\/(generate|login)/);
@@ -14,6 +19,11 @@ test.describe('Generation Flow (Unauthenticated)', () => {
     await page.goto('/');
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('Azure Administrator');
+    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    await domainToggle.click();
+    const domainInputs = page.locator('input[placeholder*="Domain"]');
+    await domainInputs.nth(0).fill('Identity & Governance');
+    await domainInputs.nth(1).fill('Storage Solutions');
     await page.locator('button').filter({ hasText: /generate learning system/i }).click();
     await page.waitForURL(/\/(generate|login)/);
     const url = decodeURIComponent(page.url());

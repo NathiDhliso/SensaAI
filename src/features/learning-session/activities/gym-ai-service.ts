@@ -1,5 +1,4 @@
 import type { LearningConcept } from '@/shared/types/learning';
-import { useAuthStore } from '@/store/auth-store';
 
 const GYM_AI_URL = import.meta.env.VITE_GYM_AI_URL || import.meta.env.VITE_API_URL || '';
 
@@ -36,14 +35,10 @@ function compressConcept(c: LearningConcept): Record<string, unknown> {
 
 async function callGymAI<T>(action: string, data: Record<string, unknown>): Promise<T | null> {
  try {
- const token = useAuthStore.getState().getAccessToken();
- const headers: Record<string, string> = { 'Content-Type': 'application/json' };
- if (token) {
- headers['Authorization'] = `Bearer ${token}`;
- }
  const response = await fetch(`${GYM_AI_URL}/gym-ai`, {
  method: 'POST',
- headers,
+ headers: { 'Content-Type': 'application/json' },
+ credentials: 'include',
  body: JSON.stringify({ action, ...data })
  });
  if (!response.ok) return null;

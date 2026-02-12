@@ -25,6 +25,13 @@ test.describe('Login Page', () => {
   });
 
   test('shows error when submitting with invalid credentials', async ({ page }) => {
+    await page.route('**/api/v1/auth/session/login', async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Invalid credentials' }),
+      });
+    });
     await page.getByLabel(/email/i).fill('invalid@test.com');
     await page.getByLabel(/password/i).fill('wrongpassword');
     await page.getByRole('button', { name: /sign in/i }).click();

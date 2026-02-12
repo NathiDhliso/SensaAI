@@ -36,7 +36,12 @@ test.describe('Navigation & Routing', () => {
     await page.goto('/');
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('Docker Fundamentals');
-    await page.getByRole('button', { name: /generate learning system/i }).click();
+    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    await domainToggle.click();
+    const domainInputs = page.locator('input[placeholder*="Domain"]');
+    await domainInputs.nth(0).fill('Container Basics');
+    await domainInputs.nth(1).fill('Networking');
+    await page.locator('button').filter({ hasText: /generate learning system/i }).click();
     await page.waitForURL(/\/(generate|login)/);
   });
 });

@@ -3,12 +3,6 @@ import { persist } from 'zustand/middleware';
 import type { Pass1Result, PassStatus, ValidationResult, GenerationResult, SubjectType } from '@/shared/types/generation';
 import type { MacroWorkflowResult } from '@/shared/types/macro-workflow';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
-export type BedrockConfig = {
- region: string;
- accessKeyId?: string;
- secretAccessKey?: string;
- useCognito?: boolean;
-};
 // Construction phases for optimistic UI
 export type ConstructionPhase = 'idle' | 'foundation' | 'framing' | 'detailing' | 'complete';
 // Track active server-side jobs so we can resume after tab close
@@ -22,7 +16,6 @@ type ActiveJob = {
  status: 'pending' | 'processing' | 'completed' | 'failed';
 };
 export type GenerationState = {
- bedrockConfig: BedrockConfig | null;
  currentSubject: string | null;
  currentContext: string | null;
  currentFileContext: {
@@ -70,8 +63,6 @@ type GenerationProgressUpdate = {
  validation?: ValidationResult;
 };
 type GenerationActions = {
- setBedrockConfig: (config: BedrockConfig) => void;
- clearBedrockConfig: () => void;
  startGeneration: (subject: string, context?: string) => void;
  setFileContext: (content: string, fileName: string, mode: 'BLUEPRINT' | 'QUESTION' | 'GENERAL') => void;
  setPendingFile: (file: File | null) => void;
@@ -105,24 +96,7 @@ type GenerationActions = {
  getActiveJob: () => ActiveJob | null;
  clearActiveJob: () => void;
 };
-const getEnvBedrockConfig = (): BedrockConfig | null => {
- const region = import.meta.env.VITE_AWS_REGION || 'us-east-1';
- // Strategy 1: Direct Keys (Dev preference)
- const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
- const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
- if (region && accessKeyId && secretAccessKey) {
- return { region, accessKeyId, secretAccessKey };
- }
- // Strategy 2: Cognito (Prod/Auth preference)
- const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID;
- const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
- if (identityPoolId && userPoolId) {
- return { region, useCognito: true };
- }
- return null;
-};
 const initialState: GenerationState = {
- bedrockConfig: getEnvBedrockConfig(),
  currentSubject: null,
  currentContext: null,
  passes: {
@@ -157,8 +131,6 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
  persist(
  (set, get) => ({
  ...initialState,
- setBedrockConfig: (config) => set({ bedrockConfig: config }),
- clearBedrockConfig: () => set({ bedrockConfig: null }),
  setFileContext: (content, fileName, mode) =>
  set({ currentFileContext: { content, fileName, mode } }),
  pendingFile: null,
@@ -234,7 +206,6 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
  reset: () =>
  set({
  ...initialState,
- bedrockConfig: get().bedrockConfig,
  recentSubjects: get().recentSubjects,
  results: get().results
  }),
@@ -322,4 +293,4 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
  }
  }
  )
-);
+);

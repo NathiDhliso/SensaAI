@@ -17,9 +17,35 @@ test.describe('Home Page', () => {
     await expect(generateBtn).toBeDisabled();
   });
 
-  test('generate button enables when subject is typed', async ({ page }) => {
+  test('generate button stays disabled with only a subject and no domains or objectives', async ({ page }) => {
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('AWS Solutions Architect');
+    const generateBtn = page.locator('button').filter({ hasText: /generate learning system/i });
+    await expect(generateBtn).toBeDisabled();
+  });
+
+  test('generate button enables when subject and objectives are provided', async ({ page }) => {
+    const input = page.getByPlaceholder('Enter any subject to learn...');
+    await input.fill('AWS Solutions Architect');
+    await input.blur();
+    await page.waitForTimeout(300);
+    const toggle = page.getByRole('button', { name: /paste exam objectives/i });
+    await toggle.click();
+    const textarea = page.getByPlaceholder(/paste your exam objectives/i);
+    await textarea.fill('Manage identities\nConfigure storage');
+    await page.waitForTimeout(300);
+    const generateBtn = page.locator('button').filter({ hasText: /generate learning system/i });
+    await expect(generateBtn).toBeEnabled();
+  });
+
+  test('generate button enables when subject and trunk domains are provided', async ({ page }) => {
+    const input = page.getByPlaceholder('Enter any subject to learn...');
+    await input.fill('AWS Solutions Architect');
+    const toggle = page.getByRole('button', { name: /define exam domains/i });
+    await toggle.click();
+    const domainInputs = page.locator('input[placeholder*="Domain"]');
+    await domainInputs.nth(0).fill('Identity & Governance');
+    await domainInputs.nth(1).fill('Storage Solutions');
     const generateBtn = page.locator('button').filter({ hasText: /generate learning system/i });
     await expect(generateBtn).toBeEnabled();
   });
@@ -85,18 +111,16 @@ test.describe('Home Page', () => {
     await expect(page.getByText(/domain-locked/i)).toBeVisible();
   });
 
-  test('Cloud Library button is visible and clickable', async ({ page }) => {
-    const cloudBtn = page.getByRole('button', { name: /cloud library/i });
-    await expect(cloudBtn).toBeVisible();
-    await cloudBtn.click();
-    await expect(page.locator('[class*="modal"], [role="dialog"]').first()).toBeVisible();
+  test('unauthenticated home shows Sign In and Create Account buttons', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();
   });
 
-  test('Saved Results button navigates to /library', async ({ page }) => {
-    const savedBtn = page.getByRole('button', { name: /saved results/i });
-    await expect(savedBtn).toBeVisible();
-    await savedBtn.click();
-    await page.waitForURL(/\/(library|login)/);
+  test('Sign In button navigates to /login', async ({ page }) => {
+    const signInBtn = page.getByRole('button', { name: /sign in/i });
+    await expect(signInBtn).toBeVisible();
+    await signInBtn.click();
+    await page.waitForURL(/\/login/);
   });
 
   test('Settings button opens settings panel', async ({ page }) => {
@@ -106,15 +130,22 @@ test.describe('Home Page', () => {
     await expect(page.getByRole('dialog')).toBeVisible();
   });
 
-  test('pressing Enter on subject input triggers generation flow', async ({ page }) => {
+  test('pressing Enter on subject input triggers generation flow when domains provided', async ({ page }) => {
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('React & TypeScript');
+    await input.blur();
+    await page.waitForTimeout(300);
+    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    await domainToggle.click();
+    const domainInputs = page.locator('input[placeholder*="Domain"]');
+    await domainInputs.nth(0).fill('Components');
+    await domainInputs.nth(1).fill('State Management');
+    await input.focus();
     await input.press('Enter');
     await page.waitForURL(/\/(generate|login)/);
   });
 
-  test('ungrounded mode warning shows when no objectives or domains', async ({ page }) => {
+  test('standard mode shows when no objectives or domains', async ({ page }) => {
     await expect(page.getByText(/standard mode/i)).toBeVisible();
-    await expect(page.getByText(/hallucination/i)).toBeVisible();
   });
 });

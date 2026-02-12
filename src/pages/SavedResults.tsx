@@ -181,8 +181,7 @@ export default function SavedResults() {
  <div className={styles.headerActions}>
  <button
  onClick={handleCleanupDuplicates}
- className={styles.importButton} // reusing style for now, or create new one
- style={{ backgroundColor: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', marginRight: '0.5rem' }}
+ className={`${styles.importButton} ${styles.cleanupButton}`}
  title="Remove duplicate subjects"
  >
  <Sparkles size={16} />
@@ -248,9 +247,9 @@ export default function SavedResults() {
  <div className={styles.emptyState}>
  <Cloud size={48} className={styles.emptyIcon} />
  <h2>No saved results yet</h2>
- <p>Generate and save your first chart to see it here</p>
+ <p>Generate your first learning system to see it here</p>
  <button onClick={() => navigate('/')} className={styles.primaryButton}>
- Generate Chart
+ Generate Learning System
  </button>
  </div>
  ) : filteredResults.length === 0 ? (
@@ -271,15 +270,7 @@ export default function SavedResults() {
  <h3 className={styles.cardTitle}>
  {result.subject}
  {result.alias && (
- <span style={{
- marginLeft: '0.5rem',
- fontSize: '0.7rem',
- padding: '2px 6px',
- background: 'var(--color-accent-muted)',
- borderRadius: '4px',
- fontFamily: 'monospace',
- color: 'var(--color-accent)'
- }}>
+ <span className={styles.aliasBadge}>
  {result.alias}
  </span>
  )}
@@ -358,4 +349,4 @@ export default function SavedResults() {
  </div>
  </div>
  );
-}
+}

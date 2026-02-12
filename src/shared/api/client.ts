@@ -1,8 +1,7 @@
 /**
  * API Client for SensaAI Backend
  * 
- * Uses Bearer JWT token authentication via Authorization header.
- * Tokens are managed by the auth store (Zustand).
+ * Uses HttpOnly cookie authentication via credentials: 'include'.
  * On 401, dispatches auth:unauthorized event for the store to handle.
  * 
  * @module lib/api/client
@@ -133,26 +132,9 @@ export function getErrorMessage(error: unknown, fallback: string = 'An unexpecte
 }
 
 // ============================================================================
-// TOKEN ACCESSOR (set by auth store on init)
-// ============================================================================
-type TokenGetter = () => string | null;
-let _getToken: TokenGetter = () => null;
-
-/**
- * Register the token getter from auth store.
- * Called once during app initialization.
- */
-export function registerTokenGetter(getter: TokenGetter): void {
- _getToken = getter;
-}
-
-// ============================================================================
 // API CLIENT CLASS
 // ============================================================================
 class ApiClient {
-  /**
-  * Build request headers with Bearer token
-  */
   private getHeaders(options?: ApiRequestOptions): HeadersInit {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -161,13 +143,6 @@ class ApiClient {
     if (options?.headers) {
       const customHeaders = options.headers as Record<string, string>;
       Object.assign(headers, customHeaders);
-    }
-
-    if (!options?.skipAuth) {
-      const token = _getToken();
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
     }
 
     return headers;
@@ -184,6 +159,7 @@ class ApiClient {
     const fetchOptions: RequestInit = {
       method,
       headers: this.getHeaders(options),
+      credentials: 'include',
     };
 
     if (options?.signal) {
@@ -370,6 +346,7 @@ class ApiClient {
           ...headers,
           Accept: 'text/event-stream'
         },
+        credentials: 'include',
         signal: options?.signal
       });
     } catch (error) {
@@ -420,78 +397,50 @@ export const apiClient = new ApiClient();
 // AUTH SESSION API
 // ============================================================================
 /**
- * Authentication session management using Bearer JWT tokens.
- * Tokens returned as JSON, stored in auth store.
+ * Authentication session management using HttpOnly cookies.
+ * Tokens are stored server-side in cookies, not exposed to JavaScript.
  */
-interface AuthTokensResponse {
-  access_token: string;
-  id_token: string;
-  refresh_token: string;
-  expires_in: number;
-}
-
 export const authSessionApi = {
-  /**
-  * Exchange auth code for tokens (OAuth callback)
-  * Returns user + tokens as JSON
-  */
   async exchangeCode(
     code: string,
     redirectUri: string,
     codeVerifier: string
-  ): Promise<{ user: { id: string; email: string; name?: string }; tokens: AuthTokensResponse }> {
-    return apiClient.post('/auth/exchange', {
+  ): Promise<{ user: { id: string; email: string; name?: string } }> {
+    return apiClient.post('/auth/session/exchange', {
       code,
       redirect_uri: redirectUri,
       code_verifier: codeVerifier
     }, { skipAuth: true });
   },
 
-  /**
-  * Login with credentials and receive tokens
-  * Returns user + tokens as JSON
-  */
   async loginWithCredentials(
     email: string,
     password: string
-  ): Promise<{ user: { id: string; email: string; name?: string }; tokens: AuthTokensResponse }> {
-    return apiClient.post('/auth/login', {
+  ): Promise<{ user: { id: string; email: string; name?: string } }> {
+    return apiClient.post('/auth/session/login', {
       email,
       password
     }, { skipAuth: true });
   },
 
-  /**
-  * Refresh the access token using refresh_token
-  * Returns new access_token + expires_in
-  */
-  async refreshSession(refreshToken: string): Promise<{ access_token: string; id_token: string; expires_in: number }> {
-    return apiClient.post('/auth/refresh', {
-      refresh_token: refreshToken
-    }, { skipAuth: true });
+  async refreshSession(): Promise<{ success: boolean }> {
+    return apiClient.post('/auth/session/refresh', undefined, { skipAuth: true });
   },
 
-  /**
-  * Logout — calls Cognito GlobalSignOut via auth Lambda
-  */
   async clearSession(): Promise<{ success: boolean }> {
     try {
-      return await apiClient.post('/auth/logout');
+      return await apiClient.post('/auth/session/clear');
     } catch {
-      return { success: true }; // Don't fail logout
+      return { success: true };
     }
   },
 
-  /**
-  * Check if current session is valid
-  * Uses the Bearer token in Authorization header
-  */
   async validateSession(): Promise<{
     valid: boolean;
     user?: { id: string; email: string; name?: string };
   }> {
     try {
-      return await apiClient.get('/auth/validate');
+      return await apiClient.get('/auth/session/validate');
     } catch {
       return { valid: false };
     }

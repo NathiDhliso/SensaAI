@@ -1,8 +1,3 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-export function cn(...inputs: ClassValue[]) {
- return twMerge(clsx(inputs));
-}
 export function formatTime(seconds: number): string {
  const mins = Math.floor(seconds / 60);
  const secs = Math.floor(seconds % 60);
@@ -46,4 +41,4 @@ export function getTimerUrgency(
  if (remaining <= criticalThreshold) return 'critical';
  if (remaining <= warningThreshold) return 'warning';
  return 'normal';
-}
+}

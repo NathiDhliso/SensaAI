@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, Zap, Cloud, ChevronDown, ChevronUp, Target, Plus, X, GitBranch, AlertTriangle } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud, ChevronDown, ChevronUp, Target, Plus, X, GitBranch } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import { parseSyllabusText } from '@/features/content-audit';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGenerationStore } from '@/store/generation-store';
 import { useUIStore } from '@/store/ui-store';
+import { useAuthStore } from '@/store/auth-store';
 import { CloudLibraryModal } from '@/components/storage/CloudLibraryModal';
 import { CATEGORY_COLORS, DIFFICULTY_COLORS } from '@/shared/constants/theme-colors';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
@@ -76,6 +77,45 @@ const SUBJECT_CATEGORIES = [
  { name: 'Product Management', difficulty: 'Intermediate', hours: 30 },
  { name: 'Financial Analysis', difficulty: 'Advanced', hours: 35 }
  ]
+ },
+ {
+ id: 'sciences',
+ name: 'Sciences',
+ shapeType: 'synapse' as SensaShapeType,
+ color: CATEGORY_COLORS.sciences,
+ subjects: [
+ { name: 'Biology', difficulty: 'Intermediate', hours: 30 },
+ { name: 'Chemistry', difficulty: 'Intermediate', hours: 30 },
+ { name: 'Physics', difficulty: 'Advanced', hours: 35 },
+ { name: 'Life Sciences', difficulty: 'Beginner', hours: 20 },
+ { name: 'Earth Sciences', difficulty: 'Beginner', hours: 20 }
+ ]
+ },
+ {
+ id: 'humanities',
+ name: 'Humanities',
+ shapeType: 'prism' as SensaShapeType,
+ color: CATEGORY_COLORS.humanities,
+ subjects: [
+ { name: 'History', difficulty: 'Intermediate', hours: 25 },
+ { name: 'Geography', difficulty: 'Beginner', hours: 20 },
+ { name: 'English Literature', difficulty: 'Intermediate', hours: 25 },
+ { name: 'Economics', difficulty: 'Advanced', hours: 30 },
+ { name: 'Accounting', difficulty: 'Intermediate', hours: 30 }
+ ]
+ },
+ {
+ id: 'mathematics',
+ name: 'Mathematics',
+ shapeType: 'construct' as SensaShapeType,
+ color: CATEGORY_COLORS.mathematics,
+ subjects: [
+ { name: 'Algebra', difficulty: 'Beginner', hours: 20 },
+ { name: 'Calculus', difficulty: 'Advanced', hours: 35 },
+ { name: 'Statistics', difficulty: 'Intermediate', hours: 25 },
+ { name: 'Geometry', difficulty: 'Beginner', hours: 20 },
+ { name: 'Linear Algebra', difficulty: 'Advanced', hours: 30 }
+ ]
  }
 ];
 const DIFFICULTY_LEVELS = {
@@ -98,6 +138,7 @@ export default function Home() {
  /* Hooks & Store */
  const { openSettingsPanel } = useUIStore();
  const { recentSubjects } = useGenerationStore();
+ const { isAuthenticated } = useAuthStore();
  /* Derived State */
  const allSubjects = useMemo(() => {
  return SUBJECT_CATEGORIES.flatMap(cat => cat.subjects.map(sub => ({
@@ -131,7 +172,7 @@ export default function Home() {
  setTrunks(updated);
  };
  const handleGenerate = () => {
- if (subject.trim()) {
+ if (!subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)) return;
  setShowSuggestions(false);
  const params = new URLSearchParams();
  if (parsedObjectives.length > 0) {
@@ -142,7 +183,6 @@ export default function Home() {
  }
  const query = params.toString();
  navigate(`/generate/${encodeURIComponent(subject)}${query ? `?${query}` : ''}`);
- }
  };
  return (
  <div className={styles.container}>
@@ -344,31 +384,19 @@ export default function Home() {
  <span>Domain-Locked — {validTrunks.length} trunks fixed{parsedObjectives.length > 0 ? `, ${parsedObjectives.length} objectives as context` : ''}</span>
  </div>
  ) : parsedObjectives.length > 0 ? (
- <>
  <div className={styles.groundedStatus}>
  <Target size={14} />
  <span>Objective-Driven — AI will generate concepts mapped to your {parsedObjectives.length} objectives</span>
  </div>
- <div className={styles.hallucinationNotice}>
- <AlertTriangle size={12} />
- <span>Trunk domains will be AI-generated — define them above for guaranteed accuracy</span>
- </div>
- </>
  ) : (
- <>
  <div className={styles.ungroundedStatus}>
  <span>Standard Mode — Define domains or paste objectives above for targeted content</span>
  </div>
- <div className={styles.hallucinationWarning}>
- <AlertTriangle size={13} />
- <span>AI will infer all domains, branches, and leaves — hallucination is possible. Define your exam domains above for reliable results.</span>
- </div>
- </>
  )}
  </div>
  <button
  onClick={handleGenerate}
- disabled={!subject.trim()}
+ disabled={!subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)}
  className={styles.generateButton}
  >
  <Zap size={18} />
@@ -392,6 +420,8 @@ export default function Home() {
  )}
  </motion.div>
  <div className={styles.actionButtons}>
+ {isAuthenticated ? (
+ <>
  <button onClick={() => setShowCloudLibrary(true)} className={styles.cloudLibraryButton}>
  <Cloud size={18} />
  Cloud Library
@@ -400,6 +430,17 @@ export default function Home() {
  <Archive size={18} />
  Saved Results
  </button>
+ </>
+ ) : (
+ <>
+ <button onClick={() => navigate('/login')} className={styles.savedButton}>
+ Sign In
+ </button>
+ <button onClick={() => navigate('/signup')} className={styles.cloudLibraryButton}>
+ Create Account
+ </button>
+ </>
+ )}
  <button onClick={openSettingsPanel} className={styles.settingsButton}>
  Settings
  </button>

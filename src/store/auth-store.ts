@@ -1,13 +1,12 @@
 /**
  * @file auth-store.ts
  * @description Zustand store for authentication state management.
- * Uses Bearer JWT tokens stored in memory for serverless API Gateway auth.
+ * Uses HttpOnly cookies for secure session management.
  * 
  * Security Model:
- * - Tokens stored in Zustand state (memory) and persisted in localStorage
- * - Authorization: Bearer <token> sent on every API request
- * - Automatic token refresh before expiry
- * - Session validation via local JWT decode (no backend call needed)
+ * - HttpOnly cookies set by backend on login/callback
+ * - credentials: 'include' on every API request
+ * - Session validation via backend /auth/session/validate
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -31,24 +30,12 @@ export interface User {
  name?: string;
 }
 
-/** JWT tokens returned by auth Lambda */
-interface AuthTokens {
- access_token: string;
- id_token: string;
- refresh_token: string;
- expires_in: number;
- /** Absolute timestamp (ms) when access_token expires */
- expires_at?: number;
-}
-
 interface AuthState {
  user: User | null;
  isAuthenticated: boolean;
  isLoading: boolean;
  error: string | null;
- /** JWT tokens (stored in memory, persisted via Zustand) */
- tokens: AuthTokens | null;
- /** Timestamp of last successful session validation */
+ tokens: null;
  lastValidated: number | null;
 }
 
@@ -77,8 +64,6 @@ interface AuthActions {
  clearAllAuthData: () => Promise<void>;
  /** Initialize auth listeners (call once on app mount) */
  initializeAuthListeners: () => () => void;
- /** Get current access token (for API client) */
- getAccessToken: () => string | null;
 }
 
 export type AuthStore = AuthState & AuthActions;
@@ -221,14 +206,6 @@ export const useAuthStore = create<AuthStore>()(
  lastValidated: null,
 
  // ----------------------------------------------------------------
- // Get Access Token (for API client to read)
- // ----------------------------------------------------------------
- getAccessToken: () => {
- const { tokens } = get();
- return tokens?.access_token || null;
- },
-
- // ----------------------------------------------------------------
  // OAuth Login (Redirect to Cognito Hosted UI)
  // ----------------------------------------------------------------
  login: async () => {
@@ -255,27 +232,18 @@ export const useAuthStore = create<AuthStore>()(
  }
  },
 
- // ----------------------------------------------------------------
- // Direct Credentials Login (returns tokens as JSON)
- // ----------------------------------------------------------------
  loginWithCredentials: async (email: string, password: string) => {
  set({ isLoading: true, error: null });
  try {
  const result = await authSessionApi.loginWithCredentials(email, password);
- const tokens: AuthTokens = {
- ...result.tokens,
- expires_at: Date.now() + (result.tokens.expires_in * 1000),
- };
  set({
  user: result.user,
- tokens,
+ tokens: null,
  isAuthenticated: true,
  isLoading: false,
  error: null,
  lastValidated: Date.now()
  });
- // Schedule auto-refresh
- scheduleTokenRefresh(tokens.expires_in);
  } catch (error) {
  console.error('[Auth] Login error:', error);
  const errorMessage = formatAuthError(error);
@@ -291,9 +259,6 @@ export const useAuthStore = create<AuthStore>()(
  }
  },
 
- // ----------------------------------------------------------------
- // Sign Up (Uses Cognito SDK - no tokens involved)
- // ----------------------------------------------------------------
  signUp: async (email: string, password: string, name: string) => {
  set({ isLoading: true, error: null });
  try {
@@ -318,9 +283,6 @@ export const useAuthStore = create<AuthStore>()(
  }
  },
 
- // ----------------------------------------------------------------
- // Confirm Sign Up
- // ----------------------------------------------------------------
  confirmSignUp: async (email: string, code: string) => {
  set({ isLoading: true, error: null });
  try {
@@ -341,9 +303,6 @@ export const useAuthStore = create<AuthStore>()(
  }
  },
 
- // ----------------------------------------------------------------
- // Resend Confirmation Code
- // ----------------------------------------------------------------
  resendConfirmationCode: async (email: string) => {
  try {
  set({ isLoading: true, error: null });
@@ -363,16 +322,12 @@ export const useAuthStore = create<AuthStore>()(
  }
  },
 
- // ----------------------------------------------------------------
- // Logout (clear local tokens, optionally sign out from Cognito)
- // ----------------------------------------------------------------
  logout: async () => {
  try {
  await authSessionApi.clearSession();
  } catch (error) {
  console.warn('[Auth] Error during remote logout:', error);
  }
- // Clear local state
  set({
  user: null,
  isAuthenticated: false,
@@ -380,17 +335,10 @@ export const useAuthStore = create<AuthStore>()(
  error: null,
  lastValidated: null
  });
- // Clear PKCE verifier if present
  localStorage.removeItem(CODE_VERIFIER_KEY);
- // Clear any pending refresh timers
- clearScheduledRefresh();
- // Redirect to login page
  window.location.href = '/login';
  },
 
- // ----------------------------------------------------------------
- // Handle OAuth Callback (Exchange code for tokens)
- // ----------------------------------------------------------------
  handleCallback: async (code: string) => {
  set({ isLoading: true, error: null });
  try {
@@ -408,29 +356,20 @@ export const useAuthStore = create<AuthStore>()(
  });
  throw new Error(message);
  }
- // Exchange code for tokens
  const result = await authSessionApi.exchangeCode(
  code,
  COGNITO_REDIRECT_URI,
  codeVerifier
  );
- // Clear the verifier
  localStorage.removeItem(CODE_VERIFIER_KEY);
-
- const tokens: AuthTokens = {
- ...result.tokens,
- expires_at: Date.now() + (result.tokens.expires_in * 1000),
- };
  set({
  user: result.user,
- tokens,
+ tokens: null,
  isAuthenticated: true,
  isLoading: false,
  error: null,
  lastValidated: Date.now()
  });
- // Schedule auto-refresh
- scheduleTokenRefresh(tokens.expires_in);
  } catch (error) {
  console.error('[Auth] Callback error:', error);
  const errorMessage = formatAuthError(error);
@@ -447,29 +386,8 @@ export const useAuthStore = create<AuthStore>()(
  }
  },
 
- // ----------------------------------------------------------------
- // Validate Session (local JWT decode — no backend call)
- // ----------------------------------------------------------------
  validateSession: async () => {
  try {
- const { tokens } = get();
- if (!tokens?.access_token) {
- set({ user: null, isAuthenticated: false, lastValidated: null, tokens: null });
- return false;
- }
-
- // Check if token is expired locally
- if (tokens.expires_at && Date.now() >= tokens.expires_at) {
- // Try to refresh
- const refreshed = await get().refreshSession();
- if (!refreshed) {
-  set({ user: null, isAuthenticated: false, lastValidated: null, tokens: null });
-  return false;
- }
- return true;
- }
-
- // Validate via backend for user info
  const result = await authSessionApi.validateSession();
  if (result.valid && result.user) {
  set({
@@ -478,7 +396,19 @@ export const useAuthStore = create<AuthStore>()(
  lastValidated: Date.now()
  });
  return true;
- } else {
+ }
+ const refreshed = await get().refreshSession();
+ if (refreshed) {
+ const retryResult = await authSessionApi.validateSession();
+ if (retryResult.valid && retryResult.user) {
+ set({
+ user: retryResult.user,
+ isAuthenticated: true,
+ lastValidated: Date.now()
+ });
+ return true;
+ }
+ }
  set({
  user: null,
  isAuthenticated: false,
@@ -486,7 +416,6 @@ export const useAuthStore = create<AuthStore>()(
  tokens: null
  });
  return false;
- }
  } catch (error) {
  console.warn('[Auth] Session validation failed:', error);
  set({
@@ -499,59 +428,36 @@ export const useAuthStore = create<AuthStore>()(
  }
  },
 
- // ----------------------------------------------------------------
- // Refresh Session (send refresh_token, get new access_token)
- // ----------------------------------------------------------------
  refreshSession: async () => {
  try {
- const { tokens } = get();
- if (!tokens?.refresh_token) {
- return false;
- }
- const result = await authSessionApi.refreshSession(tokens.refresh_token);
- if (result.access_token) {
- const newTokens: AuthTokens = {
- ...tokens,
- access_token: result.access_token,
- id_token: result.id_token || tokens.id_token,
- expires_in: result.expires_in,
- expires_at: Date.now() + (result.expires_in * 1000),
- };
- set({ tokens: newTokens, lastValidated: Date.now() });
- scheduleTokenRefresh(result.expires_in);
+ const result = await authSessionApi.refreshSession();
+ if (result.success) {
+ set({ lastValidated: Date.now() });
  return true;
  }
  return false;
  } catch (error) {
  console.warn('[Auth] Session refresh failed:', error);
  if (isAuthError(error)) {
-  set({
-  user: null,
-  isAuthenticated: false,
-  tokens: null,
-  error: 'Session expired. Please sign in again.',
-  lastValidated: null
-  });
+ set({
+ user: null,
+ isAuthenticated: false,
+ tokens: null,
+ error: 'Session expired. Please sign in again.',
+ lastValidated: null
+ });
  }
  return false;
  }
  },
 
- // ----------------------------------------------------------------
- // Clear Error
- // ----------------------------------------------------------------
  clearError: () => set({ error: null }),
 
- // ----------------------------------------------------------------
- // Clear All Auth Data (Debug/Support utility)
- // ----------------------------------------------------------------
  clearAllAuthData: async () => {
  try {
  await authSessionApi.clearSession();
  } catch (_e) {
- // Ignore errors
  }
- clearScheduledRefresh();
  set({
  user: null,
  isAuthenticated: false,
@@ -564,117 +470,52 @@ export const useAuthStore = create<AuthStore>()(
  sessionStorage.clear();
  },
 
- // ----------------------------------------------------------------
- // Initialize Auth Listeners (call on app mount)
- // ----------------------------------------------------------------
  initializeAuthListeners: () => {
  const handleUnauthorized = async () => {
  console.warn('[Auth] Received unauthorized event, trying refresh...');
  const refreshed = await get().refreshSession();
  if (!refreshed) {
-  set({
-  user: null,
-  isAuthenticated: false,
-  tokens: null,
-  error: 'Session expired. Please sign in again.',
-  lastValidated: null
-  });
+ set({
+ user: null,
+ isAuthenticated: false,
+ tokens: null,
+ error: 'Session expired. Please sign in again.',
+ lastValidated: null
+ });
  }
  };
  window.addEventListener('auth:unauthorized', handleUnauthorized);
- // If we have tokens, schedule refresh
- const { tokens } = get();
- if (tokens?.expires_at) {
- const remainingSec = Math.max(0, Math.floor((tokens.expires_at - Date.now()) / 1000));
- if (remainingSec > 0) {
-  scheduleTokenRefresh(remainingSec);
- }
- }
  return () => {
  window.removeEventListener('auth:unauthorized', handleUnauthorized);
- clearScheduledRefresh();
  };
  }
  }),
- {
- name: 'sensapbl-auth',
- // Persist user info and tokens
- partialize: (state) => ({
- user: state.user,
- isAuthenticated: state.isAuthenticated,
- tokens: state.tokens,
- lastValidated: state.lastValidated
- }),
- onRehydrateStorage: () => (state) => {
- if (state?.isAuthenticated && state?.tokens) {
- setTimeout(async () => {
-  const isValid = await useAuthStore.getState().validateSession();
-  if (!isValid) {
-  console.warn('[Auth] Session invalid on hydration, clearing state');
-  useAuthStore.setState({
-  user: null,
-  isAuthenticated: false,
-  tokens: null,
-  lastValidated: null
-  });
-  }
- }, 100);
- }
- }
- }
- )
+    {
+      name: 'sensapbl-auth',
+      // Persist user info and tokens
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+        tokens: state.tokens,
+        lastValidated: state.lastValidated
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.isAuthenticated) {
+          setTimeout(async () => {
+            const isValid = await useAuthStore.getState().validateSession();
+            if (!isValid) {
+              console.warn('[Auth] Session invalid on hydration, clearing state');
+              useAuthStore.setState({
+                user: null,
+                isAuthenticated: false,
+                tokens: null,
+                lastValidated: null
+              });
+            }
+          }, 100);
+        }
+      }
+    }
+  )
 );
-// ============================================================================
-// Token Refresh Scheduler
-// ============================================================================
-let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
-function scheduleTokenRefresh(expiresInSec: number): void {
- clearScheduledRefresh();
- // Refresh 60 seconds before expiry (or halfway if < 120s)
- const refreshInMs = Math.max(1000, (expiresInSec - 60) * 1000);
- refreshTimer = setTimeout(async () => {
- const store = useAuthStore.getState();
- if (store.isAuthenticated && store.tokens?.refresh_token) {
- console.info('[Auth] Auto-refreshing token...');
- await store.refreshSession();
- }
- }, refreshInMs);
-}
-
-function clearScheduledRefresh(): void {
- if (refreshTimer) {
- clearTimeout(refreshTimer);
- refreshTimer = null;
- }
-}
-
-// ============================================================================
-// Backward Compatibility Exports
-// ============================================================================
-
-/**
- * Quick local check for session validity
- */
-export const isSessionValid = (): boolean => {
- const state = useAuthStore.getState();
- if (!state.isAuthenticated || !state.tokens) return false;
- // Check token expiry
- if (state.tokens.expires_at && Date.now() >= state.tokens.expires_at) return false;
- return true;
-};
-
-/**
- * Get access token for API calls
- */
-export const getAccessToken = async (): Promise<string | null> => {
- const state = useAuthStore.getState();
- if (!state.tokens?.access_token) return null;
- // If expired, try refresh
- if (state.tokens.expires_at && Date.now() >= state.tokens.expires_at) {
- const refreshed = await state.refreshSession();
- if (!refreshed) return null;
- return useAuthStore.getState().tokens?.access_token || null;
- }
- return state.tokens.access_token;
-};

@@ -17,6 +17,7 @@ const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login }
 const SignUp = lazy(() => import('./pages/SignUp').then(m => ({ default: m.SignUp })));
 const ConfirmSignUp = lazy(() => import('./pages/ConfirmSignUp').then(m => ({ default: m.ConfirmSignUp })));
 const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
 
 function LoadingFallback() {
  return (
@@ -45,6 +46,7 @@ function App() {
  <Route path="/login" element={<Login />} />
  <Route path="/signup" element={<SignUp />} />
  <Route path="/confirm-signup" element={<ConfirmSignUp />} />
+ <Route path="/forgot-password" element={<ForgotPassword />} />
  <Route path="/auth/callback" element={<AuthCallback />} />
  <Route path="/callback" element={<AuthCallback />} />
 

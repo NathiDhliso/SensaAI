@@ -80,7 +80,6 @@ export default function Generate() {
  const trunks = trunksParam ? (() => { try { return JSON.parse(trunksParam) as string[]; } catch { return undefined; } })() : undefined;
  // Generation store state
  const {
- bedrockConfig,
  passes,
  error,
  isGenerating,
@@ -129,7 +128,7 @@ export default function Generate() {
  if (!subject) return;
  // Check authentication
  const { isAuthenticated } = useAuthStore.getState();
- if (!isAuthenticated && !bedrockConfig) {
+ if (!isAuthenticated) {
  navigate('/login', { state: { from: `/generate/${subject}` } });
  return;
  }
@@ -144,7 +143,7 @@ export default function Generate() {
  const decodedSubject = decodeURIComponent(subject);
  checkForDuplicates(decodedSubject);
  // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [subject, bedrockConfig, navigate]);
+ }, [subject, navigate]);
  // Beforeunload warning
  useEffect(() => {
  const handleBeforeUnload = (e: BeforeUnloadEvent) => {

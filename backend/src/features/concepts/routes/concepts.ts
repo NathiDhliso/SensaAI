@@ -124,7 +124,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
 conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response) => {
  try {
  const userId = req.user?.sub || 'anonymous';
- const { subject, context } = req.body;
+ const { subject, context, trunks } = req.body;
  // Always ensure sessionId exists - generate one if not provided
  const sessionId = req.body.sessionId || uuidv4();
  console.log('[Backend /generate] Request received:', { subject, userId, sessionId, hasContext: !!context });
@@ -158,7 +158,8 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
  userId,
  sessionId,
  jobId,
- context
+ context,
+ ...(trunks && { trunks }),
  })
  });
  const invokeCommand = new InvokeCommand({
@@ -357,4 +358,4 @@ conceptsRouter.delete('/:jobId', async (req: AuthenticatedRequest, res: Response
  console.error('[Backend DELETE /concepts/:jobId] ERROR:', error);
  res.status(500).json({ error: 'Failed to delete job' });
  }
-});
+});

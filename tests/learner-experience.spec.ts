@@ -97,6 +97,11 @@ test.describe('Generation Flow — Authenticated', () => {
     await page.goto('/');
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('Docker Fundamentals');
+    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    await domainToggle.click();
+    const domainInputs = page.locator('input[placeholder*="Domain"]');
+    await domainInputs.nth(0).fill('Container Basics');
+    await domainInputs.nth(1).fill('Networking');
     await page.locator('button').filter({ hasText: /generate learning system/i }).click();
     await page.waitForURL(/\/generate\//, { timeout: 10000 });
     expect(page.url()).toContain('/generate/');
@@ -128,6 +133,11 @@ for (const level of EDUCATION_LEVELS) {
         await input.fill(subject.name);
         await input.blur();
         await page.waitForTimeout(300);
+        const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+        await domainToggle.click();
+        const domainInputs = page.locator('input[placeholder*="Domain"]');
+        await domainInputs.nth(0).fill('Domain A');
+        await domainInputs.nth(1).fill('Domain B');
 
         const generateBtn = page.locator('button').filter({ hasText: /generate learning system/i });
         await expect(generateBtn).toBeEnabled();
@@ -203,11 +213,17 @@ test.describe('Cross-Level UX Consistency', () => {
   ];
 
   for (const subject of sampleSubjects) {
-    test(`generate button enables for "${subject}"`, async ({ page }) => {
+    test(`generate button requires domains or objectives for "${subject}"`, async ({ page }) => {
       await page.goto('/');
       const input = page.getByPlaceholder('Enter any subject to learn...');
       await input.fill(subject);
       const generateBtn = page.locator('button').filter({ hasText: /generate learning system/i });
+      await expect(generateBtn).toBeDisabled();
+      const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+      await domainToggle.click();
+      const domainInputs = page.locator('input[placeholder*="Domain"]');
+      await domainInputs.nth(0).fill('Domain A');
+      await domainInputs.nth(1).fill('Domain B');
       await expect(generateBtn).toBeEnabled();
     });
   }

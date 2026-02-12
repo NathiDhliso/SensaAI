@@ -420,5 +420,4 @@ export async function surgicallyRepairConcept(
  throw new Error(getErrorMessage(error, 'Failed to repair concept. Please try again.'));
  }
 }
-// Export with legacy name for compatibility
-export { generateWithBackend as generateChartIteratively };
+

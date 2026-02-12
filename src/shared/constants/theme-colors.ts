@@ -58,6 +58,9 @@ export const CATEGORY_COLORS = {
  dev: COLORS.secondary.sage, // #10b981 - green
  security: COLORS.error, // #ef4444 - red
  business: COLORS.secondary.amber, // #f59e0b - amber
+ sciences: '#0891b2', // cyan-600
+ humanities: '#be185d', // pink-700
+ mathematics: '#4f46e5', // indigo-600
 } as const;
 // ============================================
 // DIFFICULTY COLORS (for Home.tsx difficulty badges)
