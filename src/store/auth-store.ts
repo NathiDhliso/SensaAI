@@ -1,16 +1,18 @@
 /**
  * @file auth-store.ts
  * @description Zustand store for authentication state management.
- * Uses HttpOnly cookies for secure session management.
+ * Uses token-based auth with Lambda backend.
  * 
  * Security Model:
- * - HttpOnly cookies set by backend on login/callback
- * - credentials: 'include' on every API request
- * - Session validation via backend /auth/session/validate
+ * - Tokens returned as JSON from Lambda auth endpoints
+ * - Access token sent via Authorization: Bearer header
+ * - Refresh token stored in zustand persist (localStorage)
+ * - Session validation via GET /auth/validate with Bearer token
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authSessionApi, getErrorMessage, isApiError, isAuthError } from '@/shared/api/client';
+import type { AuthTokens } from '@/shared/api/client';
 
 // Configuration from environment
 const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || '').replace(/^(https?:\/\/)?/, 'https://');
@@ -35,7 +37,7 @@ interface AuthState {
  isAuthenticated: boolean;
  isLoading: boolean;
  error: string | null;
- tokens: null;
+ tokens: AuthTokens | null;
  lastValidated: number | null;
 }
 
@@ -238,7 +240,7 @@ export const useAuthStore = create<AuthStore>()(
  const result = await authSessionApi.loginWithCredentials(email, password);
  set({
  user: result.user,
- tokens: null,
+ tokens: result.tokens,
  isAuthenticated: true,
  isLoading: false,
  error: null,
@@ -364,7 +366,7 @@ export const useAuthStore = create<AuthStore>()(
  localStorage.removeItem(CODE_VERIFIER_KEY);
  set({
  user: result.user,
- tokens: null,
+ tokens: result.tokens,
  isAuthenticated: true,
  isLoading: false,
  error: null,
@@ -430,9 +432,21 @@ export const useAuthStore = create<AuthStore>()(
 
  refreshSession: async () => {
  try {
- const result = await authSessionApi.refreshSession();
- if (result.success) {
- set({ lastValidated: Date.now() });
+ const currentTokens = get().tokens;
+ if (!currentTokens?.refresh_token) {
+ return false;
+ }
+ const result = await authSessionApi.refreshSession(currentTokens.refresh_token);
+ if (result.access_token) {
+ set({
+ tokens: {
+ ...currentTokens,
+ access_token: result.access_token,
+ id_token: result.id_token || currentTokens.id_token,
+ expires_in: result.expires_in,
+ },
+ lastValidated: Date.now()
+ });
  return true;
  }
  return false;

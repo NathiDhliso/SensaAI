@@ -1,7 +1,8 @@
 /**
  * API Client for SensaAI Backend
  * 
- * Uses HttpOnly cookie authentication via credentials: 'include'.
+ * Uses token-based authentication via Authorization: Bearer header.
+ * Tokens read from zustand persist storage (localStorage).
  * On 401, dispatches auth:unauthorized event for the store to handle.
  * 
  * @module lib/api/client
@@ -132,6 +133,22 @@ export function getErrorMessage(error: unknown, fallback: string = 'An unexpecte
 }
 
 // ============================================================================
+// TOKEN ACCESSOR (reads from zustand persist storage to avoid circular imports)
+// ============================================================================
+function getAccessToken(): string | null {
+  try {
+    const stored = localStorage.getItem('sensapbl-auth');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed?.state?.tokens?.access_token || null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+// ============================================================================
 // API CLIENT CLASS
 // ============================================================================
 class ApiClient {
@@ -139,6 +156,13 @@ class ApiClient {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
+
+    if (!options?.skipAuth) {
+      const token = getAccessToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
 
     if (options?.headers) {
       const customHeaders = options.headers as Record<string, string>;
@@ -397,16 +421,23 @@ export const apiClient = new ApiClient();
 // AUTH SESSION API
 // ============================================================================
 /**
- * Authentication session management using HttpOnly cookies.
- * Tokens are stored server-side in cookies, not exposed to JavaScript.
+ * Authentication session management via Lambda token API.
+ * Tokens stored in zustand persist (localStorage) and sent as Authorization header.
  */
+export interface AuthTokens {
+  access_token: string;
+  id_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
 export const authSessionApi = {
   async exchangeCode(
     code: string,
     redirectUri: string,
     codeVerifier: string
-  ): Promise<{ user: { id: string; email: string; name?: string } }> {
-    return apiClient.post('/auth/session/exchange', {
+  ): Promise<{ user: { id: string; email: string; name?: string }; tokens: AuthTokens }> {
+    return apiClient.post('/auth/exchange', {
       code,
       redirect_uri: redirectUri,
       code_verifier: codeVerifier
@@ -416,20 +447,20 @@ export const authSessionApi = {
   async loginWithCredentials(
     email: string,
     password: string
-  ): Promise<{ user: { id: string; email: string; name?: string } }> {
-    return apiClient.post('/auth/session/login', {
+  ): Promise<{ user: { id: string; email: string; name?: string }; tokens: AuthTokens }> {
+    return apiClient.post('/auth/login', {
       email,
       password
     }, { skipAuth: true });
   },
 
-  async refreshSession(): Promise<{ success: boolean }> {
-    return apiClient.post('/auth/session/refresh', undefined, { skipAuth: true });
+  async refreshSession(refreshToken: string): Promise<{ access_token: string; id_token: string; expires_in: number }> {
+    return apiClient.post('/auth/refresh', { refresh_token: refreshToken }, { skipAuth: true });
   },
 
   async clearSession(): Promise<{ success: boolean }> {
     try {
-      return await apiClient.post('/auth/session/clear');
+      return await apiClient.post('/auth/logout');
     } catch {
       return { success: true };
     }
@@ -440,7 +471,7 @@ export const authSessionApi = {
     user?: { id: string; email: string; name?: string };
   }> {
     try {
-      return await apiClient.get('/auth/session/validate');
+      return await apiClient.get('/auth/validate');
     } catch {
       return { valid: false };
     }
