@@ -121,7 +121,12 @@ export default function ContentLaunchpad() {
  lines.push('');
  concepts.forEach((concept, index) => {
  lines.push(`## ${index + 1}. ${concept.name}`);
- if (concept.tier) lines.push(`Tier: ${concept.tier}`);
+ const meta: string[] = [];
+ if (concept.tier) meta.push(`Tier: ${concept.tier}`);
+ if (concept.cognitiveLevel) meta.push(`Bloom's: ${concept.cognitiveLevel}`);
+ if (concept.trunkDomain && concept.tier !== 'trunk') meta.push(`Domain: ${concept.trunkDomain}`);
+ if (concept.parentName) meta.push(`Parent: ${concept.parentName}`);
+ if (meta.length > 0) lines.push(meta.join(' | '));
  lines.push('');
  if (concept.phase1?.hookSentence) {
  lines.push(`Why it matters: ${concept.phase1.hookSentence}`);
@@ -177,6 +182,19 @@ export default function ContentLaunchpad() {
  lines.push(`Technical Details: ${concept.technicalDetails}`);
  lines.push('');
  }
+ if (concept.phase1?.prerequisite) {
+ lines.push(`Prerequisite: ${concept.phase1.prerequisite}`);
+ lines.push('');
+ }
+ if (concept.phase1?.selection && concept.phase1.selection.length > 0) {
+ lines.push('Decision Patterns:');
+ concept.phase1.selection.forEach((s) => lines.push(`  - ${s}`));
+ lines.push('');
+ }
+ if (concept.phase1?.execution) {
+ lines.push(`Execution: ${concept.phase1.execution}`);
+ lines.push('');
+ }
  if (concept.workedExample) {
  lines.push('Worked Example:');
  lines.push(`  Problem: ${concept.workedExample.problem}`);
@@ -189,9 +207,20 @@ export default function ContentLaunchpad() {
  lines.push(`  Solution: ${concept.workedExample.solution}`);
  lines.push('');
  }
+ if (concept.mnemonic?.anchor || concept.mnemonic?.story) {
+ lines.push('Memory Anchor:');
+ if (concept.mnemonic.anchor) lines.push(`  Anchor: ${concept.mnemonic.anchor}`);
+ if (concept.mnemonic.story) lines.push(`  Story: ${concept.mnemonic.story}`);
+ lines.push('');
+ }
  if (concept.criticalDistinctions?.length) {
  lines.push('Critical Distinctions:');
  concept.criticalDistinctions.forEach((d) => lines.push(`  - ${d}`));
+ lines.push('');
+ }
+ if (concept.designBoundaries?.length) {
+ lines.push('Design Boundaries:');
+ concept.designBoundaries.forEach((b) => lines.push(`  - ${b}`));
  lines.push('');
  }
  if (concept.examFocus?.length) {
@@ -202,6 +231,20 @@ export default function ContentLaunchpad() {
  if (concept.commonPitfalls?.length) {
  lines.push('Common Pitfalls:');
  concept.commonPitfalls.forEach((p) => lines.push(`  - ${p}`));
+ lines.push('');
+ }
+ if (concept.phase3?.tool || (concept.phase3?.metrics && concept.phase3.metrics.length > 0)) {
+ lines.push('Verification:');
+ if (concept.phase3.tool) lines.push(`  Tool: ${concept.phase3.tool}`);
+ if (concept.phase3.metrics?.length) {
+ lines.push('  Metrics:');
+ concept.phase3.metrics.forEach((m) => lines.push(`    - ${m}`));
+ }
+ lines.push('');
+ }
+ if (concept.strictConnections?.length) {
+ lines.push('Connections:');
+ concept.strictConnections.forEach((conn) => lines.push(`  - ${conn.type}: ${conn.target}`));
  lines.push('');
  }
  lines.push('-'.repeat(60));
