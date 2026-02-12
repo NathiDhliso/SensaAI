@@ -169,25 +169,37 @@ Generate concepts in a strict 3-level tree:
 ### 3.2 TREE-LEVEL CONTENT RULES:
 **TRUNK** (domain overview):
 - Broader, general content about the domain
-- `connections`: "enables" to each branch
+- `connections`: mix of "enables" and "causes" to branches (NOT all "enables")
 **BRANCH** (sub-topic):
 - Medium granularity, grouping related knowledge
-- `connections`: "is-part-of" to trunk, "enables" to its leaves
+- `connections`: "is-part-of" to trunk, plus "requires"/"enables"/"constrains" to sibling branches where applicable
 **LEAF** (testable detail):
 - Maximum exam-relevant granularity
 - At least 60% of leaves MUST be `apply` or higher cognitive level
-- `connections`: "is-part-of" to its branch, plus cross-branch connections where relevant
+- `connections`: "is-part-of" to its branch, PLUS at least 1 cross-branch connection using "requires", "is-type-of", "causes", or "constrains" (NOT "enables" unless no other type fits)
 ### 3.3 MNEMONIC RULES:
 - `anchor`: Concrete physical object (e.g., "3-Story Building"), NOT abstract
 - `story`: Map concepts to physical parts with spatial language
-### 3.4 CONNECTION TYPES (6 Universal Types):
-- **requires**: Hard prerequisite (must know B before A)
-- **enables**: Capability chain (A unlocks B)
-- **is-part-of**: Part-whole composition (A is component of B)
-- **is-type-of**: Taxonomy (A is specific instance of B)
-- **causes**: Causal chain (A triggers B)
-- **constrains**: Boundary condition (A limits B)
-**FORBIDDEN**: "related-to", "relates", "extends", or vague associations.
+### 3.4 TRACES — Typed Relational Architecture for Cognitive Encoding Specificity
+Neuroscience shows that the TYPE of relationship between concepts determines retrieval strength (Tulving, 1973), spreading activation paths (Anderson, 1983), and expert-vs-novice knowledge organization (Chi et al., 1981). Vague links ("enables") produce shallow encoding. Specific links ("requires", "constrains") create precision retrieval cues.
+**THE 6 TRACES TYPES** (each activates a distinct cognitive retrieval pathway):
+| Type | Cognitive Operation | The learner asks... |
+|---|---|---|
+| **requires** | Prerequisite sequencing | "What must I know BEFORE this?" |
+| **enables** | Capability chaining | "What can I do AFTER learning this?" |
+| **is-part-of** | Compositional decomposition | "What is this a PIECE of?" |
+| **is-type-of** | Taxonomic classification | "What CATEGORY does this belong to?" |
+| **causes** | Causal reasoning | "What HAPPENS because of this?" |
+| **constrains** | Boundary recognition | "What LIMITS or governs this?" |
+**TRACES DECISION ALGORITHM** — For each connection, ask these questions IN ORDER. Use the FIRST match:
+1. Must you understand B before A makes sense? → `requires`
+2. Is A a component or sub-part of B? → `is-part-of`
+3. Is A a specific instance or variant of B? → `is-type-of`
+4. Does A directly produce, trigger, or result in B? → `causes`
+5. Does A set rules, limits, policies, or boundaries on B? → `constrains`
+6. ONLY IF none of the above apply: Does learning A make B accessible? → `enables`
+**DISTRIBUTION CONSTRAINT**: `enables` must NOT exceed 30% of all connections across the tree. If you find yourself defaulting to "enables", re-run the decision algorithm — most "enables" are actually "requires", "causes", or "constrains" in disguise.
+**FORBIDDEN**: "related-to", "relates", "extends", "depends-on", or any vague association.
 **MINIMUM**: Every concept MUST have at least 2 connections.
 **CROSS-DOMAIN**: Leaves may reference concepts in OTHER domains (use exact names).
 ### 3.5 SELECTION FIELD PATTERN:
@@ -296,8 +308,10 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
  ],
  "connections": [
    {{ "target": "Virtual Network Security", "type": "is-part-of" }},
-   {{ "target": "Application Security Groups", "type": "enables" }},
-   {{ "target": "Service Endpoints", "type": "constrains" }}
+   {{ "target": "IP Addressing and Subnets", "type": "requires" }},
+   {{ "target": "Application Security Groups", "type": "is-type-of" }},
+   {{ "target": "Virtual Machines", "type": "constrains" }},
+   {{ "target": "Azure Firewall", "type": "causes" }}
  ]
 }}
 ```
@@ -591,13 +605,14 @@ Return ONLY the raw JSON object for this concept.
  ]
 }}
 ```
-## CONNECTION TYPES (6 Universal Types — No generic fallback):
-- **requires**: Hard prerequisite (A requires B = B must be understood before A)
-- **enables**: Capability chain (A enables B = learning A makes B possible)
-- **is-part-of**: Part-whole composition (A is part of B = A is component within B)
-- **is-type-of**: Taxonomy (A is type of B = A is specific instance of B)
-- **causes**: Causal chain (A causes B = A directly produces or triggers B)
-- **constrains**: Boundary condition (A constrains B = A sets rules/limits on B)
+## TRACES CONNECTION TYPES (Typed Relational Architecture — use decision algorithm):
+For each connection, ask IN ORDER and use the FIRST match:
+1. Must you understand B before A? → **requires**
+2. Is A a component of B? → **is-part-of**
+3. Is A a specific variant of B? → **is-type-of**
+4. Does A directly trigger or produce B? → **causes**
+5. Does A set rules/limits on B? → **constrains**
+6. ONLY if none above apply → **enables**
 ## CRITICAL RULES:
 1. Fix the identified issue completely.
 2. Ensure `shape.highStakesExample` is a REAL historical case study with Company + Year.

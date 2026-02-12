@@ -121,6 +121,7 @@ class BedrockService:
             for attempt in range(self.MAX_RETRIES):
                 try:
                     print(f"[BedrockService] Trunk '{domain_name}': Attempt {attempt + 1}/{self.MAX_RETRIES}")
+                    system_msg, user_msg = self._split_prompt(prompt, domain_name)
                     response = self.client.invoke_model(
                         modelId=self.model_id,
                         contentType="application/json",
@@ -128,8 +129,9 @@ class BedrockService:
                         body=json.dumps({
                             "anthropic_version": "bedrock-2023-05-31",
                             "max_tokens": 16384,
-                            "temperature": 0.5,
-                            "messages": [{"role": "user", "content": prompt}],
+                            "temperature": 0.3,
+                            "system": system_msg,
+                            "messages": [{"role": "user", "content": user_msg}],
                         }),
                     )
                     response_body = json.loads(response.get("body").read())
@@ -214,44 +216,65 @@ class BedrockService:
         except Exception as e:
             print(f"[ERROR] Repair failed: {e}")
             return None
-    TEMPLATE_STARTS = [
-        "why {name} matters",
-        "think of {name} as a building block",
-        "think of {name} as a",
-        "detailed explanation of",
-        "proper use of {name}",
-        "{name} is a core concept",
-        "key exam topic for {name}",
-        "understanding {name} is important",
-        "why you need {name}",
-        "{name} matters in",
-        "{name} matters because",
-    ]
+    def _split_prompt(self, prompt: str, domain_name: str) -> tuple:
+        split_marker = f'Generate the concept tree for "{domain_name}" now:'
+        idx = prompt.rfind(split_marker)
+        if idx > 0:
+            system_part = prompt[:idx].strip()
+            user_part = split_marker
+        else:
+            last_rule_idx = prompt.rfind("---\n## 5.")
+            if last_rule_idx > 0:
+                system_part = prompt[:last_rule_idx].strip()
+                user_part = prompt[last_rule_idx:].strip()
+            else:
+                system_part = prompt
+                user_part = f'Generate the concept tree for "{domain_name}" now. Return ONLY valid JSON array.'
+        user_part += "\n\nIMPORTANT REMINDER: Every field must contain REAL technical content specific to the concept. Do NOT use placeholder patterns like 'Why X matters', 'Think of X as a building block', 'Detailed explanation of Y', 'Proper use of X vs Common misunderstanding', or empty Q/A fields. Concepts with generic filler will be rejected and you will be asked to regenerate. Write as if you are a subject matter expert authoring a study guide."
+        return system_part, user_part
+    TEMPLATE_REGEX_PATTERNS = None
 
-    TEMPLATE_EXACT = [
-        "proper use of {name} vs common misunderstanding",
-        "key exam topic for {name} (high)",
-        "common misunderstanding",
-    ]
+    @classmethod
+    def _get_template_patterns(cls):
+        if cls.TEMPLATE_REGEX_PATTERNS is None:
+            cls.TEMPLATE_REGEX_PATTERNS = [
+                re.compile(r"^why\s+.+\s+matters", re.IGNORECASE),
+                re.compile(r"^think of\s+.+\s+as a", re.IGNORECASE),
+                re.compile(r"^detailed explanation of\s+", re.IGNORECASE),
+                re.compile(r"^proper use of\s+.+\s+vs\s+", re.IGNORECASE),
+                re.compile(r"^understanding\s+.+\s+in the context of", re.IGNORECASE),
+                re.compile(r"^understanding\s+.+\s+is important", re.IGNORECASE),
+                re.compile(r"^key exam topic for\s+", re.IGNORECASE),
+                re.compile(r"^what is\s+.+\?$", re.IGNORECASE),
+                re.compile(r"^when to use\s+", re.IGNORECASE),
+                re.compile(r"^apply\s+.+\s+in practice$", re.IGNORECASE),
+                re.compile(r"^.+\s+is a core concept", re.IGNORECASE),
+                re.compile(r"^.+\s+matters because", re.IGNORECASE),
+                re.compile(r"^.+\s+matters in\s+", re.IGNORECASE),
+                re.compile(r"\btoolkit$", re.IGNORECASE),
+                re.compile(r"^scope:\s*stay focused$", re.IGNORECASE),
+                re.compile(r"^effectiveness$", re.IGNORECASE),
+                re.compile(r"^efficiency$", re.IGNORECASE),
+                re.compile(r"^common misunderstanding$", re.IGNORECASE),
+                re.compile(r"^none$", re.IGNORECASE),
+            ]
+        return cls.TEMPLATE_REGEX_PATTERNS
 
     def _is_template_content(self, text: str, concept_name: str) -> bool:
         if not text or not text.strip():
             return True
-        lower = text.lower().strip()
-        name_lower = concept_name.lower().strip()
-        if lower == "...":
+        lower = text.strip()
+        if lower == "..." or lower == "N/A" or len(lower) < 10:
             return True
-        for pattern in self.TEMPLATE_STARTS:
-            check = pattern.replace("{name}", name_lower)
-            if lower.startswith(check):
+        for pattern in self._get_template_patterns():
+            if pattern.search(lower):
                 return True
-        for pattern in self.TEMPLATE_EXACT:
-            check = pattern.replace("{name}", name_lower)
-            if lower == check or check in lower:
-                return True
-        if lower.startswith("detailed explanation of "):
-            return True
         return False
+
+    def _is_short_filler(self, text: str, min_length: int = 40) -> bool:
+        if not text or not text.strip():
+            return True
+        return len(text.strip()) < min_length
 
     def _validate_concept(self, concept: Dict[str, Any]) -> bool:
         if not isinstance(concept, dict):
@@ -267,6 +290,17 @@ class BedrockService:
         if not isinstance(mnemonic, dict):
             return False
         if not mnemonic.get("anchor") and not mnemonic.get("story"):
+            return False
+        anchor = (mnemonic.get("anchor") or "").strip().lower()
+        if anchor == name.strip().lower():
+            print(f"[BedrockService] Validation fail: '{name}' mnemonic anchor is just the concept name")
+            return False
+        story = (mnemonic.get("story") or "").strip()
+        if self._is_template_content(story, name):
+            print(f"[BedrockService] Template mnemonic.story in '{name}': '{story[:80]}'")
+            return False
+        if self._is_short_filler(story, 50):
+            print(f"[BedrockService] Short mnemonic.story in '{name}': '{story[:80]}'")
             return False
         shape = concept.get("shape", {})
         if not isinstance(shape, dict):
@@ -290,8 +324,24 @@ class BedrockService:
         }
         for field_name, value in template_fields.items():
             if self._is_template_content(value, name):
-                print(f"[BedrockService] Template content in '{name}'.{field_name}: '{value[:80]}'")
+                print(f"[BedrockService] Template in '{name}'.{field_name}: '{value[:80]}'")
                 return False
+        why = concept.get("whyYouNeed", "")
+        if self._is_short_filler(why, 60):
+            print(f"[BedrockService] Short whyYouNeed in '{name}': '{why[:80]}'")
+            return False
+        phase1 = concept.get("phase1") or {}
+        execution = (phase1.get("execution") or "").strip()
+        if self._is_template_content(execution, name):
+            print(f"[BedrockService] Template phase1.execution in '{name}': '{execution[:80]}'")
+            return False
+        selection = phase1.get("selection", [])
+        if isinstance(selection, list):
+            for s in selection:
+                sel_text = s if isinstance(s, str) else str(s)
+                if self._is_template_content(sel_text, name):
+                    print(f"[BedrockService] Template phase1.selection in '{name}': '{sel_text[:80]}'")
+                    return False
         phase2 = concept.get("phase2", [])
         if isinstance(phase2, list) and len(phase2) > 0:
             for item in phase2:
@@ -302,6 +352,18 @@ class BedrockService:
                     content = item.get("content", "")
                 if self._is_template_content(content, name):
                     print(f"[BedrockService] Template phase2 in '{name}': '{content[:80]}'")
+                    return False
+        phase3 = concept.get("phase3") or {}
+        tool = (phase3.get("tool") or "").strip()
+        if self._is_template_content(tool, name):
+            print(f"[BedrockService] Template phase3.tool in '{name}': '{tool[:80]}'")
+            return False
+        metrics = phase3.get("metrics", [])
+        if isinstance(metrics, list):
+            for m in metrics:
+                m_text = m if isinstance(m, str) else str(m)
+                if self._is_template_content(m_text, name):
+                    print(f"[BedrockService] Template phase3.metric in '{name}': '{m_text[:80]}'")
                     return False
         crit = concept.get("criticalDistinctions", [])
         if isinstance(crit, list):
@@ -321,12 +383,26 @@ class BedrockService:
                 if self._is_template_content(text, name):
                     print(f"[BedrockService] Template examFocus in '{name}': '{text[:80]}'")
                     return False
+        design = concept.get("designBoundaries", [])
+        if isinstance(design, list):
+            for item in design:
+                text = ""
+                if isinstance(item, str):
+                    text = item
+                elif isinstance(item, dict):
+                    text = f"{item.get('boundary', '')} {item.get('rationale', '')}"
+                if self._is_template_content(text, name):
+                    print(f"[BedrockService] Template designBoundaries in '{name}': '{text[:80]}'")
+                    return False
         pr = (shape.get("patternRecognition") or {})
         if isinstance(pr, dict):
             q = (pr.get("question") or "").strip()
             a = (pr.get("answer") or "").strip()
             if not q or not a:
                 print(f"[BedrockService] Template patternRecognition in '{name}': empty Q or A")
+                return False
+            if self._is_short_filler(q, 30) or self._is_short_filler(a, 30):
+                print(f"[BedrockService] Short patternRecognition in '{name}'")
                 return False
         return True
     def _validate_tree_structure(self, concepts: List[Dict[str, Any]]) -> None:
@@ -405,6 +481,102 @@ class BedrockService:
             print(f"[BedrockService] Bloom's upgrade: '{c.get('name')}' {old_level} -> {c['cognitiveLevel']}")
         final_higher = sum(1 for c in concepts if c.get("cognitiveLevel", "").lower() in HIGHER_ORDER)
         print(f"[BedrockService] Bloom's final: {final_higher}/{total} higher-order ({final_higher/total*100:.0f}%)")
+    def _enforce_connection_diversity(self, concepts: List[Dict[str, Any]]) -> None:
+        VALID_TYPES = {"requires", "enables", "is-part-of", "is-type-of", "causes", "constrains"}
+        LEGACY_MAP = {
+            "related-to": "enables",
+            "relates": "enables",
+            "extends": "is-type-of",
+            "contains": "is-part-of",
+            "depends-on": "requires",
+        }
+        name_set = {c.get("name", "").strip().lower() for c in concepts if c.get("name")}
+        branch_names = {c.get("name", "").strip().lower() for c in concepts if c.get("treeLevel") == "branch"}
+        trunk_names = {c.get("name", "").strip().lower() for c in concepts if c.get("treeLevel") == "trunk"}
+        total_connections = 0
+        enables_count = 0
+        for concept in concepts:
+            connections = concept.get("connections", [])
+            if not isinstance(connections, list):
+                concept["connections"] = []
+                connections = concept["connections"]
+            for conn in connections:
+                if not isinstance(conn, dict):
+                    continue
+                conn_type = (conn.get("type") or "enables").lower().strip()
+                if conn_type in LEGACY_MAP:
+                    conn["type"] = LEGACY_MAP[conn_type]
+                    conn_type = conn["type"]
+                if conn_type not in VALID_TYPES:
+                    conn["type"] = "enables"
+                    conn_type = "enables"
+                total_connections += 1
+                if conn_type == "enables":
+                    enables_count += 1
+            level = concept.get("treeLevel", "leaf")
+            parent = concept.get("parentName", "")
+            if len(connections) < 2 and level != "trunk":
+                existing_targets = {(c.get("target") or "").strip().lower() for c in connections}
+                if parent and parent.strip().lower() not in existing_targets:
+                    connections.append({"target": parent, "type": "is-part-of"})
+        if total_connections > 0:
+            enables_pct = enables_count / total_connections
+            print(f"[BedrockService] TRACES: {enables_count}/{total_connections} enables ({enables_pct*100:.0f}%)")
+            if enables_pct > 0.40:
+                CONSTRAINT_KEYWORDS = [
+                    "security", "policy", "rbac", "role", "permission", "limit",
+                    "quota", "budget", "compliance", "governance", "lock", "firewall",
+                    "nsg", "rule", "restrict", "deny", "block", "filter", "scope",
+                ]
+                PREREQUISITE_KEYWORDS = [
+                    "identity", "authentication", "network", "vnet", "subnet",
+                    "resource group", "subscription", "tenant", "dns", "ip address",
+                    "storage account", "key vault", "certificate",
+                ]
+                CAUSAL_KEYWORDS = [
+                    "trigger", "alert", "event", "log", "metric", "diagnostic",
+                    "backup", "failover", "replication", "scaling", "autoscale",
+                    "deployment", "provision", "migration",
+                ]
+                TAXONOMIC_KEYWORDS = [
+                    "type", "kind", "tier", "sku", "variant", "mode", "class",
+                    "category", "family", "series", "generation",
+                ]
+                upgraded = 0
+                target_enables = int(total_connections * 0.30)
+                excess = enables_count - target_enables
+                for concept in concepts:
+                    if upgraded >= excess:
+                        break
+                    connections = concept.get("connections", [])
+                    for conn in connections:
+                        if upgraded >= excess:
+                            break
+                        if conn.get("type") != "enables":
+                            continue
+                        target_name = (conn.get("target") or "").lower()
+                        concept_name = (concept.get("name") or "").lower()
+                        combined = target_name + " " + concept_name
+                        if any(kw in combined for kw in CONSTRAINT_KEYWORDS):
+                            conn["type"] = "constrains"
+                            upgraded += 1
+                        elif any(kw in combined for kw in PREREQUISITE_KEYWORDS):
+                            conn["type"] = "requires"
+                            upgraded += 1
+                        elif any(kw in combined for kw in CAUSAL_KEYWORDS):
+                            conn["type"] = "causes"
+                            upgraded += 1
+                        elif any(kw in combined for kw in TAXONOMIC_KEYWORDS):
+                            conn["type"] = "is-type-of"
+                            upgraded += 1
+                if upgraded > 0:
+                    print(f"[BedrockService] TRACES fix: upgraded {upgraded} enables → specific types")
+            type_dist = {}
+            for concept in concepts:
+                for conn in concept.get("connections", []):
+                    t = conn.get("type", "enables")
+                    type_dist[t] = type_dist.get(t, 0) + 1
+            print(f"[BedrockService] TRACES distribution: {type_dist}")
     def _post_process_concepts(self, concepts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         from shared.utils import generate_id
         for concept in concepts:
@@ -421,6 +593,7 @@ class BedrockService:
                 }
         self._validate_tree_structure(concepts)
         self._enforce_blooms_distribution(concepts)
+        self._enforce_connection_diversity(concepts)
         return concepts
     def _repair_json(self, raw_text: str) -> str:
         """
