@@ -1,0 +1,192 @@
+import type { CertEntry } from './types';
+
+export const PMI_CERTS: CertEntry[] = [
+  {
+    id: 'pmi-capm',
+    name: 'Certified Associate in Project Management',
+    code: 'CAPM',
+    provider: 'PMI',
+    level: 'Foundational',
+    domains: [
+      {
+        name: 'Project Management Fundamentals and Core Concepts',
+        weight: 36,
+        tasks: [
+          'Demonstrate an understanding of the various project life cycles and processes',
+          'Demonstrate an understanding of project management planning',
+          'Demonstrate an understanding of project roles and responsibilities',
+          'Determine how to follow and execute planned strategies or frameworks',
+          'Demonstrate an understanding of common problem-solving tools and techniques',
+        ],
+      },
+      {
+        name: 'Predictive, Plan-Based Methodologies',
+        weight: 17,
+        tasks: [
+          'Explain when it is appropriate to use a predictive, plan-based approach',
+          'Demonstrate an understanding of a project management plan schedule',
+          'Determine how to document project controls of predictive, plan-based projects',
+        ],
+      },
+      {
+        name: 'Agile Frameworks/Methodologies',
+        weight: 20,
+        tasks: [
+          'Explain when it is appropriate to use an adaptive approach',
+          'Determine how to plan project iterations',
+          'Determine how to document project controls for an adaptive project',
+          'Explain the components of an adaptive plan',
+          'Determine how to prepare and execute task management steps',
+        ],
+      },
+      {
+        name: 'Business Analysis Frameworks',
+        weight: 27,
+        tasks: [
+          'Demonstrate an understanding of business analysis (BA) roles and responsibilities',
+          'Determine how to conduct stakeholder communication',
+          'Determine how to gather requirements',
+          'Demonstrate an understanding of requirements traceability',
+          'Demonstrate an understanding of a product roadmap',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'pmi-pmp',
+    name: 'Project Management Professional',
+    code: 'PMP',
+    provider: 'PMI',
+    level: 'Professional',
+    domains: [
+      {
+        name: 'People',
+        weight: 42,
+        tasks: [
+          'Manage conflict',
+          'Lead a team',
+          'Support team performance',
+          'Empower team members and stakeholders',
+          'Ensure team members/stakeholders are adequately trained',
+          'Build a team',
+          'Address and remove impediments, obstacles, and blockers for the team',
+          'Negotiate project agreements',
+          'Collaborate with stakeholders',
+          'Build shared understanding',
+          'Engage and support virtual teams',
+          'Define team ground rules',
+          'Mentor relevant stakeholders',
+          'Promote team performance through the application of emotional intelligence',
+        ],
+      },
+      {
+        name: 'Process',
+        weight: 50,
+        tasks: [
+          'Execute project with the urgency required to deliver business value',
+          'Manage communications',
+          'Assess and manage risks',
+          'Engage stakeholders',
+          'Plan and manage budget and resources',
+          'Plan and manage schedule',
+          'Plan and manage quality of products/deliverables',
+          'Plan and manage scope',
+          'Integrate project planning activities',
+          'Manage project changes',
+          'Plan and manage procurement',
+          'Manage project artifacts',
+          'Determine appropriate project methodology/methods and practices',
+          'Establish project governance structure',
+          'Manage project issues',
+          'Ensure knowledge transfer for project continuity',
+          'Plan and manage project/phase closure or transitions',
+        ],
+      },
+      {
+        name: 'Business Environment',
+        weight: 8,
+        tasks: [
+          'Plan and manage project compliance',
+          'Evaluate and deliver project benefits and value',
+          'Evaluate and address external business environment changes for impact on scope',
+          'Support organizational change',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'pmi-acp',
+    name: 'PMI Agile Certified Practitioner',
+    code: 'PMI-ACP',
+    provider: 'PMI',
+    level: 'Professional',
+    domains: [
+      {
+        name: 'Agile Principles and Mindset',
+        weight: 16,
+        tasks: [
+          'Advocate agile principles by modeling agile behaviors',
+          'Ensure that everyone has a common understanding of the values and principles of agile',
+          'Support change at the system or organization level by educating the organization',
+        ],
+      },
+      {
+        name: 'Value-Driven Delivery',
+        weight: 20,
+        tasks: [
+          'Define positive value (tangible and intangible)',
+          'Avoid potential downsides by understanding and addressing risks',
+          'Prioritize the units of work through collaboration with stakeholders',
+          'Perform frequent reviews and maintenance of the work products',
+          'Incrementally develop deliverables through the use of defined work and feedback cycles',
+        ],
+      },
+      {
+        name: 'Stakeholder Engagement',
+        weight: 17,
+        tasks: [
+          'Identify stakeholders and understand their needs, inter-relationships, and influence',
+          'Ensure stakeholder involvement in the project',
+          'Manage stakeholder expectations through negotiation and communication',
+        ],
+      },
+      {
+        name: 'Team Performance',
+        weight: 16,
+        tasks: [
+          'Organize around self-organizing team structures',
+          'Support and encourage team formation, team stability, and team capabilities',
+          'Establish clear communication channels and practices',
+          'Facilitate close collaboration and communication within and between teams',
+        ],
+      },
+      {
+        name: 'Adaptive Planning',
+        weight: 12,
+        tasks: [
+          'Plan at multiple levels (strategic, release, iteration, daily) as necessary',
+          'Make planning activities visible and transparent to the team',
+          'Adapt the cadence and approach based on the complexity and volatility of the situation',
+        ],
+      },
+      {
+        name: 'Problem Detection and Resolution',
+        weight: 10,
+        tasks: [
+          'Create an open and safe environment for surfacing problems',
+          'Identify threats and issues early and make them visible',
+          'Engage the team to resolve problems and impediments',
+        ],
+      },
+      {
+        name: 'Continuous Improvement (Product, Process, People)',
+        weight: 9,
+        tasks: [
+          'Create an environment of continuous improvement',
+          'Identify and prioritize opportunities for improvement',
+          'Conduct frequent retrospectives and improvement experiments',
+        ],
+      },
+    ],
+  },
+];

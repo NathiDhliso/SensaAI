@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Archive, Sparkles, Clock, Zap, Cloud, ChevronDown, ChevronUp, Target, Plus, X, GitBranch } from 'lucide-react';
+import { Search, Archive, Sparkles, Clock, Zap, Cloud, ChevronDown, ChevronUp, Target, Plus, X, GitBranch, Award, Wand2, Loader2 } from 'lucide-react';
 import { SensaShape } from '@/components/ui';
 import { parseSyllabusText } from '@/features/content-audit';
 import type { SensaShapeType } from '@/components/ui';
@@ -10,6 +10,9 @@ import { useUIStore } from '@/store/ui-store';
 import { useAuthStore } from '@/store/auth-store';
 import { CloudLibraryModal } from '@/components/storage/CloudLibraryModal';
 import { CATEGORY_COLORS, DIFFICULTY_COLORS } from '@/shared/constants/theme-colors';
+import { conceptsApi } from '@/shared/api/concepts';
+import { ALL_CERTS, getDomainsAsTrunks, getTasksAsObjectives } from '@/shared/constants/exam-catalogs';
+import type { CertEntry } from '@/shared/constants/exam-catalogs';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import styles from './Home.module.css';
 const SUBJECT_CATEGORIES = [
@@ -133,6 +136,8 @@ export default function Home() {
  const [showPreview, setShowPreview] = useState(false);
  const [trunks, setTrunks] = useState<string[]>(['', '']);
  const [trunksOpen, setTrunksOpen] = useState(false);
+ const [selectedCert, setSelectedCert] = useState<CertEntry | null>(null);
+ const [suggesting, setSuggesting] = useState(false);
  const validTrunks = trunks.filter(t => t.trim().length > 0);
  const navigate = useNavigate();
  /* Hooks & Store */
@@ -156,9 +161,64 @@ export default function Home() {
  s.name.toLowerCase().includes(subject.toLowerCase())
  ).slice(0, 5);
  }, [subject, allSubjects]);
+ const filteredCerts = useMemo(() => {
+ if (!subject.trim() || subject.length < 2) return [];
+ const q = subject.toLowerCase();
+ return ALL_CERTS.filter(c =>
+ c.name.toLowerCase().includes(q) ||
+ c.code.toLowerCase().includes(q) ||
+ c.provider.toLowerCase().includes(q)
+ ).slice(0, 6);
+ }, [subject]);
  const handleSelectSuggestion = (name: string) => {
  setSubject(name);
  setShowSuggestions(false);
+ };
+ const handleSelectCert = (cert: CertEntry) => {
+ setSelectedCert(cert);
+ setSubject(`${cert.name} (${cert.code})`);
+ const domains = getDomainsAsTrunks(cert);
+ setTrunks(domains);
+ setTrunksOpen(true);
+ const objectives = getTasksAsObjectives(cert);
+ setObjectivesText(objectives.join('\n'));
+ setObjectivesOpen(true);
+ setShowSuggestions(false);
+ setShowPreview(true);
+ };
+ const handleClearCert = () => {
+ setSelectedCert(null);
+ setSubject('');
+ setTrunks(['', '']);
+ setTrunksOpen(false);
+ setObjectivesText('');
+ setObjectivesOpen(false);
+ setShowPreview(false);
+ };
+ const handleSuggestStructure = async () => {
+ if (!subject.trim() || suggesting) return;
+ setSuggesting(true);
+ try {
+ const userId = useAuthStore.getState().user?.id || 'anonymous';
+ const result = await conceptsApi.suggestStructure({ subject: subject.trim(), userId });
+ if (result.domains && result.domains.length > 0) {
+ const domainNames = result.domains.map(d => d.name);
+ setTrunks(domainNames);
+ setTrunksOpen(true);
+ const objectives = result.domains.flatMap(d =>
+ d.tasks.map(t => `[${d.name} - ${d.weight}%] ${t}`)
+ );
+ if (objectives.length > 0) {
+ setObjectivesText(objectives.join('\n'));
+ setObjectivesOpen(true);
+ setShowPreview(true);
+ }
+ }
+ } catch (err) {
+ console.error('[Home] Suggest structure failed:', err);
+ } finally {
+ setSuggesting(false);
+ }
  };
  const addTrunk = () => {
  if (trunks.length < 6) setTrunks([...trunks, '']);
@@ -199,6 +259,15 @@ export default function Home() {
  animate={true}
  />
  </div>
+ {selectedCert && (
+ <div className={styles.certBadge}>
+ <Award size={14} />
+ <span>{selectedCert.name} ({selectedCert.code})</span>
+ <button type="button" onClick={handleClearCert} className={styles.certBadgeClear}>
+ <X size={12} />
+ </button>
+ </div>
+ )}
  <div className={styles.inputSection}>
  <div className={styles.inputWrapper}>
  <Search
@@ -214,22 +283,53 @@ export default function Home() {
  onChange={(e) => {
  setSubject(e.target.value);
  setShowSuggestions(true);
+ if (selectedCert) {
+ setSelectedCert(null);
+ setTrunks(['', '']);
+ setTrunksOpen(false);
+ setObjectivesText('');
+ setObjectivesOpen(false);
+ setShowPreview(false);
+ }
  }}
  onFocus={() => setShowSuggestions(true)}
  onBlur={() => setTimeout(() => setShowSuggestions(false), UI_TIMINGS.BLUR_DELAY)}
  onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
- placeholder="Enter any subject to learn..."
+ placeholder="Search certifications or enter any subject..."
  className={styles.input}
  autoFocus
  />
  <AnimatePresence>
- {showSuggestions && filteredSuggestions.length > 0 && (
+ {showSuggestions && subject.trim().length >= 2 && !selectedCert && (filteredCerts.length > 0 || filteredSuggestions.length > 0 || true) && (
  <motion.div
- className={styles.suggestionsDropdown}
+ className={styles.unifiedDropdown}
  initial={{ opacity: 0, y: -10 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: -10 }}
  >
+ {filteredCerts.length > 0 && (
+ <div className={styles.dropdownSection}>
+ <div className={styles.dropdownSectionLabel}>Certification Exams</div>
+ {filteredCerts.map(cert => (
+ <button
+ key={cert.id}
+ className={styles.certItem}
+ onMouseDown={() => handleSelectCert(cert)}
+ >
+ <div className={styles.certItemMain}>
+ <span className={styles.certItemName}>{cert.name}</span>
+ <span className={styles.certItemCode}>{cert.provider} · {cert.code}</span>
+ </div>
+ <div className={styles.certItemMeta}>
+ <span className={styles.certItemDomains}>{cert.domains.length} domains</span>
+ </div>
+ </button>
+ ))}
+ </div>
+ )}
+ {filteredSuggestions.length > 0 && (
+ <div className={styles.dropdownSection}>
+ <div className={styles.dropdownSectionLabel}>Suggested Topics</div>
  {filteredSuggestions.map((s, idx) => (
  <button
  key={idx}
@@ -261,6 +361,18 @@ export default function Home() {
  </div>
  </button>
  ))}
+ </div>
+ )}
+ <div className={styles.dropdownSection}>
+ <button
+ className={styles.aiSuggestOption}
+ onMouseDown={handleSuggestStructure}
+ disabled={suggesting}
+ >
+ {suggesting ? <Loader2 size={14} className={styles.spinning} /> : <Wand2 size={14} />}
+ <span>{suggesting ? 'Analyzing structure...' : `Use AI to analyze "${subject.trim().slice(0, 40)}${subject.trim().length > 40 ? '...' : ''}" structure`}</span>
+ </button>
+ </div>
  </motion.div>
  )}
  </AnimatePresence>

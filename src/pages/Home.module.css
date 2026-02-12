@@ -145,6 +145,142 @@
 .input::placeholder {
  color: var(--color-text-muted);
 }
+.unifiedDropdown {
+ position: absolute;
+ top: 100%;
+ left: 0;
+ right: 0;
+ z-index: 50;
+ margin-top: 0.375rem;
+ border: 1px solid var(--color-border);
+ border-radius: 0.75rem;
+ background: var(--color-surface);
+ box-shadow: var(--shadow-lg);
+ max-height: 380px;
+ overflow-y: auto;
+}
+.dropdownSection {
+ padding: 0.25rem 0;
+}
+.dropdownSection + .dropdownSection {
+ border-top: 1px solid var(--color-border-light);
+}
+.dropdownSectionLabel {
+ font-size: 0.625rem;
+ font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: 0.06em;
+ color: var(--color-text-muted);
+ padding: 0.375rem 0.75rem 0.125rem;
+}
+.aiSuggestOption {
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ width: 100%;
+ padding: 0.625rem 0.75rem;
+ background: transparent;
+ border: none;
+ cursor: pointer;
+ font-size: 0.8125rem;
+ font-weight: 500;
+ color: var(--color-accent);
+ text-align: left;
+ transition: all 0.12s ease;
+}
+.aiSuggestOption:hover:not(:disabled) {
+ background: color-mix(in srgb, var(--color-accent), transparent 92%);
+}
+.aiSuggestOption:disabled {
+ opacity: 0.6;
+ cursor: not-allowed;
+}
+.certItem {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ width: 100%;
+ padding: 0.5rem 0.75rem;
+ background: transparent;
+ border: none;
+ cursor: pointer;
+ transition: all 0.12s ease;
+ text-align: left;
+}
+.certItem:hover {
+ background: var(--color-surface-subtle);
+}
+.certItemMain {
+ display: flex;
+ flex-direction: column;
+ gap: 0.0625rem;
+ min-width: 0;
+ flex: 1;
+}
+.certItemName {
+ font-size: 0.8125rem;
+ font-weight: 500;
+ color: var(--color-text-primary);
+ white-space: nowrap;
+ overflow: hidden;
+ text-overflow: ellipsis;
+}
+.certItemCode {
+ font-size: 0.6875rem;
+ color: var(--color-text-muted);
+}
+.certItemMeta {
+ display: flex;
+ gap: 0.5rem;
+ flex-shrink: 0;
+}
+.certItemDomains,
+.certItemTasks {
+ font-size: 0.6875rem;
+ color: var(--color-text-muted);
+ padding: 0.125rem 0.375rem;
+ background: color-mix(in srgb, var(--color-surface-subtle), transparent 30%);
+ border-radius: 0.25rem;
+}
+.certBadge {
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ width: 100%;
+ padding: 0.5rem 0.75rem;
+ background: color-mix(in srgb, var(--color-accent), transparent 90%);
+ border: 1px solid color-mix(in srgb, var(--color-accent), transparent 70%);
+ border-radius: 0.75rem;
+ font-size: 0.8125rem;
+ font-weight: 500;
+ color: var(--color-accent);
+}
+.certBadgeClear {
+ margin-left: auto;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 1.25rem;
+ height: 1.25rem;
+ border: none;
+ border-radius: 50%;
+ background: transparent;
+ color: var(--color-text-muted);
+ cursor: pointer;
+ transition: all 0.12s ease;
+ flex-shrink: 0;
+}
+.certBadgeClear:hover {
+ background: color-mix(in srgb, var(--color-error), transparent 88%);
+ color: var(--color-error);
+}
+@keyframes spin {
+ from { transform: rotate(0deg); }
+ to { transform: rotate(360deg); }
+}
+.spinning {
+ animation: spin 1s linear infinite;
+}
 .objectivesSection {
  border: 1px solid var(--color-border);
  border-radius: 1rem;
@@ -357,21 +493,6 @@ padding: 0.25rem 0.5rem;
 .ungroundedStatus {
  color: var(--color-text-muted);
  opacity: 0.7;
-}
-/* Suggestions Dropdown */
-.suggestionsDropdown {
- position: absolute;
- top: calc(100% + 0.75rem);
- left: 0;
- right: 0;
- background: color-mix(in srgb, var(--color-surface), transparent 5%);
- backdrop-filter: blur(12px);
- border: 1px solid var(--color-border);
- border-radius: 1.25rem;
- box-shadow: var(--shadow-xl);
- z-index: var(--z-dropdown);
- overflow: hidden;
- padding: 0.5rem;
 }
 .suggestionItem {
  display: flex;

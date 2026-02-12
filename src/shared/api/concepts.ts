@@ -23,6 +23,21 @@ export interface GenerateConceptsRequest {
  context?: string;
  trunks?: string[];
 }
+export interface SuggestStructureRequest {
+ subject: string;
+ userId: string;
+ context?: string;
+}
+export interface SuggestedDomain {
+ name: string;
+ weight: number;
+ tasks: string[];
+}
+export interface SuggestStructureResponse {
+ subject: string;
+ subjectType: string;
+ domains: SuggestedDomain[];
+}
 export interface GenerateConceptsResponse {
  jobId: string;
  sessionId: string;
@@ -96,9 +111,14 @@ export const conceptsApi = {
  * Generation happens server-side, concepts stored in DynamoDB
  */
  async generate(request: GenerateConceptsRequest): Promise<GenerateConceptsResponse> {
- // AWS API Gateway route is /generate (not /concepts/generate)
  const response = await apiClient.post<GenerateConceptsResponse>('/generate', request);
  return response;
+ },
+ async suggestStructure(request: SuggestStructureRequest): Promise<SuggestStructureResponse> {
+ return apiClient.post<SuggestStructureResponse>('/generate', {
+ ...request,
+ action: 'suggest_structure',
+ });
  },
  /**
  * Surgically repair a specific concept

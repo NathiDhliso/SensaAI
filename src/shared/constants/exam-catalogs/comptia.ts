@@ -1,0 +1,361 @@
+import type { CertEntry } from './types';
+
+export const COMPTIA_CERTS: CertEntry[] = [
+  {
+    id: 'comptia-a-core1',
+    name: 'CompTIA A+ Core 1',
+    code: '220-1101',
+    provider: 'CompTIA',
+    level: 'Foundational',
+    domains: [
+      {
+        name: 'Mobile Devices',
+        weight: 15,
+        tasks: [
+          'Install and configure laptop hardware and components',
+          'Compare and contrast the display components of mobile devices',
+          'Set up and configure accessories and ports of mobile devices',
+          'Configure basic mobile-device network connectivity and application support',
+        ],
+      },
+      {
+        name: 'Networking',
+        weight: 20,
+        tasks: [
+          'Compare and contrast TCP and UDP ports, protocols, and their purposes',
+          'Compare and contrast common networking hardware',
+          'Compare and contrast protocols for wireless networking',
+          'Summarize services provided by networked hosts',
+          'Install and configure basic wired/wireless SOHO networks',
+          'Compare and contrast common network configuration concepts',
+          'Compare and contrast Internet connection types, network types, and their features',
+          'Use networking tools',
+        ],
+      },
+      {
+        name: 'Hardware',
+        weight: 25,
+        tasks: [
+          'Explain basic cable types and their connectors, features, and purposes',
+          'Install the appropriate RAM',
+          'Select and install storage devices',
+          'Install and configure motherboards, CPUs, and add-on cards',
+          'Install or replace the appropriate power supply',
+          'Deploy and configure multifunction devices/printers and settings',
+          'Summarize cloud-computing concepts',
+        ],
+      },
+      {
+        name: 'Virtualization and Cloud Computing',
+        weight: 11,
+        tasks: [
+          'Summarize cloud-computing concepts',
+          'Summarize aspects of client-side virtualization',
+        ],
+      },
+      {
+        name: 'Hardware and Network Troubleshooting',
+        weight: 29,
+        tasks: [
+          'Apply the best practice methodology to resolve problems',
+          'Troubleshoot problems related to motherboards, RAM, CPU, and power',
+          'Troubleshoot and diagnose problems with storage drives and RAID arrays',
+          'Troubleshoot video, projector, and display issues',
+          'Troubleshoot common issues with mobile devices',
+          'Troubleshoot and resolve printer issues',
+          'Troubleshoot problems with wired and wireless networks',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'comptia-a-core2',
+    name: 'CompTIA A+ Core 2',
+    code: '220-1102',
+    provider: 'CompTIA',
+    level: 'Foundational',
+    domains: [
+      {
+        name: 'Operating Systems',
+        weight: 31,
+        tasks: [
+          'Identify basic features of Microsoft Windows editions',
+          'Perform OS installations and upgrades in a diverse OS environment',
+          'Navigate the Windows interface and manage files and folders',
+          'Use common OS features and tools',
+          'Use the appropriate Microsoft command-line tools',
+          'Use features and tools of the macOS/Linux client/desktop OS',
+        ],
+      },
+      {
+        name: 'Security',
+        weight: 25,
+        tasks: [
+          'Summarize various security measures and their purposes',
+          'Compare and contrast wireless security protocols and authentication methods',
+          'Detect, remove, and prevent malware using the appropriate tools and methods',
+          'Explain common social-engineering attacks, threats, and vulnerabilities',
+          'Manage and configure basic security settings in the Microsoft Windows OS',
+          'Configure a workstation to meet best practices for security',
+        ],
+      },
+      {
+        name: 'Software Troubleshooting',
+        weight: 22,
+        tasks: [
+          'Troubleshoot common Windows OS problems',
+          'Troubleshoot common personal computer security issues',
+          'Use best practice procedures for malware removal',
+          'Troubleshoot common mobile OS and application issues',
+          'Troubleshoot common mobile OS and application security issues',
+        ],
+      },
+      {
+        name: 'Operational Procedures',
+        weight: 22,
+        tasks: [
+          'Implement best practices associated with documentation and support systems information management',
+          'Use proper communication techniques and professionalism',
+          'Use common safety procedures',
+          'Summarize environmental impacts and local environmental controls',
+          'Summarize scripting basics',
+          'Use remote access technologies',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'comptia-net-n10-009',
+    name: 'CompTIA Network+',
+    code: 'N10-009',
+    provider: 'CompTIA',
+    level: 'Associate',
+    domains: [
+      {
+        name: 'Networking Fundamentals',
+        weight: 24,
+        tasks: [
+          'Compare and contrast the Open Systems Interconnection (OSI) model layers and encapsulation concepts',
+          'Explain the characteristics of network topologies and network types',
+          'Summarize the types of cables and connectors and explain which is the appropriate type for a solution',
+          'Explain common ports and protocols, their application, and encrypted alternatives',
+          'Compare and contrast transmission media and transceivers',
+          'Explain IP addressing schemes and subnetting',
+        ],
+      },
+      {
+        name: 'Network Implementation',
+        weight: 19,
+        tasks: [
+          'Compare and contrast various devices, their features, and their appropriate placement on the network',
+          'Compare and contrast routing technologies and bandwidth management concepts',
+          'Configure and apply the appropriate interface and protocol configurations',
+          'Explain common IPv4 and IPv6 addressing types and concepts',
+        ],
+      },
+      {
+        name: 'Network Operations',
+        weight: 16,
+        tasks: [
+          'Explain the purposes and use cases for network monitoring and management tools',
+          'Explain the purpose of organizational documents and policies',
+          'Explain high availability and disaster recovery concepts and summarize which is the best solution',
+        ],
+      },
+      {
+        name: 'Network Security',
+        weight: 19,
+        tasks: [
+          'Explain common security concepts',
+          'Compare and contrast common types of attacks',
+          'Apply network hardening techniques',
+          'Compare and contrast remote access methods and security implications',
+        ],
+      },
+      {
+        name: 'Network Troubleshooting',
+        weight: 22,
+        tasks: [
+          'Explain the network troubleshooting methodology',
+          'Troubleshoot common cable connectivity issues and select the appropriate tools',
+          'Troubleshoot common wireless connectivity issues',
+          'Troubleshoot common network service issues',
+          'Troubleshoot general networking issues',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'comptia-sec-sy0-701',
+    name: 'CompTIA Security+',
+    code: 'SY0-701',
+    provider: 'CompTIA',
+    level: 'Associate',
+    domains: [
+      {
+        name: 'General Security Concepts',
+        weight: 12,
+        tasks: [
+          'Compare and contrast various types of security controls',
+          'Summarize fundamental security concepts',
+          'Explain the importance of change management processes and the impact to security',
+          'Explain the importance of using appropriate cryptographic solutions',
+        ],
+      },
+      {
+        name: 'Threats, Vulnerabilities, and Mitigations',
+        weight: 22,
+        tasks: [
+          'Compare and contrast common threat actors and motivations',
+          'Explain common threat vectors and attack surfaces',
+          'Explain various types of vulnerabilities',
+          'Analyze indicators of malicious activity',
+          'Explain the purpose of mitigation techniques used to secure the enterprise',
+        ],
+      },
+      {
+        name: 'Security Architecture',
+        weight: 18,
+        tasks: [
+          'Compare and contrast security implications of different architecture models',
+          'Apply security principles to secure enterprise infrastructure',
+          'Compare and contrast concepts and strategies to protect data',
+          'Explain the importance of resilience and recovery in security architecture',
+        ],
+      },
+      {
+        name: 'Security Operations',
+        weight: 28,
+        tasks: [
+          'Apply common security techniques to computing resources',
+          'Explain the security implications of proper hardware, software, and data asset management',
+          'Explain various activities associated with vulnerability management',
+          'Explain security alerting and monitoring concepts and tools',
+          'Modify enterprise capabilities to enhance security',
+          'Implement and maintain identity and access management',
+          'Explain the importance of automation and orchestration related to secure operations',
+          'Explain appropriate incident response activities',
+          'Use data sources to support an investigation',
+        ],
+      },
+      {
+        name: 'Security Program Management and Oversight',
+        weight: 20,
+        tasks: [
+          'Summarize elements of effective security governance',
+          'Explain elements of the risk management process',
+          'Explain the processes associated with third-party risk assessment and management',
+          'Summarize elements of effective security compliance',
+          'Explain types and purposes of audits and assessments',
+          'Implement security awareness practices',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'comptia-cysa-cs0-003',
+    name: 'CompTIA CySA+',
+    code: 'CS0-003',
+    provider: 'CompTIA',
+    level: 'Professional',
+    domains: [
+      {
+        name: 'Security Operations',
+        weight: 33,
+        tasks: [
+          'Explain the importance of system and network architecture concepts in security operations',
+          'Analyze indicators of potentially malicious activity',
+          'Use appropriate tools or techniques to determine malicious activity',
+          'Compare and contrast threat-intelligence and threat-hunting concepts',
+          'Explain the importance of efficiency and process improvement in security operations',
+        ],
+      },
+      {
+        name: 'Vulnerability Management',
+        weight: 30,
+        tasks: [
+          'Implement vulnerability scanning methods and concepts',
+          'Analyze output from vulnerability assessment tools',
+          'Analyze data to prioritize vulnerabilities',
+          'Recommend controls to mitigate attacks and software vulnerabilities',
+          'Explain concepts related to vulnerability response, handling, and management',
+        ],
+      },
+      {
+        name: 'Incident Response and Management',
+        weight: 20,
+        tasks: [
+          'Explain concepts related to attack methodology frameworks',
+          'Perform incident response activities',
+          'Explain the preparation and post-incident activity phases of the incident management lifecycle',
+        ],
+      },
+      {
+        name: 'Reporting and Communication',
+        weight: 17,
+        tasks: [
+          'Explain the importance of vulnerability management reporting and communication',
+          'Explain the importance of incident response reporting and communication',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'comptia-cloud-cv0-004',
+    name: 'CompTIA Cloud+',
+    code: 'CV0-004',
+    provider: 'CompTIA',
+    level: 'Professional',
+    domains: [
+      {
+        name: 'Cloud Architecture',
+        weight: 13,
+        tasks: [
+          'Compare and contrast the different types of cloud models',
+          'Explain the factors that contribute to capacity planning',
+          'Explain the importance of high availability and scaling in cloud environments',
+        ],
+      },
+      {
+        name: 'Security',
+        weight: 20,
+        tasks: [
+          'Configure identity and access management',
+          'Secure a network in a cloud environment',
+          'Apply the appropriate OS and application security controls',
+          'Apply data security and compliance controls in cloud environments',
+        ],
+      },
+      {
+        name: 'Deployment',
+        weight: 24,
+        tasks: [
+          'Integrate components into a cloud solution',
+          'Provision storage in cloud environments',
+          'Deploy cloud networking solutions',
+          'Configure appropriate compute sizing for a deployment',
+          'Configure and deploy a cloud solution using infrastructure as code',
+        ],
+      },
+      {
+        name: 'Operations and Support',
+        weight: 22,
+        tasks: [
+          'Configure logging, monitoring, and alerting to maintain operational status',
+          'Maintain efficient operation of a cloud environment',
+          'Optimize cloud environments',
+        ],
+      },
+      {
+        name: 'Troubleshooting',
+        weight: 21,
+        tasks: [
+          'Troubleshoot connectivity issues',
+          'Troubleshoot common performance issues',
+          'Troubleshoot security issues',
+          'Troubleshoot automation and orchestration issues',
+        ],
+      },
+    ],
+  },
+];

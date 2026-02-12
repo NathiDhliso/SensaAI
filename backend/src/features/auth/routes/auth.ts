@@ -360,7 +360,6 @@ authRouter.get('/session/validate', async (req: Request, res: Response) => {
 authRouter.post('/session/clear', async (req: Request, res: Response) => {
  try {
  const accessToken = req.cookies?.access_token;
- // Try to sign out from Cognito (invalidate all sessions)
  if (accessToken) {
  try {
  const command = new GlobalSignOutCommand({
@@ -368,16 +367,211 @@ authRouter.post('/session/clear', async (req: Request, res: Response) => {
  });
  await cognitoClient.send(command);
  } catch (error) {
- // Don't fail if global sign out fails
  console.warn('[Auth] Global sign out failed:', error);
  }
  }
- // Clear cookies
  clearAuthCookies(res);
  res.json({ success: true });
  } catch (error) {
  console.error('[Auth] Clear session error:', error);
- // Still clear cookies even if there was an error
+ clearAuthCookies(res);
+ res.json({ success: true });
+ }
+});
+
+authRouter.post('/login', async (req: Request, res: Response) => {
+ try {
+ const { email, password } = req.body;
+ if (!email || !password) {
+ res.status(400).json({ error: 'Email and password are required' });
+ return;
+ }
+ if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+ const user = { id: 'dev-user', email: 'dev@sensapbl.com', name: 'Developer' };
+ const tokens = {
+ access_token: 'dev-access-token',
+ id_token: 'dev-id-token',
+ refresh_token: 'dev-refresh-token',
+ expires_in: 3600
+ };
+ setAuthCookies(res, tokens.access_token, tokens.refresh_token, tokens.expires_in);
+ res.json({ user, tokens });
+ return;
+ }
+ const command = new InitiateAuthCommand({
+ AuthFlow: 'USER_PASSWORD_AUTH',
+ ClientId: process.env.COGNITO_CLIENT_ID || '',
+ AuthParameters: { USERNAME: email, PASSWORD: password }
+ });
+ const response = await cognitoClient.send(command);
+ const authResult = response.AuthenticationResult;
+ if (!authResult?.AccessToken || !authResult?.RefreshToken || !authResult?.IdToken) {
+ throw new Error('Incomplete authentication result');
+ }
+ const user = extractUserFromIdToken(authResult.IdToken);
+ const tokens = {
+ access_token: authResult.AccessToken,
+ id_token: authResult.IdToken,
+ refresh_token: authResult.RefreshToken,
+ expires_in: authResult.ExpiresIn || 3600
+ };
+ setAuthCookies(res, tokens.access_token, tokens.refresh_token, tokens.expires_in);
+ res.json({ user, tokens });
+ } catch (error: unknown) {
+ console.error('[Auth] Login error:', error);
+ const errorName = (error as { name?: string })?.name;
+ if (errorName === 'NotAuthorizedException') {
+ res.status(401).json({ error: 'Invalid email or password' });
+ } else if (errorName === 'UserNotConfirmedException') {
+ res.status(403).json({ error: 'Please verify your email first' });
+ } else if (errorName === 'UserNotFoundException') {
+ res.status(401).json({ error: 'Invalid email or password' });
+ } else {
+ res.status(500).json({ error: 'Authentication failed' });
+ }
+ }
+});
+
+authRouter.post('/exchange', async (req: Request, res: Response) => {
+ try {
+ const { code, redirect_uri, code_verifier } = req.body;
+ if (!code || !redirect_uri) {
+ res.status(400).json({ error: 'Code and redirect_uri are required' });
+ return;
+ }
+ const params = new URLSearchParams();
+ params.append('grant_type', 'authorization_code');
+ params.append('client_id', process.env.COGNITO_CLIENT_ID || '');
+ params.append('code', code);
+ params.append('redirect_uri', redirect_uri);
+ if (code_verifier) {
+ params.append('code_verifier', code_verifier);
+ }
+ const tokenEndpoint = getTokenEndpoint();
+ const response = await fetch(tokenEndpoint, {
+ method: 'POST',
+ headers: getTokenRequestHeaders(),
+ body: params
+ });
+ if (!response.ok) {
+ const errorText = await response.text();
+ console.error('[Auth] Token exchange failed:', response.status, errorText);
+ res.status(response.status).json({ error: 'Failed to exchange code' });
+ return;
+ }
+ const data = await response.json() as CognitoTokenResponse;
+ const user = extractUserFromIdToken(data.id_token);
+ const tokens = {
+ access_token: data.access_token,
+ id_token: data.id_token,
+ refresh_token: data.refresh_token,
+ expires_in: data.expires_in
+ };
+ setAuthCookies(res, tokens.access_token, tokens.refresh_token, tokens.expires_in);
+ res.json({ user, tokens });
+ } catch (error) {
+ console.error('[Auth] Exchange error:', error);
+ res.status(500).json({ error: 'Internal server error' });
+ }
+});
+
+authRouter.post('/refresh', async (req: Request, res: Response) => {
+ try {
+ const refreshToken = req.cookies?.refresh_token || req.body?.refresh_token;
+ if (!refreshToken) {
+ res.status(401).json({ error: 'No refresh token' });
+ return;
+ }
+ const command = new InitiateAuthCommand({
+ AuthFlow: 'REFRESH_TOKEN_AUTH',
+ ClientId: process.env.COGNITO_CLIENT_ID || '',
+ AuthParameters: { REFRESH_TOKEN: refreshToken }
+ });
+ const response = await cognitoClient.send(command);
+ const authResult = response.AuthenticationResult;
+ if (!authResult?.AccessToken || !authResult?.IdToken) {
+ throw new Error('Incomplete refresh result');
+ }
+ res.cookie('access_token', authResult.AccessToken, {
+ ...getCookieOptions(true),
+ maxAge: (authResult.ExpiresIn || 3600) * 1000
+ });
+ res.json({
+ access_token: authResult.AccessToken,
+ id_token: authResult.IdToken,
+ expires_in: authResult.ExpiresIn || 3600
+ });
+ } catch (error: unknown) {
+ console.error('[Auth] Refresh error:', error);
+ const errorName = (error as { name?: string })?.name;
+ if (errorName === 'NotAuthorizedException') {
+ clearAuthCookies(res);
+ res.status(401).json({ error: 'Session expired' });
+ } else {
+ res.status(500).json({ error: 'Failed to refresh session' });
+ }
+ }
+});
+
+authRouter.get('/validate', async (req: Request, res: Response) => {
+ try {
+ const accessToken = req.cookies?.access_token
+ || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
+ if (!accessToken) {
+ res.json({ valid: false });
+ return;
+ }
+ if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+ res.json({
+ valid: true,
+ user: { id: 'dev-user', email: 'dev@sensapbl.com', name: 'Developer' }
+ });
+ return;
+ }
+ const tokenParts = accessToken.split('.');
+ if (tokenParts.length !== 3 || !tokenParts[1]) {
+ res.json({ valid: false });
+ return;
+ }
+ try {
+ const normalizedPayload = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+ const payload = JSON.parse(Buffer.from(normalizedPayload, 'base64').toString('utf8'));
+ if (!payload || typeof payload !== 'object' || !payload.exp || !payload.sub) {
+ res.json({ valid: false });
+ return;
+ }
+ if (Date.now() >= payload.exp * 1000) {
+ res.json({ valid: false });
+ return;
+ }
+ res.json({
+ valid: true,
+ user: { id: payload.sub, email: payload.email || payload.username, name: payload.name }
+ });
+ } catch {
+ res.json({ valid: false });
+ }
+ } catch (error) {
+ console.error('[Auth] Validation error:', error);
+ res.json({ valid: false });
+ }
+});
+
+authRouter.post('/logout', async (req: Request, res: Response) => {
+ try {
+ const accessToken = req.cookies?.access_token
+ || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
+ if (accessToken) {
+ try {
+ await cognitoClient.send(new GlobalSignOutCommand({ AccessToken: accessToken }));
+ } catch (error) {
+ console.warn('[Auth] Global sign out failed:', error);
+ }
+ }
+ clearAuthCookies(res);
+ res.json({ success: true });
+ } catch (error) {
+ console.error('[Auth] Logout error:', error);
  clearAuthCookies(res);
  res.json({ success: true });
  }

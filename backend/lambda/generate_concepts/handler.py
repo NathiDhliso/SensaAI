@@ -69,6 +69,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         action = request.get("action", "generate")
         if action == "repair":
             return _handle_repair(request)
+        elif action == "suggest_structure":
+            return _handle_suggest_structure(request, event)
         elif action == "_async_generate":
             # Internal: async self-invocation - run full generation
             print("[Handler] Running async generation (self-invoked)")
@@ -228,6 +230,35 @@ def _handle_generate_async(request: Dict[str, Any], event: Dict[str, Any]) -> Di
         "status": "in_progress",
         "conceptCount": 0,
     }, event)
+
+
+def _handle_suggest_structure(request: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:
+    subject = request["subject"]
+    context = request.get("context", "")
+    print(f"[Handler] Suggest structure: subject={subject}")
+    try:
+        classification = bedrock_service.classify_subject(subject, context)
+        if not classification:
+            return api_response(500, {"error": "Failed to analyze subject structure"}, event)
+        exam_domains = classification.get("examDomains", [])
+        domains = []
+        for d in exam_domains:
+            weight_raw = d.get("weight")
+            weight = int(round(weight_raw * 100)) if weight_raw and weight_raw <= 1 else int(weight_raw or 0)
+            domains.append({
+                "name": d.get("name", ""),
+                "weight": weight,
+                "tasks": d.get("subtopics", []),
+            })
+        print(f"[Handler] Suggested {len(domains)} domains for: {subject}")
+        return api_response(200, {
+            "subject": subject,
+            "subjectType": classification.get("subjectType"),
+            "domains": domains,
+        }, event)
+    except Exception as e:
+        print(f"[Handler] ERROR: Suggest structure failed: {str(e)}")
+        return api_response(500, {"error": f"Structure suggestion failed: {str(e)}"}, event)
 
 
 def _handle_repair(request: Dict[str, Any]) -> Dict[str, Any]:
