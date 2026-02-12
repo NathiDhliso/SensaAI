@@ -5,6 +5,8 @@ test.describe('Generation Flow (Unauthenticated)', () => {
     await page.goto('/');
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('Machine Learning Fundamentals');
+    await input.blur();
+    await page.waitForTimeout(600);
     const domainToggle = page.getByRole('button', { name: /define exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
@@ -19,6 +21,8 @@ test.describe('Generation Flow (Unauthenticated)', () => {
     await page.goto('/');
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('Azure Administrator');
+    await input.blur();
+    await page.waitForTimeout(600);
     const domainToggle = page.getByRole('button', { name: /define exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');

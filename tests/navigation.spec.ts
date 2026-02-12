@@ -36,6 +36,8 @@ test.describe('Navigation & Routing', () => {
     await page.goto('/');
     const input = page.getByPlaceholder('Enter any subject to learn...');
     await input.fill('Docker Fundamentals');
+    await input.press('Escape');
+    await page.waitForTimeout(400);
     const domainToggle = page.getByRole('button', { name: /define exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
