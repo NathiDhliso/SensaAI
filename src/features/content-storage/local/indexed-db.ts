@@ -20,7 +20,7 @@
  * - For session state (use zustand)
  */
 import type { SavedResult, StorageProvider } from '../types';
-import type { ParsedConcept } from '@/features/content-generation/parsers/types';
+import type { ParsedConcept } from '@/shared/utils/content-builder';
 const DB_NAME = 'sensa-storage';
 const DB_VERSION = 2; // Upgraded for concepts store
 const RESULTS_STORE = 'saved-results';
@@ -487,4 +487,4 @@ class IndexedDBStorage implements StorageProvider {
  }
 }
 export const indexedDBStorage = new IndexedDBStorage();
-export { IndexedDBStorage };
+export { IndexedDBStorage };

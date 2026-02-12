@@ -226,6 +226,18 @@
  --shadow-glow-amber: 0 4px 15px rgba(245, 158, 11, 0.15);
  --shadow-glow-amber-hover: 0 6px 20px rgba(245, 158, 11, 0.25);
  --shadow-glow-error: 0 4px 12px rgba(220, 38, 38, 0.15);
+ --shadow-glow-coral: 0 4px 16px rgba(255, 107, 107, 0.3);
+ --shadow-glow-coral-hover: 0 6px 24px rgba(255, 107, 107, 0.4);
+ --shadow-glow-success: 0 2px 8px rgba(34, 197, 94, 0.2);
+ --shadow-glow-amber-intense: 0 8px 32px rgba(245, 158, 11, 0.4);
+ --shadow-celebration: 0 20px 60px rgba(0, 0, 0, 0.3);
+ --shadow-float: 0 10px 25px rgba(0, 0, 0, 0.2);
+ --shadow-float-lg: 0 10px 40px rgba(0, 0, 0, 0.3);
+ --shadow-panel: -4px 0 24px rgba(0, 0, 0, 0.08);
+ --shadow-inset-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+ --text-shadow-heavy: 0 2px 4px rgba(0, 0, 0, 0.8);
+ --text-glow-success: 0 0 12px rgba(34, 197, 94, 0.5);
+ --drop-shadow-sm: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 
  /* ========== ICON TREATMENTS ========== */
  --icon-stroke-default: 1.5;
@@ -241,13 +253,27 @@
  --overlay-primary-10: rgba(107, 70, 193, 0.1);
  --overlay-primary-15: rgba(107, 70, 193, 0.15);
  --overlay-accent-5: rgba(139, 92, 246, 0.05);
+ --overlay-accent-8: rgba(139, 92, 246, 0.08);
  --overlay-accent-10: rgba(139, 92, 246, 0.1);
  --overlay-accent-15: rgba(139, 92, 246, 0.15);
+ --overlay-accent-20: rgba(139, 92, 246, 0.2);
+ --overlay-accent-30: rgba(139, 92, 246, 0.3);
+ --overlay-accent-40: rgba(139, 92, 246, 0.4);
+ --overlay-accent-50: rgba(139, 92, 246, 0.5);
+ --overlay-accent-60: rgba(139, 92, 246, 0.6);
  --overlay-sage-5: rgba(16, 185, 129, 0.05);
  --overlay-sage-10: rgba(16, 185, 129, 0.1);
+ --overlay-success-10: rgba(34, 197, 94, 0.1);
+ --overlay-success-20: rgba(34, 197, 94, 0.2);
+ --overlay-success-50: rgba(34, 197, 94, 0.5);
  --overlay-amber-5: rgba(245, 158, 11, 0.05);
  --overlay-amber-10: rgba(245, 158, 11, 0.1);
  --overlay-amber-20: rgba(245, 158, 11, 0.2);
+ --overlay-white-3: rgba(255, 255, 255, 0.03);
+ --overlay-white-4: rgba(255, 255, 255, 0.04);
+ --overlay-white-5: rgba(255, 255, 255, 0.05);
+ --overlay-white-6: rgba(255, 255, 255, 0.06);
+ --overlay-white-8: rgba(255, 255, 255, 0.08);
  --overlay-white-10: rgba(255, 255, 255, 0.1);
  --overlay-white-20: rgba(255, 255, 255, 0.2);
  --overlay-white-30: rgba(255, 255, 255, 0.3);
@@ -255,8 +281,22 @@
  --overlay-white-50: rgba(255, 255, 255, 0.5);
  --overlay-white-60: rgba(255, 255, 255, 0.6);
  --overlay-white-80: rgba(255, 255, 255, 0.8);
+ --overlay-white-90: rgba(255, 255, 255, 0.9);
+ --overlay-black-2: rgba(0, 0, 0, 0.02);
+ --overlay-black-5: rgba(0, 0, 0, 0.05);
+ --overlay-black-6: rgba(0, 0, 0, 0.06);
+ --overlay-black-8: rgba(0, 0, 0, 0.08);
+ --overlay-black-10: rgba(0, 0, 0, 0.1);
+ --overlay-black-12: rgba(0, 0, 0, 0.12);
+ --overlay-black-15: rgba(0, 0, 0, 0.15);
+ --overlay-black-20: rgba(0, 0, 0, 0.2);
+ --overlay-black-30: rgba(0, 0, 0, 0.3);
  --overlay-black-40: rgba(0, 0, 0, 0.4);
+ --overlay-black-50: rgba(0, 0, 0, 0.5);
  --overlay-black-60: rgba(0, 0, 0, 0.6);
+ --overlay-black-75: rgba(0, 0, 0, 0.75);
+ --overlay-black-80: rgba(0, 0, 0, 0.8);
+ --overlay-indigo-5: rgba(99, 102, 241, 0.05);
 
  /* ========== SHAPE-SPECIFIC COLORS ========== */
  /* Darker variants for gradient endpoints */

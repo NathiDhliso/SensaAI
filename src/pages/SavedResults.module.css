@@ -757,70 +757,70 @@
  }
 }
 :global([data-visual-theme="scholarly"]) .resultCard {
- border: 1px solid rgba(0, 0, 0, 0.10);
+ border: 1px solid var(--overlay-black-10);
  border-radius: 8px;
- box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+ box-shadow: var(--shadow-sm);
 }
 :global([data-visual-theme="scholarly"]) .resultCard:hover {
- border-color: rgba(0, 0, 0, 0.15);
- box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
+ border-color: var(--overlay-black-15);
+ box-shadow: var(--shadow-md);
 }
 :global([data-visual-theme="scholarly"]) .header {
  background: var(--color-surface);
- border: 1px solid rgba(0, 0, 0, 0.10);
+ border: 1px solid var(--overlay-black-10);
  border-radius: 8px;
  padding: 1.25rem 1.5rem;
 }
 :global([data-visual-theme="scholarly"]) .filterBar {
- border: 1px solid rgba(0, 0, 0, 0.10);
+ border: 1px solid var(--overlay-black-10);
  border-radius: 8px;
 }
 :global([data-visual-theme="scholarly"]) .backButton {
- border: 1px solid rgba(0, 0, 0, 0.12);
+ border: 1px solid var(--overlay-black-12);
  border-radius: 6px;
 }
 :global([data-visual-theme="scholarly"]) .backButton:hover {
- border-color: rgba(0, 0, 0, 0.20);
+ border-color: var(--overlay-black-20);
 }
 :global([data-visual-theme="scholarly"]) .metricBadge {
- border: 1px solid rgba(0, 0, 0, 0.06);
+ border: 1px solid var(--overlay-black-6);
  border-radius: 6px;
 }
 :global([data-visual-theme="scholarly"]) .viewButton {
- border: 1px solid rgba(0, 0, 0, 0.10);
+ border: 1px solid var(--overlay-black-10);
  border-radius: 6px;
 }
 :global([data-visual-theme="scholarly"]) .learnButton {
  border-radius: 6px;
 }
 :global([data-visual-theme="scholarly"]) .deleteButton {
- border: 1px solid rgba(0, 0, 0, 0.08);
+ border: 1px solid var(--overlay-black-8);
  border-radius: 6px;
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .resultCard {
- border: 1px solid rgba(255, 255, 255, 0.06);
+ border: 1px solid var(--overlay-white-6);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .resultCard:hover {
- border-color: rgba(255, 255, 255, 0.10);
+ border-color: var(--overlay-white-10);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .header {
  background: var(--color-surface);
- border: 1px solid rgba(255, 255, 255, 0.06);
+ border: 1px solid var(--overlay-white-6);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .filterBar {
- border: 1px solid rgba(255, 255, 255, 0.06);
+ border: 1px solid var(--overlay-white-6);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .backButton {
- border: 1px solid rgba(255, 255, 255, 0.08);
+ border: 1px solid var(--overlay-white-8);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .metricBadge {
- border: 1px solid rgba(255, 255, 255, 0.04);
+ border: 1px solid var(--overlay-white-4);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .viewButton {
- border: 1px solid rgba(255, 255, 255, 0.06);
+ border: 1px solid var(--overlay-white-6);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .deleteButton {
- border: 1px solid rgba(255, 255, 255, 0.06);
+ border: 1px solid var(--overlay-white-6);
 }
 
 .cleanupButton {

@@ -403,7 +403,7 @@
  align-items: center;
  gap: var(--spacing-2);
  font-size: var(--font-size-sm);
- color: rgba(255, 255, 255, 0.9);
+ color: var(--overlay-white-90);
 }
 .featureItem svg {
  opacity: 0.8;

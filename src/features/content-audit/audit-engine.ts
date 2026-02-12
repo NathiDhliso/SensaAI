@@ -1,5 +1,5 @@
-import type { ParsedConcept, ParsedGeneratedContent } from '@/features/content-generation/parsers/types';
-import { isRealContent } from '@/features/content-generation/validators/content-quality';
+import type { ParsedConcept, ParsedGeneratedContent } from '@/shared/utils/content-builder';
+import { isRealContent } from '@/shared/utils/content-builder';
 
 export interface AuditIssue {
  field: string;

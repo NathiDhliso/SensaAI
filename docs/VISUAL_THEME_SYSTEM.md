@@ -62,7 +62,7 @@ Premium perception is triggered by: **Restraint** (one accent, not three), **Str
 4. WHEN the Scholarly_Theme is active, THE Visual_Theme_System SHALL reduce border-radius to 4px/6px/8px (sm/md/lg) for angular, structured appearance
 5. WHEN the Scholarly_Theme is active, THE Visual_Theme_System SHALL use increased content spacing for breathing room
 6. WHEN the Scholarly_Theme is active, THE Visual_Theme_System SHALL use ONE accent color (`#2563EB` deep royal blue) for all interactive elements — no secondary accent colors
-7. WHEN the Scholarly_Theme is active, THE Visual_Theme_System SHALL use monochromatic tier colors (Academic Blue Gradient): Root `#475569`, Trunk `#3b4f6b`, Leaf `#2c3e5a` — hierarchy through intensity, not hue
+7. WHEN the Scholarly_Theme is active, THE Visual_Theme_System SHALL use monochromatic tier colors (Academic Blue Gradient): Trunk `#475569`, Branch `#3b4f6b`, Leaf `#2c3e5a` — hierarchy through intensity, not hue
 8. WHEN the Scholarly_Theme is active, THE Visual_Theme_System SHALL use warm off-white backgrounds (`#fafaf9`) in light mode and blue-black backgrounds (`#0a0e14`) in dark mode
 9. WHEN the Scholarly_Theme is active, THE Visual_Theme_System SHALL use desaturated Bloom's taxonomy colors (monochromatic slate gradient) instead of rainbow
 10. WHEN the Scholarly_Theme is active, THE Visual_Theme_System SHALL refine button hover states with subtle border accent + `translateY(-1px)` lift — never glow

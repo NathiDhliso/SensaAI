@@ -6,7 +6,7 @@
  max-width: 420px;
  z-index: 100;
  animation: slideInFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
- box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+ box-shadow: var(--shadow-lg);
 }
 @keyframes slideInFromRight {
  from {
@@ -136,7 +136,7 @@
  align-items: center;
  gap: 0.35rem;
  background: transparent;
- border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+ border: 1px solid var(--color-border);
  border-radius: 6px;
  cursor: pointer;
  padding: 0.3rem 0.6rem;

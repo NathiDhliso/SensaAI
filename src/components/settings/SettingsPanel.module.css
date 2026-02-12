@@ -377,14 +377,14 @@
 }
 /* Scholarly theme overrides */
 :global([data-visual-theme="scholarly"]) .panel {
- border-left: 1px solid rgba(0, 0, 0, 0.12);
- box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
+ border-left: 1px solid var(--overlay-black-12);
+ box-shadow: var(--shadow-panel);
 }
 :global([data-visual-theme="scholarly"]) .panelHeader {
- border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+ border-bottom: 1px solid var(--overlay-black-12);
 }
 :global([data-visual-theme="scholarly"]) .section {
- border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+ border-bottom: 1px solid var(--overlay-black-8);
  padding: 1.25rem 0;
 }
 :global([data-visual-theme="scholarly"]) .sectionTitle {
@@ -404,14 +404,14 @@
  transition: all 0.15s ease;
 }
 :global([data-visual-theme="scholarly"]) .themeOption:hover {
- background: rgba(0, 0, 0, 0.02);
+ background: var(--overlay-black-2);
  color: var(--color-text-primary);
 }
 :global([data-visual-theme="scholarly"]) .themeOptionActive {
  background: var(--color-surface);
  border: 1px solid var(--color-border);
  color: var(--color-text-primary);
- box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+ box-shadow: var(--shadow-inset-sm);
 }
 :global([data-visual-theme="scholarly"]) .settingRow {
  border-bottom: none;
@@ -439,7 +439,7 @@
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .panel {
  border-left: 1px solid var(--color-border);
- box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+ box-shadow: var(--shadow-float-lg);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .panelHeader {
  border-bottom: 1px solid var(--color-border);
@@ -455,14 +455,14 @@
  color: var(--color-text-secondary);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .themeOption:hover {
- background: rgba(255, 255, 255, 0.04);
+ background: var(--overlay-white-4);
  color: var(--color-text-primary);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .themeOptionActive {
  background: var(--color-surface);
  border: 1px solid var(--color-border);
  color: var(--color-text-primary);
- box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+ box-shadow: var(--shadow-sm);
 }
 :global([data-visual-theme="scholarly"][data-theme="dark"]) .closeButton {
  border: 1px solid var(--color-border);

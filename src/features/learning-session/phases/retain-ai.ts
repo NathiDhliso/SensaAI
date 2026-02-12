@@ -7,7 +7,7 @@
  * - Suggest optimal review timing (spacing)
  */
 import type { LearningConcept } from '@/shared/types/learning';
-import { getPersonaResponse, type PersonaId } from '@/features/ai-coach';
+import { getPersonaResponse, type PersonaId } from '@/shared/utils/persona';
 export interface BlankSheetScore {
  conceptsRecalled: number;
  conceptsTotal: number;
@@ -191,4 +191,4 @@ export function calculateSpacing(
  */
 export function getStruggleCelebration(personaId: PersonaId): string {
  return getPersonaResponse(personaId, 'retain', 'struggle');
-}
+}

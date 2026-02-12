@@ -1,20 +1,30 @@
-# Documentation
-This folder contains project documentation and historical records.
-## Structure
-### `archive/`
-Historical documentation from major reorganizations:
-- `FOLDER_REORGANIZATION_COMPLETE.md` - Complete reorganization guide
-- `FOLDER_REORGANIZATION_PLAN.md` - Original reorganization plan
-- `REORGANIZATION_SUCCESS.md` - Success summary
-### `cleanup-history/`
-Records of code cleanup phases:
-- `PHASE_2_COMPLETE.md` - Phase 2 cleanup summary
-- `PHASE_3_COMPLETE.md` - Phase 3 cleanup summary
-- `CLEANUP_SUMMARY.md` - Overall cleanup summary
-- `COMPLEXITY_AUDIT.md` - Complexity analysis
-- `FEATURES_STATUS.md` - Feature status after cleanup
-- `SELF_HEALING_ANALYSIS.md` - Self-healing system analysis
-- `SELF_HEALING_REMOVAL_COMPLETE.md` - Self-healing removal summary
-## Purpose
-These documents are kept for historical reference and to understand the evolution of the codebase. They document major refactoring efforts, cleanup phases, and architectural decisions.
-**Note**: For current documentation, see the main README.md in the root directory and the README files in `src/features/` and `src/shared/`.
+# SensaPBL Documentation
+
+Start here: **[master-prompt.md](./master-prompt.md)** — read this before touching any code.
+
+## Core Documentation
+
+| Document | Focus |
+|----------|-------|
+| [Master Prompt](./master-prompt.md) | Project overview, routes, stores, infrastructure, key files |
+| [Styling Specifications](./styling-specifications.md) | CSS variable catalog, theme system, forbidden patterns |
+| [Type System](./type-system.md) | LearningConcept contract, connections, Bloom's taxonomy |
+| [Learning Science](./learning-science.md) | 3-phase loop, mood curation, activities, algorithms |
+| [Generation Pipeline](./generation-pipeline.md) | Prompt → Lambda → parser → store → UI, backend, deployment |
+| [Implementation Guide](./implementation-guide.md) | Code patterns, operational pitfalls, checklists |
+| [Authentication](./authentication.md) | Cognito OAuth PKCE, auth store, session management |
+| [Content Storage](./content-storage.md) | StorageManager, DynamoDB, IndexedDB, sync engine |
+
+## Feature Documentation
+
+| Document | Focus |
+|----------|-------|
+| [Visual Theme System](./VISUAL_THEME_SYSTEM.md) | Playful vs Scholarly modes (4 combinations) |
+| [Metaphor System](./metaphor-system.md) | useMetaphorContent hook, data flow, toggle architecture |
+| [Desirable Results](./DESIRABLE_RESULTS.md) | Field-by-field examples of quality generated content |
+| [Gym UX Philosophy](./GYM_UX_PHILOSOPHY.md) | Gym activity design principles |
+| [Mastery Scoring Guide](./MASTERY_SCORING_GUIDE.md) | Grade thresholds (S/A/B/C/D) |
+
+## Guardrails
+
+Architecture rules live in `.cursorrules` at the project root — automatically loaded by AI tools.

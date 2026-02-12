@@ -1,6 +1,6 @@
 export * from './types';
 export { CloudStorage, cloudStorage } from './cloud/s3-dynamodb';
-import { buildDocumentFromConcepts } from '@/features/content-generation/api/backend-client';
+import { buildDocumentFromConcepts } from '@/shared/utils/content-builder';
 export { importFromFile, createFileInput } from './sync/import';
 export type { ImportResult } from './sync/import';
 // Note: CloudStorage class is still exported for potential future use,

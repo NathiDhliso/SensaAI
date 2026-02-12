@@ -3,9 +3,9 @@
  flex-direction: column;
  gap: 0.75rem;
  padding: 1rem;
- background: var(--surface-secondary, rgba(255, 255, 255, 0.05));
+ background: var(--overlay-white-5);
  border-radius: 12px;
- border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+ border: 1px solid var(--overlay-white-8);
 }
 
 .header {
@@ -79,7 +79,7 @@
 }
 
 .metricRow.weakest {
- background: var(--surface-tertiary, rgba(255, 255, 255, 0.03));
+ background: var(--overlay-white-3);
  margin: 0 -0.5rem;
  padding: 0.35rem 0.5rem;
  border-radius: 6px;
@@ -107,7 +107,7 @@
 .barTrack {
  flex: 1;
  height: 6px;
- background: var(--surface-tertiary, rgba(255, 255, 255, 0.03));
+ background: var(--overlay-white-3);
  border-radius: 3px;
  overflow: hidden;
 }
@@ -130,7 +130,7 @@
  justify-content: space-between;
  align-items: center;
  padding-top: 0.5rem;
- border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+ border-top: 1px solid var(--overlay-white-6);
 }
 
 .efficiencyLabel {

@@ -78,7 +78,7 @@
  justify-content: center;
  background: var(--color-surface);
  border: 2px solid var(--color-border);
- color: rgba(255, 255, 255, 0.5);
+ color: var(--overlay-white-50);
  transition: all 0.3s ease;
 }
 .compact .stepIcon {
@@ -95,7 +95,7 @@
  background: var(--color-accent);
  border-color: var(--color-accent);
  color: white;
- box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+ box-shadow: 0 0 20px var(--overlay-accent-40);
  animation: pulse 2s ease-in-out infinite;
 }
 .upcoming .stepIcon {
@@ -108,7 +108,7 @@
 .stepLabel {
  font-size: 0.8rem;
  font-weight: 600;
- color: rgba(255, 255, 255, 0.8);
+ color: var(--overlay-white-80);
 }
 .completed .stepLabel {
  color: var(--color-success);
@@ -117,21 +117,21 @@
  color: var(--color-primary-light);
 }
 .upcoming .stepLabel {
- color: rgba(255, 255, 255, 0.4);
+ color: var(--overlay-white-40);
 }
 .stepEqVar {
  font-size: 0.65rem;
  font-family: 'SF Mono', 'Fira Code', monospace;
- color: rgba(255, 255, 255, 0.4);
+ color: var(--overlay-white-40);
  text-transform: uppercase;
 }
 /* Animation */
 @keyframes pulse {
  0%,
  100% {
- box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+ box-shadow: 0 0 20px var(--overlay-accent-40);
  }
  50% {
- box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+ box-shadow: 0 0 30px var(--overlay-accent-60);
  }
 }

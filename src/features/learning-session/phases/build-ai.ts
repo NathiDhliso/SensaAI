@@ -7,7 +7,7 @@
  * - Label validation for connection descriptions
  */
 import type { LearningConcept } from '@/shared/types/learning';
-import { getPersonaResponse, type PersonaId } from '@/features/ai-coach';
+import { getPersonaResponse, type PersonaId } from '@/shared/utils/persona';
 const GENERIC_STOP_WORDS = new Set([
  'the', 'and', 'or', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'as',
  'is', 'are', 'was', 'were', 'be', 'been', 'being',
@@ -334,4 +334,4 @@ export function getBuildCoachMessage(
  situation: 'intro' | 'encouragement' | 'struggle' | 'success'
 ): string {
  return getPersonaResponse(personaId, 'build', situation);
-}
+}

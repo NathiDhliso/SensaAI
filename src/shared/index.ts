@@ -13,6 +13,8 @@ export * from './utils/subject-domain-detector';
 export * from './utils/performance';
 export * from './utils/content-loader';
 export * from './utils/context-optimizer';
+export * from './utils/persona';
+export * from './utils/content-builder';
 // Layout utils (has TierType)
 export {
  calculateNodeSize,
@@ -53,6 +55,11 @@ export type {
 export type {
  ConceptSchema
 } from './types/concept-schema';
+export type {
+ ParsedConcept,
+ ParsedGeneratedContent,
+ ParsedMnemonic
+} from '@/features/content-generation/parsers/types';
 // Hooks (some export types that conflict)
 export * from './hooks/useBackgroundJobRecovery';
 export * from './hooks/useClickOutside';

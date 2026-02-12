@@ -1,0 +1,293 @@
+# Generation Pipeline
+
+**Last Updated:** February 12, 2026
+**Status:** MANDATORY — Understand this before modifying generation or parsing code.
+
+---
+
+## Overview
+
+Content generation is a 2-phase backend process that produces hierarchical learning concepts from any subject. The frontend orchestrates the flow, displays progress, and transforms raw output into the `LearningConcept` type.
+
+```
+User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Generation per domain) → Frontend Parser → Zustand Store → UI
+```
+
+---
+
+## Phase 1: Domain Analysis
+
+**Backend:** `bedrock_service.py` → `system_prompt.py`
+**Frontend trigger:** `useGenerationEngine.ts` → `backend-client.ts` → `conceptsApi.generate()`
+
+### Input
+```typescript
+{
+  subject: string;          // e.g., "AWS Solutions Architect"
+  context: string;          // User's learning context/objectives
+  trunks?: string[];        // Optional: 2-6 user-defined exam domains
+}
+```
+
+### Process
+1. If `trunks` provided (≥2): Use them directly as domains with equal weights. Skip domain extraction.
+2. If no trunks: Classify the subject into one of 4 types (procedural/conceptual/cyclic/perceptual), then extract domains from classification.
+
+### Output
+```typescript
+{
+  subjectType: SubjectType;           // 'procedural' | 'conceptual' | 'cyclic' | 'perceptual'
+  classification: object;             // Full classification metadata
+  macroStructure: MacroStructure;     // Domain weights and ordering
+  connectiveTissue: object;           // Cross-domain relationships
+  domains: Array<{ name, weight }>;   // The trunk domains to generate
+}
+```
+
+---
+
+## Phase 1.5: Knowledge Dimension Partitioning
+
+When generating without user-provided trunks, concepts are generated in 5 parallel parts, each covering a distinct knowledge dimension:
+
+| Part | Dimension | Covers |
+|------|-----------|--------|
+| 1 | Core Mechanics | Foundations, data structures, terminology, prerequisites |
+| 2 | Workflows & Operations | Day-to-day processes, configuration, transformation, modeling |
+| 3 | Output & Delivery | Visualization, reporting, publishing, sharing, collaboration |
+| 4 | Governance & Infrastructure | Security, access control, compliance, deployment, gateways, admin |
+| 5 | Advanced & Ecosystem | Optimization, AI/automation, mobile, integrations, edge cases |
+
+**Prompt file:** `backend/lambda/shared/system_prompt.py` `SILVER_BULLET_PROMPT`
+
+**When editing the prompt:**
+- Keep dimensions universal — they must work for ANY subject
+- Each part generates ~20 concepts (100 total across 5 parts)
+- The classification type (A/B/C/D) adapts how each dimension is interpreted
+- Never hardcode subject-specific examples into the partition strategy
+- When user provides exam objectives, `_parse_objective_domains()` splits them into top-level domains and `_distribute_domains_to_parts()` assigns domains to the 5 parts
+
+---
+
+## Phase 2: Tree Generation (Per Domain)
+
+**Backend:** `bedrock_service.py` → `system_prompt.py` TREE_GENERATION_PROMPT
+**Runs once per domain (trunk)**
+
+### Process
+For each domain, the LLM generates a tree of concepts:
+- 1 trunk concept (the domain itself)
+- Multiple branch concepts (sub-topics)
+- Multiple leaf concepts (granular testable items)
+
+Each concept includes: `treeLevel`, `parentName`, `cognitiveLevel`, `connections[]`, `lifecycle`, `shape`, `workedExample`, `commonPitfalls`, `hookSentence`, `howToUse`, `technicalDetails`, `metaphor`, `realWorldExample`, `logicalConnection`, `mnemonic`, etc.
+
+### Output
+Raw JSON array of concepts per domain, merged into a single flat array.
+
+---
+
+## Frontend Parsing
+
+### Parser Chain
+```
+Raw JSON → concept-schema.ts (Zod validation) → transformer.ts (normalization) → LearningConcept[]
+```
+
+**Files:**
+- **Schema:** `src/features/content-generation/parsers/concept-schema.ts` — Zod schema with `trunk/branch/leaf` validation
+- **Transformer:** `src/features/content-generation/parsers/transformer.ts` — Normalizes raw data into `LearningConcept` interface
+- **Types:** `src/features/content-generation/parsers/types.ts` — `ParsedConcept`, `ParsedGeneratedContent`
+
+### Transformer Responsibilities
+1. Assign `tier` from `treeLevel` field
+2. Copy `parentName`, `trunkDomain` from raw data
+3. Calculate `outdegree` from dependency graph
+4. Build `connections[]` from raw relationship data
+5. Map `cognitiveLevel` to Bloom's taxonomy
+6. Structure `lifecycle` into `phase1/phase2/phase3` with titles and steps
+7. Build `shape` content (simpleCore, highStakesExample, patternRecognition, etc.)
+8. Generate `dependencies[]` ID array from relationship data
+9. Set `lifecyclePhase` (PREPARE/MODEL/DELIVER) from stage mapping
+
+### Validation
+**File:** `src/features/content-generation/validators/`
+- `content-quality.ts` — `isRealContent()` checks for placeholder/filler content
+- `tier-progression.ts` — Validates tier distribution and dependency integrity
+
+---
+
+## Storage Flow
+
+### Save
+```
+LearningConcept[] → content-storage feature → DynamoDB (via API Gateway + Lambda)
+                   → Also saved to localStorage as backup
+```
+
+**Files:**
+- `src/features/content-storage/` — Save/load/delete operations
+- `src/shared/api/concepts.ts` — API endpoint definitions
+
+### Load
+```
+DynamoDB → API → ParsedGeneratedContent → transformer.ts → LearningConcept[] → Zustand stores
+```
+
+Stored as `SavedResult` which includes:
+- Raw generated content
+- Parsed concepts
+- Subject metadata
+- Generation timestamp
+- User objectives (if provided)
+
+---
+
+## Data Flow: Generation → Study
+
+```
+1. Home.tsx: User enters subject + context + optional trunks
+2. Generate.tsx: Orchestrates generation via useGenerationEngine
+3. useGenerationEngine.ts: Calls backend, receives raw data
+4. backend-client.ts: Transforms Pass 1 + Pass 2 results
+5. transformer.ts: Normalizes into LearningConcept[]
+6. generation-store.ts: Stores concepts + metadata
+7. content-storage: Persists to DynamoDB + localStorage
+8. ContentLaunchpad.tsx: Loads saved results, runs audit
+9. VelocityLearning.tsx: Orchestrates the 5-step session
+10. MicroLearningLoopController.tsx: Runs 3-phase micro-loop per concept
+11. concept-selection.ts / interleaving.ts: Select next concept using connections, tier, outdegree
+```
+
+---
+
+## Key Stores
+
+| Store | File | Purpose |
+|-------|------|---------|
+| `generation-store` | `src/store/generation-store.ts` | Generation progress, subjectType, macroWorkflow |
+| `learning-store` | `src/store/learning-store.ts` | User progress, completed concepts, scores |
+| `personalization-store` | `src/store/personalization-store.ts` | Persona, mood, metaphor toggle, voice settings |
+| `theme-store` | `src/store/theme-store.ts` | Visual theme (playful/scholarly), dark mode |
+
+---
+
+## Content Audit
+
+**File:** `src/features/content-audit/audit-engine.ts`
+**Used by:** ContentLaunchpad, Home.tsx
+
+Audits generated content against user-provided objectives:
+- **Objective alignment:** How well concepts cover stated objectives
+- **Content health:** Checks for placeholder/filler content
+- **Tier distribution:** Validates trunk/branch/leaf ratios
+- **Bloom's distribution:** Checks cognitive level spread
+- **Per-concept verdict:** `objective-aligned`, `supplementary`, `not-in-objectives`, `unverified`
+
+---
+
+## Backend Architecture
+
+### Express Server (`backend/src/`)
+```
+backend/src/
+├── core/server.ts              # Express app, middleware, route mounting
+├── features/
+│   ├── auth/routes/            # /api/v1/auth — Cognito token exchange
+│   ├── concepts/routes/        # /api/v1/concepts — Proxy to Lambda
+│   ├── content/routes/         # /api/v1/content — Content CRUD
+│   └── proxy/routes/           # /api/v1/proxy — Public resource proxy
+├── shared/
+│   ├── middleware/             # auth.ts (JWT verify), error-handler.ts, rate-limit.ts
+│   └── types/                 # macro-workflow.ts, grounding.ts
+```
+
+### Lambda Functions (`backend/lambda/`)
+```
+backend/lambda/
+├── generate_concepts/
+│   ├── handler.py              # Entry point: routes generate/repair actions
+│   └── services/
+│       ├── bedrock_service.py  # classify_subject() + parallel generate
+│       └── dynamo_service.py   # Job tracking, concept storage, batch writes
+├── query_concepts/
+│   └── handler.py              # Paginated queries, subject management, job polling
+├── gym_ai/
+│   └── handler.py              # Gym activity AI (Haiku)
+├── shared/
+│   ├── system_prompt.py        # SILVER_BULLET_PROMPT + classification prompt
+│   └── utils.py                # CORS, API response helpers, DynamoDB key builders
+└── requirements.txt
+```
+
+### DynamoDB Schema
+
+**Concepts Table** (`sensapbl-concepts-pilot`)
+- **PK:** `USER#{userId}#SESSION#{sessionId}`
+- **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
+- **GSI1:** For tier-based queries
+
+**Jobs Table** (`sensapbl-jobs-pilot`)
+- Tracks generation job status, progress, classification data
+- TTL: 24 hours
+
+### Local Storage
+
+| Store | Purpose | TTL |
+|-------|---------|-----|
+| IndexedDB | Full generated documents (offline access) | None |
+| localStorage | Session progress recovery | 24 hours |
+| Zustand (memory) | Active session state | Page lifetime |
+
+---
+
+## Deployment
+
+### Lambda Deployment
+```powershell
+Compress-Archive -Path "backend\lambda\*" -DestinationPath "backend\lambda_deploy.zip" -Force
+aws lambda update-function-code --function-name sensapbl-generate-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+aws lambda update-function-code --function-name sensapbl-query-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+aws lambda update-function-code --function-name sensapbl-gym-ai-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
+Remove-Item "backend\lambda_deploy.zip"
+```
+
+### Infrastructure Changes (Terraform)
+```powershell
+cd infra/terraform/environments/pilot
+terraform plan    # Review changes
+terraform apply   # Apply changes
+```
+
+### Frontend Deployment
+Auto-deploys via AWS Amplify on push to `main` branch.
+- **Build command:** `npm ci && npm run build` (runs `tsc -b && vite build`)
+- **Build artifacts:** `dist/`
+- **Environment variables:** Set in Amplify console (`VITE_API_URL`, `VITE_COGNITO_*`, `VITE_AWS_*`)
+
+`tsc -b` runs in strict mode during Amplify builds — all TypeScript errors must be resolved before pushing.
+
+### Error Resilience
+- 3-retry exponential backoff at both Lambda (Bedrock calls) and frontend (API calls via `resilience.ts`)
+- Offline queue re-sends failed requests on reconnect
+- Study page hydration retries 3× with backoff
+- `LearningErrorBoundary` catches render crashes with recover/abandon paths
+
+---
+
+## Forbidden Patterns
+
+```typescript
+// NEVER skip the parser — always go through transformer.ts
+const concepts = rawData.concepts; // WRONG — raw data isn't normalized
+
+// NEVER hardcode content the AI generates
+const title = "The Architecture"; // WRONG if lifecycle.phase1.title is available
+
+// NEVER compute tiers from graph — tiers are LLM-declared
+const tier = computeTierFromDependencies(concept); // FORBIDDEN
+// Correct: concept.tier (already set by LLM via treeLevel)
+
+// NEVER use 'root' as a tier
+if (concept.tier === 'root') // FORBIDDEN — tier is trunk/branch/leaf only
+```

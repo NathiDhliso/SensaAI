@@ -4,7 +4,7 @@
  left: 0;
  right: 0;
  bottom: 0;
- background: rgba(0, 0, 0, 0.6);
+ background: var(--overlay-black-60);
  backdrop-filter: blur(4px);
  display: flex;
  align-items: center;
@@ -27,7 +27,7 @@
  padding: 2rem;
  max-width: 500px;
  width: 100%;
- box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+ box-shadow: var(--shadow-celebration);
  position: relative;
  animation: slideUp 0.3s ease-out;
 }
@@ -208,4 +208,4 @@
  .continueButton {
  width: 100%;
  }
-}
+}

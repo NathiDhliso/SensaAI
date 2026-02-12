@@ -759,8 +759,8 @@
  align-items: center;
  gap: 0.5rem;
  padding: 0.5rem 1rem;
- background: rgba(139, 92, 246, 0.1);
- border: 1px solid rgba(139, 92, 246, 0.3);
+ background: var(--overlay-accent-10);
+ border: 1px solid var(--overlay-accent-30);
  border-radius: var(--radius-md);
  font-size: 0.875rem;
  color: var(--color-primary);
@@ -768,8 +768,8 @@
  transition: all 0.2s ease;
 }
 .backToMapButton:hover {
- background: rgba(139, 92, 246, 0.2);
- border-color: rgba(139, 92, 246, 0.5);
+ background: var(--overlay-accent-20);
+ border-color: var(--overlay-accent-50);
 }
 /* Laptop/Compact Mode Optimization - Aggressive No-Scroll */
 @media (max-height: 900px) {

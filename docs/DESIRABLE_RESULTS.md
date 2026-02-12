@@ -229,17 +229,17 @@ For AZ-104 (~78 leaf objectives), the full generation should produce:
 
 ---
 
-## 3. Tier Distribution (Computed, Not Generated)
+## 3. Tier Distribution (LLM-Declared)
 
-Tiers are NOT in the generated JSON — they're computed from the connection graph after generation:
+Tiers ARE in the generated JSON — declared by the LLM via the `treeLevel` field, then validated by `_validate_tree_structure()` in Lambda:
 
-| Tier | How It's Computed | Target % |
-|------|-------------------|----------|
-| **root** | in-degree 0, out-degree >= 1 (nothing requires it, it requires others) | ~20% |
-| **trunk** | in-degree >= 1, out-degree >= 1 (required by some, requires others) | ~50% |
-| **leaf** | out-degree 0 or isolated (nothing depends on it) | ~30% |
+| Tier | Role | Target % |
+|------|------|----------|
+| **trunk** | Main exam domain/objective — top-level container | ~15-20% |
+| **branch** | Sub-topic within a trunk — groups related knowledge | ~35-50% |
+| **leaf** | Granular testable concept — exam-level detail | ~30-50% |
 
-A good connection graph produces this distribution naturally. If all concepts are "leaf", the connections are broken.
+Each concept also declares `parentName` (direct parent) and `trunkDomain` (top-level trunk). If most concepts are "leaf" with no branches, the tree structure is too flat.
 
 ---
 
@@ -348,7 +348,7 @@ The first insight (all concepts aligned) is the **best possible** result for con
 | "100% of content targets lower-order thinking (remember/understand). Zero concepts reach analyze, evaluate, or create." | `cognitiveLevel` is missing on all concepts — Lambda didn't set it, or content was generated before Bloom's enforcement was added |
 | "X concepts have content health below 40%." | Concepts are skeletons — missing SHAPE, mnemonics, phase1, or other core fields |
 | "X of Y concepts don't match any of your Z objectives (Concept A, Concept B, ...)" | Lambda generated off-topic concepts that aren't on the exam |
-| "X leaf concepts vs only Y trunk. The generation over-indexed on peripheral topics." | Connection graph is broken — too few connections, so most concepts compute as "leaf" tier |
+| "X leaf concepts vs only Y trunk/branch. The generation over-indexed on peripheral topics." | Connection graph is broken — too few connections, so most concepts compute as "leaf" tier |
 | "No exam objectives provided." | Student hasn't pasted objectives yet — audit can only check structural health, not alignment |
 
 ### 6.4 Concept-by-Concept Audit
@@ -395,14 +395,14 @@ Each concept row shows:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│ Generated: 2/9/2026 │ Overall: 85% │ Tier Split: 13R/33T/19L │
+│ Generated: 2/9/2026 │ Overall: 85% │ Tier Split: 10T/35B/20L │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-| Field | Perfect | Problem |
+| Footer | Perfect | Problem |
 |-------|---------|---------|
 | **Overall** | 80%+ (average of objectivesCoverage and contentHealth) | <60% = either poor coverage or poor content quality |
-| **Tier Split** | ~20% R / ~50% T / ~30% L | All L = broken connections, all R = no dependencies |
+| **Tier Split** | ~15-20% T / ~35-50% B / ~30-50% L | All L = tree too flat, all T = no branches |
 
 ### 6.6 Summary — Perfect Dashboard at a Glance
 
@@ -420,4 +420,4 @@ Each concept row shows:
 | No "over-indexed on peripheral" insight | Tier distribution is balanced |
 | Every concept row | "Aligned" verdict, 80%+ health, 7+ strengths, 0 issues |
 | Footer Overall | 80%+ |
-| Footer Tier Split | Roughly 20/50/30 split |
+| Footer Tier Split | Roughly 15-20% trunk / 35-50% branch / 30-50% leaf |

@@ -905,7 +905,7 @@
 }
 .tierHeader .tierCount {
  font-size: 0.75rem;
- background: rgba(255, 255, 255, 0.2);
+ background: var(--overlay-white-20);
  padding: 0.2rem 0.5rem;
  border-radius: var(--radius-sm);
 }

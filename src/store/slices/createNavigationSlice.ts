@@ -206,10 +206,16 @@ export const createNavigationSlice: StateCreator<
  if (progress.currentConceptId === conceptId) return 'current';
  const concept = concepts.find((c) => c.id === conceptId);
  if (!concept) return 'locked';
- const prerequisitesMet = (concept.prerequisites || []).every((prereq) =>
+ const explicitPrereqs = (concept.prerequisites || []).every((prereq) =>
  progress.completedConcepts.includes(prereq)
  );
- return prerequisitesMet ? 'available' : 'locked';
+ const connectionPrereqs = (concept.connections || [])
+ .filter((c) => c.type === 'requires')
+ .every((c) => {
+ const target = concepts.find((t) => t.name === c.target || t.id === c.target);
+ return !target || progress.completedConcepts.includes(target.id);
+ });
+ return explicitPrereqs && connectionPrereqs ? 'available' : 'locked';
  },
  getStageStatus: (stageId: string) => {
  const state = get();
@@ -305,4 +311,4 @@ export const createNavigationSlice: StateCreator<
  isExploreMode: false
  });
  }
-});
+});

@@ -87,7 +87,7 @@
 .conceptSwitcher:focus {
  outline: none;
  border-color: var(--color-accent);
- box-shadow: 0 0 0 3px var(--color-accent-bg, rgba(139, 92, 246, 0.1));
+ box-shadow: 0 0 0 3px var(--overlay-accent-10);
 }
 
 .activityContent {
@@ -160,7 +160,7 @@
 
 .conceptOptionSelected {
  border-color: var(--color-accent);
- background: var(--color-accent-bg, rgba(139, 92, 246, 0.08));
+ background: var(--overlay-accent-8);
 }
 
 .conceptDot {

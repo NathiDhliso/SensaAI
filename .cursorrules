@@ -4,8 +4,63 @@ inclusion: always
 
 # Architecture Guardrails - STRICT ENFORCEMENT
 
-**Last Updated:** January 29, 2026  
+**Last Updated:** February 12, 2026  
 **Status:** MANDATORY - All code changes MUST follow these rules
+
+**READ FIRST:** `docs/master-prompt.md` — Full project context and document index.
+
+---
+
+## 🚨 PROJECT-SPECIFIC RULES - READ BEFORE ANY CHANGE
+
+### Rule 0a: Zero Hardcoded Colors in Component CSS
+The ONLY file that may contain raw hex/rgb/rgba values is `src/index.css`.
+Every `.module.css` file MUST use CSS variables exclusively.
+```css
+/* FORBIDDEN in .module.css */
+color: #6B46C1;
+background: rgb(107, 70, 193);
+border: 1px solid rgba(0, 0, 0, 0.1);
+
+/* CORRECT */
+color: var(--color-accent);
+background: var(--overlay-primary-10);
+border: 1px solid var(--color-border-light);
+```
+Full variable catalog: `docs/styling-specifications.md`
+
+### Rule 0b: Tier System is Trunk → Branch → Leaf
+FORBIDDEN tier names: `root`, `foundation`, `keystone`, `utility`.
+Tiers are LLM-declared, never computed from graph.
+```typescript
+tier: 'trunk' | 'branch' | 'leaf'  // ONLY these three values
+```
+
+### Rule 0c: Use AI-Generated Data — Never Hardcode What the AI Provides
+Every field on `LearningConcept` was generated with purpose. Use priority chains:
+```typescript
+// CORRECT — AI data first, fallback last
+const title = concept.lifecycle?.phase1?.title || "The Architecture";
+const question = concept.shape?.patternRecognition?.question
+  || concept.workedExample?.problem
+  || `What is ${concept.name}?`;
+```
+Full field usage contract: `docs/type-system.md`
+
+### Rule 0d: Check Both Prerequisite Sources
+Always check `prerequisites[]` AND `connections[type=requires]`:
+```typescript
+const required = new Set([
+  ...(concept.prerequisites || []),
+  ...(concept.connections?.filter(c => c.type === 'requires').map(c => c.target) || [])
+]);
+```
+
+### Rule 0e: No Inline Styles for Theming
+```tsx
+/* FORBIDDEN */ <div style={{ color: '#6B46C1' }}>
+/* CORRECT */  <div className={styles.accentCard}>
+```
 
 ---
 
