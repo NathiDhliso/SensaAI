@@ -417,19 +417,45 @@ def query_concepts(
     return concepts, next_cursor
 
 def transform_item_to_concept(item: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Transform DynamoDB item to concept format matching TypeScript types
-    (Minimal version for paginated queries)
-    """
+    order = item.get("order", 0)
+    if not order:
+        concept_id = item.get("conceptId", "")
+        if concept_id:
+            import re
+            match = re.search(r'-(\d+)$', concept_id)
+            if match:
+                order = int(match.group(1))
     return {
         "id": item.get("conceptId"),
         "name": item.get("name", "Unnamed"),
         "tier": item.get("tier", "leaf"),
+        "treeLevel": item.get("treeLevel", item.get("tier", "leaf")),
+        "parentName": item.get("parentName"),
+        "trunkDomain": item.get("trunkDomain", ""),
         "stageId": item.get("stageId", "PREPARE"),
+        "order": order,
         "description": item.get("description", ""),
+        "tierJustification": item.get("tierJustification", ""),
+        "whyYouNeed": item.get("whyYouNeed", ""),
+        "technicalDetails": item.get("technicalDetails", ""),
+        "workedExample": item.get("workedExample", {}),
         "keyPoints": item.get("keyPoints", []),
+        "cognitiveLevel": item.get("cognitiveLevel", "understand"),
+        "commonPitfalls": item.get("commonPitfalls", []),
         "prerequisiteWeight": float(item.get("prerequisiteWeight", 0.5)),
         "displayProperties": item.get("displayProperties", {}),
+        "mnemonic": item.get("mnemonic", {}),
+        "phase1": item.get("phase1", {}),
+        "phase2": item.get("phase2", []),
+        "phase3": item.get("phase3", {}),
+        "shape": item.get("shape", {}),
+        "criticalDistinctions": item.get("criticalDistinctions", []),
+        "designBoundaries": item.get("designBoundaries", []),
+        "examFocus": item.get("examFocus", []),
+        "dependencies": item.get("dependencies", []),
+        "connections": item.get("connections", []),
+        "outdegree": int(item.get("outdegree", 0)),
+        "scoring": item.get("scoring", {}),
     }
 
 def transform_item_to_concept_full(item: Dict[str, Any]) -> Dict[str, Any]:

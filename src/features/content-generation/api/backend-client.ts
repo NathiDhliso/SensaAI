@@ -341,40 +341,14 @@ export function buildDocumentFromConcepts(
  displayProperties: concept.displayProperties || {
  category: concept.tier
  },
- mnemonic: concept.mnemonic || {
- tier: concept.tier === 'trunk' ? 'Trunk' : concept.tier === 'branch' ? 'Branch' : 'Leaf',
- anchor: concept.name,
- story: `Understanding ${concept.name} in the context of ${subject}`
- },
- phase1: concept.phase1 || {
- hookSentence: `Why ${concept.name} matters in ${subject}`,
- microMetaphor: `Think of ${concept.name} as a building block`,
- prerequisite: 'None',
- selection: [
- `What is ${concept.name}?`,
- `When to use ${concept.name}`
- ],
- execution: `Apply ${concept.name} in practice`
- },
- phase2: concept.phase2 || (concept.keyPoints?.map((point: string) => ({
- title: point,
- content: `Detailed explanation of ${point}`
- })) || []),
- phase3: concept.phase3 || {
- tool: `${concept.name} toolkit`,
- metrics: ['Effectiveness', 'Efficiency'],
- thresholds: 'Meet all criteria'
- },
+ mnemonic: concept.mnemonic || {},
+ phase1: concept.phase1 || {},
+ phase2: concept.phase2 || [],
+ phase3: concept.phase3 || {},
  shape: concept.shape || {},
- criticalDistinctions: concept.criticalDistinctions || [
- { correct: `Proper use of ${concept.name}`, incorrect: 'Common misunderstanding' }
- ],
- designBoundaries: concept.designBoundaries || [
- { boundary: 'Scope', rationale: 'Stay focused' }
- ],
- examFocus: concept.examFocus || [
- { point: `Key exam topic for ${concept.name}`, weight: 'High' }
- ]
+ criticalDistinctions: concept.criticalDistinctions || [],
+ designBoundaries: concept.designBoundaries || [],
+ examFocus: concept.examFocus || []
  };
  });
  const lifecycle = (classification?.lifecycle as Record<string, string>) || {};

@@ -55,7 +55,12 @@ __pycache__/
 # Test files
 test_generate.py
 test_validate.py
+test_deployed_validation.py
 test_output.json
+
+# Debug artifacts
+lambda_deployed/
+lambda_deployed.zip
 
 # Temporary files
 *.tmp
