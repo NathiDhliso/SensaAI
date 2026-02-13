@@ -17,7 +17,6 @@ export type MetaphorSettings = {
 };
 type PersonalizationState = {
  selectedPersona: PersonaId;
- coachVoiceEnabled: boolean;
  coachIntensity: number; // 1-5 scale
  lastSessionMood: Mood | null;
  // Cognitive Load Settings
@@ -32,7 +31,6 @@ type PersonalizationState = {
 };
 type PersonalizationActions = {
  setSelectedPersona: (persona: PersonaId) => void;
- setCoachVoiceEnabled: (enabled: boolean) => void;
  setCoachIntensity: (intensity: number) => void;
  setLastSessionMood: (mood: Mood) => void;
  // Cognitive Load Actions
@@ -50,7 +48,6 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
  persist(
  (set) => ({
  selectedPersona: 'buddy',
- coachVoiceEnabled: true,
  coachIntensity: 3,
  lastSessionMood: null,
  // Cognitive Load Defaults
@@ -68,9 +65,6 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
  semesterStartDate: null,
  setSelectedPersona: (persona) => {
  set({ selectedPersona: persona });
- },
- setCoachVoiceEnabled: (enabled) => {
- set({ coachVoiceEnabled: enabled });
  },
  setCoachIntensity: (intensity) => {
  set({ coachIntensity: Math.max(1, Math.min(5, intensity)) });

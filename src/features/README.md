@@ -6,7 +6,7 @@ features/
 ├── content-generation/ # Everything about generating learning content
 ├── content-storage/ # Everything about saving/loading content
 ├── learning-session/ # Everything about learning activities
-└── ai-coach/ # AI coach personalities and voice
+└── ai-coach/ # AI coach personalities and mood
 ```
 ## Features
 ### Content Generation (`content-generation/`)
@@ -63,17 +63,14 @@ Handles all aspects of learning activities and progress tracking.
 - Calculating mastery
 ---
 ### AI Coach (`ai-coach/`)
-Handles AI coach personalities and voice.
-**Subdirectories:**
-- `voice/` - Voice lines and audio
+Handles AI coach personalities and mood-based adjustments.
 **Key Files:**
-- `personas.ts` - Coach personality definitions
-- `voice/static-lines.ts` - Pre-written voice lines
-- `voice/useVoice.ts` - Voice hook
+- `personas.ts` - Coach personality definitions (5 personas × 7 phases × 5 situations)
+- `index.ts` - Mood system, elaborative interrogation prompts, breathing exercises
 **Use When:**
 - Selecting coach personality
-- Playing voice lines
-- Customizing coach behavior
+- Getting mood-adjusted session parameters
+- Generating elaborative interrogation prompts
 ---
 ## Import Patterns
 ### Good: Import from feature folders
@@ -154,4 +151,4 @@ src/features/
 ├── learning-session/
 └── ai-coach/
 ```
-The old `lib/` folders are kept temporarily for backwards compatibility but will be removed in a future cleanup.
+The old `lib/` folders are kept temporarily for backwards compatibility but will be removed in a future cleanup.

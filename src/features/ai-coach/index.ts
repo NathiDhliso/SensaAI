@@ -1,11 +1,9 @@
 /**
  * AI Coach Feature
- * AI coach personalities, voice, and mood-based adjustments
+ * AI coach personalities and mood-based adjustments
  */
 import { getPersona, getPersonaResponse, type PersonaId } from './personas';
 export { getPersona, getPersonaResponse, getAllPersonas, PERSONAS, type PersonaId, type PhaseKey, type PhaseResponses } from './personas';
-export * from './voice/static-lines';
-export * from './voice/useVoice';
 // Mood types and utilities
 export type Mood = 'energized' | 'neutral' | 'tired' | 'stressed';
 export type CognitiveBandwidth = 'high' | 'medium' | 'low';

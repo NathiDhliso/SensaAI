@@ -194,3 +194,36 @@
  background: var(--color-error-border-subtle);
  color: var(--color-error-lighter);
 }
+.recommendationBanner {
+ display: flex;
+ align-items: flex-start;
+ gap: 0.5rem;
+ padding: 0.5rem 0.75rem;
+ background: var(--color-warning-bg-subtle, rgba(245, 158, 11, 0.08));
+ border: 1px solid var(--color-warning-border-subtle, rgba(245, 158, 11, 0.2));
+ border-radius: var(--radius-md, 8px);
+ margin-top: 0.75rem;
+}
+.recommendationIcon {
+ color: var(--color-warning);
+ flex-shrink: 0;
+ margin-top: 0.1rem;
+}
+.recommendationContent {
+ display: flex;
+ flex-direction: column;
+ gap: 0.15rem;
+ flex: 1;
+}
+.recommendationLabel {
+ font-size: 0.65rem;
+ font-weight: 600;
+ text-transform: uppercase;
+ letter-spacing: 0.03em;
+ color: var(--color-warning);
+}
+.recommendationText {
+ font-size: 0.7rem;
+ color: var(--color-text-secondary);
+ line-height: 1.3;
+}

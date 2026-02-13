@@ -10,6 +10,7 @@
  * - Progressive: Start blocked, transition to mixed as mastery builds
  */
 import type { LearningConcept } from '@/shared/types/learning';
+import { getRequiredNames } from './prerequisite-utils';
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -130,18 +131,10 @@ export class InterleavingAlgorithm {
  concept: LearningConcept,
  allConcepts: LearningConcept[]
  ): number {
- const requiredNames = new Set<string>();
- if (concept.prerequisites) {
- concept.prerequisites.forEach(p => requiredNames.add(p.toLowerCase()));
- }
- if (concept.connections) {
- concept.connections
- .filter(c => c.type === 'requires')
- .forEach(c => requiredNames.add(c.target.toLowerCase()));
- }
  if (concept.mnemonic?.parentId && !this.completedConcepts.has(concept.mnemonic.parentId)) {
  return 0.3;
  }
+ const requiredNames = getRequiredNames(concept);
  if (requiredNames.size === 0) return 1.0;
  const allMet = Array.from(requiredNames).every(req => {
  const match = allConcepts.find(c => c.name.toLowerCase() === req || c.id === req);

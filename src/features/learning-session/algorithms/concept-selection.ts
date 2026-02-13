@@ -12,6 +12,7 @@
  * - Tier Balance: Maintain Trunk (~20%) Branch (~50%) Leaf (~30%) progression
  */
 import type { LearningConcept, LearningStage, LifecyclePhaseKey } from '@/shared/types/learning';
+import { arePrerequisitesMet } from './prerequisite-utils';
 /**
  * Options for concept selection algorithm.
  */
@@ -72,30 +73,12 @@ function getConceptTier(concept: LearningConcept): 'Trunk' | 'Branch' | 'Leaf' {
  const pascal = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
  return pascal as 'Trunk' | 'Branch' | 'Leaf';
 }
-/**
- * Check if all prerequisites for a concept are met.
- */
 function prerequisitesMet(
  concept: LearningConcept,
  allConcepts: LearningConcept[],
  completedConcepts: string[]
 ): boolean {
- const requiredNames = new Set<string>();
- if (concept.prerequisites) {
- concept.prerequisites.forEach(p => requiredNames.add(p.toLowerCase()));
- }
- if (concept.connections) {
- concept.connections
- .filter(c => c.type === 'requires')
- .forEach(c => requiredNames.add(c.target.toLowerCase()));
- }
- if (requiredNames.size === 0) return true;
- return Array.from(requiredNames).every(req => {
- const match = allConcepts.find(c =>
- c.name.toLowerCase() === req || c.id === req
- );
- return match ? completedConcepts.includes(match.id) : true;
- });
+ return arePrerequisitesMet(concept, allConcepts, completedConcepts);
 }
 /**
  * Calculate tier distribution from completed concepts.

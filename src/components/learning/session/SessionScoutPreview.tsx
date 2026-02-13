@@ -17,13 +17,9 @@ import {
  Zap,
  AlertCircle,
  Sparkles,
- Volume2,
- Loader2,
- Square,
  Layers,
  ChevronRight
 } from 'lucide-react';
-import { useVoice } from '@/features/ai-coach/voice/useVoice';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { DependencyGraph } from '@/shared/types/sensa-flow';
 import { generatePreviewAnalysis } from '@/features/learning-session/phases';
@@ -80,7 +76,6 @@ export function SessionScoutPreview({
  const [acknowledgedGaps, setAcknowledgedGaps] = useState<Set<string>>(new Set());
  const { selectedPersona } = usePersonalizationStore();
  const { markSessionScouted, markSessionPreviewed } = useLearningStore();
- const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
  const navigate = useNavigate();
  // Group concepts by tier
  const conceptsByTier = useMemo(() => {
@@ -227,18 +222,7 @@ export function SessionScoutPreview({
  <div className={styles.coachContextBox}>
  <Sparkles size={20} className={styles.coachIcon} />
  <div>
- <h4>
- Coach Context
- <button
- className={styles.voicePlayButtonInline}
- onClick={() => toggle(aiPreview.coachMessage)}
- disabled={isVoiceLoading}
- title={isVoicePlaying ? "Stop" : "Hear coach"}
- >
- {isVoiceLoading ? <Loader2 size={14} className={styles.spin} /> :
- isVoicePlaying ? <Square size={14} fill="currentColor" /> : <Volume2 size={14} />}
- </button>
- </h4>
+ <h4>Coach Context</h4>
  <p>"{aiPreview.coachMessage}"</p>
  </div>
  </div>

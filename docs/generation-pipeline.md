@@ -195,7 +195,7 @@ Stored as `SavedResult` which includes:
 |-------|------|---------|
 | `generation-store` | `src/store/generation-store.ts` | Generation progress, subjectType, macroWorkflow |
 | `learning-store` | `src/store/learning-store.ts` | User progress, completed concepts, scores |
-| `personalization-store` | `src/store/personalization-store.ts` | Persona, mood, metaphor toggle, voice settings |
+| `personalization-store` | `src/store/personalization-store.ts` | Persona, mood, metaphor toggle, practice mode |
 | `theme-store` | `src/store/theme-store.ts` | Visual theme (playful/scholarly), dark mode |
 
 ---

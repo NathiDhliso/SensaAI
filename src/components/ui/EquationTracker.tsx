@@ -30,10 +30,19 @@ interface EquationTrackerProps {
  currentPhase?: 'see' | 'explore' | 'note' | 'study' | 'apply' | 'complete';
  /** Callback when user should go back to Explore phase */
  onSuggestBacktrack?: () => void;
+ /** Actionable recommendation for the weakest variable */
+ recommendation?: string;
 }
 // ============================================================================
 // Component
 // ============================================================================
+const VARIABLE_LABELS: Record<string, string> = {
+ G: 'Content Quality',
+ Q_P: 'Practice Quality',
+ Q_M: 'Mastery Depth',
+ Q_f: 'Flow & Momentum'
+};
+
 export function EquationTracker({
  G,
  Q_P,
@@ -44,7 +53,8 @@ export function EquationTracker({
  position = 'top-right',
  compact = false,
  currentPhase,
- onSuggestBacktrack
+ onSuggestBacktrack,
+ recommendation
 }: EquationTrackerProps) {
  const hasMastery = I >= MASTERY_THRESHOLD;
  // Proactive intervention: Detect when grinding is futile
@@ -159,6 +169,25 @@ export function EquationTracker({
  )}
  </span>
  </div>
+ {/* Actionable Recommendation for Weakest Variable */}
+ <AnimatePresence>
+ {weakestVariable && recommendation && !isGrindingFutile && (
+ <motion.div
+ className={styles.recommendationBanner}
+ initial={{ opacity: 0, y: 10 }}
+ animate={{ opacity: 1, y: 0 }}
+ exit={{ opacity: 0, y: 10 }}
+ >
+ <TrendingDown size={14} className={styles.recommendationIcon} />
+ <div className={styles.recommendationContent}>
+ <span className={styles.recommendationLabel}>
+ Bottleneck: {VARIABLE_LABELS[weakestVariable] || weakestVariable}
+ </span>
+ <span className={styles.recommendationText}>{recommendation}</span>
+ </div>
+ </motion.div>
+ )}
+ </AnimatePresence>
  {/* Proactive Intervention: Low Q_P Warning */}
  <AnimatePresence>
  {isGrindingFutile && (
@@ -186,4 +215,4 @@ export function EquationTracker({
  </motion.div>
  );
 }
-export default EquationTracker;
+export default EquationTracker;

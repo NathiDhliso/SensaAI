@@ -20,7 +20,11 @@ I = min(h, G × Q_f × Q_M × Q_P)
 | `Q_M` | Mastery quality (depth of understanding) | 0–1 |
 | `Q_P` | Process quality (learning loop fidelity) | 0–1 |
 
-Tracked by `EquationTracker` component in the VelocityLearning page.
+Tracked by `EquationTracker` component which provides:
+- Real-time factor visualization with weakest variable highlighting
+- Actionable recommendation banner identifying the bottleneck factor and specific corrective action
+- Proactive intervention when Q_P < 0.2 during Study/Apply ("grinding futile" warning with backtrack button)
+- Mastery threshold progress bar (75% target)
 
 ---
 
@@ -209,12 +213,6 @@ Implements spaced repetition scheduling for review sessions. Tracks:
 Users select a persona that affects coach messaging tone:
 - Stored in `personalization-store.ts`
 - Persona responses adapt to phase + situation (intro, encouragement, struggle, success, transition)
-
-### Voice System
-- 43+ pre-recorded mp3 files in `public/Audio/voice/`
-- Supports `buddy` and `coach` persona prefixes
-- Anti-repetition LRU tracking (5-line history, 5-minute cooldown)
-- Controlled by `coachVoiceEnabled` in personalization store
 
 ### Mood System
 Mood affects cognitive bandwidth ceiling (`h` in the equation):

@@ -4,16 +4,12 @@ export interface PrerequisiteConcept {
  name: string;
  completed: boolean;
 }
-/**
- * Resolves prerequisite names/IDs to actual concept data.
- */
 export function resolvePrerequisites(
  prerequisites: string[],
  allConcepts: LearningConcept[],
  completedConcepts: string[]
 ): PrerequisiteConcept[] {
  return prerequisites.map(prereq => {
- // Try to find by name first (prerequisites are stored as names)
  const concept = allConcepts.find(c =>
  c.name.toLowerCase() === prereq.toLowerCase() ||
  c.id === prereq
@@ -26,4 +22,33 @@ export function resolvePrerequisites(
  : false
  };
  });
-}
+}
+export function getRequiredNames(concept: LearningConcept): Set<string> {
+ const requiredNames = new Set<string>();
+ if (concept.prerequisites) {
+ concept.prerequisites.forEach(p => requiredNames.add(p.toLowerCase()));
+ }
+ if (concept.connections) {
+ concept.connections
+ .filter(c => c.type === 'requires')
+ .forEach(c => requiredNames.add(c.target.toLowerCase()));
+ }
+ return requiredNames;
+}
+export function arePrerequisitesMet(
+ concept: LearningConcept,
+ allConcepts: LearningConcept[],
+ completedIds: string[] | Set<string>
+): boolean {
+ const requiredNames = getRequiredNames(concept);
+ if (requiredNames.size === 0) return true;
+ const isCompleted = completedIds instanceof Set
+ ? (id: string) => completedIds.has(id)
+ : (id: string) => completedIds.includes(id);
+ return Array.from(requiredNames).every(req => {
+ const match = allConcepts.find(c =>
+ c.name.toLowerCase() === req || c.id === req
+ );
+ return match ? isCompleted(match.id) : true;
+ });
+}

@@ -21,13 +21,9 @@ import {
  Send,
  Lightbulb,
  Sparkles,
- Volume2,
- Loader2,
- Square,
  Activity,
  Trophy
 } from 'lucide-react';
-import { useVoice } from '@/features/ai-coach/voice/useVoice';
 import type { LearningConcept } from '@/shared/types/learning';
 import { VELOCITY_CONFIG } from '@/shared/constants/ui-constants';
 import {
@@ -223,7 +219,6 @@ export function BlankSheetTest({
  const [pauseCount, setPauseCount] = useState(0);
  const { selectedPersona } = usePersonalizationStore();
  const { metaphorsEnabled } = useMetaphorContent(concept);
- const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
  // Real-time metrics - use callback to calculate on demand
  const getMetrics = useCallback((): TypingMetrics => {
  const now = Date.now();
@@ -426,15 +421,6 @@ export function BlankSheetTest({
  <h3 className={styles.feedbackHeadline}>{result.coachFeedback.headline}</h3>
  <p className={styles.feedbackMessage}>
  "{result.coachFeedback.encouragement}"
- <button
- onClick={() => toggle(result.coachFeedback!.encouragement + " " + result.coachFeedback!.message)}
- disabled={isVoiceLoading}
- title={isVoicePlaying ? "Stop" : "Hear coach"}
- className={styles.coachAudioButton}
- >
- {isVoiceLoading ? <Loader2 size={16} className={styles.spinning} /> :
- isVoicePlaying ? <Square size={16} fill="currentColor" /> : <Volume2 size={16} />}
- </button>
  </p>
  <p className={styles.feedbackDetail}>
  {result.coachFeedback.message}

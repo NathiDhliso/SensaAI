@@ -10,8 +10,6 @@ import {
  GraduationCap,
  Bot,
  Edit2,
- Volume2,
- VolumeX,
  Zap,
  Shuffle,
  Calendar,
@@ -29,8 +27,7 @@ import { useThemeStore, type Theme, type VisualTheme } from '@/store/theme-store
 import { usePersonalizationStore, type PracticeMode } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
-import { getAllPersonas, getPersonaResponse } from '@/features/ai-coach';
-import { useVoice } from '@/features/ai-coach/voice/useVoice';
+import { getAllPersonas } from '@/features/ai-coach';
 import { MetaphorToggle } from '@/features/personalization';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { toast } from '@/shared/utils/toast';
@@ -51,8 +48,6 @@ export default function SettingsPanel() {
  const {
  selectedPersona,
  setSelectedPersona,
- coachVoiceEnabled,
- setCoachVoiceEnabled,
  coachIntensity,
  setCoachIntensity,
  stressFreeMode,
@@ -70,7 +65,6 @@ export default function SettingsPanel() {
  const progress = currentSession?.progress;
  const personas = getAllPersonas();
  const activePersona = personas.find(p => p.id === selectedPersona) || personas[0];
- const { play: playVoice } = useVoice();
  useEffect(() => {
  if (isSettingsPanelOpen) {
  triggerRef.current = document.activeElement as HTMLElement;
@@ -134,15 +128,6 @@ export default function SettingsPanel() {
  a.click();
  URL.revokeObjectURL(url);
  toast.success('Data exported');
- };
- const handleVoicePreview = async () => {
- const sampleMessage = getPersonaResponse(selectedPersona, 'prime', 'intro');
- try {
- await playVoice(sampleMessage, selectedPersona);
- } catch (error) {
- console.error('Voice preview failed:', error);
- toast.info(`"${sampleMessage}"`);
- }
  };
  const themeOptions: { value: Theme; icon: typeof Sun; label: string }[] = [
  { value: 'light', icon: Sun, label: 'Light' },
@@ -259,21 +244,6 @@ export default function SettingsPanel() {
  ))}
  </div>
  )}
- </div>
- <div className={styles.settingRow}>
- <div className={styles.voiceRow}>
- <button
- onClick={() => setCoachVoiceEnabled(!coachVoiceEnabled)}
- className={`${styles.optionButton} ${coachVoiceEnabled ? styles.optionActive : ''}`}
- aria-pressed={coachVoiceEnabled}
- >
- {coachVoiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
- <span>Voice {coachVoiceEnabled ? 'On' : 'Off'}</span>
- </button>
- <button onClick={handleVoicePreview} className={styles.linkButton}>
- Preview
- </button>
- </div>
  </div>
  <div className={styles.settingRow}>
  <div className={styles.settingInfo}>

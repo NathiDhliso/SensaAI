@@ -14,14 +14,9 @@ import {
  Sparkles,
  ChevronRight,
  ChevronLeft,
- Volume2,
- VolumeX,
  Music,
- Loader2,
- Square,
  SkipForward
 } from 'lucide-react';
-import { useVoice } from '@/features/ai-coach/voice/useVoice';
 import { audioManager } from '@/shared/services/audio';
 import {
  getMoodAdjustedIntro,
@@ -102,11 +97,9 @@ export default function GuidedPrimer({
  const [reward, setReward] = useState('');
  const [customInput, setCustomInput] = useState<'reason' | 'action' | 'reward' | null>(null);
  const [musicEnabled, setMusicEnabled] = useState(audioManager.getBackgroundMusicEnabled());
- const [narrationEnabled, setNarrationEnabled] = useState(audioManager.getNarrationEnabled());
  const [isTransitioning, setIsTransitioning] = useState(false);
  const isFirstRender = useRef(true);
  const { selectedPersona } = usePersonalizationStore();
- const { toggle, isPlaying: isVoicePlaying, isLoading: isVoiceLoading } = useVoice();
  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
  const { isScholarly } = useVisualTheme();
  const REASON_CHIPS = isScholarly ? REASON_CHIPS_SCHOLARLY : REASON_CHIPS_PLAYFUL;
@@ -133,36 +126,11 @@ export default function GuidedPrimer({
  audioManager.stopNarration();
  };
  }, [musicEnabled]);
- // Play narration when step changes (with proper sequencing)
  useEffect(() => {
- // Skip on first render to avoid overlap with component mount
  if (isFirstRender.current) {
  isFirstRender.current = false;
- // Play breathe narration after a small delay
- if (narrationEnabled && currentStep === 'breathe') {
- const timer = setTimeout(() => {
- audioManager.playNarration('breathe');
- }, VELOCITY_CONFIG.PRIMER.AUDIO_DELAY_MS);
- return () => clearTimeout(timer);
  }
- return;
- }
- if (narrationEnabled && !isTransitioning) {
- // Stop any playing narration first
- audioManager.stopNarration();
- const narrationKey = currentStep === 'reason' ? 'reason' :
- currentStep === 'action' ? 'action' :
- currentStep === 'reward' ? 'reward' :
- currentStep === 'ready' ? 'ready' : null;
- if (narrationKey) {
- // Small delay to let the UI transition complete
- const timer = setTimeout(() => {
- audioManager.playNarration(narrationKey);
- }, VELOCITY_CONFIG.PRIMER.AUDIO_DELAY_MS + 100);
- return () => clearTimeout(timer);
- }
- }
- }, [currentStep, narrationEnabled, isTransitioning]);
+ }, [currentStep, isTransitioning]);
  // Auto-advance from breathe step after delay
  useEffect(() => {
  if (currentStep === 'breathe') {
@@ -221,11 +189,6 @@ export default function GuidedPrimer({
  audioManager.playBackgroundMusic('ambientStudy');
  }
  };
- const toggleNarration = () => {
- const newValue = !narrationEnabled;
- setNarrationEnabled(newValue);
- audioManager.setNarrationEnabled(newValue);
- };
  const canProceed = () => {
  if (currentStep === 'reason') return reason.length > 0;
  if (currentStep === 'action') return action.length > 0;
@@ -242,13 +205,6 @@ export default function GuidedPrimer({
  title={musicEnabled ? 'Disable music' : 'Enable music'}
  >
  <Music size={18} />
- </button>
- <button
- className={`${styles.audioButton} ${narrationEnabled ? styles.active : ''}`}
- onClick={toggleNarration}
- title={narrationEnabled ? 'Disable voice' : 'Enable voice'}
- >
- {narrationEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
  </button>
  </div>
  {/* Progress Dots */}
@@ -290,15 +246,6 @@ export default function GuidedPrimer({
  <h2 className={styles.stepTitle}>Take a breath</h2>
  <p className={styles.stepSubtitle}>
  {coachIntro}
- <button
- className={styles.voicePlayButton}
- onClick={() => toggle(coachIntro)}
- disabled={isVoiceLoading}
- title={isVoicePlaying ? "Stop" : "Hear coach"}
- >
- {isVoiceLoading ? <Loader2 size={16} className={styles.spin} /> :
- isVoicePlaying ? <Square size={16} fill="currentColor" /> : <Volume2 size={16} />}
- </button>
  </p>
  {recommendedBreathing !== 'none' && (
  <p className={styles.breathingHint}>

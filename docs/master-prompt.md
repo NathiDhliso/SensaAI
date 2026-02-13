@@ -173,7 +173,7 @@ Global overlays always mounted in `App.tsx`: `SettingsPanel` (slide-out), `Backg
 |-------|------|---------|
 | `useUIStore` | `ui-store.ts` | Settings panel open/close |
 | `useThemeStore` | `theme-store.ts` | Light/dark/system + visual theme (playful/scholarly) |
-| `usePersonalizationStore` | `personalization-store.ts` | Persona, voice, coach intensity, practice mode, stress-free mode, metaphor settings, semester date |
+| `usePersonalizationStore` | `personalization-store.ts` | Persona, coach intensity, practice mode, stress-free mode, metaphor settings, semester date |
 | `useGenerationStore` | `generation-store.ts` | Generation jobs, progress, subjectType, macroWorkflow |
 | `useLearningStore` | `learning-store.ts` | Composed from 7 slices: session, navigation, study, cognitive, diagnostic, focus, UI |
 | `useAuthStore` | `auth-store.ts` | Authentication state |
