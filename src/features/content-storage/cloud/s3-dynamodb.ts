@@ -146,7 +146,6 @@ export class CloudStorage implements StorageProvider {
  return {
  ...fullResult,
  savedToCloud: true,
- cloudUrl: `s3://${this.bucketName}/${s3Key}`
  };
  } catch (error) {
  console.error('Cloud load failed:', error);
@@ -378,4 +377,4 @@ export class CloudStorage implements StorageProvider {
  }
  }
 }
-export const cloudStorage = new CloudStorage();
+export const cloudStorage = new CloudStorage();
