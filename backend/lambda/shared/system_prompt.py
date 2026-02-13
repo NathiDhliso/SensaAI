@@ -490,13 +490,17 @@ def get_tree_generation_prompt(
     subtopics = domain.get("subtopics", [])
     total_target = 100
     domain_concept_target = max(10, int(total_target * weight))
-    if subtopics:
-        branch_count = len(subtopics)
+    has_string_subtopics = subtopics and all(isinstance(st, str) for st in subtopics)
+    has_dict_subtopics = subtopics and any(isinstance(st, dict) for st in subtopics)
+    if has_dict_subtopics:
+        branch_count = sum(1 for st in subtopics if isinstance(st, dict))
+    elif has_string_subtopics:
+        branch_count = max(3, min(6, len(subtopics) // 3))
     else:
         branch_count = max(3, min(6, domain_concept_target // 5))
     leaf_target = domain_concept_target - 1 - branch_count
     count = 1 + branch_count + leaf_target
-    if subtopics:
+    if has_dict_subtopics:
         branch_lines = []
         for st in subtopics:
             if isinstance(st, dict):
@@ -508,9 +512,12 @@ def get_tree_generation_prompt(
             elif isinstance(st, str):
                 branch_lines.append(f"- **{st}**")
         branch_list = "\n".join(branch_lines)
+    elif has_string_subtopics:
+        branch_list = f"(Group the {len(subtopics)} exam objectives below into {branch_count} logical sub-topic branches. Each branch should cover a coherent cluster of related objectives.)"
     else:
         branch_list = f"(Determine {branch_count} logical sub-topic groupings for this domain based on exam structure)"
-    if subtopics:
+    nl = "\n"
+    if has_dict_subtopics:
         objective_lines = []
         for st in subtopics:
             if isinstance(st, dict):
@@ -520,10 +527,12 @@ def get_tree_generation_prompt(
                 for obj in objectives:
                     objective_lines.append(f"  - {obj}")
         if objective_lines:
-            nl = "\n"
             context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above."
         else:
             context_block = ""
+    elif has_string_subtopics:
+        objective_lines = [f"  - {st}" for st in subtopics]
+        context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above. Group related objectives under {branch_count} branch concepts."
     elif context:
         context_block = f"### USER-PROVIDED CONTEXT:\n{context}\n**INSTRUCTION**: Map concepts for domain \"{domain_name}\" to relevant objectives above."
     else:

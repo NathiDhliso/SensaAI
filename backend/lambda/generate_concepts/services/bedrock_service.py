@@ -79,12 +79,42 @@ class BedrockService:
                     time.sleep(self.RETRY_BACKOFF_BASE ** (attempt + 1))
         print("[BedrockService] Classification failed, using default (conceptual)")
         return None
+    def _enrich_domains_from_context(self, domains: List[Dict[str, Any]], context: str) -> None:
+        CONTEXT_LINE_PATTERN = re.compile(r'^\[([^\]]+?)\s*-\s*(\d+)%?\]\s*(.+)$')
+        domain_lookup = {}
+        for d in domains:
+            domain_lookup[d["name"].strip().lower()] = d
+        for line in context.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            match = CONTEXT_LINE_PATTERN.match(line)
+            if not match:
+                continue
+            domain_name = match.group(1).strip()
+            weight = int(match.group(2))
+            task = match.group(3).strip()
+            key = domain_name.lower()
+            if key in domain_lookup:
+                d = domain_lookup[key]
+                if not d.get("subtopics") or not isinstance(d["subtopics"], list):
+                    d["subtopics"] = []
+                d["subtopics"].append(task)
+                d["weight"] = weight / 100.0
+        enriched = sum(1 for d in domains if d.get("subtopics"))
+        total_tasks = sum(len(d.get("subtopics", [])) for d in domains)
+        if enriched > 0:
+            print(f"[BedrockService] Enriched {enriched}/{len(domains)} domains with {total_tasks} tasks from context")
+        else:
+            print(f"[BedrockService] No per-domain tasks found in context (will use raw context as fallback)")
     def generate_concepts(self, subject: str, context: str = "", trunks: list = None) -> tuple:
         from shared.system_prompt import get_tree_generation_prompt, _get_exam_domains
         if trunks and len(trunks) >= 2:
             print(f"[BedrockService] Using {len(trunks)} user-defined trunks (skipping classification)")
             equal_weight = round(1.0 / len(trunks), 2)
             domains = [{"name": t, "weight": equal_weight, "subtopics": []} for t in trunks]
+            if context:
+                self._enrich_domains_from_context(domains, context)
             classification = self.classify_subject(subject, context)
         else:
             classification = self.classify_subject(subject, context)
