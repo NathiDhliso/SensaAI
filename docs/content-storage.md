@@ -51,6 +51,7 @@ SensaPBL uses an API-first storage architecture. Concepts are stored in DynamoDB
   - **PK:** `USER#{userId}#SESSION#{sessionId}`
   - **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
   - **GSI1:** Tier-based queries
+  - **TTL:** 168 hours (7 days)
 - `sensapbl-jobs-{dev,prod}` — Generation job tracking
   - TTL: 24 hours
 
@@ -195,8 +196,60 @@ The `CloudStorage` class provides direct S3/DynamoDB access. Currently exported 
 | `src/features/content-storage/sync/sync-engine.ts` | Cloud ↔ local synchronization |
 | `src/features/content-storage/sync/import.ts` | File import utilities |
 | `src/features/content-storage/index.ts` | Barrel exports |
-| `src/shared/api/concepts.ts` | API endpoints for concept fetching |
+| `src/shared/api/concepts.ts` | API endpoints for concept fetching (see full API surface below) |
 | `src/shared/utils/content-loader.ts` | Content loading + parsing orchestrator |
+
+---
+
+## Concepts API Surface (`src/shared/api/concepts.ts`)
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `query` | `query(params: ConceptsQueryParams)` | Paginated concept fetch with optional tier filter |
+| `generate` | `generate(request: GenerateConceptsRequest)` | Start async concept generation (returns jobId) |
+| `suggestStructure` | `suggestStructure(request)` | AI-powered domain suggestion for a subject |
+| `repair` | `repair({ subject, conceptName, issue, userId })` | Surgically fix a single concept |
+| `deleteJob` | `deleteJob(sessionId, userId)` | Delete a subject and all its concepts |
+| `listJobs` | `listJobs(userId)` | List all generation jobs for a user |
+| `getJobStatus` | `getJobStatus(jobId, userId?)` | Check status of a generation job |
+| `getAllByTier` | `getAllByTier(userId, sessionId, tier)` | Fetch all concepts for a tier (auto-paginates) |
+| `getJobProgress` | `getJobProgress(userId, jobId)` | Real-time progress of a streaming generation job |
+| `getLatestConcepts` | `getLatestConcepts(userId, sessionId, afterOrder, limit)` | Incremental polling — concepts added after a specific order |
+| `pollForConcepts` | `pollForConcepts(userId, sessionId, onConcept, onProgress, interval, abort)` | Full streaming poll loop with callbacks and abort support |
+
+### Streaming Generation Support
+
+During generation, the frontend can show live progress:
+1. `getJobProgress()` returns `{ status, conceptCount, latestConcept, updatedAt }`
+2. `getLatestConcepts()` returns concepts with `order > afterOrder` for incremental fetching
+3. `pollForConcepts()` wraps both into a polling loop that yields concepts via `onConcept` callback, reports progress via `onProgress`, and stops on completion/failure/abort
+
+Key types: `JobProgress`, `LatestConceptsResponse`, `JobSummary`, `JobStatus`.
+
+---
+
+## Exam Catalog System
+
+**Directory:** `src/shared/constants/exam-catalogs/`
+
+Provides structured exam objectives that drive the gap-fill pipeline:
+
+| File | Provider | Count |
+|------|----------|-------|
+| `aws.ts` | AWS | 13 certs |
+| `microsoft.ts` | Microsoft | 8 certs |
+| `comptia.ts` | CompTIA | 6 certs |
+| `google-cloud.ts` | Google Cloud | 5 certs |
+| `cisco.ts` | Cisco | 2 certs |
+| `pmi.ts` | PMI | 3 certs |
+| `isc2.ts` | ISC2 | 4 certs |
+| **Total** | | **41 certs** |
+
+- `types.ts` — `CertProvider`, `CertLevel`, `CertDomain`, `CertEntry` types
+- `index.ts` — exports `ALL_CERTS`, `CERT_PROVIDERS`
+- Each cert entry has `name`, `code`, `level`, `domains[]` with `tasks[]` and `weight`
+- Home.tsx unified search searches ALL_CERTS by name/code/provider
+- When a cert is selected, its domains become trunks and its tasks become context (objectives)
 
 ---
 

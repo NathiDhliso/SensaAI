@@ -116,8 +116,7 @@ src/
 │ ├── generation-store.ts # Generation state
 │ └── ...
 │
-├── contexts/ # React contexts
-├── styles/ # Global styles
+├── styles/ # Global styles (animations)
 └── App.tsx # Main app component and routing
 ```
 
@@ -129,15 +128,18 @@ Serverless backend built with AWS Lambda and DynamoDB:
 
 ```
 backend/
-├── src/
-│ ├── handlers/ # Lambda function handlers
-│ ├── services/ # Business logic services
-│ ├── shared/ # Shared utilities and types
-│ └── lib/ # Libraries (system prompts, etc.)
+├── src/ # Express proxy server (TypeScript)
+│ ├── core/ # Express app, middleware, route mounting
+│ ├── features/ # Auth, concepts, content, proxy routes
+│ └── shared/ # Middleware (JWT, rate-limit), types
 │
-├── lambda/ # Lambda deployment packages
-├── data/ # Data files and fixtures
-└── dist/ # Compiled JavaScript output
+├── lambda/ # Python Lambda functions
+│ ├── generate_concepts/ # Concept generation (Bedrock)
+│ ├── query_concepts/ # Paginated queries, job polling
+│ ├── gym_ai/ # Gym activity AI (Haiku)
+│ ├── shared/ # system_prompt.py, utils.py
+│ └── auth/ # Auth Lambda
+└── scripts/ # Backend utility scripts
 ```
 
 **Key Features**:
@@ -161,7 +163,7 @@ infra/
 ```
 
 **Managed Resources**:
-- DynamoDB tables (concepts, sessions, users)
+- DynamoDB tables (`sensapbl-concepts-{env}`, `sensapbl-jobs-{env}`)
 - S3 buckets (content storage)
 - Lambda functions
 - API Gateway
@@ -342,10 +344,13 @@ npm run deploy # Deploy to AWS
 - **lucide-react** ^0.468.0 - Icons
 - **@aws-sdk/client-bedrock-runtime** - AWS Bedrock client
 
-### Backend
-- **@aws-sdk/client-dynamodb** - DynamoDB client
-- **@aws-sdk/client-s3** - S3 client
-- **@aws-sdk/client-bedrock-runtime** - Bedrock client
+### Backend (Express Proxy - TypeScript)
+- **express** - HTTP server
+- **@aws-sdk/client-dynamodb** - DynamoDB proxy
+- **@aws-sdk/client-s3** - S3 proxy
+
+### Backend (Lambda - Python 3.12)
+- **boto3** - AWS SDK (Bedrock, DynamoDB, Lambda self-invocation)
 
 **See**: `package.json` for complete dependency list.
 

@@ -164,6 +164,197 @@ interface MnemonicContext {
 
 ---
 
+## Graph & Dependency Types
+
+**Source:** `src/shared/types/learning.ts`
+
+```typescript
+interface DependencyEdge {
+  id: string;
+  source: string;
+  target: string;
+  relationship: ConnectionVerb;
+  weight: number;
+}
+
+interface DependencyMetrics {
+  conceptId: string;
+  conceptName: string;
+  dependentCount: number;
+  dependencyCount: number;
+  totalConnections: number;
+  calculatedTier: 'trunk' | 'branch' | 'leaf';
+  centralityScore: number;
+  clusterGroup: string;
+}
+
+interface SubjectGraphNode {
+  id: string;
+  name: string;
+  stageId: string;
+  metrics: DependencyMetrics;
+}
+
+interface SubjectGraph {
+  subjectId: string;
+  generatedAt: string;
+  nodes: SubjectGraphNode[];
+  edges: DependencyEdge[];
+  stats: SubjectGraphStats;
+}
+
+interface SubjectGraphStats {
+  totalNodes: number;
+  totalEdges: number;
+  trunkCount: number;
+  branchCount: number;
+  leafCount: number;
+  centralHub: string;
+}
+```
+
+---
+
+## Session & Progress Types
+
+**Source:** `src/shared/types/learning.ts`
+
+```typescript
+interface SessionPrimer {
+  reason: string;
+  action: string;
+  reward: string;
+}
+
+type StudyGoal = 'learn-new' | 'review' | 'velocity' | 'explore';
+type SessionDuration = 15 | 30 | 45 | 60;
+
+interface SessionRecommendation {
+  action: string;
+  estimatedMinutes: number;
+}
+
+interface EnhancedCognitiveMetrics {
+  currentLoad: number;
+  consecutiveCorrect: number;
+  consecutiveErrors: number;
+  avgResponseTimeMs: number;
+  phaseLoadBalance: { prepare: number; model: number; deliver: number };
+  confusionDrillAccuracy: number;
+  conceptRevisits: number;
+  uninterruptedConceptStreak: number;
+  averageConceptTime: number;
+  flowStateMinutes: number;
+}
+
+interface UserProgress {
+  currentStageId: string;
+  currentConceptId: string;
+  completedConcepts: string[];
+  completedStages: string[];
+  conceptsLearnedToday: number;
+  lastSessionDate: string;
+  totalTimeSpentMinutes: number;
+  sessionStartTime: number | null;
+  conceptAttempts: Record<string, number>;
+  conceptScores: Record<string, number>;
+  conceptStatuses: Record<string, 'not-started' | 'in-progress' | 'needs-review' | 'mastered' | 'skipped'>;
+  maxAttemptsPerConcept: number;
+}
+
+interface StudySession {
+  id: string;
+  subjectId: string;
+  startedAt: string;
+  endedAt?: string;
+  goal: StudyGoal;
+  targetConcepts: string[];
+  targetPhases: LifecyclePhaseKey[];
+  targetDuration: number;
+  conceptsCompleted: string[];
+  phasesCompleted: Record<string, LifecyclePhaseKey[]>;
+  confusionDrillsCompleted: number;
+  metrics: EnhancedCognitiveMetrics;
+  breaksTaken: number;
+  isActive: boolean;
+  goalAchieved: boolean;
+  primer: SessionPrimer | null;
+  scouted: boolean;
+  previewed: boolean;
+  mapBuilt: boolean;
+  conceptMap?: ConceptMapData | null;
+  mapReconstructed: boolean;
+  mastered: boolean;
+  predictions: Record<string, string>;
+  // Momentum Checkpoint System
+  checkpointOffers: number;
+  lastCheckpointAt: string | null;
+  isInFlowState: boolean;
+  timeToastShownAt: string | null;
+  // AI Coach Personalization
+  mood?: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired';
+}
+
+interface ConceptMapData {
+  nodes: { id: string; conceptId: string; conceptName: string; x: number; y: number }[];
+  connections: { id: string; fromId: string; toId: string; label: string }[];
+}
+
+interface CelebrationData {
+  type: 'stage' | 'course';
+  title: string;
+  message: string;
+  conceptsCompleted: string[];
+  timeSpent?: number;
+  badgeIcon?: string;
+}
+```
+
+---
+
+## Transformer Extended Types
+
+**Source:** `src/features/content-generation/parsers/transformer.ts`
+
+The transformer produces `SensaAILearningConcept` which extends `LearningConcept` with metadata for diagnostic assessments, blank sheet tests, and confusion prevention.
+
+```typescript
+interface SensaAILearningConcept extends LearningConcept {
+  keyPoints: string[];
+  diagnosticQuestions: DiagnosticQuestion[];
+  confusionPairs: ConfusionPairMetadata[];
+  trunkLevel: boolean;
+  complexityScore: number;          // 1-10 for adaptive timing
+  prerequisiteWeight: number;       // How many concepts depend on this
+  frequencyWeight: number;          // How often this concept is used
+  abstractionLevel: 'concrete' | 'abstract';
+}
+
+interface DiagnosticQuestion {
+  id: string;
+  question: string;
+  type: 'multiple-choice' | 'true-false' | 'short-answer';
+  options?: string[];
+  correctAnswer: string | number;
+  expectedTime: number;             // seconds
+  keyPoints: string[];
+}
+
+interface ConfusionPairMetadata {
+  id: string;
+  relatedConceptId: string;
+  relatedConceptName: string;
+  similarityScore: number;          // 0-1
+  commonMistakes: string[];
+  keyDifferences: string[];
+  mnemonicDistinguisher: string;
+}
+```
+
+Used by: concept-selection algorithms (complexity scoring), diagnostic activities (question generation), confusion drills (pair identification).
+
+---
+
 ## Bloom's Taxonomy Levels
 
 Used in `cognitiveLevel` field. Ordered from simplest to most complex:

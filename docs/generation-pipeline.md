@@ -30,7 +30,7 @@ User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Ge
 ```
 
 ### Process
-1. If `trunks` provided (≥2): Use them directly as domains with equal weights. Skip domain extraction.
+1. If `trunks` provided (≥2): Use them as domain names. If `context` is also provided, `_enrich_domains_from_context()` parses `[Domain Name - Weight%] Task` lines to populate subtopics and real weights per domain. Classification still runs in parallel for metadata.
 2. If no trunks: Classify the subject into one of 4 types (procedural/conceptual/cyclic/perceptual), then extract domains from classification.
 
 ### Output
@@ -61,6 +61,34 @@ Each concept includes: `treeLevel`, `parentName`, `cognitiveLevel`, `connections
 
 ### Output
 Raw JSON array of concepts per domain, merged into a single flat array.
+
+### Quality Gate: Concept Validation (`_validate_concept`)
+Every concept is validated before inclusion. Concepts are **rejected and discarded** (not flagged) if they fail any check:
+- Missing `name`, `simpleCore`, `cognitiveLevel`, or `connections`
+- Mnemonic anchor is just the concept name, or story is template/short (<50 chars)
+- `hookSentence`, `microMetaphor`, `whyYouNeed`, `simpleCore` match any of 32+ template regex patterns (e.g. "Without proper X...", "Think of X as...", "X is crucial/critical/essential...")
+- `whyYouNeed` < 60 chars
+- `patternRecognition` has empty question or answer, or either < 30 chars
+- `workedExample.problem` or `.solution` < 20 chars (branch/leaf only)
+- Template content detected in `phase1.execution`, `phase1.selection`, `phase2` items, `phase3.tool`, `phase3.metrics`, `criticalDistinctions`, or `designBoundaries`
+
+### Prompt Quality Enforcement (`_split_prompt`)
+Every generation prompt has automatic rejection patterns appended:
+- hookSentence: Never "Without proper X...", "Improperly configured X..."
+- microMetaphor: Never "Think of X as..."
+- whyYouNeed: Never "X is crucial/critical/essential..."
+
+### JSON Repair Pipeline (`_repair_json` + `_parse_concepts_from_response`)
+LLM responses go through a 7-stage repair pipeline before parsing:
+1. BOM removal
+2. Markdown code fence stripping
+3. Control character removal
+4. Trailing comma fixes
+5. Missing comma insertion between objects
+6. Unclosed bracket/brace closure
+7. Truncation recovery
+
+Parsing then attempts 4 stages: regex array extraction → direct parse → wrapper object unwrap → incremental object-by-object recovery.
 
 ---
 
@@ -95,7 +123,7 @@ Raw JSON → concept-schema.ts (Zod validation) → transformer.ts (normalizatio
 ```
 
 **Files:**
-- **Schema:** `src/features/content-generation/parsers/concept-schema.ts` — Zod schema with `trunk/branch/leaf` validation
+- **Schema:** `src/shared/types/concept-schema.ts` — Zod schema with `trunk/branch/leaf` validation
 - **Transformer:** `src/features/content-generation/parsers/transformer.ts` — Normalizes raw data into `LearningConcept` interface
 - **Types:** `src/features/content-generation/parsers/types.ts` — `ParsedConcept`, `ParsedGeneratedContent`
 
@@ -172,6 +200,20 @@ Stored as `SavedResult` which includes:
 
 ---
 
+## Post-Processing Pipeline (`_post_process_concepts`)
+
+After all concepts are collected (including gap-fill), the pipeline runs in this exact order:
+1. **ID Assignment** — `generate_id()` for any concept missing an `id`
+2. **Stage Default** — `stageId` defaults to `PREPARE`
+3. **Mnemonic Default** — Empty `{}` if missing
+4. **Scoring Validation** — If `scoring.keywords` is missing/invalid, auto-generates from concept name words
+5. **Tree Structure Validation** — `_validate_tree_structure()`: normalizes `treeLevel`, validates parent references, sets `tier = treeLevel`, logs distribution
+6. **Bloom's Distribution** — `_enforce_blooms_distribution()`: ensures ≥30% higher-order levels (apply/analyze/evaluate/create), upgrades candidates using 50+ keyword heuristics
+7. **TRACES Connection Diversity** — `_enforce_connection_diversity()`: normalizes legacy types, ensures min 2 connections per non-trunk, caps `enables` at 30% using keyword-based upgrades
+8. **Content Uniqueness** — `_enforce_unique_content()`: deduplicates mnemonic anchors (renames duplicates), flags duplicate `highStakesExample` company references
+
+---
+
 ## Content Audit
 
 **File:** `src/features/content-audit/audit-engine.ts`
@@ -202,21 +244,59 @@ backend/src/
 │   └── types/                 # macro-workflow.ts, grounding.ts
 ```
 
+### Async Self-Invocation Pattern
+
+API Gateway has a 30-second timeout. Generation takes 2-5 minutes. The handler solves this with async self-invocation:
+
+```
+API Gateway → Lambda (sync)
+  1. Create job record in DynamoDB (status: in_progress)
+  2. Self-invoke same Lambda with InvocationType="Event" (async)
+  3. Return immediately with { jobId, status: "in_progress" }
+
+Lambda (async, self-invoked)
+  1. Skip job creation (_skip_job_creation=true)
+  2. Run full generation pipeline
+  3. Store concepts in DynamoDB
+  4. Mark job completed/failed
+```
+
+The frontend polls `conceptsApi.getJobStatus(jobId)` until status is `completed` or `failed`.
+
+### Lambda Actions
+
+The `handler.py` routes on the `action` field:
+
+| Action | Handler | Description |
+|--------|---------|-------------|
+| `generate` (default) | `_handle_generate_async()` → `_handle_generate()` | Full concept generation pipeline |
+| `suggest_structure` | `_handle_suggest_structure()` | Classifies subject, returns suggested domains with weights and tasks |
+| `repair` | `_handle_repair()` | Surgically fixes a single concept using `SURGICAL_FIX_PROMPT` |
+| `_async_generate` | `_handle_generate()` | Internal — self-invoked async generation (not callable externally) |
+
+### Access Control
+
+Generation is restricted to an allowlist of approved email addresses:
+- **Backend:** `shared/utils.py` → `ALLOWED_GENERATOR_EMAILS` set, `is_generation_allowed(event)` extracts email from Cognito JWT claims
+- **Frontend:** `src/shared/constants/generator-allowlist.ts` → `isGenerationAllowed()` checks `useAuthStore` email
+- Non-allowlisted users receive 403 on generate attempts
+- Repair and suggest_structure actions are NOT gated by the allowlist
+
 ### Lambda Functions (`backend/lambda/`)
 ```
 backend/lambda/
 ├── generate_concepts/
-│   ├── handler.py              # Entry point: routes generate/repair actions
+│   ├── handler.py              # Entry point: routes generate/repair/suggest actions
 │   └── services/
-│       ├── bedrock_service.py  # classify_subject() + parallel generate + gap-fill
+│       ├── bedrock_service.py  # classify_subject() + parallel generate + gap-fill + repair
 │       └── dynamo_service.py   # Job tracking, concept storage, batch writes
 ├── query_concepts/
 │   └── handler.py              # Paginated queries, subject management, job polling
 ├── gym_ai/
 │   └── handler.py              # Gym activity AI (Haiku)
 ├── shared/
-│   ├── system_prompt.py        # TREE_GENERATION_PROMPT + GAP_FILL_PROMPT + classification prompt
-│   └── utils.py                # CORS, API response helpers, DynamoDB key builders
+│   ├── system_prompt.py        # TREE_GENERATION_PROMPT + GAP_FILL_PROMPT + SURGICAL_FIX_PROMPT + classification prompt
+│   └── utils.py                # CORS, API response helpers, DynamoDB key builders, generator allowlist
 └── requirements.txt
 ```
 
@@ -226,6 +306,7 @@ backend/lambda/
 - **PK:** `USER#{userId}#SESSION#{sessionId}`
 - **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
 - **GSI1:** For tier-based queries
+- **TTL:** 168 hours (7 days)
 
 **Jobs Table** (`sensapbl-jobs-dev` / `sensapbl-jobs-prod`)
 - Tracks generation job status, progress, classification data

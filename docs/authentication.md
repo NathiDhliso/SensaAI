@@ -83,6 +83,17 @@ User enters name + email + password on SignUp page
 | Session validation | Backend-side cookie verification via `/auth/session/validate` |
 | Token refresh | Backend-side using refresh_token cookie |
 | Logout | Backend clears cookies + frontend clears Zustand state + redirect |
+| Generation access | Email allowlist enforced at both backend (403) and frontend (UI hidden) |
+
+---
+
+## Generation Access Control (Allowlist)
+
+Content generation is restricted to approved email addresses, enforced independently at both layers:
+
+- **Backend:** `backend/lambda/shared/utils.py` → `ALLOWED_GENERATOR_EMAILS` set, `is_generation_allowed(event)` extracts email from Cognito JWT claims in the event. Returns 403 for non-allowlisted users on `generate` action.
+- **Frontend:** `src/shared/constants/generator-allowlist.ts` → `isGenerationAllowed()` reads email from `useAuthStore`. Hides generation UI for non-allowlisted users.
+- `repair` and `suggest_structure` Lambda actions are NOT gated by the allowlist.
 
 ---
 
