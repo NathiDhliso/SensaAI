@@ -230,7 +230,7 @@ docs/
 ## Key Features
 
 ### Content Generation
-- **2-Phase Generation System**: Domain Analysis (classification) → Tree Generation (per domain, parallel)
+- **Multi-Phase Generation System**: Domain Analysis → Tree Generation (per domain, parallel) → Automatic Gap-Fill Pass
 - **Exam-Context Tree Structure**: Trunk/Branch/Leaf hierarchy with TRACES connections
 - **AWS Bedrock Integration**: Claude Sonnet 4 via AWS Bedrock Runtime
 - **Real-time Streaming**: Progress updates during generation

@@ -200,10 +200,6 @@ The schema stays the same — the **interpretation** changes:
 ],
 "designBoundaries": [
  { "boundary": "NSGs operate at Layer 3/4 only", "rationale": "For Layer 7 (URL/header filtering), use Application Gateway WAF" }
-],
-"examFocus": [
- { "point": "NSG rule evaluation order (priority number)", "weight": "High" },
- { "point": "Subnet vs NIC association behavior", "weight": "High" }
 ]
 ```
 
@@ -211,11 +207,12 @@ The schema stays the same — the **interpretation** changes:
 
 ## 2. What the Full Set Should Look Like
 
-For AZ-104 (~78 leaf objectives), the full generation should produce:
+For AZ-104 (~82 leaf objectives), the full generation should produce:
 
 | Metric | Target |
 |--------|--------|
 | **Total concepts** | 60-80 |
+| **Objective coverage** | >=95% (gap-fill pass catches what main generation misses) |
 | **Concepts with cognitiveLevel apply+** | >=30% of total |
 | **Concepts with all SHAPE fields filled** | >=90% |
 | **Concepts with >=2 connections** | 100% |
@@ -250,7 +247,7 @@ When the student pastes exam objectives, the audit compares generated concepts a
 | Audit Metric | Target |
 |-------------|--------|
 | **Objectives parsed** | Exact leaf count (no headers, no prose) |
-| **Objectives covered** | >=75% matched to at least one concept |
+| **Objectives covered** | >=90% matched to at least one concept (gap-fill improves coverage) |
 | **Unmapped concepts** | <=10% (concepts that don't match any objective) |
 | **Content health average** | >=70% (based on which fields are filled with real content) |
 | **Bloom's distribution** | >=30% at apply or higher |
@@ -303,7 +300,7 @@ The dashboard shows 4 metric cards across the top:
 
 | Card | Perfect Value | What It Means | Warning Signs |
 |------|--------------|---------------|---------------|
-| **Objectives Covered** | 62+ / 78 (>=75%) | Concepts match at least 75% of pasted leaf objectives | <50% = major generation gaps |
+| **Objectives Covered** | 75+ / 82 (>=90%) | Concepts match at least 90% of pasted leaf objectives | <75% = gap-fill may have failed |
 | **Unmapped Concepts** | 0 / 65 | Every generated concept maps to at least one objective | >5 = fluff concepts that aren't on the exam |
 | **Content Health** | 80%+ | Average completeness score across all concepts | <60% = missing SHAPE fields, mnemonics, or examples |
 | **Concepts** | 60-80 | Total concepts generated | <40 = too few, >100 = bloated |
@@ -339,7 +336,7 @@ The audit engine generates these insight strings. For a **perfect** generation, 
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-The first insight (all concepts aligned) is the **best possible** result for concept quality. The second insight (some uncovered objectives) is normal — 75-80% coverage is the target, not 100%.
+The first insight (all concepts aligned) is the **best possible** result for concept quality. The second insight (some uncovered objectives) is normal — with the automatic gap-fill pass, 90-99% coverage is typical.
 
 **What you NEVER want to see:**
 
@@ -408,13 +405,13 @@ Each concept row shows:
 
 | Dashboard Element | Perfect State |
 |-------------------|---------------|
-| Objectives Covered | 62+ / 78 (green) |
+| Objectives Covered | 75+ / 82 (green) |
 | Unmapped Concepts | 0 / 65 (green) |
 | Content Health | 80%+ (green) |
 | Concepts | 60-80 (blue) |
 | Objectives Loaded | "78 Exam Objectives Loaded" with Saved badge |
 | Insight 1 | "All X concepts map to your stated objectives" |
-| Insight 2 | "Y of 78 objectives have NO matching concepts" (Y <= 20) |
+| Insight 2 | "Y of 82 objectives have NO matching concepts" (Y <= 8) |
 | No "100% lower-order" insight | Bloom's enforcement working |
 | No "health below 40%" insight | All concepts have real content |
 | No "over-indexed on peripheral" insight | Tier distribution is balanced |

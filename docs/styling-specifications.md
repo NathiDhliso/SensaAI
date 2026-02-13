@@ -1,6 +1,6 @@
 # Styling Specifications
 
-**Last Updated:** February 12, 2026
+**Last Updated:** February 13, 2026
 **Status:** MANDATORY — All CSS must follow these rules.
 
 ---

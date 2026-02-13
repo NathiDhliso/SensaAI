@@ -1,6 +1,6 @@
 # Learning Science
 
-**Last Updated:** February 12, 2026
+**Last Updated:** February 13, 2026
 **Status:** MANDATORY — All learning features must align with this model.
 
 ---

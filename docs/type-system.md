@@ -1,6 +1,6 @@
 # Type System
 
-**Last Updated:** February 12, 2026
+**Last Updated:** February 13, 2026
 **Status:** MANDATORY — All new code must respect these type contracts.
 **Source of truth:** `src/shared/types/learning.ts`
 
@@ -25,7 +25,6 @@ interface LearningConcept {
   trunkDomain?: string;                     // Top-level trunk this belongs to
   cognitiveLevel?: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create';
   lifecyclePhase: 'PREPARE' | 'MODEL' | 'DELIVER';
-  tierJustification?: string;
   dependencies: string[];                   // Concept IDs this depends on
   outdegree: number;                        // Count of concepts depending on THIS one
   commonPitfalls?: string[];                // Critical misconceptions

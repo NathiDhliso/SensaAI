@@ -7,10 +7,10 @@
 
 ## Overview
 
-Content generation is a 2-phase backend process that produces hierarchical learning concepts from any subject. The frontend orchestrates the flow, displays progress, and transforms raw output into the `LearningConcept` type.
+Content generation is a multi-phase backend process that produces hierarchical learning concepts from any subject. The frontend orchestrates the flow, displays progress, and transforms raw output into the `LearningConcept` type.
 
 ```
-User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Generation per domain) → Frontend Parser → Zustand Store → UI
+User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Generation per domain) → Phase 2.5 (Gap-Fill) → Frontend Parser → Zustand Store → UI
 ```
 
 ---
@@ -61,6 +61,29 @@ Each concept includes: `treeLevel`, `parentName`, `cognitiveLevel`, `connections
 
 ### Output
 Raw JSON array of concepts per domain, merged into a single flat array.
+
+---
+
+## Phase 2.5: Automatic Gap-Fill Pass
+
+**Backend:** `bedrock_service.py` → `system_prompt.py` GAP_FILL_PROMPT
+**Runs automatically after Phase 2 when domains have structured objectives**
+
+### Process
+After the initial per-domain generation and deduplication:
+1. `_analyze_coverage_gaps()` extracts keywords from each input objective and checks if ≥60% of keywords appear in any generated concept's content
+2. Uncovered objectives are grouped by domain
+3. `_generate_gap_fill()` makes parallel Bedrock calls per domain with gaps, using `GAP_FILL_PROMPT` that includes existing concept names and branch names to avoid duplication
+4. New concepts are validated, deduped by name against existing concepts, then merged
+5. Full post-processing (`_post_process_concepts`) runs on the combined set
+
+### When It Activates
+- Only when domains have `subtopics` (structured objectives from exam catalogs or context enrichment)
+- Only when the initial generation produced at least 1 concept
+- Skipped for free-form subjects with no structured objectives
+
+### Output
+Merged flat array of original + gap-fill concepts, fully post-processed.
 
 ---
 
@@ -185,14 +208,14 @@ backend/lambda/
 ├── generate_concepts/
 │   ├── handler.py              # Entry point: routes generate/repair actions
 │   └── services/
-│       ├── bedrock_service.py  # classify_subject() + parallel generate
+│       ├── bedrock_service.py  # classify_subject() + parallel generate + gap-fill
 │       └── dynamo_service.py   # Job tracking, concept storage, batch writes
 ├── query_concepts/
 │   └── handler.py              # Paginated queries, subject management, job polling
 ├── gym_ai/
 │   └── handler.py              # Gym activity AI (Haiku)
 ├── shared/
-│   ├── system_prompt.py        # TREE_GENERATION_PROMPT + classification prompt
+│   ├── system_prompt.py        # TREE_GENERATION_PROMPT + GAP_FILL_PROMPT + classification prompt
 │   └── utils.py                # CORS, API response helpers, DynamoDB key builders
 └── requirements.txt
 ```
