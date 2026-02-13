@@ -509,7 +509,6 @@ export default function Study() {
  <CoachMessage
  message={coachMessage}
  compact
- showVoiceButton={true}
  />
  </div>
  )}

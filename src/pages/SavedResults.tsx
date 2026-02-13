@@ -8,10 +8,13 @@ import {
  ArrowLeft,
  Eye,
  Cloud,
- Sparkles
+ Sparkles,
+ Globe
 } from 'lucide-react';
 import { storageManager, importFromFile } from '@/features/content-storage';
 import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
+import { conceptsApi } from '@/shared/api/concepts';
+import { useAuthStore } from '@/store/auth-store';
 import type { SavedResult } from '@/features/content-storage/types';
 // import type { SavedResult } from '@/features/content-storage'; // Assuming types are exported from index or specifically
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
@@ -20,9 +23,11 @@ import styles from './SavedResults.module.css';
 export default function SavedResults() {
  const navigate = useNavigate();
  const isAdmin = isGenerationAllowed();
+ const userId = useAuthStore(s => s.user?.id) || '';
  const [results, setResults] = useState<SavedResult[]>([]);
  const [loading, setLoading] = useState(true);
  const [deletingId, setDeletingId] = useState<string | null>(null);
+ const [togglingId, setTogglingId] = useState<string | null>(null);
  const [importing, setImporting] = useState(false);
  const [importError, setImportError] = useState<string | null>(null);
  const [searchQuery, setSearchQuery] = useState('');
@@ -187,6 +192,13 @@ export default function SavedResults() {
  </p>
  </div>
  <div className={styles.headerActions}>
+ <button
+ onClick={() => navigate('/community')}
+ className={styles.communityLink}
+ >
+ <Globe size={16} />
+ Community
+ </button>
  {isAdmin && (
  <>
  <button
@@ -344,6 +356,23 @@ export default function SavedResults() {
  >
  <BookOpen size={16} />
  Learn
+ </button>
+ <button
+ onClick={async () => {
+ setTogglingId(result.id);
+ try {
+ const newVal = !result.isPublic;
+ await conceptsApi.togglePublic(userId, result.id, newVal);
+ setResults(prev => prev.map(r => r.id === result.id ? { ...r, isPublic: newVal } : r));
+ toast.success(newVal ? 'Shared to Community' : 'Removed from Community');
+ } catch { toast.error('Failed to update visibility'); }
+ finally { setTogglingId(null); }
+ }}
+ className={`${styles.viewButton} ${result.isPublic ? styles.publicActive : ''}`}
+ disabled={togglingId === result.id}
+ title={result.isPublic ? 'Public - click to make private' : 'Private - click to share'}
+ >
+ <Globe size={16} />
  </button>
  {isAdmin && (
  <button

@@ -8,6 +8,7 @@ import { useAuthStore } from './store/auth-store';
 const Home = lazy(() => import('./pages/Home'));
 const Generate = lazy(() => import('./pages/Generate'));
 const SavedResults = lazy(() => import('./pages/SavedResults'));
+const CommunityLibrary = lazy(() => import('./pages/CommunityLibrary'));
 
 const Study = lazy(() => import('./pages/Study'));
 const ContentLaunchpad = lazy(() => import('./components/learning/launchpad/ContentLaunchpad'));
@@ -85,6 +86,9 @@ function App() {
  ═══════════════════════════════════════════════════════════════ */}
  <Route path="/library" element={
  <ProtectedRoute><SavedResults /></ProtectedRoute>
+ } />
+ <Route path="/community" element={
+ <ProtectedRoute><CommunityLibrary /></ProtectedRoute>
  } />
 
  {/* Document Viewer */}

@@ -161,6 +161,7 @@ See: [Content Storage](./content-storage.md) for full catalog breakdown.
 | `/study/:subjectId` | Study | Protected |
 | `/launchpad/:subjectId` | ContentLaunchpad | Protected |
 | `/library` | SavedResults | Protected |
+| `/community` | CommunityLibrary | Protected |
 | `/view/:id` | DocumentView | Protected |
 
 Global overlays always mounted in `App.tsx`: `SettingsPanel` (slide-out), `BackgroundJobToast`.

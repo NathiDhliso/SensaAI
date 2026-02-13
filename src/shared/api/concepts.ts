@@ -1,95 +1,93 @@
-// Concepts API - Paginated access to learning concepts stored in DynamoDB
-// Uses Lambda backend for queries instead of loading all concepts into memory
 import { apiClient } from './client';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
-// API types matching Lambda response
+import type { PublicJobSummary } from '@/features/content-storage/types';
+
 export interface ConceptsQueryParams {
- userId: string;
- sessionId: string;
- tier?: 'trunk' | 'branch' | 'leaf';
- limit?: number;
- cursor?: string;
+  userId: string;
+  sessionId: string;
+  tier?: 'trunk' | 'branch' | 'leaf';
+  limit?: number;
+  cursor?: string;
 }
 export interface ConceptsQueryResponse {
- concepts: ParsedConcept[];
- nextCursor: string | null;
- hasMore: boolean;
- count: number;
+  concepts: ParsedConcept[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  count: number;
 }
 export interface GenerateConceptsRequest {
- subject: string;
- userId: string;
- sessionId?: string;
- context?: string;
- trunks?: string[];
+  subject: string;
+  userId: string;
+  sessionId?: string;
+  context?: string;
+  trunks?: string[];
 }
 export interface SuggestStructureRequest {
- subject: string;
- userId: string;
- context?: string;
+  subject: string;
+  userId: string;
+  context?: string;
 }
 export interface SuggestedDomain {
- name: string;
- weight: number;
- tasks: string[];
+  name: string;
+  weight: number;
+  tasks: string[];
 }
 export interface SuggestStructureResponse {
- subject: string;
- subjectType: string;
- domains: SuggestedDomain[];
+  subject: string;
+  subjectType: string;
+  domains: SuggestedDomain[];
 }
 export interface GenerateConceptsResponse {
- jobId: string;
- sessionId: string;
- status: 'in_progress' | 'completed' | 'failed';
- conceptCount?: number;
- error?: string;
- subjectType?: import('@/shared/types/macro-workflow').SubjectType;
- macroWorkflow?: import('@/shared/types/macro-workflow').MacroWorkflowResult;
+  jobId: string;
+  sessionId: string;
+  status: 'in_progress' | 'completed' | 'failed';
+  conceptCount?: number;
+  error?: string;
+  subjectType?: import('@/shared/types/macro-workflow').SubjectType;
+  macroWorkflow?: import('@/shared/types/macro-workflow').MacroWorkflowResult;
 }
 export interface JobStatus {
- jobId: string;
- userId: string;
- sessionId: string;
- subject: string;
- status: 'in_progress' | 'completed' | 'failed';
- conceptCount?: number;
- error?: string;
- classification?: {
- subjectType: import('@/shared/types/macro-workflow').SubjectType;
- classification: import('@/shared/types/macro-workflow').SubjectClassification;
- macroStructure: import('@/shared/types/macro-workflow').MacroStructure;
- connectiveTissue: import('@/shared/types/macro-workflow').ConnectiveTissue;
- lifecycle: { phase1: string; phase2: string; phase3: string };
- };
+  jobId: string;
+  userId: string;
+  sessionId: string;
+  subject: string;
+  status: 'in_progress' | 'completed' | 'failed';
+  conceptCount?: number;
+  error?: string;
+  classification?: {
+    subjectType: import('@/shared/types/macro-workflow').SubjectType;
+    classification: import('@/shared/types/macro-workflow').SubjectClassification;
+    macroStructure: import('@/shared/types/macro-workflow').MacroStructure;
+    connectiveTissue: import('@/shared/types/macro-workflow').ConnectiveTissue;
+    lifecycle: { phase1: string; phase2: string; phase3: string };
+  };
 }
 export interface JobSummary {
- jobId: string;
- userId?: string;
- sessionId: string;
- subject: string;
- status: 'queued' | 'in_progress' | 'completed' | 'failed';
- conceptCount?: number;
- createdAt?: number;
+  jobId: string;
+  userId?: string;
+  sessionId: string;
+  subject: string;
+  status: 'queued' | 'in_progress' | 'completed' | 'failed';
+  conceptCount?: number;
+  createdAt?: number;
+  isPublic?: boolean;
 }
-// NEW: Job progress for streaming generation
 export interface JobProgress {
- jobId: string;
- sessionId: string;
- subject: string;
- status: 'in_progress' | 'completed' | 'failed' | 'unknown';
- conceptCount: number;
- latestConcept: string;
- updatedAt: number;
- error?: string;
+  jobId: string;
+  sessionId: string;
+  subject: string;
+  status: 'in_progress' | 'completed' | 'failed' | 'unknown';
+  conceptCount: number;
+  latestConcept: string;
+  updatedAt: number;
+  error?: string;
 }
-// NEW: Latest concepts response for incremental polling
 export interface LatestConceptsResponse {
- concepts: ParsedConcept[];
- count: number;
- lastOrder: number;
- totalCount: number;
- status: 'generating' | 'completed' | 'failed' | 'unknown';
+  concepts: ParsedConcept[];
+  count: number;
+  lastOrder: number;
+  totalCount: number;
+  status: 'generating' | 'completed' | 'failed' | 'unknown';
 }
 export const conceptsApi = {
  /**
@@ -279,6 +277,31 @@ export const conceptsApi = {
  await new Promise(resolve => setTimeout(resolve, pollIntervalMs * 2));
  }
  }
- }
+ },
+ async togglePublic(userId: string, jobId: string, isPublic: boolean): Promise<{ jobId: string; isPublic: boolean }> {
+   const queryParams = new URLSearchParams({
+     action: 'toggle_public',
+     userId,
+     jobId,
+     isPublic: String(isPublic),
+   });
+   return apiClient.get<{ jobId: string; isPublic: boolean }>(`/concepts?${queryParams.toString()}`);
+ },
+ async listPublic(): Promise<{ jobs: PublicJobSummary[] }> {
+   const queryParams = new URLSearchParams({ action: 'list_public' });
+   return apiClient.get<{ jobs: PublicJobSummary[] }>(`/concepts?${queryParams.toString()}`);
+ },
+ async getPublicContent(
+   ownerId: string,
+   jobId: string,
+ ): Promise<{ jobId: string; subject: string; ownerId: string; conceptCount: number; concepts: ParsedConcept[]; classification?: unknown }> {
+   const queryParams = new URLSearchParams({
+     action: 'get_public_content',
+     userId: ownerId,
+     ownerId,
+     jobId,
+   });
+   return apiClient.get(`/concepts?${queryParams.toString()}`);
+ },
 };
 export type { ParsedConcept };

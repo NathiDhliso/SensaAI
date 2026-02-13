@@ -82,10 +82,26 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return handle_list_jobs(user_id, event)
 
         action = params.get("action", "get_concepts")
+
+        if action == "list_public":
+            return handle_list_public(event)
+
         user_id = params.get("userId")
         if not user_id:
             return api_response(400, {"error": "userId is required"}, event)
-        if action == "list_subjects":
+        if action == "toggle_public":
+            job_id = params.get("jobId")
+            is_public = params.get("isPublic", "true").lower() == "true"
+            if not job_id:
+                return api_response(400, {"error": "jobId is required"}, event)
+            return handle_toggle_public(user_id, job_id, is_public, event)
+        elif action == "get_public_content":
+            job_id = params.get("jobId")
+            owner_id = params.get("ownerId")
+            if not job_id or not owner_id:
+                return api_response(400, {"error": "jobId and ownerId are required"}, event)
+            return handle_get_public_content(owner_id, job_id, event)
+        elif action == "list_subjects":
             return handle_list_subjects(user_id, event)
         elif action == "delete_subject":
             session_id = params.get("sessionId")
@@ -177,6 +193,7 @@ def handle_list_jobs(user_id: str, event=None) -> Dict[str, Any]:
                 "createdAt": int(item.get("createdAt", 0)),
                 "conceptCount": int(item.get("conceptCount", 0)),
                 "sessionId": item.get("sessionId"),
+                "isPublic": bool(item.get("isPublic", False)),
             })
         # Sort by createdAt desc
         jobs.sort(key=lambda x: x["createdAt"], reverse=True)
@@ -502,6 +519,70 @@ def transform_item_to_concept_full(item: Dict[str, Any]) -> Dict[str, Any]:
         "connections": item.get("connections", []),
         "outdegree": int(item.get("outdegree", 0)),
     }
+
+def handle_toggle_public(user_id: str, job_id: str, is_public: bool, event=None) -> Dict[str, Any]:
+    jobs_table = dynamodb.Table(JOBS_TABLE)
+    try:
+        jobs_table.update_item(
+            Key={"jobId": job_id, "userId": user_id},
+            UpdateExpression="SET isPublic = :val",
+            ExpressionAttributeValues={":val": is_public},
+            ConditionExpression="attribute_exists(jobId)",
+        )
+        return api_response(200, {"jobId": job_id, "isPublic": is_public}, event)
+    except Exception as e:
+        return api_response(500, {"error": f"Failed to toggle public: {str(e)}"}, event)
+
+
+def handle_list_public(event=None) -> Dict[str, Any]:
+    jobs_table = dynamodb.Table(JOBS_TABLE)
+    try:
+        response = jobs_table.scan(
+            FilterExpression=Attr("isPublic").eq(True) & Attr("status").eq("completed")
+        )
+        jobs = []
+        for item in response.get("Items", []):
+            jobs.append({
+                "jobId": item.get("jobId"),
+                "subject": item.get("subject"),
+                "createdAt": int(item.get("createdAt", 0)),
+                "conceptCount": int(item.get("conceptCount", 0)),
+                "sessionId": item.get("sessionId"),
+                "ownerId": item.get("userId"),
+                "isPublic": True,
+            })
+        jobs.sort(key=lambda x: x["createdAt"], reverse=True)
+        return api_response(200, {"jobs": jobs}, event)
+    except Exception as e:
+        return api_response(500, {"error": f"Failed to list public content: {str(e)}"}, event)
+
+
+def handle_get_public_content(owner_id: str, job_id: str, event=None) -> Dict[str, Any]:
+    jobs_table = dynamodb.Table(JOBS_TABLE)
+    try:
+        response = jobs_table.get_item(Key={"jobId": job_id, "userId": owner_id})
+        item = response.get("Item")
+        if not item or not item.get("isPublic"):
+            return api_response(404, {"error": "Public content not found"}, event)
+        session_id = item.get("sessionId", job_id)
+        table = dynamodb.Table(CONCEPTS_TABLE)
+        pk = create_pk(owner_id, session_id)
+        concept_response = table.query(
+            KeyConditionExpression=Key("PK").eq(pk),
+            FilterExpression=Attr("type").not_exists()
+        )
+        concepts = [transform_item_to_concept(c) for c in concept_response.get("Items", [])]
+        return api_response(200, {
+            "jobId": job_id,
+            "subject": item.get("subject"),
+            "ownerId": owner_id,
+            "conceptCount": len(concepts),
+            "concepts": concepts,
+            "classification": item.get("classification"),
+        }, event)
+    except Exception as e:
+        return api_response(500, {"error": f"Failed to get public content: {str(e)}"}, event)
+
 
 # Health check endpoint for simple GET requests
 def health_check(event: Dict[str, Any], context: Any) -> Dict[str, Any]:

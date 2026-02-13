@@ -117,13 +117,29 @@ interface SavedResult {
     formatConsistency: number;
     completeness: number;
   };
-  examObjectives?: string[];
-  savedLocally: boolean;
+  isPublic?: boolean;
+  savedLocally?: boolean;
   savedToCloud?: boolean;
-  cloudUrl?: string;
-  localFilePath?: string;
 }
 ```
+
+---
+
+## Community Library (Public Content)
+
+Users can share generated content with other logged-in users via the Community Library.
+
+**Backend (query_concepts handler):**
+- `toggle_public` — Sets `isPublic` boolean on a job record in the jobs table
+- `list_public` — Scans jobs table for all `isPublic=true` + `status=completed` records
+- `get_public_content` — Fetches concepts for a public job (verifies `isPublic` flag)
+
+**Frontend:**
+- `SavedResults.tsx` — Globe toggle button on each card to share/unshare
+- `CommunityLibrary.tsx` — Browse page at `/community` showing all public content
+- `conceptsApi.togglePublic()`, `conceptsApi.listPublic()`, `conceptsApi.getPublicContent()`
+
+**Data model:** `isPublic` boolean field on the jobs table (`sensapbl-jobs-{env}`). No GSI — uses scan with filter (acceptable for community-scale traffic).
 
 ---
 

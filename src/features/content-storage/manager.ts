@@ -172,6 +172,7 @@ export class StorageManager {
  positiveFraming: 98,
  formatConsistency: 100
  },
+ isPublic: job.isPublic ?? false,
  savedLocally: false,
  savedToCloud: true
  }));
