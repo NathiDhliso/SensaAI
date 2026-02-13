@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Timer, BarChart3, Brain, Flame, FileText, RotateCcw, Zap, AlertCircle } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useFlowState } from '@/shared/hooks/useFlowState';
+import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import { FocusTimer } from './FocusTimer';
 import { ProgressAnalytics } from './ProgressAnalytics';
 import { QuickQuiz } from './QuickQuiz';
@@ -18,6 +19,7 @@ export function LearningToolbar() {
  const progress = currentSession?.progress;
  const flowState = useFlowState();
  const cogLevel = getCognitiveLoadLevel();
+ const isAdmin = isGenerationAllowed();
  const [showTimer, setShowTimer] = useState(false);
  const [showAnalytics, setShowAnalytics] = useState(false);
  const [showQuiz, setShowQuiz] = useState(false);
@@ -95,7 +97,7 @@ export function LearningToolbar() {
  Source
  </button>
  {/* Reset Progress button - only show if there's progress */}
- {progress && progress.completedConcepts.length > 0 && (
+ {isAdmin && progress && progress.completedConcepts.length > 0 && (
  <button
  className={`${styles.toolbarButton} ${styles.resetButton}`}
  onClick={() => setShowResetConfirm(true)}
@@ -175,4 +177,4 @@ export function LearningToolbar() {
  )}
  </>
  );
-}
+}

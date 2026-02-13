@@ -36,10 +36,12 @@ import { MetaphorToggle } from '@/features/personalization';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { toast } from '@/shared/utils/toast';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import styles from './SettingsPanel.module.css';
 export default function SettingsPanel() {
  const panelRef = useRef<HTMLDivElement>(null);
  const triggerRef = useRef<HTMLElement | null>(null);
+ const isAdmin = isGenerationAllowed();
  const [isExiting, setIsExiting] = useState(false);
  const [showPersonas, setShowPersonas] = useState(false);
  const [showDangerZone, setShowDangerZone] = useState(false);
@@ -370,6 +372,8 @@ export default function SettingsPanel() {
  <Download size={14} /> Export
  </button>
  </div>
+ {isAdmin && (
+ <>
  <button onClick={() => {
  resetOnboarding();
  toast.success('Onboarding reset');
@@ -403,6 +407,8 @@ export default function SettingsPanel() {
  {confirmClear === 'all' ? 'Confirm Reset' : 'Reset App Data'}
  </button>
  </div>
+ )}
+ </>
  )}
  </section>
  </div>

@@ -11,6 +11,7 @@ import {
  Sparkles
 } from 'lucide-react';
 import { storageManager, importFromFile } from '@/features/content-storage';
+import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import type { SavedResult } from '@/features/content-storage/types';
 // import type { SavedResult } from '@/features/content-storage'; // Assuming types are exported from index or specifically
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
@@ -18,6 +19,7 @@ import { toast } from '@/shared/utils/toast';
 import styles from './SavedResults.module.css';
 export default function SavedResults() {
  const navigate = useNavigate();
+ const isAdmin = isGenerationAllowed();
  const [results, setResults] = useState<SavedResult[]>([]);
  const [loading, setLoading] = useState(true);
  const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -185,6 +187,8 @@ export default function SavedResults() {
  </p>
  </div>
  <div className={styles.headerActions}>
+ {isAdmin && (
+ <>
  <button
  onClick={handleCleanupDuplicates}
  className={`${styles.importButton} ${styles.cleanupButton}`}
@@ -201,6 +205,8 @@ export default function SavedResults() {
  <Upload size={16} />
  {importing ? 'Importing...' : 'Import File'}
  </button>
+ </>
+ )}
  </div>
  </div>
  <input
@@ -339,6 +345,7 @@ export default function SavedResults() {
  <BookOpen size={16} />
  Learn
  </button>
+ {isAdmin && (
  <button
  onClick={() => handleDelete(result.id)}
  className={styles.deleteButton}
@@ -347,6 +354,7 @@ export default function SavedResults() {
  >
  <Trash2 size={16} />
  </button>
+ )}
  </div>
  </div>
  ))}
