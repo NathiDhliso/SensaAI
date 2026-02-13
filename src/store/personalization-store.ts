@@ -2,8 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { PersonaId } from '@/features/ai-coach';
 import type { Mood } from '@/features/ai-coach';
-export type UserRole = 'architect' | 'operator' | 'specialist' | 'learner';
-export type FamiliarSystem = 'construction' | 'cooking' | 'travel' | 'healthcare' | 'sports' | 'nature';
 export type PracticeMode = 'blocked' | 'mixed' | 'progressive';
 export type BehavioralSignals = {
  avgTimePerConcept: number; // seconds
@@ -18,10 +16,6 @@ export type MetaphorSettings = {
  allowCustomMetaphors: boolean; // User can replace system metaphors
 };
 type PersonalizationState = {
- onboardingComplete: boolean;
- chosenRole: UserRole | null;
- familiarSystem: FamiliarSystem | null;
- // AI Coach Settings
  selectedPersona: PersonaId;
  coachVoiceEnabled: boolean;
  coachIntensity: number; // 1-5 scale
@@ -37,11 +31,6 @@ type PersonalizationState = {
  semesterStartDate: string | null; // ISO Date String
 };
 type PersonalizationActions = {
- completeOnboarding: (role: UserRole, system: FamiliarSystem) => void;
- resetOnboarding: () => void;
- updateRole: (role: UserRole) => void;
- updateFamiliarSystem: (system: FamiliarSystem) => void;
- // AI Coach Actions
  setSelectedPersona: (persona: PersonaId) => void;
  setCoachVoiceEnabled: (enabled: boolean) => void;
  setCoachIntensity: (intensity: number) => void;
@@ -60,10 +49,6 @@ type PersonalizationActions = {
 export const usePersonalizationStore = create<PersonalizationState & PersonalizationActions>()(
  persist(
  (set) => ({
- onboardingComplete: false,
- chosenRole: null,
- familiarSystem: null,
- // AI Coach Defaults
  selectedPersona: 'buddy',
  coachVoiceEnabled: true,
  coachIntensity: 3,
@@ -81,28 +66,6 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
  practiceMode: 'progressive',
  // Academic Schedule Defaults
  semesterStartDate: null,
- completeOnboarding: (role, system) => {
- set({
- onboardingComplete: true,
- chosenRole: role,
- familiarSystem: system
- });
- },
- resetOnboarding: () => {
- set({
- onboardingComplete: false,
- chosenRole: null,
- familiarSystem: null,
- semesterStartDate: null
- });
- },
- updateRole: (role) => {
- set({ chosenRole: role });
- },
- updateFamiliarSystem: (system) => {
- set({ familiarSystem: system });
- },
- // AI Coach Actions
  setSelectedPersona: (persona) => {
  set({ selectedPersona: persona });
  },

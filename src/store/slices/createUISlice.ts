@@ -7,8 +7,7 @@ import type {
  LearningStore,
  UISliceState,
  UISliceActions,
- CelebrationData,
- LearningProfile
+ CelebrationData
 } from './types';
 // ============================================================================
 // SLICE CREATOR
@@ -23,9 +22,6 @@ export const createUISlice: StateCreator<
  showCelebration: false,
  celebrationData: null,
  isExploreMode: false,
- learningProfile: {
- onboardingCompleted: false
- },
  // Actions
  triggerCelebration: (data: CelebrationData) => {
  set({ showCelebration: true, celebrationData: data });
@@ -35,13 +31,5 @@ export const createUISlice: StateCreator<
  },
  toggleExploreMode: () => {
  set((state) => ({ isExploreMode: !state.isExploreMode }));
- },
- setLearningProfile: (profileUpdate: Partial<LearningProfile>) => {
- set((state) => ({
- learningProfile: {
- ...state.learningProfile,
- ...profileUpdate
  }
- }));
- }
-});
+});

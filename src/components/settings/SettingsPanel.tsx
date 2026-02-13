@@ -20,8 +20,7 @@ import {
  Trash2,
  AlertTriangle,
  ChevronDown,
- ChevronUp,
- RefreshCw
+ ChevronUp
 } from 'lucide-react';
 import { useClickOutside } from '@/shared/hooks/useClickOutside';
 import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
@@ -56,7 +55,6 @@ export default function SettingsPanel() {
  setCoachVoiceEnabled,
  coachIntensity,
  setCoachIntensity,
- resetOnboarding,
  stressFreeMode,
  setStressFreeMode,
  semesterStartDate,
@@ -106,7 +104,6 @@ export default function SettingsPanel() {
  case 'all':
  resetProgress();
  clearSession();
- resetOnboarding();
  useGenerationStore.setState({ results: [] });
  toast.success('All data reset');
  break;
@@ -374,12 +371,6 @@ export default function SettingsPanel() {
  </div>
  {isAdmin && (
  <>
- <button onClick={() => {
- resetOnboarding();
- toast.success('Onboarding reset');
- }} className={styles.linkButton}>
- <RefreshCw size={14} /> Retake onboarding
- </button>
  <button
  className={styles.dangerToggle}
  onClick={() => setShowDangerZone(!showDangerZone)}

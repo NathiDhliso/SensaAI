@@ -19,7 +19,6 @@ export type {
  SessionSummary,
  CurrentSession,
  DiagnosticSession,
- LearningProfile,
  // Slice types
  SessionSliceState,
  SessionSliceActions,
@@ -49,4 +48,4 @@ export type {
  EnhancedCognitiveMetrics,
  SessionPrimer,
  ConceptMapData
-} from './types';
+} from './types';

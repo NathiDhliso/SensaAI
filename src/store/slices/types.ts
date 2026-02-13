@@ -103,12 +103,6 @@ export interface DiagnosticSession {
  canSkipTrunk: boolean;
  isComplete: boolean;
 }
-/**
- * Learning Profile
- */
-export type LearningProfile = {
- onboardingCompleted: boolean;
-};
 // ============================================================================
 // SLICE STATE TYPES
 // ============================================================================
@@ -244,13 +238,11 @@ export type UISliceState = {
  showCelebration: boolean;
  celebrationData: CelebrationData | null;
  isExploreMode: boolean;
- learningProfile: LearningProfile;
 };
 export type UISliceActions = {
  triggerCelebration: (data: CelebrationData) => void;
  dismissCelebration: () => void;
  toggleExploreMode: () => void;
- setLearningProfile: (profile: Partial<LearningProfile>) => void;
 };
 // ============================================================================
 // COMBINED STORE TYPE

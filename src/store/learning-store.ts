@@ -36,7 +36,6 @@ export type {
  SessionSummary,
  CurrentSession,
  DiagnosticSession,
- LearningProfile,
  LearningStore
 } from './slices';
 // ============================================================================
@@ -123,4 +122,4 @@ const initializeStaleStateGuard = () => {
 // Run the guard on module initialization
 if (typeof window !== 'undefined') {
  initializeStaleStateGuard();
-}
+}
