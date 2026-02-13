@@ -101,12 +101,14 @@ export interface AIScoreResult {
 export async function scoreWithAI(
  concept: LearningConcept,
  userResponse: string,
- activityType: 'peer-review' | 'mastery' | 'defense'
+ activityType: 'peer-review' | 'mastery' | 'defense',
+ question?: string
 ): Promise<AIScoreResult | null> {
  return callGymAI<AIScoreResult>('score', {
  concept: compressConcept(concept),
- response: userResponse.slice(0, 400),
- stage: activityType
+ response: userResponse.slice(0, 1500),
+ stage: activityType,
+ ...(question && { question: question.slice(0, 500) })
  });
 }
 

@@ -84,11 +84,30 @@ async function handlePushback(data: { concept: ConceptData; diagnosis: string })
  }
  return result;
 }
-async function handleScore(data: { concept: ConceptData; response: string; stage: string }): Promise<Record<string, unknown>> {
- const system = 'You score student responses for conceptual accuracy. Output JSON only.';
- const user = `Concept:\n${compressConcept(data.concept)}\n\nStage: ${data.stage}\nStudent response: "${data.response}"\n\nScore 0-1 for accuracy. Return JSON:
-{"score":0.0,"feedback":"Brief feedback","strengths":["s1"],"gaps":["g1"]}`;
- const raw = await invokeHaiku(system, user, 200);
+async function handleScore(data: { concept: ConceptData; response: string; stage: string; question?: string }): Promise<Record<string, unknown>> {
+ const wordCount = data.response.trim().split(/\s+/).length;
+ const system = `You score student responses in a peer-review learning activity. Output JSON only.
+
+CRITICAL: You MUST evaluate the student's response ONLY against the specific question/statement they were asked to address. Do NOT invent additional requirements beyond what the question asks.
+
+Scoring guidelines:
+- peer-review stage: A peer made an incorrect statement. The student must identify WHY the statement is wrong and provide a reasonable correction. They do NOT need to cover every aspect of the concept — only address what the question asks.
+- defense stage: The student must defend their reasoning against a follow-up challenge. A coherent argument that addresses the challenge counts as passing.
+
+Be GENEROUS with passing scores (>=0.35) when the student:
+- Correctly identifies the misconception or error in the peer's specific statement
+- Provides a reasonable explanation even if not exhaustive
+- Shows genuine understanding of the concept's purpose or distinction
+- Gives concrete examples or analogies that demonstrate understanding
+
+Only fail a student (score <0.35) when:
+- The response is off-topic or does not address the specific question asked
+- The explanation is factually incorrect
+- The response is too vague to demonstrate any understanding`;
+ const questionContext = data.question ? `\nPeer question/statement the student is responding to: "${data.question}"\n` : '';
+ const user = `Concept:\n${compressConcept(data.concept)}\n${questionContext}\nStage: ${data.stage}\nStudent response (${wordCount} words): "${data.response}"\n\nEvaluate ONLY whether the student adequately addressed the specific question above. Return JSON:
+{"score":0.0,"feedback":"2-3 sentences explaining the score","strengths":["s1"],"gaps":["g1"]}`;
+ const raw = await invokeHaiku(system, user, 300);
  const result = extractJson(raw);
  if (typeof result.score !== 'number') {
  throw new Error('Invalid AI response');
@@ -195,4 +214,4 @@ router.post('/', async (req: Request, res: Response) => {
  });
  }
 });
-export { router as gymAiRouter };
+export { router as gymAiRouter };

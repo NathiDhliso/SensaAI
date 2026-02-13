@@ -90,10 +90,32 @@ def _handle_score(data: Dict[str, Any]) -> Dict[str, Any]:
     concept = data["concept"]
     response_text = data.get("response", "")
     stage = data.get("stage", "correction")
-    system = "You score student responses for conceptual accuracy. Output JSON only."
-    user = f"""Concept:\n{_compress_concept(concept)}\n\nStage: {stage}\nStudent response: "{response_text}"\n\nScore 0-1 for accuracy. Return JSON:
-{{"score":0.0,"feedback":"Brief feedback","strengths":["s1"],"gaps":["g1"]}}"""
-    raw = _invoke_haiku(system, user, 200)
+    question = data.get("question", "")
+    word_count = len(response_text.strip().split())
+
+    system = """You score student responses in a peer-review learning activity. Output JSON only.
+
+CRITICAL: You MUST evaluate the student's response ONLY against the specific question/statement they were asked to address. Do NOT invent additional requirements beyond what the question asks.
+
+Scoring guidelines:
+- peer-review stage: A peer made an incorrect statement. The student must identify WHY the statement is wrong and provide a reasonable correction. They do NOT need to cover every aspect of the concept — only address what the question asks.
+- defense stage: The student must defend their reasoning against a follow-up challenge. A coherent argument that addresses the challenge counts as passing.
+
+Be GENEROUS with passing scores (>=0.35) when the student:
+- Correctly identifies the misconception or error in the peer's specific statement
+- Provides a reasonable explanation even if not exhaustive
+- Shows genuine understanding of the concept's purpose or distinction
+- Gives concrete examples or analogies that demonstrate understanding
+
+Only fail a student (score <0.35) when:
+- The response is off-topic or does not address the specific question asked
+- The explanation is factually incorrect
+- The response is too vague to demonstrate any understanding"""
+
+    question_context = f'\nPeer question/statement the student is responding to: "{question}"\n' if question else ""
+    user = f"""Concept:\n{_compress_concept(concept)}\n{question_context}\nStage: {stage}\nStudent response ({word_count} words): "{response_text}"\n\nEvaluate ONLY whether the student adequately addressed the specific question above. Return JSON:
+{{"score":0.0,"feedback":"2-3 sentences explaining the score","strengths":["s1"],"gaps":["g1"]}}"""
+    raw = _invoke_haiku(system, user, 300)
     result = _extract_json(raw)
     if not isinstance(result.get("score"), (int, float)):
         return {"error": "Invalid AI response"}

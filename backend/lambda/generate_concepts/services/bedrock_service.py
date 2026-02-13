@@ -114,6 +114,7 @@ class BedrockService:
                 total_domains=num_partitions,
                 context=context,
                 classification=classification,
+                all_domains=domains,
             )
             last_error = None
             domain_name = domain.get("name", f"Domain {domain_index + 1}")
@@ -583,6 +584,40 @@ class BedrockService:
                     t = conn.get("type", "enables")
                     type_dist[t] = type_dist.get(t, 0) + 1
             print(f"[BedrockService] TRACES distribution: {type_dist}")
+    def _detect_duplicate_content(self, concepts: List[Dict[str, Any]]) -> None:
+        example_companies: Dict[str, List[str]] = {}
+        anchor_names: Dict[str, List[str]] = {}
+        pr_questions: Dict[str, List[str]] = {}
+        COMPANY_PATTERN = re.compile(r'^([A-Z][A-Za-z\s&\.]+?)[\s]*\((\d{4})\)')
+        for c in concepts:
+            name = c.get("name", "unknown")
+            example = ((c.get("shape") or {}).get("highStakesExample") or "").strip()
+            if example:
+                match = COMPANY_PATTERN.match(example)
+                key = match.group(1).strip().lower() if match else example[:40].lower()
+                example_companies.setdefault(key, []).append(name)
+            anchor = ((c.get("mnemonic") or {}).get("anchor") or "").strip().lower()
+            anchor = re.sub(r'[\U00010000-\U0010ffff\u2600-\u27bf\ufe0f]', '', anchor).strip()
+            if anchor:
+                anchor_names.setdefault(anchor, []).append(name)
+            pr = ((c.get("shape") or {}).get("patternRecognition") or {})
+            question = (pr.get("question") or "").strip()[:60].lower()
+            if question:
+                pr_questions.setdefault(question, []).append(name)
+        dupes_found = 0
+        for company, users in example_companies.items():
+            if len(users) > 1:
+                dupes_found += len(users) - 1
+                print(f"[BedrockService] DUPLICATE EXAMPLE: '{company}' used by {len(users)} concepts: {users}")
+        for anchor, users in anchor_names.items():
+            if len(users) > 1:
+                dupes_found += len(users) - 1
+                print(f"[BedrockService] DUPLICATE ANCHOR: '{anchor}' used by {len(users)} concepts: {users}")
+        if dupes_found > 0:
+            print(f"[BedrockService] Content uniqueness: {dupes_found} duplicates detected across {len(concepts)} concepts")
+        else:
+            print(f"[BedrockService] Content uniqueness: OK ({len(concepts)} concepts, all unique examples/anchors)")
+
     def _post_process_concepts(self, concepts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         from shared.utils import generate_id
         for concept in concepts:
@@ -600,6 +635,7 @@ class BedrockService:
         self._validate_tree_structure(concepts)
         self._enforce_blooms_distribution(concepts)
         self._enforce_connection_diversity(concepts)
+        self._detect_duplicate_content(concepts)
         return concepts
     def _repair_json(self, raw_text: str) -> str:
         """

@@ -169,7 +169,7 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  setMessages(prev => [...prev, { sender: 'user', text: userText }]);
  setShowInput(false);
  setAiLoading(true);
- const aiScore = await scoreWithAI(concept, userText, 'peer-review');
+ const aiScore = await scoreWithAI(concept, userText, 'peer-review', misconception.statement);
  const fallbackScore = scoreCorrection(userText, misconception.correctionKeywords);
  const score = aiScore ? aiScore.score : fallbackScore.score;
  const diagnosisPassed = score >= 0.35;
@@ -197,7 +197,7 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  setMessages(prev => [...prev, { sender: 'user', text: userText }]);
  setShowInput(false);
  setAiLoading(true);
- const aiScore = await scoreWithAI(concept, userText, 'defense');
+ const aiScore = await scoreWithAI(concept, userText, 'defense', messages.find(m => m.sender === 'peer' && m.icon === 'shield')?.text);
  const fallbackDefense = scoreDefense(userText, concept);
  const score = aiScore ? aiScore.score : fallbackDefense;
  const defensePassed = score >= 0.3;

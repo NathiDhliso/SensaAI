@@ -291,7 +291,7 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
  }},
  "shape": {{
    "simpleCore": "NSGs filter network traffic to and from Azure resources using priority-ordered allow/deny rules based on source, destination, port, and protocol.",
-   "highStakesExample": "Capital One (2019) — a misconfigured WAF allowed a former employee to access S3 buckets containing 100M+ customer records. Proper network segmentation rules (equivalent to NSGs) would have limited lateral movement after the initial breach.",
+   "highStakesExample": "Azure Cosmos DB Vulnerability (2021) — ChaosDB: Researchers discovered that Jupyter Notebook integration in Cosmos DB granted access to other customers' primary keys. Microsoft disabled the feature and rotated keys, but the breach showed how overly permissive network rules between internal services can cascade into full data exposure.",
    "analogicalModel": "Like airport security checkpoints: each checkpoint (NSG) has a rulebook (security rules). Passengers (packets) are checked against rules in order. First matching rule determines if you board (Allow) or get turned away (Deny). Having checkpoints at both the terminal entrance (subnet) and the gate (NIC) means you pass through two screenings.",
    "patternRecognition": {{
      "question": "A VM in SubnetA cannot reach a VM in SubnetB on port 3306. Both subnets have NSGs. SubnetA NSG has an outbound Allow rule for port 3306. SubnetB NSG has no custom inbound rules. Why is traffic blocked?",
@@ -334,9 +334,11 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
 3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
 4. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
 5. **EXAM CONTEXT**: Every concept framed for the exam, not real-world job context.
-6. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study with company name and year.
+6. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study with company name and year. **SUBJECT-SPECIFIC**: For Azure subjects use Azure incidents, for AWS subjects use AWS incidents, etc. Do NOT use AWS breach examples (e.g. Capital One S3, Uber S3) for Azure or GCP subjects.
 7. **NO DUPLICATION**: Only generate for "{domain_name}". Other domains are separate.
-8. **NO GENERIC FILLER**: Every field must contain domain-specific technical content. The following patterns cause **automatic rejection**:
+8. **UNIQUE EXAMPLES**: Every concept MUST use a DIFFERENT company/incident for `highStakesExample`. Never repeat the same case study across concepts. Every `mnemonic.anchor` must be a unique physical object — no two concepts may share the same anchor. Every `shape.patternRecognition.question` must present a unique scenario.
+9. **CRITICAL DISTINCTIONS QUALITY**: The `incorrect` side must be a **plausible misconception** that a real student would hold — NOT an obviously wrong strawman. Bad: "IaaS and PaaS are the same thing". Good: "PaaS handles OS patching automatically" vs "PaaS still requires you to manage OS updates like IaaS".
+10. **NO GENERIC FILLER**: Every field must contain domain-specific technical content. The following patterns cause **automatic rejection**:
    - "Why X matters", "Think of X as...", "Detailed explanation of Y", "Proper use of X vs Common misunderstanding"
    - "Without proper X, your/you...", "Improperly configured X...", "Without X security/access/controls..."
    - "X is a crucial/critical/essential component/part/aspect", "X provides a secure way to", "X are essential/crucial for"
@@ -480,6 +482,7 @@ def get_tree_generation_prompt(
     total_domains: int,
     context: str = "",
     classification: dict = None,
+    all_domains: list = None,
 ) -> str:
     domain_name = domain.get("name", f"Domain {domain_index + 1}")
     weight = domain.get("weight") or round(1.0 / max(total_domains, 1), 2)
@@ -525,6 +528,11 @@ def get_tree_generation_prompt(
         context_block = f"### USER-PROVIDED CONTEXT:\n{context}\n**INSTRUCTION**: Map concepts for domain \"{domain_name}\" to relevant objectives above."
     else:
         context_block = ""
+    if all_domains and len(all_domains) > 1:
+        sibling_names = [d.get("name", "") for i, d in enumerate(all_domains) if i != domain_index and d.get("name")]
+        if sibling_names:
+            sibling_list = ", ".join(f'"{s}"' for s in sibling_names)
+            context_block += f"\n### SIBLING DOMAINS (generated separately — do NOT overlap):\n{sibling_list}\n**CRITICAL**: Do NOT generate concepts that belong to the above domains. If a topic could fit in multiple domains, only cover the aspects specific to \"{domain_name}\". Use different real-world examples and mnemonic anchors than what other domains might use."
     cls = classification or {}
     cls_data = cls.get("classification", {})
     tissue = cls.get("connectiveTissue", {})
@@ -572,6 +580,7 @@ def get_silver_bullet_prompt(
         total_domains=len(domains),
         context=context,
         classification=classification,
+        all_domains=domains,
     )
 # =============================================================================
 # SURGICAL FIX PROMPT (Single Concept Repair)
