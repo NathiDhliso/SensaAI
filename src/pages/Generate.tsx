@@ -133,7 +133,7 @@ export default function Generate() {
  return;
  }
  if (!isGenerationAllowed()) {
- navigate('/library');
+ navigate('/');
  return;
  }
  // If generation is already in progress, don't show dialogs - just display progress

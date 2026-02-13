@@ -261,6 +261,8 @@ export default function Home() {
  animate={true}
  />
  </div>
+ {canGenerate ? (
+ <>
  {selectedCert && (
  <div className={styles.certBadge}>
  <Award size={14} />
@@ -507,9 +509,8 @@ export default function Home() {
  </div>
  <button
  onClick={handleGenerate}
- disabled={!canGenerate || !subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)}
+ disabled={!subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)}
  className={styles.generateButton}
- title={!canGenerate ? 'Generation is restricted to approved accounts' : undefined}
  >
  <Zap size={18} />
  Generate Learning System
@@ -528,6 +529,22 @@ export default function Home() {
  </button>
  ))}
  </div>
+ </div>
+ )}
+ </>
+ ) : (
+ <div className={styles.restrictedMessage}>
+ <p className={styles.restrictedTitle}>Generation Restricted</p>
+ <p className={styles.restrictedText}>
+ If you need a subject generated, please contact an admin.
+ </p>
+ <p className={styles.restrictedText}>
+ You can still browse and study existing content in the library.
+ </p>
+ <button onClick={() => navigate('/library')} className={styles.generateButton}>
+ <Archive size={18} />
+ Go to Library
+ </button>
  </div>
  )}
  </motion.div>
