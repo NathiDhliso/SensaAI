@@ -18,7 +18,7 @@ import json
 import os
 from typing import Any, Dict
 import boto3
-from shared.utils import generate_id, api_response, is_generation_allowed
+from shared.utils import generate_id, api_response
 from .services import BedrockService, DynamoService
 
 # Initialize services (cold start optimization)
@@ -69,14 +69,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         action = request.get("action", "generate")
         if action == "repair":
             return _handle_repair(request)
-
-        if action != "_async_generate" and not is_generation_allowed(event):
-            print(f"[Handler] BLOCKED: generation not allowed for this user")
-            return api_response(403, {"error": "Generation is restricted to approved accounts"}, event)
-
-        if action == "suggest_structure":
+        elif action == "suggest_structure":
             return _handle_suggest_structure(request, event)
         elif action == "_async_generate":
+            # Internal: async self-invocation - run full generation
             print("[Handler] Running async generation (self-invoked)")
             return _handle_generate(request)
         else:

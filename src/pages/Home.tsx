@@ -14,6 +14,7 @@ import { conceptsApi } from '@/shared/api/concepts';
 import { ALL_CERTS, getDomainsAsTrunks, getTasksAsObjectives } from '@/shared/constants/exam-catalogs';
 import type { CertEntry } from '@/shared/constants/exam-catalogs';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import styles from './Home.module.css';
 const SUBJECT_CATEGORIES = [
  {
@@ -144,6 +145,7 @@ export default function Home() {
  const { openSettingsPanel } = useUIStore();
  const { recentSubjects } = useGenerationStore();
  const { isAuthenticated } = useAuthStore();
+ const canGenerate = isAuthenticated && isGenerationAllowed();
  /* Derived State */
  const allSubjects = useMemo(() => {
  return SUBJECT_CATEGORIES.flatMap(cat => cat.subjects.map(sub => ({
@@ -196,7 +198,7 @@ export default function Home() {
  setShowPreview(false);
  };
  const handleSuggestStructure = async () => {
- if (!subject.trim() || suggesting) return;
+ if (!subject.trim() || suggesting || !canGenerate) return;
  setSuggesting(true);
  try {
  const userId = useAuthStore.getState().user?.id || 'anonymous';
@@ -232,7 +234,7 @@ export default function Home() {
  setTrunks(updated);
  };
  const handleGenerate = () => {
- if (!subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)) return;
+ if (!canGenerate || !subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)) return;
  setShowSuggestions(false);
  const params = new URLSearchParams();
  if (parsedObjectives.length > 0) {
@@ -384,7 +386,7 @@ export default function Home() {
  onClick={() => setObjectivesOpen(!objectivesOpen)}
  >
  <Target size={14} />
- <span>{parsedObjectives.length > 0 ? `${parsedObjectives.length} Exam Objectives Loaded` : 'Paste Exam Objectives (Recommended)'}</span>
+ <span>{parsedObjectives.length > 0 ? `${parsedObjectives.length} Objectives Loaded` : 'Exam Objectives'}</span>
  {objectivesOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
  </button>
  <AnimatePresence>
@@ -401,7 +403,7 @@ export default function Home() {
  value={objectivesText}
  onChange={e => { setObjectivesText(e.target.value); setShowPreview(false); }}
  onPaste={() => setTimeout(() => setShowPreview(true), 50)}
- placeholder={'Paste your exam objectives or syllabus here.\nHeaders, numbering, percentages, and junk lines are auto-cleaned.\n\nExample:\nManage Azure identities and governance (20-25%)\n Create users and groups\n Manage licenses in Microsoft Entra ID\n Configure self-service password reset'}
+ placeholder={'Paste exam objectives or syllabus here...\nAuto-cleaned on paste.'}
  rows={6}
  spellCheck={false}
  />
@@ -442,7 +444,7 @@ export default function Home() {
  onClick={() => setTrunksOpen(!trunksOpen)}
  >
  <GitBranch size={14} />
- <span>{validTrunks.length >= 2 ? `${validTrunks.length} Exam Domains Locked` : 'Define Exam Domains (Recommended)'}</span>
+ <span>{validTrunks.length >= 2 ? `${validTrunks.length} Domains Locked` : 'Exam Domains'}</span>
  {trunksOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
  </button>
  <AnimatePresence>
@@ -454,9 +456,6 @@ export default function Home() {
  transition={{ duration: 0.2 }}
  className={styles.trunksBody}
  >
- <p className={styles.trunksHint}>
- These are the top-level exam domains. They become fixed trunks in the output — the AI cannot change or remove them.
- </p>
  <div className={styles.trunksList}>
  {trunks.map((trunk, i) => (
  <div key={i} className={styles.trunkRow}>
@@ -465,7 +464,7 @@ export default function Home() {
  type="text"
  value={trunk}
  onChange={e => updateTrunk(i, e.target.value)}
- placeholder={`Domain ${i + 1} (e.g. Identity & Governance)`}
+ placeholder={`Domain ${i + 1}`}
  className={styles.trunkInput}
  />
  {trunks.length > 2 && (
@@ -493,23 +492,24 @@ export default function Home() {
  {validTrunks.length >= 2 ? (
  <div className={styles.groundedStatus}>
  <GitBranch size={14} />
- <span>Domain-Locked — {validTrunks.length} trunks fixed{parsedObjectives.length > 0 ? `, ${parsedObjectives.length} objectives as context` : ''}</span>
+ <span>{validTrunks.length} domains{parsedObjectives.length > 0 ? ` · ${parsedObjectives.length} objectives` : ''}</span>
  </div>
  ) : parsedObjectives.length > 0 ? (
  <div className={styles.groundedStatus}>
  <Target size={14} />
- <span>Objective-Driven — AI will generate concepts mapped to your {parsedObjectives.length} objectives</span>
+ <span>{parsedObjectives.length} objectives loaded</span>
  </div>
  ) : (
  <div className={styles.ungroundedStatus}>
- <span>Standard Mode — Define domains or paste objectives above for targeted content</span>
+ <span>No objectives or domains set</span>
  </div>
  )}
  </div>
  <button
  onClick={handleGenerate}
- disabled={!subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)}
+ disabled={!canGenerate || !subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)}
  className={styles.generateButton}
+ title={!canGenerate ? 'Generation is restricted to approved accounts' : undefined}
  >
  <Zap size={18} />
  Generate Learning System

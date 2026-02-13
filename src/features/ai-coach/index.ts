@@ -26,24 +26,24 @@ export interface MoodOption {
 export const MOOD_OPTIONS: MoodOption[] = [
  {
  id: 'energized',
- label: 'Pumped / High Focus',
- description: 'All features unlocked — deep work and complex challenges',
+ label: 'High Focus',
+ description: 'Deep work, complex challenges',
  sessionAdjustment: 'Full toolkit, harder concepts first',
  bandwidth: 'high',
  bandwidthLabel: 'High Bandwidth'
  },
  {
  id: 'neutral',
- label: 'Steady / Good',
- description: 'Standard features — building and connecting ideas',
+ label: 'Steady',
+ description: 'Balanced learning pace',
  sessionAdjustment: 'Balanced mix of activities',
  bandwidth: 'medium',
  bandwidthLabel: 'Med Bandwidth'
  },
  {
  id: 'tired',
- label: 'Low / Brain Fog',
- description: 'Light review only — high-load tools hidden',
+ label: 'Low Energy',
+ description: 'Light review only',
  sessionAdjustment: 'Fluency drills, familiar concepts',
  bandwidth: 'low',
  bandwidthLabel: 'Low Bandwidth'

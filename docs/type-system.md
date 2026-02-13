@@ -42,7 +42,6 @@ interface LearningConcept {
   metaphor?: string;                        // Analogy for understanding
   workedExample?: WorkedExample;            // Problem + solution + steps
   realWorldExample?: string;                // Real-world application
-  logicalConnection?: string;               // Narrative bridge to next concept
   visualElement?: string;                   // Visual learning aid description
   actionButtonText?: string;                // CTA text
 
@@ -83,7 +82,6 @@ Every field below MUST be consumed by the specified system. If you add a new con
 | `howToUse` | MicroLearningLoopController LearnPhase (Execution section), PeerReviewActivity (pushback), PreMortemActivity (step source) | Step-by-step execution list |
 | `metaphor` | MicroLearningLoopController LearnPhase ("Think of it as") | Analogy display |
 | `workedExample` | WorkedExamplePhase (problem/solution/steps), preview-ai.ts (question source) | Worked example activity |
-| `logicalConnection` | interleaving.ts `createContextBridge()` | Narrative transition between concepts |
 | `technicalDetails` | MicroLearningLoopController LearnPhase (Technical Details section), PeerReviewActivity (pushback) | Deep technical content |
 
 ### Metadata Fields

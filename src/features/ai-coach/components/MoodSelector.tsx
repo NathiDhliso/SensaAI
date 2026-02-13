@@ -41,10 +41,7 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
  </button>
  <div className={styles.header}>
  {!isScholarly && <span className={styles.coachEmoji}>{activePersona.emoji}</span>}
- <h2 className={styles.title}>{isScholarly ? 'Set Focus Level' : 'Set Your Cognitive Battery'}</h2>
- <p className={styles.subtitle}>
- {activePersona.name} will unlock features based on your current focus level.
- </p>
+ <h2 className={styles.title}>{isScholarly ? 'Focus Level' : 'Cognitive Battery'}</h2>
  </div>
  <div className={styles.moodGrid}>
  {MOOD_OPTIONS.map((mood) => (
@@ -86,4 +83,4 @@ export default function MoodSelector({ onSelect, onClose, isOpen }: MoodSelector
  </div>
  </div>
  );
-}
+}

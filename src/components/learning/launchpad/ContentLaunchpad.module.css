@@ -17,8 +17,19 @@
  justify-content: space-between;
  align-items: flex-start;
  padding-bottom: 0.75rem;
- border-bottom: 1px solid var(--color-border);
+ border-bottom: 1px solid var(--glass-border);
  flex-shrink: 0;
+ position: relative;
+}
+.header::after {
+ content: '';
+ position: absolute;
+ bottom: -1px;
+ left: 0;
+ right: 0;
+ height: 1px;
+ background: var(--gradient-border-primary);
+ opacity: 0.15;
 }
 .headerRight {
  display: flex;
@@ -30,18 +41,20 @@
  align-items: center;
  gap: 0.4rem;
  padding: 0.4rem 0.75rem;
- border-radius: var(--radius-full, 9999px);
- border: 1.5px solid var(--color-border);
- background: var(--color-surface);
+ border-radius: var(--radius-full);
+ border: 1px solid var(--glass-border);
+ background: var(--glass-surface);
+ backdrop-filter: var(--glass-blur);
  font-size: 0.75rem;
  font-weight: 600;
  color: var(--color-text-secondary);
  cursor: pointer;
- transition: all 0.15s ease;
+ transition: all 0.3s var(--ease-premium);
 }
 .batteryIndicator:hover {
- background: var(--color-surface-subtle);
+ background: var(--glass-surface-elevated);
  border-color: var(--color-accent-light);
+ box-shadow: var(--shadow-premium-sm);
 }
 .batteryLabel {
  white-space: nowrap;
@@ -91,9 +104,10 @@
 .tabBar {
  display: flex;
  gap: 0.25rem;
- background: var(--color-surface-subtle);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
+ background: var(--glass-surface);
+ backdrop-filter: var(--glass-blur);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
  padding: 0.25rem;
  flex-shrink: 0;
  width: fit-content;
@@ -125,23 +139,23 @@
  align-items: center;
  gap: 0.4rem;
  padding: 0.5rem 1rem;
- border-radius: var(--radius-md);
+ border-radius: var(--radius-premium-sm);
  border: none;
  background: transparent;
  color: var(--color-text-muted);
  font-size: 0.8125rem;
  font-weight: 600;
  cursor: pointer;
- transition: all 0.15s ease;
+ transition: all 0.3s var(--ease-premium);
 }
 .tab:hover {
  color: var(--color-text-primary);
- background: var(--color-surface);
+ background: var(--glass-surface-elevated);
 }
 .tabActive {
- background: var(--color-surface);
+ background: var(--glass-surface-elevated);
  color: var(--color-text-primary);
- box-shadow: var(--shadow-sm);
+ box-shadow: var(--shadow-premium-sm);
 }
 .insightsLayout {
  display: flex;
@@ -156,19 +170,21 @@
  flex-shrink: 0;
 }
 .metricCard {
- background: var(--color-surface);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
- padding: 1rem 1.25rem;
+ background: var(--glass-surface-elevated);
+ backdrop-filter: var(--glass-blur);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
+ padding: 1.125rem 1.25rem;
  display: flex;
  flex-direction: column;
- gap: 0.25rem;
- box-shadow: var(--shadow-sm);
+ gap: 0.375rem;
+ box-shadow: var(--shadow-premium-sm);
  border-left: 3px solid var(--color-border);
- transition: box-shadow 0.2s ease;
+ transition: all 0.3s var(--ease-premium);
 }
 .metricCard:hover {
- box-shadow: var(--shadow-md);
+ box-shadow: var(--shadow-premium-md);
+ transform: translateY(-2px);
 }
 .metricCardClickable {
  cursor: pointer;
@@ -193,29 +209,36 @@
  font-size: 0.75rem;
  font-weight: 500;
  color: var(--color-text-secondary);
- letter-spacing: 0.02em;
+ letter-spacing: 0.04em;
+ text-transform: uppercase;
+ font-family: var(--font-display);
+ line-height: 1.4;
 }
 .sectionTitle {
  display: flex;
  align-items: center;
  justify-content: space-between;
- font-size: 0.75rem;
+ font-size: 0.6875rem;
  font-weight: 600;
- color: var(--color-text-primary);
+ color: var(--color-text-secondary);
+ text-transform: uppercase;
+ letter-spacing: 0.08em;
+ font-family: var(--font-display);
  margin-bottom: 0.5rem;
  padding-bottom: 0.375rem;
- border-bottom: 1px solid var(--color-border);
+ border-bottom: 1px solid var(--glass-border);
 }
 .sectionTitle svg {
  color: var(--color-secondary-sage);
  opacity: 0.7;
 }
 .insightsSection {
- background: var(--color-surface);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
+ background: var(--glass-surface-elevated);
+ backdrop-filter: var(--glass-blur);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
  padding: 1rem;
- box-shadow: var(--shadow-sm);
+ box-shadow: var(--shadow-premium-sm);
 }
 .insightsList {
  display: flex;
@@ -226,7 +249,7 @@
  padding: 0.75rem 1rem;
  background: var(--color-warning-bg);
  border-left: 3px solid var(--color-warning);
- border-radius: var(--radius-md);
+ border-radius: var(--radius-premium-sm);
  font-size: 0.8125rem;
  line-height: 1.55;
  color: var(--color-text-primary);
@@ -236,9 +259,9 @@
  border-left-color: var(--color-success);
 }
 .objectivesPanel {
- background: var(--color-surface);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
+ background: var(--glass-surface-elevated);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
  overflow: hidden;
 }
 .objectivesHeader {
@@ -251,7 +274,7 @@
  transition: background 0.15s ease;
 }
 .objectivesHeader:hover {
- background: var(--color-surface-subtle);
+ background: var(--glass-surface);
 }
 .objectivesHeaderLeft {
  display: flex;
@@ -316,7 +339,7 @@
  font-size: 0.8125rem;
  color: var(--color-text-secondary);
  margin: 0 0 0.75rem;
- line-height: 1.5;
+ line-height: 1.6;
 }
 .objectivesInput {
  display: block;
@@ -395,7 +418,7 @@
  transition: all 0.15s ease;
 }
 .objectivesCancelBtn:hover {
- background: var(--color-surface-subtle);
+ background: var(--glass-surface);
  color: var(--color-text-primary);
 }
 .objectivesSaveBtn {
@@ -438,14 +461,14 @@
  gap: 0.5rem;
 }
 .conceptRow {
- background: var(--color-surface);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
+ background: var(--glass-surface-elevated);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
  overflow: hidden;
- transition: box-shadow 0.2s ease;
+ transition: all 0.3s var(--ease-premium);
 }
 .conceptRow:hover {
- box-shadow: var(--shadow-md);
+ box-shadow: var(--shadow-premium-md);
 }
 .conceptRowHeader {
  display: flex;
@@ -565,8 +588,9 @@
  font-weight: 600;
  color: var(--color-text-muted);
  text-transform: uppercase;
- letter-spacing: 0.04em;
+ letter-spacing: 0.08em;
  margin-bottom: 0.375rem;
+ font-family: var(--font-display);
 }
 .matchedObjective {
  font-size: 0.8125rem;
@@ -629,12 +653,13 @@
  flex: 1;
 }
 .zone {
- background: var(--color-surface);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
+ background: var(--glass-surface-elevated);
+ backdrop-filter: var(--glass-blur);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
  padding: 1rem 1.25rem;
- box-shadow: var(--shadow-sm);
- transition: opacity 0.2s ease;
+ box-shadow: var(--shadow-premium-sm);
+ transition: all 0.3s var(--ease-premium);
 }
 .zoneLocked {
  opacity: 0.7;
@@ -656,6 +681,7 @@
  font-size: 1rem;
  font-weight: 600;
  color: var(--color-text-dark);
+ letter-spacing: -0.01em;
 }
 .zoneTitle svg {
  color: var(--color-accent);
@@ -664,10 +690,11 @@
  font-size: 0.7rem;
  font-weight: 600;
  padding: 0.2rem 0.6rem;
- border-radius: var(--radius-full, 9999px);
- background: var(--color-surface-subtle);
+ border-radius: var(--radius-full);
+ background: var(--glass-surface);
  color: var(--color-text-muted);
- border: 1px solid var(--color-border);
+ border: 1px solid var(--glass-border);
+ letter-spacing: 0.02em;
 }
 .zoneLockBadge {
  display: inline-flex;
@@ -676,10 +703,10 @@
  font-size: 0.7rem;
  font-weight: 600;
  padding: 0.2rem 0.6rem;
- border-radius: var(--radius-full, 9999px);
- background: var(--color-surface-subtle);
+ border-radius: var(--radius-full);
+ background: var(--glass-surface);
  color: var(--color-text-muted);
- border: 1px solid var(--color-border);
+ border: 1px solid var(--glass-border);
 }
 .dailyTicker {
  display: flex;
@@ -692,21 +719,21 @@
  flex-shrink: 0;
  min-width: 160px;
  max-width: 220px;
- padding: 0.75rem 1rem;
- background: var(--color-surface-subtle);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
+ padding: 0.875rem 1rem;
+ background: var(--glass-surface);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
  cursor: pointer;
  display: flex;
  flex-direction: column;
- gap: 0.35rem;
- transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+ gap: 0.5rem;
+ transition: all 0.3s var(--ease-premium);
  text-align: left;
 }
 .reviewCard:hover {
  border-color: var(--color-accent);
- box-shadow: var(--shadow-md);
- transform: translateY(-2px);
+ box-shadow: var(--shadow-premium-md);
+ transform: translateY(-3px);
 }
 .reviewCardStale {
  border-left: 3px solid var(--color-warning);
@@ -723,9 +750,10 @@
  display: inline-flex;
  align-items: center;
  gap: 0.25rem;
- font-size: 0.6875rem;
+ font-size: 0.75rem;
  color: var(--color-text-muted);
  font-weight: 500;
+ line-height: 1.4;
 }
 .reviewSpacing {
  display: flex;
@@ -759,9 +787,9 @@
  gap: 1rem;
  padding: 0.75rem 1rem;
  margin-top: 0.5rem;
- background: var(--color-surface-subtle);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
+ background: var(--glass-surface);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
  flex-wrap: wrap;
 }
 .spacingMetric {
@@ -777,11 +805,13 @@
  font-family: 'JetBrains Mono', monospace;
 }
 .spacingLabel {
- font-size: 0.625rem;
+ font-size: 0.6875rem;
  color: var(--color-text-muted);
  text-transform: uppercase;
- letter-spacing: 0.03em;
+ letter-spacing: 0.06em;
  font-weight: 500;
+ font-family: var(--font-display);
+ line-height: 1.3;
 }
 .spacingInfo {
  display: inline-flex;
@@ -791,26 +821,6 @@
  color: var(--color-text-muted);
  margin-left: auto;
  font-style: italic;
-}
-.zoneEmpty {
- display: flex;
- align-items: flex-start;
- gap: 0.75rem;
- padding: 1rem;
- color: var(--color-text-muted);
- font-size: 0.875rem;
- font-weight: 500;
-}
-.zoneEmptyContent {
- display: flex;
- flex-direction: column;
- gap: 0.25rem;
-}
-.zoneEmptyHint {
- font-size: 0.75rem;
- font-weight: 400;
- color: var(--color-text-muted);
- opacity: 0.7;
 }
 .zoneCards {
  display: grid;
@@ -822,34 +832,40 @@
  align-items: center;
  gap: 1rem;
  padding: 1rem 1.25rem;
- background: var(--color-surface-subtle);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
+ background: var(--glass-surface);
+ backdrop-filter: var(--glass-blur);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
  cursor: pointer;
  text-align: left;
- transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+ transition: all 0.3s var(--ease-premium);
 }
 .activityCard:hover {
  border-color: var(--color-accent);
- box-shadow: var(--shadow-md);
- transform: translateY(-2px);
+ box-shadow: var(--shadow-premium-md);
+ transform: translateY(-3px);
 }
 .activityIcon {
  width: 44px;
  height: 44px;
- border-radius: var(--radius-md);
- background: var(--color-surface);
- border: 1px solid var(--color-border);
+ border-radius: var(--radius-premium-sm);
+ background: var(--glass-surface-elevated);
+ border: 1px solid var(--glass-border);
  display: flex;
  align-items: center;
  justify-content: center;
  flex-shrink: 0;
  color: var(--color-accent);
+ transition: all 0.3s var(--ease-premium);
+}
+.activityCard:hover .activityIcon {
+ box-shadow: var(--shadow-premium-sm);
+ transform: scale(1.05);
 }
 .activityInfo {
  display: flex;
  flex-direction: column;
- gap: 0.15rem;
+ gap: 0.25rem;
 }
 .activityName {
  font-size: 0.875rem;
@@ -857,8 +873,9 @@
  color: var(--color-text-primary);
 }
 .activityDesc {
- font-size: 0.75rem;
+ font-size: 0.8125rem;
  color: var(--color-text-muted);
+ line-height: 1.4;
 }
 .zoneLockedOverlay {
  display: flex;
@@ -886,8 +903,8 @@
  gap: 0.5rem;
  padding: 0.5rem 0.75rem;
  border-radius: var(--radius-md);
- background: var(--color-surface-subtle);
- border: 1px solid var(--color-border);
+ background: var(--glass-surface);
+ border: 1px solid var(--glass-border);
  color: var(--color-text-muted);
  font-size: 0.8125rem;
  font-weight: 500;
@@ -913,10 +930,11 @@
  align-items: center;
  gap: 1rem;
  padding: 0.625rem 1rem;
- background: var(--color-surface);
- border: 1px solid var(--color-border);
- border-radius: var(--radius-lg);
- box-shadow: var(--shadow-sm);
+ background: var(--glass-surface-elevated);
+ backdrop-filter: var(--glass-blur);
+ border: 1px solid var(--glass-border);
+ border-radius: var(--radius-premium-md);
+ box-shadow: var(--shadow-premium-sm);
 }
 .contextStat {
  display: flex;
@@ -932,11 +950,13 @@
  line-height: 1;
 }
 .contextLabel {
- font-size: 0.5625rem;
+ font-size: 0.625rem;
  font-weight: 600;
  text-transform: uppercase;
- letter-spacing: 0.04em;
+ letter-spacing: 0.08em;
  color: var(--color-text-muted);
+ font-family: var(--font-display);
+ line-height: 1.3;
 }
 .contextDivider {
  width: 1px;
@@ -981,16 +1001,27 @@
  border: none;
  font-weight: 600;
  font-size: 0.9375rem;
+ letter-spacing: -0.01em;
  cursor: pointer;
- box-shadow: var(--shadow-glow-sage);
- transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+ box-shadow: var(--shadow-premium-glow);
+ transition: all 0.35s var(--ease-premium);
  display: flex;
  align-items: center;
  gap: 0.5rem;
+ position: relative;
+ overflow: hidden;
+}
+.startButton::before {
+ content: '';
+ position: absolute;
+ inset: 0;
+ background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+ background-size: 200% 100%;
+ animation: shimmer 3s ease-in-out infinite;
 }
 .startButton:hover {
- transform: translateY(-2px);
- box-shadow: var(--shadow-glow-sage-hover);
+ transform: translateY(-3px);
+ box-shadow: var(--shadow-premium-glow), 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 .startButton:active {
  transform: translateY(0);

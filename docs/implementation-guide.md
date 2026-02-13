@@ -153,12 +153,7 @@ When moving from concept A to concept B, generate a meaningful transition:
 
 ```typescript
 function createTransition(from: LearningConcept, to: LearningConcept): string {
-  // 1. Use AI-generated narrative bridge
-  if (to.logicalConnection && to.logicalConnection.length > 10) {
-    return to.logicalConnection;
-  }
-
-  // 2. Use semantic connection verb
+  // 1. Use semantic connection verb (TRACES types)
   const conn = from.connections?.find(
     c => c.target.toLowerCase() === to.name.toLowerCase()
   );
@@ -167,7 +162,9 @@ function createTransition(from: LearningConcept, to: LearningConcept): string {
       'requires': `${to.name} requires ${from.name} — let's build on that foundation.`,
       'enables': `${from.name} enables ${to.name} — time to unlock this next layer.`,
       'is-part-of': `${to.name} is part of ${from.name} — let's zoom in.`,
-      // ... etc
+      'is-type-of': `${to.name} is a type of ${from.name} — a specific variant.`,
+      'causes': `${from.name} causes ${to.name} — let's follow the chain.`,
+      'constrains': `${from.name} constrains ${to.name} — understanding the boundaries.`,
     };
     return verbMessages[conn.type] || `Building on ${from.name}, let's explore ${to.name}.`;
   }

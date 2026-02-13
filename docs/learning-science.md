@@ -179,15 +179,15 @@ Base difficulty = 3
 When transitioning from concept A to concept B, the system generates a narrative transition:
 
 **Priority order:**
-1. `to.logicalConnection` (if >10 chars) — AI-generated narrative bridge
-2. `from.connections` matching `to.name` — verb-based message:
+1. `from.connections` matching `to.name` — verb-based message (TRACES types):
    - `requires`: "X requires Y — let's build on that foundation."
    - `enables`: "X enables Y — time to unlock this next layer."
    - `is-part-of`: "Y is part of X — let's zoom in."
+   - `is-type-of`: "Y is a type of X — a specific variant."
    - `causes`: "X causes Y — let's follow the chain."
    - `constrains`: "X constrains Y — understanding the boundaries."
-3. Reverse connection check (`to.connections` matching `from`)
-4. Tier-based fallback: same tier = "Building on X, let's explore Y" / different tier = "Shifting from {tierA} to {tierB}"
+2. Reverse connection check (`to.connections` matching `from`)
+3. Tier-based fallback: same tier = "Building on X, let's explore Y" / different tier = "Shifting from {tierA} to {tierB}"
 
 ---
 

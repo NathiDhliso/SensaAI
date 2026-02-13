@@ -332,6 +332,35 @@
  --transition-normal: 0.2s ease;
  --transition-slow: 0.3s ease;
 
+ /* ========== PREMIUM TOKENS (ElevenLabs-inspired) ========== */
+ --radius-premium-sm: 8px;
+ --radius-premium-md: 12px;
+ --radius-premium-lg: 20px;
+ --radius-premium-xl: 28px;
+
+ --gradient-border-primary: linear-gradient(135deg, var(--color-accent-light), var(--color-primary-amethyst), var(--color-primary-plum));
+ --gradient-border-subtle: linear-gradient(135deg, var(--color-border-light), var(--color-border), var(--color-border-light));
+ --gradient-border-glow: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(107, 70, 193, 0.6), rgba(124, 45, 146, 0.4));
+
+ --shadow-premium-sm: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+ --shadow-premium-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03);
+ --shadow-premium-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03);
+ --shadow-premium-xl: 0 20px 50px -12px rgba(0, 0, 0, 0.15), 0 12px 24px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
+ --shadow-premium-glow: 0 0 20px rgba(107, 70, 193, 0.15), 0 0 40px rgba(107, 70, 193, 0.05);
+ --shadow-premium-card-hover: 0 20px 40px -12px rgba(0, 0, 0, 0.15), 0 0 20px rgba(107, 70, 193, 0.08);
+
+ --glass-surface: rgba(255, 255, 255, 0.7);
+ --glass-surface-elevated: rgba(255, 255, 255, 0.85);
+ --glass-blur: blur(16px);
+ --glass-blur-heavy: blur(24px);
+ --glass-border: rgba(255, 255, 255, 0.2);
+
+ --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+ --ease-premium-out: cubic-bezier(0.33, 1, 0.68, 1);
+ --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+ --transition-premium: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+ --transition-premium-slow: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
  /* Additional surface colors */
  --color-surface-base: var(--color-surface);
 
@@ -532,6 +561,21 @@
 
  --color-success-dark: #059669;
  --color-success-darker: #047857;
+
+ --gradient-border-primary: linear-gradient(135deg, rgba(167, 139, 250, 0.5), rgba(139, 92, 246, 0.7), rgba(124, 45, 146, 0.5));
+ --gradient-border-subtle: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+ --gradient-border-glow: linear-gradient(135deg, rgba(167, 139, 250, 0.5), rgba(139, 92, 246, 0.8), rgba(167, 139, 250, 0.5));
+
+ --shadow-premium-sm: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+ --shadow-premium-md: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -2px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.04);
+ --shadow-premium-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.04);
+ --shadow-premium-xl: 0 20px 50px -12px rgba(0, 0, 0, 0.4), 0 12px 24px -8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.04);
+ --shadow-premium-glow: 0 0 30px rgba(139, 92, 246, 0.2), 0 0 60px rgba(139, 92, 246, 0.08);
+ --shadow-premium-card-hover: 0 20px 40px -12px rgba(0, 0, 0, 0.4), 0 0 30px rgba(139, 92, 246, 0.12);
+
+ --glass-surface: rgba(30, 26, 40, 0.6);
+ --glass-surface-elevated: rgba(40, 36, 53, 0.8);
+ --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 /* Also support prefers-color-scheme for automatic dark mode */
@@ -1005,14 +1049,14 @@ html {
 /* Smaller laptops (1280px and below) */
 @media (max-width: 1366px) {
  html {
- font-size: clamp(11px, 0.85vw, 14px);
+ font-size: clamp(12.5px, 0.9vw, 14px);
  }
 }
 
 /* Tablets and below - use fixed size */
 @media (max-width: 1024px) {
  html {
- font-size: 14px;
+ font-size: 14.5px;
  }
 }
 
@@ -1020,10 +1064,14 @@ body {
  min-height: 100vh;
  background: var(--gradient-paper);
  position: relative;
- /* Prevent horizontal overflow globally */
  overflow-x: hidden;
  max-width: 100vw;
  box-sizing: border-box;
+ line-height: 1.6;
+ font-family: var(--font-body);
+ color: var(--color-text-primary);
+ -webkit-font-smoothing: antialiased;
+ -moz-osx-font-smoothing: grayscale;
 }
 
 body::before {

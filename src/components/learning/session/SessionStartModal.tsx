@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
  ChevronRight, Brain, Sparkles, ArrowLeft,
- Zap, BatteryLow, Activity, AlertCircle, GraduationCap,
+ Zap, BatteryLow, Activity, AlertCircle,
  Clock, Timer
 } from 'lucide-react';
 import type { StudyGoal, SessionRecommendation } from '@/shared/types/learning';
@@ -45,21 +45,6 @@ export function SessionStartModal({
  const progress = useMemo(() => {
  return Math.round((completedConcepts / totalConcepts) * 100);
  }, [completedConcepts, totalConcepts]);
- // ========== SEMESTER HOOK ==========
- // AI-generated "Why this matters in class" line to anchor the session
- const semesterHook = useMemo(() => {
- // Generate contextual hook based on subject and progress
- const hooks = [
- `This knowledge will help you decode your professor's examples in real-time.`,
- `Mastering this now means no panic before your first ${subjectName} exam.`,
- `Your classmates will ask YOU for explanations after lecture.`,
- `This is the foundation that makes advanced ${subjectName} feel like common sense.`,
- `Professors love when students can connect these dots during discussions.`
- ];
- // Use subject name hash for consistent hook per subject
- const hash = subjectName.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
- return hooks[hash % hooks.length];
- }, [subjectName]);
  const selectedGoal = MOOD_GOAL_MAP[selectedMood].goal;
  const selectedDuration = MOOD_GOAL_MAP[selectedMood].duration;
  const handleNext = () => {
@@ -84,7 +69,7 @@ export function SessionStartModal({
  <div className={styles.headerContent}>
  <Brain className={styles.headerIcon} size={28} />
  <div>
- <h2>{step === 'setup' ? 'Start Study Session' : 'Step 1: The Why'}</h2>
+ <h2>{step === 'setup' ? 'Start Session' : 'Step 1: The Why'}</h2>
  <p className={styles.subjectName}>{subjectName}</p>
  </div>
  </div>
@@ -108,16 +93,6 @@ export function SessionStartModal({
  <span className={styles.progressText}>
  {completedConcepts} of {totalConcepts} concepts ({progress}%)
  </span>
- </div>
- {/* Semester Hook - Why this matters */}
- <div className={styles.semesterHook}>
- <div className={styles.hookIcon}>
- <GraduationCap size={20} />
- </div>
- <div className={styles.hookContent}>
- <span className={styles.hookLabel}>Why this session matters:</span>
- <p className={styles.hookText}>{semesterHook}</p>
- </div>
  </div>
  {/* Mood Selection */}
  <div className={styles.moodSection}>
@@ -208,4 +183,4 @@ export function SessionStartModal({
  </div >
  );
 }
-export default SessionStartModal;
+export default SessionStartModal;

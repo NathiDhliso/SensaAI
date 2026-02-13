@@ -5,7 +5,6 @@ import json
 import os
 import uuid
 import time
-import base64
 from typing import Any, Dict, List, Optional
 from decimal import Decimal
 
@@ -149,40 +148,3 @@ def create_cursor(last_evaluated_key=None):
 TIERS = ["trunk", "branch", "leaf"]
 # Lifecycle stages
 STAGES = ["PREPARE", "MODEL", "DELIVER"]
-
-
-ALLOWED_GENERATOR_EMAILS = {
-    "nkosimano@gmail.com",
-    "immanueldhliso@gmail.com",
-    "nkosinathi.dhliso@gmail.com",
-}
-
-
-def extract_email_from_event(event: Dict[str, Any]) -> Optional[str]:
-    jwt_claims = (event.get("requestContext") or {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
-    email = jwt_claims.get("email")
-    if email:
-        return email.lower()
-    headers = event.get("headers") or {}
-    auth_header = headers.get("authorization") or headers.get("Authorization") or ""
-    if auth_header.startswith("Bearer "):
-        token = auth_header[7:]
-        try:
-            payload_b64 = token.split(".")[1]
-            padding = 4 - len(payload_b64) % 4
-            if padding != 4:
-                payload_b64 += "=" * padding
-            payload = json.loads(base64.b64decode(payload_b64))
-            email = payload.get("email", "").lower()
-            if email:
-                return email
-        except Exception:
-            pass
-    return None
-
-
-def is_generation_allowed(event: Dict[str, Any]) -> bool:
-    email = extract_email_from_event(event)
-    if not email:
-        return False
-    return email in ALLOWED_GENERATOR_EMAILS

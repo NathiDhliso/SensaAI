@@ -27,6 +27,7 @@ import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { useCollisionDetection } from '@/shared/hooks/useCollisionDetection';
 import { useGenerationEngine } from '@/shared/hooks/useGenerationEngine';
 import { useGenerationRecovery } from '@/shared/hooks/useGenerationRecovery';
+import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import { SUBJECT_TYPE_META } from '@/shared/types/macro-workflow';
 import styles from './Generate.module.css';
 // ============================================================================
@@ -126,10 +127,13 @@ export default function Generate() {
  // Initial load effect - check auth and start generation flow
  useEffect(() => {
  if (!subject) return;
- // Check authentication
  const { isAuthenticated } = useAuthStore.getState();
  if (!isAuthenticated) {
  navigate('/login', { state: { from: `/generate/${subject}` } });
+ return;
+ }
+ if (!isGenerationAllowed()) {
+ navigate('/library');
  return;
  }
  // If generation is already in progress, don't show dialogs - just display progress

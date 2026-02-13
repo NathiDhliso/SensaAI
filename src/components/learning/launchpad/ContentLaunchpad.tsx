@@ -24,8 +24,7 @@ import {
  FileText,
  Dumbbell,
  BarChart3,
- TrendingUp,
- Info
+ TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storageManager } from '@/features/content-storage';
@@ -514,10 +513,6 @@ export default function ContentLaunchpad() {
  <span className={styles.spacingValue}>{spacingMetrics.adherencePercent}%</span>
  <span className={styles.spacingLabel}>Adherence</span>
  </div>
- <div className={styles.spacingInfo}>
- <Info size={12} />
- <span>SM-2 adapts intervals based on your recall quality</span>
- </div>
  </div>
  )}
  </>
@@ -525,8 +520,8 @@ export default function ContentLaunchpad() {
  <div className={styles.zoneEmpty}>
  <Sparkles size={20} />
  <div className={styles.zoneEmptyContent}>
- <span>No reviews due — you&apos;re all caught up!</span>
- <span className={styles.zoneEmptyHint}>Start a learning session to generate spaced reviews</span>
+ <span>No reviews due — you're all caught up!</span>
+ <span className={styles.zoneEmptyHint}>Complete sessions to build your review queue</span>
  </div>
  </div>
  )}
@@ -688,14 +683,13 @@ export default function ContentLaunchpad() {
  className={styles.objectivesBody}
  >
  <p className={styles.objectivesHint}>
- Paste your exam objectives, syllabus, or course outline below. Any format works
- &mdash; numbered lists, bullet points, tables, raw copy-paste. We&apos;ll clean it up automatically.
+ Paste objectives or syllabus below. Any format &mdash; auto-cleaned.
  </p>
  <textarea
  className={styles.objectivesInput}
  value={objectivesText}
  onChange={e => setObjectivesText(e.target.value)}
- placeholder={'Paste anything here — messy is fine.\n\nExamples:\n1. Manage Azure identities and governance (20-25%)\n2. Implement and manage storage (15-20%)\n\nOr:\n- Module 3: Virtual Networking\n - Configure VNets and subnets\n - Network security groups\n\nOr just copy-paste from your exam/course page.'}
+ placeholder={'Paste exam objectives or syllabus here...\nAuto-cleaned on paste.'}
  rows={8}
  spellCheck={false}
  />

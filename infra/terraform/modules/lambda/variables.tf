@@ -137,7 +137,7 @@ variable "aws_region" {
 variable "bedrock_model_id" {
   description = "Bedrock model ID for concept generation"
   type        = string
-  default     = "anthropic.claude-sonnet-4-20250514-v1:0"
+  default     = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 }
 
 # Tags
