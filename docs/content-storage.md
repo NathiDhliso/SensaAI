@@ -21,8 +21,8 @@ SensaPBL uses an API-first storage architecture. Concepts are stored in DynamoDB
                                    │
                     ┌──────────────▼──────────────┐
                     │        DynamoDB              │
-                    │  sensapbl-concepts-pilot     │
-                    │  sensapbl-jobs-pilot         │
+                    │  sensapbl-concepts-{env}     │
+                    │  sensapbl-jobs-{env}         │
                     └──────────────┬──────────────┘
                                    │
                     ┌──────────────▼──────────────┐
@@ -47,11 +47,11 @@ SensaPBL uses an API-first storage architecture. Concepts are stored in DynamoDB
 ### Layer 1: DynamoDB (Cloud Truth)
 
 **Tables:**
-- `sensapbl-concepts-pilot` — All generated concepts
+- `sensapbl-concepts-{dev,prod}` — All generated concepts
   - **PK:** `USER#{userId}#SESSION#{sessionId}`
   - **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
   - **GSI1:** Tier-based queries
-- `sensapbl-jobs-pilot` — Generation job tracking
+- `sensapbl-jobs-{dev,prod}` — Generation job tracking
   - TTL: 24 hours
 
 **Access pattern:** Frontend fetches concepts via `conceptsApi.getAllByTier(userId, sessionId, tier)` for each tier (trunk, branch, leaf), then merges results.

@@ -42,7 +42,7 @@ class BedrockService:
             ),
         )
         self.model_id = os.environ.get(
-            "BEDROCK_MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0"
+            "BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-20250514-v1:0"
         )
     def classify_subject(self, subject: str, context: str = "") -> Optional[Dict[str, Any]]:
         from shared.system_prompt import get_classification_prompt
@@ -161,7 +161,7 @@ class BedrockService:
                         accept="application/json",
                         body=json.dumps({
                             "anthropic_version": "bedrock-2023-05-31",
-                            "max_tokens": 16384,
+                            "max_tokens": 51200,
                             "temperature": 0.3,
                             "system": system_msg,
                             "messages": [{"role": "user", "content": user_msg}],
@@ -443,6 +443,17 @@ class BedrockService:
             if self._is_short_filler(q, 30) or self._is_short_filler(a, 30):
                 print(f"[BedrockService] Short patternRecognition in '{name}'")
                 return False
+        worked = concept.get("workedExample") or {}
+        if isinstance(worked, dict):
+            we_problem = (worked.get("problem") or "").strip()
+            we_solution = (worked.get("solution") or "").strip()
+            if tree_level in ("branch", "leaf"):
+                if not we_problem or len(we_problem) < 20:
+                    print(f"[BedrockService] Missing/short workedExample.problem in '{name}'")
+                    return False
+                if not we_solution or len(we_solution) < 20:
+                    print(f"[BedrockService] Missing/short workedExample.solution in '{name}'")
+                    return False
         return True
     def _validate_tree_structure(self, concepts: List[Dict[str, Any]]) -> None:
         name_set = {c.get("name", "").strip().lower() for c in concepts if c.get("name")}
@@ -628,39 +639,36 @@ class BedrockService:
                     t = conn.get("type", "enables")
                     type_dist[t] = type_dist.get(t, 0) + 1
             print(f"[BedrockService] TRACES distribution: {type_dist}")
-    def _detect_duplicate_content(self, concepts: List[Dict[str, Any]]) -> None:
-        example_companies: Dict[str, List[str]] = {}
-        anchor_names: Dict[str, List[str]] = {}
-        pr_questions: Dict[str, List[str]] = {}
+    def _enforce_unique_content(self, concepts: List[Dict[str, Any]]) -> None:
         COMPANY_PATTERN = re.compile(r'^([A-Z][A-Za-z\s&\.]+?)[\s]*\((\d{4})\)')
+        anchor_registry: Dict[str, str] = {}
+        example_registry: Dict[str, str] = {}
+        fixes = 0
         for c in concepts:
             name = c.get("name", "unknown")
+            mnemonic = c.get("mnemonic") or {}
+            raw_anchor = (mnemonic.get("anchor") or "").strip()
+            anchor_key = re.sub(r'[\U00010000-\U0010ffff\u2600-\u27bf\ufe0f]', '', raw_anchor).strip().lower()
+            if anchor_key and anchor_key in anchor_registry:
+                old_owner = anchor_registry[anchor_key]
+                new_anchor = f"{raw_anchor} ({name.split()[0]})"
+                mnemonic["anchor"] = new_anchor
+                fixes += 1
+                print(f"[BedrockService] ANCHOR FIX: '{raw_anchor}' duped by '{name}' (first: '{old_owner}') → renamed to '{new_anchor}'")
+            elif anchor_key:
+                anchor_registry[anchor_key] = name
             example = ((c.get("shape") or {}).get("highStakesExample") or "").strip()
             if example:
                 match = COMPANY_PATTERN.match(example)
                 key = match.group(1).strip().lower() if match else example[:40].lower()
-                example_companies.setdefault(key, []).append(name)
-            anchor = ((c.get("mnemonic") or {}).get("anchor") or "").strip().lower()
-            anchor = re.sub(r'[\U00010000-\U0010ffff\u2600-\u27bf\ufe0f]', '', anchor).strip()
-            if anchor:
-                anchor_names.setdefault(anchor, []).append(name)
-            pr = ((c.get("shape") or {}).get("patternRecognition") or {})
-            question = (pr.get("question") or "").strip()[:60].lower()
-            if question:
-                pr_questions.setdefault(question, []).append(name)
-        dupes_found = 0
-        for company, users in example_companies.items():
-            if len(users) > 1:
-                dupes_found += len(users) - 1
-                print(f"[BedrockService] DUPLICATE EXAMPLE: '{company}' used by {len(users)} concepts: {users}")
-        for anchor, users in anchor_names.items():
-            if len(users) > 1:
-                dupes_found += len(users) - 1
-                print(f"[BedrockService] DUPLICATE ANCHOR: '{anchor}' used by {len(users)} concepts: {users}")
-        if dupes_found > 0:
-            print(f"[BedrockService] Content uniqueness: {dupes_found} duplicates detected across {len(concepts)} concepts")
+                if key in example_registry:
+                    print(f"[BedrockService] DUPLICATE EXAMPLE: '{key}' used by '{name}' (first: '{example_registry[key]}')")
+                else:
+                    example_registry[key] = name
+        if fixes > 0:
+            print(f"[BedrockService] Content uniqueness: fixed {fixes} duplicate anchors across {len(concepts)} concepts")
         else:
-            print(f"[BedrockService] Content uniqueness: OK ({len(concepts)} concepts, all unique examples/anchors)")
+            print(f"[BedrockService] Content uniqueness: OK ({len(concepts)} concepts, all unique)")
 
     def _post_process_concepts(self, concepts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         from shared.utils import generate_id
@@ -679,7 +687,7 @@ class BedrockService:
         self._validate_tree_structure(concepts)
         self._enforce_blooms_distribution(concepts)
         self._enforce_connection_diversity(concepts)
-        self._detect_duplicate_content(concepts)
+        self._enforce_unique_content(concepts)
         return concepts
     def _repair_json(self, raw_text: str) -> str:
         """

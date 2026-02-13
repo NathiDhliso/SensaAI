@@ -1,6 +1,6 @@
 # SensaPBL — Master Context Document
 
-**Last Updated:** February 12, 2026
+**Last Updated:** February 13, 2026
 **Status:** MANDATORY — Read this before touching any code.
 
 ---
@@ -64,8 +64,6 @@ Every field on `LearningConcept` exists because it was generated with purpose. I
 - `trunkDomain` + `parentName` → Breadcrumb hierarchy in UI
 - `cognitiveLevel` → Bloom's badge + difficulty scoring
 - `outdegree` → Concept ordering priority
-- `logicalConnection` → Transition messages between concepts
-
 See: [Type System](./type-system.md)
 
 ### 5. The Folder Structure Is Law
@@ -167,15 +165,15 @@ Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `Set
 
 ## Current Tech Stack
 
-- **Framework:** React 18 + TypeScript (strict)
-- **Build:** Vite
+- **Framework:** React 19 + TypeScript 5.7+ (strict)
+- **Build:** Vite 6.0
 - **Styling:** CSS Modules (`.module.css`) — NO Tailwind in components
 - **State:** Zustand (stores in `src/store/`)
-- **Routing:** React Router v6
+- **Routing:** React Router 7
 - **Icons:** Lucide React
 - **Animation:** Framer Motion
 - **Backend:** AWS Lambda (Python 3.12) + API Gateway + DynamoDB + S3
-- **AI:** AWS Bedrock (Claude 3 Sonnet) for generation, Claude Haiku for gym activities
+- **AI:** AWS Bedrock (Claude Sonnet 4) for generation, Claude Haiku for gym activities
 - **Auth:** AWS Cognito (OAuth 2.0 + PKCE, HttpOnly cookies)
 - **Infra:** Terraform (S3 backend for state)
 
@@ -185,11 +183,13 @@ Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `Set
 |----------|---------|
 | **Amplify** | App `SensaArchitect` (ID: `dckqci84h8ffk`), branch `main`, auto-deploys on push |
 | **Production URL** | `https://main.dckqci84h8ffk.amplifyapp.com` |
-| **API Gateway** | HTTP API `c4kxjdukwj`, stage `$default` |
-| **Lambda Functions** | `sensapbl-generate-concepts-pilot`, `sensapbl-query-concepts-pilot`, `sensapbl-gym-ai-pilot` |
-| **DynamoDB Tables** | `sensapbl-concepts-pilot`, `sensapbl-jobs-pilot` |
-| **Cognito** | User Pool `us-east-1_nNdVox578`, domain `sensapbl-pilot` |
-| **S3 Buckets** | `sensapbl-pilot-content-311964231104` (content), `sensapbl-terraform-state` (TF state) |
+| **API Gateway (dev)** | HTTP API `c4kxjdukwj`, stage `$default` |
+| **API Gateway (prod)** | HTTP API `v44xa62zee`, stage `$default` |
+| **Lambda Functions** | `sensapbl-generate-concepts-{dev,prod}`, `sensapbl-query-concepts-{dev,prod}`, `sensapbl-gym-ai-{dev,prod}`, `sensapbl-auth-{dev,prod}` |
+| **DynamoDB Tables** | `sensapbl-concepts-{dev,prod}`, `sensapbl-jobs-{dev,prod}` |
+| **Cognito (dev)** | User Pool `us-east-1_xNWax9wkH`, domain `sensapbl-dev` |
+| **Cognito (prod)** | User Pool `us-east-1_Af8EHbmfU`, domain `sensapbl-prod` |
+| **S3 Buckets** | `sensapbl-{dev,prod}-content-311964231104` (content), `sensapbl-terraform-state` (TF state) |
 | **Region** | `us-east-1` |
 
 ---
@@ -208,7 +208,7 @@ Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `Set
 | `src/features/learning-session/activities/gym-ai-service.ts` | AI gym service (Haiku, fallback-first) |
 | `src/shared/constants/theme-colors.ts` | All color constants, mood colors, graph colors |
 | `src/index.css` | Design system single source of truth |
-| `backend/lambda/shared/system_prompt.py` | Generation prompt (classification + silver bullet) |
+| `backend/lambda/shared/system_prompt.py` | Generation prompt (classification + tree generation) |
 | `backend/lambda/generate_concepts/services/bedrock_service.py` | LLM calls, tree validation, post-processing |
 
 ---

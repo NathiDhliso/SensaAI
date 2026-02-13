@@ -108,6 +108,9 @@ module "lambda" {
   cognito_domain       = "${var.cognito_domain_prefix}-${var.environment}"
   aws_region           = var.aws_region
 
+  # Bedrock model for concept generation
+  bedrock_model_id = "anthropic.claude-sonnet-4-20250514-v1:0"
+
   # Provisioned concurrency (production only)
   enable_provisioned_concurrency    = var.environment == "prod"
   provisioned_concurrent_executions = 1

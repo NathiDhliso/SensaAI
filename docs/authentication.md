@@ -106,7 +106,7 @@ User enters name + email + password on SignUp page
 
 | Variable | Purpose |
 |----------|---------|
-| `VITE_COGNITO_DOMAIN` | Cognito hosted UI domain (e.g., `https://sensapbl-pilot.auth.us-east-1.amazoncognito.com`) |
+| `VITE_COGNITO_DOMAIN` | Cognito hosted UI domain (e.g., `https://sensapbl-dev.auth.us-east-1.amazoncognito.com`) |
 | `VITE_COGNITO_CLIENT_ID` | Cognito app client ID |
 | `VITE_COGNITO_REDIRECT_URI` | OAuth callback URL (default: `{origin}/auth/callback`) |
 | `VITE_AWS_REGION` | AWS region (default: `us-east-1`) |

@@ -19,7 +19,7 @@ npm run dev
 npm run build
 ```
 
-**Configuration**: Navigate to Settings and enter your AWS Bedrock credentials (API key and region).
+**Configuration**: Set environment variables in `.env` (see below) and authenticate via Cognito.
 
 ---
 
@@ -230,8 +230,8 @@ docs/
 ## Key Features
 
 ### Content Generation
-- **4-Pass Generation System**: Domain Analysis Dependency Mapping Content Generation Quality Validation
-- **Universal Lifecycle Enforcement**: 7 domains with 3-phase lifecycles
+- **2-Phase Generation System**: Domain Analysis (classification) → Tree Generation (per domain, parallel)
+- **Exam-Context Tree Structure**: Trunk/Branch/Leaf hierarchy with TRACES connections
 - **AWS Bedrock Integration**: Claude Sonnet 4 via AWS Bedrock Runtime
 - **Real-time Streaming**: Progress updates during generation
 - **Quality Metrics**: Lifecycle consistency, positive framing, format consistency
@@ -266,7 +266,7 @@ VITE_COGNITO_USER_POOL_ID=your_user_pool_id
 VITE_COGNITO_CLIENT_ID=your_client_id
 
 # API Configuration
-VITE_API_BASE_URL=https://your-api-gateway-url
+VITE_API_URL=https://your-api-gateway-url
 ```
 
 **See**: `.env.example` for a complete list of environment variables.
@@ -315,7 +315,7 @@ npm run deploy # Deploy to AWS
 - **Icons**: Lucide React
 
 ### Backend Architecture
-- **Runtime**: Node.js 18+ on AWS Lambda
+- **Runtime**: Python 3.12 on AWS Lambda
 - **Database**: DynamoDB (NoSQL)
 - **Storage**: S3 for documents
 - **AI**: AWS Bedrock (Claude Sonnet 4)
@@ -371,10 +371,10 @@ npm run deploy
 
 ### Infrastructure Deployment (Terraform)
 ```bash
-cd infra/terraform
+cd infra/terraform/environments/dev   # or prod
 terraform init
-terraform plan
-terraform apply
+terraform plan -out=tfplan
+terraform apply "tfplan"
 ```
 
 ---
@@ -435,5 +435,5 @@ MIT
 
 Built with modern web technologies and AWS services to provide an adaptive, AI-powered learning experience.
 
-**Last Updated**: January 29, 2026 
+**Last Updated**: February 13, 2026 
 **Repository Organization**: Feature-based structure for clarity and maintainability

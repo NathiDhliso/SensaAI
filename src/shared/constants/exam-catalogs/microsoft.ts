@@ -314,6 +314,59 @@ export const MICROSOFT_CERTS: CertEntry[] = [
     ],
   },
   {
+    id: 'pl-300',
+    name: 'Microsoft Power BI Data Analyst',
+    code: 'PL-300',
+    provider: 'Microsoft',
+    level: 'Associate',
+    domains: [
+      {
+        name: 'Prepare the Data',
+        weight: 25,
+        tasks: [
+          'Get data from relational and non-relational sources',
+          'Profile data and identify data quality issues',
+          'Clean, transform, and load data by using Power Query',
+          'Design data loading strategies and storage modes',
+          'Configure incremental refresh and dataflows',
+        ],
+      },
+      {
+        name: 'Model the Data',
+        weight: 25,
+        tasks: [
+          'Design and build a star schema data model',
+          'Create and optimize model relationships',
+          'Create DAX measures and calculated columns',
+          'Apply row-level security and object-level security',
+          'Improve model performance and usability',
+        ],
+      },
+      {
+        name: 'Visualize and Analyze the Data',
+        weight: 30,
+        tasks: [
+          'Design effective report layouts and navigation',
+          'Create and configure visuals for analytical storytelling',
+          'Apply filters, slicers, and drill-through behavior',
+          'Implement dynamic visuals with DAX and parameters',
+          'Use AI visuals and quick insights for deeper analysis',
+        ],
+      },
+      {
+        name: 'Deploy and Maintain Assets',
+        weight: 20,
+        tasks: [
+          'Manage workspaces, semantic models, and reports',
+          'Configure scheduled refresh and gateway connections',
+          'Implement deployment pipelines and app distribution',
+          'Monitor usage, performance, and refresh reliability',
+          'Apply governance, sensitivity labels, and lifecycle controls',
+        ],
+      },
+    ],
+  },
+  {
     id: 'az-204',
     name: 'Microsoft Azure Developer',
     code: 'AZ-204',

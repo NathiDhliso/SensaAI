@@ -1681,3 +1681,509 @@ Stack: ResourceNotFoundException: Requested resource not found
     at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
     at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
     at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:219:17)
+[2026-02-13T06:11:35.910Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:36.167Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:37.823Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:38.084Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:39.629Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:39.886Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:41.553Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:41.807Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:43.307Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:43.567Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:45.185Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:45.468Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:47.447Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:47.696Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:49.120Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:49.369Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:50.770Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:11:51.032Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:12:11.921Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:12:12.180Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:12:13.837Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:12:14.087Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:12:15.631Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:12:15.879Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:12:17.359Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:12:17.609Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:15.932Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:16.187Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:17.532Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:17.987Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:19.441Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:19.700Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:21.279Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:21.536Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:23.306Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:23.570Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:24.990Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:25:25.248Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:32:55.859Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:32:56.102Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:32:57.584Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:32:57.824Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:32:59.303Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:32:59.545Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:33:00.948Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)
+[2026-02-13T06:33:01.192Z] Requested resource not found
+Stack: ResourceNotFoundException: Requested resource not found
+    at AwsJson1_0Protocol.handleError (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\core\dist-cjs\submodules\protocols\index.js:778:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async AwsJson1_0Protocol.deserializeResponse (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\protocols\index.js:481:13)
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\submodules\schema\index.js:26:24
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\lib-dynamodb\dist-cjs\index.js:107:34
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\core\dist-cjs\index.js:121:20
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@smithy\middleware-retry\dist-cjs\index.js:254:46
+    at async C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\node_modules\@aws-sdk\client-dynamodb\node_modules\@aws-sdk\middleware-logger\dist-cjs\index.js:5:26
+    at async <anonymous> (C:\Users\nathi\OneDrive\Documents\Projects\SensaPBL\backend\src\features\concepts\routes\concepts.ts:220:17)

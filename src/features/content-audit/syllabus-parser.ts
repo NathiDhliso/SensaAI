@@ -42,6 +42,7 @@ const EXAM_SKIP_PATTERNS = [
 
 function cleanText(line: string): string {
  let text = line;
+ text = text.replace(/^[\s]*[a-zA-Z]\s+(?=\[)/, '');
  text = text.replace(/^[\s]*[-–—•*·∙]+\s*/, '');
  text = text.replace(/^[\s]*(?:q(?:uestion)?\s*)?\d+[\.\)\:]\s*/i, '');
  text = text.replace(/^[\s]*[a-zA-Z][\.\)]\s*/, '');
@@ -80,6 +81,7 @@ function hasPercentageWeight(rawLine: string): boolean {
 }
 
 function isDomainHeader(rawLine: string, cleanedText: string): boolean {
+ if (/^\s*\[[^\]]+?\s*-\s*\d+%?\]\s+.+$/.test(rawLine)) return false;
  if (hasPercentageWeight(rawLine) && cleanedText.length > 8) return true;
  const words = cleanedText.split(/\s+/);
  if (words.length <= 6 && cleanedText.length > 8 && !startsWithActionVerb(cleanedText)) {

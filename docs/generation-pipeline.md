@@ -1,6 +1,6 @@
 # Generation Pipeline
 
-**Last Updated:** February 12, 2026
+**Last Updated:** February 13, 2026
 **Status:** MANDATORY — Understand this before modifying generation or parsing code.
 
 ---
@@ -46,29 +46,6 @@ User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Ge
 
 ---
 
-## Phase 1.5: Knowledge Dimension Partitioning
-
-When generating without user-provided trunks, concepts are generated in 5 parallel parts, each covering a distinct knowledge dimension:
-
-| Part | Dimension | Covers |
-|------|-----------|--------|
-| 1 | Core Mechanics | Foundations, data structures, terminology, prerequisites |
-| 2 | Workflows & Operations | Day-to-day processes, configuration, transformation, modeling |
-| 3 | Output & Delivery | Visualization, reporting, publishing, sharing, collaboration |
-| 4 | Governance & Infrastructure | Security, access control, compliance, deployment, gateways, admin |
-| 5 | Advanced & Ecosystem | Optimization, AI/automation, mobile, integrations, edge cases |
-
-**Prompt file:** `backend/lambda/shared/system_prompt.py` `SILVER_BULLET_PROMPT`
-
-**When editing the prompt:**
-- Keep dimensions universal — they must work for ANY subject
-- Each part generates ~20 concepts (100 total across 5 parts)
-- The classification type (A/B/C/D) adapts how each dimension is interpreted
-- Never hardcode subject-specific examples into the partition strategy
-- When user provides exam objectives, `_parse_objective_domains()` splits them into top-level domains and `_distribute_domains_to_parts()` assigns domains to the 5 parts
-
----
-
 ## Phase 2: Tree Generation (Per Domain)
 
 **Backend:** `bedrock_service.py` → `system_prompt.py` TREE_GENERATION_PROMPT
@@ -80,7 +57,7 @@ For each domain, the LLM generates a tree of concepts:
 - Multiple branch concepts (sub-topics)
 - Multiple leaf concepts (granular testable items)
 
-Each concept includes: `treeLevel`, `parentName`, `cognitiveLevel`, `connections[]`, `lifecycle`, `shape`, `workedExample`, `commonPitfalls`, `hookSentence`, `howToUse`, `technicalDetails`, `metaphor`, `realWorldExample`, `logicalConnection`, `mnemonic`, etc.
+Each concept includes: `treeLevel`, `parentName`, `cognitiveLevel`, `connections[]`, `phase1`, `phase2`, `phase3`, `shape`, `workedExample`, `commonPitfalls`, `mnemonic`, `keyPoints`, `scoring`, `criticalDistinctions`, `designBoundaries`, etc.
 
 ### Output
 Raw JSON array of concepts per domain, merged into a single flat array.
@@ -215,19 +192,19 @@ backend/lambda/
 ├── gym_ai/
 │   └── handler.py              # Gym activity AI (Haiku)
 ├── shared/
-│   ├── system_prompt.py        # SILVER_BULLET_PROMPT + classification prompt
+│   ├── system_prompt.py        # TREE_GENERATION_PROMPT + classification prompt
 │   └── utils.py                # CORS, API response helpers, DynamoDB key builders
 └── requirements.txt
 ```
 
 ### DynamoDB Schema
 
-**Concepts Table** (`sensapbl-concepts-pilot`)
+**Concepts Table** (`sensapbl-concepts-dev` / `sensapbl-concepts-prod`)
 - **PK:** `USER#{userId}#SESSION#{sessionId}`
 - **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
 - **GSI1:** For tier-based queries
 
-**Jobs Table** (`sensapbl-jobs-pilot`)
+**Jobs Table** (`sensapbl-jobs-dev` / `sensapbl-jobs-prod`)
 - Tracks generation job status, progress, classification data
 - TTL: 24 hours
 
@@ -245,18 +222,16 @@ backend/lambda/
 
 ### Lambda Deployment
 ```powershell
-Compress-Archive -Path "backend\lambda\*" -DestinationPath "backend\lambda_deploy.zip" -Force
-aws lambda update-function-code --function-name sensapbl-generate-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
-aws lambda update-function-code --function-name sensapbl-query-concepts-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
-aws lambda update-function-code --function-name sensapbl-gym-ai-pilot --zip-file fileb://backend/lambda_deploy.zip --no-cli-pager
-Remove-Item "backend\lambda_deploy.zip"
+powershell -ExecutionPolicy Bypass -File "infra\scripts\package_lambda.ps1"
 ```
+Then deploy via Terraform (packages layer.zip and lambda_code.zip automatically).
 
 ### Infrastructure Changes (Terraform)
 ```powershell
-cd infra/terraform/environments/pilot
-terraform plan    # Review changes
-terraform apply   # Apply changes
+cd infra/terraform/environments/dev   # or prod
+terraform init
+terraform plan -out=tfplan
+terraform apply "tfplan"
 ```
 
 ### Frontend Deployment

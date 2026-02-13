@@ -345,6 +345,11 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
    - "Why X matters", "Think of X as...", "Detailed explanation of Y", "Proper use of X vs Common misunderstanding"
    - "Without proper X, your/you...", "Improperly configured X...", "Without X security/access/controls..."
    - "X is a crucial/critical/essential component/part/aspect", "X provides a secure way to", "X are essential/crucial for"
+11. **COMPLETE WORKED EXAMPLES**: Every branch and leaf concept MUST include a `workedExample` with ALL three fields populated:
+   - `problem`: A specific, realistic scenario or exam-style question (minimum 20 words)
+   - `solution`: The complete, correct answer with reasoning (minimum 20 words)
+   - `steps`: Array of 3-6 numbered solution steps showing the reasoning process
+   Empty or placeholder workedExamples cause **automatic rejection**.
 Generate the concept tree for "{domain_name}" now:"""
 def _parse_exam_tree(context: str) -> list:
     import re as _re

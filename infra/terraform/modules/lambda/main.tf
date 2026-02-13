@@ -163,10 +163,11 @@ resource "aws_lambda_function" "generate_concepts" {
 
   environment {
     variables = {
-      ENVIRONMENT    = var.environment
-      CONCEPTS_TABLE = var.concepts_table_name
-      JOBS_TABLE     = var.jobs_table_name
-      LOG_LEVEL      = var.environment == "prod" ? "INFO" : "DEBUG"
+      ENVIRONMENT      = var.environment
+      CONCEPTS_TABLE   = var.concepts_table_name
+      JOBS_TABLE       = var.jobs_table_name
+      LOG_LEVEL        = var.environment == "prod" ? "INFO" : "DEBUG"
+      BEDROCK_MODEL_ID = var.bedrock_model_id
     }
   }
 
