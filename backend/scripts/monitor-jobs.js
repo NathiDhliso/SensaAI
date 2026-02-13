@@ -2,8 +2,8 @@
 const { DynamoDBClient, ScanCommand, QueryCommand } = require("@aws-sdk/client-dynamodb");
 const { unmarshall } = require("@aws-sdk/util-dynamodb");
 const REGION = "us-east-1";
-const JOBS_TABLE = "sensapbl-jobs-pilot";
-const CONCEPTS_TABLE = "sensapbl-concepts-pilot";
+const JOBS_TABLE = "sensapbl-jobs-dev";
+const CONCEPTS_TABLE = "sensapbl-concepts-dev";
 const client = new DynamoDBClient({ region: REGION });
 async function monitor() {
  console.log(" Starting Job Monitor...");
@@ -17,7 +17,7 @@ async function monitor() {
  let isFirstRun = true;
  while (true) {
  try {
- // Scan for recent jobs (inefficient for large tables but fine for pilot)
+ // Scan for recent jobs (inefficient for large tables but fine for dev)
  const command = new ScanCommand({
  TableName: JOBS_TABLE,
  Limit: 5
@@ -85,4 +85,4 @@ async function checkConceptCount(jobId) {
  console.error("Error checking concepts:", e.message);
  }
 }
-monitor();
+monitor();
