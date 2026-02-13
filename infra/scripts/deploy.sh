@@ -1,11 +1,11 @@
 #!/bin/bash
 # SensaPBL Deployment Script
 # Usage: ./deploy.sh [environment] [action]
-# Example: ./deploy.sh pilot apply
+# Example: ./deploy.sh dev apply
 
 set -e
 
-ENV="${1:-pilot}"
+ENV="${1:-dev}"
 ACTION="${2:-apply}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

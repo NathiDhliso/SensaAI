@@ -27,7 +27,7 @@ dynamo_service = DynamoService()
 
 # Lambda client for self-invocation
 lambda_client = boto3.client("lambda", region_name=os.environ.get("AWS_REGION", "us-east-1"))
-FUNCTION_NAME = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "sensapbl-generate-concepts-pilot")
+FUNCTION_NAME = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "sensapbl-generate-concepts-dev")
 _current_event = None
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -121,7 +121,7 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     Orchestrates:
     1. Job creation in DynamoDB
     2. Subject metadata initialization
-    3. Parallel concept generation via Bedrock (5 partitions)
+    3. Parallel concept generation via Bedrock (1 partition per domain)
     4. Concept storage in DynamoDB
     5. Job status update
     Args:
@@ -149,8 +149,6 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     else:
         print(f"[Handler] Job record already created by async dispatcher, skipping...")
 
-    # Step 3: Generate concepts with Bedrock (parallel 5-partition strategy)
-    # The prompt dynamically analyzes the subject - no hardcoded blueprints needed
     print(f"[Handler] Starting parallel generation for: {subject}")
     if context:
         print(f"[Handler] Using user-provided context ({len(context)} chars)")

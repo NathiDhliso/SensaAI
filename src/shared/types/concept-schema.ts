@@ -46,9 +46,7 @@ export const LifecycleSchema = z.object({
 // Annotations for special callouts
 export const AnnotationsSchema = z.object({
  criticalDistinctions: z.array(z.string()).optional().default([]),
- designBoundaries: z.array(z.string()).optional().default([]),
- examFocus: z.array(z.string()).optional().default([]),
- logicalConnection: z.string().optional()
+ designBoundaries: z.array(z.string()).optional().default([])
 });
 // Main concept schema - matches the structure expected by parser.ts ParsedConcept
 export const ConceptSchema = z.object({

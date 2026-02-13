@@ -18,9 +18,7 @@ export interface ParsedConcept {
  tier?: 'trunk' | 'branch' | 'leaf';
  parentName?: string;
  trunkDomain?: string;
- tierJustification?: string; // Explain WHY it fits this tier
  stageId: string;
- logicalConnection?: string;
  // NEW: Direct UI consumption fields
  whyYouNeed?: string; // Why professionals need this concept
  cognitiveLevel?: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create'; // Phase 2
@@ -48,21 +46,15 @@ export interface ParsedConcept {
  // SHAPE micro-learning sections (normalized field names)
  shape?: {
  simpleCore?: string;
- simple?: string; // Legacy fallback
  highStakesExample?: string;
- highStakes?: string; // Legacy fallback
  analogicalModel?: string;
- analogy?: string; // Legacy fallback
  patternRecognition?: { question: string; answer: string };
- pattern?: { question: string; answer: string }; // Legacy fallback
  eliminationLogic?: string;
- elimination?: string; // Legacy fallback
  };
  // Memory Palace mnemonic context
  mnemonic?: ParsedMnemonic;
  criticalDistinctions: string[];
  designBoundaries: string[];
- examFocus: string[];
  // NEW: Explicit dependency declaration (Sensa v2.0)
  dependsOn?: string[];
  strictConnections?: {
@@ -78,7 +70,6 @@ export interface ParsedStage {
 }
 export interface ParsedDomainAnalysis {
  domain: string;
- professionalRole: string;
  subjectType?: import('@/shared/types/macro-workflow').SubjectType;
  classification?: import('@/shared/types/macro-workflow').SubjectClassification;
  macroStructure?: import('@/shared/types/macro-workflow').MacroStructure;
@@ -88,9 +79,6 @@ export interface ParsedDomainAnalysis {
  phase2: string;
  phase3: string;
  };
- sourceVerification: string;
- recentUpdates: string[];
- numericalLimits: string[];
  coreConceptsCount: number;
  conceptNames: string[];
 }

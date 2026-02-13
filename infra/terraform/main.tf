@@ -96,9 +96,9 @@ module "lambda" {
   # Lambda source code
   source_dir = "${path.module}/../../backend/lambda"
 
-  # Configuration (adjusted for pilot)
-  generate_timeout     = var.environment == "pilot" ? 900 : 900
-  generate_memory_size = var.environment == "pilot" ? 3008 : 10240
+  # Configuration (dev uses lower memory to reduce cost)
+  generate_timeout     = 900
+  generate_memory_size = var.environment == "dev" ? 3008 : 10240
   query_timeout        = 30
   query_memory_size    = 512
 
@@ -143,12 +143,12 @@ module "api_gateway" {
   # CORS configuration
   cors_allowed_origins = var.cors_allowed_origins
 
-  # Throttling (conservative for pilot)
-  throttling_burst_limit = var.environment == "pilot" ? 50 : 200
-  throttling_rate_limit  = var.environment == "pilot" ? 25 : 100
+  # Throttling (conservative for dev)
+  throttling_burst_limit = var.environment == "dev" ? 50 : 200
+  throttling_rate_limit  = var.environment == "dev" ? 25 : 100
 
-  # JWT Authorization (disabled for pilot)
-  enable_jwt_authorizer = false
+  # JWT Authorization (disabled for dev)
+  enable_jwt_authorizer = var.environment == "prod"
   cognito_user_pool_id  = module.cognito.user_pool_id
   cognito_client_id     = module.cognito.client_id
 

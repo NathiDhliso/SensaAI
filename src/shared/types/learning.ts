@@ -134,11 +134,6 @@ export interface LearningConcept {
  */
  lifecyclePhase: 'PREPARE' | 'MODEL' | 'DELIVER';
  /**
- * Explanation of why this concept belongs to its tier.
- * Generated dynamically by the AI.
- */
- tierJustification?: string;
- /**
  * Array of concept IDs this concept depends on.
  * Foundation concepts typically have empty arrays.
  */
@@ -165,7 +160,6 @@ export interface LearningConcept {
  metaphor?: string;
  workedExample?: WorkedExample;
  realWorldExample?: string;
- logicalConnection?: string;
  visualElement?: string;
  actionButtonText?: string;
  // Metadata

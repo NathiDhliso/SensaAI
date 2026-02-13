@@ -222,11 +222,7 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
  const concept = concepts.find(c => c.name === conceptName);
  // If a specific concept is hovered, explain WHY it fits there
  if (conceptName && concept) {
- // PRIORITY 1: AI-Generated tierJustification (if real content)
- if (isRealContent(concept.tierJustification, concept.name)) {
- return isScholarly ? concept.tierJustification! : ` ${concept.tierJustification}`;
- }
- // PRIORITY 2: Use SHAPE simpleCore (if real content)
+ // PRIORITY 1: Use SHAPE simpleCore (if real content)
  if (isRealContent(concept.shape?.simpleCore, concept.name)) {
  const tierLabel = isScholarly
  ? (tier === 'trunk' ? 'Trunk' : tier === 'branch' ? 'Branch' : 'Leaf')

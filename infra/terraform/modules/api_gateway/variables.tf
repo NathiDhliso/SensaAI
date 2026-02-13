@@ -1,7 +1,7 @@
 # API Gateway Module Variables
 
 variable "environment" {
-  description = "Environment name (pilot, staging, prod)"
+  description = "Environment name (dev, prod)"
   type        = string
 }
 
@@ -83,7 +83,7 @@ variable "throttling_rate_limit" {
 variable "enable_jwt_authorizer" {
   description = "Enable JWT authorization via Cognito"
   type        = bool
-  default     = false # Disabled for pilot - enable in prod
+  default     = false
 }
 
 variable "cognito_user_pool_id" {

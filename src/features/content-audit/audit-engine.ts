@@ -153,9 +153,9 @@ function scoreContentHealth(concept: ParsedConcept): { score: number; issues: Au
  const textChecks: { field: string; value: string | undefined; points: number; label: string }[] = [
  { field: 'phase1.hookSentence', value: concept.phase1?.hookSentence, points: 10, label: 'Hook sentence' },
  { field: 'whyYouNeed', value: concept.whyYouNeed, points: 10, label: 'Professional relevance' },
- { field: 'shape.simpleCore', value: concept.shape?.simpleCore || concept.shape?.simple, points: 15, label: 'Core explanation' },
- { field: 'shape.highStakesExample', value: concept.shape?.highStakesExample || concept.shape?.highStakes, points: 10, label: 'High-stakes scenario' },
- { field: 'shape.analogicalModel', value: concept.shape?.analogicalModel || concept.shape?.analogy, points: 5, label: 'Mental model / analogy' },
+ { field: 'shape.simpleCore', value: concept.shape?.simpleCore, points: 15, label: 'Core explanation' },
+ { field: 'shape.highStakesExample', value: concept.shape?.highStakesExample, points: 10, label: 'High-stakes scenario' },
+ { field: 'shape.analogicalModel', value: concept.shape?.analogicalModel, points: 5, label: 'Mental model / analogy' },
  { field: 'technicalDetails', value: concept.technicalDetails, points: 10, label: 'Technical depth' }
  ];
 
@@ -187,14 +187,14 @@ function scoreContentHealth(concept: ParsedConcept): { score: number; issues: Au
  });
  }
 
- const patternQ = concept.shape?.patternRecognition?.question || concept.shape?.pattern?.question;
- const patternA = concept.shape?.patternRecognition?.answer || concept.shape?.pattern?.answer;
+ const patternQ = concept.shape?.patternRecognition?.question;
+ const patternA = concept.shape?.patternRecognition?.answer;
  if (patternQ && patternA) {
  score += 10;
  strengths.push('Pattern drill');
  }
 
- const elimLogic = concept.shape?.eliminationLogic || concept.shape?.elimination;
+ const elimLogic = concept.shape?.eliminationLogic;
  if (elimLogic && isRealContent(elimLogic, concept.name)) {
  score += 10;
  strengths.push('Elimination logic');
@@ -333,7 +333,6 @@ export function auditContent(
  concept.whyYouNeed || '',
  concept.shape?.simpleCore || '',
  concept.technicalDetails || '',
- ...(concept.examFocus || []),
  ...(concept.phase1?.selection || [])
  ].join(' ');
 

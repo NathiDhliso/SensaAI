@@ -2,9 +2,9 @@
 # Serverless-only configuration
 
 variable "environment" {
-  description = "Environment name (pilot, staging, prod)"
+  description = "Environment name (dev, prod)"
   type        = string
-  default     = "pilot"
+  default     = "dev"
 }
 
 variable "aws_region" {

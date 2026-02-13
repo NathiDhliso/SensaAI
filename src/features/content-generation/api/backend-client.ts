@@ -277,10 +277,7 @@ export async function generateWithBackend(
  } as unknown as MacroWorkflowResult : generateResponse.macroWorkflow,
  roleScope: subject,
  excludedActions: [],
- concepts: conceptNames,
- numericalLimits: [],
- recentUpdates: [],
- sourceVerification: 'Lambda + Bedrock (Parallel Generation)'
+ concepts: conceptNames
  },
  pass2: fullDocument,
  pass3: fullDocument,
@@ -347,8 +344,7 @@ export function buildDocumentFromConcepts(
  phase3: concept.phase3 || {},
  shape: concept.shape || {},
  criticalDistinctions: concept.criticalDistinctions || [],
- designBoundaries: concept.designBoundaries || [],
- examFocus: concept.examFocus || []
+ designBoundaries: concept.designBoundaries || []
  };
  });
  const lifecycle = (classification?.lifecycle as Record<string, string>) || {};

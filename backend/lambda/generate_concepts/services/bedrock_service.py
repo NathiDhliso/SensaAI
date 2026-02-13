@@ -27,7 +27,6 @@ class BedrockService:
     RETRY_BACKOFF_BASE = 2 # Exponential backoff: 2, 4, 8 seconds
     MIN_CONCEPTS_THRESHOLD = 40 # Minimum acceptable concepts for success
     MAX_WORKERS = 3 # Concurrent API requests
-    NUM_PARTITIONS = 5 # Number of parallel generation parts
     def __init__(self, region: str = "us-east-1"):
         """
         Initialize the Bedrock service with AWS client.
@@ -79,13 +78,46 @@ class BedrockService:
                     time.sleep(self.RETRY_BACKOFF_BASE ** (attempt + 1))
         print("[BedrockService] Classification failed, using default (conceptual)")
         return None
+    def _enrich_domains_from_context(self, domains: List[Dict[str, Any]], context: str) -> None:
+        CONTEXT_LINE_PATTERN = re.compile(r'^\[([^\]]+?)\s*-\s*(\d+)%?\]\s*(.+)$')
+        domain_lookup = {}
+        for d in domains:
+            domain_lookup[d["name"].strip().lower()] = d
+        for line in context.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            match = CONTEXT_LINE_PATTERN.match(line)
+            if not match:
+                continue
+            domain_name = match.group(1).strip()
+            weight = int(match.group(2))
+            task = match.group(3).strip()
+            key = domain_name.lower()
+            if key in domain_lookup:
+                d = domain_lookup[key]
+                if not d.get("subtopics") or not isinstance(d["subtopics"], list):
+                    d["subtopics"] = []
+                d["subtopics"].append(task)
+                d["weight"] = weight / 100.0
+        enriched = sum(1 for d in domains if d.get("subtopics"))
+        total_tasks = sum(len(d.get("subtopics", [])) for d in domains)
+        if enriched > 0:
+            print(f"[BedrockService] Enriched {enriched}/{len(domains)} domains with {total_tasks} tasks from context")
+        else:
+            print(f"[BedrockService] No per-domain tasks found in context (will use raw context as fallback)")
     def generate_concepts(self, subject: str, context: str = "", trunks: list = None) -> tuple:
         from shared.system_prompt import get_tree_generation_prompt, _get_exam_domains
+        classification_future = None
         if trunks and len(trunks) >= 2:
-            print(f"[BedrockService] Using {len(trunks)} user-defined trunks (skipping classification)")
+            print(f"[BedrockService] Using {len(trunks)} user-defined trunks (classifying in parallel)")
             equal_weight = round(1.0 / len(trunks), 2)
             domains = [{"name": t, "weight": equal_weight, "subtopics": []} for t in trunks]
-            classification = self.classify_subject(subject, context)
+            if context:
+                self._enrich_domains_from_context(domains, context)
+            classification_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+            classification_future = classification_executor.submit(self.classify_subject, subject, context)
+            classification = None
         else:
             classification = self.classify_subject(subject, context)
             domains = _get_exam_domains(context, classification)
@@ -105,7 +137,7 @@ class BedrockService:
             print(f"[BedrockService]   Trunk {i+1}: {d.get('name')} (weight={d.get('weight', 'N/A')})")
         def generate_domain_with_retry(domain_index: int) -> List[Dict[str, Any]]:
             if domain_index > 0:
-                time.sleep(1.5 * domain_index)
+                time.sleep(0.5 * domain_index)
             domain = domains[domain_index]
             prompt = get_tree_generation_prompt(
                 subject=subject,
@@ -181,6 +213,13 @@ class BedrockService:
         if len(all_concepts) < self.MIN_CONCEPTS_THRESHOLD:
             print(f"[WARNING] Only {len(all_concepts)} concepts (threshold: {self.MIN_CONCEPTS_THRESHOLD})")
         all_concepts = self._post_process_concepts(all_concepts)
+        if classification_future is not None:
+            try:
+                classification = classification_future.result(timeout=30)
+                print(f"[BedrockService] Parallel classification resolved: {classification.get('subjectType', 'unknown') if classification else 'None'}")
+            except Exception as e:
+                print(f"[BedrockService] Parallel classification failed (non-fatal): {e}")
+                classification = None
         return all_concepts, classification
     def repair_concept(
         self, subject: str, concept_name: str, issue: str
@@ -231,7 +270,7 @@ class BedrockService:
             else:
                 system_part = prompt
                 user_part = f'Generate the concept tree for "{domain_name}" now. Return ONLY valid JSON array.'
-        user_part += "\n\nIMPORTANT — AUTOMATIC REJECTION PATTERNS (do NOT use these):\n- hookSentence: Never 'Without proper X...', 'Without X...', 'Improperly configured X...'. Lead with a technical fact or scenario.\n- microMetaphor: Never 'Think of X as...'. Use 'X are/is [metaphor] — [mapping]' pattern.\n- whyYouNeed: Never 'X is crucial/critical/essential...', 'X provides a secure way...', 'X are essential for...'. Explain the specific technical problem and exam relevance.\nWrite as a subject matter expert. Every field must have domain-specific technical depth."
+        user_part += "\n\nIMPORTANT — AUTOMATIC REJECTION PATTERNS (do NOT use these):\n- hookSentence: Never 'Without proper X...', 'Without X...', 'Improperly configured X...'. Lead with a concrete fact or scenario from the subject domain.\n- microMetaphor: Never 'Think of X as...'. Use 'X are/is [metaphor] — [mapping]' pattern.\n- whyYouNeed: Never 'X is crucial/critical/essential...', 'X provides a secure way...', 'X are essential for...'. Explain the specific problem this concept solves.\nWrite as a subject matter expert. Every field must have field-appropriate depth and specificity."
         return system_part, user_part
     TEMPLATE_REGEX_PATTERNS = None
 
@@ -383,13 +422,6 @@ class BedrockService:
                 if self._is_template_content(text, name):
                     print(f"[BedrockService] Template criticalDistinctions in '{name}': '{text[:80]}'")
                     return False
-        exam = concept.get("examFocus", [])
-        if isinstance(exam, list):
-            for item in exam:
-                text = item if isinstance(item, str) else str(item)
-                if self._is_template_content(text, name):
-                    print(f"[BedrockService] Template examFocus in '{name}': '{text[:80]}'")
-                    return False
         design = concept.get("designBoundaries", [])
         if isinstance(design, list):
             for item in design:
@@ -450,6 +482,12 @@ class BedrockService:
             "migrate", "secure", "optimize", "diagnos", "debug", "resolve",
             "evaluate", "compare", "select", "choose", "decide", "plan",
             "architect", "automat", "integrat", "custom", "extend",
+            "analyz", "synthesiz", "compos", "perform", "demonstrat",
+            "construct", "formulat", "predict", "hypothesiz", "differentiat",
+            "organiz", "interpret", "calculat", "solve", "apply", "practic",
+            "execut", "adapt", "modify", "argu", "critiqu", "justif",
+            "improvisat", "orchestrat", "coordinat", "assess", "prioritiz",
+            "negoti", "mediat", "facilitat", "investigat", "experiment",
         ]
         for c in concepts:
             level = (c.get("cognitiveLevel") or "remember").lower().strip()
@@ -531,23 +569,29 @@ class BedrockService:
             print(f"[BedrockService] TRACES: {enables_count}/{total_connections} enables ({enables_pct*100:.0f}%)")
             if enables_pct > 0.40:
                 CONSTRAINT_KEYWORDS = [
-                    "security", "policy", "rbac", "role", "permission", "limit",
-                    "quota", "budget", "compliance", "governance", "lock", "firewall",
-                    "nsg", "rule", "restrict", "deny", "block", "filter", "scope",
+                    "security", "policy", "role", "permission", "limit",
+                    "quota", "budget", "compliance", "governance", "lock",
+                    "rule", "restrict", "deny", "block", "filter", "scope",
+                    "boundary", "constraint", "regulation", "standard",
+                    "threshold", "ceiling", "floor", "cap", "prohibition",
+                    "requirement", "condition", "criterion", "guideline",
                 ]
                 PREREQUISITE_KEYWORDS = [
-                    "identity", "authentication", "network", "vnet", "subnet",
-                    "resource group", "subscription", "tenant", "dns", "ip address",
-                    "storage account", "key vault", "certificate",
+                    "identity", "authentication", "foundation", "basis",
+                    "fundamental", "prerequisite", "prior", "background",
+                    "setup", "preparation", "introduction", "definition",
+                    "core", "elementary", "primary", "initial", "base",
                 ]
                 CAUSAL_KEYWORDS = [
-                    "trigger", "alert", "event", "log", "metric", "diagnostic",
-                    "backup", "failover", "replication", "scaling", "autoscale",
-                    "deployment", "provision", "migration",
+                    "trigger", "alert", "event", "result", "effect",
+                    "outcome", "consequence", "response", "reaction",
+                    "produce", "generate", "lead to", "cause", "induce",
+                    "influence", "impact", "drive", "yield", "propagat",
                 ]
                 TAXONOMIC_KEYWORDS = [
-                    "type", "kind", "tier", "sku", "variant", "mode", "class",
-                    "category", "family", "series", "generation",
+                    "type", "kind", "variant", "mode", "class",
+                    "category", "family", "genre", "form", "style",
+                    "species", "branch", "division", "subset", "subtype",
                 ]
                 upgraded = 0
                 target_enables = int(total_connections * 0.30)

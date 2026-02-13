@@ -14,5 +14,4 @@ export * from './validators/content-quality';
 export * from './validators/tier-progression';
 // Generators
 export * from './generators/tier-calculator';
-export * from './generators/json-merger';
 export * from './generators/dependency-parser';

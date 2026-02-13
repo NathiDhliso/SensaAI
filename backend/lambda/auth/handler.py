@@ -33,7 +33,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 COGNITO_USER_POOL_ID = os.environ.get("COGNITO_USER_POOL_ID", "")
 COGNITO_CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "")
-COGNITO_DOMAIN = os.environ.get("COGNITO_DOMAIN", "")  # e.g. sensapbl-pilot
+COGNITO_DOMAIN = os.environ.get("COGNITO_DOMAIN", "")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 COGNITO_CLIENT_SECRET = os.environ.get("COGNITO_CLIENT_SECRET", "")
 

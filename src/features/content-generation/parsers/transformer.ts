@@ -319,11 +319,11 @@ function calculateComplexityScore(concept: ParsedConcept): number {
  // Factor in SHAPE sections (indicates comprehensive coverage)
  if (concept.shape) {
  const shapeCount = [
- concept.shape.simpleCore || concept.shape.simple,
- concept.shape.highStakesExample || concept.shape.highStakes,
- concept.shape.analogicalModel || concept.shape.analogy,
- concept.shape.patternRecognition?.question || concept.shape.pattern?.question,
- concept.shape.eliminationLogic || concept.shape.elimination
+ concept.shape.simpleCore,
+ concept.shape.highStakesExample,
+ concept.shape.analogicalModel,
+ concept.shape.patternRecognition?.question,
+ concept.shape.eliminationLogic
  ].filter(Boolean).length;
  complexity += Math.min(2, shapeCount / 3); // Max 2 points
  }
@@ -675,8 +675,7 @@ export function transformToLearningConcepts(
  }
  const technicalDetails = [
  ...parsedConcept.criticalDistinctions.map(d => safeStr(d)),
- ...parsedConcept.designBoundaries.map(d => safeStr(d)),
- ...parsedConcept.examFocus.map(d => safeStr(d))
+ ...parsedConcept.designBoundaries.map(d => safeStr(d))
  ].join(' ');
  const phase1Steps: string[] = [];
  if (parsedConcept.phase1.prerequisite) {
@@ -745,18 +744,15 @@ export function transformToLearningConcepts(
  visualElement: slugify(parsedConcept.name),
  actionButtonText: `Master ${parsedConcept.name}`,
  lifecycle,
- logicalConnection: parsedConcept.logicalConnection,
  mnemonic,
- // Normalize SHAPE to use standard field names with legacy fallbacks
  shape: parsedConcept.shape ? {
- simpleCore: parsedConcept.shape.simpleCore || parsedConcept.shape.simple,
- highStakesExample: parsedConcept.shape.highStakesExample || parsedConcept.shape.highStakes,
- analogicalModel: parsedConcept.shape.analogicalModel || parsedConcept.shape.analogy,
- patternRecognition: parsedConcept.shape.patternRecognition || parsedConcept.shape.pattern,
- eliminationLogic: parsedConcept.shape.eliminationLogic || parsedConcept.shape.elimination
+ simpleCore: parsedConcept.shape.simpleCore,
+ highStakesExample: parsedConcept.shape.highStakesExample,
+ analogicalModel: parsedConcept.shape.analogicalModel,
+ patternRecognition: parsedConcept.shape.patternRecognition,
+ eliminationLogic: parsedConcept.shape.eliminationLogic
  } : undefined,
  tier: calculateTier(parsedConcept, parsed.concepts),
- tierJustification: parsedConcept.tierJustification,
  cognitiveLevel: parsedConcept.cognitiveLevel,
  commonPitfalls: parsedConcept.commonPitfalls,
  // Map raw stageId (PREPARE/MODEL/DELIVER) to lifecyclePhase with Robust Normalization
@@ -802,7 +798,6 @@ export function transformToLearningConcepts(
  phase2: { title: lifecycleLabels.phase2 || 'ACTION', steps: ['Apply'] },
  phase3: { title: lifecycleLabels.phase3 || 'VERIFICATION', steps: ['Validate'] }
  },
- logicalConnection: '',
  shape: undefined,
  tier: tier,
  lifecyclePhase: 'PREPARE', // Default for skeletons
@@ -1000,8 +995,8 @@ export function transformGeneratedContent(
  dependencyGraph,
  metadata: {
  domain: parsed.domainAnalysis.domain,
- role: parsed.domainAnalysis.professionalRole,
- source: parsed.domainAnalysis.sourceVerification,
+ role: 'Learner',
+ source: 'Documentation',
  conceptCount: concepts.length
  }
  };
@@ -1052,8 +1047,8 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
  dependencyGraph,
  metadata: {
  domain: parsed.domainAnalysis.domain,
- role: parsed.domainAnalysis.professionalRole,
- source: parsed.domainAnalysis.sourceVerification,
+ role: 'Learner',
+ source: 'Documentation',
  conceptCount: concepts.length,
  trunkConcepts,
  diagnosticReady,

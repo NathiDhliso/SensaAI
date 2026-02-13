@@ -21,9 +21,9 @@ from shared.utils import (
     TIERS,
 )
 # Environment variables
-CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-pilot")
-JOBS_TABLE = os.environ.get("JOBS_TABLE", "sensapbl-jobs-pilot")
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "pilot")
+CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-dev")
+JOBS_TABLE = os.environ.get("JOBS_TABLE", "sensapbl-jobs-dev")
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
 # Default page size
 DEFAULT_LIMIT = 25
 MAX_LIMIT = 100

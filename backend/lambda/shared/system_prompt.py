@@ -63,6 +63,9 @@ For each domain:
 Examples:
 - AZ-104: Identity & Governance (0.22), Storage (0.17), Networking (0.22), Compute (0.22), Monitoring (0.17)
 - PL-300: Prepare Data (0.27), Model Data (0.27), Visualize & Analyze (0.30), Deploy & Maintain (0.16)
+- Music Theory: Rhythm & Meter (0.20), Scales & Intervals (0.25), Harmony & Chord Progressions (0.25), Form & Analysis (0.15), Ear Training & Dictation (0.15)
+- Constitutional Law: Judicial Review & Structure (0.20), Individual Rights (0.25), Federalism & Separation of Powers (0.20), Equal Protection & Due Process (0.20), First Amendment (0.15)
+- Marathon Training: Physiology & Energy Systems (0.20), Training Periodization (0.25), Nutrition & Hydration (0.20), Injury Prevention (0.15), Race Strategy (0.20)
 
 ═══════════════════════════════════════════════════════════════════════════
 STEP 3: EXTRACT CONNECTIVE TISSUE
@@ -223,118 +226,118 @@ Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
 ### 4.2 QUALITY STANDARD — CONCRETE EXAMPLE
 Below is ONE fully-worked leaf concept. **Every concept you generate must match this depth and specificity.** Do NOT use placeholder text like "Detailed explanation of..." or "Why X matters" — write real technical content.
 ### FIELD STYLE GUIDE (violating these causes automatic rejection):
-**hookSentence** — Lead with a surprising technical fact, a specific failure scenario, or a concrete exam trap. BANNED: "Without proper X...", "Without X...", "Improperly configured X...". GOOD examples:
-  - "Every VM in your VNet can talk to every other VM on every port by default..."
-  - "A single misconfigured priority number can lock out RDP access to every VM in the subnet..."
-  - "SAS tokens with no expiry date grant permanent access — and 40% of storage breaches start here..."
+**hookSentence** — Lead with a surprising fact, a specific failure scenario, or a concrete exam trap from the subject domain. BANNED: "Without proper X...", "Without X...", "Improperly configured X...". GOOD examples:
+  - "Plants absorb only 1-2%% of sunlight that hits their leaves — yet this narrow band powers virtually all life on Earth..."
+  - "A single misplaced comma in a contract clause reversed a $2.13 million ruling in Rogers Communications v. Bell Aliant..."
+  - "The ii-V-I progression appears in over 80%% of jazz standards — recognizing it by ear is the gateway to improvisation..."
 **microMetaphor** — Use "[Concept] are/is [concrete metaphor] — [how the mapping works]". BANNED: "Think of X as...". GOOD examples:
-  - "NSGs are bouncers at every door — they check every packet against a priority-ordered guest list."
-  - "SAS tokens are hotel key cards — they open specific rooms for a limited time, then expire."
-**whyYouNeed** — State the specific technical problem, then explain how the exam tests it. BANNED: "X is crucial/critical/essential...", "X provides a secure way...", "X are essential for...". GOOD examples:
-  - "The AZ-104 exam presents scenarios where you must choose between LRS, ZRS, GRS, and RA-GRS based on RPO, RTO, and cost constraints..."
-  - "On the exam, you'll configure firewall rules that must allow app traffic while blocking public internet access..."
+  - "Chloroplasts are solar panel factories — they capture photons and convert them into chemical energy stored in ATP and NADPH."
+  - "Precedent is a trail of cairns — each ruling marks the path, and courts follow the most recent visible marker."
+**whyYouNeed** — State the specific problem this concept solves, then explain how it is tested or applied. BANNED: "X is crucial/critical/essential...", "X provides a secure way...", "X are essential for...". GOOD examples:
+  - "Exam questions present unfamiliar chord progressions and ask you to identify the key center — without understanding diatonic function, every answer looks plausible..."
+  - "Contract law exams present ambiguous clauses and ask whether consideration exists — knowing the doctrine prevents confusing gifts with enforceable promises..."
 ```json
 {{
- "name": "Network Security Groups",
+ "name": "The Light-Dependent Reactions",
  "treeLevel": "leaf",
- "parentName": "Virtual Network Security",
- "trunkDomain": "Azure Virtual Networking",
+ "parentName": "Photosynthesis Mechanisms",
+ "trunkDomain": "Energy & Metabolism",
  "cognitiveLevel": "apply",
  "commonPitfalls": [
-   "Forgetting that NSG rules are stateful — if you allow inbound TCP 443, the return traffic is automatically allowed without an explicit outbound rule",
-   "Applying an NSG to both the subnet AND the NIC without realizing both rule sets are evaluated (most restrictive wins)"
+   "Confusing the light-dependent reactions (thylakoid membranes, produce ATP + NADPH) with the Calvin cycle (stroma, uses ATP + NADPH to fix CO₂)",
+   "Assuming oxygen is produced in the Calvin cycle — O₂ is released during photolysis of water in Photosystem II, not during carbon fixation"
  ],
  "order": 15,
- "whyYouNeed": "NSGs are the primary firewall mechanism inside Azure VNets. Without them, any VM in a subnet can communicate with any other VM on any port. On the AZ-104 exam, you must configure NSG rules that balance security with connectivity — a single misconfigured priority number can lock out RDP access or expose a database to the internet.",
- "technicalDetails": "NSGs contain inbound and outbound security rules evaluated by priority (100-4096, lower = higher priority). Each rule specifies source, destination, port, protocol, and action (Allow/Deny). Default rules allow VNet-to-VNet and outbound internet but deny all inbound from internet. NSGs can be associated with subnets (affects all NICs in subnet) or individual NICs (affects only that VM). When both are applied, traffic must pass BOTH rule sets.",
+ "whyYouNeed": "Exam questions present diagrams of the chloroplast and ask where specific molecules are produced. Students who cannot trace the electron flow from H₂O through PSII → cytochrome b6f → PSI → NADP⁺ reductase consistently misidentify the source of ATP vs. NADPH and lose marks on transport chain questions.",
+ "technicalDetails": "Light-dependent reactions occur on the thylakoid membrane. Photosystem II (P680) absorbs photons and splits water (photolysis: 2H₂O → 4H⁺ + 4e⁻ + O₂). Excited electrons pass through the electron transport chain (plastoquinone → cytochrome b6f → plastocyanin), creating a proton gradient that drives ATP synthase (chemiosmosis). Photosystem I (P700) re-energizes electrons, which reduce NADP⁺ to NADPH via ferredoxin and NADP⁺ reductase.",
  "workedExample": {{
-   "problem": "A web app VM in subnet WebTier needs to accept HTTPS (443) from the internet and communicate with a SQL VM in subnet DataTier on port 1433, but the SQL VM must not be reachable from the internet.",
-   "solution": "Create two NSGs: WebTier-NSG allows inbound 443 from Internet and outbound 1433 to DataTier subnet. DataTier-NSG allows inbound 1433 only from WebTier subnet CIDR and denies all inbound from Internet with a high-priority deny rule.",
+   "problem": "A plant is given water labeled with ¹⁸O (heavy oxygen isotope). Where will the ¹⁸O atoms appear — in the glucose produced or in the oxygen gas released?",
+   "solution": "The ¹⁸O will appear in the O₂ gas released, not in glucose. Oxygen gas comes from photolysis of water in PSII. The oxygen in glucose comes from CO₂ fixed in the Calvin cycle.",
    "steps": [
-     "Create WebTier-NSG with inbound rule: priority 100, source=Internet, dest=*, port=443, protocol=TCP, action=Allow",
-     "Create DataTier-NSG with inbound rule: priority 100, source=10.0.1.0/24 (WebTier CIDR), dest=*, port=1433, protocol=TCP, action=Allow",
-     "Add DataTier-NSG inbound rule: priority 200, source=Internet, dest=*, port=*, protocol=*, action=Deny",
-     "Associate WebTier-NSG with WebTier subnet, DataTier-NSG with DataTier subnet"
+     "Identify that water is split in the light-dependent reactions at Photosystem II",
+     "Recall the photolysis equation: 2H₂O → 4H⁺ + 4e⁻ + O₂ — the O₂ comes directly from H₂O",
+     "Recognize that CO₂ (not H₂O) provides the oxygen atoms incorporated into G3P and glucose during the Calvin cycle",
+     "Conclude: ¹⁸O from labeled water → released as ¹⁸O₂ gas"
    ]
  }},
  "mnemonic": {{
-   "anchor": "Nightclub Bouncer 🚪",
-   "story": "Picture a bouncer at a nightclub door holding a clipboard. Each line on the clipboard is a rule with a priority number. The bouncer checks IDs (source IP), dress code (port number), and VIP list (protocol) from top to bottom. First matching rule wins — if rule #100 says Allow and rule #200 says Deny, you get in. The bouncer remembers who entered (stateful), so they can leave without re-checking."
+   "anchor": "Solar Panel Factory ☀️",
+   "story": "Picture a rooftop solar panel (thylakoid membrane) with two relay stations (PSII and PSI). Sunlight hits the first panel, which cracks open water bottles (photolysis) releasing bubbles (O₂). The electrical current flows through wires (electron transport chain) to a battery charger (ATP synthase) that fills batteries (ATP). The second panel boosts the remaining current to power a special generator (NADP⁺ reductase) that produces fuel cells (NADPH)."
  }},
  "phase1": {{
-   "hookSentence": "Every VM in your VNet can talk to every other VM on every port by default — NSGs are the only thing standing between your database and the internet.",
-   "microMetaphor": "NSGs are bouncers at every door in your building — they check every packet's source IP, destination port, and protocol against a priority-ordered guest list before letting it through.",
-   "prerequisite": "Understanding of IP addressing, subnets, and TCP/UDP port numbers",
+   "hookSentence": "Plants absorb only 1-2%% of the sunlight hitting their leaves — yet this narrow band of captured photon energy drives the production of ATP and NADPH that powers virtually all life on Earth.",
+   "microMetaphor": "The thylakoid membrane is a hydroelectric dam — photolysis floods protons into the thylakoid space, and ATP synthase is the turbine that converts that proton gradient into usable energy.",
+   "prerequisite": "Understanding of basic cell organelles (chloroplast structure) and the concept of oxidation-reduction reactions",
    "selection": [
-     "When isolating web tier from data tier → Choose subnet-level NSGs with CIDR-based source rules → Unlocks zero-trust network segmentation",
-     "When a single VM needs unique rules → Choose NIC-level NSG → Unlocks per-VM security without affecting other VMs in the subnet"
+     "When tracing energy conversion → Follow the electron path from H₂O through PSII → ETC → PSI → NADPH → Unlocks ability to predict where inhibitors block the chain",
+     "When explaining ATP production → Focus on the proton gradient across the thylakoid membrane and chemiosmosis → Unlocks connection to cellular respiration's oxidative phosphorylation"
    ],
-   "execution": "Create NSG → Define inbound/outbound rules with priority, source, destination, port, protocol, action → Associate with subnet or NIC → Test connectivity with Network Watcher IP flow verify"
+   "execution": "Identify photon absorption at PSII → Trace electron flow through ETC → Explain proton gradient formation → Connect to ATP synthase → Follow PSI to NADPH production → Verify with isotope tracing experiments"
  }},
  "phase2": [
    {{
-     "title": "Rule evaluation order",
-     "content": "Rules are processed by priority number (lowest first). Once a matching rule is found, processing stops. Default rules at priority 65000+ allow VNet-to-VNet and outbound internet. You cannot delete default rules but can override them with higher-priority (lower number) custom rules."
+     "title": "Non-cyclic electron flow",
+     "content": "The primary pathway: electrons flow from H₂O → PSII → plastoquinone → cytochrome b6f → plastocyanin → PSI → ferredoxin → NADP⁺ reductase → NADPH. This produces both ATP (via the proton gradient) and NADPH. Oxygen is released as a byproduct of water splitting."
    }},
    {{
-     "title": "Subnet vs NIC association",
-     "content": "When an NSG is on both the subnet and the NIC, inbound traffic must pass the subnet NSG first, then the NIC NSG. Outbound traffic passes NIC NSG first, then subnet NSG. This means the effective rules are the intersection (most restrictive combination) of both NSGs."
+     "title": "Cyclic electron flow",
+     "content": "When the Calvin cycle demands more ATP than NADPH, electrons from PSI cycle back through cytochrome b6f instead of reducing NADP⁺. This generates additional ATP without producing NADPH or O₂. It fine-tunes the ATP:NADPH ratio."
    }},
    {{
-     "title": "Service Tags and ASGs",
-     "content": "Instead of hardcoding IP ranges, use Service Tags (e.g., Internet, VirtualNetwork, AzureLoadBalancer, Storage) as source/destination. Application Security Groups let you group VM NICs and reference them in rules, eliminating the need to manage individual IPs."
+     "title": "Photophosphorylation vs. oxidative phosphorylation",
+     "content": "Both use a proton gradient + ATP synthase, but photophosphorylation uses light energy to drive electron flow across the thylakoid membrane, while oxidative phosphorylation uses chemical energy from NADH/FADH₂ across the inner mitochondrial membrane."
    }}
  ],
  "phase3": {{
-   "tool": "Azure Network Watcher → IP Flow Verify",
-   "metrics": ["Verify specific traffic is allowed/denied between two VMs", "Check which NSG rule is blocking traffic"]
+   "tool": "Hill reaction assay — measure O₂ evolution rate with isolated chloroplasts and an electron acceptor (DCPIP)",
+   "metrics": ["Rate of O₂ evolution under different light wavelengths", "DCPIP reduction (color change from blue to colorless) as proxy for electron transport activity"]
  }},
  "shape": {{
-   "simpleCore": "NSGs filter network traffic to and from Azure resources using priority-ordered allow/deny rules based on source, destination, port, and protocol.",
-   "highStakesExample": "Azure Cosmos DB Vulnerability (2021) — ChaosDB: Researchers discovered that Jupyter Notebook integration in Cosmos DB granted access to other customers' primary keys. Microsoft disabled the feature and rotated keys, but the breach showed how overly permissive network rules between internal services can cascade into full data exposure.",
-   "analogicalModel": "Like airport security checkpoints: each checkpoint (NSG) has a rulebook (security rules). Passengers (packets) are checked against rules in order. First matching rule determines if you board (Allow) or get turned away (Deny). Having checkpoints at both the terminal entrance (subnet) and the gate (NIC) means you pass through two screenings.",
+   "simpleCore": "The light-dependent reactions capture solar energy to split water, releasing O₂ and converting ADP + Pi to ATP and NADP⁺ to NADPH — the energy carriers that fuel the Calvin cycle.",
+   "highStakesExample": "Deepwater Horizon Oil Spill (2010) — the massive crude oil layer on the Gulf of Mexico surface blocked sunlight penetration, reducing phytoplankton photosynthesis by up to 50%% in affected zones. Since marine phytoplankton produce ~50%% of Earth's oxygen via light-dependent reactions, the spill demonstrated how disrupting photon availability cascades through the entire global oxygen budget.",
+   "analogicalModel": "Like a two-stage rocket: Stage 1 (PSII) provides the initial thrust by cracking fuel (water), releasing exhaust (O₂) and pushing electrons forward. Stage 2 (PSI) reignites the electrons with a second photon boost to reach escape velocity (NADPH). The transfer tunnel between stages (ETC) harvests momentum to spin a generator (ATP synthase).",
    "patternRecognition": {{
-     "question": "A VM in SubnetA cannot reach a VM in SubnetB on port 3306. Both subnets have NSGs. SubnetA NSG has an outbound Allow rule for port 3306. SubnetB NSG has no custom inbound rules. Why is traffic blocked?",
-     "answer": "The default inbound rules in SubnetB's NSG allow VirtualNetwork traffic, so VNet-to-VNet on 3306 should work. Check if there is a higher-priority Deny rule in SubnetB's NSG, or if NIC-level NSGs on the destination VM are blocking port 3306."
+     "question": "A researcher adds DCMU (a herbicide that blocks electron flow from PSII to plastoquinone) to isolated chloroplasts. What happens to O₂ production, ATP synthesis, and NADPH production?",
+     "answer": "O₂ production stops (water splitting still occurs but electrons cannot leave PSII). Non-cyclic ATP synthesis stops (no electron flow through cytochrome b6f). NADPH production stops (no electrons reach PSI). However, cyclic photophosphorylation around PSI may still produce some ATP if PSI is independently activated."
    }},
-   "eliminationLogic": "NSG for L3/L4 filtering (IP, port, protocol); Azure Firewall for L7 filtering (FQDN, URL path, TLS inspection); WAF for HTTP-specific attacks (SQL injection, XSS)."
+   "eliminationLogic": "Light-dependent reactions = thylakoid membrane, need light, produce ATP + NADPH + O₂; Calvin cycle = stroma, do not directly need light, consume ATP + NADPH, produce G3P. If a question mentions O₂ release → light-dependent. If it mentions carbon fixation → Calvin cycle."
  }},
  "keyPoints": [
-   "Rules evaluated by priority number — lowest number wins",
-   "Stateful: return traffic automatically allowed",
-   "Can attach to subnet (all VMs) or NIC (single VM)",
-   "Default rules allow VNet-to-VNet and outbound internet",
-   "Service Tags replace hardcoded IP ranges"
+   "Occurs on thylakoid membranes inside chloroplasts",
+   "Photolysis of water at PSII releases O₂ and provides electrons",
+   "Electron transport chain creates proton gradient for ATP synthase (chemiosmosis)",
+   "PSI reduces NADP⁺ to NADPH via ferredoxin",
+   "Cyclic electron flow produces only ATP (no NADPH or O₂)"
  ],
  "scoring": {{
-   "keywords": ["NSG", "security rules", "priority", "stateful", "subnet association"],
-   "aliases": ["network security group", "NSG rules", "traffic filtering"]
+   "keywords": ["light-dependent", "thylakoid", "photolysis", "photosystem", "chemiosmosis", "ATP synthase"],
+   "aliases": ["light reactions", "photo-dependent reactions", "thylakoid reactions"]
  }},
  "criticalDistinctions": [
-   {{ "correct": "NSGs are stateful — if inbound TCP 443 is allowed, the response traffic is automatically permitted without an outbound rule", "incorrect": "You need matching inbound AND outbound rules for every connection" }},
-   {{ "correct": "When NSGs are on both subnet and NIC, traffic must pass BOTH (intersection/most restrictive)", "incorrect": "NIC-level NSG overrides subnet-level NSG" }}
+   {{ "correct": "O₂ is released from the splitting of H₂O at Photosystem II (photolysis)", "incorrect": "O₂ is produced during the Calvin cycle when CO₂ is fixed into glucose" }},
+   {{ "correct": "Non-cyclic flow produces both ATP and NADPH; cyclic flow produces only ATP", "incorrect": "Cyclic electron flow produces both ATP and NADPH but skips water splitting" }}
  ],
  "designBoundaries": [
-   {{ "boundary": "NSGs operate at L3/L4 only", "rationale": "They cannot inspect HTTP headers, URLs, or payload content — use Azure Firewall or WAF for L7 filtering" }}
+   {{ "boundary": "Light-dependent reactions produce energy carriers (ATP, NADPH) but do NOT fix carbon", "rationale": "Carbon fixation occurs in the Calvin cycle in the stroma — confusing these locations is the #1 exam error" }}
  ],
  "connections": [
-   {{ "target": "Virtual Network Security", "type": "is-part-of" }},
-   {{ "target": "IP Addressing and Subnets", "type": "requires" }},
-   {{ "target": "Application Security Groups", "type": "is-type-of" }},
-   {{ "target": "Virtual Machines", "type": "constrains" }},
-   {{ "target": "Azure Firewall", "type": "causes" }}
+   {{ "target": "Photosynthesis Mechanisms", "type": "is-part-of" }},
+   {{ "target": "Chloroplast Structure", "type": "requires" }},
+   {{ "target": "Cyclic Photophosphorylation", "type": "is-type-of" }},
+   {{ "target": "Calvin Cycle", "type": "enables" }},
+   {{ "target": "ATP Synthase", "type": "causes" }}
  ]
 }}
 ```
-**CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must have this level of technical depth. If a field could apply to any concept by just swapping the name, the content is too generic and will be rejected.
+**CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must match this level of depth and specificity **for your subject domain**. Adapt all terminology, examples, and scenarios to the actual subject being generated. If a field could apply to any concept by just swapping the name, the content is too generic and will be rejected.
 ---
 ## 5. CRITICAL RULES
 1. **TREE INTEGRITY**: Every branch `parentName` = trunk name. Every leaf `parentName` = a branch name. Trunk `parentName` = null.
 2. **QUANTITY**: Generate approximately {count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).
 3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
 4. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
-5. **EXAM CONTEXT**: Every concept framed for the exam, not real-world job context.
-6. **REAL EXAMPLES**: `shape.highStakesExample` must be a real case study with company name and year. **SUBJECT-SPECIFIC**: For Azure subjects use Azure incidents, for AWS subjects use AWS incidents, etc. Do NOT use AWS breach examples (e.g. Capital One S3, Uber S3) for Azure or GCP subjects.
+5. **ASSESSMENT CONTEXT**: Every concept framed for how it would be tested or assessed, not casual exploration.
+6. **REAL EXAMPLES**: `shape.highStakesExample` must reference a real event, case study, or documented scenario with specifics (names, dates, outcomes). **SUBJECT-SPECIFIC**: Use examples from the actual subject domain — technology subjects use tech incidents, law subjects use landmark cases, science subjects use documented experiments or events, etc.
 7. **NO DUPLICATION**: Only generate for "{domain_name}". Other domains are separate.
 8. **UNIQUE EXAMPLES**: Every concept MUST use a DIFFERENT company/incident for `highStakesExample`. Never repeat the same case study across concepts. Every `mnemonic.anchor` must be a unique physical object — no two concepts may share the same anchor. Every `shape.patternRecognition.question` must present a unique scenario.
 9. **CRITICAL DISTINCTIONS QUALITY**: The `incorrect` side must be a **plausible misconception** that a real student would hold — NOT an obviously wrong strawman. Bad: "IaaS and PaaS are the same thing". Good: "PaaS handles OS patching automatically" vs "PaaS still requires you to manage OS updates like IaaS".
@@ -490,13 +493,17 @@ def get_tree_generation_prompt(
     subtopics = domain.get("subtopics", [])
     total_target = 100
     domain_concept_target = max(10, int(total_target * weight))
-    if subtopics:
-        branch_count = len(subtopics)
+    has_string_subtopics = subtopics and all(isinstance(st, str) for st in subtopics)
+    has_dict_subtopics = subtopics and any(isinstance(st, dict) for st in subtopics)
+    if has_dict_subtopics:
+        branch_count = sum(1 for st in subtopics if isinstance(st, dict))
+    elif has_string_subtopics:
+        branch_count = max(3, min(6, len(subtopics) // 3))
     else:
         branch_count = max(3, min(6, domain_concept_target // 5))
     leaf_target = domain_concept_target - 1 - branch_count
     count = 1 + branch_count + leaf_target
-    if subtopics:
+    if has_dict_subtopics:
         branch_lines = []
         for st in subtopics:
             if isinstance(st, dict):
@@ -508,9 +515,12 @@ def get_tree_generation_prompt(
             elif isinstance(st, str):
                 branch_lines.append(f"- **{st}**")
         branch_list = "\n".join(branch_lines)
+    elif has_string_subtopics:
+        branch_list = f"(Group the {len(subtopics)} exam objectives below into {branch_count} logical sub-topic branches. Each branch should cover a coherent cluster of related objectives.)"
     else:
         branch_list = f"(Determine {branch_count} logical sub-topic groupings for this domain based on exam structure)"
-    if subtopics:
+    nl = "\n"
+    if has_dict_subtopics:
         objective_lines = []
         for st in subtopics:
             if isinstance(st, dict):
@@ -520,10 +530,12 @@ def get_tree_generation_prompt(
                 for obj in objectives:
                     objective_lines.append(f"  - {obj}")
         if objective_lines:
-            nl = "\n"
             context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above."
         else:
             context_block = ""
+    elif has_string_subtopics:
+        objective_lines = [f"  - {st}" for st in subtopics]
+        context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above. Group related objectives under {branch_count} branch concepts."
     elif context:
         context_block = f"### USER-PROVIDED CONTEXT:\n{context}\n**INSTRUCTION**: Map concepts for domain \"{domain_name}\" to relevant objectives above."
     else:
@@ -543,7 +555,6 @@ def get_tree_generation_prompt(
         "cyclic": "Adaptive Integration",
         "perceptual": "Embodied Judgment",
     }
-    start_idx = domain_index * count + 1
     return TREE_GENERATION_PROMPT.format(
         subject=subject,
         domain_name=domain_name,
@@ -558,29 +569,7 @@ def get_tree_generation_prompt(
         branch_count=branch_count,
         branch_list=branch_list,
         leaf_target=leaf_target,
-        start_idx=start_idx,
         count=count,
-    )
-def get_silver_bullet_prompt(
-    subject: str,
-    part: int = 1,
-    context: str = "",
-    classification: dict = None,
-) -> str:
-    domains = _get_exam_domains(context, classification)
-    if not domains:
-        default_weight = 0.20
-        domains = [{"name": f"Domain {i+1}", "weight": default_weight, "subtopics": []} for i in range(5)]
-    domain_index = max(0, min(part - 1, len(domains) - 1))
-    domain = domains[domain_index]
-    return get_tree_generation_prompt(
-        subject=subject,
-        domain=domain,
-        domain_index=domain_index,
-        total_domains=len(domains),
-        context=context,
-        classification=classification,
-        all_domains=domains,
     )
 # =============================================================================
 # SURGICAL FIX PROMPT (Single Concept Repair)

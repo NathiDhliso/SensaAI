@@ -32,9 +32,6 @@ export type Pass1Result = {
  roleScope: string;
  excludedActions: string[];
  concepts: string[];
- numericalLimits: string[];
- recentUpdates: string[];
- sourceVerification: string;
  lifecycleJustification?: string;
 };
 /**
@@ -119,4 +116,4 @@ export type ProgressCallback = (
  roleScope?: string;
  streamedConcepts?: StreamedConceptPreview[];
  } & Partial<Pass1Result> & Partial<ValidationResult>
-) => void;
+) => void;

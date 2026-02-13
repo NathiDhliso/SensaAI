@@ -152,29 +152,26 @@ export default function ContentLaunchpad() {
  }
  if (concept.shape) {
  const s = concept.shape;
- if (s.simpleCore || s.simple) {
- lines.push(`Simple Core: ${s.simpleCore || s.simple}`);
+ if (s.simpleCore) {
+ lines.push(`Simple Core: ${s.simpleCore}`);
  lines.push('');
  }
- if (s.highStakesExample || s.highStakes) {
- lines.push(`High-Stakes Example: ${s.highStakesExample || s.highStakes}`);
+ if (s.highStakesExample) {
+ lines.push(`High-Stakes Example: ${s.highStakesExample}`);
  lines.push('');
  }
- if (s.analogicalModel || s.analogy) {
- lines.push(`Analogy: ${s.analogicalModel || s.analogy}`);
+ if (s.analogicalModel) {
+ lines.push(`Analogy: ${s.analogicalModel}`);
  lines.push('');
  }
- if (s.patternRecognition || s.pattern) {
- const p = s.patternRecognition || s.pattern;
- if (p) {
+ if (s.patternRecognition) {
  lines.push('Pattern Recognition:');
- lines.push(`  Q: ${p.question}`);
- lines.push(`  A: ${p.answer}`);
+ lines.push(`  Q: ${s.patternRecognition.question}`);
+ lines.push(`  A: ${s.patternRecognition.answer}`);
  lines.push('');
  }
- }
- if (s.eliminationLogic || s.elimination) {
- lines.push(`Elimination Logic: ${s.eliminationLogic || s.elimination}`);
+ if (s.eliminationLogic) {
+ lines.push(`Elimination Logic: ${s.eliminationLogic}`);
  lines.push('');
  }
  }
@@ -221,11 +218,6 @@ export default function ContentLaunchpad() {
  if (concept.designBoundaries?.length) {
  lines.push('Design Boundaries:');
  concept.designBoundaries.forEach((b) => lines.push(`  - ${b}`));
- lines.push('');
- }
- if (concept.examFocus?.length) {
- lines.push('Exam Focus:');
- concept.examFocus.forEach((e) => lines.push(`  - ${e}`));
  lines.push('');
  }
  if (concept.commonPitfalls?.length) {

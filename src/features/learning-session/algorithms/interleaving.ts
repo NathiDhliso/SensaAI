@@ -259,9 +259,7 @@ export class InterleavingAlgorithm {
  const reverseConn = to.connections?.find(
  c => c.target.toLowerCase() === from.name.toLowerCase()
  );
- if (to.logicalConnection && to.logicalConnection.length > 10) {
- transitionMessage = to.logicalConnection;
- } else if (conn) {
+ if (conn) {
  const verbMap: Record<string, string> = {
  'requires': `${to.name} requires ${from.name} — let's build on that foundation.`,
  'enables': `${from.name} enables ${to.name} — time to unlock this next layer.`,

@@ -170,8 +170,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  phase2: [],
  phase3: { tool: '', metrics: [], thresholds: '' },
  criticalDistinctions: [],
- designBoundaries: [],
- examFocus: []
+ designBoundaries: []
  });
  }
  }

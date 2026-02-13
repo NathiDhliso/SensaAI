@@ -166,15 +166,11 @@ function parseDomainAnalysis(content: string): ParsedDomainAnalysis {
  }
  return {
  domain,
- professionalRole: extractValue(content, 'Professional Role:') || 'Learner',
  subjectType,
  classification,
  macroStructure,
  connectiveTissue,
  lifecycle,
- sourceVerification: 'Documentation',
- recentUpdates: extractListItems(content, 'Recent Updates:'),
- numericalLimits: extractListItems(content, 'Numerical Limits:'),
  coreConceptsCount: conceptNames.length || parseInt(extractValue(content, 'Core Concepts Identified:') || '0', 10),
  conceptNames
  };
@@ -183,23 +179,6 @@ function extractValue(content: string, marker: string): string | undefined {
  const regex = new RegExp(`${marker}\\s*(.+?)(?:\\n|$)`, 'i');
  const match = content.match(regex);
  return match?.[1]?.trim();
-}
-function extractListItems(content: string, marker: string): string[] {
- const startIndex = content.indexOf(marker);
- if (startIndex === -1) return [];
- const sectionContent = content.substring(startIndex + marker.length, startIndex + 1000);
- const items: string[] = [];
- const lines = sectionContent.split('\n');
- for (const line of lines) {
- const trimmed = line.trim();
- if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
- items.push(trimmed.replace(/^[•-]\s*/, ''));
- } else if (trimmed.length > 0 && !trimmed.includes(':') && items.length > 0) {
- // Stop at next section
- break;
- }
- }
- return items;
 }
 // ============================================================================
 // CONCEPTS PARSER
@@ -424,17 +403,13 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
  // --- EXTRACT PHASE 2 FIELDS ---
  const criticalDistinctions: string[] = [];
  const designBoundaries: string[] = [];
- const examFocus: string[] = [];
- // Regex for bolded markers
  const cdRegex = /\*\*\[Critical Distinction\]:\*\*\s*([^\n]+)/gi;
  const dbRegex = /\*\*\[Design Boundary\]:\*\*\s*([^\n]+)/gi;
- const efRegex = /\*\*\[Exam Focus\]:\*\*\s*([^\n]+)/gi;
  const pcRegex = /\*\*\[Prerequisite Check\]:\*\*\s*([^\n]+)/gi;
  let m;
  while ((m = cdRegex.exec(p2Text)) !== null) criticalDistinctions.push(m[1].trim());
  while ((m = dbRegex.exec(p2Text)) !== null) designBoundaries.push(m[1].trim());
- while ((m = efRegex.exec(p2Text)) !== null) examFocus.push(m[1].trim());
- while ((m = pcRegex.exec(p2Text)) !== null) designBoundaries.push(m[1].trim()); // Treat prereq checks as boundaries
+ while ((m = pcRegex.exec(p2Text)) !== null) designBoundaries.push(m[1].trim());
  // --- EXTRACT SHAPE SECTIONS (V4 PROMPT) ---
  const shapeSimple = blockContent.match(/\*\*S - SIMPLE CORE\*\*\s*(?:\([^)]+\)\s*)?\n([^\n]+)/i);
  const shapeHighStakes = blockContent.match(/\*\*H - HIGH-STAKES EXAMPLE\*\*\s*(?:\([^)]+\)\s*)?\n([\s\S]*?)(?=\n\*\*A -|\n\*\*P -|$)/i);
@@ -459,7 +434,6 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
  phase2: [], // Deprecated in V4, using specific arrays below
  criticalDistinctions,
  designBoundaries,
- examFocus,
  // Phase 3
  phase3: {
  tool: p3Text.match(/Tool:\s*([^\n]+)/i)?.[1]?.trim() || '',
@@ -632,8 +606,7 @@ function createDefaultParsedConcept(order: number, name: string, content: string
  },
  mnemonic,
  criticalDistinctions: [],
- designBoundaries: [],
- examFocus: []
+ designBoundaries: []
  };
 }
 function extractConceptField(content: string, conceptName: string, fieldName: string): string {
@@ -742,7 +715,6 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  // NEW: Extract root-level fields that UI needs (whyYouNeed, technicalDetails)
  const whyYouNeed = typeof c.whyYouNeed === 'string' ? c.whyYouNeed : '';
  const technicalDetails = typeof c.technicalDetails === 'string' ? c.technicalDetails : '';
- const tierJustification = typeof c.tierJustification === 'string' ? c.tierJustification : '';
  const workedExample = c.workedExample && typeof c.workedExample === 'object' ? c.workedExample : undefined;
  const keyPoints = Array.isArray(c.keyPoints) ? c.keyPoints as string[] : [];
  // Phase 2: Extract cognitive classification
@@ -754,48 +726,26 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  }
  }
  const commonPitfalls = Array.isArray(c.commonPitfalls) ? c.commonPitfalls as string[] : [];
- // Check for lifecycle wrapper first (legacy format)
- if (c.lifecycle && typeof c.lifecycle === 'object') {
- const lifecycle = c.lifecycle as Record<string, unknown>;
- if (lifecycle.phase1 && typeof lifecycle.phase1 === 'object') {
- const p1 = lifecycle.phase1 as Record<string, unknown>;
+ if (c.phase1 && typeof c.phase1 === 'object') {
+ const p1 = c.phase1 as Record<string, unknown>;
  hookSentence = typeof p1.hookSentence === 'string' ? p1.hookSentence : '';
  microMetaphor = typeof p1.microMetaphor === 'string' ? p1.microMetaphor : '';
  prerequisite = typeof p1.prerequisite === 'string' ? p1.prerequisite : '';
  execution = typeof p1.execution === 'string' ? p1.execution : '';
  selection = Array.isArray(p1.selection) ? p1.selection as string[] : [];
  }
- if (Array.isArray(lifecycle.phase2)) {
- phase2 = lifecycle.phase2 as string[];
- }
- if (lifecycle.phase3 && typeof lifecycle.phase3 === 'object') {
- const p3 = lifecycle.phase3 as Record<string, unknown>;
- tool = typeof p3.tool === 'string' ? p3.tool : '';
- metrics = Array.isArray(p3.metrics) ? p3.metrics as string[] : [];
- thresholds = typeof p3.thresholds === 'string' ? p3.thresholds : '';
- }
- }
- // ALSO check root-level phase1/2/3 (new prompt format puts them at root)
- if (c.phase1 && typeof c.phase1 === 'object') {
- const p1 = c.phase1 as Record<string, unknown>;
- if (!hookSentence) hookSentence = typeof p1.hookSentence === 'string' ? p1.hookSentence : '';
- if (!microMetaphor) microMetaphor = typeof p1.microMetaphor === 'string' ? p1.microMetaphor : '';
- if (!prerequisite) prerequisite = typeof p1.prerequisite === 'string' ? p1.prerequisite : '';
- if (!execution) execution = typeof p1.execution === 'string' ? p1.execution : '';
- if (selection.length === 0) selection = Array.isArray(p1.selection) ? p1.selection as string[] : [];
- }
- if (phase2.length === 0 && Array.isArray(c.phase2)) {
+ if (Array.isArray(c.phase2)) {
  phase2 = (c.phase2 as Array<{ title?: string; content?: string } | string>).map(item => {
  if (typeof item === 'string') return item;
  if (typeof item === 'object' && item.content) return item.content;
  return '';
  }).filter(Boolean);
  }
- if (!tool && c.phase3 && typeof c.phase3 === 'object') {
+ if (c.phase3 && typeof c.phase3 === 'object') {
  const p3 = c.phase3 as Record<string, unknown>;
  tool = typeof p3.tool === 'string' ? p3.tool : '';
- if (metrics.length === 0) metrics = Array.isArray(p3.metrics) ? p3.metrics as string[] : [];
- if (!thresholds) thresholds = typeof p3.thresholds === 'string' ? p3.thresholds : '';
+ metrics = Array.isArray(p3.metrics) ? p3.metrics as string[] : [];
+ thresholds = typeof p3.thresholds === 'string' ? p3.thresholds : '';
  }
  // Extract SHAPE data
  let shape: ParsedConcept['shape'];
@@ -859,15 +809,12 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  }).filter(Boolean);
  let criticalDistinctions: string[] = [];
  let designBoundaries: string[] = [];
- let examFocus: string[] = [];
  if (Array.isArray(c.criticalDistinctions)) criticalDistinctions = flattenAnnotation(c.criticalDistinctions);
  if (Array.isArray(c.designBoundaries)) designBoundaries = flattenAnnotation(c.designBoundaries);
- if (Array.isArray(c.examFocus)) examFocus = flattenAnnotation(c.examFocus);
  if (criticalDistinctions.length === 0 && c.annotations && typeof c.annotations === 'object') {
  const a = c.annotations as Record<string, unknown>;
  if (Array.isArray(a.criticalDistinctions)) criticalDistinctions = flattenAnnotation(a.criticalDistinctions);
  if (Array.isArray(a.designBoundaries)) designBoundaries = flattenAnnotation(a.designBoundaries);
- if (Array.isArray(a.examFocus)) examFocus = flattenAnnotation(a.examFocus);
  }
  return {
  id: `concept-${order}`,
@@ -880,7 +827,6 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  prerequisite,
  selection,
  execution,
- ...((c.lifecycle && typeof c.lifecycle === 'object' ? (c.lifecycle as Record<string, unknown>).phase1 as Record<string, unknown> : {}) || {}),
  ...((c.phase1 && typeof c.phase1 === 'object') ? c.phase1 as Record<string, unknown> : {})
  },
  phase2,
@@ -893,11 +839,8 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  mnemonic,
  criticalDistinctions,
  designBoundaries,
- examFocus,
- // NEW: Root-level fields for UI consumption
  whyYouNeed,
  technicalDetails,
- tierJustification,
  workedExample: workedExample ? {
  problem: (workedExample as Record<string, unknown>).problem as string || '',
  solution: (workedExample as Record<string, unknown>).solution as string || '',

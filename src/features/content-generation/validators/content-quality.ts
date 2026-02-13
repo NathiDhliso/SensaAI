@@ -14,10 +14,6 @@ export interface VerifiableConcept {
  hookSentence?: string;
  whyYouNeed?: string;
  technicalDetails?: string;
- realWorldExample?: string;
- metaphor?: string;
- officialSource?: string;
- blueprintMapping?: string;
  mnemonic?: { anchor?: string; story?: string;[key: string]: unknown };
  shape?: {
  simpleCore?: string;
@@ -27,25 +23,6 @@ export interface VerifiableConcept {
  eliminationLogic?: string;
  };
  [key: string]: unknown;
-}
-const OFFICIAL_DOMAINS = [
- 'learn.microsoft.com',
- 'docs.microsoft.com',
- 'docs.aws.amazon.com',
- 'cloud.google.com',
- 'docs.oracle.com',
- 'kubernetes.io',
- 'developer.hashicorp.com',
- 'docs.docker.com'
-];
-export function isValidOfficialUrl(url: string | undefined): boolean {
- if (!url || url.trim() === '') return false;
- try {
- const parsedUrl = new URL(url);
- return OFFICIAL_DOMAINS.some(domain => parsedUrl.hostname.includes(domain));
- } catch {
- return false;
- }
 }
 const PLACEHOLDER_PATTERNS = [
  'pending generation',
@@ -90,7 +67,6 @@ export function auditConceptContent(concept: {
  hookSentence?: string;
  whyYouNeed?: string;
  technicalDetails?: string;
- realWorldExample?: string;
  mnemonic?: { story?: string };
  shape?: { simpleCore?: string; highStakesExample?: string };
 }): void {
@@ -101,9 +77,6 @@ export function auditConceptContent(concept: {
  }
  if (!isRealContent(concept.whyYouNeed, concept.name)) {
  gaps.push('whyYouNeed');
- }
- if (!isRealContent(concept.realWorldExample, concept.name)) {
- gaps.push('realWorldExample');
  }
  if (!isRealContent(concept.technicalDetails, concept.name)) {
  gaps.push('technicalDetails');
@@ -144,15 +117,6 @@ export function validateConceptContent(concept: VerifiableConcept): ContentGap[]
  message: 'Missing "why you need" explanation'
  });
  }
- if (!isRealContent(concept.realWorldExample || '', concept.name)) {
- gaps.push({
- field: 'realWorldExample',
- conceptId: concept.id,
- conceptName: concept.name,
- severity: 'critical',
- message: 'Missing real-world example'
- });
- }
  if (!concept.mnemonic?.story || !isRealContent(concept.mnemonic.story || '', concept.name)) {
  gaps.push({
  field: 'mnemonic.story',
@@ -178,24 +142,6 @@ export function validateConceptContent(concept: VerifiableConcept): ContentGap[]
  conceptName: concept.name,
  severity: 'critical',
  message: 'Missing SHAPE high-stakes example'
- });
- }
- if (!concept.officialSource || !isValidOfficialUrl(concept.officialSource)) {
- gaps.push({
- field: 'officialSource',
- conceptId: concept.id,
- conceptName: concept.name,
- severity: 'warning',
- message: 'Missing official documentation URL'
- });
- }
- if (!concept.blueprintMapping || concept.blueprintMapping.length < 10) {
- gaps.push({
- field: 'blueprintMapping',
- conceptId: concept.id,
- conceptName: concept.name,
- severity: 'warning',
- message: 'Missing exam blueprint objective mapping'
  });
  }
  return gaps;
@@ -229,4 +175,4 @@ export function verifyContextRelevance(subjectTitle: string, fileContent: string
  score: Math.min(1.0, rawScore),
  keywords: subjectKeywords
  };
-}
+}

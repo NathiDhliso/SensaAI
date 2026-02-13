@@ -1,5 +1,5 @@
 # Production Environment Configuration
-# Fully distinct state and resources from pilot
+# Fully distinct state and resources from dev
 
 terraform {
   required_version = ">= 1.6.0"
