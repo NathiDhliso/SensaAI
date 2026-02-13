@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { lazy, Suspense, useEffect } from 'react';
 import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
+import { AppErrorBoundary } from './components/error/AppErrorBoundary';
 import BackgroundJobToast from './components/ui/BackgroundJobToast';
 import { useAuthStore } from './store/auth-store';
 
@@ -37,6 +38,7 @@ function App() {
  }, [initializeAuthListeners]);
 
  return (
+ <AppErrorBoundary>
  <BrowserRouter>
  <Suspense fallback={<LoadingFallback />}>
  <Routes>
@@ -100,6 +102,7 @@ function App() {
  <BackgroundJobToast />
  </Suspense>
  </BrowserRouter>
+ </AppErrorBoundary>
  );
 }
 

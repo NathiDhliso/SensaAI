@@ -168,10 +168,9 @@ export default function Generate() {
  const timeout = setTimeout(() => {
  const currentState = useGenerationStore.getState();
  if (!currentState.isGenerating && !currentState.error) {
- const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
  _setError(
- `Unable to connect to the generation server (${apiUrl}). ` +
- 'This usually means the backend is unreachable or took too long to respond. ' +
+ 'Unable to connect to the generation server. ' +
+ 'This usually means the server is temporarily unavailable. ' +
  'Please check your connection and try again.'
  );
  }
@@ -361,18 +360,18 @@ export default function Generate() {
  {error && (
  <div className={styles.confirmOverlay}>
  <div className={styles.confirmDialog} style={{ border: `1px solid ${COLORS.error}` }}>
- <h3 style={{ color: COLORS.error }}>Critical Logic Failure</h3>
+ <AlertCircle size={32} style={{ color: COLORS.error, marginBottom: '0.5rem' }} />
+ <h3 style={{ color: COLORS.error }}>Generation Failed</h3>
  <p>{error}</p>
  <div className={styles.confirmActions}>
  <button onClick={() => navigate('/')} className={styles.secondaryButton}>
- Abort
+ Back to Home
  </button>
  <button
  onClick={() => handleRetry(decodedSubject)}
  className={styles.primaryButton}
- style={{ background: COLORS.error, borderColor: COLORS.error }}
  >
- Re-Initialize
+ Try Again
  </button>
  </div>
  </div>

@@ -15,6 +15,7 @@ import { ALL_CERTS, getDomainsAsTrunks, getTasksAsObjectives } from '@/shared/co
 import type { CertEntry } from '@/shared/constants/exam-catalogs';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
+import { toast } from '@/shared/utils/toast';
 import styles from './Home.module.css';
 const SUBJECT_CATEGORIES = [
  {
@@ -218,6 +219,7 @@ export default function Home() {
  }
  } catch (err) {
  console.error('[Home] Suggest structure failed:', err);
+ toast.error('Unable to analyze subject structure. Please try again.');
  } finally {
  setSuggesting(false);
  }
