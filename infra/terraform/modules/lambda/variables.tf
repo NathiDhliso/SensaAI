@@ -8,7 +8,7 @@ variable "environment" {
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string
-  default     = "sensapbl"
+  default     = "sensaai"
 }
 
 # DynamoDB Integration

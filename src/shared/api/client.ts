@@ -137,7 +137,7 @@ export function getErrorMessage(error: unknown, fallback: string = 'An unexpecte
 // ============================================================================
 function getAccessToken(): string | null {
   try {
-    const stored = localStorage.getItem('sensapbl-auth');
+    const stored = localStorage.getItem('sensaai-auth');
     if (stored) {
       const parsed = JSON.parse(stored);
       return parsed?.state?.tokens?.access_token || null;
@@ -431,12 +431,30 @@ export interface AuthTokens {
   expires_in: number;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+  givenName?: string;
+  familyName?: string;
+  phoneNumber?: string;
+  preferredUsername?: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  givenName?: string;
+  familyName?: string;
+  phoneNumber?: string;
+  preferredUsername?: string;
+}
+
 export const authSessionApi = {
   async exchangeCode(
     code: string,
     redirectUri: string,
     codeVerifier: string
-  ): Promise<{ user: { id: string; email: string; name?: string }; tokens: AuthTokens }> {
+  ): Promise<{ user: AuthUser; tokens: AuthTokens }> {
     return apiClient.post('/auth/exchange', {
       code,
       redirect_uri: redirectUri,
@@ -447,7 +465,7 @@ export const authSessionApi = {
   async loginWithCredentials(
     email: string,
     password: string
-  ): Promise<{ user: { id: string; email: string; name?: string }; tokens: AuthTokens }> {
+  ): Promise<{ user: AuthUser; tokens: AuthTokens }> {
     return apiClient.post('/auth/login', {
       email,
       password
@@ -468,12 +486,20 @@ export const authSessionApi = {
 
   async validateSession(): Promise<{
     valid: boolean;
-    user?: { id: string; email: string; name?: string };
+    user?: AuthUser;
   }> {
     try {
       return await apiClient.get('/auth/validate');
     } catch {
       return { valid: false };
     }
+  },
+
+  async getProfile(): Promise<{ user: AuthUser }> {
+    return apiClient.get('/auth/profile');
+  },
+
+  async updateProfile(payload: UpdateProfileRequest): Promise<{ user: AuthUser }> {
+    return apiClient.put('/auth/profile', payload);
   }
 };

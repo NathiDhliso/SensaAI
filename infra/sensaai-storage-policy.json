@@ -11,7 +11,7 @@
                 "dynamodb:DeleteItem",
                 "dynamodb:Query"
             ],
-            "Resource": "arn:aws:dynamodb:us-east-1:311964231104:table/sensapbl-dev-results"
+            "Resource": "arn:aws:dynamodb:us-east-1:311964231104:table/sensaai-dev-results"
         },
         {
             "Sid": "S3Access",
@@ -23,8 +23,8 @@
                 "s3:ListBucket"
             ],
             "Resource": [
-                "arn:aws:s3:::sensapbl-dev-content-311964231104",
-                "arn:aws:s3:::sensapbl-dev-content-311964231104/*"
+                "arn:aws:s3:::sensaai-dev-content-311964231104",
+                "arn:aws:s3:::sensaai-dev-content-311964231104/*"
             ]
         }
     ]

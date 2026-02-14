@@ -7,7 +7,7 @@
 
 ## Overview
 
-SensaPBL uses an API-first storage architecture. Concepts are stored in DynamoDB via Lambda during generation and fetched via API endpoints. The frontend no longer writes directly to cloud storage — Lambda handles all persistence. Local storage (IndexedDB + localStorage) provides offline access and session recovery.
+SensaAI uses an API-first storage architecture. Concepts are stored in DynamoDB via Lambda during generation and fetched via API endpoints. The frontend no longer writes directly to cloud storage — Lambda handles all persistence. Local storage (IndexedDB + localStorage) provides offline access and session recovery.
 
 ---
 
@@ -21,8 +21,8 @@ SensaPBL uses an API-first storage architecture. Concepts are stored in DynamoDB
                                    │
                     ┌──────────────▼──────────────┐
                     │        DynamoDB              │
-                    │  sensapbl-concepts-{env}     │
-                    │  sensapbl-jobs-{env}         │
+                    │  sensaai-concepts-{env}     │
+                    │  sensaai-jobs-{env}         │
                     └──────────────┬──────────────┘
                                    │
                     ┌──────────────▼──────────────┐
@@ -47,12 +47,12 @@ SensaPBL uses an API-first storage architecture. Concepts are stored in DynamoDB
 ### Layer 1: DynamoDB (Cloud Truth)
 
 **Tables:**
-- `sensapbl-concepts-{dev,prod}` — All generated concepts
+- `sensaai-concepts-{dev,prod}` — All generated concepts
   - **PK:** `USER#{userId}#SESSION#{sessionId}`
   - **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
   - **GSI1:** Tier-based queries
   - **TTL:** 168 hours (7 days)
-- `sensapbl-jobs-{dev,prod}` — Generation job tracking
+- `sensaai-jobs-{dev,prod}` — Generation job tracking
   - TTL: 24 hours
 
 **Access pattern:** Frontend fetches concepts via `conceptsApi.getAllByTier(userId, sessionId, tier)` for each tier (trunk, branch, leaf), then merges results.
@@ -139,7 +139,7 @@ Users can share generated content with other logged-in users via the Community L
 - `CommunityLibrary.tsx` — Browse page at `/community` showing all public content
 - `conceptsApi.togglePublic()`, `conceptsApi.listPublic()`, `conceptsApi.getPublicContent()`
 
-**Data model:** `isPublic` boolean field on the jobs table (`sensapbl-jobs-{env}`). No GSI — uses scan with filter (acceptable for community-scale traffic).
+**Data model:** `isPublic` boolean field on the jobs table (`sensaai-jobs-{env}`). No GSI — uses scan with filter (acceptable for community-scale traffic).
 
 ---
 

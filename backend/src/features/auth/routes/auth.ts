@@ -10,9 +10,11 @@
  */
 import { Router, Request, Response } from 'express';
 import {
- CognitoIdentityProviderClient,
- GlobalSignOutCommand,
- InitiateAuthCommand
+  CognitoIdentityProviderClient,
+  GetUserCommand,
+  GlobalSignOutCommand,
+  InitiateAuthCommand,
+  UpdateUserAttributesCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 export const authRouter = Router();
 const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
@@ -27,12 +29,46 @@ interface CookieOptions {
  maxAge?: number;
  domain?: string;
 }
+
+function mapCognitoAttributes(
+  attributes: Array<{ Name?: string; Value?: string }> = []
+): {
+  id: string;
+  email: string;
+  name?: string;
+  givenName?: string;
+  familyName?: string;
+  phoneNumber?: string;
+  preferredUsername?: string;
+} {
+  const attributeMap = attributes.reduce<Record<string, string>>((acc, item) => {
+    if (item.Name && typeof item.Value === 'string') {
+      acc[item.Name] = item.Value;
+    }
+    return acc;
+  }, {});
+
+  return {
+    id: attributeMap.sub || '',
+    email: attributeMap.email || '',
+    name: attributeMap.name,
+    givenName: attributeMap.given_name,
+    familyName: attributeMap.family_name,
+    phoneNumber: attributeMap.phone_number,
+    preferredUsername: attributeMap.preferred_username
+  };
+}
+
+function getAccessTokenFromRequest(req: Request): string | null {
+  return req.cookies?.access_token
+    || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
+}
 /**
  * Get cookie options based on environment
  */
 function getCookieOptions(isAccessToken: boolean = true): CookieOptions {
  const isProduction = process.env.NODE_ENV === 'production';
- const cookieDomain = process.env.COOKIE_DOMAIN; // e.g., '.sensapbl.com'
+ const cookieDomain = process.env.COOKIE_DOMAIN; // e.g., '.sensaai.com'
  const options: CookieOptions = {
  httpOnly: true,
  secure: isProduction, // HTTPS only in production
@@ -77,13 +113,25 @@ function clearAuthCookies(res: Response): void {
 /**
  * Extract user info from ID token
  */
-function extractUserFromIdToken(idToken: string): { id: string; email: string; name?: string } {
+function extractUserFromIdToken(idToken: string): {
+  id: string;
+  email: string;
+  name?: string;
+  givenName?: string;
+  familyName?: string;
+  phoneNumber?: string;
+  preferredUsername?: string;
+} {
  try {
  const payload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString());
  return {
  id: payload.sub,
  email: payload.email,
- name: payload.name
+ name: payload.name,
+ givenName: payload.given_name,
+ familyName: payload.family_name,
+ phoneNumber: payload.phone_number,
+ preferredUsername: payload.preferred_username
  };
  } catch (error) {
  console.error('[Auth] Failed to extract user from ID token:', error);
@@ -191,7 +239,7 @@ authRouter.post('/session/login', async (req: Request, res: Response) => {
  if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
  const user = {
  id: 'dev-user',
- email: 'dev@sensapbl.com',
+ email: 'dev@sensaai.com',
  name: 'Developer'
  };
  // Set dummy cookies for consistency
@@ -301,7 +349,7 @@ authRouter.get('/session/validate', async (req: Request, res: Response) => {
  valid: true,
  user: {
  id: 'dev-user',
- email: 'dev@sensapbl.com',
+ email: 'dev@sensaai.com',
  name: 'Developer'
  }
  });
@@ -387,7 +435,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
  return;
  }
  if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
- const user = { id: 'dev-user', email: 'dev@sensapbl.com', name: 'Developer' };
+ const user = { id: 'dev-user', email: 'dev@sensaai.com', name: 'Developer' };
  const tokens = {
  access_token: 'dev-access-token',
  id_token: 'dev-id-token',
@@ -524,7 +572,7 @@ authRouter.get('/validate', async (req: Request, res: Response) => {
  if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
  res.json({
  valid: true,
- user: { id: 'dev-user', email: 'dev@sensapbl.com', name: 'Developer' }
+ user: { id: 'dev-user', email: 'dev@sensaai.com', name: 'Developer' }
  });
  return;
  }
@@ -557,10 +605,93 @@ authRouter.get('/validate', async (req: Request, res: Response) => {
  }
 });
 
+authRouter.get('/profile', async (req: Request, res: Response) => {
+  try {
+    const accessToken = getAccessTokenFromRequest(req);
+    if (!accessToken) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+      res.json({
+        user: {
+          id: 'dev-user',
+          email: 'dev@sensaai.com',
+          name: 'Developer',
+          givenName: 'Dev',
+          familyName: 'User',
+          phoneNumber: '',
+          preferredUsername: 'Developer'
+        }
+      });
+      return;
+    }
+
+    const response = await cognitoClient.send(new GetUserCommand({ AccessToken: accessToken }));
+    const user = mapCognitoAttributes(response.UserAttributes);
+
+    if (!user.id || !user.email) {
+      res.status(500).json({ error: 'Invalid profile data' });
+      return;
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error('[Auth] Get profile error:', error);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+authRouter.put('/profile', async (req: Request, res: Response) => {
+  try {
+    const accessToken = getAccessTokenFromRequest(req);
+    if (!accessToken) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const {
+      name,
+      givenName,
+      familyName,
+      phoneNumber,
+      preferredUsername
+    } = req.body ?? {};
+
+    const updates: Array<{ Name: string; Value: string }> = [];
+
+    if (typeof name === 'string') updates.push({ Name: 'name', Value: name.trim() });
+    if (typeof givenName === 'string') updates.push({ Name: 'given_name', Value: givenName.trim() });
+    if (typeof familyName === 'string') updates.push({ Name: 'family_name', Value: familyName.trim() });
+    if (typeof preferredUsername === 'string') updates.push({ Name: 'preferred_username', Value: preferredUsername.trim() });
+    if (typeof phoneNumber === 'string') updates.push({ Name: 'phone_number', Value: phoneNumber.trim() });
+
+    if (updates.length > 0) {
+      await cognitoClient.send(new UpdateUserAttributesCommand({
+        AccessToken: accessToken,
+        UserAttributes: updates
+      }));
+    }
+
+    const profileResponse = await cognitoClient.send(new GetUserCommand({ AccessToken: accessToken }));
+    const user = mapCognitoAttributes(profileResponse.UserAttributes);
+
+    if (!user.id || !user.email) {
+      res.status(500).json({ error: 'Invalid profile data' });
+      return;
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error('[Auth] Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
 authRouter.post('/logout', async (req: Request, res: Response) => {
  try {
- const accessToken = req.cookies?.access_token
- || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
+ const accessToken = getAccessTokenFromRequest(req);
  if (accessToken) {
  try {
  await cognitoClient.send(new GlobalSignOutCommand({ AccessToken: accessToken }));

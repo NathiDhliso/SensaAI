@@ -163,7 +163,7 @@ infra/
 ```
 
 **Managed Resources**:
-- DynamoDB tables (`sensapbl-concepts-{env}`, `sensapbl-jobs-{env}`)
+- DynamoDB tables (`sensaai-concepts-{env}`, `sensaai-jobs-{env}`)
 - S3 buckets (content storage)
 - Lambda functions
 - API Gateway

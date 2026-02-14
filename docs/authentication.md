@@ -7,7 +7,7 @@
 
 ## Overview
 
-SensaPBL uses AWS Cognito for authentication with OAuth 2.0 + PKCE flow. Tokens are managed via HttpOnly cookies set by the backend. The frontend never stores raw tokens — it relies on `credentials: 'include'` on every API request.
+SensaAI uses AWS Cognito for authentication with OAuth 2.0 + PKCE flow. Tokens are managed via HttpOnly cookies set by the backend. The frontend never stores raw tokens — it relies on `credentials: 'include'` on every API request.
 
 ---
 
@@ -103,10 +103,10 @@ Cognito fires a Custom Message Lambda trigger for every auth email. The Lambda r
 
 | Trigger | Email Subject | When Sent |
 |---------|--------------|----------|
-| `CustomMessage_SignUp` | "SensaPBL — Verify Your Email" | New user signs up |
-| `CustomMessage_ForgotPassword` | "SensaPBL — Reset Your Password" | User requests password reset |
-| `CustomMessage_ResendCode` | "SensaPBL — Your New Verification Code" | User clicks "Resend Code" |
-| `CustomMessage_AdminCreateUser` | "SensaPBL — You've Been Invited" | Admin creates a user account |
+| `CustomMessage_SignUp` | "SensaAI — Verify Your Email" | New user signs up |
+| `CustomMessage_ForgotPassword` | "SensaAI — Reset Your Password" | User requests password reset |
+| `CustomMessage_ResendCode` | "SensaAI — Your New Verification Code" | User clicks "Resend Code" |
+| `CustomMessage_AdminCreateUser` | "SensaAI — You've Been Invited" | Admin creates a user account |
 
 **Lambda:** `backend/lambda/custom_message/handler.py`
 **Terraform:** `infra/terraform/modules/cognito/main.tf` — `aws_lambda_function.custom_message` + `lambda_config.custom_message` on user pool
@@ -137,7 +137,7 @@ The `verification_message_template` block remains as a fallback if the Lambda fa
 
 | Variable | Purpose |
 |----------|---------|
-| `VITE_COGNITO_DOMAIN` | Cognito hosted UI domain (e.g., `https://sensapbl-dev.auth.us-east-1.amazoncognito.com`) |
+| `VITE_COGNITO_DOMAIN` | Cognito hosted UI domain (e.g., `https://sensaai-dev.auth.us-east-1.amazoncognito.com`) |
 | `VITE_COGNITO_CLIENT_ID` | Cognito app client ID |
 | `VITE_COGNITO_REDIRECT_URI` | OAuth callback URL (default: `{origin}/auth/callback`) |
 | `VITE_AWS_REGION` | AWS region (default: `us-east-1`) |

@@ -155,7 +155,7 @@ Use `--radius-{size}` variables: `sm, md, lg, xl, 2xl, 3xl, full`
 
 ## Theme System
 
-SensaPBL supports 4 theme combinations:
+SensaAI supports 4 theme combinations:
 
 | Theme | Mode | Data Attributes |
 |-------|------|----------------|

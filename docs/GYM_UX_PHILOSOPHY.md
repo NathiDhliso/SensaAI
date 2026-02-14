@@ -1,6 +1,6 @@
 # Gym UX Philosophy: Deliberate Practice with Transparent Feedback
 ## Overview
-The Gym is SensaPBL's **optional practice zone** where learners engage in deliberate practice activities without the pressure of gates or blocking. This document explains the research-backed UX decisions and implementation details.
+The Gym is SensaAI's **optional practice zone** where learners engage in deliberate practice activities without the pressure of gates or blocking. This document explains the research-backed UX decisions and implementation details.
 ---
 ## Core Principles
 ### 1. **No Blocking - Respect User Agency**

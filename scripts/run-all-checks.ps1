@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Master script to run all SensaPBL coding guideline checks.
+    Master script to run all SensaAI coding guideline checks.
 
 .DESCRIPTION
     Runs all individual check scripts and reports overall status.
@@ -17,7 +17,7 @@ $ScriptDir = $PSScriptRoot
 
 Write-Host ""
 Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║       SensaPBL Coding Guidelines - Full Check Suite            ║" -ForegroundColor Cyan
+Write-Host "║       SensaAI Coding Guidelines - Full Check Suite            ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 

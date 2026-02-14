@@ -4,7 +4,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 BRAND_COLOR = "#7c3aed"
-BRAND_NAME = "SensaPBL"
+BRAND_NAME = "SensaAI"
 LOGO_TEXT = "S"
 
 
@@ -60,7 +60,7 @@ def _signup_verification(code_param: str) -> tuple:
         title=subject,
         heading="Verify Your Email",
         body_html=body,
-        footer_note="You're receiving this because you created a SensaPBL account. "
+        footer_note="You're receiving this because you created a SensaAI account. "
     )
     return subject, html
 
@@ -89,7 +89,7 @@ def _resend_code(code_param: str) -> tuple:
         title=subject,
         heading="New Verification Code",
         body_html=body,
-        footer_note="You requested a new code for your SensaPBL account. "
+        footer_note="You requested a new code for your SensaAI account. "
     )
     return subject, html
 

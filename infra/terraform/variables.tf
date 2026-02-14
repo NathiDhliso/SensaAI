@@ -1,4 +1,4 @@
-# SensaPBL Infrastructure Variables
+# SensaAI Infrastructure Variables
 # Serverless-only configuration
 
 variable "environment" {
@@ -30,7 +30,7 @@ variable "cognito_logout_urls" {
 variable "cognito_domain_prefix" {
   description = "Cognito hosted UI domain prefix (must be globally unique)"
   type        = string
-  default     = "sensapbl"
+  default     = "sensaai"
 }
 
 # API Gateway CORS

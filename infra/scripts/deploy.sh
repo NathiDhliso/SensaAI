@@ -1,5 +1,5 @@
 #!/bin/bash
-# SensaPBL Deployment Script
+# SensaAI Deployment Script
 # Usage: ./deploy.sh [environment] [action]
 # Example: ./deploy.sh dev apply
 
@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TERRAFORM_DIR="$SCRIPT_DIR/../terraform"
 ANSIBLE_DIR="$SCRIPT_DIR/../ansible"
 
-echo "🚀 SensaPBL Deployment - Environment: $ENV"
+echo "🚀 SensaAI Deployment - Environment: $ENV"
 echo "============================================"
 
 # Step 1: Terraform

@@ -5,7 +5,7 @@ terraform {
   required_version = ">= 1.6.0"
 
   backend "s3" {
-    bucket         = "sensapbl-terraform-state"
+    bucket         = "sensaai-terraform-state"
     key            = "dev/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
@@ -13,7 +13,7 @@ terraform {
   }
 }
 
-module "sensapbl" {
+module "sensaai" {
   source = "../../"
 
   environment = var.environment
@@ -36,40 +36,40 @@ module "sensapbl" {
 
 output "cognito_user_pool_id" {
   description = "VITE_COGNITO_USER_POOL_ID"
-  value       = module.sensapbl.cognito_user_pool_id
+  value       = module.sensaai.cognito_user_pool_id
 }
 
 output "cognito_client_id" {
   description = "VITE_COGNITO_CLIENT_ID"
-  value       = module.sensapbl.cognito_client_id
+  value       = module.sensaai.cognito_client_id
 }
 
 output "cognito_domain" {
   description = "Cognito domain for OAuth"
-  value       = module.sensapbl.cognito_domain
+  value       = module.sensaai.cognito_domain
 }
 
 output "api_endpoint" {
   description = "VITE_API_ENDPOINT - Base URL for all API calls"
-  value       = module.sensapbl.api_endpoint
+  value       = module.sensaai.api_endpoint
 }
 
 output "api_generate_url" {
   description = "POST endpoint for concept generation"
-  value       = module.sensapbl.api_generate_url
+  value       = module.sensaai.api_generate_url
 }
 
 output "api_concepts_url" {
   description = "GET endpoint for concept queries"
-  value       = module.sensapbl.api_concepts_url
+  value       = module.sensaai.api_concepts_url
 }
 
 output "s3_content_bucket" {
   description = "S3 bucket for content"
-  value       = module.sensapbl.s3_content_bucket
+  value       = module.sensaai.s3_content_bucket
 }
 
 output "dynamodb_concepts_table" {
   description = "DynamoDB concepts table name"
-  value       = module.sensapbl.dynamodb_concepts_table
+  value       = module.sensaai.dynamodb_concepts_table
 }

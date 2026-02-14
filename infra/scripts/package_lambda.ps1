@@ -14,7 +14,7 @@ $LambdaDir = Join-Path $ProjectRoot "backend\lambda"
 $TfLambdaDir = Join-Path $ProjectRoot "infra\terraform\modules\lambda"
 $BuildDir = Join-Path $ProjectRoot ".build"
 
-Write-Host "=== SensaPBL Lambda Packaging ===" -ForegroundColor Cyan
+Write-Host "=== SensaAI Lambda Packaging ===" -ForegroundColor Cyan
 Write-Host "Lambda source: $LambdaDir"
 Write-Host "Output: $TfLambdaDir"
 Write-Host ""

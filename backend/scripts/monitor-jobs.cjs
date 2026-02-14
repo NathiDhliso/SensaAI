@@ -3,8 +3,8 @@ const { DynamoDBClient, ScanCommand, QueryCommand } = require("@aws-sdk/client-d
 const { unmarshall } = require("@aws-sdk/util-dynamodb");
 
 const REGION = "us-east-1";
-const JOBS_TABLE = "sensapbl-jobs-dev";
-const CONCEPTS_TABLE = "sensapbl-concepts-dev";
+const JOBS_TABLE = "sensaai-jobs-dev";
+const CONCEPTS_TABLE = "sensaai-concepts-dev";
 
 const client = new DynamoDBClient({ region: REGION });
 

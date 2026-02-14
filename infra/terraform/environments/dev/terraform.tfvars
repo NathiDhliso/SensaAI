@@ -1,5 +1,5 @@
 # Dev Environment Configuration
-# SensaPBL Serverless Infrastructure
+# SensaAI Serverless Infrastructure
 
 environment = "dev"
 aws_region  = "us-east-1"

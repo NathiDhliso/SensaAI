@@ -256,7 +256,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  const handleGenerationError = useCallback(
  (err: unknown) => {
  const authState = useAuthStore.getState();
- const persistedAuth = localStorage.getItem('sensapbl-auth');
+ const persistedAuth = localStorage.getItem('sensaai-auth');
  let tokenPayload: Record<string, unknown> | null = null;
  try {
  if (persistedAuth) {

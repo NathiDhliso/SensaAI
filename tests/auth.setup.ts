@@ -93,7 +93,7 @@ setup('authenticate', async ({ page, request }) => {
       },
       version: 0,
     };
-    localStorage.setItem('sensapbl-auth', JSON.stringify(authState));
+    localStorage.setItem('sensaai-auth', JSON.stringify(authState));
   }, { user, accessToken, refreshToken });
 
   await page.reload();

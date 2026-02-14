@@ -1,4 +1,4 @@
-# SensaPBL Documentation
+# SensaAI Documentation
 
 Start here: **[master-prompt.md](./master-prompt.md)** — read this before touching any code.
 

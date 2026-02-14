@@ -319,13 +319,13 @@ backend/lambda/
 
 ### DynamoDB Schema
 
-**Concepts Table** (`sensapbl-concepts-dev` / `sensapbl-concepts-prod`)
+**Concepts Table** (`sensaai-concepts-dev` / `sensaai-concepts-prod`)
 - **PK:** `USER#{userId}#SESSION#{sessionId}`
 - **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
 - **GSI1:** For tier-based queries
 - **TTL:** 168 hours (7 days)
 
-**Jobs Table** (`sensapbl-jobs-dev` / `sensapbl-jobs-prod`)
+**Jobs Table** (`sensaai-jobs-dev` / `sensaai-jobs-prod`)
 - Tracks generation job status, progress, classification data
 - TTL: 24 hours
 

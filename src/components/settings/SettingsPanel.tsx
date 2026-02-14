@@ -20,7 +20,9 @@ import {
  ChevronDown,
  ChevronUp,
  LogOut,
- User
+ User,
+ Save,
+ Loader2
 } from 'lucide-react';
 import { useClickOutside } from '@/shared/hooks/useClickOutside';
 import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
@@ -36,7 +38,33 @@ import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { toast } from '@/shared/utils/toast';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
+import { authSessionApi } from '@/shared/api/client';
 import styles from './SettingsPanel.module.css';
+
+interface ProfileFormState {
+ name: string;
+ givenName: string;
+ familyName: string;
+ phoneNumber: string;
+ preferredUsername: string;
+}
+
+function toProfileForm(user?: {
+ name?: string;
+ givenName?: string;
+ familyName?: string;
+ phoneNumber?: string;
+ preferredUsername?: string;
+} | null): ProfileFormState {
+ return {
+ name: user?.name || '',
+ givenName: user?.givenName || '',
+ familyName: user?.familyName || '',
+ phoneNumber: user?.phoneNumber || '',
+ preferredUsername: user?.preferredUsername || ''
+ };
+}
+
 export default function SettingsPanel() {
  const panelRef = useRef<HTMLDivElement>(null);
  const triggerRef = useRef<HTMLElement | null>(null);
@@ -46,6 +74,9 @@ export default function SettingsPanel() {
  const [showPersonas, setShowPersonas] = useState(false);
  const [showDangerZone, setShowDangerZone] = useState(false);
  const [confirmClear, setConfirmClear] = useState<string | null>(null);
+ const [profileForm, setProfileForm] = useState<ProfileFormState>(() => toProfileForm(user));
+ const [isProfileLoading, setIsProfileLoading] = useState(false);
+ const [isProfileSaving, setIsProfileSaving] = useState(false);
  const { isSettingsPanelOpen, closeSettingsPanel } = useUIStore();
  const { theme, setTheme, visualTheme, setVisualTheme } = useThemeStore();
  const { isScholarly } = useVisualTheme();
@@ -74,6 +105,27 @@ export default function SettingsPanel() {
  triggerRef.current = document.activeElement as HTMLElement;
  }
  }, [isSettingsPanelOpen]);
+
+ useEffect(() => {
+ if (!isSettingsPanelOpen) return;
+ if (!isAuthenticated || !user) return;
+
+ setProfileForm(toProfileForm(user));
+ setIsProfileLoading(true);
+
+ authSessionApi.getProfile()
+ .then((response) => {
+ setProfileForm(toProfileForm(response.user));
+ useAuthStore.setState({ user: response.user });
+ })
+ .catch((error) => {
+ console.error('[Settings] Failed to load profile:', error);
+ })
+ .finally(() => {
+ setIsProfileLoading(false);
+ });
+ }, [isSettingsPanelOpen, isAuthenticated, user]);
+
  const handleClose = useCallback(() => {
  setIsExiting(true);
  setTimeout(() => {
@@ -110,6 +162,32 @@ export default function SettingsPanel() {
  } else {
  setConfirmClear(type);
  setTimeout(() => setConfirmClear(null), UI_TIMINGS.TOAST_MEDIUM);
+ }
+ };
+
+ const handleProfileChange = (field: keyof ProfileFormState, value: string) => {
+ setProfileForm((prev) => ({ ...prev, [field]: value }));
+ };
+
+ const handleSaveProfile = async () => {
+ try {
+ setIsProfileSaving(true);
+ const payload = {
+ name: profileForm.name.trim(),
+ givenName: profileForm.givenName.trim(),
+ familyName: profileForm.familyName.trim(),
+ phoneNumber: profileForm.phoneNumber.trim(),
+ preferredUsername: profileForm.preferredUsername.trim()
+ };
+ const response = await authSessionApi.updateProfile(payload);
+ setProfileForm(toProfileForm(response.user));
+ useAuthStore.setState({ user: response.user });
+ toast.success('Profile updated');
+ } catch (error) {
+ console.error('[Settings] Failed to update profile:', error);
+ toast.error('Failed to update profile');
+ } finally {
+ setIsProfileSaving(false);
  }
  };
  const handleExportData = () => {
@@ -189,6 +267,69 @@ export default function SettingsPanel() {
  >
  <LogOut size={14} />
  Sign Out
+ </button>
+ </div>
+ <div className={styles.profileGrid}>
+ <div className={styles.profileField}>
+ <label className={styles.profileLabel}>Display Name</label>
+ <input
+ type="text"
+ className={styles.profileInput}
+ value={profileForm.name}
+ onChange={(e) => handleProfileChange('name', e.target.value)}
+ disabled={isProfileLoading || isProfileSaving}
+ />
+ </div>
+ <div className={styles.profileField}>
+ <label className={styles.profileLabel}>First Name</label>
+ <input
+ type="text"
+ className={styles.profileInput}
+ value={profileForm.givenName}
+ onChange={(e) => handleProfileChange('givenName', e.target.value)}
+ disabled={isProfileLoading || isProfileSaving}
+ />
+ </div>
+ <div className={styles.profileField}>
+ <label className={styles.profileLabel}>Last Name</label>
+ <input
+ type="text"
+ className={styles.profileInput}
+ value={profileForm.familyName}
+ onChange={(e) => handleProfileChange('familyName', e.target.value)}
+ disabled={isProfileLoading || isProfileSaving}
+ />
+ </div>
+ <div className={styles.profileField}>
+ <label className={styles.profileLabel}>Phone Number</label>
+ <input
+ type="tel"
+ className={styles.profileInput}
+ value={profileForm.phoneNumber}
+ onChange={(e) => handleProfileChange('phoneNumber', e.target.value)}
+ placeholder="+1234567890"
+ disabled={isProfileLoading || isProfileSaving}
+ />
+ </div>
+ <div className={styles.profileField}>
+ <label className={styles.profileLabel}>Username</label>
+ <input
+ type="text"
+ className={styles.profileInput}
+ value={profileForm.preferredUsername}
+ onChange={(e) => handleProfileChange('preferredUsername', e.target.value)}
+ disabled={isProfileLoading || isProfileSaving}
+ />
+ </div>
+ </div>
+ <div className={styles.profileActions}>
+ <button
+ onClick={handleSaveProfile}
+ className={styles.saveProfileButton}
+ disabled={isProfileLoading || isProfileSaving}
+ >
+ {isProfileSaving ? <Loader2 size={14} className={styles.spinning} /> : <Save size={14} />}
+ {isProfileSaving ? 'Saving...' : 'Save Profile'}
  </button>
  </div>
  </section>

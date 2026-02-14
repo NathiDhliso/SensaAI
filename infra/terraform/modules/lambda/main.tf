@@ -1,4 +1,4 @@
-# Lambda Functions for SensaPBL Learning Pipeline
+# Lambda Functions for SensaAI Learning Pipeline
 # 
 # Deploys two Lambda functions:
 # - generate_concepts: Long-running LLM-based concept generation (15 min timeout)
@@ -115,7 +115,7 @@ resource "aws_lambda_layer_version" "python_deps" {
   count = local.layer_exists ? 1 : 0
 
   layer_name          = "${var.project_name}-python-deps-${var.environment}"
-  description         = "Python dependencies for SensaPBL Lambda functions"
+  description         = "Python dependencies for SensaAI Lambda functions"
   compatible_runtimes = ["python3.12"]
   
   filename         = "${path.module}/layer.zip"

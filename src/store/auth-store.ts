@@ -12,7 +12,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authSessionApi, getErrorMessage, isApiError, isAuthError } from '@/shared/api/client';
-import type { AuthTokens } from '@/shared/api/client';
+import type { AuthTokens, AuthUser } from '@/shared/api/client';
 
 // Configuration from environment
 const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || '').replace(/^(https?:\/\/)?/, 'https://');
@@ -21,16 +21,12 @@ const COGNITO_REDIRECT_URI = import.meta.env.VITE_COGNITO_REDIRECT_URI || window
 const AWS_REGION = import.meta.env.VITE_AWS_REGION || 'us-east-1';
 
 // Storage key for the PKCE code verifier (temporary, cleared after exchange)
-const CODE_VERIFIER_KEY = 'sensapbl_code_verifier';
+const CODE_VERIFIER_KEY = 'sensaai_code_verifier';
 
 // ============================================================================
 // Interfaces
 // ============================================================================
-export interface User {
- id: string;
- email: string;
- name?: string;
-}
+export type User = AuthUser;
 
 interface AuthState {
  user: User | null;
@@ -480,7 +476,7 @@ export const useAuthStore = create<AuthStore>()(
  lastValidated: null
  });
  localStorage.removeItem(CODE_VERIFIER_KEY);
- localStorage.removeItem('sensapbl-auth');
+ localStorage.removeItem('sensaai-auth');
  sessionStorage.clear();
  },
 
@@ -505,7 +501,7 @@ export const useAuthStore = create<AuthStore>()(
  }
  }),
     {
-      name: 'sensapbl-auth',
+      name: 'sensaai-auth',
       // Persist user info and tokens
       partialize: (state) => ({
         user: state.user,

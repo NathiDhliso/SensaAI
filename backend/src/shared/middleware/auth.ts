@@ -53,7 +53,7 @@ export async function authMiddleware(
  if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
  req.user = {
  sub: 'dev-user',
- email: 'dev@sensapbl.com',
+ email: 'dev@sensaai.com',
  name: 'Developer'
  };
  next();

@@ -1,0 +1,3 @@
+# Lambda Dependencies
+boto3>=1.34.0
+botocore>=1.34.0

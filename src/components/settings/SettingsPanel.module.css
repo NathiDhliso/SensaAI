@@ -420,6 +420,70 @@
 .dangerConfirm:hover {
  background: hsl(0, 70%, 45%);
 }
+.profileGrid {
+ display: grid;
+ grid-template-columns: 1fr;
+ gap: 0.625rem;
+ margin-top: 0.875rem;
+}
+.profileField {
+ display: flex;
+ flex-direction: column;
+ gap: 0.375rem;
+}
+.profileLabel {
+ font-weight: 500;
+ font-size: 0.75rem;
+ color: var(--color-text-secondary);
+}
+.profileInput {
+ width: 100%;
+ padding: 0.5rem 0.75rem;
+ border: 1px solid var(--color-border);
+ border-radius: 0.375rem;
+ font-family: inherit;
+ font-size: 0.8125rem;
+ color: var(--color-text-primary);
+ background: var(--color-surface-subtle);
+ transition: border-color 0.2s;
+}
+.profileInput:focus {
+ outline: none;
+ border-color: var(--color-primary-amethyst);
+}
+.profileInput:disabled {
+ opacity: 0.7;
+ cursor: not-allowed;
+}
+.profileActions {
+ display: flex;
+ justify-content: flex-end;
+ margin-top: 0.75rem;
+}
+.saveProfileButton {
+ display: inline-flex;
+ align-items: center;
+ gap: 0.375rem;
+ padding: 0.5rem 0.75rem;
+ background: var(--color-primary-amethyst);
+ border: 1px solid var(--color-primary-amethyst);
+ border-radius: 0.375rem;
+ color: white;
+ font-size: 0.8125rem;
+ font-weight: 600;
+ cursor: pointer;
+ transition: opacity 0.2s;
+}
+.saveProfileButton:hover {
+ opacity: 0.9;
+}
+.saveProfileButton:disabled {
+ opacity: 0.6;
+ cursor: not-allowed;
+}
+.spinning {
+ animation: spin 0.8s linear infinite;
+}
 /* Animations */
 @keyframes fadeIn {
  from {
@@ -443,6 +507,14 @@
  }
  to {
  transform: translateX(100%);
+ }
+}
+@keyframes spin {
+ from {
+ transform: rotate(0deg);
+ }
+ to {
+ transform: rotate(360deg);
  }
 }
 /* Scholarly theme overrides */

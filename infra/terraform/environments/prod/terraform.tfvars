@@ -1,5 +1,5 @@
 # Production Environment Configuration
-# SensaPBL Serverless Infrastructure
+# SensaAI Serverless Infrastructure
 
 environment = "prod"
 aws_region  = "us-east-1"
