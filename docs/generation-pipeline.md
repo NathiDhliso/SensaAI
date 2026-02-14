@@ -1,6 +1,6 @@
 # Generation Pipeline
 
-**Last Updated:** February 13, 2026
+**Last Updated:** February 14, 2026
 **Status:** MANDATORY — Understand this before modifying generation or parsing code.
 
 ---
@@ -209,7 +209,7 @@ After all concepts are collected (including gap-fill), the pipeline runs in this
 4. **Scoring Validation** — If `scoring.keywords` is missing/invalid, auto-generates from concept name words
 5. **Tree Structure Validation** — `_validate_tree_structure()`: normalizes `treeLevel`, validates parent references, sets `tier = treeLevel`, logs distribution
 6. **Bloom's Distribution** — `_enforce_blooms_distribution()`: ensures ≥30% higher-order levels (apply/analyze/evaluate/create), upgrades candidates using 50+ keyword heuristics
-7. **TRACES Connection Diversity** — `_enforce_connection_diversity()`: normalizes legacy types, ensures min 2 connections per non-trunk, caps `enables` at 30% using keyword-based upgrades
+7. **TRACES Connection Diversity** — `_enforce_connection_diversity()`: canonicalizes connection targets to real concept names, drops invalid/self/non-resolvable links, forces structural semantics (`child -> parent` as `is-part-of`), normalizes legacy/invalid types, ensures minimum connection coverage for leaves, and then caps `enables` at 30% using keyword-based upgrades
 8. **Content Uniqueness** — `_enforce_unique_content()`: deduplicates mnemonic anchors (renames duplicates), flags duplicate `highStakesExample` company references
 
 ---

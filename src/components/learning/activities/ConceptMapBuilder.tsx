@@ -49,6 +49,14 @@ const LABEL_PRESETS = [
  'requires', 'enables', 'is part of',
  'is type of', 'causes', 'constrains'
 ];
+const RELATIONSHIP_LEGEND = [
+ { id: 'requires', label: 'Requires', meaning: 'Need this first', example: 'Learn ladder safety before climbing the treehouse.' },
+ { id: 'enables', label: 'Enables', meaning: 'Unlocks what you can do next', example: 'Having the key lets you open the treehouse door.' },
+ { id: 'is-part-of', label: 'Is Part Of', meaning: 'A piece of something bigger', example: 'The ladder is part of the treehouse.' },
+ { id: 'is-type-of', label: 'Is Type Of', meaning: 'A kind of a bigger group', example: 'An apple treehouse is a type of treehouse.' },
+ { id: 'causes', label: 'Causes', meaning: 'Makes something happen', example: 'Pressing the bell makes the club alarm ring.' },
+ { id: 'constrains', label: 'Constrains', meaning: 'Sets rules or limits', example: 'Club rules limit which games can be played.' }
+];
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -999,6 +1007,22 @@ export default function ConceptMapBuilder({
  : (mapMode === 'guided' ? ' Guided' : ' Free')}
  </span>
  </button>
+ </div>
+ )}
+ {!readOnly && (
+ <div className={styles.relationshipLegend}>
+ <div className={styles.relationshipLegendTitle}>Relationship Legend</div>
+ <div className={styles.relationshipLegendList}>
+ {RELATIONSHIP_LEGEND.map((item) => (
+ <div key={item.id} className={styles.relationshipLegendItem}>
+ <div className={styles.relationshipLegendLabelRow}>
+ <span className={styles.relationshipLegendType}>{item.label}</span>
+ <span className={styles.relationshipLegendMeaning}>{item.meaning}</span>
+ </div>
+ <div className={styles.relationshipLegendExample}>{item.example}</div>
+ </div>
+ ))}
+ </div>
  </div>
  )}
  {/* Connect Mode Hint */}

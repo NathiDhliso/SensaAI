@@ -1,6 +1,6 @@
 # Learning Science
 
-**Last Updated:** February 13, 2026
+**Last Updated:** February 14, 2026
 **Status:** MANDATORY — All learning features must align with this model.
 
 ---
@@ -59,6 +59,8 @@ Duration and goal are NOT manually selectable — mood is the only input.
 **Component:** `ConceptMapBuilder`
 **Purpose:** Construct connections between concepts visually.
 **Outputs:** `ConceptMapData { nodes[], connections[] }`
+
+The canvas includes an always-visible **Relationship Legend** with child-friendly definitions and examples for the 6 canonical labels: `requires`, `enables`, `is-part-of`, `is-type-of`, `causes`, `constrains`.
 
 ### Step 3: STUDY (The Micro-Loop)
 **Component:** `MicroLearningLoopController`
