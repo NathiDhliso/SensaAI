@@ -12,12 +12,15 @@ import { useGenerationStore } from '@/store/generation-store';
 import { conceptsApi } from '@/shared/api';
 import { getErrorMessage, isAuthError } from '@/shared/api/client';
 import { parseAndLoadContent } from '@/shared/utils/content-loader';
+
 /**
  * Hook to recover from page refresh during active generation
  */
 export function useGenerationRecovery() {
  const navigate = useNavigate();
  const hasRecoveredRef = useRef(false);
+ const isDevEnvironment = import.meta.env.DEV || import.meta.env.MODE === 'development';
+ const maxRecoveryPollDurationMs = (isDevEnvironment ? 45 : 15) * 60 * 1000;
  useEffect(() => {
  // Expose global function to manually clear stuck jobs (for debugging)
  if (typeof window !== 'undefined') {
@@ -69,13 +72,12 @@ export function useGenerationRecovery() {
  const pollForCompletion = async () => {
  let pollInterval = 2000;
  const maxPollInterval = 10000;
- const maxPollTime = 15 * 60 * 1000; // 15 minutes max
  const startTime = Date.now();
  let consecutiveErrors = 0;
  const maxConsecutiveErrors = 5;
  while (true) {
  // Check if we've exceeded max poll time
- if (Date.now() - startTime > maxPollTime) {
+ if (Date.now() - startTime > maxRecoveryPollDurationMs) {
  console.error('[Recovery] Polling timeout exceeded');
  setError('Unable to reconnect to generation. It may still be running on the server.');
  clearActiveJob();

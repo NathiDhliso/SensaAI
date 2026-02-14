@@ -225,6 +225,7 @@ class BedrockService:
             print(f"[WARNING] Only {len(all_concepts)} concepts (threshold: {self.MIN_CONCEPTS_THRESHOLD})")
         has_objectives = any(d.get("subtopics") for d in domains)
         if has_objectives and len(all_concepts) > 0:
+            all_concepts = self._detect_scope_creep(all_concepts, domains)
             gaps = self._analyze_coverage_gaps(all_concepts, domains)
             if gaps:
                 gap_concepts = self._generate_gap_fill(
@@ -238,6 +239,7 @@ class BedrockService:
                     else:
                         print(f"[BedrockService] Gap-fill dedup: skipped '{c.get('name')}'")
                 print(f"[BedrockService] After gap-fill: {len(all_concepts)} total concepts")
+                all_concepts = self._detect_scope_creep(all_concepts, domains)
         all_concepts = self._post_process_concepts(all_concepts)
         if classification_future is not None:
             try:
@@ -762,23 +764,33 @@ class BedrockService:
     def _extract_keywords(text: str) -> set:
         words = re.findall(r'[a-zA-Z0-9]+', text.lower())
         return {w for w in words if w not in BedrockService.COVERAGE_STOPWORDS and len(w) > 2}
+    @staticmethod
+    def _get_concept_text(concept: Dict[str, Any]) -> str:
+        parts = [
+            (concept.get("name") or "").lower(),
+            (concept.get("technicalDetails") or "").lower(),
+            " ".join(concept.get("keyPoints", []) if isinstance(concept.get("keyPoints"), list) else []).lower(),
+            (concept.get("whyYouNeed") or "").lower(),
+            " ".join(
+                (p.get("content", "") if isinstance(p, dict) else str(p))
+                for p in (concept.get("phase2") or [])
+            ).lower(),
+        ]
+        return " ".join(parts)
+
+    def _objective_covered_by_any_concept(
+        self, obj_keywords: set, concept_texts: List[str]
+    ) -> bool:
+        for text in concept_texts:
+            matches = sum(1 for kw in obj_keywords if kw in text)
+            if matches / len(obj_keywords) >= 0.6:
+                return True
+        return False
+
     def _analyze_coverage_gaps(
         self, concepts: List[Dict[str, Any]], domains: List[Dict[str, Any]]
     ) -> Dict[str, List[str]]:
-        concept_content = []
-        for c in concepts:
-            parts = [
-                (c.get("name") or "").lower(),
-                (c.get("technicalDetails") or "").lower(),
-                " ".join(c.get("keyPoints", []) if isinstance(c.get("keyPoints"), list) else []).lower(),
-                (c.get("whyYouNeed") or "").lower(),
-                " ".join(
-                    (p.get("content", "") if isinstance(p, dict) else str(p))
-                    for p in (c.get("phase2") or [])
-                ).lower(),
-            ]
-            concept_content.append(" ".join(parts))
-        all_content = " ".join(concept_content)
+        concept_texts = [self._get_concept_text(c) for c in concepts]
         gaps_by_domain: Dict[str, List[str]] = {}
         total_objectives = 0
         covered_count = 0
@@ -803,12 +815,10 @@ class BedrockService:
                 if len(keywords) < 2:
                     covered_count += 1
                     continue
-                matches = sum(1 for kw in keywords if kw in all_content)
-                coverage = matches / len(keywords)
-                if coverage < 0.6:
-                    missing.append(obj)
-                else:
+                if self._objective_covered_by_any_concept(keywords, concept_texts):
                     covered_count += 1
+                else:
+                    missing.append(obj)
             if missing:
                 gaps_by_domain[domain_name] = missing
         total_gaps = sum(len(v) for v in gaps_by_domain.values())
@@ -818,6 +828,53 @@ class BedrockService:
             for obj in m:
                 print(f"[BedrockService]     - {obj}")
         return gaps_by_domain
+    def _detect_scope_creep(
+        self, concepts: List[Dict[str, Any]], domains: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        all_objectives = []
+        for domain in domains:
+            for st in domain.get("subtopics", []):
+                if isinstance(st, str):
+                    all_objectives.append(st)
+                elif isinstance(st, dict):
+                    for obj in st.get("objectives", []):
+                        all_objectives.append(obj)
+                    if not st.get("objectives") and st.get("name"):
+                        all_objectives.append(st["name"])
+        if not all_objectives:
+            return concepts
+        obj_keyword_sets = []
+        for obj in all_objectives:
+            kws = self._extract_keywords(obj)
+            if len(kws) >= 2:
+                obj_keyword_sets.append(kws)
+        if not obj_keyword_sets:
+            return concepts
+        kept = []
+        removed = 0
+        for c in concepts:
+            level = (c.get("treeLevel") or "leaf").lower().strip()
+            if level == "trunk":
+                kept.append(c)
+                continue
+            concept_text = self._get_concept_text(c)
+            best_score = 0.0
+            for obj_kws in obj_keyword_sets:
+                matches = sum(1 for kw in obj_kws if kw in concept_text)
+                score = matches / len(obj_kws)
+                if score > best_score:
+                    best_score = score
+            if best_score >= 0.4:
+                kept.append(c)
+            else:
+                removed += 1
+                print(f"[BedrockService] Scope-creep removed: '{c.get('name')}' (best objective match: {best_score*100:.0f}%)")
+        if removed > 0:
+            print(f"[BedrockService] Scope-creep check: removed {removed}/{len(concepts)} concepts")
+        else:
+            print(f"[BedrockService] Scope-creep check: all {len(concepts)} concepts in-scope")
+        return kept
+
     def _generate_gap_fill(
         self,
         subject: str,

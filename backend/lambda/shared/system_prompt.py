@@ -350,6 +350,7 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
    - `solution`: The complete, correct answer with reasoning (minimum 20 words)
    - `steps`: Array of 3-6 numbered solution steps showing the reasoning process
    Empty or placeholder workedExamples cause **automatic rejection**.
+12. **OBJECTIVE-BOUND GENERATION**: If exam objectives are listed above, every leaf concept MUST map to at least one listed objective. Do NOT invent topics beyond the provided objectives. Do NOT add concepts for technologies, features, or skills not explicitly listed. Concepts that cannot be traced back to a specific listed objective will be **automatically rejected**. If the objectives are silent on a topic, that topic is out of scope — even if it seems related.
 Generate the concept tree for "{domain_name}" now:"""
 def _parse_exam_tree(context: str) -> list:
     import re as _re
@@ -535,12 +536,12 @@ def get_tree_generation_prompt(
                 for obj in objectives:
                     objective_lines.append(f"  - {obj}")
         if objective_lines:
-            context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above."
+            context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above. Do NOT generate concepts for topics not in this list — unlisted topics are out of scope and will be rejected."
         else:
             context_block = ""
     elif has_string_subtopics:
         objective_lines = [f"  - {st}" for st in subtopics]
-        context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above. Group related objectives under {branch_count} branch concepts."
+        context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above. Group related objectives under {branch_count} branch concepts. Do NOT generate concepts for topics not in this list — unlisted topics are out of scope and will be rejected."
     elif context:
         context_block = f"### USER-PROVIDED CONTEXT:\n{context}\n**INSTRUCTION**: Map concepts for domain \"{domain_name}\" to relevant objectives above."
     else:
@@ -667,6 +668,7 @@ TASK: Generate supplementary leaf concepts to fill coverage gaps in domain "{dom
 8. `workedExample`: problem (minimum 20 words), solution (minimum 20 words), steps (3-6 items) — REQUIRED
 9. `mnemonic`: unique concrete anchor + spatial story — NO duplicates with existing concepts
 10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, criticalDistinctions, designBoundaries
+11. **OBJECTIVE-BOUND**: Generate ONLY for the uncovered objectives listed above. Do NOT add concepts for topics not in the list. If it is not listed, it is out of scope.
 
 ## FIELD QUALITY (automatic rejection if violated):
 - hookSentence: Lead with surprising fact or specific failure. BANNED: "Without proper X..."

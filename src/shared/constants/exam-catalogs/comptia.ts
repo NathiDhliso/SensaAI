@@ -272,9 +272,13 @@ export const COMPTIA_CERTS: CertEntry[] = [
         tasks: [
           'Explain the importance of system and network architecture concepts in security operations',
           'Analyze indicators of potentially malicious activity',
-          'Use appropriate tools or techniques to determine malicious activity',
+          'Given a scenario, use appropriate tools or techniques to determine malicious activity',
           'Compare and contrast threat-intelligence and threat-hunting concepts',
           'Explain the importance of efficiency and process improvement in security operations',
+          'Analyze network traffic using packet captures, logs, and flow data',
+          'Identify tactics, techniques, and procedures (TTPs) using threat intelligence frameworks (for example, MITRE ATT&CK)',
+          'Determine indicators of compromise (IoCs) from host-based and network-based sources',
+          'Explain the role of SIEM, SOAR, and EDR tools in security monitoring',
         ],
       },
       {
@@ -286,6 +290,10 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Analyze data to prioritize vulnerabilities',
           'Recommend controls to mitigate attacks and software vulnerabilities',
           'Explain concepts related to vulnerability response, handling, and management',
+          'Compare and contrast credentialed vs. non-credentialed scanning',
+          'Interpret CVSS scores and prioritize remediation based on risk context',
+          'Identify common vulnerabilities in web applications, APIs, and cloud workloads',
+          'Recommend compensating controls when remediation is not immediately possible',
         ],
       },
       {
@@ -295,6 +303,9 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Explain concepts related to attack methodology frameworks',
           'Perform incident response activities',
           'Explain the preparation and post-incident activity phases of the incident management lifecycle',
+          'Perform containment, eradication, and recovery actions during an incident',
+          'Collect and preserve digital evidence following chain-of-custody procedures',
+          'Analyze forensic artifacts from endpoints and network devices',
         ],
       },
       {
@@ -303,6 +314,9 @@ export const COMPTIA_CERTS: CertEntry[] = [
         tasks: [
           'Explain the importance of vulnerability management reporting and communication',
           'Explain the importance of incident response reporting and communication',
+          'Create reports tailored to different audiences (technical, executive, regulatory)',
+          'Recommend metrics and KPIs for security operations effectiveness',
+          'Communicate risk and impact assessments to stakeholders',
         ],
       },
     ],

@@ -10,7 +10,7 @@
 Content generation is a multi-phase backend process that produces hierarchical learning concepts from any subject. The frontend orchestrates the flow, displays progress, and transforms raw output into the `LearningConcept` type.
 
 ```
-User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Generation per domain) → Phase 2.5 (Gap-Fill) → Frontend Parser → Zustand Store → UI
+User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Generation per domain) → Phase 2.5 (Scope-Creep Check → Gap-Fill → Scope-Creep Check) → Frontend Parser → Zustand Store → UI
 ```
 
 ---
@@ -92,18 +92,19 @@ Parsing then attempts 4 stages: regex array extraction → direct parse → wrap
 
 ---
 
-## Phase 2.5: Automatic Gap-Fill Pass
+## Phase 2.5: Scope-Creep Detection + Gap-Fill
 
 **Backend:** `bedrock_service.py` → `system_prompt.py` GAP_FILL_PROMPT
 **Runs automatically after Phase 2 when domains have structured objectives**
 
-### Process
+### Double-Post Pipeline
 After the initial per-domain generation and deduplication:
-1. `_analyze_coverage_gaps()` extracts keywords from each input objective and checks if ≥60% of keywords appear in any generated concept's content
-2. Uncovered objectives are grouped by domain
-3. `_generate_gap_fill()` makes parallel Bedrock calls per domain with gaps, using `GAP_FILL_PROMPT` that includes existing concept names and branch names to avoid duplication
-4. New concepts are validated, deduped by name against existing concepts, then merged
-5. Full post-processing (`_post_process_concepts`) runs on the combined set
+1. **Scope-creep check (pass 1):** `_detect_scope_creep()` tests each branch/leaf concept against ALL objectives. Concepts with <40% keyword match to their best-matching objective are removed. Trunks are exempt.
+2. **Coverage analysis:** `_analyze_coverage_gaps()` extracts keywords from each objective and checks if ≥60% of keywords appear in any **individual** concept's content (per-concept matching, not bag-of-words across all concepts).
+3. **Gap-fill generation:** `_generate_gap_fill()` makes parallel Bedrock calls per domain with gaps, using `GAP_FILL_PROMPT` with existing concept/branch names to avoid duplication.
+4. New concepts are validated, deduped by name against existing concepts, then merged.
+5. **Scope-creep check (pass 2):** `_detect_scope_creep()` runs again on the combined set to catch any gap-fill concepts that drifted out of scope.
+6. Full post-processing (`_post_process_concepts`) runs on the final set.
 
 ### When It Activates
 - Only when domains have `subtopics` (structured objectives from exam catalogs or context enrichment)
@@ -111,7 +112,7 @@ After the initial per-domain generation and deduplication:
 - Skipped for free-form subjects with no structured objectives
 
 ### Output
-Merged flat array of original + gap-fill concepts, fully post-processed.
+Merged flat array of original + gap-fill concepts, scope-checked and fully post-processed.
 
 ---
 
@@ -215,7 +216,7 @@ Stored as `SavedResult` which includes:
 
 ## Post-Processing Pipeline (`_post_process_concepts`)
 
-After all concepts are collected (including gap-fill), the pipeline runs in this exact order:
+After all concepts are collected (including gap-fill and scope-creep filtering), the pipeline runs in this exact order:
 1. **ID Assignment** — `generate_id()` for any concept missing an `id`
 2. **Stage Default** — `stageId` defaults to `PREPARE`
 3. **Mnemonic Default** — Empty `{}` if missing

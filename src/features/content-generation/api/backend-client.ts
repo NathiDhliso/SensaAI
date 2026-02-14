@@ -34,6 +34,8 @@ export async function generateWithBackend(
  _startFromPass: number = 1,
  trunks?: string[],
 ): Promise<GenerationResult> {
+ const isDevEnvironment = import.meta.env.DEV || import.meta.env.MODE === 'development';
+ const maxPollDurationMs = (isDevEnvironment ? 45 : 15) * 60 * 1000;
  // Get user ID from auth store
  const { user } = useAuthStore.getState();
  const userId = user?.id || 'anonymous';
@@ -102,12 +104,11 @@ export async function generateWithBackend(
  let progressValue = 10;
  let pollInterval = 2000; // Start at 2s
  const maxPollInterval = 10000; // Max 10s
- const maxPollTime = 15 * 60 * 1000;
  const startTime = Date.now();
  while (true) {
  // NOTE: We intentionally DO NOT use abort signals here
  // Generation is unstoppable once started - it runs on the backend
- if (Date.now() - startTime > maxPollTime) {
+ if (Date.now() - startTime > maxPollDurationMs) {
  console.error('[Backend Generator] TIMEOUT! Exceeded max poll time');
  // Don't throw - job may still complete on backend
  // Mark as timed out but allow recovery

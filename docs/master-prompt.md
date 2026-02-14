@@ -246,7 +246,7 @@ Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `Set
 | `src/features/learning-session/activities/gym-ai-service.ts` | AI gym service (Haiku, fallback-first) |
 | `src/shared/constants/theme-colors.ts` | All color constants, mood colors, graph colors |
 | `src/index.css` | Design system single source of truth |
-| `backend/lambda/shared/system_prompt.py` | Generation prompts (classification + tree generation + gap-fill) |
+| `backend/lambda/shared/system_prompt.py` | Generation prompts (classification + tree generation + gap-fill + scope-creep rules) |
 | `backend/lambda/generate_concepts/services/bedrock_service.py` | LLM calls, tree validation, post-processing |
 | `backend/lambda/shared/utils.py` | CORS, API helpers, DynamoDB keys, generator allowlist |
 | `src/shared/constants/generator-allowlist.ts` | Frontend generation access control |
