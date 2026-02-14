@@ -130,7 +130,7 @@ export function SessionScoutPreview({
  <span className={styles.tierLabel}>Trunk</span>
  <span className={styles.tierCount}>{conceptsByTier.trunk.length}</span>
  </div>
- <div className={styles.conceptList}>
+ <div className={styles.tierConceptList}>
  {conceptsByTier.trunk.map(c => (
  <ConceptChip
  key={c.id}
@@ -146,7 +146,7 @@ export function SessionScoutPreview({
  <span className={styles.tierLabel}>Branch</span>
  <span className={styles.tierCount}>{conceptsByTier.branch.length}</span>
  </div>
- <div className={styles.conceptList}>
+ <div className={styles.tierConceptList}>
  {conceptsByTier.branch.map(c => (
  <ConceptChip
  key={c.id}
@@ -162,19 +162,14 @@ export function SessionScoutPreview({
  <span className={styles.tierLabel}>Leaf</span>
  <span className={styles.tierCount}>{conceptsByTier.leaf.length}</span>
  </div>
- <div className={styles.conceptList}>
- {conceptsByTier.leaf.slice(0, 6).map(c => (
+ <div className={styles.tierConceptList}>
+ {conceptsByTier.leaf.map(c => (
  <ConceptChip
  key={c.id}
  concept={c}
  className={`${styles.conceptChip} ${styles.leafChip}`}
  />
  ))}
- {conceptsByTier.leaf.length > 6 && (
- <div className={styles.moreChip}>
- +{conceptsByTier.leaf.length - 6} more
- </div>
- )}
  </div>
  </div>
  </div>

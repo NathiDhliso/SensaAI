@@ -1,6 +1,6 @@
 .container {
  width: 100%;
- max-width: 900px;
+ max-width: min(1680px, calc(100vw - 2rem));
  margin: 0 auto;
  padding: 1rem;
 }
@@ -59,7 +59,7 @@
  background: var(--color-surface-base);
  border-radius: var(--radius-lg);
  border: 1px solid var(--color-border);
- padding: 1.5rem;
+ padding: 1.5rem clamp(1rem, 1.5vw, 2rem);
  min-height: 400px;
 }
 .viewTabs {
@@ -876,19 +876,26 @@
  SENSA v2.0: Tier Flow Visualization
  ============================================================================ */
 .tierFlow {
- display: flex;
+ display: grid;
+ grid-template-columns: minmax(260px, 1fr) auto minmax(300px, 1.2fr) auto minmax(320px, 1.35fr);
  align-items: flex-start;
- justify-content: center;
- gap: 1rem;
- flex-wrap: wrap;
+ gap: clamp(0.75rem, 1vw, 1.25rem);
+ width: 100%;
 }
 .tierColumn {
- flex: 1;
- min-width: 200px;
- max-width: 280px;
+ width: 100%;
+ min-width: 0;
  display: flex;
  flex-direction: column;
- gap: 0.5rem;
+ gap: 0.65rem;
+}
+.tierConceptList {
+ display: flex;
+ flex-direction: column;
+ gap: 0.55rem;
+ max-height: min(62vh, 820px);
+ overflow: auto;
+ padding-right: 0.35rem;
 }
 .tierHeader {
  display: flex;
@@ -924,7 +931,8 @@
 .flowArrow {
  color: var(--color-text-tertiary);
  flex-shrink: 0;
- margin-top: 2.5rem;
+ margin-top: 2.25rem;
+ align-self: center;
 }
 .conceptChip {
  display: flex;
@@ -950,9 +958,8 @@
 .chipName {
  flex: 1;
  font-weight: 500;
- white-space: nowrap;
- overflow: hidden;
- text-overflow: ellipsis;
+ overflow-wrap: anywhere;
+ line-height: 1.35;
 }
 .trunkChip {
  border-left: 3px solid var(--color-trunk);
@@ -1042,11 +1049,15 @@
  ============================================================================ */
 @media (max-width: 768px) {
  .tierFlow {
- flex-direction: column;
- align-items: stretch;
+ grid-template-columns: 1fr;
  }
  .tierColumn {
  max-width: none;
+ }
+ .tierConceptList {
+ max-height: none;
+ overflow: visible;
+ padding-right: 0;
  }
  .flowArrow {
  transform: rotate(90deg);
