@@ -26,6 +26,7 @@ export const ISC2_CERTS: CertEntry[] = [
           'Summarize the components of a business continuity (BC) plan',
           'Summarize the components of a disaster recovery (DR) plan',
           'Practice the terminology and components of incident response',
+          'Differentiate recovery objectives and continuity strategy trade-offs',
         ],
       },
       {
@@ -35,6 +36,7 @@ export const ISC2_CERTS: CertEntry[] = [
           'Select appropriate access controls',
           'Describe the concepts behind access control models and physical access controls',
           'Describe logical access controls',
+          'Apply least privilege and separation of duties in access design',
         ],
       },
       {
@@ -44,6 +46,7 @@ export const ISC2_CERTS: CertEntry[] = [
           'Understand computer networking',
           'Understand network threats and attacks',
           'Understand network security infrastructure',
+          'Identify segmentation and secure remote access patterns',
         ],
       },
       {
@@ -54,6 +57,7 @@ export const ISC2_CERTS: CertEntry[] = [
           'Understand system hardening',
           'Understand best practice security policies',
           'Understand security awareness training',
+          'Apply monitoring and incident escalation workflows',
         ],
       },
     ],
@@ -96,6 +100,7 @@ export const ISC2_CERTS: CertEntry[] = [
           'Perform security assessment activities',
           'Operate and maintain monitoring systems',
           'Analyze monitoring results',
+          'Prioritize risks based on likelihood, impact, and control effectiveness',
         ],
       },
       {
@@ -105,6 +110,7 @@ export const ISC2_CERTS: CertEntry[] = [
           'Support incident lifecycle',
           'Understand and support forensic investigations',
           'Understand and support business continuity plan and disaster recovery plan activities',
+          'Document lessons learned and feed improvements into control baselines',
         ],
       },
       {

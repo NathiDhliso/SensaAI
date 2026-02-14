@@ -26,6 +26,8 @@ export const PMI_CERTS: CertEntry[] = [
           'Explain when it is appropriate to use a predictive, plan-based approach',
           'Demonstrate an understanding of a project management plan schedule',
           'Determine how to document project controls of predictive, plan-based projects',
+          'Apply baseline management for scope, schedule, and cost performance tracking',
+          'Use earned value and variance indicators to evaluate project health',
         ],
       },
       {
@@ -48,6 +50,7 @@ export const PMI_CERTS: CertEntry[] = [
           'Determine how to gather requirements',
           'Demonstrate an understanding of requirements traceability',
           'Demonstrate an understanding of a product roadmap',
+          'Prioritize requirements based on value, risk, and delivery constraints',
         ],
       },
     ],
@@ -110,6 +113,7 @@ export const PMI_CERTS: CertEntry[] = [
           'Evaluate and deliver project benefits and value',
           'Evaluate and address external business environment changes for impact on scope',
           'Support organizational change',
+          'Align project outcomes with strategic portfolio and governance objectives',
         ],
       },
     ],
@@ -167,6 +171,7 @@ export const PMI_CERTS: CertEntry[] = [
           'Plan at multiple levels (strategic, release, iteration, daily) as necessary',
           'Make planning activities visible and transparent to the team',
           'Adapt the cadence and approach based on the complexity and volatility of the situation',
+          'Continuously refine backlog priorities based on stakeholder feedback and outcomes',
         ],
       },
       {
@@ -176,6 +181,7 @@ export const PMI_CERTS: CertEntry[] = [
           'Create an open and safe environment for surfacing problems',
           'Identify threats and issues early and make them visible',
           'Engage the team to resolve problems and impediments',
+          'Apply root cause analysis techniques to prevent recurrence',
         ],
       },
       {

@@ -15,6 +15,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Explain why cloud technology is transforming business',
           'Explain the benefits of cloud technology to a business',
           'Describe the elements of digital transformation with Google Cloud',
+          'Identify organizational change patterns required for cloud adoption',
+          'Describe common modernization outcomes tied to business KPIs',
         ],
       },
       {
@@ -25,6 +27,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Identify Google Cloud solutions for data management',
           'Identify Google Cloud solutions for smart analytics',
           'Identify Google Cloud prebuilt ML model API services for generating business value',
+          'Distinguish data lake, warehouse, and lakehouse usage patterns on Google Cloud',
+          'Explain how data governance improves trust and decision velocity',
         ],
       },
       {
@@ -34,6 +38,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Recognize the AI/ML framework and describe its components on Google Cloud',
           'Identify how AI/ML adds value to Google Cloud products',
           'Describe Big Data and ML products on Google Cloud',
+          'Describe responsible AI principles and risk controls in enterprise AI programs',
+          'Identify generative AI use cases and evaluation considerations',
         ],
       },
       {
@@ -44,6 +50,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Describe Google Cloud compute solutions and their benefits',
           'Describe containers and serverless options on Google Cloud',
           'Describe the value of APIs and the API management solutions on Google Cloud',
+          'Compare migration, replatforming, and refactoring approaches',
+          'Describe reliability and scalability patterns for cloud-native architectures',
         ],
       },
       {
@@ -54,6 +62,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Identify today\'s top cybersecurity challenges and threats',
           'Describe Google Cloud\'s approach to security and how it addresses key challenges',
           'Explain how Google Cloud earns and maintains customer trust',
+          'Describe shared responsibility boundaries across cloud service models',
+          'Identify controls for identity, data protection, and compliance assurance',
         ],
       },
     ],
@@ -72,6 +82,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Set up cloud projects and accounts',
           'Manage billing configuration',
           'Install and configure the command-line interface (CLI), specifically the Cloud SDK',
+          'Configure resource hierarchy with folders and organizations',
+          'Set up baseline IAM roles and service accounts for projects',
         ],
       },
       {
@@ -82,6 +94,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Plan and configure compute resources',
           'Plan and configure data storage options',
           'Plan and configure network resources',
+          'Select regions and zones based on latency, resilience, and compliance needs',
+          'Plan private connectivity and egress control patterns',
         ],
       },
       {
@@ -116,6 +130,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Manage Identity and Access Management (IAM)',
           'Manage service accounts',
           'View audit logs',
+          'Apply least-privilege policies with conditional IAM bindings',
+          'Implement key and secret management for workloads',
         ],
       },
     ],
@@ -135,6 +151,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Design a solution infrastructure that meets technical requirements',
           'Design network, storage, and compute resources',
           'Create a migration plan',
+          'Design for reliability targets and service-level objectives',
+          'Design shared services and landing zone architecture patterns',
         ],
       },
       {
@@ -153,6 +171,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Design for security',
           'Design for compliance',
           'Design Identity and Access Management (IAM) for Google Cloud',
+          'Design encryption, key lifecycle, and data sovereignty controls',
+          'Design policy enforcement with organization policies and guardrails',
         ],
       },
       {
@@ -207,6 +227,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Plan the data pipelines',
           'Build the pipelines',
           'Deploy the pipelines',
+          'Design streaming and batch ingestion architectures',
+          'Implement data quality checks and schema evolution controls',
         ],
       },
       {
@@ -217,6 +239,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
           'Plan for using a data warehouse',
           'Plan for using a data lake',
           'Design for a data mesh',
+          'Design partitioning, clustering, and lifecycle management strategies',
+          'Plan backup, retention, and disaster recovery for data platforms',
         ],
       },
       {
@@ -273,6 +297,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
         tasks: [
           'Design and configure network perimeter security',
           'Configure Network Security for internal and service-to-service traffic',
+          'Implement segmentation and east-west traffic controls',
+          'Design private access patterns for managed services',
         ],
       },
       {
@@ -289,6 +315,8 @@ export const GOOGLE_CLOUD_CERTS: CertEntry[] = [
         tasks: [
           'Determine regulatory requirements for the cloud',
           'Determine security controls within Google Cloud',
+          'Map controls to audit evidence and continuous compliance reporting',
+          'Integrate policy monitoring into security operations workflows',
         ],
       },
     ],

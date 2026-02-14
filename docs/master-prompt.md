@@ -116,7 +116,7 @@ Generation is restricted to an allowlist of approved email addresses. Both front
 
 **Directory:** `src/shared/constants/exam-catalogs/`
 
-41 certification exams across 7 providers (AWS, Microsoft, CompTIA, Google Cloud, Cisco, PMI, ISC2). Each entry has typed domains with tasks and weights. Home.tsx unified search searches `ALL_CERTS` by name/code/provider. Selected cert domains become trunks, tasks become context objectives for generation.
+42 certification exams across 7 providers (AWS, Microsoft, CompTIA, Google Cloud, Cisco, PMI, ISC2). Each entry has typed domains with tasks and weights. Home.tsx unified search searches `ALL_CERTS` by name/code/provider. Selected cert domains become trunks, tasks become context objectives for generation.
 
 See: [Content Storage](./content-storage.md) for full catalog breakdown.
 
@@ -250,7 +250,7 @@ Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `Set
 | `backend/lambda/generate_concepts/services/bedrock_service.py` | LLM calls, tree validation, post-processing |
 | `backend/lambda/shared/utils.py` | CORS, API helpers, DynamoDB keys, generator allowlist |
 | `src/shared/constants/generator-allowlist.ts` | Frontend generation access control |
-| `src/shared/constants/exam-catalogs/index.ts` | 41 certification exam catalog (ALL_CERTS) |
+| `src/shared/constants/exam-catalogs/index.ts` | 42 certification exam catalog (ALL_CERTS) |
 | `src/shared/api/concepts.ts` | Full concepts API surface (11 methods including streaming) |
 
 ---

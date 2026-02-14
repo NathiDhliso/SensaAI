@@ -42,7 +42,7 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Install and configure motherboards, CPUs, and add-on cards',
           'Install or replace the appropriate power supply',
           'Deploy and configure multifunction devices/printers and settings',
-          'Summarize cloud-computing concepts',
+          'Configure BIOS/UEFI settings and firmware updates',
         ],
       },
       {
@@ -51,6 +51,8 @@ export const COMPTIA_CERTS: CertEntry[] = [
         tasks: [
           'Summarize cloud-computing concepts',
           'Summarize aspects of client-side virtualization',
+          'Compare cloud service models and deployment models',
+          'Identify virtual machine resource allocation and isolation concepts',
         ],
       },
       {
@@ -85,6 +87,8 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Use common OS features and tools',
           'Use the appropriate Microsoft command-line tools',
           'Use features and tools of the macOS/Linux client/desktop OS',
+          'Configure system recovery options and startup troubleshooting tools',
+          'Manage user profiles, permissions, and shared resources',
         ],
       },
       {
@@ -97,6 +101,7 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Explain common social-engineering attacks, threats, and vulnerabilities',
           'Manage and configure basic security settings in the Microsoft Windows OS',
           'Configure a workstation to meet best practices for security',
+          'Apply endpoint hardening and data protection controls',
         ],
       },
       {
@@ -151,6 +156,7 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Compare and contrast routing technologies and bandwidth management concepts',
           'Configure and apply the appropriate interface and protocol configurations',
           'Explain common IPv4 and IPv6 addressing types and concepts',
+          'Implement wireless standards and security configurations for enterprise access',
         ],
       },
       {
@@ -236,6 +242,7 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Explain the importance of automation and orchestration related to secure operations',
           'Explain appropriate incident response activities',
           'Use data sources to support an investigation',
+          'Coordinate containment and recovery steps during security incidents',
         ],
       },
       {
@@ -314,6 +321,7 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Compare and contrast the different types of cloud models',
           'Explain the factors that contribute to capacity planning',
           'Explain the importance of high availability and scaling in cloud environments',
+          'Evaluate workload placement and service model trade-offs',
         ],
       },
       {
@@ -344,6 +352,7 @@ export const COMPTIA_CERTS: CertEntry[] = [
           'Configure logging, monitoring, and alerting to maintain operational status',
           'Maintain efficient operation of a cloud environment',
           'Optimize cloud environments',
+          'Implement patching, backup, and lifecycle maintenance procedures',
         ],
       },
       {

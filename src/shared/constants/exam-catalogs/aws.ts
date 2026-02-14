@@ -67,6 +67,8 @@ export const AWS_CERTS: CertEntry[] = [
           'Explain basic AI concepts and terminologies',
           'Identify practical use cases for AI',
           'Describe the ML development lifecycle',
+          'Distinguish predictive AI from generative AI scenarios',
+          'Identify criteria for selecting AWS AI and ML services',
         ],
       },
       {
@@ -76,6 +78,8 @@ export const AWS_CERTS: CertEntry[] = [
           'Explain the basic concepts of generative AI',
           'Understand the capabilities and limitations of generative AI for solving business problems',
           'Describe AWS generative AI services',
+          'Describe prompt design fundamentals and grounding strategies',
+          'Identify quality and safety risks in generative AI outputs',
         ],
       },
       {
@@ -94,6 +98,7 @@ export const AWS_CERTS: CertEntry[] = [
         tasks: [
           'Explain the development of AI systems that are responsible',
           'Recognize the importance of transparent and explainable models',
+          'Identify bias, fairness, and accountability controls for AI systems',
         ],
       },
       {
@@ -102,6 +107,7 @@ export const AWS_CERTS: CertEntry[] = [
         tasks: [
           'Explain methods to secure AI systems',
           'Recognize governance and compliance regulations for AI systems',
+          'Describe data protection and model access control patterns for AI workloads',
         ],
       },
     ],
@@ -120,6 +126,8 @@ export const AWS_CERTS: CertEntry[] = [
           'Develop code for applications hosted on AWS',
           'Develop code for AWS Lambda',
           'Use data stores in application development',
+          'Integrate asynchronous messaging and event-driven workflows',
+          'Implement resilience patterns for distributed applications',
         ],
       },
       {
@@ -129,6 +137,7 @@ export const AWS_CERTS: CertEntry[] = [
           'Implement authentication and/or authorization for applications and AWS services',
           'Implement encryption by using AWS services',
           'Manage sensitive data in application code',
+          'Implement secure secret retrieval and rotation strategies',
         ],
       },
       {
@@ -148,6 +157,7 @@ export const AWS_CERTS: CertEntry[] = [
           'Assist in a root cause analysis',
           'Instrument code for observability',
           'Optimize applications by using AWS services and features',
+          'Analyze performance bottlenecks and tune runtime behavior',
         ],
       },
     ],
@@ -175,6 +185,7 @@ export const AWS_CERTS: CertEntry[] = [
           'Implement scalability and elasticity based on use case',
           'Implement high availability and resilient environments',
           'Implement backup and restore strategies',
+          'Validate disaster recovery readiness through recovery testing',
         ],
       },
       {
@@ -183,6 +194,7 @@ export const AWS_CERTS: CertEntry[] = [
         tasks: [
           'Provision and maintain cloud resources',
           'Automate manual or repeatable processes',
+          'Implement policy-driven infrastructure provisioning controls',
         ],
       },
       {
@@ -191,6 +203,7 @@ export const AWS_CERTS: CertEntry[] = [
         tasks: [
           'Implement and manage security and compliance policies',
           'Implement data and infrastructure protection strategies',
+          'Operate continuous compliance monitoring and reporting workflows',
         ],
       },
       {
@@ -265,6 +278,7 @@ export const AWS_CERTS: CertEntry[] = [
           'Ingest and store data',
           'Transform data and perform feature engineering',
           'Ensure data integrity and prepare data for ML',
+          'Implement data quality validation for training and inference datasets',
         ],
       },
       {
@@ -274,6 +288,7 @@ export const AWS_CERTS: CertEntry[] = [
           'Choose a modeling approach',
           'Train and refine models',
           'Analyze and evaluate models',
+          'Select metrics aligned to business and model risk requirements',
         ],
       },
       {
@@ -292,6 +307,7 @@ export const AWS_CERTS: CertEntry[] = [
           'Monitor model performance and data quality',
           'Recommend improvements to ML solution performance',
           'Implement security practices for ML solutions',
+          'Detect drift and trigger remediation workflows for model reliability',
         ],
       },
     ],
@@ -586,6 +602,7 @@ export const AWS_CERTS: CertEntry[] = [
         tasks: [
           'Design and test an incident response plan',
           'Respond to security events',
+          'Perform containment, eradication, and recovery actions in cloud incidents',
         ],
       },
       {
@@ -603,6 +620,7 @@ export const AWS_CERTS: CertEntry[] = [
         tasks: [
           'Design, implement, and troubleshoot authentication strategies',
           'Design, implement, and troubleshoot authorization strategies',
+          'Implement privileged access controls and federation patterns',
         ],
       },
       {

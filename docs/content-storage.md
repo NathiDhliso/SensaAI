@@ -253,13 +253,13 @@ Provides structured exam objectives that drive the gap-fill pipeline:
 | File | Provider | Count |
 |------|----------|-------|
 | `aws.ts` | AWS | 13 certs |
-| `microsoft.ts` | Microsoft | 8 certs |
+| `microsoft.ts` | Microsoft | 9 certs |
 | `comptia.ts` | CompTIA | 6 certs |
 | `google-cloud.ts` | Google Cloud | 5 certs |
 | `cisco.ts` | Cisco | 2 certs |
 | `pmi.ts` | PMI | 3 certs |
 | `isc2.ts` | ISC2 | 4 certs |
-| **Total** | | **41 certs** |
+| **Total** | | **42 certs** |
 
 - `types.ts` — `CertProvider`, `CertLevel`, `CertDomain`, `CertEntry` types
 - `index.ts` — exports `ALL_CERTS`, `CERT_PROVIDERS`

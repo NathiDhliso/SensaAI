@@ -69,6 +69,9 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Identify common machine learning techniques',
           'Describe core machine learning concepts',
+          'Distinguish supervised, unsupervised, and reinforcement learning scenarios',
+          'Describe model training, validation, and evaluation workflows',
+          'Identify overfitting and underfitting and mitigation approaches',
           'Describe Azure Machine Learning capabilities',
         ],
       },
@@ -77,6 +80,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         weight: 15,
         tasks: [
           'Identify common types of computer vision solution',
+          'Describe image classification, object detection, and segmentation use cases',
+          'Describe OCR, document analysis, and video indexing scenarios',
           'Identify Azure tools and services for computer vision tasks',
         ],
       },
@@ -85,6 +90,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         weight: 15,
         tasks: [
           'Identify features of common NLP workload scenarios',
+          'Describe sentiment analysis, key phrase extraction, and entity recognition',
+          'Describe language understanding and conversational AI scenarios',
           'Identify Azure tools and services for NLP workloads',
         ],
       },
@@ -94,6 +101,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Identify features of generative AI solutions',
           'Identify capabilities of Azure OpenAI Service',
+          'Describe prompt engineering fundamentals and context grounding patterns',
+          'Describe safety, content filtering, and responsible AI controls for generative systems',
         ],
       },
     ],
@@ -113,6 +122,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Identify options for data storage',
           'Describe common data workloads',
           'Identify roles and responsibilities for data workloads',
+          'Differentiate structured, semi-structured, and unstructured data patterns',
+          'Compare transactional and analytical data workloads',
         ],
       },
       {
@@ -123,6 +134,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Describe normalization and why it is used',
           'Identify common structured query language (SQL) statements',
           'Describe Azure services for relational data',
+          'Describe indexing, constraints, and transaction consistency concepts',
+          'Compare managed relational offerings by workload profile',
         ],
       },
       {
@@ -131,6 +144,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Describe capabilities of Azure storage',
           'Describe capabilities of Azure Cosmos DB',
+          'Compare key-value, document, and graph data models',
+          'Describe partitioning and consistency trade-offs in globally distributed stores',
         ],
       },
       {
@@ -140,6 +155,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Describe common elements of large-scale analytics',
           'Describe considerations for real-time data analytics',
           'Describe data visualization in Microsoft Power BI',
+          'Describe batch and streaming pipeline components',
+          'Identify semantic modeling and dashboard distribution considerations',
         ],
       },
     ],
@@ -380,6 +397,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Implement containerized solutions',
           'Implement Azure App Service Web Apps',
           'Implement Azure Functions',
+          'Implement durable workflows and event-driven compute patterns',
+          'Implement API endpoints and background processing for cloud-native apps',
         ],
       },
       {
@@ -388,6 +407,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Develop solutions that use Azure Cosmos DB',
           'Develop solutions that use Azure Blob Storage',
+          'Implement data lifecycle, versioning, and retention strategies',
+          'Implement secure data access with managed identities and key vault integration',
         ],
       },
       {
@@ -396,6 +417,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Implement user authentication and authorization',
           'Implement secure Azure solutions',
+          'Implement token-based access to Azure resources and downstream APIs',
+          'Implement secret rotation and secure configuration management',
         ],
       },
       {
@@ -404,6 +427,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Implement caching for solutions',
           'Troubleshoot solutions by using Application Insights',
+          'Implement distributed tracing and telemetry correlation',
+          'Optimize application performance, resiliency, and cost characteristics',
         ],
       },
       {
@@ -413,6 +438,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Implement API Management',
           'Develop event-based solutions',
           'Develop message-based solutions',
+          'Implement secure service-to-service integration patterns',
+          'Integrate external services with resilient retry and dead-letter handling',
         ],
       },
     ],
@@ -431,6 +458,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Design solutions for logging and monitoring',
           'Design authentication and authorization solutions',
           'Design governance solutions',
+          'Design identity lifecycle and privileged access governance',
+          'Design policy, compliance, and operational guardrail frameworks',
         ],
       },
       {
@@ -440,6 +469,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Design data storage solutions for relational data',
           'Design data storage solutions for non-relational data',
           'Design data integration solutions',
+          'Design data protection, encryption, and key management strategies',
+          'Design data classification, retention, and compliance-aware architectures',
         ],
       },
       {
@@ -448,6 +479,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Design solutions for backup and disaster recovery',
           'Design for high availability',
+          'Design failover, failback, and regional resiliency strategies',
+          'Design recovery objectives and validation testing plans',
         ],
       },
       {
@@ -458,6 +491,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Design application architecture solutions',
           'Design network solutions',
           'Design migrations',
+          'Design hybrid and multiregion network topologies',
+          'Design modernization paths for legacy workloads',
         ],
       },
     ],
@@ -475,6 +510,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Configure activity traceability and flow of work',
           'Configure collaboration and communication',
+          'Define team workflows, reporting cadences, and governance checkpoints',
+          'Establish visibility for cross-team dependencies and release readiness',
         ],
       },
       {
@@ -484,6 +521,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Design and implement a source control strategy',
           'Plan and implement branching strategies for the source code',
           'Configure and manage repositories',
+          'Implement pull request policies and branch protection controls',
+          'Design repository structures for mono-repo and multi-repo delivery models',
         ],
       },
       {
@@ -494,6 +533,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
           'Design and implement a package management strategy',
           'Design and implement pipelines for infrastructure as code',
           'Design and implement a deployment strategy',
+          'Design testing gates, quality checks, and progressive deployment controls',
+          'Implement rollback and environment promotion strategies across stages',
         ],
       },
       {
@@ -502,6 +543,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Design and implement authentication and authorization methods',
           'Design and implement a strategy for managing sensitive information in automation',
+          'Implement supply chain security controls for code, packages, and build agents',
+          'Design compliance evidence collection and policy enforcement automation',
         ],
       },
       {
@@ -510,6 +553,8 @@ export const MICROSOFT_CERTS: CertEntry[] = [
         tasks: [
           'Configure monitoring for a DevOps environment',
           'Analyze metrics from instrumentation',
+          'Design observability dashboards for service reliability objectives',
+          'Implement alert routing and incident response integration',
         ],
       },
     ],

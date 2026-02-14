@@ -18,7 +18,9 @@ import {
  Trash2,
  AlertTriangle,
  ChevronDown,
- ChevronUp
+ ChevronUp,
+ LogOut,
+ User
 } from 'lucide-react';
 import { useClickOutside } from '@/shared/hooks/useClickOutside';
 import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
@@ -26,6 +28,7 @@ import { useUIStore } from '@/store/ui-store';
 import { useThemeStore, type Theme, type VisualTheme } from '@/store/theme-store';
 import { usePersonalizationStore, type PracticeMode } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
+import { useAuthStore } from '@/store/auth-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { getAllPersonas } from '@/features/ai-coach';
 import { MetaphorToggle } from '@/features/personalization';
@@ -38,6 +41,7 @@ export default function SettingsPanel() {
  const panelRef = useRef<HTMLDivElement>(null);
  const triggerRef = useRef<HTMLElement | null>(null);
  const isAdmin = isGenerationAllowed();
+ const { user, isAuthenticated, logout } = useAuthStore();
  const [isExiting, setIsExiting] = useState(false);
  const [showPersonas, setShowPersonas] = useState(false);
  const [showDangerZone, setShowDangerZone] = useState(false);
@@ -161,6 +165,34 @@ export default function SettingsPanel() {
  </button>
  </header>
  <div className={styles.panelContent}>
+ {isAuthenticated && user && (
+ <section className={styles.section}>
+ <div className={styles.sectionHeader}>
+ <User className={styles.sectionIcon} />
+ <h3 className={styles.sectionTitle}>Account</h3>
+ </div>
+ <div className={styles.accountCard}>
+ <div className={styles.accountInfo}>
+ <div className={styles.accountAvatar}>
+ {(user.name || user.email || '?').charAt(0).toUpperCase()}
+ </div>
+ <div className={styles.accountDetails}>
+ {user.name && (
+ <span className={styles.accountName}>{user.name}</span>
+ )}
+ <span className={styles.accountEmail}>{user.email}</span>
+ </div>
+ </div>
+ <button
+ onClick={() => logout()}
+ className={styles.logoutButton}
+ >
+ <LogOut size={14} />
+ Sign Out
+ </button>
+ </div>
+ </section>
+ )}
  <section className={styles.section}>
  <div className={styles.sectionHeader}>
  <Palette className={styles.sectionIcon} />

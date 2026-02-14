@@ -45,11 +45,12 @@ provider "aws" {
 module "cognito" {
   source = "./modules/cognito"
 
-  user_pool_name = "sensapbl-${var.environment}"
-  environment    = var.environment
-  callback_urls  = var.cognito_callback_urls
-  logout_urls    = var.cognito_logout_urls
-  domain_prefix  = "${var.cognito_domain_prefix}-${var.environment}"
+  user_pool_name    = "sensapbl-${var.environment}"
+  environment       = var.environment
+  callback_urls     = var.cognito_callback_urls
+  logout_urls       = var.cognito_logout_urls
+  domain_prefix     = "${var.cognito_domain_prefix}-${var.environment}"
+  lambda_source_dir = "${path.module}/../../backend/lambda"
 }
 
 # ==============================================================================

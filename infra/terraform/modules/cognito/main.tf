@@ -20,6 +20,10 @@ resource "aws_cognito_user_pool" "main" {
     email_message        = "Your verification code is {####}"
   }
 
+  lambda_config {
+    custom_message = aws_lambda_function.custom_message.arn
+  }
+
   schema {
     name                = "email"
     attribute_data_type = "String"
@@ -47,6 +51,87 @@ resource "aws_cognito_user_pool" "main" {
   tags = {
     Name = "sensapbl-${var.environment}-user-pool"
   }
+
+  depends_on = [aws_lambda_function.custom_message]
+}
+
+# =============================================================================
+# Custom Message Lambda - Branded Email Templates
+# =============================================================================
+
+data "archive_file" "custom_message" {
+  type        = "zip"
+  source_dir  = "${var.lambda_source_dir}/custom_message"
+  output_path = "${path.module}/custom_message.zip"
+}
+
+resource "aws_iam_role" "custom_message" {
+  name = "sensapbl-${var.environment}-custom-message-lambda"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "custom_message_logs" {
+  name = "sensapbl-${var.environment}-custom-message-logs"
+  role = aws_iam_role.custom_message.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ]
+      Resource = "arn:aws:logs:*:*:*"
+    }]
+  })
+}
+
+resource "aws_lambda_function" "custom_message" {
+  function_name = "sensapbl-${var.environment}-custom-message"
+  role          = aws_iam_role.custom_message.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.12"
+  timeout       = 5
+  memory_size   = 128
+
+  filename         = data.archive_file.custom_message.output_path
+  source_code_hash = data.archive_file.custom_message.output_base64sha256
+
+  environment {
+    variables = {
+      ENVIRONMENT = var.environment
+    }
+  }
+
+  tags = {
+    Name     = "sensapbl-${var.environment}-custom-message"
+    Function = "custom-message"
+  }
+}
+
+resource "aws_lambda_permission" "cognito_custom_message" {
+  statement_id  = "AllowCognitoInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.custom_message.function_name
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.main.arn
+}
+
+resource "aws_cloudwatch_log_group" "custom_message" {
+  name              = "/aws/lambda/${aws_lambda_function.custom_message.function_name}"
+  retention_in_days = 14
 }
 
 resource "aws_cognito_user_pool_client" "main" {

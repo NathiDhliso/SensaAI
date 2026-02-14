@@ -22,3 +22,8 @@ variable "domain_prefix" {
   description = "Domain prefix for hosted UI"
   type        = string
 }
+
+variable "lambda_source_dir" {
+  description = "Path to the Lambda source directory containing custom_message/"
+  type        = string
+}

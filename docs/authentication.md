@@ -1,6 +1,6 @@
 # Authentication
 
-**Last Updated:** February 13, 2026
+**Last Updated:** February 14, 2026
 **Status:** MANDATORY — Understand this before modifying auth flows.
 
 ---
@@ -97,6 +97,24 @@ Content generation is restricted to approved email addresses, enforced independe
 
 ---
 
+## Branded Email Templates (Custom Message Lambda)
+
+Cognito fires a Custom Message Lambda trigger for every auth email. The Lambda returns branded HTML per trigger type.
+
+| Trigger | Email Subject | When Sent |
+|---------|--------------|----------|
+| `CustomMessage_SignUp` | "SensaPBL — Verify Your Email" | New user signs up |
+| `CustomMessage_ForgotPassword` | "SensaPBL — Reset Your Password" | User requests password reset |
+| `CustomMessage_ResendCode` | "SensaPBL — Your New Verification Code" | User clicks "Resend Code" |
+| `CustomMessage_AdminCreateUser` | "SensaPBL — You've Been Invited" | Admin creates a user account |
+
+**Lambda:** `backend/lambda/custom_message/handler.py`
+**Terraform:** `infra/terraform/modules/cognito/main.tf` — `aws_lambda_function.custom_message` + `lambda_config.custom_message` on user pool
+
+The `verification_message_template` block remains as a fallback if the Lambda fails. The Lambda is lightweight (128MB, 5s timeout, Python 3.12) with its own IAM role (CloudWatch logs only).
+
+---
+
 ## Key Files
 
 | File | Purpose |
@@ -108,7 +126,9 @@ Content generation is restricted to approved email addresses, enforced independe
 | `src/pages/ForgotPassword.tsx` | Password reset flow |
 | `src/pages/AuthCallback.tsx` | OAuth redirect handler — extracts `code` param, calls `handleCallback` |
 | `src/components/auth/ProtectedRoute.tsx` | Route guard — redirects to /login if not authenticated |
+| `src/components/settings/SettingsPanel.tsx` | Account section with user info + Sign Out button |
 | `src/shared/api/client.ts` | API client with `credentials: 'include'`, `authSessionApi` methods |
+| `backend/lambda/custom_message/handler.py` | Cognito Custom Message Lambda — branded HTML email templates |
 | `backend/src/features/auth/routes/` | Express auth routes: code exchange, session validate, refresh, logout |
 
 ---

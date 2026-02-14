@@ -48,6 +48,7 @@ export const CISCO_CERTS: CertEntry[] = [
           'Configure and verify IPv4 and IPv6 static routing (default route, network route, host route, floating static)',
           'Configure and verify single area OSPFv2 (neighbor adjacencies, point-to-point, broadcast, router ID, passive interface, default route advertisement)',
           'Describe the purpose, functions, and concepts of first hop redundancy protocols',
+          'Troubleshoot route selection and adjacency formation issues',
         ],
       },
       {
@@ -122,6 +123,7 @@ export const CISCO_CERTS: CertEntry[] = [
           'Describe device virtualization technologies (hypervisor type 1 and 2, virtual switching)',
           'Configure and verify data path virtualization technologies (VRF, GRE/IPsec tunneling)',
           'Describe network virtualization concepts (LISP, VXLAN)',
+          'Differentiate segmentation and overlay strategies for enterprise designs',
         ],
       },
       {
@@ -146,6 +148,7 @@ export const CISCO_CERTS: CertEntry[] = [
           'Configure and verify IPSLA',
           'Describe Cisco DNA Center workflows to apply network configuration, monitoring, and management',
           'Configure and verify NETCONF and RESTCONF',
+          'Correlate telemetry data to isolate performance and availability anomalies',
         ],
       },
       {
@@ -157,6 +160,7 @@ export const CISCO_CERTS: CertEntry[] = [
           'Describe REST API security',
           'Configure and verify wireless security features (EAP, WebAuth, PSK, MAB)',
           'Describe the components of network security design (threat defense, endpoint security, next-gen firewall, TrustSec, MACsec, network access control)',
+          'Implement control plane and management plane hardening practices',
         ],
       },
       {

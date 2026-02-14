@@ -160,8 +160,8 @@ ALLOWED_GENERATOR_EMAILS = {
 
 def extract_email_from_event(event: Dict[str, Any]) -> Optional[str]:
     jwt_claims = (event.get("requestContext") or {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
-    email = jwt_claims.get("email")
-    if email:
+    email = jwt_claims.get("email") or jwt_claims.get("username") or jwt_claims.get("cognito:username")
+    if email and "@" in str(email):
         return email.lower()
     headers = event.get("headers") or {}
     auth_header = headers.get("authorization") or headers.get("Authorization") or ""
@@ -173,8 +173,9 @@ def extract_email_from_event(event: Dict[str, Any]) -> Optional[str]:
             if padding != 4:
                 payload_b64 += "=" * padding
             payload = json.loads(base64.b64decode(payload_b64))
-            email = payload.get("email", "").lower()
-            if email:
+            email = payload.get("email") or payload.get("username") or payload.get("cognito:username") or ""
+            email = email.lower()
+            if email and "@" in email:
                 return email
         except Exception:
             pass
