@@ -53,6 +53,8 @@ Duration and goal are NOT manually selectable — mood is the only input.
 2. **Nomenclature Sprint** — 60-second term↔metaphor matching (90% accuracy gate)
 3. **Gap Priming** — Preview questions to activate prior knowledge
 
+The Synoptic View help overlay mirrors the 6 canonical TRACES relationship labels (`requires`, `enables`, `is-part-of`, `is-type-of`, `causes`, `constrains`) with plain-language meanings for quick interpretation.
+
 **Outputs:** `Map<conceptId, guessedKeystoneId>` predictions for later validation.
 
 ### Step 2: BUILD (Note)
@@ -90,7 +92,8 @@ See detailed breakdown below.
 2. `concept.commonPitfalls` → misconception-based question
 3. `concept.workedExample.problem` (problem statement)
 4. `concept.lifecycle.phase1.steps[0]` (process question)
-5. Generic template fallback (last resort)
+
+No synthetic fallback questions are generated. Concepts without explicit question/hint material are skipped by Preview AI.
 
 **Hint source priority:**
 1. `concept.shape.simpleCore`
@@ -120,8 +123,13 @@ See detailed breakdown below.
 **Content categorization:** `categorizeKeyPoints()` splits `keyPoints + howToUse` into architecture/execution/systemPhysics buckets using keyword matching.
 
 ### Phase 3: Retain AI (Verify)
-**Component:** `BlankSheetTest`
-**Purpose:** Free recall — write everything you remember without prompts.
+**Component:** `VerifyPhase` in `MicroLearningLoopController.tsx`
+**Purpose:** Quick verification question using AI-generated `patternRecognition` data.
+
+- Only concepts with explicit `shape.patternRecognition.question` and `shape.patternRecognition.answer` produce a verify question
+- Concepts without pattern recognition data auto-complete the verify phase
+- No synthetic questions are generated from key points or concept names
+- `BlankSheetScorer` returns zero-score with `confidence: 0` when scoring keywords are missing (no word-count heuristics)
 
 ---
 

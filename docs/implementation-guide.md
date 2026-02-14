@@ -68,26 +68,23 @@ function MyActivity({ concept, onComplete }: Props) {
 
 ---
 
-## Pattern 3: Consuming Concept Data (Priority Chains)
+## Pattern 3: Consuming Concept Data (Explicit Only)
 
-Never use a single hardcoded fallback. Always create a priority chain from richest to simplest:
+Never fabricate synthetic data. Use only explicit AI-generated content. If data is missing, return `null` or empty and let the UI handle absence:
 
 ```typescript
-// Question generation priority chain
+// Question source — explicit AI data only, null if absent
 const question =
   concept.shape?.patternRecognition?.question        // 1. AI diagnostic question
-  || (concept.commonPitfalls?.[0]                     // 2. Misconception-based
-    ? `What is a common misconception about ${concept.name}?`
-    : null)
-  || concept.workedExample?.problem                   // 3. Worked example problem
-  || `What is the purpose of ${concept.name}?`;       // 4. Generic fallback
+  || concept.workedExample?.problem                   // 2. Worked example problem
+  || null;                                            // No synthetic fallback
 
-// Hint priority chain
+// Hint source — explicit AI data only
 const hint =
   concept.shape?.simpleCore                           // 1. One-sentence core
   || concept.hookSentence                             // 2. Opening hook
   || concept.keyPoints?.[0]                           // 3. First key point
-  || `Consider the relationships with connected concepts`; // 4. Generic
+  || '';                                              // Empty, not synthetic
 ```
 
 ---
@@ -95,7 +92,6 @@ const hint =
 ## Pattern 4: Section Titles in LearnPhase
 
 ```typescript
-// CORRECT — use lifecycle titles with fallback
 const lc = concept.lifecycle;
 const hasLifecycle = lc?.phase1?.title && lc?.phase2?.title && lc?.phase3?.title;
 
@@ -107,13 +103,13 @@ const sectionLabels = hasLifecycle
       s3Title: lc!.phase3.title,           // e.g., "Validate"
     }
   : {
-      s1Title: 'The Architecture',          // Hardcoded fallback ONLY
+      s1Title: 'The Architecture',
       s2Title: 'The Execution',
       s3Title: 'The System Physics',
     };
 
-// WRONG — always hardcoded
-const s1Title = 'The Architecture';  // Ignores AI-generated titles
+// Lifecycle steps use only AI-generated data — empty arrays when absent.
+// No hardcoded placeholder steps are injected.
 ```
 
 ---

@@ -23,15 +23,18 @@ export interface PreviewAnalysis {
  * Generate practice questions from concepts
  */
 export function generatePracticeQuestions(concepts: LearningConcept[]): PracticeQuestion[] {
- return concepts.map((concept) => {
+ return concepts.flatMap((concept) => {
+ const question = generateQuestionFromConcept(concept);
+ const hint = generateHint(concept);
+ if (!question || !hint) return [];
  const difficulty = getDifficultyLevel(concept);
- return {
+ return [{
  id: `q-${concept.id}`,
- question: generateQuestionFromConcept(concept),
+ question,
  difficulty,
  concepts: [concept.id],
- hint: generateHint(concept)
- };
+ hint
+ }];
  });
 }
 /**
@@ -48,16 +51,9 @@ function generateQuestionFromConcept(concept: LearningConcept): string {
  return concept.workedExample.problem;
  }
  if (concept.lifecycle?.phase1?.steps?.[0]) {
- return `What is the first step in ${concept.lifecycle.phase1.title || concept.name}?`;
+ return `What is the first step described here: ${concept.lifecycle.phase1.steps[0]}?`;
  }
- const fallbacks = [
- `What is the purpose of ${concept.name}?`,
- `How does ${concept.name} work?`,
- `When would you use ${concept.name}?`,
- `What are the key components of ${concept.name}?`,
- `How does ${concept.name} relate to other concepts?`
- ];
- return fallbacks[concept.name.length % fallbacks.length];
+ return '';
 }
 /**
  * Generate a hint for a concept
@@ -70,9 +66,9 @@ function generateHint(concept: LearningConcept): string {
  return concept.hookSentence;
  }
  if (concept.keyPoints && concept.keyPoints.length > 0) {
- return `Focus on: ${concept.keyPoints[0]}`;
+ return concept.keyPoints[0];
  }
- return `Consider the relationships with connected concepts`;
+ return '';
 }
 /**
  * Determine difficulty level based on concept data
@@ -124,8 +120,8 @@ export function generatePreviewAnalysis(
  const questions = generatePracticeQuestions(concepts);
  const prerequisites = extractPrerequisites(concepts);
  // Estimate overall difficulty
- const difficultyScores = questions.map(q =>
- q.difficulty === 'hard' ? 3 : q.difficulty === 'medium' ? 2 : 1
+ const difficultyScores = (questions.length > 0 ? questions.map(q => q.difficulty) : concepts.map(getDifficultyLevel)).map(d =>
+ d === 'hard' ? 3 : d === 'medium' ? 2 : 1
  );
  const avgDifficulty = difficultyScores.reduce((a, b) => a + b, 0) / difficultyScores.length;
  const estimatedDifficulty: 'beginner' | 'intermediate' | 'advanced' =

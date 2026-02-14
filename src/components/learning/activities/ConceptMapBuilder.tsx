@@ -46,8 +46,8 @@ import styles from './ConceptMapBuilder.module.css';
 // ============================================================================
 const MAX_LABEL_LENGTH = 25;
 const LABEL_PRESETS = [
- 'requires', 'enables', 'is part of',
- 'is type of', 'causes', 'constrains'
+ 'requires', 'enables', 'is-part-of',
+ 'is-type-of', 'causes', 'constrains'
 ];
 const RELATIONSHIP_LEGEND = [
  { id: 'requires', label: 'Requires', meaning: 'Need this first', example: 'Learn ladder safety before climbing the treehouse.' },
@@ -57,6 +57,17 @@ const RELATIONSHIP_LEGEND = [
  { id: 'causes', label: 'Causes', meaning: 'Makes something happen', example: 'Pressing the bell makes the club alarm ring.' },
  { id: 'constrains', label: 'Constrains', meaning: 'Sets rules or limits', example: 'Club rules limit which games can be played.' }
 ];
+const normalizeConnectionLabel = (label: string): string => {
+ const normalized = label.toLowerCase().trim();
+ if (normalized === 'is part of' || normalized === 'is_part_of' || normalized === 'part of') return 'is-part-of';
+ if (normalized === 'is type of' || normalized === 'is_type_of' || normalized === 'type of') return 'is-type-of';
+ if (normalized === 'depends-on' || normalized === 'depends_on' || normalized === 'prerequisite') return 'requires';
+ if (normalized === 'related-to' || normalized === 'related to' || normalized === 'relates') return 'enables';
+ if (normalized === 'requires' || normalized === 'enables' || normalized === 'is-part-of' || normalized === 'is-type-of' || normalized === 'causes' || normalized === 'constrains') {
+ return normalized;
+ }
+ return label.trim();
+};
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -121,7 +132,12 @@ export default function ConceptMapBuilder({
  conceptName: n.conceptName || concepts.find(c => c.id === n.conceptId)?.name || 'Unknown'
  }));
  });
- const [connections, setConnections] = useState<Connection[]>(initialData?.connections || []);
+ const [connections, setConnections] = useState<Connection[]>(
+ (initialData?.connections || []).map((conn) => ({
+ ...conn,
+ label: normalizeConnectionLabel(conn.label)
+ }))
+ );
  const [addedConceptIds, setAddedConceptIds] = useState<Set<string>>(
  new Set(initialData?.nodes.map(n => n.conceptId) || [])
  );
@@ -326,7 +342,7 @@ export default function ConceptMapBuilder({
  id: `conn-${Date.now()}`,
  fromId: fromNode.id,
  toId: toNode.id,
- label: suggestion.suggestedLabel
+ label: normalizeConnectionLabel(suggestion.suggestedLabel)
  };
  setConnections(prev => [...prev, newConnection]);
  setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
@@ -395,7 +411,7 @@ export default function ConceptMapBuilder({
  id: `conn-${Date.now()}`,
  fromId: pendingConnection.fromId,
  toId: pendingConnection.toId,
- label: data.customLabel || data.type
+ label: normalizeConnectionLabel(data.customLabel || data.type)
  };
  setConnections(prev => [...prev, newConnection]);
  setShowConnectionTypeModal(false);
@@ -412,7 +428,7 @@ export default function ConceptMapBuilder({
  if (editingConnectionId) {
  const trimmedLabel = labelInput.trim().slice(0, MAX_LABEL_LENGTH);
  setConnections(prev => prev.map(c =>
- c.id === editingConnectionId ? { ...c, label: trimmedLabel || '?' } : c
+ c.id === editingConnectionId ? { ...c, label: normalizeConnectionLabel(trimmedLabel) || '?' } : c
  ));
  }
  setEditingConnectionId(null);
@@ -1009,7 +1025,6 @@ export default function ConceptMapBuilder({
  </button>
  </div>
  )}
- {!readOnly && (
  <div className={styles.relationshipLegend}>
  <div className={styles.relationshipLegendTitle}>Relationship Legend</div>
  <div className={styles.relationshipLegendList}>
@@ -1024,7 +1039,6 @@ export default function ConceptMapBuilder({
  ))}
  </div>
  </div>
- )}
  {/* Connect Mode Hint */}
  <AnimatePresence>
  {activeTool === 'connect' && !readOnly && (

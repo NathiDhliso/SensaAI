@@ -382,27 +382,20 @@ class BlankSheetScorerClass {
  feedback: message
  };
  }
- /**
- * Create fallback result when scoring data is missing
- * Uses basic heuristics based on response length
- */
- private createFallbackResult(input: string, _minWordCount: number): ScoringResult {
- const tokens = this.tokenize(this.normalizeText(input));
- // Basic scoring: 10 points per word, capped at 70 (no keywords to verify)
- const lengthScore = Math.min(70, tokens.length * 10);
+ private createFallbackResult(_input: string, _minWordCount: number): ScoringResult {
  return {
- score: lengthScore,
- grade: this.scoreToGrade(lengthScore),
+ score: 0,
+ grade: this.scoreToGrade(0),
  matchedKeywords: [],
  missedKeywords: [],
  aliasMatches: [],
- confidence: 0.3, // Low confidence without scoring data
+ confidence: 0,
  breakdown: {
- keywordScore: lengthScore,
+ keywordScore: 0,
  aliasBonus: 0,
  lengthPenalty: 0
  },
- feedback: 'Scoring data not available. Score based on response length only.'
+ feedback: 'Scoring data not available for this concept.'
  };
  }
 }
@@ -420,4 +413,4 @@ export function calculateRecallScore(
 ): ScoringResult {
  return BlankSheetScorer.calculateRecallScore(userInput, conceptData, config);
 }
-export default BlankSheetScorer;
+export default BlankSheetScorer;

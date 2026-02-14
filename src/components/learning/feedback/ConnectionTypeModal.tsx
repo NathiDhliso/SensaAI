@@ -34,49 +34,49 @@ const CONNECTION_TYPES: Array<{
  id: 'requires',
  label: 'Requires',
  question: 'What must I know first?',
- description: 'B must be understood before A',
+ description: 'Need this first before the next step makes sense',
  icon: <Shield size={20} />,
- example: 'Calculus requires Algebra'
+ example: 'Learn ladder safety before climbing the treehouse.'
  },
  {
  id: 'enables',
  label: 'Enables',
  question: 'What does this unlock?',
- description: 'Learning A makes B possible',
+ description: 'Unlocks what you can do next',
  icon: <ArrowRight size={20} />,
- example: 'Variables enable Functions'
+ example: 'Having the key lets you open the treehouse door.'
  },
  {
  id: 'is-part-of',
  label: 'Is Part Of',
  question: 'What is this a piece of?',
- description: 'A is a component within B',
+ description: 'A piece inside something bigger',
  icon: <Package size={20} />,
- example: 'Mitochondria is part of Cell'
+ example: 'The ladder is part of the treehouse.'
  },
  {
  id: 'is-type-of',
  label: 'Is Type Of',
  question: 'What category does this belong to?',
- description: 'A is a specific instance of B',
+ description: 'A specific kind of a bigger group',
  icon: <Layers size={20} />,
- example: 'Sonnet is type of Poem'
+ example: 'An apple treehouse is a type of treehouse.'
  },
  {
  id: 'causes',
  label: 'Causes',
  question: 'What happens because of this?',
- description: 'A directly produces or triggers B',
+ description: 'Makes something happen',
  icon: <GitBranch size={20} />,
- example: 'Inflation causes Price Increase'
+ example: 'Pressing the bell makes the club alarm ring.'
  },
  {
  id: 'constrains',
  label: 'Constrains',
  question: 'What limits or governs this?',
- description: 'A sets rules or limits on B',
+ description: 'Sets rules or limits',
  icon: <Lock size={20} />,
- example: 'Budget constrains Scope'
+ example: 'Club rules limit which games can be played.'
  }
 ];
 // ============================================================================
@@ -145,4 +145,4 @@ export function ConnectionTypeModal({
  </motion.div>
  );
 }
-export default ConnectionTypeModal;
+export default ConnectionTypeModal;

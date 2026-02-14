@@ -295,7 +295,6 @@ export function validateConnectionLabel(
  if (labelLower === '?' || labelLower === '' || labelLower === 'connects to') {
  return {
  isValid: false,
- suggestion: suggestLabel(),
  reasoning: 'Please describe HOW these concepts relate'
  };
  }
@@ -303,20 +302,13 @@ export function validateConnectionLabel(
  if (vagueLabels.includes(labelLower)) {
  return {
  isValid: false,
- suggestion: suggestLabel(),
- reasoning: 'Ask yourself: requires, enables, is part of, is type of, causes, or constrains?'
+ reasoning: 'Ask yourself: requires, enables, is-part-of, is-type-of, causes, or constrains?'
  };
  }
  return {
  isValid: true,
  reasoning: 'Good descriptive label'
  };
-}
-/**
- * Suggest a label for a connection
- */
-function suggestLabel(): string {
- return 'requires';
 }
 /**
  * Get coach message for building phase

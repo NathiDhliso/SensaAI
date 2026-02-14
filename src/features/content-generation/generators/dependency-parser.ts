@@ -6,43 +6,8 @@ import type { DependencyMetrics, DependencyEdge, SubjectGraph } from '@/shared/t
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
 import { calculateTier, calculateCentralityScore } from './tier-calculator';
 /**
- * Infer dependencies from prerequisite text when dependsOn is not available.
- * Matches concept names mentioned in the prerequisite field.
- */
-function inferDependenciesFromPrerequisite(
- concept: ParsedConcept,
- allConcepts: ParsedConcept[]
-): string[] {
- const raw = concept.phase1?.prerequisite;
- const prereqText = (typeof raw === 'string' ? raw : raw != null ? String(raw) : '').toLowerCase();
- if (!prereqText || prereqText.includes('none') || prereqText.length < 5) {
- return [];
- }
- const dependencies: string[] = [];
- for (const other of allConcepts) {
- if (other.id === concept.id) continue;
- const otherNameLower = other.name.toLowerCase();
- // Check if the prerequisite text mentions this concept
- if (prereqText.includes(otherNameLower)) {
- dependencies.push(other.name);
- }
- // Also check partial matches for compound concept names
- const nameParts = otherNameLower.split(/[\s-]+/);
- if (nameParts.length > 1) {
- const significantParts = nameParts.filter(p => p.length > 3);
- if (significantParts.some(part => prereqText.includes(part))) {
- if (!dependencies.includes(other.name)) {
- dependencies.push(other.name);
- }
- }
- }
- }
- return dependencies;
-}
-/**
  * Extract dependency edges from parsed concepts.
- * Creates edges based on the `dependsOn` arrays in mnemonic data,
- * with fallback to inferring from prerequisite text.
+ * Creates edges strictly from explicit relationship data.
  * 
  * @param concepts - Parsed concepts with mnemonic data
  * @returns Array of dependency edges
@@ -71,10 +36,7 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
  }
  }
  if (hasConnections) continue;
- let dependsOn = concept.mnemonic?.dependsOn || [];
- if (dependsOn.length === 0) {
- dependsOn = inferDependenciesFromPrerequisite(concept, concepts);
- }
+ const dependsOn = concept.mnemonic?.dependsOn || [];
  for (const depName of dependsOn) {
  const targetId = nameToIdMap.get(depName.toLowerCase());
  const edgeKey = `${concept.id}->${targetId}`;
@@ -116,17 +78,6 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
  });
  addedEdges.add(edgeKey);
  }
- }
- }
- if (edges.length === 0 && concepts.length > 1) {
- for (let i = 1; i < concepts.length; i++) {
- edges.push({
- id: `edge-chain-${concepts[i].id}-${concepts[i - 1].id}`,
- source: concepts[i].id,
- target: concepts[i - 1].id,
- relationship: 'requires',
- weight: 0.5
- });
  }
  }
  return edges;

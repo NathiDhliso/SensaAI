@@ -131,17 +131,30 @@ Raw JSON → concept-schema.ts (Zod validation) → transformer.ts (normalizatio
 1. Assign `tier` from `treeLevel` field
 2. Copy `parentName`, `trunkDomain` from raw data
 3. Calculate `outdegree` from dependency graph
-4. Build `connections[]` from raw relationship data
+4. Build `connections[]` from explicit `strictConnections` and `mnemonic.dependsOn` only
 5. Map `cognitiveLevel` to Bloom's taxonomy
-6. Structure `lifecycle` into `phase1/phase2/phase3` with titles and steps
+6. Structure `lifecycle` into `phase1/phase2/phase3` — uses only AI-generated steps, empty arrays when absent
 7. Build `shape` content (simpleCore, highStakesExample, patternRecognition, etc.)
 8. Generate `dependencies[]` ID array from relationship data
 9. Set `lifecyclePhase` (PREPARE/MODEL/DELIVER) from stage mapping
+
+### Strict No-Fallback Policy (Transformer)
+- No skeleton concept injection — only explicitly generated concepts are used
+- No synthetic lifecycle steps — empty arrays when AI data is absent
+- No prerequisite-text inference for connections — only `strictConnections` and `mnemonic.dependsOn`
+- No synthetic concept names — empty string returned for unnamed concepts (filtered by dedup)
+- No `fallbackConcepts` parameter — removed from all transformer functions
 
 ### Validation
 **File:** `src/features/content-generation/validators/`
 - `content-quality.ts` — `isRealContent()` checks for placeholder/filler content
 - `tier-progression.ts` — Validates tier distribution and dependency integrity
+
+### Dependency Graph Strict Mode
+**File:** `src/features/content-generation/generators/dependency-parser.ts`
+- Dependency edges are now built from explicit relationship data only (`strictConnections`, `mnemonic.dependsOn`, `parentName`, `parentId`)
+- No inferred prerequisite-text edges are synthesized
+- No sequential chain fallback edges are auto-generated
 
 ---
 

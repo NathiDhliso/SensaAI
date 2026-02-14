@@ -429,9 +429,12 @@ export default function SensaSynopticView({ concepts, subjectName }: SensaSynopt
  <div className={styles.helpSection}>
  <h4>Connection Lines</h4>
  <ul className={styles.connectionLegend}>
- <li><span className={styles.lineExample} data-type="requires" /> <strong>Solid</strong> — Requires (hard dependency)</li>
- <li><span className={styles.lineExample} data-type="extends" /> <strong>Dashed</strong> — Extends (enhancement)</li>
- <li><span className={styles.lineExample} data-type="enables" /> <strong>Dotted</strong> — Enables (capability flow)</li>
+ <li><span className={styles.lineExample} data-type="requires" /> <strong>Requires</strong> — Need this first</li>
+ <li><span className={styles.lineExample} data-type="enables" /> <strong>Enables</strong> — Unlocks what comes next</li>
+ <li><span className={styles.lineExample} data-type="is-part-of" /> <strong>Is Part Of</strong> — A piece of something bigger</li>
+ <li><span className={styles.lineExample} data-type="is-type-of" /> <strong>Is Type Of</strong> — A specific kind of a bigger group</li>
+ <li><span className={styles.lineExample} data-type="causes" /> <strong>Causes</strong> — Makes something happen</li>
+ <li><span className={styles.lineExample} data-type="constrains" /> <strong>Constrains</strong> — Sets rules or limits</li>
  </ul>
  </div>
  <div className={styles.helpSection}>

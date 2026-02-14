@@ -614,7 +614,7 @@ interface VerifyPhaseProps {
 /**
  * Verify Phase: Quick check question
  */
-function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhaseProps) {
+function VerifyPhase({ concept, allConcepts, onComplete }: VerifyPhaseProps) {
  const { isScholarly } = useVisualTheme();
  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
  const [confidence, setConfidence] = useState<number | null>(null);
@@ -656,50 +656,17 @@ function VerifyPhase({ concept, allConcepts, keyPoints, onComplete }: VerifyPhas
  options: shuffleArray([correctAnswer, ...distractors.slice(0, 3)])
  };
  }
- // 2. Fallback: Generate from key points
- const randomPoint = keyPoints[Math.floor(Math.random() * keyPoints.length)] || keyPoints[0] || concept.name;
- // ARCHITECT ENHANCEMENT: Smart Distractors using tier-based semantic similarity
- const otherConcepts = allConcepts?.filter(c => c.id !== concept.id) || [];
- const distractors: string[] = [];
- // Try to get 3 distractors from SAME TIER for semantic similarity
- if (otherConcepts.length >= 3) {
- // Prioritize concepts from the same tier (better semantic similarity)
- const sameTierConcepts = otherConcepts.filter(c =>
- (c.tier || c.mnemonic?.tier) === (concept.tier || concept.mnemonic?.tier)
- );
- const sourceConcepts = sameTierConcepts.length >= 3
- ? sameTierConcepts
- : otherConcepts;
- const shuffled = shuffleArray(sourceConcepts);
- for (let i = 0; i < Math.min(3, shuffled.length); i++) {
- const c = shuffled[i];
- // Try to get a hook sentence or a key point
- const distractorText = c.hookSentence || (c.howToUse && c.howToUse[0]) || `Related to ${c.name}`;
- distractors.push(distractorText);
- }
- } else if (otherConcepts.length > 0) {
- const shuffled = shuffleArray(otherConcepts);
- for (let i = 0; i < Math.min(3, shuffled.length); i++) {
- const c = shuffled[i];
- const distractorText = c.hookSentence || (c.keyPoints && c.keyPoints[0]) || (c.howToUse && c.howToUse[0]) || c.name;
- distractors.push(distractorText);
- }
- }
- while (distractors.length < 3) {
- const filler = otherConcepts.length > 0
- ? (otherConcepts[distractors.length % otherConcepts.length].hookSentence || otherConcepts[distractors.length % otherConcepts.length].name)
- : `A related property of ${concept.name}`;
- distractors.push(filler);
- }
- return {
- question: `Which of the following applies to "${concept.name}"?`,
- correct: randomPoint,
- options: shuffleArray([
- randomPoint,
- ...distractors.slice(0, 3)
- ])
- };
+ return null;
  });
+ useEffect(() => {
+  if (!question) {
+   const timeSpent = (Date.now() - startTime) / 1000;
+   onComplete(true, timeSpent);
+  }
+ }, [question, startTime, onComplete]);
+ if (!question) {
+  return null;
+ }
  const correctIndex = question.options.indexOf(question.correct);
  const handleSubmit = () => {
  if (selectedAnswer === null || confidence === null) return;
@@ -953,13 +920,7 @@ export function MicroLearningLoopController({
  setVerifyResultData({ correct, timeSpent });
  // Record the interaction for cognitive metrics
  recordInteraction(correct, timeSpent * 1000);
- // Fallback: If testResult is missing (e.g. lost during HMR or dev), simulate one
- const currentTestResult = testResult || {
- recalledPoints: correct ? 10 : 5,
- totalPoints: 10,
- confidence: 5,
- timeSpent: 0
- };
+ const currentTestResult = testResult || { recalledPoints: 0, totalPoints: 0, confidence: 0, timeSpent: 0 };
  const outcome = determineOutcome(currentTestResult, { correct, timeSpent });
  // If mastered AND has potential confusion pairs, go to confusion phase
  // This ensures we only clarify confusion for concepts the user is starting to get right

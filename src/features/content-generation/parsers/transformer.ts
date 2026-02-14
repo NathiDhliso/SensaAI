@@ -69,8 +69,7 @@ function cleanConceptName(concept: ParsedConcept): string {
  if (concept.name && concept.name.trim().length > 0) {
  return concept.name;
  }
- // Fallback only for truly empty names
- return `Concept ${concept.order}`;
+ return '';
 }
 /**
  * Extract key points from concept content for blank sheet test scoring
@@ -419,8 +418,7 @@ function extractPrerequisites(concept: ParsedConcept, allConcepts: ParsedConcept
  * 
  * Priority order:
  * 1. strictConnections (from frontend surgical prompt)
- * 2. connections array (from Lambda batch prompt - as raw connections data)
- * 3. Infer from mnemonic.dependsOn (fallback for older content)
+ * 2. mnemonic.dependsOn (explicit dependency declarations)
  */
 function extractSemanticConnections(
  concept: ParsedConcept,
@@ -447,7 +445,7 @@ function extractSemanticConnections(
  }
  }
  }
- // Priority 2: Infer "requires" from mnemonic.dependsOn (explicit dependencies)
+ // Priority 2: mnemonic.dependsOn (explicit dependency declarations)
  if (concept.mnemonic?.dependsOn && concept.mnemonic.dependsOn.length > 0) {
  for (const dep of concept.mnemonic.dependsOn) {
  if (validateTarget(dep) && !addedTargets.has(dep.toLowerCase())) {
@@ -456,22 +454,6 @@ function extractSemanticConnections(
  type: 'requires', // Dependencies are always "requires" relationships
  });
  addedTargets.add(dep.toLowerCase());
- }
- }
- }
- // Priority 3: Infer "requires" from prerequisite text (semantic extraction)
- const prereqText = safeStr(concept.phase1?.prerequisite).toLowerCase();
- if (prereqText && !prereqText.includes('none') && prereqText.length > 5) {
- for (const other of allConcepts) {
- if (other.id === concept.id) continue;
- if (addedTargets.has(other.name.toLowerCase())) continue;
- const otherNameLower = other.name.toLowerCase();
- if (prereqText.includes(otherNameLower)) {
- connections.push({
- target: other.name,
- type: 'requires'
- });
- addedTargets.add(otherNameLower);
  }
  }
  }
@@ -637,30 +619,13 @@ function distributeConceptsToStages(
  }
  return conceptToStage;
 }
-function safeSlugify(text: string): string {
- return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-}
-function determineTierFallback(order: number, _name: string): 'trunk' | 'branch' | 'leaf' {
- if (order <= 5) return 'trunk';
- if (order <= 20) return 'branch';
- return 'leaf';
-}
 export function transformToLearningConcepts(
  parsed: ParsedGeneratedContent,
- stages: LearningStage[],
- fallbackConcepts: string[] = []
+ stages: LearningStage[]
 ): LearningConcept[] {
  console.log(`\n [Transformer] transformToLearningConcepts called`);
  console.log(` Total parsed concepts: ${parsed.concepts.length}`);
- console.log(` Fallback concepts: ${fallbackConcepts.length}`);
  const concepts: LearningConcept[] = [];
- // SANITIZE FALLBACKS: Ideally we should fix the source, but we filter here to be safe
- const validFallbacks = fallbackConcepts.filter(name =>
- name &&
- name.trim().length > 0 &&
- !name.toLowerCase().includes('unnamed') &&
- !name.toLowerCase().includes('undefined')
- );
  const lifecycleLabels = parsed.domainAnalysis.lifecycle;
  const conceptToStage = distributeConceptsToStages(parsed.concepts, stages);
  for (const parsedConcept of parsed.concepts) {
@@ -700,15 +665,15 @@ export function transformToLearningConcepts(
  const lifecycle: ConceptLifecycle = {
  phase1: {
  title: lifecycleLabels.phase1 || 'FOUNDATION',
- steps: phase1Steps.length > 0 ? phase1Steps : ['Establish prerequisites', 'Select approach', 'Begin execution']
+ steps: phase1Steps
  },
  phase2: {
  title: lifecycleLabels.phase2 || 'ACTION',
- steps: parsedConcept.phase2.length > 0 ? parsedConcept.phase2 : ['Apply core operations', 'Implement key steps', 'Execute primary actions']
+ steps: parsedConcept.phase2.length > 0 ? parsedConcept.phase2 : []
  },
  phase3: {
  title: lifecycleLabels.phase3 || 'VERIFICATION',
- steps: phase3Steps.length > 0 ? phase3Steps : ['Validate outcomes', 'Review results', 'Confirm completion']
+ steps: phase3Steps
  }
  };
  const metaphor = getConceptMetaphor(parsedConcept, parsed.mentalAnchors);
@@ -736,7 +701,7 @@ export function transformToLearningConcepts(
  hookSentence: generateHookSentence(parsedConcept, metaphor),
  whyYouNeed: generateWhyYouNeed(parsedConcept),
  realWorldExample: generateRealWorldExample(parsedConcept, metaphor),
- howToUse: howToUse.length > 0 ? howToUse : ['Review the concept details', 'Understand the lifecycle', 'Practice application'],
+ howToUse,
  technicalDetails: parsedConcept.technicalDetails || technicalDetails || '',
  workedExample: parsedConcept.workedExample,
  keyPoints: parsedConcept.keyPoints,
@@ -770,43 +735,6 @@ export function transformToLearningConcepts(
  // Log the final concept name
  const finalConcept = concepts[concepts.length - 1];
  console.log(` Created concept #${finalConcept.order}: "${finalConcept.name}"`);
- }
- // RECOVERY: Inject skeleton concepts for any missing names in validFallbacks
- if (validFallbacks.length > 0) {
- const existingNames = new Set(concepts.map(c => c.name.toLowerCase()));
- validFallbacks.forEach((name, idx) => {
- if (!existingNames.has(name.toLowerCase())) {
- const skeletonId = `skeleton-${safeSlugify(name)}`;
- const tier = determineTierFallback(concepts.length + idx + 1, name);
- concepts.push({
- id: skeletonId,
- stageId: stages[0]?.id || 'stage-1-root',
- order: concepts.length + 1,
- name: name,
- icon: 'shape:seed',
- metaphor: '', // Empty - UI will hide
- hookSentence: '', // Empty - UI will hide
- whyYouNeed: '', // Empty - UI will hide
- realWorldExample: '', // Empty - UI will hide
- howToUse: [],
- technicalDetails: '', // Empty - UI will hide
- prerequisites: [],
- visualElement: safeSlugify(name),
- actionButtonText: `Explore ${name}`,
- lifecycle: {
- phase1: { title: lifecycleLabels.phase1 || 'PREPARE', steps: ['Identify'] },
- phase2: { title: lifecycleLabels.phase2 || 'ACTION', steps: ['Apply'] },
- phase3: { title: lifecycleLabels.phase3 || 'VERIFICATION', steps: ['Validate'] }
- },
- shape: undefined,
- tier: tier,
- lifecyclePhase: 'PREPARE', // Default for skeletons
- dependencies: [],
- outdegree: 0,
- connections: [], // Empty - skeleton concepts have no semantic connections
- });
- }
- });
  }
  return concepts;
 }
@@ -874,11 +802,9 @@ function validateDependencies(concepts: ParsedConcept[]): void {
  */
 export function transformToSensaAIConcepts(
  parsed: ParsedGeneratedContent,
- stages: LearningStage[],
- fallbackConcepts: string[] = []
+ stages: LearningStage[]
 ): SensaAILearningConcept[] {
- // First get the base learning concepts (including skeletons)
- let baseConcepts = transformToLearningConcepts(parsed, stages, fallbackConcepts);
+ let baseConcepts = transformToLearningConcepts(parsed, stages);
  // CRITICAL FILTER: Remove any "Unnamed Concept" or empty name artifacts that slipped through
  baseConcepts = baseConcepts.filter(c =>
  c.name &&
@@ -918,21 +844,8 @@ export function transformToSensaAIConcepts(
  // Transform to SensaAI enhanced concepts
  const sensaAIConcepts: SensaAILearningConcept[] = baseConcepts.map((baseConcept) => {
  const parsedConcept = parsed.concepts.find(pc => pc.id === baseConcept.id);
- // Handle Skeleton Concepts (Recovered)
  if (!parsedConcept) {
- // Return skeleton SensaAI concept
- return {
- ...baseConcept,
- keyPoints: ['Core domain concept', 'Essential for completeness', 'Recovered during analysis'],
- diagnosticQuestions: [],
- confusionPairs: [],
- trunkLevel: (baseConcept.tier === 'trunk'),
- tier: baseConcept.tier || 'leaf',
- complexityScore: 3,
- prerequisiteWeight: 0,
- frequencyWeight: 1,
- abstractionLevel: 'concrete'
- };
+ return null;
  }
  // Extract SensaAI metadata
  const keyPoints = extractKeyPoints(parsedConcept);
@@ -962,13 +875,12 @@ export function transformToSensaAIConcepts(
  frequencyWeight,
  abstractionLevel
  };
- });
+ }).filter((c): c is SensaAILearningConcept => c !== null);
  return sensaAIConcepts;
 }
 export function transformGeneratedContent(
  parsed: ParsedGeneratedContent,
- subjectId?: string,
- fallbackConcepts: string[] = []
+ subjectId?: string
 ): {
  stages: LearningStage[];
  concepts: LearningConcept[];
@@ -981,8 +893,7 @@ export function transformGeneratedContent(
  };
 } {
  const stages = transformToLearningStages(parsed);
- // Pass fallback concepts to SensaAI transformer
- const concepts = transformToSensaAIConcepts(parsed, stages, fallbackConcepts);
+ const concepts = transformToSensaAIConcepts(parsed, stages);
  // Build the dependency graph from parsed concepts
  // This is the "Freeze & Bake" foundation - calculated once at generation time
  const dependencyGraph = buildSubjectGraph(

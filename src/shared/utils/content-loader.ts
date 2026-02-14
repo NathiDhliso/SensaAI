@@ -19,7 +19,6 @@ export interface ParseAndLoadResult {
  * 
  * @param rawContent - The raw generated document content
  * @param subjectId - Optional subject ID (defaults to generated ID)
- * @param fallbackConcepts - Optional concept names for recovery
  * @returns Result object indicating success or containing error message
  */
 export function parseAndLoadContent(rawContent: string, subjectId?: string): ParseAndLoadResult {
@@ -127,4 +126,4 @@ export function useParseAndLoadContent() {
  };
  }
  };
-}
+}
