@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useUIStore } from '@/store/ui-store';
+import { useTreeNarrative } from '@/shared/hooks/useTreeNarrative';
 import styles from './StudyLayout.module.css';
 export type StudyTab = 'overview' | 'learn' | 'reference';
 interface StudyLayoutProps {
@@ -75,6 +76,7 @@ export function StudyLayout({
 }: StudyLayoutProps) {
  const navigate = useNavigate();
  const [isTabMenuOpen, setIsTabMenuOpen] = useState(false);
+ const narrative = useTreeNarrative();
  const {
  getSession,
  getCognitiveLoadLevel
@@ -108,7 +110,10 @@ export function StudyLayout({
  <div className={styles.titleGroup}>
  <h1 className={styles.title}>{displaySubject}</h1>
  <span className={styles.sessionMode}>
- {session?.mode === 'explore' ? 'Explore Mode' : 'Learning Mode'}
+ {session?.mode === 'explore'
+ ? (narrative.isActive ? 'Canopy Walk' : 'Explore Mode')
+ : (narrative.isActive ? 'Growth Mode' : 'Learning Mode')
+ }
  </span>
  </div>
  </div>

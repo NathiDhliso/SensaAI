@@ -6,14 +6,16 @@
  */
 import { motion } from 'framer-motion';
 import {
- Rocket,
- Map as MapIcon,
- Target,
- Brain,
- Trophy,
- CheckCircle2
+  Rocket,
+  Map as MapIcon,
+  Target,
+  Brain,
+  Trophy,
+  CheckCircle2,
+  TreePine
 } from 'lucide-react';
 import type { LearningPhase } from '@/shared/hooks/useLearningFlow';
+import { useTreeNarrative } from '@/shared/hooks/useTreeNarrative';
 import styles from './PhaseNavigator.module.css';
 // ============================================================================
 // TYPES
@@ -27,12 +29,12 @@ interface PhaseNavigatorProps {
 // PHASE CONFIGURATION
 // ============================================================================
 const PHASE_CONFIG = {
- PRIME: { label: 'Lock In', icon: Rocket, order: 1 },
- BUILD: { label: 'Map Concepts', icon: MapIcon, order: 2 },
- DIAGNOSE: { label: 'Assessment', icon: Target, order: 3 },
- LEARN: { label: 'Learning', icon: Brain, order: 4 },
- MASTER: { label: 'Mastery', icon: Trophy, order: 5 },
- COMPLETE: { label: 'Complete', icon: CheckCircle2, order: 6 }
+  PRIME: { label: 'Lock In', treeLabel: 'Plant', icon: Rocket, treeIcon: TreePine, order: 1 },
+  BUILD: { label: 'Map Concepts', treeLabel: 'Graft', icon: MapIcon, treeIcon: MapIcon, order: 2 },
+  DIAGNOSE: { label: 'Assessment', treeLabel: 'Assess', icon: Target, treeIcon: Target, order: 3 },
+  LEARN: { label: 'Learning', treeLabel: 'Grow', icon: Brain, treeIcon: Brain, order: 4 },
+  MASTER: { label: 'Mastery', treeLabel: 'Harvest', icon: Trophy, treeIcon: Trophy, order: 5 },
+  COMPLETE: { label: 'Complete', treeLabel: 'Flourish', icon: CheckCircle2, treeIcon: CheckCircle2, order: 6 }
 } as const;
 // Only show these phases in the navigator (skip internal phases)
 const VISIBLE_PHASES: LearningPhase[] = ['PRIME', 'BUILD', 'DIAGNOSE', 'LEARN', 'MASTER', 'COMPLETE'];
@@ -40,18 +42,20 @@ const VISIBLE_PHASES: LearningPhase[] = ['PRIME', 'BUILD', 'DIAGNOSE', 'LEARN', 
 // COMPONENT
 // ============================================================================
 export function PhaseNavigator({
- currentPhase,
- completedPhases,
- className = ''
+  currentPhase,
+  completedPhases,
+  className = ''
 }: PhaseNavigatorProps) {
- const visiblePhases = VISIBLE_PHASES;
- return (
- <div className={`${styles.container} ${className}`}>
- <div className={styles.phases}>
- {visiblePhases.map((phase, index) => {
- const config = PHASE_CONFIG[phase as keyof typeof PHASE_CONFIG];
- const Icon = config.icon;
- const mappedPhase = (currentPhase === 'SCOUT' || currentPhase === 'PREVIEW') ? 'BUILD' : currentPhase;
+  const narrative = useTreeNarrative();
+  const visiblePhases = VISIBLE_PHASES;
+  return (
+    <div className={`${styles.container} ${className}`}>
+      <div className={styles.phases}>
+        {visiblePhases.map((phase, index) => {
+          const config = PHASE_CONFIG[phase as keyof typeof PHASE_CONFIG];
+          const Icon = narrative.isActive ? config.treeIcon : config.icon;
+          const displayLabel = narrative.isActive ? config.treeLabel : config.label;
+          const mappedPhase = (currentPhase === 'SCOUT' || currentPhase === 'PREVIEW') ? 'BUILD' : currentPhase;
  const isActive = phase === mappedPhase;
  const isCompleted = completedPhases.includes(phase);
  const isUpcoming = !isActive && !isCompleted;
@@ -97,7 +101,7 @@ export function PhaseNavigator({
  </div>
  <div className={styles.phaseInfo}>
  <span className={styles.phaseNumber}>{index + 1}</span>
- <span className={styles.phaseLabel}>{config.label}</span>
+ <span className={styles.phaseLabel}>{displayLabel}</span>
  </div>
  </motion.div>
  </div>
@@ -107,4 +111,4 @@ export function PhaseNavigator({
  </div>
  );
 }
-export default PhaseNavigator;
+export default PhaseNavigator;

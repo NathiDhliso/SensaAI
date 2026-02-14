@@ -117,7 +117,9 @@ class BedrockService:
             print(f"[BedrockService] Enriched {enriched}/{len(domains)} domains with {total_tasks} tasks from context")
         else:
             print(f"[BedrockService] No per-domain tasks found in context (will use raw context as fallback)")
-    def generate_concepts(self, subject: str, context: str = "", trunks: list = None) -> tuple:
+    def generate_concepts(self, subject: str, context: str = "", trunks: list = None, remaining_time_ms: int = None) -> tuple:
+        self._generation_start_time = time.time()
+        self._remaining_time_ms_at_start = remaining_time_ms
         from shared.system_prompt import get_tree_generation_prompt, _get_exam_domains
         classification_future = None
         if trunks and len(trunks) >= 2:
@@ -231,7 +233,15 @@ class BedrockService:
             total_gaps = sum(len(v) for v in gaps.values()) if gaps else 0
             if total_gaps > 0 and total_gaps <= 2:
                 print(f"[BedrockService] Gap-fill skipped: only {total_gaps} gaps (threshold: >2)")
-            if gaps and total_gaps > 2:
+            time_ok = True
+            if self._remaining_time_ms_at_start is not None:
+                elapsed_ms = (time.time() - self._generation_start_time) * 1000
+                remaining_ms = self._remaining_time_ms_at_start - elapsed_ms
+                print(f"[BedrockService] Time check before gap-fill: {remaining_ms/1000:.0f}s remaining")
+                if remaining_ms < 120_000:
+                    print(f"[BedrockService] Gap-fill skipped: only {remaining_ms/1000:.0f}s remaining (need 120s)")
+                    time_ok = False
+            if gaps and total_gaps > 2 and time_ok:
                 print(f"[BedrockService] Gap-fill triggered: {total_gaps} gaps across {len(gaps)} domains")
                 gap_concepts = self._generate_gap_fill(
                     subject, domains, all_concepts, gaps, classification

@@ -26,6 +26,7 @@ import { getRandomElaborationPrompt } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
+import { useTreeNarrative } from '@/shared/hooks/useTreeNarrative';
 import styles from './MicroLearningLoopController.module.css';
 // ============================================================================
 // TYPES
@@ -127,6 +128,7 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
  const [startTime] = useState(() => Date.now());
  const example = useMemo(() => synthesizeExample(concept), [concept]);
  const { analogicalModel } = useMetaphorContent(concept);
+ const narrative = useTreeNarrative();
  const handleReveal = () => {
  setIsSolutionRevealed(true);
  };
@@ -150,8 +152,8 @@ function WorkedExamplePhase({ concept, onComplete, sessionContext }: WorkedExamp
  <Lightbulb size={24} />
  </div>
  <div>
- <h3 className={styles.phaseTitle}>Make It Real</h3>
- <p className={styles.phaseSubtitle}>Worked Example</p>
+ <h3 className={styles.phaseTitle}>{narrative.isActive ? 'Watch It Grow' : 'Make It Real'}</h3>
+ <p className={styles.phaseSubtitle}>{narrative.isActive ? 'See how this branch develops' : 'Worked Example'}</p>
  </div>
  </div>
  <div className={styles.phaseContent}>

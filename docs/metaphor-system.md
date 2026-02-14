@@ -294,6 +294,18 @@ describe('useMetaphorContent', () => {
 - [ ] ConceptMapBuilder -- deferred, requires tooltip infrastructure
 - [ ] AI Coach message adaptation -- deferred, requires prompt-level changes
 
+### Phase 2.5: Cohesive Tree Narrative (complete)
+- [x] `src/shared/constants/tree-narrative.ts` -- centralized narrative content map
+- [x] `src/shared/hooks/useTreeNarrative.ts` -- context-aware hook
+- [x] CognitiveStream -- generation thoughts blend tree growth language
+- [x] PhaseNavigator -- phase labels switch to tree metaphor (Plant, Graft, Grow, Harvest, Flourish)
+- [x] VelocityLockInGate -- tree commitment framing (Enter the Grove, Plant My Roots)
+- [x] SessionStartModal -- tree tending framing (Tend Your Tree, progress as Seedling/Sapling/Young Tree)
+- [x] CelebrationModal -- tree growth celebrations (Branch Complete, Leaves Grown)
+- [x] SessionScoutPreview -- tree survey language (Survey Your Knowledge Tree)
+- [x] StudyLayout -- session mode labels (Growth Mode, Canopy Walk)
+- [x] MicroLearningLoopController -- worked example header (Watch It Grow)
+
 ### Phase 3: Advanced Features
 - [ ] Custom metaphor editor -- allow users to replace system metaphors with personal ones
 - [ ] Metaphor graduation system -- auto-fade metaphors as user demonstrates understanding
@@ -307,14 +319,63 @@ describe('useMetaphorContent', () => {
 
 ---
 
+## Tree Narrative System
+
+The tree narrative system elevates the trunk/branch/leaf data model into a cohesive user-facing story. It is built on top of the per-concept metaphor system and provides app-wide narrative framing.
+
+### Architecture
+
+```
+tree-narrative.ts (constants)
+  TIER_NARRATIVE, PHASE_NARRATIVE, SESSION_NARRATIVE,
+  CELEBRATION_NARRATIVE, GENERATION_NARRATIVE,
+  getProgressNarrative(), getTierNarrative(), getPhaseNarrative()
+          |
+          v
+useTreeNarrative() hook
+  Reads: metaphorSettings.showAnalogies + isScholarly
+  Returns: { isActive, tier(), tierLabel(), phase(), progress(),
+             mood(), goal(), celebration(), conceptMastered() }
+          |
+          v
+10 integrated components
+  Each checks narrative.isActive to switch between
+  tree-metaphor text and standard labels
+```
+
+### Behavior Rules
+
+- **Playful mode + metaphors ON** = tree narrative active ("Enter the Grove", "Growth Mode", etc.)
+- **Scholarly mode** = always standard labels regardless of metaphor setting
+- **Metaphors OFF** = standard labels
+- All narrative text is centralized in `tree-narrative.ts` -- never hardcoded in components
+
+### Narrative Thread
+
+| Journey Stage | Tree Metaphor | Standard Label |
+|---|---|---|
+| Generation | Planting seeds, growing trunk | Processing, synthesizing |
+| Lock-In Gate | Enter the Grove / Plant My Roots | Velocity Learning / I'm Ready |
+| Session Start | Tend Your Tree / Begin Growth | Start Session / Begin Session |
+| Overview | Survey the Canopy / Survey Your Knowledge Tree | Step 2: Explore / Scan the Tier Structure |
+| Session Mode | Growth Mode / Canopy Walk | Learning Mode / Explore Mode |
+| Phase Steps | Plant > Graft > Assess > Grow > Harvest > Flourish | Lock In > Map > Assessment > Learning > Mastery > Complete |
+| Worked Example | Watch It Grow | Make It Real |
+| Celebration | Branch Complete / Tree Stands Tall | Stage Complete / Course Complete |
+| Stats | Leaves Grown / Growth Time | Concepts Mastered / Minutes Invested |
+| Progress | Seed > Seedling > Sapling > Young Tree > Maturing > Full Canopy | Percentage-based |
+
+---
+
 ## Summary
 
-The metaphors feature is a **content adaptation layer**, not a rendering flag.
+The metaphors feature operates at two levels:
 
-1. **Store** metaphor content in `LearningConcept.shape`
-2. **Filter** through `useMetaphorContent()` hook
-3. **Render** based on presence of adapted content
+1. **Per-concept adaptation** via `useMetaphorContent()` -- controls analogies and visual anchors
+2. **App-wide narrative** via `useTreeNarrative()` -- controls the cohesive tree growth story
 
-This pattern keeps components clean, centralizes filtering logic, makes testing straightforward, enables future enhancements (graduation, custom metaphors), and respects user preferences consistently.
+Both respect the same user preferences (metaphor toggle + scholarly mode) and are centralized in dedicated hooks.
 
-**To add metaphor support to any feature: import the hook, get adapted content, render conditionally.**
+**To add per-concept metaphor support:** import `useMetaphorContent`, get adapted content, render conditionally.
+
+**To add app-wide narrative framing:** import `useTreeNarrative`, check `narrative.isActive`, use the appropriate method (`phase()`, `progress()`, etc.).

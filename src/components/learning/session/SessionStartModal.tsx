@@ -9,6 +9,7 @@ import type { StudyGoal, SessionRecommendation } from '@/shared/types/learning';
 import { MOOD_OPTIONS, type Mood } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { MOOD_COLORS } from '@/shared/constants/theme-colors';
+import { useTreeNarrative } from '@/shared/hooks/useTreeNarrative';
 import GuidedPrimer from '@/components/learning/onboarding/GuidedPrimer';
 import styles from './SessionStartModal.module.css';
 interface SessionStartModalProps {
@@ -42,6 +43,7 @@ export function SessionStartModal({
  const [step, setStep] = useState<'setup' | 'prime'>('setup');
  const [selectedMood, setSelectedMood] = useState<Mood>('neutral');
  const { setLastSessionMood } = usePersonalizationStore();
+ const narrative = useTreeNarrative();
  const progress = useMemo(() => {
  return Math.round((completedConcepts / totalConcepts) * 100);
  }, [completedConcepts, totalConcepts]);
@@ -69,7 +71,7 @@ export function SessionStartModal({
  <div className={styles.headerContent}>
  <Brain className={styles.headerIcon} size={28} />
  <div>
- <h2>{step === 'setup' ? 'Start Session' : 'Step 1: The Why'}</h2>
+ <h2>{step === 'setup' ? (narrative.isActive ? 'Tend Your Tree' : 'Start Session') : (narrative.isActive ? 'Set Your Intention' : 'Step 1: The Why')}</h2>
  <p className={styles.subjectName}>{subjectName}</p>
  </div>
  </div>
@@ -91,7 +93,10 @@ export function SessionStartModal({
  />
  </div>
  <span className={styles.progressText}>
- {completedConcepts} of {totalConcepts} concepts ({progress}%)
+ {narrative.isActive
+ ? `${narrative.progress(completedConcepts, totalConcepts).label} — ${completedConcepts} of ${totalConcepts} concepts`
+ : `${completedConcepts} of ${totalConcepts} concepts (${progress}%)`
+ }
  </span>
  </div>
  {/* Mood Selection */}
@@ -159,7 +164,7 @@ export function SessionStartModal({
  )}
  {/* Next Button */}
  <button className={styles.startButton} onClick={handleNext}>
- <span>Begin Session</span>
+ <span>{narrative.isActive ? 'Begin Growth' : 'Begin Session'}</span>
  <span className={styles.startMeta}>
  <Clock size={14} />
  {selectedDuration} min

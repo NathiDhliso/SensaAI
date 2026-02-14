@@ -26,6 +26,7 @@ import { generatePreviewAnalysis } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
+import { useTreeNarrative } from '@/shared/hooks/useTreeNarrative';
 import { NomenclatureSprint } from '@/components/learning/activities/NomenclatureSprint';
 import styles from './SessionScoutPreview.module.css';
 // ============================================================================
@@ -77,6 +78,7 @@ export function SessionScoutPreview({
  const { selectedPersona } = usePersonalizationStore();
  const { markSessionScouted, markSessionPreviewed } = useLearningStore();
  const navigate = useNavigate();
+ const narrative = useTreeNarrative();
  // Group concepts by tier
  const conceptsByTier = useMemo(() => {
  const trunk = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk');
@@ -120,8 +122,11 @@ export function SessionScoutPreview({
  <div className={styles.instructionBox}>
  <BookOpen size={20} className={styles.instructionIcon} />
  <div>
- <h3>Scan the Tier Structure</h3>
- <p>Trunks are exam domains, Branches are sub-topics, and Leaves are testable concepts. Notice the flow.</p>
+ <h3>{narrative.isActive ? 'Survey Your Knowledge Tree' : 'Scan the Tier Structure'}</h3>
+ <p>{narrative.isActive
+ ? 'Strong trunks hold branches, branches hold leaves. See how your tree is shaped.'
+ : 'Trunks are exam domains, Branches are sub-topics, and Leaves are testable concepts. Notice the flow.'
+ }</p>
  </div>
  </div>
  <div className={styles.tierFlow}>
@@ -176,9 +181,10 @@ export function SessionScoutPreview({
  <div className={styles.tierInsight}>
  <Sparkles size={16} />
  <span>
- <strong>{conceptsByTier.trunk.length}</strong> trunk domains
- grow into <strong>{conceptsByTier.branch.length}</strong> branches
- with <strong>{conceptsByTier.leaf.length}</strong> leaf details.
+ {narrative.isActive
+ ? <><strong>{conceptsByTier.trunk.length}</strong> strong trunks bear <strong>{conceptsByTier.branch.length}</strong> branches with <strong>{conceptsByTier.leaf.length}</strong> leaves ready to grow.</>
+ : <><strong>{conceptsByTier.trunk.length}</strong> trunk domains grow into <strong>{conceptsByTier.branch.length}</strong> branches with <strong>{conceptsByTier.leaf.length}</strong> leaf details.</>
+ }
  </span>
  </div>
  </div>
@@ -305,7 +311,7 @@ export function SessionScoutPreview({
  <MapIcon size={32} />
  </div>
  <div>
- <h2 className={styles.title}>Step 2: Explore</h2>
+ <h2 className={styles.title}>{narrative.isActive ? 'Survey the Canopy' : 'Step 2: Explore'}</h2>
  <p className={styles.subtitle}>
  {STEP_CONFIG[step].label} · {currentStepIndex + 1} of {STEPS_ORDER.length}
  </p>

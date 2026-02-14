@@ -29,6 +29,7 @@ dynamo_service = DynamoService()
 lambda_client = boto3.client("lambda", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 FUNCTION_NAME = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "sensapbl-generate-concepts-dev")
 _current_event = None
+_lambda_context = None
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -49,8 +50,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Returns:
     API Gateway response with job status and concept count
     """
-    global _current_event
+    global _current_event, _lambda_context
     _current_event = event
+    _lambda_context = context
     print(f"[Handler] Invoked with event type: {type(event)}")
     try:
         # Parse and validate request
@@ -159,7 +161,10 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     if context:
         print(f"[Handler] Using user-provided context ({len(context)} chars)")
     try:
-        concepts, classification = bedrock_service.generate_concepts(subject, context, trunks=trunks)
+        remaining_ms = None
+        if _lambda_context and hasattr(_lambda_context, 'get_remaining_time_in_millis'):
+            remaining_ms = _lambda_context.get_remaining_time_in_millis()
+        concepts, classification = bedrock_service.generate_concepts(subject, context, trunks=trunks, remaining_time_ms=remaining_ms)
         print(f"[Handler] Generation complete: {len(concepts)} concepts")
         if classification:
             print(f"[Handler] Classification: {classification.get('subjectType', 'unknown')}")

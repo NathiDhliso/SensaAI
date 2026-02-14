@@ -3,6 +3,7 @@ import { Share2, Check } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { CONFETTI_COLORS } from '@/shared/constants/theme-colors';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
+import { useTreeNarrative } from '@/shared/hooks/useTreeNarrative';
 import type { CelebrationData, LearningConcept } from '@/shared/types/learning';
 import styles from './CelebrationModal.module.css';
 interface CelebrationModalProps {
@@ -33,6 +34,8 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
  const getConcepts = useLearningStore(s => s.getConcepts);
  const concepts = getConcepts();
  const confettiPieces = CONFETTI_PIECES;
+ const narrative = useTreeNarrative();
+ const celebrationText = narrative.celebration(data.type);
  const [autoDismissCountdown, setAutoDismissCountdown] = useState(4);
  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
  // Auto-dismiss after countdown (pause on hover)
@@ -114,20 +117,20 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
  </svg>
  </div>
- <h2 className={styles.title}>{data.title}</h2>
- <p className={styles.message}>{data.message}</p>
+ <h2 className={styles.title}>{narrative.isActive ? celebrationText.title : data.title}</h2>
+ <p className={styles.message}>{narrative.isActive ? celebrationText.message : data.message}</p>
  {(data.conceptsCompleted || data.timeSpent) && (
  <div className={styles.stats}>
  {data.conceptsCompleted && (
  <div className={styles.stat}>
  <div className={styles.statValue}>{data.conceptsCompleted.length}</div>
- <div className={styles.statLabel}>Concepts Mastered</div>
+ <div className={styles.statLabel}>{narrative.isActive ? 'Leaves Grown' : 'Concepts Mastered'}</div>
  </div>
  )}
  {data.timeSpent !== undefined && data.timeSpent > 0 && (
  <div className={styles.stat}>
  <div className={styles.statValue}>{data.timeSpent}</div>
- <div className={styles.statLabel}>Minutes Invested</div>
+ <div className={styles.statLabel}>{narrative.isActive ? 'Growth Time' : 'Minutes Invested'}</div>
  </div>
  )}
  </div>
@@ -141,7 +144,7 @@ export default function CelebrationModal({ data, onContinue, onTakeBreak }: Cele
  )}
  <div className={styles.actions}>
  <button className={styles.breakButton} onClick={onTakeBreak}>
- Take a break
+ {narrative.isActive ? 'Rest in the shade' : 'Take a break'}
  </button>
  <button className={styles.continueButton} onClick={onContinue}>
  {data.type === 'course' ? 'View Certificate' : `Continue${!isPaused && autoDismissCountdown > 0 ? ` (${autoDismissCountdown}s)` : ''}`}
