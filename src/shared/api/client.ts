@@ -135,12 +135,12 @@ export function getErrorMessage(error: unknown, fallback: string = 'An unexpecte
 // ============================================================================
 // TOKEN ACCESSOR (reads from zustand persist storage to avoid circular imports)
 // ============================================================================
-function getAccessToken(): string | null {
+function getAuthToken(): string | null {
   try {
     const stored = localStorage.getItem('sensaai-auth');
     if (stored) {
       const parsed = JSON.parse(stored);
-      return parsed?.state?.tokens?.access_token || null;
+      return parsed?.state?.tokens?.id_token || parsed?.state?.tokens?.access_token || null;
     }
   } catch {
     return null;
@@ -158,7 +158,7 @@ class ApiClient {
     };
 
     if (!options?.skipAuth) {
-      const token = getAccessToken();
+      const token = getAuthToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
