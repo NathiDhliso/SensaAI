@@ -143,7 +143,7 @@ See: [Content Storage](./content-storage.md) for full catalog breakdown.
 ## Naming Convention
 
 - **User-facing brand:** SensaAI
-- **Internal prefix:** `sensaai-*` (AWS resources, DynamoDB tables, Lambda functions, Cognito, S3 buckets)
+- **Internal prefix:** `sensapbl-*` (AWS resources, DynamoDB tables, Lambda functions, Cognito, S3 buckets)
 - Do NOT rename infrastructure resources — only user-visible strings (UI text, page titles, share messages) use "SensaAI"
 
 ---
@@ -154,12 +154,12 @@ The architecture uses exactly **two environments**: `dev` and `prod`. No other e
 
 | Environment | Terraform Directory | Cognito Domain Prefix | Resource Suffix |
 |-------------|--------------------|-----------------------|-----------------|
-| **dev** | `infra/terraform/environments/dev/` | `sensaai-dev` | `-dev` |
-| **prod** | `infra/terraform/environments/prod/` | `sensaai-prod` | `-prod` |
+| **dev** | `infra/terraform/environments/dev/` | `sensapbl-dev` | `-dev` |
+| **prod** | `infra/terraform/environments/prod/` | `sensapbl-prod` | `-prod` |
 
 **FORBIDDEN environment names:** `staging`, `pilot`, `test`, `qa`, `uat`, `sandbox`, `preprod`.
 
-- All AWS resources follow the pattern `sensaai-{resource}-{env}` (e.g. `sensaai-concepts-dev`, `sensaai-jobs-prod`)
+- All AWS resources follow the pattern `sensapbl-{resource}-{env}` (e.g. `sensapbl-concepts-dev`, `sensapbl-jobs-prod`)
 - Local development uses the `dev` backend — see `.env.example`
 - Production uses the `prod` backend — see `.env.production.example`
 - Amplify deploys against `dev` for the main branch
@@ -223,11 +223,11 @@ Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `Set
 | **Production URL** | `https://main.dckqci84h8ffk.amplifyapp.com` |
 | **API Gateway (dev)** | HTTP API `c4kxjdukwj`, stage `$default` |
 | **API Gateway (prod)** | HTTP API `v44xa62zee`, stage `$default` |
-| **Lambda Functions** | `sensaai-generate-concepts-{dev,prod}`, `sensaai-query-concepts-{dev,prod}`, `sensaai-gym-ai-{dev,prod}`, `sensaai-auth-{dev,prod}` |
-| **DynamoDB Tables** | `sensaai-concepts-{dev,prod}`, `sensaai-jobs-{dev,prod}` |
-| **Cognito (dev)** | User Pool `us-east-1_xNWax9wkH`, domain `sensaai-dev` |
-| **Cognito (prod)** | User Pool `us-east-1_Af8EHbmfU`, domain `sensaai-prod` |
-| **S3 Buckets** | `sensaai-{dev,prod}-content-311964231104` (content), `sensaai-terraform-state` (TF state) |
+| **Lambda Functions** | `sensapbl-generate-concepts-{dev,prod}`, `sensapbl-query-concepts-{dev,prod}`, `sensapbl-gym-ai-{dev,prod}`, `sensapbl-auth-{dev,prod}` |
+| **DynamoDB Tables** | `sensapbl-concepts-{dev,prod}`, `sensapbl-jobs-{dev,prod}` |
+| **Cognito (dev)** | User Pool `us-east-1_xNWax9wkH`, domain `sensapbl-dev` |
+| **Cognito (prod)** | User Pool `us-east-1_Af8EHbmfU`, domain `sensapbl-prod` |
+| **S3 Buckets** | `sensapbl-{dev,prod}-content-311964231104` (content), `sensapbl-terraform-state` (TF state) |
 | **Region** | `us-east-1` |
 
 ---

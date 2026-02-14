@@ -45,7 +45,7 @@ provider "aws" {
 module "cognito" {
   source = "./modules/cognito"
 
-  user_pool_name    = "sensaai-${var.environment}"
+  user_pool_name    = "sensapbl-${var.environment}"
   environment       = var.environment
   callback_urls     = var.cognito_callback_urls
   logout_urls       = var.cognito_logout_urls
@@ -71,7 +71,7 @@ module "dynamodb" {
   source = "./modules/dynamodb"
 
   environment  = var.environment
-  project_name = "sensaai"
+  project_name = "sensapbl"
 
   tags = {
     Component = "DataStorage"
@@ -86,7 +86,7 @@ module "lambda" {
   source = "./modules/lambda"
 
   environment  = var.environment
-  project_name = "sensaai"
+  project_name = "sensapbl"
 
   # DynamoDB integration
   concepts_table_arn  = module.dynamodb.concepts_table_arn
@@ -131,7 +131,7 @@ module "api_gateway" {
   source = "./modules/api_gateway"
 
   environment  = var.environment
-  project_name = "sensaai"
+  project_name = "sensapbl"
   aws_region   = var.aws_region
 
   # Lambda integration

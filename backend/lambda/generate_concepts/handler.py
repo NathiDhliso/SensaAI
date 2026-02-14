@@ -27,7 +27,7 @@ dynamo_service = DynamoService()
 
 # Lambda client for self-invocation
 lambda_client = boto3.client("lambda", region_name=os.environ.get("AWS_REGION", "us-east-1"))
-FUNCTION_NAME = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "sensaai-generate-concepts-dev")
+FUNCTION_NAME = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "sensapbl-generate-concepts-dev")
 _current_event = None
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:

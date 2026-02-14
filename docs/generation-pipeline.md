@@ -1,6 +1,6 @@
 # Generation Pipeline
 
-**Last Updated:** February 14, 2026
+**Last Updated:** February 15, 2026
 **Status:** MANDATORY — Understand this before modifying generation or parsing code.
 
 ---
@@ -10,7 +10,7 @@
 Content generation is a multi-phase backend process that produces hierarchical learning concepts from any subject. The frontend orchestrates the flow, displays progress, and transforms raw output into the `LearningConcept` type.
 
 ```
-User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Generation per domain) → Phase 2.5 (Scope-Creep Check → Gap-Fill → Scope-Creep Check) → Frontend Parser → Zustand Store → UI
+User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Generation per domain, cached system prompt) → Phase 2.5 (Scope-Creep Check → Gap-Fill if >2 gaps → Scope-Creep Check) → Frontend Parser → Zustand Store → UI
 ```
 
 ---
@@ -50,6 +50,14 @@ User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Ge
 
 **Backend:** `bedrock_service.py` → `system_prompt.py` TREE_GENERATION_PROMPT
 **Runs once per domain (trunk)**
+
+### Prompt Caching (Cost Optimization)
+The system prompt (rules, TRACES framework, worked example, field style guide) is sent as a structured content block with `cache_control: {"type": "ephemeral"}` via `_build_cached_system()`. This enables Bedrock prompt caching:
+- **First domain call**: cache write at 1.25× base input token price
+- **Subsequent domain calls** (4+ per generation): cache read at 0.1× base input token price (90% discount)
+- Cache TTL: 5 minutes (sufficient for parallel domain calls within a single generation)
+- Minimum: 1,024 tokens per checkpoint (system prompt is ~12K tokens, well above minimum)
+- Cache metrics logged per call via `_log_cache_metrics()`: input/output tokens, cache_read, cache_write
 
 ### Process
 For each domain, the LLM generates a tree of concepts:
@@ -110,6 +118,7 @@ After the initial per-domain generation and deduplication:
 - Only when domains have `subtopics` (structured objectives from exam catalogs or context enrichment)
 - Only when the initial generation produced at least 1 concept
 - Skipped for free-form subjects with no structured objectives
+- **Gap-fill gating**: Gap-fill is skipped when total uncovered objectives across all domains is ≤2 (too few to justify extra Bedrock calls). Saves 1-3 Bedrock calls on clean generations.
 
 ### Output
 Merged flat array of original + gap-fill concepts, scope-checked and fully post-processed.
@@ -320,13 +329,13 @@ backend/lambda/
 
 ### DynamoDB Schema
 
-**Concepts Table** (`sensaai-concepts-dev` / `sensaai-concepts-prod`)
+**Concepts Table** (`sensapbl-concepts-dev` / `sensapbl-concepts-prod`)
 - **PK:** `USER#{userId}#SESSION#{sessionId}`
 - **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
 - **GSI1:** For tier-based queries
 - **TTL:** 168 hours (7 days)
 
-**Jobs Table** (`sensaai-jobs-dev` / `sensaai-jobs-prod`)
+**Jobs Table** (`sensapbl-jobs-dev` / `sensapbl-jobs-prod`)
 - Tracks generation job status, progress, classification data
 - TTL: 24 hours
 

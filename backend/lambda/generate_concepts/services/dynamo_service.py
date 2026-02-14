@@ -33,8 +33,8 @@ class DynamoService:
     def __init__(self):
         """Initialize DynamoDB service with table references."""
         self.dynamodb = boto3.resource("dynamodb")
-        self.jobs_table_name = os.environ.get("JOBS_TABLE", "sensaai-jobs-dev")
-        self.concepts_table_name = os.environ.get("CONCEPTS_TABLE", "sensaai-concepts-dev")
+        self.jobs_table_name = os.environ.get("JOBS_TABLE", "sensapbl-jobs-dev")
+        self.concepts_table_name = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-dev")
         self._jobs_table = None
         self._concepts_table = None
     @property

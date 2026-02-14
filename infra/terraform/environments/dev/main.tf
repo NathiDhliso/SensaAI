@@ -13,7 +13,7 @@ terraform {
   }
 }
 
-module "sensaai" {
+module "sensapbl" {
   source = "../../"
 
   environment = var.environment
@@ -36,40 +36,40 @@ module "sensaai" {
 
 output "cognito_user_pool_id" {
   description = "VITE_COGNITO_USER_POOL_ID"
-  value       = module.sensaai.cognito_user_pool_id
+  value       = module.sensapbl.cognito_user_pool_id
 }
 
 output "cognito_client_id" {
   description = "VITE_COGNITO_CLIENT_ID"
-  value       = module.sensaai.cognito_client_id
+  value       = module.sensapbl.cognito_client_id
 }
 
 output "cognito_domain" {
   description = "Cognito domain for OAuth"
-  value       = module.sensaai.cognito_domain
+  value       = module.sensapbl.cognito_domain
 }
 
 output "api_endpoint" {
   description = "VITE_API_ENDPOINT - Base URL for all API calls"
-  value       = module.sensaai.api_endpoint
+  value       = module.sensapbl.api_endpoint
 }
 
 output "api_generate_url" {
   description = "POST endpoint for concept generation"
-  value       = module.sensaai.api_generate_url
+  value       = module.sensapbl.api_generate_url
 }
 
 output "api_concepts_url" {
   description = "GET endpoint for concept queries"
-  value       = module.sensaai.api_concepts_url
+  value       = module.sensapbl.api_concepts_url
 }
 
 output "s3_content_bucket" {
   description = "S3 bucket for content"
-  value       = module.sensaai.s3_content_bucket
+  value       = module.sensapbl.s3_content_bucket
 }
 
 output "dynamodb_concepts_table" {
   description = "DynamoDB concepts table name"
-  value       = module.sensaai.dynamodb_concepts_table
+  value       = module.sensapbl.dynamodb_concepts_table
 }

@@ -1,10 +1,10 @@
 # S3 Buckets Module for SensaAI
 
 resource "aws_s3_bucket" "content" {
-  bucket = "sensaai-${var.environment}-content-${data.aws_caller_identity.current.account_id}"
+  bucket = "sensapbl-${var.environment}-content-${data.aws_caller_identity.current.account_id}"
 
   tags = {
-    Name = "sensaai-${var.environment}-content"
+    Name = "sensapbl-${var.environment}-content"
   }
 }
 

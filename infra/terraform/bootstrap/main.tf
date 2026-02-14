@@ -7,7 +7,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "sensaai-terraform-state"
+  bucket = "sensapbl-terraform-state"
 
   lifecycle {
     prevent_destroy = true

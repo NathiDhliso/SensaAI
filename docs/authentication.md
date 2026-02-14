@@ -147,10 +147,12 @@ Cognito fires a Custom Message Lambda trigger for every auth email. The Lambda r
 
 | Trigger | Email Subject | When Sent |
 |---------|--------------|----------|
-| `CustomMessage_SignUp` | "SensaAI - Verify Your Email" | New user signs up |
-| `CustomMessage_ForgotPassword` | "SensaAI - Reset Your Password" | User requests password reset |
-| `CustomMessage_ResendCode` | "SensaAI - Your New Verification Code" | User clicks "Resend Code" |
-| `CustomMessage_AdminCreateUser` | "SensaAI - You've Been Invited" | Admin creates a user account |
+| `CustomMessage_SignUp` | "SensaAI — Verify Your Email" | New user signs up |
+| `CustomMessage_ForgotPassword` | "SensaAI — Reset Your Password" | User requests password reset |
+| `CustomMessage_ResendCode` | "SensaAI — Your New Verification Code" | User clicks "Resend Code" |
+| `CustomMessage_AdminCreateUser` | "SensaAI — You've Been Invited" | Admin creates a user account |
+
+**Design:** Dark "Twilight Learning" theme matching the app's design system. Amethyst/Plum gradient logo mark, dark card layout (`#1a1425`), "Learning, Reimagined" tagline pill, verification codes in glowing amethyst containers, muted footer. Brand colors: `#6B46C1` (amethyst), `#7C2D92` (plum), `#8b5cf6` (accent).
 
 **Lambda:** `backend/lambda/custom_message/handler.py`
 **Terraform:** `infra/terraform/modules/cognito/main.tf` - `aws_lambda_function.custom_message` + `lambda_config.custom_message` on user pool

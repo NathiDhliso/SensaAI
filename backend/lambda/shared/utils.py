@@ -6,8 +6,11 @@ import os
 import uuid
 import time
 import base64
+import logging
 from typing import Any, Dict, List, Optional
 from decimal import Decimal
+
+logger = logging.getLogger()
 
 
 # DynamoDB requires Decimal instead of float
@@ -212,6 +215,19 @@ def get_generation_access_diagnostics(event: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _resolve_email_from_access_token(access_token: str) -> Optional[str]:
+    try:
+        import boto3
+        client = boto3.client("cognito-idp", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+        response = client.get_user(AccessToken=access_token)
+        for attr in response.get("UserAttributes", []):
+            if attr["Name"] == "email":
+                return attr["Value"].lower()
+    except Exception as e:
+        logger.warning(f"Cognito GetUser fallback failed: {e}")
+    return None
+
+
 def extract_email_from_event(event: Dict[str, Any]) -> Optional[str]:
     jwt_claims = (event.get("requestContext") or {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
     email = _extract_email_from_payload(jwt_claims)
@@ -232,6 +248,9 @@ def extract_email_from_event(event: Dict[str, Any]) -> Optional[str]:
                 return email
         except Exception:
             pass
+        email = _resolve_email_from_access_token(token)
+        if email:
+            return email
     return None
 
 

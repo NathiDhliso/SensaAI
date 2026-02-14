@@ -25,7 +25,7 @@ variable "cognito_logout_urls" {
 variable "cognito_domain_prefix" {
   description = "Cognito hosted UI domain prefix (must be globally unique)"
   type        = string
-  default     = "sensaai"
+  default     = "sensapbl"
 }
 
 variable "cors_allowed_origins" {

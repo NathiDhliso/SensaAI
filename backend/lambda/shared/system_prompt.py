@@ -244,81 +244,58 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
  "trunkDomain": "Energy & Metabolism",
  "cognitiveLevel": "apply",
  "commonPitfalls": [
-   "Confusing the light-dependent reactions (thylakoid membranes, produce ATP + NADPH) with the Calvin cycle (stroma, uses ATP + NADPH to fix CO₂)",
-   "Assuming oxygen is produced in the Calvin cycle — O₂ is released during photolysis of water in Photosystem II, not during carbon fixation"
+   "Confusing light-dependent reactions (thylakoid, produce ATP + NADPH) with Calvin cycle (stroma, uses ATP + NADPH to fix CO₂)",
+   "Assuming O₂ comes from the Calvin cycle — it is released during photolysis of water at PSII"
  ],
  "order": 15,
- "whyYouNeed": "Exam questions present diagrams of the chloroplast and ask where specific molecules are produced. Students who cannot trace the electron flow from H₂O through PSII → cytochrome b6f → PSI → NADP⁺ reductase consistently misidentify the source of ATP vs. NADPH and lose marks on transport chain questions.",
- "technicalDetails": "Light-dependent reactions occur on the thylakoid membrane. Photosystem II (P680) absorbs photons and splits water (photolysis: 2H₂O → 4H⁺ + 4e⁻ + O₂). Excited electrons pass through the electron transport chain (plastoquinone → cytochrome b6f → plastocyanin), creating a proton gradient that drives ATP synthase (chemiosmosis). Photosystem I (P700) re-energizes electrons, which reduce NADP⁺ to NADPH via ferredoxin and NADP⁺ reductase.",
+ "whyYouNeed": "Exam questions show chloroplast diagrams and ask where molecules are produced. Students who cannot trace electron flow from H₂O → PSII → ETC → PSI → NADP⁺ reductase misidentify ATP vs. NADPH sources and lose marks on transport chain questions.",
+ "technicalDetails": "Occurs on the thylakoid membrane. PSII (P680) splits water (2H₂O → 4H⁺ + 4e⁻ + O₂). Electrons pass through the ETC (plastoquinone → cytochrome b6f → plastocyanin), creating a proton gradient that drives ATP synthase (chemiosmosis). PSI (P700) re-energizes electrons to reduce NADP⁺ to NADPH via ferredoxin.",
  "workedExample": {{
-   "problem": "A plant is given water labeled with ¹⁸O (heavy oxygen isotope). Where will the ¹⁸O atoms appear — in the glucose produced or in the oxygen gas released?",
-   "solution": "The ¹⁸O will appear in the O₂ gas released, not in glucose. Oxygen gas comes from photolysis of water in PSII. The oxygen in glucose comes from CO₂ fixed in the Calvin cycle.",
-   "steps": [
-     "Identify that water is split in the light-dependent reactions at Photosystem II",
-     "Recall the photolysis equation: 2H₂O → 4H⁺ + 4e⁻ + O₂ — the O₂ comes directly from H₂O",
-     "Recognize that CO₂ (not H₂O) provides the oxygen atoms incorporated into G3P and glucose during the Calvin cycle",
-     "Conclude: ¹⁸O from labeled water → released as ¹⁸O₂ gas"
-   ]
+   "problem": "A plant is given water labeled with ¹⁸O. Where will the ¹⁸O atoms appear — in glucose or in O₂ gas released?",
+   "solution": "The ¹⁸O appears in O₂ gas, not glucose. O₂ comes from photolysis of water at PSII. The oxygen in glucose comes from CO₂ fixed in the Calvin cycle.",
+   "steps": ["Water is split at PSII in the light-dependent reactions", "Photolysis: 2H₂O → 4H⁺ + 4e⁻ + O₂ — O₂ comes directly from H₂O", "CO₂ (not H₂O) provides oxygen atoms in glucose via the Calvin cycle", "Conclusion: ¹⁸O from labeled water → released as ¹⁸O₂ gas"]
  }},
  "mnemonic": {{
    "anchor": "Solar Panel Factory ☀️",
-   "story": "Picture a rooftop solar panel (thylakoid membrane) with two relay stations (PSII and PSI). Sunlight hits the first panel, which cracks open water bottles (photolysis) releasing bubbles (O₂). The electrical current flows through wires (electron transport chain) to a battery charger (ATP synthase) that fills batteries (ATP). The second panel boosts the remaining current to power a special generator (NADP⁺ reductase) that produces fuel cells (NADPH)."
+   "story": "A rooftop solar panel (thylakoid) with two relay stations (PSII, PSI). First panel cracks water bottles (photolysis) releasing bubbles (O₂). Current flows through wires (ETC) to a battery charger (ATP synthase) filling batteries (ATP). Second panel boosts current to a generator (NADP⁺ reductase) producing fuel cells (NADPH)."
  }},
  "phase1": {{
-   "hookSentence": "Plants absorb only 1-2%% of the sunlight hitting their leaves — yet this narrow band of captured photon energy drives the production of ATP and NADPH that powers virtually all life on Earth.",
-   "microMetaphor": "The thylakoid membrane is a hydroelectric dam — photolysis floods protons into the thylakoid space, and ATP synthase is the turbine that converts that proton gradient into usable energy.",
-   "prerequisite": "Understanding of basic cell organelles (chloroplast structure) and the concept of oxidation-reduction reactions",
+   "hookSentence": "Plants absorb only 1-2%% of sunlight hitting their leaves — yet this narrow band powers the ATP and NADPH production that sustains virtually all life on Earth.",
+   "microMetaphor": "The thylakoid membrane is a hydroelectric dam — photolysis floods protons into the thylakoid space, and ATP synthase is the turbine converting that gradient into usable energy.",
+   "prerequisite": "Basic cell organelles (chloroplast structure) and oxidation-reduction reactions",
    "selection": [
-     "When tracing energy conversion → Follow the electron path from H₂O through PSII → ETC → PSI → NADPH → Unlocks ability to predict where inhibitors block the chain",
-     "When explaining ATP production → Focus on the proton gradient across the thylakoid membrane and chemiosmosis → Unlocks connection to cellular respiration's oxidative phosphorylation"
+     "When tracing energy conversion → Follow electron path H₂O → PSII → ETC → PSI → NADPH → Unlocks predicting where inhibitors block the chain",
+     "When explaining ATP production → Focus on proton gradient and chemiosmosis → Unlocks connection to oxidative phosphorylation"
    ],
-   "execution": "Identify photon absorption at PSII → Trace electron flow through ETC → Explain proton gradient formation → Connect to ATP synthase → Follow PSI to NADPH production → Verify with isotope tracing experiments"
+   "execution": "Identify photon absorption at PSII → Trace electron flow through ETC → Explain proton gradient → Connect to ATP synthase → Follow PSI to NADPH → Verify with isotope tracing"
  }},
  "phase2": [
-   {{
-     "title": "Non-cyclic electron flow",
-     "content": "The primary pathway: electrons flow from H₂O → PSII → plastoquinone → cytochrome b6f → plastocyanin → PSI → ferredoxin → NADP⁺ reductase → NADPH. This produces both ATP (via the proton gradient) and NADPH. Oxygen is released as a byproduct of water splitting."
-   }},
-   {{
-     "title": "Cyclic electron flow",
-     "content": "When the Calvin cycle demands more ATP than NADPH, electrons from PSI cycle back through cytochrome b6f instead of reducing NADP⁺. This generates additional ATP without producing NADPH or O₂. It fine-tunes the ATP:NADPH ratio."
-   }},
-   {{
-     "title": "Photophosphorylation vs. oxidative phosphorylation",
-     "content": "Both use a proton gradient + ATP synthase, but photophosphorylation uses light energy to drive electron flow across the thylakoid membrane, while oxidative phosphorylation uses chemical energy from NADH/FADH₂ across the inner mitochondrial membrane."
-   }}
+   {{ "title": "Non-cyclic electron flow", "content": "Primary pathway: H₂O → PSII → plastoquinone → cytochrome b6f → plastocyanin → PSI → ferredoxin → NADP⁺ reductase → NADPH. Produces both ATP and NADPH. O₂ released from water splitting." }},
+   {{ "title": "Cyclic electron flow", "content": "When Calvin cycle needs more ATP than NADPH, PSI electrons cycle back through cytochrome b6f. Generates ATP without NADPH or O₂. Fine-tunes the ATP:NADPH ratio." }},
+   {{ "title": "Photophosphorylation vs. oxidative phosphorylation", "content": "Both use proton gradient + ATP synthase. Photophosphorylation uses light energy across thylakoid membrane; oxidative phosphorylation uses NADH/FADH₂ energy across inner mitochondrial membrane." }}
  ],
  "phase3": {{
-   "tool": "Hill reaction assay — measure O₂ evolution rate with isolated chloroplasts and an electron acceptor (DCPIP)",
-   "metrics": ["Rate of O₂ evolution under different light wavelengths", "DCPIP reduction (color change from blue to colorless) as proxy for electron transport activity"]
+   "tool": "Hill reaction assay — measure O₂ evolution with isolated chloroplasts and DCPIP electron acceptor",
+   "metrics": ["O₂ evolution rate under different light wavelengths", "DCPIP reduction (blue → colorless) as electron transport proxy"]
  }},
  "shape": {{
-   "simpleCore": "The light-dependent reactions capture solar energy to split water, releasing O₂ and converting ADP + Pi to ATP and NADP⁺ to NADPH — the energy carriers that fuel the Calvin cycle.",
-   "highStakesExample": "Deepwater Horizon Oil Spill (2010) — the massive crude oil layer on the Gulf of Mexico surface blocked sunlight penetration, reducing phytoplankton photosynthesis by up to 50%% in affected zones. Since marine phytoplankton produce ~50%% of Earth's oxygen via light-dependent reactions, the spill demonstrated how disrupting photon availability cascades through the entire global oxygen budget.",
-   "analogicalModel": "Like a two-stage rocket: Stage 1 (PSII) provides the initial thrust by cracking fuel (water), releasing exhaust (O₂) and pushing electrons forward. Stage 2 (PSI) reignites the electrons with a second photon boost to reach escape velocity (NADPH). The transfer tunnel between stages (ETC) harvests momentum to spin a generator (ATP synthase).",
+   "simpleCore": "Light-dependent reactions capture solar energy to split water, releasing O₂ and producing ATP + NADPH — the energy carriers that fuel the Calvin cycle.",
+   "highStakesExample": "Deepwater Horizon (2010) — crude oil blocked sunlight, reducing phytoplankton photosynthesis by 50%% in affected zones. Marine phytoplankton produce ~50%% of Earth's O₂ via light-dependent reactions, showing how disrupting photon availability cascades through the global oxygen budget.",
+   "analogicalModel": "Two-stage rocket: Stage 1 (PSII) cracks fuel (water), releasing exhaust (O₂). Stage 2 (PSI) reignites electrons to reach escape velocity (NADPH). The transfer tunnel (ETC) spins a generator (ATP synthase).",
    "patternRecognition": {{
-     "question": "A researcher adds DCMU (a herbicide that blocks electron flow from PSII to plastoquinone) to isolated chloroplasts. What happens to O₂ production, ATP synthesis, and NADPH production?",
-     "answer": "O₂ production stops (water splitting still occurs but electrons cannot leave PSII). Non-cyclic ATP synthesis stops (no electron flow through cytochrome b6f). NADPH production stops (no electrons reach PSI). However, cyclic photophosphorylation around PSI may still produce some ATP if PSI is independently activated."
+     "question": "DCMU (herbicide blocking PSII → plastoquinone electron flow) is added to chloroplasts. What happens to O₂, ATP, and NADPH production?",
+     "answer": "O₂ stops (electrons cannot leave PSII). Non-cyclic ATP stops (no ETC flow). NADPH stops (no electrons reach PSI). Cyclic photophosphorylation around PSI may still produce some ATP."
    }},
-   "eliminationLogic": "Light-dependent reactions = thylakoid membrane, need light, produce ATP + NADPH + O₂; Calvin cycle = stroma, do not directly need light, consume ATP + NADPH, produce G3P. If a question mentions O₂ release → light-dependent. If it mentions carbon fixation → Calvin cycle."
+   "eliminationLogic": "Light-dependent = thylakoid, needs light, produces ATP + NADPH + O₂. Calvin cycle = stroma, consumes ATP + NADPH, produces G3P. O₂ question → light-dependent. Carbon fixation → Calvin cycle."
  }},
- "keyPoints": [
-   "Occurs on thylakoid membranes inside chloroplasts",
-   "Photolysis of water at PSII releases O₂ and provides electrons",
-   "Electron transport chain creates proton gradient for ATP synthase (chemiosmosis)",
-   "PSI reduces NADP⁺ to NADPH via ferredoxin",
-   "Cyclic electron flow produces only ATP (no NADPH or O₂)"
- ],
- "scoring": {{
-   "keywords": ["light-dependent", "thylakoid", "photolysis", "photosystem", "chemiosmosis", "ATP synthase"],
-   "aliases": ["light reactions", "photo-dependent reactions", "thylakoid reactions"]
- }},
+ "keyPoints": ["Thylakoid membranes in chloroplasts", "Photolysis at PSII releases O₂", "ETC creates proton gradient for ATP synthase", "PSI reduces NADP⁺ to NADPH", "Cyclic flow produces only ATP"],
+ "scoring": {{ "keywords": ["light-dependent", "thylakoid", "photolysis", "photosystem", "chemiosmosis"], "aliases": ["light reactions", "thylakoid reactions"] }},
  "criticalDistinctions": [
-   {{ "correct": "O₂ is released from the splitting of H₂O at Photosystem II (photolysis)", "incorrect": "O₂ is produced during the Calvin cycle when CO₂ is fixed into glucose" }},
-   {{ "correct": "Non-cyclic flow produces both ATP and NADPH; cyclic flow produces only ATP", "incorrect": "Cyclic electron flow produces both ATP and NADPH but skips water splitting" }}
+   {{ "correct": "O₂ from splitting H₂O at PSII (photolysis)", "incorrect": "O₂ produced in Calvin cycle during carbon fixation" }},
+   {{ "correct": "Non-cyclic produces ATP + NADPH; cyclic produces only ATP", "incorrect": "Cyclic flow produces both ATP and NADPH" }}
  ],
  "designBoundaries": [
-   {{ "boundary": "Light-dependent reactions produce energy carriers (ATP, NADPH) but do NOT fix carbon", "rationale": "Carbon fixation occurs in the Calvin cycle in the stroma — confusing these locations is the #1 exam error" }}
+   {{ "boundary": "Light-dependent reactions produce energy carriers (ATP, NADPH) but do NOT fix carbon", "rationale": "Carbon fixation is Calvin cycle in stroma — confusing locations is the #1 exam error" }}
  ],
  "connections": [
    {{ "target": "Photosynthesis Mechanisms", "type": "is-part-of" }},
@@ -329,7 +306,7 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
  ]
 }}
 ```
-**CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must match this level of depth and specificity **for your subject domain**. Adapt all terminology, examples, and scenarios to the actual subject being generated. If a field could apply to any concept by just swapping the name, the content is too generic and will be rejected.
+**CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must match this depth and specificity **for your subject domain**. Adapt terminology, examples, and scenarios to the actual subject. If a field could apply to any concept by swapping the name, it is too generic and will be rejected.
 ---
 ## 5. CRITICAL RULES
 1. **TREE INTEGRITY**: Every branch `parentName` = trunk name. Every leaf `parentName` = a branch name. Trunk `parentName` = null.

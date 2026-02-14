@@ -174,11 +174,12 @@ class BedrockService:
                             "anthropic_version": "bedrock-2023-05-31",
                             "max_tokens": 51200,
                             "temperature": 0.3,
-                            "system": system_msg,
+                            "system": self._build_cached_system(system_msg),
                             "messages": [{"role": "user", "content": user_msg}],
                         }),
                     )
                     response_body = json.loads(response.get("body").read())
+                    self._log_cache_metrics(response_body, f"Tree '{domain_name}'")
                     raw_content = response_body.get("content", [])[0].get("text", "")
                     print(f"[BedrockService] Trunk '{domain_name}': Got {len(raw_content)} chars")
                     parsed = self._parse_concepts_from_response(raw_content)
@@ -227,7 +228,11 @@ class BedrockService:
         if has_objectives and len(all_concepts) > 0:
             all_concepts = self._detect_scope_creep(all_concepts, domains)
             gaps = self._analyze_coverage_gaps(all_concepts, domains)
-            if gaps:
+            total_gaps = sum(len(v) for v in gaps.values()) if gaps else 0
+            if total_gaps > 0 and total_gaps <= 2:
+                print(f"[BedrockService] Gap-fill skipped: only {total_gaps} gaps (threshold: >2)")
+            if gaps and total_gaps > 2:
+                print(f"[BedrockService] Gap-fill triggered: {total_gaps} gaps across {len(gaps)} domains")
                 gap_concepts = self._generate_gap_fill(
                     subject, domains, all_concepts, gaps, classification
                 )
@@ -300,6 +305,35 @@ class BedrockService:
                 user_part = f'Generate the concept tree for "{domain_name}" now. Return ONLY valid JSON array.'
         user_part += "\n\nIMPORTANT — AUTOMATIC REJECTION PATTERNS (do NOT use these):\n- hookSentence: Never 'Without proper X...', 'Without X...', 'Improperly configured X...'. Lead with a concrete fact or scenario from the subject domain.\n- microMetaphor: Never 'Think of X as...'. Use 'X are/is [metaphor] — [mapping]' pattern.\n- whyYouNeed: Never 'X is crucial/critical/essential...', 'X provides a secure way...', 'X are essential for...'. Explain the specific problem this concept solves.\nWrite as a subject matter expert. Every field must have field-appropriate depth and specificity."
         return system_part, user_part
+
+    @staticmethod
+    def _build_cached_system(system_text: str) -> list:
+        return [
+            {
+                "type": "text",
+                "text": system_text,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ]
+
+    @staticmethod
+    def _log_cache_metrics(response_body: dict, label: str) -> None:
+        usage = response_body.get("usage", {})
+        cache_read = usage.get("cache_read_input_tokens", 0)
+        cache_write = usage.get("cache_creation_input_tokens", 0)
+        input_tokens = usage.get("input_tokens", 0)
+        output_tokens = usage.get("output_tokens", 0)
+        if cache_read or cache_write:
+            print(
+                f"[BedrockService] {label} tokens: "
+                f"input={input_tokens} output={output_tokens} "
+                f"cache_read={cache_read} cache_write={cache_write}"
+            )
+        else:
+            print(
+                f"[BedrockService] {label} tokens: "
+                f"input={input_tokens} output={output_tokens} (no cache)"
+            )
     TEMPLATE_REGEX_PATTERNS = None
 
     @classmethod
@@ -913,6 +947,7 @@ class BedrockService:
             max_tokens = min(32768, max(8192, len(task["missing"]) * 2500))
             print(f"[BedrockService] Gap-fill '{domain_name}': generating {len(task['missing'])} missing concepts (max_tokens={max_tokens})")
             try:
+                gap_system = f"You are generating supplementary exam concepts for {subject}, domain: {domain_name}. Fill ONLY the listed coverage gaps. Match the quality and depth of the existing concepts."
                 response = self.client.invoke_model(
                     modelId=self.model_id,
                     contentType="application/json",
@@ -921,11 +956,12 @@ class BedrockService:
                         "anthropic_version": "bedrock-2023-05-31",
                         "max_tokens": max_tokens,
                         "temperature": 0.3,
-                        "system": f"You are generating supplementary exam concepts for {subject}, domain: {domain_name}. Fill ONLY the listed coverage gaps. Match the quality and depth of the existing concepts.",
+                        "system": self._build_cached_system(gap_system),
                         "messages": [{"role": "user", "content": prompt}],
                     }),
                 )
                 response_body = json.loads(response.get("body").read())
+                self._log_cache_metrics(response_body, f"Gap-fill '{domain_name}'")
                 raw_content = response_body.get("content", [])[0].get("text", "")
                 print(f"[BedrockService] Gap-fill '{domain_name}': got {len(raw_content)} chars")
                 parsed = self._parse_concepts_from_response(raw_content)
