@@ -148,6 +148,24 @@ See: [Content Storage](./content-storage.md) for full catalog breakdown.
 
 ---
 
+## Environments
+
+The architecture uses exactly **two environments**: `dev` and `prod`. No other environment names are permitted.
+
+| Environment | Terraform Directory | Cognito Domain Prefix | Resource Suffix |
+|-------------|--------------------|-----------------------|-----------------|
+| **dev** | `infra/terraform/environments/dev/` | `sensapbl-dev` | `-dev` |
+| **prod** | `infra/terraform/environments/prod/` | `sensapbl-prod` | `-prod` |
+
+**FORBIDDEN environment names:** `staging`, `pilot`, `test`, `qa`, `uat`, `sandbox`, `preprod`.
+
+- All AWS resources follow the pattern `sensapbl-{resource}-{env}` (e.g. `sensapbl-concepts-dev`, `sensapbl-jobs-prod`)
+- Local development uses the `dev` backend — see `.env.example`
+- Production uses the `prod` backend — see `.env.production.example`
+- Amplify deploys against `dev` for the main branch
+
+---
+
 ## Routes
 
 | Route | Component | Auth |
