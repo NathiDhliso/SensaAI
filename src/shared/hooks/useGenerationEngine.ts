@@ -13,9 +13,10 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateAlias } from '@/shared/utils/alias-generator';
-import { getErrorMessage, isAuthError } from '@/shared/api/client';
+import { getErrorMessage, isApiError, isAuthError } from '@/shared/api/client';
 import { useGenerationStore } from '@/store/generation-store';
 import { useAuthStore } from '@/store/auth-store';
+import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import { generateWithBackend, uploadExamBlueprint } from '@/features/content-generation/api/backend-client';
 import { parseAndLoadContent } from '@/shared/utils/content-loader';
 import type {
@@ -66,6 +67,7 @@ interface GenerationEngineActions {
  */
 export function useGenerationEngine(): GenerationEngineState & GenerationEngineActions {
  const navigate = useNavigate();
+ const apiBase = import.meta.env.VITE_API_URL || '/api/v1';
  // Local state - NO abort controller (generation is unstoppable)
  const [generatedAlias, setGeneratedAlias] = useState<string>('');
  const [isGenerating, setIsGenerating] = useState(false);
@@ -253,7 +255,55 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  */
  const handleGenerationError = useCallback(
  (err: unknown) => {
- console.error('Generation error:', err);
+ const authState = useAuthStore.getState();
+ const persistedAuth = localStorage.getItem('sensapbl-auth');
+ let tokenPayload: Record<string, unknown> | null = null;
+ try {
+ if (persistedAuth) {
+ const parsed = JSON.parse(persistedAuth) as { state?: { tokens?: { access_token?: string } } };
+ const accessToken = parsed?.state?.tokens?.access_token;
+ if (accessToken) {
+ const payloadB64 = accessToken.split('.')[1];
+ if (payloadB64) {
+ const padded = payloadB64 + '='.repeat((4 - (payloadB64.length % 4)) % 4);
+ tokenPayload = JSON.parse(atob(padded)) as Record<string, unknown>;
+ }
+ }
+ }
+ } catch {
+ tokenPayload = null;
+ }
+ const errorDetails = isApiError(err)
+ ? {
+ status: err.status,
+ statusText: err.statusText,
+ requestMethod: err.requestMethod,
+ requestPath: err.requestPath,
+ responseBody: err.body,
+ }
+ : null;
+ console.error('[Generation] Failure diagnostics', {
+ apiBase,
+ requestHost: (() => {
+ try {
+ return new URL(apiBase).host;
+ } catch {
+ return null;
+ }
+ })(),
+ environmentApiUrl: import.meta.env.VITE_API_URL || null,
+ isAuthenticated: authState.isAuthenticated,
+ userEmail: authState.user?.email || null,
+ hasAccessToken: Boolean(authState.tokens?.access_token),
+ hasRefreshToken: Boolean(authState.tokens?.refresh_token),
+ accessTokenClaimKeys: tokenPayload ? Object.keys(tokenPayload).sort() : [],
+ accessTokenEmailLike: (() => {
+ const email = (tokenPayload?.email || tokenPayload?.username || tokenPayload?.['cognito:username']) as string | undefined;
+ return email && email.includes('@') ? email : null;
+ })(),
+ allowlistFrontendPass: isGenerationAllowed(),
+ error: errorDetails || err,
+ });
  const message = getErrorMessage(err, 'Generation failed.');
  // Handle specific error types
  if (message === 'Generation cancelled by user') {

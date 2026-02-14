@@ -277,10 +277,14 @@ The `handler.py` routes on the `action` field:
 ### Access Control
 
 Generation is restricted to an allowlist of approved email addresses:
-- **Backend:** `shared/utils.py` → `ALLOWED_GENERATOR_EMAILS` set, `is_generation_allowed(event)` extracts email from Cognito JWT claims
+- **Backend:** `shared/utils.py` → `ALLOWED_GENERATOR_EMAILS` set, `is_generation_allowed(event)` extracts email from Cognito claims (`email` with `username`/`cognito:username` fallback for access tokens)
 - **Frontend:** `src/shared/constants/generator-allowlist.ts` → `isGenerationAllowed()` checks `useAuthStore` email
 - Non-allowlisted users receive 403 on generate attempts
 - Repair and suggest_structure actions are NOT gated by the allowlist
+
+When a request is blocked with 403, diagnostics are emitted at both layers:
+- **Frontend console:** `useGenerationEngine.ts` logs API target host, auth/token claim presence, and request metadata as `[Generation] Failure diagnostics`
+- **Lambda logs:** `generate_concepts/handler.py` logs `[Handler] ACCESS_DIAGNOSTICS` with host/origin, claim keys, masked email source, and allowlist verdict
 
 ### Lambda Functions (`backend/lambda/`)
 ```

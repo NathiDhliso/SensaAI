@@ -106,7 +106,7 @@ See: `.cursorrules` for full decision tree.
 ## Access Control
 
 Generation is restricted to an allowlist of approved email addresses. Both frontend and backend enforce this independently:
-- **Backend:** `backend/lambda/shared/utils.py` → `ALLOWED_GENERATOR_EMAILS`, `is_generation_allowed(event)` — returns 403 for non-allowlisted users
+- **Backend:** `backend/lambda/shared/utils.py` → `ALLOWED_GENERATOR_EMAILS`, `is_generation_allowed(event)` (extracts `email` with `username`/`cognito:username` fallback from Cognito claims) — returns 403 for non-allowlisted users
 - **Frontend:** `src/shared/constants/generator-allowlist.ts` → `isGenerationAllowed()` — hides generate UI for non-allowlisted users
 - Repair and suggest_structure actions are NOT gated
 

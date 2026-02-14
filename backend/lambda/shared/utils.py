@@ -158,11 +158,65 @@ ALLOWED_GENERATOR_EMAILS = {
 }
 
 
+def _mask_email(email: Optional[str]) -> Optional[str]:
+    if not email or "@" not in email:
+        return None
+    local, domain = email.split("@", 1)
+    if len(local) <= 2:
+        masked_local = local[0] + "*" if local else "*"
+    else:
+        masked_local = local[0] + ("*" * (len(local) - 2)) + local[-1]
+    return f"{masked_local}@{domain}"
+
+
+def _extract_email_from_payload(payload: Dict[str, Any]) -> Optional[str]:
+    email = payload.get("email") or payload.get("username") or payload.get("cognito:username") or ""
+    email = str(email).lower()
+    if email and "@" in email:
+        return email
+    return None
+
+
+def get_generation_access_diagnostics(event: Dict[str, Any]) -> Dict[str, Any]:
+    headers = event.get("headers") or {}
+    request_context = event.get("requestContext") or {}
+    jwt_claims = request_context.get("authorizer", {}).get("jwt", {}).get("claims", {}) or {}
+    jwt_email = _extract_email_from_payload(jwt_claims)
+    auth_header = headers.get("authorization") or headers.get("Authorization") or ""
+    bearer_payload = {}
+    bearer_email = None
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        try:
+            payload_b64 = token.split(".")[1]
+            padding = 4 - len(payload_b64) % 4
+            if padding != 4:
+                payload_b64 += "=" * padding
+            bearer_payload = json.loads(base64.b64decode(payload_b64))
+            bearer_email = _extract_email_from_payload(bearer_payload)
+        except Exception:
+            bearer_payload = {}
+            bearer_email = None
+    effective_email = jwt_email or bearer_email
+    return {
+        "rawPath": event.get("rawPath"),
+        "routeKey": event.get("routeKey"),
+        "host": headers.get("host") or headers.get("Host"),
+        "origin": headers.get("origin") or headers.get("Origin"),
+        "hasAuthorizationHeader": bool(auth_header),
+        "jwtClaimKeys": sorted(jwt_claims.keys())[:25],
+        "bearerClaimKeys": sorted(bearer_payload.keys())[:25],
+        "maskedEmail": _mask_email(effective_email),
+        "emailSource": "jwt_claims" if jwt_email else ("bearer_payload" if bearer_email else "none"),
+        "isAllowlisted": effective_email in ALLOWED_GENERATOR_EMAILS if effective_email else False,
+    }
+
+
 def extract_email_from_event(event: Dict[str, Any]) -> Optional[str]:
     jwt_claims = (event.get("requestContext") or {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
-    email = jwt_claims.get("email") or jwt_claims.get("username") or jwt_claims.get("cognito:username")
-    if email and "@" in str(email):
-        return email.lower()
+    email = _extract_email_from_payload(jwt_claims)
+    if email:
+        return email
     headers = event.get("headers") or {}
     auth_header = headers.get("authorization") or headers.get("Authorization") or ""
     if auth_header.startswith("Bearer "):
@@ -173,9 +227,8 @@ def extract_email_from_event(event: Dict[str, Any]) -> Optional[str]:
             if padding != 4:
                 payload_b64 += "=" * padding
             payload = json.loads(base64.b64decode(payload_b64))
-            email = payload.get("email") or payload.get("username") or payload.get("cognito:username") or ""
-            email = email.lower()
-            if email and "@" in email:
+            email = _extract_email_from_payload(payload)
+            if email:
                 return email
         except Exception:
             pass

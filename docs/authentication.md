@@ -91,7 +91,7 @@ User enters name + email + password on SignUp page
 
 Content generation is restricted to approved email addresses, enforced independently at both layers:
 
-- **Backend:** `backend/lambda/shared/utils.py` → `ALLOWED_GENERATOR_EMAILS` set, `is_generation_allowed(event)` extracts email from Cognito JWT claims in the event. Returns 403 for non-allowlisted users on `generate` action.
+- **Backend:** `backend/lambda/shared/utils.py` → `ALLOWED_GENERATOR_EMAILS` set, `is_generation_allowed(event)` extracts the user email from Cognito claims using `email` first, then `username`/`cognito:username` fallback (for access tokens). Returns 403 for non-allowlisted users on `generate` action.
 - **Frontend:** `src/shared/constants/generator-allowlist.ts` → `isGenerationAllowed()` reads email from `useAuthStore`. Hides generation UI for non-allowlisted users.
 - `repair` and `suggest_structure` Lambda actions are NOT gated by the allowlist.
 
