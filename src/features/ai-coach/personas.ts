@@ -29,9 +29,9 @@ export interface Persona {
 export const PERSONAS: Record<PersonaId, Persona> = {
  goggins: {
  id: 'goggins',
- name: 'David Goggins',
- tagline: "Stay hard! No excuses.",
- description: "Intense motivation. Pushes you through comfort zones. No shortcuts.",
+ name: 'Discipline Coach',
+ tagline: "No excuses. Build grit.",
+ description: "Intense motivation. Pushes you through comfort zones. Zero shortcuts.",
  voiceStyle: "commanding, intense, no-nonsense",
  color: COLORS.error, // Red
  traits: {

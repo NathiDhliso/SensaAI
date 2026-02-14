@@ -161,8 +161,8 @@ const STRUCTURAL_PATTERNS: Array<{
 }> = [
  { keywords: ['require', 'requires', 'prerequisite', 'depend', 'depends', 'needs', 'before', 'prior'], type: 'requires', reasoning: 'Prerequisite relationship' },
  { keywords: ['enable', 'enables', 'unlock', 'unlocks', 'allow', 'allows', 'makes possible'], type: 'enables', reasoning: 'Capability chain' },
- { keywords: ['part', 'component', 'within', 'inside', 'contains', 'composed', 'element', 'member'], type: 'is part of', reasoning: 'Part-whole composition' },
- { keywords: ['type', 'kind', 'variant', 'instance', 'category', 'class', 'form', 'subtype'], type: 'is type of', reasoning: 'Taxonomic classification' },
+ { keywords: ['part', 'component', 'within', 'inside', 'contains', 'composed', 'element', 'member'], type: 'is-part-of', reasoning: 'Part-whole composition' },
+ { keywords: ['type', 'kind', 'variant', 'instance', 'category', 'class', 'form', 'subtype'], type: 'is-type-of', reasoning: 'Taxonomic classification' },
  { keywords: ['cause', 'causes', 'result', 'results', 'produces', 'triggers', 'leads', 'creates'], type: 'causes', reasoning: 'Causal chain' },
  { keywords: ['constrain', 'constrains', 'limit', 'limits', 'restrict', 'governs', 'bounds', 'rule', 'policy'], type: 'constrains', reasoning: 'Boundary condition' }
 ];
@@ -316,15 +316,7 @@ export function validateConnectionLabel(
  * Suggest a label for a connection
  */
 function suggestLabel(): string {
- const suggestions = [
- 'requires',
- 'enables',
- 'is part of',
- 'is type of',
- 'causes',
- 'constrains'
- ];
- return suggestions[Math.floor(Math.random() * suggestions.length)];
+ return 'requires';
 }
 /**
  * Get coach message for building phase

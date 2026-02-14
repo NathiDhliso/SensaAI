@@ -572,9 +572,23 @@ class BedrockService:
             "contains": "is-part-of",
             "depends-on": "requires",
         }
-        name_set = {c.get("name", "").strip().lower() for c in concepts if c.get("name")}
-        branch_names = {c.get("name", "").strip().lower() for c in concepts if c.get("treeLevel") == "branch"}
-        trunk_names = {c.get("name", "").strip().lower() for c in concepts if c.get("treeLevel") == "trunk"}
+        concept_by_name = {
+            c.get("name", "").strip().lower(): c
+            for c in concepts
+            if c.get("name")
+        }
+
+        def resolve_name(raw_name: str) -> Optional[str]:
+            if not isinstance(raw_name, str):
+                return None
+            key = raw_name.strip().lower()
+            if not key:
+                return None
+            target = concept_by_name.get(key)
+            if not target:
+                return None
+            return target.get("name")
+
         total_connections = 0
         enables_count = 0
         for concept in concepts:
@@ -582,25 +596,73 @@ class BedrockService:
             if not isinstance(connections, list):
                 concept["connections"] = []
                 connections = concept["connections"]
+
+            concept_name = (concept.get("name") or "").strip().lower()
+            level = (concept.get("treeLevel") or "leaf").lower().strip()
+            parent = (concept.get("parentName") or "").strip()
+            parent_name = resolve_name(parent) if parent else None
+            normalized_connections = []
+            seen = set()
+
             for conn in connections:
                 if not isinstance(conn, dict):
                     continue
+                target_name = resolve_name(conn.get("target") or "")
+                if not target_name:
+                    continue
+                target_key = target_name.lower()
+                if target_key == concept_name:
+                    continue
+
                 conn_type = (conn.get("type") or "enables").lower().strip()
                 if conn_type in LEGACY_MAP:
-                    conn["type"] = LEGACY_MAP[conn_type]
-                    conn_type = conn["type"]
+                    conn_type = LEGACY_MAP[conn_type]
                 if conn_type not in VALID_TYPES:
-                    conn["type"] = "enables"
-                    conn_type = "enables"
+                    conn_type = "requires"
+
+                target_level = (
+                    (concept_by_name.get(target_key, {}) or {}).get("treeLevel") or ""
+                ).lower().strip()
+
+                if parent_name and target_key == parent_name.lower():
+                    conn_type = "is-part-of"
+                elif conn_type == "enables" and level == "leaf" and target_level in {"branch", "trunk"}:
+                    conn_type = "requires"
+                elif conn_type == "enables" and level == "branch" and target_level == "trunk":
+                    conn_type = "requires"
+
+                dedupe_key = f"{target_key}::{conn_type}"
+                if dedupe_key in seen:
+                    continue
+                normalized_connections.append({"target": target_name, "type": conn_type})
+                seen.add(dedupe_key)
+
                 total_connections += 1
                 if conn_type == "enables":
                     enables_count += 1
-            level = concept.get("treeLevel", "leaf")
-            parent = concept.get("parentName", "")
-            if len(connections) < 2 and level != "trunk":
-                existing_targets = {(c.get("target") or "").strip().lower() for c in connections}
-                if parent and parent.strip().lower() not in existing_targets:
-                    connections.append({"target": parent, "type": "is-part-of"})
+
+            concept["connections"] = normalized_connections
+
+            if level != "trunk" and parent_name:
+                has_parent_edge = any(
+                    (c.get("target") or "").strip().lower() == parent_name.lower()
+                    and c.get("type") == "is-part-of"
+                    for c in concept["connections"]
+                )
+                if not has_parent_edge:
+                    concept["connections"].append({"target": parent_name, "type": "is-part-of"})
+                    total_connections += 1
+
+            if len(concept["connections"]) < 2 and level == "leaf":
+                trunk_name = resolve_name(concept.get("trunkDomain") or "")
+                if trunk_name:
+                    has_trunk_edge = any(
+                        (c.get("target") or "").strip().lower() == trunk_name.lower()
+                        for c in concept["connections"]
+                    )
+                    if not has_trunk_edge and trunk_name.lower() != concept_name:
+                        concept["connections"].append({"target": trunk_name, "type": "requires"})
+                        total_connections += 1
         if total_connections > 0:
             enables_pct = enables_count / total_connections
             print(f"[BedrockService] TRACES: {enables_count}/{total_connections} enables ({enables_pct*100:.0f}%)")
