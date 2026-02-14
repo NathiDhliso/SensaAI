@@ -52,6 +52,10 @@ resource "aws_cognito_user_pool" "main" {
     Name = "sensaai-${var.environment}-user-pool"
   }
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   depends_on = [aws_lambda_function.custom_message]
 }
 
@@ -156,13 +160,18 @@ resource "aws_cognito_user_pool_client" "main" {
   allowed_oauth_flows_user_pool_client = true
 
   lifecycle {
-    ignore_changes = [generate_secret]
+    prevent_destroy = true
+    ignore_changes  = [generate_secret]
   }
 }
 
 resource "aws_cognito_user_pool_domain" "main" {
   domain       = var.domain_prefix
   user_pool_id = aws_cognito_user_pool.main.id
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # =============================================================================
@@ -181,6 +190,10 @@ resource "aws_cognito_identity_pool" "main" {
 
   tags = {
     Name = "sensaai-${var.environment}-identity-pool"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
 

@@ -163,7 +163,7 @@ infra/
 ```
 
 **Managed Resources**:
-- DynamoDB tables (`sensaai-concepts-{env}`, `sensaai-jobs-{env}`)
+- DynamoDB tables (`sensapbl-concepts-{env}`, `sensapbl-jobs-{env}`)
 - S3 buckets (content storage)
 - Lambda functions
 - API Gateway
@@ -260,18 +260,22 @@ Create a `.env` file in the root directory:
 ```env
 # AWS Configuration
 VITE_AWS_REGION=us-east-1
-VITE_AWS_ACCESS_KEY_ID=your_access_key
-VITE_AWS_SECRET_ACCESS_KEY=your_secret_key
 
 # Cognito Configuration
 VITE_COGNITO_USER_POOL_ID=your_user_pool_id
 VITE_COGNITO_CLIENT_ID=your_client_id
+VITE_COGNITO_DOMAIN=sensapbl-dev.auth.us-east-1.amazoncognito.com
 
 # API Configuration
 VITE_API_URL=https://your-api-gateway-url
 ```
 
 **See**: `.env.example` for a complete list of environment variables.
+
+**Amplify Sync**: After any Terraform apply, run `push-amplify-env.ps1` to sync frontend env vars from the deployed Lambda config:
+```powershell
+.\infra\scripts\push-amplify-env.ps1 -Environment prod -TriggerBuild
+```
 
 ---
 
@@ -382,6 +386,12 @@ terraform plan -out=tfplan
 terraform apply "tfplan"
 ```
 
+### Sync Amplify After Terraform
+```powershell
+.\infra\scripts\push-amplify-env.ps1 -Environment prod -TriggerBuild
+```
+This reads Cognito config from the deployed auth Lambda (source of truth), validates the pool exists, and pushes all values to Amplify.
+
 ---
 
 ## Navigation Guide
@@ -440,5 +450,5 @@ MIT
 
 Built with modern web technologies and AWS services to provide an adaptive, AI-powered learning experience.
 
-**Last Updated**: February 13, 2026 
+**Last Updated**: February 14, 2026 
 **Repository Organization**: Feature-based structure for clarity and maintainability
