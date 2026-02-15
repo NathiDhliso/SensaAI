@@ -56,7 +56,6 @@ API client and endpoint definitions.
 **Files:**
 - `client.ts` - Base API client with auth
 - `concepts.ts` - Concept CRUD operations
-- `generation.ts` - Generation endpoints
 - `resilience.ts` - Retry logic
 **Use When:**
 - Making API calls
@@ -66,10 +65,12 @@ API client and endpoint definitions.
 ### 🪝 Hooks (`hooks/`)
 Reusable React hooks used across features.
 **Categories:**
-- **UI Hooks** - `useClickOutside`, `useEscapeKey`
-- **Layout Hooks** - `useOrientationAwareZoom`, `useResponsiveNodeSize`
+- **UI Hooks** - `useClickOutside`, `useEscapeKey`, `useQuizKeyboard`
+- **Layout Hooks** - `useOrientationAwareZoom`, `useResponsiveNodeSize`, `useCollisionDetection`
 - **Flow Hooks** - `useFlowState`, `useLearningFlow`, `useSensaFlow`
-- **Generation Hooks** - `useGenerationEngine`, `useGenerationRecovery`
+- **Generation Hooks** - `useGenerationEngine`, `useGenerationRecovery`, `useBackgroundJobRecovery`
+- **Coach Hooks** - `useCoachMessage`, `useMetaphorContent`, `useVisualTheme`
+- **Learning Hooks** - `useStruggleDetector`, `useTreeNarrative`
 - **Utility Hooks** - `useCountdownTimer`, `usePauseGlobalTimer`
 **Use When:**
 - Need reusable React logic
@@ -86,7 +87,11 @@ Pure utility functions with no side effects.
 - `subject-domain-detector.ts` - Detect subject domains
 - `performance.ts` - Performance monitoring
 - `content-loader.ts` - Content loading utilities
+- `content-builder.ts` - Content building helpers
 - `context-optimizer.ts` - Context optimization
+- `example-synthesis.ts` - Example synthesis utilities
+- `persona.ts` - Persona utilities
+- `utils.ts` - General-purpose utilities
 **Use When:**
 - Need pure functions
 - Calculations without side effects
@@ -100,6 +105,7 @@ Shared TypeScript type definitions.
 - `content-analytics.ts` - Analytics types
 - `generation.ts` - Generation types
 - `learning.ts` - Learning types
+- `macro-workflow.ts` - Macro workflow types
 - `sensa-flow.ts` - Flow types
 **Use When:**
 - Defining data structures
@@ -109,14 +115,16 @@ Shared TypeScript type definitions.
 ### Constants (`constants/`)
 App-wide constants and configuration.
 **Files:**
-- `app-config.ts` - App configuration
 - `learning-content.ts` - Learning content constants
-- `learning-science.ts` - Learning science parameters
 - `sensa-flow-constants.ts` - Flow constants
 - `storage-keys.ts` - Storage key names
 - `theme-colors.ts` - Theme color definitions
 - `ui-constants.ts` - UI timing and sizes
 - `z-index.ts` - Z-index layering
+- `tree-narrative.ts` - Tree narrative constants
+- `aws-cert-catalog.ts` - AWS certification catalog
+- `generator-allowlist.ts` - Generator allowlist
+- `exam-catalogs/` - Exam-specific catalog data
 **Use When:**
 - Need app-wide constants
 - Configuration values
@@ -125,8 +133,8 @@ App-wide constants and configuration.
 ### Services (`services/`)
 Shared services that manage resources.
 **Files:**
-- `audio.ts` - Audio playback
-- `AudioService.ts` - Audio service class
+- `audio.ts` - Audio playback and management
+- `blueprint-formula.ts` - Blueprint formula service
 **Use When:**
 - Managing audio
 - Resource management
@@ -229,4 +237,4 @@ This structure was created on January 29, 2026 as part of a comprehensive reorga
 - Zero breaking changes
 - Same TypeScript types
 - Same API contracts
-The old folders are kept temporarily for backwards compatibility but will be removed in a future cleanup.
+The old folders are kept temporarily for backwards compatibility but will be removed in a future cleanup.

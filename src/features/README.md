@@ -5,7 +5,9 @@ This directory contains all business features organized by what they do, not how
 features/
 ├── content-generation/ # Everything about generating learning content
 ├── content-storage/ # Everything about saving/loading content
+├── content-audit/ # Syllabus parsing and content auditing
 ├── learning-session/ # Everything about learning activities
+├── personalization/ # User personalization components
 └── ai-coach/ # AI coach personalities and mood
 ```
 ## Features
@@ -50,27 +52,49 @@ Handles all aspects of learning activities and progress tracking.
 - `progress/` - Progress tracking and metrics
 - `algorithms/` - Learning algorithms (spacing, interleaving)
 - `phases/` - Learning phase AI (Build, Preview, Retain)
+- `scoring/` - Scoring logic (blank-sheet scoring)
 **Key Files:**
 - `activities/confusion-generator.ts` - Generate confusion drills
 - `activities/diagnostic-generator.ts` - Generate diagnostic questions
 - `progress/session-tracker.ts` - Track session progress
 - `algorithms/spacing-engine.ts` - Spaced repetition
 - `phases/build-ai.ts` - Build phase AI prompts
+- `scoring/blank-sheet-scorer.ts` - Blank sheet test scoring
 **Use When:**
 - Running learning activities
 - Tracking progress
 - Selecting next concept
 - Calculating mastery
 ---
+### Content Audit (`content-audit/`)
+Handles syllabus parsing and content auditing.
+**Key Files:**
+- `audit-engine.ts` - Core audit logic
+- `syllabus-parser.ts` - Parse syllabus documents
+**Use When:**
+- Auditing generated content against syllabi
+- Parsing syllabus documents
+---
+### Personalization (`personalization/`)
+Handles user personalization preferences and UI.
+**Subdirectories:**
+- `components/` - Personalization UI components
+**Use When:**
+- Customizing the learning experience
+- Managing user preferences
+---
 ### AI Coach (`ai-coach/`)
 Handles AI coach personalities and mood-based adjustments.
 **Key Files:**
 - `personas.ts` - Coach personality definitions (5 personas × 7 phases × 5 situations)
 - `index.ts` - Mood system, elaborative interrogation prompts, breathing exercises
+**Subdirectories:**
+- `components/` - Coach UI components (CoachMessage, MoodSelector)
 **Use When:**
 - Selecting coach personality
 - Getting mood-adjusted session parameters
 - Generating elaborative interrogation prompts
+- Rendering coach messages and mood selectors
 ---
 ## Import Patterns
 ### Good: Import from feature folders
@@ -148,7 +172,9 @@ src/lib/
 src/features/
 ├── content-generation/
 ├── content-storage/
+├── content-audit/
 ├── learning-session/
+├── personalization/
 └── ai-coach/
 ```
 The old `lib/` folders are kept temporarily for backwards compatibility but will be removed in a future cleanup.

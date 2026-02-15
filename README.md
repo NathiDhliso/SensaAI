@@ -2,7 +2,7 @@
 
 AI-powered educational platform that generates structured learning materials and provides adaptive learning experiences using Claude via AWS Bedrock.
 
-**Built with**: Vite 6.0, React 19, TypeScript 5.7+, AWS Bedrock, DynamoDB
+**Built with**: Vite 6.2, React 19, TypeScript 5.9, AWS Bedrock, DynamoDB
 
 ---
 
@@ -63,15 +63,24 @@ src/features/
 │ ├── local/ # IndexedDB + localStorage
 │ └── sync/ # Import/export functionality
 │
+├── content-audit/ # Syllabus parsing and content auditing
+│ ├── audit-engine.ts # Audit logic
+│ └── syllabus-parser.ts # Parse syllabus documents
+│
 ├── learning-session/ # Learning activities and progress
 │ ├── activities/ # Confusion drills, diagnostics
 │ ├── progress/ # Progress tracking and metrics
 │ ├── algorithms/ # Spacing, interleaving, selection
-│ └── phases/ # Learning phase AI (Build, Preview, Retain)
+│ ├── phases/ # Learning phase AI (Build, Preview, Retain)
+│ └── scoring/ # Blank-sheet scoring logic
 │
-└── ai-coach/ # AI coach personalities and voice
+├── personalization/ # User personalization
+│ └── components/ # Personalization UI components
+│
+└── ai-coach/ # AI coach personalities and mood
  ├── personas.ts # Coach personality definitions
- └── voice/ # Voice lines and audio
+ ├── index.ts # Mood system, breathing exercises
+ └── components/ # CoachMessage, MoodSelector UI
 ```
 
 **See**: `src/features/README.md` for detailed feature documentation.
@@ -101,20 +110,41 @@ src/
 │ ├── learning/ # Learning-specific components
 │ ├── generation/ # Generation-specific components
 │ ├── auth/ # Authentication components
-│ └── ...
+│ ├── dashboard/ # Dashboard widgets
+│ ├── error/ # Error boundaries and fallbacks
+│ ├── layout/ # App layout and navigation
+│ ├── settings/ # Settings panels
+│ └── storage/ # Storage-related components
 │
 ├── pages/ # Full page views (routes)
 │ ├── Home.tsx # Landing page
 │ ├── Generate.tsx # Content generation page
 │ ├── Study.tsx # Learning session page
+│ ├── VelocityLearning.tsx # Velocity learning mode
 │ ├── SavedResults.tsx # Library of saved content
-│ └── ...
+│ ├── CommunityLibrary.tsx # Community-shared content
+│ ├── DocumentView.tsx # Document viewer
+│ ├── Login.tsx # Login page
+│ ├── SignUp.tsx # Registration page
+│ ├── ConfirmSignUp.tsx # Email confirmation
+│ ├── ForgotPassword.tsx # Password reset
+│ └── AuthCallback.tsx # OAuth callback handler
 │
 ├── store/ # Global state management (Zustand)
 │ ├── auth-store.ts # Authentication state
 │ ├── learning-store.ts # Learning session state
 │ ├── generation-store.ts # Generation state
-│ └── ...
+│ ├── personalization-store.ts # User preferences
+│ ├── theme-store.ts # Theme/visual mode state
+│ ├── ui-store.ts # UI layout state
+│ └── slices/ # Composable store slices
+│ ├── createCognitiveSlice.ts
+│ ├── createDiagnosticSlice.ts
+│ ├── createFocusSlice.ts
+│ ├── createNavigationSlice.ts
+│ ├── createSessionSlice.ts
+│ ├── createStudySlice.ts
+│ └── createUISlice.ts
 │
 ├── styles/ # Global styles (animations)
 └── App.tsx # Main app component and routing
@@ -129,14 +159,15 @@ Serverless backend built with AWS Lambda and DynamoDB:
 ```
 backend/
 ├── src/ # Express proxy server (TypeScript)
-│ ├── core/ # Express app, middleware, route mounting
-│ ├── features/ # Auth, concepts, content, proxy routes
+│ ├── core/ # Express app, routes, server entry
+│ ├── features/ # Auth, concepts, content, gym, proxy routes
 │ └── shared/ # Middleware (JWT, rate-limit), types
 │
 ├── lambda/ # Python Lambda functions
 │ ├── generate_concepts/ # Concept generation (Bedrock)
 │ ├── query_concepts/ # Paginated queries, job polling
 │ ├── gym_ai/ # Gym activity AI (Haiku)
+│ ├── custom_message/ # Cognito custom message trigger
 │ ├── shared/ # system_prompt.py, utils.py
 │ └── auth/ # Auth Lambda
 └── scripts/ # Backend utility scripts
@@ -187,9 +218,17 @@ scripts/
 - `check-any-types.ps1` - Find TypeScript `any` types
 - `check-console-logs.ps1` - Find console.log statements
 - `check-hardcoded-colors.ps1` - Find hardcoded color values
+- `check-hardcoded-subjects.ps1` - Find hardcoded subject references
+- `check-css-var-prefixes.ps1` - Verify CSS variable naming conventions
 - `check-magic-timeouts.ps1` - Find magic number timeouts
 - `scan-css-conflicts.js` - Find CSS conflicts
+- `scan-duplicate-css-properties.js` - Find duplicate CSS properties
 - `run-all-checks.ps1` - Run all checks at once
+
+**Generators**:
+- `generate-map.js` - Generate project map
+- `generate_project_map.js` - Generate detailed project map
+- `generate-voices.js` - Generate AI coach voice data
 
 ---
 
@@ -208,23 +247,24 @@ config/
 
 ## Documentation (`docs/`)
 
-Project documentation and historical records:
+Project documentation — see `docs/README.md` for the reading guide:
 
 ```
 docs/
-├── archive/ # Archived documentation
-│ ├── FOLDER_REORGANIZATION_COMPLETE.md
-│ ├── FOLDER_REORGANIZATION_PLAN.md
-│ └── REORGANIZATION_SUCCESS.md
-│
-└── cleanup-history/ # Historical cleanup records
- ├── PHASE_2_COMPLETE.md
- ├── PHASE_3_COMPLETE.md
- ├── CLEANUP_SUMMARY.md
- ├── COMPLEXITY_AUDIT.md
- ├── FEATURES_STATUS.md
- ├── SELF_HEALING_ANALYSIS.md
- └── SELF_HEALING_REMOVAL_COMPLETE.md
+├── README.md # Documentation index and reading order
+├── master-prompt.md # Project overview, routes, stores, key files
+├── type-system.md # LearningConcept contract, Bloom's taxonomy
+├── generation-pipeline.md # Prompt → Lambda → parser → store → UI
+├── learning-science.md # 3-phase loop, mood curation, algorithms
+├── authentication.md # Cognito OAuth PKCE, session management
+├── content-storage.md # StorageManager, DynamoDB, IndexedDB, sync
+├── implementation-guide.md # Code patterns, checklists
+├── styling-specifications.md # CSS variable catalog, theme system
+├── VISUAL_THEME_SYSTEM.md # Playful vs Scholarly modes
+├── metaphor-system.md # useMetaphorContent hook, data flow
+├── DESIRABLE_RESULTS.md # Field-by-field quality examples
+├── GYM_UX_PHILOSOPHY.md # Gym activity design principles
+└── MASTERY_SCORING_GUIDE.md # Grade thresholds (S/A/B/C/D)
 ```
 
 ---
@@ -313,19 +353,25 @@ npm run deploy # Deploy to AWS
 ## Architecture
 
 ### Frontend Architecture
-- **Framework**: React 19 with TypeScript 5.7+
-- **Build Tool**: Vite 6.0
-- **State Management**: Zustand with persist middleware
+- **Framework**: React 19 with TypeScript 5.9
+- **Build Tool**: Vite 6.2
+- **State Management**: Zustand with persist middleware + composable slices
+- **Server State**: TanStack React Query
 - **Routing**: React Router 7
-- **Styling**: Modular CSS with CSS variables
+- **Styling**: Tailwind CSS 4 + Modular CSS with CSS variables
+- **Animations**: Framer Motion
+- **UI Primitives**: Radix UI (Dialog, Tabs, Tooltip, Progress)
+- **Charts**: Recharts
+- **Validation**: Zod
 - **Icons**: Lucide React
 
 ### Backend Architecture
 - **Runtime**: Python 3.12 on AWS Lambda
+- **Proxy Server**: Express (TypeScript) with Helmet, CORS, JWT verification
 - **Database**: DynamoDB (NoSQL)
 - **Storage**: S3 for documents
 - **AI**: AWS Bedrock (Claude Sonnet 4)
-- **Auth**: AWS Cognito
+- **Auth**: AWS Cognito (OAuth PKCE)
 - **API**: API Gateway (REST)
 
 ### Data Flow
@@ -342,16 +388,38 @@ npm run deploy # Deploy to AWS
 ## Dependencies
 
 ### Frontend
-- **react** ^19.0.0 - UI framework
-- **react-router-dom** ^7.1.1 - Routing
-- **zustand** ^5.0.2 - State management
-- **lucide-react** ^0.468.0 - Icons
+- **react** ^19.2.0 - UI framework
+- **react-router-dom** ^7.1.0 - Routing
+- **zustand** ^5.0.0 - State management
+- **@tanstack/react-query** ^5.62.0 - Server state management
+- **framer-motion** ^11.15.0 - Animations
+- **tailwindcss** ^4.0.0 - CSS framework
+- **@radix-ui/react-dialog, tabs, tooltip, progress** - UI primitives
+- **recharts** ^3.6.0 - Charts and graphs
+- **zod** ^3.25.76 - Schema validation
+- **sonner** ^2.0.7 - Toast notifications
+- **lucide-react** ^0.469.0 - Icons
+- **d3-hierarchy** ^3.1.2 - Tree visualizations
+- **jspdf** + **html2canvas** - PDF export
+- **pdfjs-dist** ^5.4.530 - PDF viewing
+- **markdown-it** ^14.1.0 - Markdown rendering
+- **pannellum** ^2.5.6 - 360° panorama viewer
+- **@react-google-maps/api** ^2.20.8 - Google Maps
 - **@aws-sdk/client-bedrock-runtime** - AWS Bedrock client
 
 ### Backend (Express Proxy - TypeScript)
-- **express** - HTTP server
-- **@aws-sdk/client-dynamodb** - DynamoDB proxy
-- **@aws-sdk/client-s3** - S3 proxy
+- **express** ^4.21.0 - HTTP server
+- **helmet** ^8.0.0 - Security headers
+- **cors** ^2.8.5 - CORS middleware
+- **cookie-parser** ^1.4.7 - Cookie parsing
+- **jsonwebtoken** + **jwks-rsa** - JWT verification
+- **dotenv** ^17.2.3 - Environment configuration
+- **uuid** ^10.0.0 - ID generation
+- **@aws-sdk/client-dynamodb** - DynamoDB operations
+- **@aws-sdk/client-s3** - S3 operations
+- **@aws-sdk/client-lambda** - Lambda invocation
+- **@aws-sdk/client-cognito-identity-provider** - Cognito operations
+- **@aws-sdk/client-secrets-manager** - Secrets management
 
 ### Backend (Lambda - Python 3.12)
 - **boto3** - AWS SDK (Bedrock, DynamoDB, Lambda self-invocation)
@@ -425,8 +493,7 @@ A: `infra/terraform/`
 
 - **Features Guide**: `src/features/README.md`
 - **Shared Code Guide**: `src/shared/README.md`
-- **Reorganization History**: `docs/archive/`
-- **Cleanup History**: `docs/cleanup-history/`
+- **UX Improvements**: `UX_IMPROVEMENTS_SUMMARY.md`
 
 ---
 
@@ -450,5 +517,5 @@ MIT
 
 Built with modern web technologies and AWS services to provide an adaptive, AI-powered learning experience.
 
-**Last Updated**: February 14, 2026 
+**Last Updated**: February 15, 2026 
 **Repository Organization**: Feature-based structure for clarity and maintainability
