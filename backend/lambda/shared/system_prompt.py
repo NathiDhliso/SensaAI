@@ -172,14 +172,14 @@ Generate concepts in a strict 3-level tree:
 ### 3.2 TREE-LEVEL CONTENT RULES:
 **TRUNK** (domain overview):
 - Broader, general content about the domain
-- `connections`: mix of "enables" and "causes" to branches (NOT all "enables")
+- `connections`: NONE outgoing. Trunks are roots — they receive `is-part-of` from branches. Do NOT add connections on trunk concepts.
 **BRANCH** (sub-topic):
 - Medium granularity, grouping related knowledge
-- `connections`: "is-part-of" to trunk, plus "requires"/"enables"/"constrains" to sibling branches where applicable
+- `connections`: Exactly 1 `is-part-of` → its trunk (mandatory). Then 0-1 `requires` → a sibling branch that must be learned first. Max 2 connections total.
 **LEAF** (testable detail):
 - Maximum exam-relevant granularity
 - At least 60% of leaves MUST be `apply` or higher cognitive level
-- `connections`: "is-part-of" to its branch, PLUS at least 1 cross-branch connection using "requires", "is-type-of", "causes", or "constrains" (NOT "enables" unless no other type fits)
+- `connections`: Exactly 1 `is-part-of` → its branch (mandatory). Then 1-2 additional connections to OTHER leaves within the SAME branch using `requires`, `causes`, or `constrains`. Max 3 connections total. Cross-branch leaf connections are FORBIDDEN — they create unreadable graphs.
 ### 3.3 MNEMONIC RULES:
 - `anchor`: Concrete physical object (e.g., "3-Story Building"), NOT abstract
 - `story`: Map concepts to physical parts with spatial language
@@ -201,10 +201,15 @@ Neuroscience shows that the TYPE of relationship between concepts determines ret
 4. Does A directly produce, trigger, or result in B? → `causes`
 5. Does A set rules, limits, policies, or boundaries on B? → `constrains`
 6. ONLY IF none of the above apply: Does learning A make B accessible? → `enables`
-**DISTRIBUTION CONSTRAINT**: `enables` must NOT exceed 30% of all connections across the tree. If you find yourself defaulting to "enables", re-run the decision algorithm — most "enables" are actually "requires", "causes", or "constrains" in disguise.
+**DISTRIBUTION CONSTRAINT**: `enables` must NOT exceed 20% of all connections across the tree. If you find yourself defaulting to "enables", re-run the decision algorithm — most "enables" are actually "requires", "causes", or "constrains" in disguise.
 **FORBIDDEN**: "related-to", "relates", "extends", "depends-on", or any vague association.
-**MINIMUM**: Every concept MUST have at least 2 connections.
-**CROSS-DOMAIN**: Leaves may reference concepts in OTHER domains (use exact names).
+**GRAPH TOPOLOGY RULES** (these produce a clean, readable concept map):
+1. **STRUCTURAL SPINE**: Every branch has exactly 1 `is-part-of` → its trunk. Every leaf has exactly 1 `is-part-of` → its branch. Trunks have 0 outgoing connections. This spine is mandatory and non-negotiable.
+2. **MAX CONNECTIONS**: Trunk = 0, Branch = 2, Leaf = 3. Exceeding these caps causes **automatic rejection**.
+3. **DIRECTIONAL FLOW**: `requires` MUST point to a concept with a LOWER `order` number. If concept A (order 15) requires concept B, then B.order < 15. This enforces a prerequisite chain that flows forward through the learning sequence. Backward requires (pointing to higher-order concepts) are **forbidden**.
+4. **NO CYCLES**: If A requires B, then B must NOT require A, and no chain B→...→A may exist. Before adding a `requires`, verify the target does not already require the source through any path.
+5. **SAME-BRANCH LOCALITY**: Leaf connections beyond the mandatory `is-part-of` MUST target other leaves within the SAME branch. Cross-branch leaf connections are forbidden — they create tangled, unreadable graphs.
+6. **BRANCH PREREQUISITES ONLY**: The only cross-branch connection allowed is a branch-to-branch `requires` (e.g., "Prompt Engineering" requires "Document Creation"). This creates a clean inter-branch learning sequence without leaf-level cross-wiring.
 ### 3.5 SELECTION FIELD PATTERN:
 Each item: "When [Scenario] Choose [Option] Unlocks [Capability]"
 ### 3.6 COGNITIVE LEVELS (Bloom's):
@@ -300,9 +305,7 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
  "connections": [
    {{ "target": "Photosynthesis Mechanisms", "type": "is-part-of" }},
    {{ "target": "Chloroplast Structure", "type": "requires" }},
-   {{ "target": "Cyclic Photophosphorylation", "type": "is-type-of" }},
-   {{ "target": "Calvin Cycle", "type": "enables" }},
-   {{ "target": "ATP Synthase", "type": "causes" }}
+   {{ "target": "Chemiosmosis and ATP Synthase", "type": "causes" }}
  ]
 }}
 ```
@@ -608,6 +611,11 @@ For each connection, ask IN ORDER and use the FIRST match:
 4. Does A directly trigger or produce B? → **causes**
 5. Does A set rules/limits on B? → **constrains**
 6. ONLY if none above apply → **enables**
+## GRAPH TOPOLOGY RULES:
+- Trunk concepts: 0 outgoing connections (they receive is-part-of from branches).
+- Branch concepts: Max 2 connections (1 is-part-of → trunk + 0-1 requires → sibling branch).
+- Leaf concepts: Max 3 connections (1 is-part-of → branch + 1-2 same-branch connections). Cross-branch leaf connections are FORBIDDEN.
+- `requires` must point to concepts with LOWER order numbers (prerequisite = earlier in sequence).
 ## CRITICAL RULES:
 1. Fix the identified issue completely.
 2. Ensure `shape.highStakesExample` is a REAL historical case study with Company + Year.
@@ -615,6 +623,7 @@ For each connection, ask IN ORDER and use the FIRST match:
 4. Use strictly positive framing.
 5. Return ONLY valid JSON for the single concept object. NO markdown.
 6. Every connection MUST use one of the 6 types above. Do NOT use "related-to", "extends", or "contains".
+7. Respect the MAX connection caps above. Do NOT exceed them.
 """
 def get_surgical_fix_prompt(subject: str, concept_name: str, issue: str) -> str:
     return SURGICAL_FIX_PROMPT.format(
@@ -641,7 +650,7 @@ TASK: Generate supplementary leaf concepts to fill coverage gaps in domain "{dom
 4. `trunkDomain`: "{domain_name}"
 5. `treeLevel`: "leaf" (or "branch" only if creating a new grouping)
 6. Cognitive level: prefer "apply", "analyze", or higher for leaves
-7. TRACES connections: use requires/enables/is-part-of/is-type-of/causes/constrains (min 2 per concept)
+7. TRACES connections: Leaf max 3 (1 is-part-of → branch + 1-2 same-branch). Branch max 2 (1 is-part-of → trunk + 0-1 requires → sibling branch). Cross-branch leaf connections FORBIDDEN. `requires` must point to lower-order concepts only.
 8. `workedExample`: problem (minimum 20 words), solution (minimum 20 words), steps (3-6 items) — REQUIRED
 9. `mnemonic`: unique concrete anchor + spatial story — NO duplicates with existing concepts
 10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, criticalDistinctions, designBoundaries

@@ -618,6 +618,7 @@ class BedrockService:
             "contains": "is-part-of",
             "depends-on": "requires",
         }
+        MAX_CONNECTIONS = {"trunk": 0, "branch": 2, "leaf": 3}
         concept_by_name = {
             c.get("name", "").strip().lower(): c
             for c in concepts
@@ -635,8 +636,20 @@ class BedrockService:
                 return None
             return target.get("name")
 
+        def get_branch_name(concept: Dict[str, Any]) -> str:
+            level = (concept.get("treeLevel") or "leaf").lower().strip()
+            if level == "trunk":
+                return ""
+            if level == "branch":
+                return (concept.get("name") or "").strip().lower()
+            return (concept.get("parentName") or "").strip().lower()
+
         total_connections = 0
         enables_count = 0
+        trimmed_count = 0
+        direction_fixes = 0
+        locality_fixes = 0
+
         for concept in concepts:
             connections = concept.get("connections", [])
             if not isinstance(connections, list):
@@ -647,8 +660,19 @@ class BedrockService:
             level = (concept.get("treeLevel") or "leaf").lower().strip()
             parent = (concept.get("parentName") or "").strip()
             parent_name = resolve_name(parent) if parent else None
+            concept_order = concept.get("order", 0) or 0
+            concept_branch = get_branch_name(concept)
+            max_cap = MAX_CONNECTIONS.get(level, 3)
+
+            if level == "trunk":
+                concept["connections"] = []
+                continue
+
             normalized_connections = []
             seen = set()
+
+            parent_edge = None
+            other_edges = []
 
             for conn in connections:
                 if not isinstance(conn, dict):
@@ -666,53 +690,54 @@ class BedrockService:
                 if conn_type not in VALID_TYPES:
                     conn_type = "requires"
 
-                target_level = (
-                    (concept_by_name.get(target_key, {}) or {}).get("treeLevel") or ""
-                ).lower().strip()
-
                 if parent_name and target_key == parent_name.lower():
                     conn_type = "is-part-of"
-                elif conn_type == "enables" and level == "leaf" and target_level in {"branch", "trunk"}:
-                    conn_type = "requires"
-                elif conn_type == "enables" and level == "branch" and target_level == "trunk":
-                    conn_type = "requires"
+                    parent_edge = {"target": target_name, "type": conn_type}
+                    continue
+
+                target_concept = concept_by_name.get(target_key, {}) or {}
+                target_order = target_concept.get("order", 0) or 0
+
+                if conn_type == "requires" and target_order >= concept_order and target_order > 0:
+                    conn_type = "causes"
+                    direction_fixes += 1
+
+                if level == "leaf":
+                    target_branch = get_branch_name(target_concept)
+                    if target_branch and concept_branch and target_branch != concept_branch:
+                        locality_fixes += 1
+                        continue
 
                 dedupe_key = f"{target_key}::{conn_type}"
                 if dedupe_key in seen:
                     continue
-                normalized_connections.append({"target": target_name, "type": conn_type})
+                other_edges.append({"target": target_name, "type": conn_type})
                 seen.add(dedupe_key)
 
-                total_connections += 1
-                if conn_type == "enables":
-                    enables_count += 1
+            if parent_name and not parent_edge:
+                parent_edge = {"target": parent_name, "type": "is-part-of"}
+
+            if parent_edge:
+                normalized_connections.append(parent_edge)
+
+            remaining_slots = max_cap - len(normalized_connections)
+            for edge in other_edges[:remaining_slots]:
+                normalized_connections.append(edge)
+
+            if len(other_edges) > remaining_slots:
+                trimmed_count += len(other_edges) - remaining_slots
 
             concept["connections"] = normalized_connections
 
-            if level != "trunk" and parent_name:
-                has_parent_edge = any(
-                    (c.get("target") or "").strip().lower() == parent_name.lower()
-                    and c.get("type") == "is-part-of"
-                    for c in concept["connections"]
-                )
-                if not has_parent_edge:
-                    concept["connections"].append({"target": parent_name, "type": "is-part-of"})
-                    total_connections += 1
+            for conn in normalized_connections:
+                total_connections += 1
+                if conn.get("type") == "enables":
+                    enables_count += 1
 
-            if len(concept["connections"]) < 2 and level == "leaf":
-                trunk_name = resolve_name(concept.get("trunkDomain") or "")
-                if trunk_name:
-                    has_trunk_edge = any(
-                        (c.get("target") or "").strip().lower() == trunk_name.lower()
-                        for c in concept["connections"]
-                    )
-                    if not has_trunk_edge and trunk_name.lower() != concept_name:
-                        concept["connections"].append({"target": trunk_name, "type": "requires"})
-                        total_connections += 1
         if total_connections > 0:
             enables_pct = enables_count / total_connections
             print(f"[BedrockService] TRACES: {enables_count}/{total_connections} enables ({enables_pct*100:.0f}%)")
-            if enables_pct > 0.40:
+            if enables_pct > 0.20:
                 CONSTRAINT_KEYWORDS = [
                     "security", "policy", "role", "permission", "limit",
                     "quota", "budget", "compliance", "governance", "lock",
@@ -739,7 +764,7 @@ class BedrockService:
                     "species", "branch", "division", "subset", "subtype",
                 ]
                 upgraded = 0
-                target_enables = int(total_connections * 0.30)
+                target_enables = int(total_connections * 0.20)
                 excess = enables_count - target_enables
                 for concept in concepts:
                     if upgraded >= excess:
@@ -751,8 +776,8 @@ class BedrockService:
                         if conn.get("type") != "enables":
                             continue
                         target_name = (conn.get("target") or "").lower()
-                        concept_name = (concept.get("name") or "").lower()
-                        combined = target_name + " " + concept_name
+                        c_name = (concept.get("name") or "").lower()
+                        combined = target_name + " " + c_name
                         if any(kw in combined for kw in CONSTRAINT_KEYWORDS):
                             conn["type"] = "constrains"
                             upgraded += 1
@@ -767,11 +792,18 @@ class BedrockService:
                             upgraded += 1
                 if upgraded > 0:
                     print(f"[BedrockService] TRACES fix: upgraded {upgraded} enables → specific types")
-            type_dist = {}
-            for concept in concepts:
-                for conn in concept.get("connections", []):
-                    t = conn.get("type", "enables")
-                    type_dist[t] = type_dist.get(t, 0) + 1
+        if trimmed_count > 0:
+            print(f"[BedrockService] GRAPH TOPOLOGY: trimmed {trimmed_count} excess connections (cap enforcement)")
+        if direction_fixes > 0:
+            print(f"[BedrockService] GRAPH TOPOLOGY: fixed {direction_fixes} backward requires → causes")
+        if locality_fixes > 0:
+            print(f"[BedrockService] GRAPH TOPOLOGY: removed {locality_fixes} cross-branch leaf connections")
+        type_dist = {}
+        for concept in concepts:
+            for conn in concept.get("connections", []):
+                t = conn.get("type", "enables")
+                type_dist[t] = type_dist.get(t, 0) + 1
+        if type_dist:
             print(f"[BedrockService] TRACES distribution: {type_dist}")
     def _enforce_unique_content(self, concepts: List[Dict[str, Any]]) -> None:
         COMPANY_PATTERN = re.compile(r'^([A-Z][A-Za-z\s&\.]+?)[\s]*\((\d{4})\)')

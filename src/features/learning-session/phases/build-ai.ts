@@ -20,7 +20,7 @@ const GENERIC_STOP_WORDS = new Set([
  'finding', 'using', 'advanced', 'techniques', 'methods', 'problems', 'involving',
  'understanding', 'applying', 'working', 'exploring', 'studying'
 ]);
-const MAX_CONNECTIONS_PER_CONCEPT = 3;
+const TIER_CONNECTION_CAPS: Record<string, number> = { trunk: 0, branch: 2, leaf: 3 };
 const MAX_TOTAL_SUGGESTIONS = 20;
 export interface ConnectionSuggestion {
  id: string;
@@ -103,11 +103,14 @@ export function suggestConnections(
  if (count >= freqThreshold) highFreqWords.add(word);
  }
  const effectiveStopWords = new Set([...GENERIC_STOP_WORDS, ...subjectTokens, ...highFreqWords]);
+ const conceptById = new Map(concepts.map(c => [c.id, c]));
  const suggestionCount = new Map<string, number>();
  const canSuggestFor = (conceptId: string) => {
+ const concept = conceptById.get(conceptId);
+ const cap = TIER_CONNECTION_CAPS[concept?.tier || 'leaf'] ?? 3;
  const existing = connectionCount.get(conceptId) || 0;
  const pending = suggestionCount.get(conceptId) || 0;
- return (existing + pending) < MAX_CONNECTIONS_PER_CONCEPT;
+ return (existing + pending) < cap;
  };
  for (let i = 0; i < concepts.length; i++) {
  for (let j = i + 1; j < concepts.length; j++) {
@@ -115,6 +118,11 @@ export function suggestConnections(
  const conceptA = concepts[i];
  const conceptB = concepts[j];
  if (!canSuggestFor(conceptA.id) || !canSuggestFor(conceptB.id)) continue;
+ if (conceptA.tier === 'leaf' && conceptB.tier === 'leaf') {
+ const branchA = (conceptA.parentName || '').toLowerCase();
+ const branchB = (conceptB.parentName || '').toLowerCase();
+ if (branchA && branchB && branchA !== branchB) continue;
+ }
  const pairKey = `${conceptA.id}-${conceptB.id}`;
  const reversePairKey = `${conceptB.id}-${conceptA.id}`;
  if (existingPairs.has(pairKey) || existingPairs.has(reversePairKey)) {

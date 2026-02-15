@@ -64,6 +64,14 @@ The Synoptic View help overlay mirrors the 6 canonical TRACES relationship label
 
 The canvas includes an always-visible **Relationship Legend** with child-friendly definitions and examples for the 6 canonical labels: `requires`, `enables`, `is-part-of`, `is-type-of`, `causes`, `constrains`.
 
+**Graph Topology Rules** (enforced by both prompt and post-processing):
+- **Trunk**: 0 outgoing connections (receives `is-part-of` from branches)
+- **Branch**: Max 2 connections (1 `is-part-of` → trunk + 0-1 `requires` → sibling branch)
+- **Leaf**: Max 3 connections (1 `is-part-of` → branch + 1-2 same-branch connections)
+- **Directional flow**: `requires` must point to lower-order concepts only
+- **Same-branch locality**: Leaf connections beyond `is-part-of` must target leaves within the same branch — cross-branch leaf connections are forbidden
+- **Frontend caps**: `suggestConnections()` uses tier-based caps (trunk=0, branch=2, leaf=3) and enforces same-branch locality for leaf-to-leaf suggestions
+
 ### Step 3: STUDY (The Micro-Loop)
 **Component:** `MicroLearningLoopController`
 **Purpose:** Per-concept 3-phase learning cycle. This is the core learning engine.
