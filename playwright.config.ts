@@ -15,12 +15,22 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'on',
     video: 'retain-on-failure',
-    actionTimeout: 10000,
+    actionTimeout: 15000,
   },
   projects: [
     {
-      name: 'setup',
+      name: 'setup-admin',
       testMatch: /auth\.setup\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'setup-learner',
+      testMatch: /auth-learner\.setup\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
     },
     {
       name: 'chromium',
@@ -28,7 +38,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         storageState: { cookies: [], origins: [] },
       },
-      testIgnore: /auth\.setup\.ts|learner-experience\.spec\.ts/,
+      testIgnore: /\.setup\.ts|learner-experience\.spec\.ts|smoke-admin\.spec\.ts|smoke-learner\.spec\.ts/,
     },
     {
       name: 'authenticated',
@@ -37,12 +47,30 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
       testMatch: /learner-experience\.spec\.ts/,
-      dependencies: ['setup'],
+      dependencies: ['setup-admin'],
+    },
+    {
+      name: 'admin-smoke',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/admin.json',
+      },
+      testMatch: /smoke-admin\.spec\.ts/,
+      dependencies: ['setup-admin'],
+    },
+    {
+      name: 'learner-smoke',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/learner.json',
+      },
+      testMatch: /smoke-learner\.spec\.ts/,
+      dependencies: ['setup-learner'],
     },
     {
       name: 'mobile',
       use: { ...devices['Pixel 5'] },
-      testIgnore: /auth\.setup\.ts|learner-experience\.spec\.ts/,
+      testIgnore: /\.setup\.ts|learner-experience\.spec\.ts|smoke-admin\.spec\.ts|smoke-learner\.spec\.ts/,
     },
   ],
   webServer: {

@@ -580,10 +580,7 @@ export default function Home() {
  <CloudLibraryModal
  isOpen={showCloudLibrary}
  onClose={() => setShowCloudLibrary(false)}
- onUpdate={() => { 
-  // Refresh data when cloud library changes
-  useGenerationStore.getState().loadRecentSubjects?.();
-  }}
+ onUpdate={() => {}}
  />
  </div>
  </div >

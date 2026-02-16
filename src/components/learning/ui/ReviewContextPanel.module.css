@@ -1,0 +1,88 @@
+.container {
+    background: var(--color-surface-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.header:hover {
+    background: var(--color-surface-base);
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+}
+
+.headerIcon {
+    color: var(--color-primary);
+}
+
+.chevron {
+    color: var(--color-text-tertiary);
+    transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0 1rem 1rem;
+}
+
+.row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.rowIcon {
+    flex-shrink: 0;
+    color: var(--color-text-tertiary);
+    margin-top: 0.1rem;
+}
+
+.rowContent {
+    flex: 1;
+}
+
+.rowLabel {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-tertiary);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.rowValue {
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    line-height: 1.5;
+}
+
+.noData {
+    font-size: 0.875rem;
+    color: var(--color-text-tertiary);
+    font-style: italic;
+    text-align: center;
+    padding: 0.5rem 0;
+}

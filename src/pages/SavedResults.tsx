@@ -28,8 +28,6 @@ export default function SavedResults() {
  const [loading, setLoading] = useState(true);
  const [deletingId, setDeletingId] = useState<string | null>(null);
  const [togglingId, setTogglingId] = useState<string | null>(null);
- const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
- const [confirmingCleanup, setConfirmingCleanup] = useState(false);
  const [importing, setImporting] = useState(false);
  const [importError, setImportError] = useState<string | null>(null);
  const [searchQuery, setSearchQuery] = useState('');

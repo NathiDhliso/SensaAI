@@ -1,0 +1,136 @@
+.container {
+    background: var(--color-surface-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-top: 0.75rem;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.header:hover {
+    background: var(--color-surface-subtle);
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+}
+
+.headerIcon {
+    color: var(--color-primary);
+}
+
+.chevron {
+    color: var(--color-text-tertiary);
+    transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0 1rem 1rem;
+}
+
+.conceptRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.conceptRow:last-child {
+    border-bottom: none;
+}
+
+.conceptName {
+    flex: 1;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.retentionBar {
+    width: 80px;
+    height: 6px;
+    background: var(--color-surface-subtle);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.retentionFill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+.retentionPct {
+    width: 36px;
+    text-align: right;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.dueLabel {
+    font-size: 0.7rem;
+    width: 60px;
+    text-align: right;
+    flex-shrink: 0;
+    color: var(--color-text-tertiary);
+}
+
+.overdue {
+    color: var(--color-error);
+    font-weight: 600;
+}
+
+.clusterAlert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-warning-subtle);
+    border-radius: var(--radius-sm);
+    margin-top: 0.25rem;
+}
+
+.clusterAlert span {
+    font-size: 0.8125rem;
+    color: var(--color-warning-text);
+    flex: 1;
+}
+
+.clusterButton {
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--color-warning);
+    color: white;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+}
