@@ -167,8 +167,7 @@ This visual hierarchy guides users toward productive practice while respecting t
 - `src/components/learning/gym/GymActivityLauncher.tsx` - Result screen UX
 - `src/components/learning/gym/GymActivityLauncher.module.css` - Button hierarchy styling
 - `src/components/learning/activities/MasteryChallenge.tsx` - Feedback display
-- `backend/src/features/gym/routes/gym-ai.ts` - Enhanced AI scoring
-- `backend/lambda/gym_ai/handler.py` - Enhanced AI scoring (for production)
+- `backend/lambda/gym_ai/handler.py` - Enhanced AI scoring
 ### Key Changes
 1. **Removed blocking** - "Continue Anyway" "Next Concept" (always available)
 2. **Button hierarchy** - Primary (Try Again), Secondary (Next), Tertiary (Back)
@@ -205,4 +204,4 @@ This visual hierarchy guides users toward productive practice while respecting t
 ---
 ## Conclusion
 The Gym's UX is designed around a simple truth: **expertise comes from voluntary, repeated practice with immediate feedback**. By removing blocking, providing rich feedback, and respecting user agency, we create an environment where learners **want** to practice, not where they're **forced** to practice.
-This approach aligns with decades of learning science research and creates a sustainable path to mastery.
+This approach aligns with decades of learning science research and creates a sustainable path to mastery.

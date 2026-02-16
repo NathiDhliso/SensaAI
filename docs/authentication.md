@@ -222,6 +222,24 @@ The `verification_message_template` block remains as a fallback if the Lambda fa
 
 ---
 
+## E2E Testing (Playwright)
+
+Two authenticated test users are configured in `.env.playwright`:
+
+| Role | Email | Storage State | Config Project |
+|------|-------|---------------|----------------|
+| Admin (allowlisted) | `nkosinathi.dhliso@gmail.com` | `playwright/.auth/admin.json` | `setup-admin` → `admin-smoke` |
+| Learner (non-allowlisted) | `dhlisob@gmail.com` | `playwright/.auth/learner.json` | `setup-learner` → `learner-smoke` |
+
+Auth setup files (`tests/auth.setup.ts`, `tests/auth-learner.setup.ts`) authenticate via the Login page UI (`POST /auth/login` through the form), then save browser storage state for reuse by dependent test projects.
+
+Run smoke tests:
+```bash
+npx playwright test --project=setup-admin --project=setup-learner --project=admin-smoke --project=learner-smoke
+```
+
+---
+
 ## Forbidden Patterns
 
 ```typescript

@@ -25,6 +25,18 @@ Start here: **[master-prompt.md](./master-prompt.md)** — read this before touc
 | [Gym UX Philosophy](./GYM_UX_PHILOSOPHY.md) | Gym activity design principles |
 | [Mastery Scoring Guide](./MASTERY_SCORING_GUIDE.md) | Grade thresholds (S/A/B/C/D) |
 
+## E2E Testing
+
+| Command | What it does |
+|---------|-------------|
+| `npx playwright test --project=setup-admin --project=setup-learner --project=admin-smoke --project=learner-smoke` | Run smoke tests for admin + learner roles |
+| `npx playwright test --project=chromium` | Run unauthenticated UI tests |
+| `npx playwright show-report` | Open HTML test report |
+
+Test credentials are in `.env.playwright` (admin: `nkosinathi.dhliso@gmail.com`, learner: `dhlisob@gmail.com`). Auth setup files authenticate via the Login page UI and save storage state for reuse. See [Authentication — E2E Testing](./authentication.md#e2e-testing-playwright) for details.
+
+Smoke tests cover 22 features from [FEATURE_SUCCESS_CRITERIA.md](./FEATURE_SUCCESS_CRITERIA.md) across both admin and learner perspectives.
+
 ## Guardrails
 
 Architecture rules live in `.cursorrules` at the project root — automatically loaded by AI tools.
