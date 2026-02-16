@@ -11,7 +11,7 @@
  * - Label length validation (max 25 chars)
  * - Keyboard shortcuts
  */
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
  ArrowRight,
@@ -26,7 +26,13 @@ import {
  X,
  LayoutGrid,
  ChevronLeft,
- ChevronRight
+ ChevronRight,
+ ChevronDown,
+ ZoomIn,
+ ZoomOut,
+ Maximize,
+ Minimize,
+ LocateFixed
 } from 'lucide-react';
 import type { LearningConcept, ConceptMapData } from '@/shared/types/learning';
 import type { DependencyGraph, ValidationResult } from '@/shared/types/sensa-flow';
@@ -187,6 +193,22 @@ export default function ConceptMapBuilder({
  const [showAiPanel, setShowAiPanel] = useState(true);
  // Sidebar State
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+ // Legend State
+ const [legendCollapsed, setLegendCollapsed] = useState(true);
+ // Canvas Pan/Zoom State
+ const [zoom, setZoom] = useState(1);
+ const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+ const [isPanning, setIsPanning] = useState(false);
+ const panStartRef = useRef({ x: 0, y: 0 });
+ const panOffsetStartRef = useRef({ x: 0, y: 0 });
+ // Fullscreen State
+ const [isFullscreen, setIsFullscreen] = useState(false);
+ // Node Info Popover State
+ const [inspectedNodeId, setInspectedNodeId] = useState<string | null>(null);
+ // Space-drag panning state
+ const [spaceHeld, setSpaceHeld] = useState(false);
+ // Shortcuts help overlay
+ const [showShortcuts, setShowShortcuts] = useState(false);
  // =========================================================================
  // AUTOSAVE: Persist draft whenever nodes or connections change
  // =========================================================================
@@ -239,46 +261,149 @@ export default function ConceptMapBuilder({
  // =========================================================================
  // AUTO-LAYOUT FUNCTION
  // =========================================================================
+ const layoutCircle = useCallback((circleNodes: MapNode[], centerX: number, centerY: number, baseRadius: number): MapNode[] => {
+ if (circleNodes.length === 0) return [];
+ if (circleNodes.length === 1) {
+ return [{ ...circleNodes[0], x: Math.round(centerX / 20) * 20, y: Math.round(centerY / 20) * 20 }];
+ }
+ const radius = Math.max(baseRadius, circleNodes.length * 30);
+ return circleNodes.map((n, i) => {
+ const angle = (2 * Math.PI * i) / circleNodes.length - Math.PI / 2;
+ return {
+ ...n,
+ x: Math.round((centerX + radius * Math.cos(angle)) / 20) * 20,
+ y: Math.round((centerY + radius * Math.sin(angle)) / 20) * 20
+ };
+ });
+ }, []);
+ const getParentGroup = useCallback((node: MapNode): string => {
+ const c = concepts.find(cc => cc.id === node.conceptId);
+ if (!c) return 'ungrouped';
+ const tier = (c.tier || c.mnemonic?.tier || 'leaf').toLowerCase();
+ if (tier === 'trunk') return 'trunk';
+ if (tier === 'branch') return c.trunkDomain || c.parentName || 'ungrouped';
+ return c.parentName || c.trunkDomain || 'ungrouped';
+ }, [concepts]);
+ const layoutSubClusters = useCallback((
+ tierNodes: MapNode[],
+ tierCenterX: number,
+ tierTopY: number,
+ clusterBaseRadius: number
+ ): { laid: MapNode[]; height: number } => {
+ if (tierNodes.length === 0) return { laid: [], height: 0 };
+ const groups = new Map<string, MapNode[]>();
+ for (const n of tierNodes) {
+ const key = getParentGroup(n);
+ if (!groups.has(key)) groups.set(key, []);
+ groups.get(key)!.push(n);
+ }
+ const clusterEntries = Array.from(groups.entries());
+ if (clusterEntries.length <= 1) {
+ const r = tierNodes.length <= 1 ? 40 : Math.max(clusterBaseRadius, tierNodes.length * 30);
+ const cy = tierTopY + r;
+ return { laid: layoutCircle(tierNodes, tierCenterX, cy, clusterBaseRadius), height: r * 2 };
+ }
+ const CLUSTER_GAP = 60;
+ const clusterRadii = clusterEntries.map(([, ns]) =>
+ ns.length <= 1 ? 40 : Math.max(60, ns.length * 28)
+ );
+ const totalWidth = clusterRadii.reduce((sum, r) => sum + r * 2, 0) + CLUSTER_GAP * (clusterEntries.length - 1);
+ let curX = tierCenterX - totalWidth / 2;
+ const maxR = Math.max(...clusterRadii);
+ const cy = tierTopY + maxR;
+ const laid: MapNode[] = [];
+ for (let i = 0; i < clusterEntries.length; i++) {
+ const [, clusterNodes] = clusterEntries[i];
+ const r = clusterRadii[i];
+ const clusterCx = curX + r;
+ laid.push(...layoutCircle(clusterNodes, clusterCx, cy, Math.max(40, r * 0.6)));
+ curX += r * 2 + CLUSTER_GAP;
+ }
+ return { laid, height: maxR * 2 };
+ }, [layoutCircle, getParentGroup]);
  const autoLayout = useCallback(() => {
  if (nodes.length === 0) return;
  pushHistory();
- // Get canvas dimensions (or use defaults)
- const canvasWidth = canvasRef.current?.clientWidth || 800;
- const canvasHeight = canvasRef.current?.clientHeight || 600;
- const centerX = canvasWidth / 2;
- const centerY = canvasHeight / 2;
- // Calculate radius based on number of nodes (more nodes = larger radius)
- const baseRadius = Math.min(canvasWidth, canvasHeight) * 0.35;
- const radius = Math.max(baseRadius, nodes.length * 25);
- // Arrange nodes in a circle
- const layoutedNodes = nodes.map((node, index) => {
- const angle = (2 * Math.PI * index) / nodes.length - Math.PI / 2; // Start from top
- return {
- ...node,
- x: centerX + radius * Math.cos(angle),
- y: centerY + radius * Math.sin(angle)
- };
+ const canvasW = canvasRef.current?.clientWidth || 800;
+ const canvasH = canvasRef.current?.clientHeight || 600;
+ const cx = (canvasW / 2 - panOffset.x) / zoom;
+ const trunks: MapNode[] = [];
+ const branches: MapNode[] = [];
+ const leaves: MapNode[] = [];
+ for (const n of nodes) {
+ const c = concepts.find(cc => cc.id === n.conceptId);
+ const tier = (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase();
+ if (tier === 'trunk') trunks.push(n);
+ else if (tier === 'branch') branches.push(n);
+ else leaves.push(n);
+ }
+ const TIER_GAP = 100;
+ const tierGroups = [trunks, branches, leaves].filter(g => g.length > 0);
+ const preHeights = tierGroups.map(g => {
+ if (g.length <= 1) return 80;
+ const groups = new Map<string, MapNode[]>();
+ for (const n of g) {
+ const key = getParentGroup(n);
+ if (!groups.has(key)) groups.set(key, []);
+ groups.get(key)!.push(n);
+ }
+ const entries = Array.from(groups.values());
+ if (entries.length <= 1) {
+ const r = Math.max(100, g.length * 30);
+ return r * 2;
+ }
+ const maxR = Math.max(...entries.map(ns => ns.length <= 1 ? 40 : Math.max(60, ns.length * 28)));
+ return maxR * 2;
  });
- setNodes(layoutedNodes);
- }, [nodes, pushHistory]);
+ const totalHeight = preHeights.reduce((s, h) => s + h, 0) + TIER_GAP * (tierGroups.length - 1);
+ let currentY = (canvasH / 2 - panOffset.y) / zoom - totalHeight / 2;
+ const laid: MapNode[] = [];
+ let tierIdx = 0;
+ for (const group of [trunks, branches, leaves]) {
+ if (group.length === 0) continue;
+ const result = layoutSubClusters(group, cx, currentY, 100);
+ laid.push(...result.laid);
+ currentY += result.height + TIER_GAP;
+ tierIdx++;
+ }
+ setNodes(laid);
+ requestAnimationFrame(() => {
+ if (laid.length === 0) return;
+ const rect = canvasRef.current?.getBoundingClientRect();
+ if (!rect) return;
+ const xs = laid.map(n => n.x);
+ const ys = laid.map(n => n.y);
+ const minX = Math.min(...xs) - 120;
+ const maxX = Math.max(...xs) + 120;
+ const minY = Math.min(...ys) - 120;
+ const maxY = Math.max(...ys) + 120;
+ const contentW = maxX - minX;
+ const contentH = maxY - minY;
+ const newZoom = Math.min(2, Math.max(0.3, Math.min(rect.width / contentW, rect.height / contentH) * 0.85));
+ setPanOffset({
+ x: (rect.width - contentW * newZoom) / 2 - minX * newZoom,
+ y: (rect.height - contentH * newZoom) / 2 - minY * newZoom
+ });
+ setZoom(newZoom);
+ });
+ }, [nodes, concepts, pushHistory, panOffset, zoom, layoutCircle, layoutSubClusters, getParentGroup]);
  // =========================================================================
  // KEYBOARD SHORTCUTS
  // =========================================================================
  useEffect(() => {
  if (readOnly) return;
  const handleKeyDown = (e: KeyboardEvent) => {
- // Undo: Ctrl+Z
+ const tag = (e.target as HTMLElement)?.tagName;
+ const isInput = tag === 'INPUT' || tag === 'TEXTAREA';
  if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
  e.preventDefault();
  undo();
  }
- // Redo: Ctrl+Y or Ctrl+Shift+Z
  if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
  e.preventDefault();
  redo();
  }
- // Delete selected node or connection
- if ((e.key === 'Delete' || e.key === 'Backspace') && !editingConnectionId) {
+ if ((e.key === 'Delete' || e.key === 'Backspace') && !editingConnectionId && !isInput) {
  if (selectedNodeId) {
  e.preventDefault();
  removeNode(selectedNodeId);
@@ -287,18 +412,56 @@ export default function ConceptMapBuilder({
  removeConnection(selectedConnectionId);
  }
  }
- // Escape: cancel connection mode or close editor
  if (e.key === 'Escape') {
+ if (showShortcuts) {
+ setShowShortcuts(false);
+ } else if (isFullscreen) {
+ setIsFullscreen(false);
+ } else if (inspectedNodeId) {
+ setInspectedNodeId(null);
+ } else {
  setConnectingFromId(null);
  setEditingConnectionId(null);
  setSelectedNodeId(null);
  setSelectedConnectionId(null);
  }
+ }
+ if (e.key === ' ' && !isInput) {
+ e.preventDefault();
+ setSpaceHeld(true);
+ }
+ if ((e.key === '=' || e.key === '+') && !e.ctrlKey && !isInput) {
+ handleZoomIn();
+ }
+ if ((e.key === '-' || e.key === '_') && !e.ctrlKey && !isInput) {
+ handleZoomOut();
+ }
+ if (e.ctrlKey && e.key === '0') {
+ e.preventDefault();
+ setZoom(1);
+ setPanOffset({ x: 0, y: 0 });
+ }
+ if (e.ctrlKey && e.key === '1') {
+ e.preventDefault();
+ handleFitToView();
+ }
+ if (e.key === '?' && !isInput) {
+ setShowShortcuts(prev => !prev);
+ }
+ };
+ const handleKeyUp = (e: KeyboardEvent) => {
+ if (e.key === ' ') {
+ setSpaceHeld(false);
+ }
  };
  window.addEventListener('keydown', handleKeyDown);
- return () => window.removeEventListener('keydown', handleKeyDown);
+ window.addEventListener('keyup', handleKeyUp);
+ return () => {
+ window.removeEventListener('keydown', handleKeyDown);
+ window.removeEventListener('keyup', handleKeyUp);
+ };
  // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [readOnly, undo, redo, selectedNodeId, selectedConnectionId, editingConnectionId]);
+ }, [readOnly, undo, redo, selectedNodeId, selectedConnectionId, editingConnectionId, isFullscreen, showShortcuts, inspectedNodeId]);
  // =========================================================================
  // NODE & CONNECTION DELETION
  // =========================================================================
@@ -380,18 +543,148 @@ export default function ConceptMapBuilder({
  setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
  }
  };
+ const GRID_SIZE = 20;
+ const snapToGrid = (val: number) => Math.round(val / GRID_SIZE) * GRID_SIZE;
+ const getCircleCenter = useCallback((tier: string, allNodes: MapNode[]) => {
+ const canvasW = canvasRef.current?.clientWidth || 800;
+ const canvasH = canvasRef.current?.clientHeight || 600;
+ const cx = (canvasW / 2 - panOffset.x) / zoom;
+ const tiers = ['trunk', 'branch', 'leaf'];
+ const groups = tiers.map(t => allNodes.filter(n => {
+ const c = concepts.find(cc => cc.id === n.conceptId);
+ return (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase() === t;
+ }));
+ const CIRCLE_GAP = 80;
+ const radii = groups.map(g => g.length <= 1 ? 40 : Math.max(100, g.length * 30));
+ const totalHeight = radii.reduce((sum, r) => sum + r * 2, 0) + CIRCLE_GAP * 2;
+ let currentY = (canvasH / 2 - panOffset.y) / zoom - totalHeight / 2;
+ const tierIdx = tiers.indexOf(tier);
+ for (let i = 0; i <= tierIdx; i++) {
+ if (i === tierIdx) return { cx, cy: currentY + radii[i] };
+ currentY += radii[i] * 2 + CIRCLE_GAP;
+ }
+ return { cx, cy: currentY };
+ }, [concepts, panOffset, zoom]);
+ const createLogicalConnections = useCallback((allNodes: MapNode[], existingConns: Connection[]): Connection[] => {
+ const newConns: Connection[] = [];
+ const existingKeys = new Set(existingConns.map(c => `${c.fromId}->${c.toId}`));
+ const nodeByConceptId = new Map(allNodes.map(n => [n.conceptId, n]));
+ if (dependencyGraph?.edges) {
+ for (const edge of dependencyGraph.edges) {
+ const fromNode = nodeByConceptId.get(edge.from);
+ const toNode = nodeByConceptId.get(edge.to);
+ if (!fromNode || !toNode) continue;
+ const key = `${fromNode.id}->${toNode.id}`;
+ const reverseKey = `${toNode.id}->${fromNode.id}`;
+ if (existingKeys.has(key) || existingKeys.has(reverseKey)) continue;
+ const label = edge.type === 'prerequisite' ? 'requires' : edge.type === 'optional' ? 'enables' : 'enables';
+ newConns.push({
+ id: `conn-${Date.now()}-${edge.from}-${edge.to}`,
+ fromId: fromNode.id,
+ toId: toNode.id,
+ label
+ });
+ existingKeys.add(key);
+ }
+ }
+ for (const concept of concepts) {
+ const sourceNode = nodeByConceptId.get(concept.id);
+ if (!sourceNode) continue;
+ if (concept.connections) {
+ for (const conn of concept.connections) {
+ const targetNode = nodeByConceptId.get(conn.target);
+ if (!targetNode) continue;
+ const key = `${sourceNode.id}->${targetNode.id}`;
+ const reverseKey = `${targetNode.id}->${sourceNode.id}`;
+ if (existingKeys.has(key) || existingKeys.has(reverseKey)) continue;
+ newConns.push({
+ id: `conn-${Date.now()}-${concept.id}-${conn.target}`,
+ fromId: sourceNode.id,
+ toId: targetNode.id,
+ label: conn.type
+ });
+ existingKeys.add(key);
+ }
+ }
+ if (concept.dependencies?.length) {
+ for (const depId of concept.dependencies) {
+ const depNode = nodeByConceptId.get(depId);
+ if (!depNode) continue;
+ const key = `${sourceNode.id}->${depNode.id}`;
+ const reverseKey = `${depNode.id}->${sourceNode.id}`;
+ if (existingKeys.has(key) || existingKeys.has(reverseKey)) continue;
+ newConns.push({
+ id: `conn-${Date.now()}-${concept.id}-${depId}`,
+ fromId: sourceNode.id,
+ toId: depNode.id,
+ label: 'requires'
+ });
+ existingKeys.add(key);
+ }
+ }
+ }
+ return newConns;
+ }, [dependencyGraph, concepts]);
  const handleAddConcept = (concept: LearningConcept) => {
  if (readOnly || addedConceptIds.has(concept.id)) return;
  pushHistory();
+ const tier = (concept.tier || concept.mnemonic?.tier || 'leaf').toLowerCase();
  const newNode: MapNode = {
  id: `node-${Date.now()}`,
  conceptId: concept.id,
  conceptName: concept.name,
- x: 150 + Math.random() * 100,
- y: 150 + Math.random() * 100
+ x: 0,
+ y: 0
  };
- setNodes(prev => [...prev, newNode]);
+ setNodes(prev => {
+ const updated = [...prev, newNode];
+ const logicalConns = createLogicalConnections(updated, connections);
+ if (logicalConns.length > 0) {
+ setConnections(c => [...c, ...logicalConns]);
+ }
+ return rebalanceTier(updated, tier);
+ });
  setAddedConceptIds(prev => new Set(prev).add(concept.id));
+ };
+ const rebalanceTier = (allNodes: MapNode[], tier: string): MapNode[] => {
+ const tierNodes: MapNode[] = [];
+ const otherNodes: MapNode[] = [];
+ for (const n of allNodes) {
+ const c = concepts.find(cc => cc.id === n.conceptId);
+ const nTier = (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase();
+ if (nTier === tier) tierNodes.push(n);
+ else otherNodes.push(n);
+ }
+ const { cx, cy } = getCircleCenter(tier, allNodes);
+ const arranged = layoutCircle(tierNodes, cx, cy, 100);
+ return [...otherNodes, ...arranged];
+ };
+ const handleAddAll = () => {
+ if (readOnly) return;
+ pushHistory();
+ const toAdd = concepts.filter(c => !addedConceptIds.has(c.id));
+ if (toAdd.length === 0) return;
+ const newNodes: MapNode[] = toAdd.map(c => ({
+ id: `node-${Date.now()}-${c.id}`,
+ conceptId: c.id,
+ conceptName: c.name,
+ x: 0,
+ y: 0
+ }));
+ setNodes(prev => {
+ const allNodes = [...prev, ...newNodes];
+ const logicalConns = createLogicalConnections(allNodes, connections);
+ if (logicalConns.length > 0) {
+ setConnections(c => [...c, ...logicalConns]);
+ }
+ return allNodes;
+ });
+ setAddedConceptIds(prev => {
+ const next = new Set(prev);
+ toAdd.forEach(c => next.add(c.id));
+ return next;
+ });
+ setTimeout(() => autoLayout(), 50);
  };
  const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
  e.stopPropagation();
@@ -407,21 +700,120 @@ export default function ConceptMapBuilder({
  setSelectedConnectionId(null);
  setDraggingNodeId(nodeId);
  };
+ const screenToCanvas = (clientX: number, clientY: number) => {
+ const rect = canvasRef.current!.getBoundingClientRect();
+ return {
+ x: (clientX - rect.left - panOffset.x) / zoom,
+ y: (clientY - rect.top - panOffset.y) / zoom
+ };
+ };
+ const handleCanvasMouseDown = (e: React.MouseEvent) => {
+ if (e.button === 1) {
+ e.preventDefault();
+ setIsPanning(true);
+ panStartRef.current = { x: e.clientX, y: e.clientY };
+ panOffsetStartRef.current = { ...panOffset };
+ return;
+ }
+ if (e.button !== 0) return;
+ if (draggingNodeId) return;
+ if (spaceHeld) {
+ setIsPanning(true);
+ panStartRef.current = { x: e.clientX, y: e.clientY };
+ panOffsetStartRef.current = { ...panOffset };
+ return;
+ }
+ setIsPanning(true);
+ panStartRef.current = { x: e.clientX, y: e.clientY };
+ panOffsetStartRef.current = { ...panOffset };
+ };
  const handleCanvasMouseMove = (e: React.MouseEvent) => {
- if (!draggingNodeId || !canvasRef.current) return;
- const rect = canvasRef.current.getBoundingClientRect();
- const x = e.clientX - rect.left;
- const y = e.clientY - rect.top;
+ if (draggingNodeId && canvasRef.current) {
+ const pos = screenToCanvas(e.clientX, e.clientY);
  setNodes(prev => prev.map(n =>
- n.id === draggingNodeId ? { ...n, x, y } : n
+ n.id === draggingNodeId ? { ...n, x: pos.x, y: pos.y } : n
  ));
+ return;
+ }
+ if (isPanning) {
+ const dx = e.clientX - panStartRef.current.x;
+ const dy = e.clientY - panStartRef.current.y;
+ setPanOffset({
+ x: panOffsetStartRef.current.x + dx,
+ y: panOffsetStartRef.current.y + dy
+ });
+ }
  };
  const handleCanvasMouseUp = () => {
+ if (draggingNodeId) {
+ setNodes(prev => prev.map(n =>
+ n.id === draggingNodeId ? { ...n, x: snapToGrid(n.x), y: snapToGrid(n.y) } : n
+ ));
+ }
  setDraggingNodeId(null);
+ setIsPanning(false);
  };
+ const handleWheel = useCallback((e: WheelEvent) => {
+ e.preventDefault();
+ const rect = canvasRef.current?.getBoundingClientRect();
+ if (!rect) return;
+ const mouseX = e.clientX - rect.left;
+ const mouseY = e.clientY - rect.top;
+ let delta: number;
+ if (e.ctrlKey) {
+ const sensitivity = 0.01;
+ delta = 1 - e.deltaY * sensitivity;
+ delta = Math.min(1.15, Math.max(0.85, delta));
+ } else {
+ const clampedDelta = Math.min(50, Math.max(-50, e.deltaY));
+ delta = 1 - clampedDelta * 0.002;
+ }
+ const newZoom = Math.min(3, Math.max(0.2, zoom * delta));
+ const scale = newZoom / zoom;
+ setPanOffset(prev => ({
+ x: mouseX - scale * (mouseX - prev.x),
+ y: mouseY - scale * (mouseY - prev.y)
+ }));
+ setZoom(newZoom);
+ }, [zoom]);
+ useEffect(() => {
+ const el = canvasRef.current;
+ if (!el) return;
+ el.addEventListener('wheel', handleWheel, { passive: false });
+ return () => el.removeEventListener('wheel', handleWheel);
+ }, [handleWheel]);
  const handleCanvasClick = () => {
  setSelectedNodeId(null);
  setSelectedConnectionId(null);
+ };
+ const handleZoomIn = () => {
+ setZoom(z => Math.min(3, z * 1.2));
+ };
+ const handleZoomOut = () => {
+ setZoom(z => Math.max(0.2, z / 1.2));
+ };
+ const handleFitToView = () => {
+ if (nodes.length === 0) {
+ setZoom(1);
+ setPanOffset({ x: 0, y: 0 });
+ return;
+ }
+ const rect = canvasRef.current?.getBoundingClientRect();
+ if (!rect) return;
+ const xs = nodes.map(n => n.x);
+ const ys = nodes.map(n => n.y);
+ const minX = Math.min(...xs) - 100;
+ const maxX = Math.max(...xs) + 100;
+ const minY = Math.min(...ys) - 100;
+ const maxY = Math.max(...ys) + 100;
+ const contentW = maxX - minX;
+ const contentH = maxY - minY;
+ const newZoom = Math.min(3, Math.max(0.2, Math.min(rect.width / contentW, rect.height / contentH) * 0.9));
+ setPanOffset({
+ x: (rect.width - contentW * newZoom) / 2 - minX * newZoom,
+ y: (rect.height - contentH * newZoom) / 2 - minY * newZoom
+ });
+ setZoom(newZoom);
  };
  // ARCHITECT ENHANCEMENT: Show connection type modal before creating
  const finishConnection = (fromId: string, toId: string) => {
@@ -489,6 +881,31 @@ export default function ConceptMapBuilder({
  const node = nodes.find(n => n.conceptId === conceptId);
  return node?.conceptName || 'Unknown';
  }, [concepts, nodes]);
+ const inspectedNode = useMemo(() => {
+ if (!inspectedNodeId) return null;
+ const node = nodes.find(n => n.id === inspectedNodeId);
+ if (!node) return null;
+ const concept = concepts.find(c => c.id === node.conceptId);
+ const tier = (concept?.tier || concept?.mnemonic?.tier || 'leaf').toLowerCase();
+ const nodeConns = connections.filter(c => c.fromId === node.id || c.toId === node.id);
+ const connDetails = nodeConns.map(c => {
+ const isFrom = c.fromId === node.id;
+ const otherNodeId = isFrom ? c.toId : c.fromId;
+ const otherNode = nodes.find(n => n.id === otherNodeId);
+ return {
+ label: c.label,
+ direction: isFrom ? 'outgoing' : 'incoming',
+ otherName: otherNode ? getConceptName(otherNode.conceptId) : 'Unknown'
+ };
+ });
+ const whyText = concept?.whyYouNeed || concept?.technicalDetails || null;
+ return { node, concept, tier, connDetails, whyText };
+ }, [inspectedNodeId, nodes, connections, concepts, getConceptName]);
+ const handleNodeDoubleClick = (e: React.MouseEvent, nodeId: string) => {
+ e.stopPropagation();
+ e.preventDefault();
+ setInspectedNodeId(prev => prev === nodeId ? null : nodeId);
+ };
  // =========================================================================
  // SENSA v2.0: GUESS VALIDATION
  // =========================================================================
@@ -877,9 +1294,9 @@ export default function ConceptMapBuilder({
  // MAIN RENDER
  // =========================================================================
  return (
- <div className={styles.container}>
+ <div className={`${styles.container} ${isFullscreen ? styles.fullscreenMode : ''}`}>
  {/* Phase Header */}
- {renderPhaseHeader()}
+ {!isFullscreen && renderPhaseHeader()}
  {/* Map Builder Content (Sidebar + Canvas) */}
  <div className={styles.mapBuilderContent}>
  {/* Sidebar with Visual Bucket Zones */}
@@ -898,6 +1315,14 @@ export default function ConceptMapBuilder({
  <div className={styles.sidebarHeader}>
  <h3 className={styles.sidebarTitle}>Concepts by Tier</h3>
  <p className={styles.sidebarHint}>Click to add to canvas</p>
+ <button
+ className={styles.addAllButton}
+ onClick={handleAddAll}
+ disabled={addedConceptIds.size >= concepts.length}
+ >
+ <LayoutGrid size={14} />
+ {addedConceptIds.size >= concepts.length ? 'All Added' : 'Add All & Layout'}
+ </button>
  </div>
  )}
  {/* Bucket Zones - only show when expanded */}
@@ -985,13 +1410,167 @@ export default function ConceptMapBuilder({
  {/* Canvas */}
  <div
  ref={canvasRef}
- className={styles.canvasArea}
+ className={`${styles.canvasArea} ${isPanning ? styles.isPanning : ''} ${spaceHeld ? styles.spaceHeld : ''}`}
  style={readOnly ? { left: 0, width: '100%' } : {}}
+ onMouseDown={handleCanvasMouseDown}
+ onAuxClick={(e) => e.preventDefault()}
  onMouseMove={handleCanvasMouseMove}
  onMouseUp={handleCanvasMouseUp}
  onMouseLeave={handleCanvasMouseUp}
  onClick={handleCanvasClick}
  >
+ {/* Grid dots that move with pan */}
+ <div
+ className={styles.canvasGrid}
+ style={{
+ backgroundPosition: `${panOffset.x % 20}px ${panOffset.y % 20}px`
+ }}
+ />
+ {/* Transform layer for pan/zoom */}
+ <div
+ className={styles.canvasTransformLayer}
+ style={{
+ transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`
+ }}
+ >
+ {/* Tier Group Rings + Sub-cluster Rings */}
+ {(() => {
+ const tierConfig = [
+ { tier: 'trunk', label: 'Trunk', color: 'var(--color-accent)' },
+ { tier: 'branch', label: 'Branch', color: 'var(--color-warning)' },
+ { tier: 'leaf', label: 'Leaf', color: 'var(--color-sage)' }
+ ];
+ const rings: React.ReactNode[] = [];
+ for (const { tier, label, color } of tierConfig) {
+ const tierNodes = nodes.filter(n => {
+ const c = concepts.find(cc => cc.id === n.conceptId);
+ return (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase() === tier;
+ });
+ if (tierNodes.length === 0) continue;
+ const xs = tierNodes.map(n => n.x);
+ const ys = tierNodes.map(n => n.y);
+ const tcx = xs.reduce((a, b) => a + b, 0) / xs.length;
+ const tcy = ys.reduce((a, b) => a + b, 0) / ys.length;
+ const maxDist = tierNodes.length === 1 ? 0 : Math.max(
+ ...tierNodes.map(n => Math.sqrt((n.x - tcx) ** 2 + (n.y - tcy) ** 2))
+ );
+ const tr = maxDist + 80;
+ rings.push(
+ <div
+ key={tier}
+ className={styles.tierRing}
+ style={{ left: tcx - tr, top: tcy - tr, width: tr * 2, height: tr * 2, borderColor: color }}
+ >
+ <span className={styles.tierRingLabel} style={{ color }}>{label}</span>
+ </div>
+ );
+ const subGroups = new Map<string, MapNode[]>();
+ for (const n of tierNodes) {
+ const key = getParentGroup(n);
+ if (!subGroups.has(key)) subGroups.set(key, []);
+ subGroups.get(key)!.push(n);
+ }
+ if (subGroups.size > 1) {
+ subGroups.forEach((groupNodes, groupName) => {
+ if (groupNodes.length === 0) return;
+ const gxs = groupNodes.map(n => n.x);
+ const gys = groupNodes.map(n => n.y);
+ const gcx = gxs.reduce((a, b) => a + b, 0) / gxs.length;
+ const gcy = gys.reduce((a, b) => a + b, 0) / gys.length;
+ const gMaxDist = groupNodes.length === 1 ? 0 : Math.max(
+ ...groupNodes.map(n => Math.sqrt((n.x - gcx) ** 2 + (n.y - gcy) ** 2))
+ );
+ const gr = gMaxDist + 50;
+ rings.push(
+ <div
+ key={`${tier}-${groupName}`}
+ className={styles.subClusterRing}
+ style={{ left: gcx - gr, top: gcy - gr, width: gr * 2, height: gr * 2, borderColor: color }}
+ >
+ <span className={styles.subClusterLabel} style={{ color }}>{groupName}</span>
+ </div>
+ );
+ });
+ }
+ }
+ return rings;
+ })()}
+ {/* Nodes */}
+ {nodes.map(node => (
+ <div
+ key={node.id}
+ className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''}`}
+ style={{ left: node.x, top: node.y }}
+ onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+ onDoubleClick={(e) => handleNodeDoubleClick(e, node.id)}
+ >
+ {getConceptName(node.conceptId)}
+ {!readOnly && (
+ <button
+ className={styles.deleteNodeButton}
+ onClick={(e) => {
+ e.stopPropagation();
+ removeNode(node.id);
+ }}
+ title="Delete node (Delete key)"
+ >
+ <X size={12} />
+ </button>
+ )}
+ </div>
+ ))}
+ {/* Node Info Popover */}
+ {inspectedNode && (
+ <div
+ className={styles.nodeInfoPopover}
+ style={{ left: inspectedNode.node.x, top: inspectedNode.node.y + 30 }}
+ onClick={(e) => e.stopPropagation()}
+ >
+ <div className={styles.nodeInfoHeader}>
+ <span className={styles.nodeInfoTitle}>{inspectedNode.concept?.name || 'Unknown'}</span>
+ <span className={styles.nodeInfoTier}>{inspectedNode.tier}</span>
+ <button className={styles.nodeInfoClose} onClick={() => setInspectedNodeId(null)}>
+ <X size={14} />
+ </button>
+ </div>
+ <div className={styles.nodeInfoBody}>
+ {inspectedNode.connDetails.length > 0 ? (
+ <div className={styles.nodeInfoConnections}>
+ {inspectedNode.connDetails.map((c, i) => (
+ <div key={i} className={styles.nodeInfoConnItem}>
+ <span className={styles.nodeInfoConnLabel}>{c.label}</span>
+ <span>{c.direction === 'outgoing' ? '\u2192' : '\u2190'} {c.otherName}</span>
+ </div>
+ ))}
+ </div>
+ ) : (
+ <div className={styles.nodeInfoEmpty}>No connections yet</div>
+ )}
+ {inspectedNode.whyText && (
+ <div className={styles.nodeInfoAiSection}>
+ <div className={styles.nodeInfoAiTitle}>
+ <Sparkles size={12} />
+ Why this matters
+ </div>
+ <div className={styles.nodeInfoAiText}>{inspectedNode.whyText}</div>
+ </div>
+ )}
+ </div>
+ </div>
+ )}
+ {/* Connections SVG Layer */}
+ <svg className={styles.svgLayer}>
+ <defs>
+ <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+ <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-accent-light)" />
+ </marker>
+ </defs>
+ {renderConnections()}
+ </svg>
+ {/* HTML Labels */}
+ {renderConnectionLabels()}
+ </div>
+ {/* UI overlays (not affected by pan/zoom) */}
  {/* Toolbar */}
  {!readOnly && (
  <div className={styles.toolbar}>
@@ -1046,6 +1625,14 @@ export default function ConceptMapBuilder({
  </button>
  <div className={styles.toolbarDivider} />
  <button
+ className={styles.toolButton}
+ onClick={() => setIsFullscreen(f => !f)}
+ title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+ >
+ {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+ </button>
+ <div className={styles.toolbarDivider} />
+ <button
  className={`${styles.toolButton} ${styles.modeToggle} ${mapMode === 'free' ? styles.freeModeActive : ''}`}
  onClick={() => setMapMode(m => m === 'guided' ? 'free' : 'guided')}
  title={mapMode === 'guided' 
@@ -1060,8 +1647,18 @@ export default function ConceptMapBuilder({
  </button>
  </div>
  )}
- <div className={styles.relationshipLegend}>
- <div className={styles.relationshipLegendTitle}>Relationship Legend</div>
+ {/* Collapsible Legend */}
+ <div className={`${styles.relationshipLegend} ${legendCollapsed ? styles.legendCollapsed : ''}`}>
+ <div
+ className={styles.relationshipLegendTitle}
+ onClick={() => setLegendCollapsed(c => !c)}
+ >
+ <span>Legend</span>
+ <span className={styles.legendToggleIcon}>
+ <ChevronDown size={14} />
+ </span>
+ </div>
+ {!legendCollapsed && (
  <div className={styles.relationshipLegendList}>
  {RELATIONSHIP_LEGEND.map((item) => (
  <div key={item.id} className={styles.relationshipLegendItem}>
@@ -1069,10 +1666,26 @@ export default function ConceptMapBuilder({
  <span className={styles.relationshipLegendType}>{item.label}</span>
  <span className={styles.relationshipLegendMeaning}>{item.meaning}</span>
  </div>
- <div className={styles.relationshipLegendExample}>{item.example}</div>
  </div>
  ))}
  </div>
+ )}
+ </div>
+ {/* Zoom Controls */}
+ <div className={styles.zoomControls}>
+ <button className={styles.zoomButton} onClick={handleZoomIn} title="Zoom in">
+ <ZoomIn size={16} />
+ </button>
+ <div className={styles.zoomDivider} />
+ <div className={styles.zoomLevel}>{Math.round(zoom * 100)}%</div>
+ <div className={styles.zoomDivider} />
+ <button className={styles.zoomButton} onClick={handleZoomOut} title="Zoom out">
+ <ZoomOut size={16} />
+ </button>
+ <div className={styles.zoomDivider} />
+ <button className={styles.zoomButton} onClick={handleFitToView} title="Fit to view">
+ <LocateFixed size={16} />
+ </button>
  </div>
  {/* Connect Mode Hint */}
  <AnimatePresence>
@@ -1089,40 +1702,6 @@ export default function ConceptMapBuilder({
  </motion.div>
  )}
  </AnimatePresence>
- {/* Nodes */}
- {nodes.map(node => (
- <div
- key={node.id}
- className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''}`}
- style={{ left: node.x, top: node.y }}
- onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
- >
- {getConceptName(node.conceptId)}
- {!readOnly && (
- <button
- className={styles.deleteNodeButton}
- onClick={(e) => {
- e.stopPropagation();
- removeNode(node.id);
- }}
- title="Delete node (Delete key)"
- >
- <X size={12} />
- </button>
- )}
- </div>
- ))}
- {/* Connections SVG Layer */}
- <svg className={styles.svgLayer}>
- <defs>
- <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
- <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-accent-light)" />
- </marker>
- </defs>
- {renderConnections()}
- </svg>
- {/* HTML Labels */}
- {renderConnectionLabels()}
  {/* AI Panel */}
  {!readOnly && renderAiPanel()}
  {/* Onboarding Toast */}
@@ -1143,6 +1722,62 @@ export default function ConceptMapBuilder({
  )}
  {/* Validation Panel */}
  {renderValidationPanel()}
+ {/* Shortcuts Help Overlay */}
+ <AnimatePresence>
+ {showShortcuts && (
+ <motion.div
+ className={styles.shortcutsOverlay}
+ initial={{ opacity: 0 }}
+ animate={{ opacity: 1 }}
+ exit={{ opacity: 0 }}
+ onClick={() => setShowShortcuts(false)}
+ >
+ <motion.div
+ className={styles.shortcutsPanel}
+ initial={{ scale: 0.9, opacity: 0 }}
+ animate={{ scale: 1, opacity: 1 }}
+ exit={{ scale: 0.9, opacity: 0 }}
+ onClick={(e) => e.stopPropagation()}
+ >
+ <div className={styles.shortcutsPanelHeader}>
+ <h3>Keyboard & Mouse Shortcuts</h3>
+ <button onClick={() => setShowShortcuts(false)} className={styles.shortcutsPanelClose}>
+ <X size={16} />
+ </button>
+ </div>
+ <div className={styles.shortcutsGrid}>
+ <div className={styles.shortcutsSection}>
+ <h4>Navigation</h4>
+ <div className={styles.shortcutRow}><kbd>Scroll</kbd><span>Zoom in / out</span></div>
+ <div className={styles.shortcutRow}><kbd>Click + Drag</kbd><span>Pan canvas</span></div>
+ <div className={styles.shortcutRow}><kbd>Middle Click + Drag</kbd><span>Pan canvas</span></div>
+ <div className={styles.shortcutRow}><kbd>Space + Drag</kbd><span>Pan canvas</span></div>
+ <div className={styles.shortcutRow}><kbd>+</kbd> / <kbd>-</kbd><span>Zoom in / out</span></div>
+ <div className={styles.shortcutRow}><kbd>Ctrl + 0</kbd><span>Reset zoom to 100%</span></div>
+ <div className={styles.shortcutRow}><kbd>Ctrl + 1</kbd><span>Fit all to view</span></div>
+ </div>
+ <div className={styles.shortcutsSection}>
+ <h4>Editing</h4>
+ <div className={styles.shortcutRow}><kbd>Ctrl + Z</kbd><span>Undo</span></div>
+ <div className={styles.shortcutRow}><kbd>Ctrl + Y</kbd><span>Redo</span></div>
+ <div className={styles.shortcutRow}><kbd>Delete</kbd><span>Remove selected</span></div>
+ <div className={styles.shortcutRow}><kbd>Double Click</kbd><span>Inspect node</span></div>
+ <div className={styles.shortcutRow}><kbd>Escape</kbd><span>Cancel / close</span></div>
+ <div className={styles.shortcutRow}><kbd>?</kbd><span>Toggle this panel</span></div>
+ </div>
+ </div>
+ </motion.div>
+ </motion.div>
+ )}
+ </AnimatePresence>
+ {/* Shortcuts hint button */}
+ <button
+ className={styles.shortcutsHintButton}
+ onClick={() => setShowShortcuts(true)}
+ title="Keyboard shortcuts (?)"
+ >
+ ?
+ </button>
  </div>
  {/* End Map Builder Content */}
  </div>
