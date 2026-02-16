@@ -255,6 +255,15 @@ export interface StudySession {
  // ========== AI COACH PERSONALIZATION ==========
  /** User's current mood for AI Coach response adjustment */
  mood?: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired';
+ // ========== SENSA EQUATION PERSISTENCE ==========
+ /** Persisted equation values so refresh doesn't lose learning progress */
+ equation?: {
+  G: number;
+  Q_P: number;
+  Q_M: number;
+  Q_f: number;
+  I: number;
+ };
 }
 export interface ConceptMapData {
  nodes: { id: string; conceptId: string; conceptName: string; x: number; y: number }[];

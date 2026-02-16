@@ -297,12 +297,34 @@ export function useSensaFlow(): UseSensaFlowReturn {
  if (!completedSteps.includes('apply')) completedSteps.push('apply');
  phase = 'complete';
  }
+
+ // Restore persisted equation values (survive refresh)
+ const eq = studySession.equation;
+ const equationUpdate = eq ? {
+ G: eq.G,
+ Q_P: eq.Q_P,
+ Q_M: eq.Q_M,
+ Q_f: eq.Q_f,
+ I: eq.I
+ } : {};
+
+ // Restore concept map data if available
+ const mapUpdate = studySession.conceptMap ? {
+ conceptMap: studySession.conceptMap
+ } : {};
+
  // Only update if changes found to avoid loops
- if (prev.phase === phase && prev.completedSteps.length === completedSteps.length) {
+ if (
+ prev.phase === phase &&
+ prev.completedSteps.length === completedSteps.length &&
+ (!eq || (prev.G === eq.G && prev.Q_P === eq.Q_P && prev.Q_M === eq.Q_M && prev.Q_f === eq.Q_f))
+ ) {
  return prev;
  }
  return {
  ...prev,
+ ...equationUpdate,
+ ...mapUpdate,
  phase,
  completedSteps
  };

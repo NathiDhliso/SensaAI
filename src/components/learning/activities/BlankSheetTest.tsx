@@ -35,6 +35,9 @@ import { usePersonalizationStore } from '@/store/personalization-store';
 import { useMetaphorContent } from '@/shared/hooks/useMetaphorContent';
 import { calculateRecallScore } from '@/features/learning-session/scoring/blank-sheet-scorer';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
+import { useActivityAutosave } from '@/shared/hooks/useActivityAutosave';
+import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { useLearningStore } from '@/store/learning-store';
 import styles from './BlankSheetTest.module.css';
 // ============================================================================
 // TYPES
@@ -208,7 +211,18 @@ export function BlankSheetTest({
  onNeedRemediation
 }: BlankSheetTestProps) {
  const { isScholarly } = useVisualTheme();
- const [response, setResponse] = useState('');
+ const sessionId = useLearningStore(s => s.currentSession?.id) || 'unknown';
+
+ // Autosave: persist draft response text
+ const { saveDraft, loadDraft, clearDraft } = useActivityAutosave<{ response: string; conceptId: string }>({
+  storageKey: STORAGE_KEYS.DRAFT_BLANK_SHEET,
+  sessionId: `${sessionId}-${concept.id}`,
+ });
+
+ const [response, setResponse] = useState(() => {
+  const draft = loadDraft();
+  return (draft && draft.conceptId === concept.id) ? draft.response : '';
+ });
  const [isSubmitting, setIsSubmitting] = useState(false);
  const [showResults, setShowResults] = useState(false);
  const [result, setResult] = useState<BlankSheetResult | null>(null);
@@ -217,6 +231,14 @@ export function BlankSheetTest({
  const [firstKeystrokeTime, setFirstKeystrokeTime] = useState<number | null>(null);
  const [lastKeystrokeTime, setLastKeystrokeTime] = useState<number | null>(null);
  const [pauseCount, setPauseCount] = useState(0);
+
+ // Autosave: persist response text on changes
+ useEffect(() => {
+  if (response.length > 0) {
+  saveDraft({ response, conceptId: concept.id });
+  }
+ }, [response, concept.id, saveDraft]);
+
  const { selectedPersona } = usePersonalizationStore();
  const { metaphorsEnabled } = useMetaphorContent(concept);
  // Real-time metrics - use callback to calculate on demand
@@ -273,6 +295,7 @@ export function BlankSheetTest({
  const handleSubmit = useCallback(() => {
  if (!isValid) return;
  setIsSubmitting(true);
+ clearDraft(); // Clear the autosave draft on successful submission
  // Get final metrics at submit time
  const finalMetrics = getMetrics();
  // Check if concept has scoring metadata for enhanced scoring
@@ -382,7 +405,7 @@ export function BlankSheetTest({
  setResult(blankSheetResult);
  setShowResults(true);
  setIsSubmitting(false);
- }, [response, keyPoints, concept, isValid, getMetrics, selectedPersona]);
+ }, [response, keyPoints, concept, isValid, getMetrics, selectedPersona, clearDraft]);
  // Handle continue after results
  const handleContinue = useCallback(() => {
  if (result) {

@@ -15,6 +15,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { cleanupExpiredActivityDrafts } from '@/shared/hooks/useActivityAutosave';
 // Import slice creators
 import {
  createSessionSlice,
@@ -122,4 +123,5 @@ const initializeStaleStateGuard = () => {
 // Run the guard on module initialization
 if (typeof window !== 'undefined') {
  initializeStaleStateGuard();
+ cleanupExpiredActivityDrafts();
 }

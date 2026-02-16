@@ -37,8 +37,11 @@ import {
  type GapDetection
 } from '@/features/learning-session/phases';
 import { usePersonalizationStore } from '@/store/personalization-store';
+import { useLearningStore } from '@/store/learning-store';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
+import { useActivityAutosave } from '@/shared/hooks/useActivityAutosave';
+import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import ConnectionTypeModal, { type ConnectionTypeData } from '@/components/learning/feedback/ConnectionTypeModal';
 import styles from './ConceptMapBuilder.module.css';
 // ============================================================================
@@ -121,25 +124,39 @@ export default function ConceptMapBuilder({
 }: ConceptMapBuilderProps) {
  // ========== SENSA v2.0 Phase State ==========
  const { isScholarly } = useVisualTheme();
+ const sessionId = useLearningStore(s => s.currentSession?.id) || 'unknown';
  const [mapMode, setMapMode] = useState<'guided' | 'free'>(initialMode);
  const [mapPhase, setMapPhase] = useState<'build' | 'validate' | 'rebuild'>('build');
  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+
+ // ========== AUTOSAVE: Restore draft or initialData ==========
+ const { saveDraft, clearDraft, loadDraft } = useActivityAutosave<ConceptMapData>({
+  storageKey: STORAGE_KEYS.DRAFT_CONCEPT_MAP,
+  sessionId,
+ });
+ const restoredData = useRef<ConceptMapData | null>(null);
+ if (restoredData.current === null) {
+  // Priority: explicit initialData > saved draft > empty
+  restoredData.current = initialData || loadDraft() || { nodes: [], connections: [] };
+ }
+ const seedData = restoredData.current;
+
  // Core State - initialize nodes with conceptName fallback for backward compatibility
  const [nodes, setNodes] = useState<MapNode[]>(() => {
- if (!initialData?.nodes) return [];
- return initialData.nodes.map(n => ({
+ if (!seedData?.nodes?.length) return [];
+ return seedData.nodes.map(n => ({
  ...n,
  conceptName: n.conceptName || concepts.find(c => c.id === n.conceptId)?.name || 'Unknown'
  }));
  });
  const [connections, setConnections] = useState<Connection[]>(
- (initialData?.connections || []).map((conn) => ({
+ (seedData?.connections || []).map((conn) => ({
  ...conn,
  label: normalizeConnectionLabel(conn.label)
  }))
  );
  const [addedConceptIds, setAddedConceptIds] = useState<Set<string>>(
- new Set(initialData?.nodes.map(n => n.conceptId) || [])
+ new Set(seedData?.nodes?.map(n => n.conceptId) || [])
  );
  // History for Undo/Redo
  const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -170,6 +187,15 @@ export default function ConceptMapBuilder({
  const [showAiPanel, setShowAiPanel] = useState(true);
  // Sidebar State
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+ // =========================================================================
+ // AUTOSAVE: Persist draft whenever nodes or connections change
+ // =========================================================================
+ useEffect(() => {
+  if (nodes.length > 0 || connections.length > 0) {
+  saveDraft({ nodes, connections });
+  }
+ }, [nodes, connections, saveDraft]);
+
  // =========================================================================
  // HISTORY MANAGEMENT (Undo/Redo)
  // =========================================================================
@@ -204,6 +230,12 @@ export default function ConceptMapBuilder({
  }, [history, historyIndex]);
  const canUndo = historyIndex >= 0;
  const canRedo = historyIndex < history.length - 1;
+
+ // ========== AUTOSAVE: Persist draft on every meaningful change ==========
+ useEffect(() => {
+  if (nodes.length === 0 && connections.length === 0) return;
+  saveDraft({ nodes, connections });
+ }, [nodes, connections, saveDraft]);
  // =========================================================================
  // AUTO-LAYOUT FUNCTION
  // =========================================================================
@@ -508,18 +540,21 @@ export default function ConceptMapBuilder({
  }, [mapPhase, validationResult, validateGuesses]);
  const handleFinishMap = useCallback(() => {
  if (mapMode === 'free') {
+ clearDraft();
  onComplete?.({ nodes, connections });
  return;
  }
  if (userGuesses && dependencyGraph) {
  setMapPhase('validate');
  } else {
+ clearDraft();
  onComplete?.({ nodes, connections });
  }
- }, [mapMode, userGuesses, dependencyGraph, nodes, connections, onComplete]);
+ }, [mapMode, userGuesses, dependencyGraph, nodes, connections, onComplete, clearDraft]);
  const handleCompleteWithValidation = useCallback(() => {
+ clearDraft();
  onComplete?.({ nodes, connections }, validationResult || undefined);
- }, [nodes, connections, onComplete, validationResult]);
+ }, [nodes, connections, onComplete, validationResult, clearDraft]);
  const handleRebuild = useCallback(() => {
  setMapPhase('rebuild');
  setValidationResult(null);

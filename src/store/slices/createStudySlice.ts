@@ -261,6 +261,16 @@ export const createStudySlice: StateCreator<
  });
  },
  setShowSessionModal: (show) => set({ showSessionModal: show }),
+ updateSessionEquation: (equation) => {
+ const state = get();
+ if (!state.studySession) return;
+ set({
+  studySession: {
+  ...state.studySession,
+  equation
+  }
+ });
+ },
  getStudySessionStats: () => {
  const state = get();
  if (!state.studySession) return null;
@@ -278,4 +288,4 @@ export const createStudySlice: StateCreator<
  }
 });
 // Export helper for use in other slices
-export { getDefaultEnhancedMetrics };
+export { getDefaultEnhancedMetrics };

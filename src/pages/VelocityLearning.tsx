@@ -60,7 +60,8 @@ export default function VelocityLearning() {
         markSessionMapBuilt,
         markSessionMastered,
         returnToMapBuilding,
-        clearSession
+        clearSession,
+        updateSessionEquation
     } = useLearningStore();
     type DiagnosticResults = {
         knownConcepts: string[];
@@ -134,6 +135,31 @@ export default function VelocityLearning() {
             sensaFlow.syncFromStore(studySession);
         }
     }, [studySession, sensaFlow]);
+
+    // Persist SENSA equation values to the store (survives refresh via Zustand persist)
+    useEffect(() => {
+        if (!studySession) return;
+        // Only persist if any value is non-zero (session is active)
+        if (sensaFlow.G === 0 && sensaFlow.Q_P === 0 && sensaFlow.Q_M === 0 && sensaFlow.Q_f === 0) return;
+        const current = studySession.equation;
+        // Avoid unnecessary writes if values haven't changed
+        if (
+            current &&
+            current.G === sensaFlow.G &&
+            current.Q_P === sensaFlow.Q_P &&
+            current.Q_M === sensaFlow.Q_M &&
+            current.Q_f === sensaFlow.Q_f &&
+            current.I === sensaFlow.I
+        ) return;
+        updateSessionEquation({
+            G: sensaFlow.G,
+            Q_P: sensaFlow.Q_P,
+            Q_M: sensaFlow.Q_M,
+            Q_f: sensaFlow.Q_f,
+            I: sensaFlow.I
+        });
+    }, [sensaFlow.G, sensaFlow.Q_P, sensaFlow.Q_M, sensaFlow.Q_f, sensaFlow.I, studySession, updateSessionEquation]);
+
     const progressRestoredRef = useRef(false);
     useEffect(() => {
         if (!currentSession || progressRestoredRef.current) return;
@@ -553,6 +579,7 @@ export default function VelocityLearning() {
                         <ConceptMapBuilder
                             concepts={currentSession!.concepts}
                             subjectName={currentSession!.subject}
+                            initialData={studySession?.conceptMap || null}
                             onComplete={(data) => {
                                 markSessionMapBuilt(data);
                                 sensaFlow.completeNote(data);

@@ -160,6 +160,8 @@ export type StudySliceActions = {
  recordConfusionDrill: (passed: boolean) => void;
  recordBreak: () => void;
  setShowSessionModal: (show: boolean) => void;
+ /** Persist SENSA equation values so they survive refresh */
+ updateSessionEquation: (equation: { G: number; Q_P: number; Q_M: number; Q_f: number; I: number }) => void;
  getStudySessionStats: () => {
  elapsedMinutes: number;
  conceptsCompleted: number;
