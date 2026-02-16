@@ -28,6 +28,8 @@ export default function SavedResults() {
  const [loading, setLoading] = useState(true);
  const [deletingId, setDeletingId] = useState<string | null>(null);
  const [togglingId, setTogglingId] = useState<string | null>(null);
+ const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+ const [confirmingCleanup, setConfirmingCleanup] = useState(false);
  const [importing, setImporting] = useState(false);
  const [importError, setImportError] = useState<string | null>(null);
  const [searchQuery, setSearchQuery] = useState('');
@@ -48,7 +50,7 @@ export default function SavedResults() {
  }
  };
  const handleDelete = async (id: string) => {
- if (!confirm('Are you sure you want to delete this result? This cannot be undone.')) return;
+ // Inline confirmation handled in UI
  setDeletingId(id);
  try {
  const success = await storageManager.deleteResult(id);
@@ -66,7 +68,7 @@ export default function SavedResults() {
  }
  };
  const handleCleanupDuplicates = async () => {
- if (!confirm('This will keep only the latest version of each subject and DELETE all older duplicates. Continue?')) return;
+ // Inline confirmation handled in UI
  setLoading(true);
  let deletedCount = 0;
  try {

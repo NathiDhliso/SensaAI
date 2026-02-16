@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft, Loader2, KeyRound } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, ArrowLeft, ArrowRight, Loader2, KeyRound } from 'lucide-react';
 import styles from './ForgotPassword.module.css';
 
 const AWS_REGION = import.meta.env.VITE_AWS_REGION || 'us-east-1';
 const COGNITO_CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID || '';
 
 export function ForgotPassword() {
+ const navigate = useNavigate();
  const [email, setEmail] = useState('');
  const [isLoading, setIsLoading] = useState(false);
  const [success, setSuccess] = useState(false);
@@ -63,6 +64,28 @@ export function ForgotPassword() {
  {success ? (
  <div className={styles.successBox}>
  Check your inbox for a verification code, then use it to set a new password.
+  <button
+   onClick={() => navigate(`/reset-password?email=${encodeURIComponent(email)}`)}
+   style={{
+   marginTop: '1rem',
+   width: '100%',
+   display: 'flex',
+   alignItems: 'center',
+   justifyContent: 'center',
+   gap: '0.5rem',
+   padding: '0.75rem 1.5rem',
+   border: 'none',
+   borderRadius: 'var(--radius-md)',
+   background: 'var(--color-primary)',
+   color: 'white',
+   fontSize: '0.95rem',
+   fontWeight: '600',
+   cursor: 'pointer',
+   }}
+  >
+   <span>Enter Your Reset Code</span>
+   <ArrowRight size={16} />
+  </button>
  </div>
  ) : (
  <form onSubmit={handleSubmit}>

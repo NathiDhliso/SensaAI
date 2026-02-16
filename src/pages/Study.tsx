@@ -455,6 +455,9 @@ export default function Study() {
  <Suspense fallback={<div className={styles.loading}>Loading Velocity Engine...</div>}>
  <LearningErrorBoundary
  onRecover={() => {
+  // Retry hydration by resetting error and incrementing retry count
+  setHydrationError(null);
+  setRetryCount(prev => prev + 1);
  }}
  onAbandon={() => {
  useLearningStore.getState().clearSession();

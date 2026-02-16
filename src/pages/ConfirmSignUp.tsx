@@ -9,7 +9,8 @@ export function ConfirmSignUp() {
  const navigate = useNavigate();
  const location = useLocation();
  const { confirmSignUp, resendConfirmationCode, clearError } = useAuthStore();
- const email = (location.state as { email?: string })?.email || '';
+ const emailFromState = (location.state as { email?: string })?.email || '';
+ const email = emailFromState || sessionStorage.getItem('confirm-signup-email') || '';
  const [code, setCode] = useState('');
  const [isLoading, setIsLoading] = useState(false);
  const [isResending, setIsResending] = useState(false);

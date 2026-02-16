@@ -4,6 +4,7 @@ import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
 import { AppErrorBoundary } from './components/error/AppErrorBoundary';
 import BackgroundJobToast from './components/ui/BackgroundJobToast';
+import { SensaShape } from './components/ui';
 import { useAuthStore } from './store/auth-store';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -20,90 +21,98 @@ const SignUp = lazy(() => import('./pages/SignUp').then(m => ({ default: m.SignU
 const ConfirmSignUp = lazy(() => import('./pages/ConfirmSignUp').then(m => ({ default: m.ConfirmSignUp })));
 const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function LoadingFallback() {
- return (
- <div className="loading-container">
- <div className="loading-spinner" />
- <p>Loading...</p>
- </div>
- );
+    return (
+        <div className="loading-container">
+            <div style={{ width: 48, height: 48, margin: '0 auto 1rem' }}>
+                <SensaShape type="nebula" size="md" animate={true} />
+            </div>
+            <p>Loading...</p>
+        </div>
+    );
 }
 
 function App() {
- const initializeAuthListeners = useAuthStore(state => state.initializeAuthListeners);
+    const initializeAuthListeners = useAuthStore(state => state.initializeAuthListeners);
 
- useEffect(() => {
- return initializeAuthListeners();
- }, [initializeAuthListeners]);
+    useEffect(() => {
+        return initializeAuthListeners();
+    }, [initializeAuthListeners]);
 
- return (
- <AppErrorBoundary>
- <BrowserRouter>
- <Suspense fallback={<LoadingFallback />}>
- <Routes>
- {/* ═══════════════════════════════════════════════════════════════
+    return (
+        <AppErrorBoundary>
+            <BrowserRouter>
+                <Suspense fallback={<LoadingFallback />}>
+                    <Routes>
+                        {/* ═══════════════════════════════════════════════════════════════
  PUBLIC ROUTES
  ═══════════════════════════════════════════════════════════════ */}
- <Route path="/" element={<Home />} />
- <Route path="/login" element={<Login />} />
- <Route path="/signup" element={<SignUp />} />
- <Route path="/confirm-signup" element={<ConfirmSignUp />} />
- <Route path="/forgot-password" element={<ForgotPassword />} />
- <Route path="/auth/callback" element={<AuthCallback />} />
- <Route path="/callback" element={<AuthCallback />} />
+                        <Route path="/" element={<Home />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<SignUp />} />
+                        <Route path="/confirm-signup" element={<ConfirmSignUp />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/auth/callback" element={<AuthCallback />} />
+                        <Route path="/callback" element={<AuthCallback />} />
 
- {/* ═══════════════════════════════════════════════════════════════
+                        {/* ═══════════════════════════════════════════════════════════════
  GENERATION FLOW
  ═══════════════════════════════════════════════════════════════ */}
- <Route path="/generate/:subject" element={
- <ProtectedRoute><Generate /></ProtectedRoute>
- } />
+                        <Route path="/generate/:subject" element={
+                            <ProtectedRoute><Generate /></ProtectedRoute>
+                        } />
 
- {/* ═══════════════════════════════════════════════════════════════
+                        {/* ═══════════════════════════════════════════════════════════════
  LEARNING FLOW - Unified Study Command Center
  ═══════════════════════════════════════════════════════════════ */}
 
- {/*
+                        {/*
  * Unified Study Command Center
  * Combines Overview and Learning modes into tabbed interface
  * Phase 2.1 of Silver Bullet Architecture
  * 
  * VelocityLearning is embedded in the Learn tab, not a standalone route
  */}
- <Route path="/study/:subjectId" element={
- <ProtectedRoute><Study /></ProtectedRoute>
- } />
+                        <Route path="/study/:subjectId" element={
+                            <ProtectedRoute><Study /></ProtectedRoute>
+                        } />
 
- {/* 
+                        {/* 
  * Content Launchpad - Analytics and Readiness Dashboard
  * The entry point for all saved content "View" actions
  */}
- <Route path="/launchpad/:subjectId" element={
- <ProtectedRoute><ContentLaunchpad /></ProtectedRoute>
- } />
+                        <Route path="/launchpad/:subjectId" element={
+                            <ProtectedRoute><ContentLaunchpad /></ProtectedRoute>
+                        } />
 
- {/* ═══════════════════════════════════════════════════════════════
+                        {/* ═══════════════════════════════════════════════════════════════
  LIBRARY
  ═══════════════════════════════════════════════════════════════ */}
- <Route path="/library" element={
- <ProtectedRoute><SavedResults /></ProtectedRoute>
- } />
- <Route path="/community" element={
- <ProtectedRoute><CommunityLibrary /></ProtectedRoute>
- } />
+                        <Route path="/library" element={
+                            <ProtectedRoute><SavedResults /></ProtectedRoute>
+                        } />
+                        <Route path="/community" element={
+                            <ProtectedRoute><CommunityLibrary /></ProtectedRoute>
+                        } />
 
- {/* Document Viewer */}
- <Route path="/view/:id" element={
- <ProtectedRoute><DocumentView /></ProtectedRoute>
- } />
- </Routes>
- <SettingsPanel />
- <BackgroundJobToast />
- </Suspense>
- </BrowserRouter>
- </AppErrorBoundary>
- );
+                        {/* Document Viewer */}
+                        <Route path="/view/:id" element={
+                            <ProtectedRoute><DocumentView /></ProtectedRoute>
+                        } />
+
+                        {/* Catch-all 404 */}
+                        <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    <SettingsPanel />
+                    <BackgroundJobToast />
+                </Suspense>
+            </BrowserRouter>
+        </AppErrorBoundary>
+    );
 }
 
 export default App;

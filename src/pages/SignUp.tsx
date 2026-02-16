@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { getErrorMessage } from '@/shared/api/client';
-import { Mail, Lock, User, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Sparkles, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './Login.module.css';
@@ -12,6 +12,7 @@ export function SignUp() {
  const [name, setName] = useState('');
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
+ const [showPassword, setShowPassword] = useState(false);
  const [isLoading, setIsLoading] = useState(false);
  const [error, setError] = useState<string | null>(null);
  const { isScholarly } = useVisualTheme();
@@ -145,7 +146,7 @@ export function SignUp() {
  <Lock size={18} className={styles.inputIcon} />
  <input
  id="password"
- type="password"
+ type={showPassword ? 'text' : 'password'}
  className={styles.input}
  placeholder="••••••••"
  value={password}
@@ -176,7 +177,7 @@ export function SignUp() {
  <div className={styles.footer}>
  <p>
  Already have an account?
- <span className={styles.link} onClick={() => navigate('/login')}>
+ <Link to="/login" className={styles.link}>
  Sign in
  </span>
  </p>

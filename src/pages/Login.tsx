@@ -182,8 +182,8 @@ export function Login() {
  </div>
  <div className={styles.footer}>
  By signing in, you agree to our{' '}
- <a href="/terms" className={styles.link}>Terms</a> and{' '}
- <a href="/privacy" className={styles.link}>Privacy Policy</a>.
+ <a href="#" onClick={e => e.preventDefault()} title="Coming soon" className={styles.link}>Terms</a> and{' '}
+ <a href="#" onClick={e => e.preventDefault()} title="Coming soon" className={styles.link}>Privacy Policy</a>.
  </div>
  </div>
  </div>
