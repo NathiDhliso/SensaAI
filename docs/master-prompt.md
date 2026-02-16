@@ -23,6 +23,7 @@ SensaAI is an AI-powered exam preparation platform that generates hierarchical l
 
 **FORBIDDEN tier names:** `root`, `foundation`, `keystone`, `utility`.
 The `tier` field is LLM-declared via the `treeLevel` field in generation, not computed.
+For legacy content lacking explicit trunk-tier concepts, `SessionScoutPreview` and `ContentLaunchpad` infer trunks from `trunkDomain` or `parentName` fields.
 
 ### 2. Every Color Must Be a CSS Variable
 

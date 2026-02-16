@@ -155,6 +155,14 @@ Raw JSON → concept-schema.ts (Zod validation) → transformer.ts (normalizatio
 - No synthetic concept names — empty string returned for unnamed concepts (filtered by dedup)
 - No `fallbackConcepts` parameter — removed from all transformer functions
 
+### Trunk Inference (Frontend)
+Legacy content may lack explicit `tier: 'trunk'` concepts. Both `SessionScoutPreview` and `ContentLaunchpad` apply the same fallback logic:
+1. If no concepts have `tier === 'trunk'`, collect unique `trunkDomain` values from all concepts
+2. If still empty, collect `parentName` (or `mnemonic.parentName`) values that don't match any existing concept name — these are implicit trunk domains
+3. Synthesize virtual trunk entries (in `SessionScoutPreview`) or count inferred trunks (in `ContentLaunchpad` stats bar)
+
+`buildDocumentFromConcepts` in `backend-client.ts` preserves `parentName` and `trunkDomain` in the reconstructed JSON so these fields survive the DynamoDB → API → parse round-trip.
+
 ### Validation
 **File:** `src/features/content-generation/validators/`
 - `content-quality.ts` — `isRealContent()` checks for placeholder/filler content

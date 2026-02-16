@@ -103,9 +103,21 @@ export default function ContentLaunchpad() {
     const tierCounts = useMemo(() => {
         if (!parsedData) return { trunk: 0, branch: 0, leaf: 0, total: 0 };
         const concepts = parsedData.concepts || [];
-        const trunk = concepts.filter(c => c.tier === 'trunk').length;
+        let trunk = concepts.filter(c => c.tier === 'trunk').length;
         const branch = concepts.filter(c => c.tier === 'branch').length;
         const leaf = concepts.length - trunk - branch;
+        if (trunk === 0) {
+            const domains = new Set<string>();
+            concepts.forEach(c => { if (c.trunkDomain) domains.add(c.trunkDomain); });
+            if (domains.size === 0) {
+                const names = new Set(concepts.map(c => c.name.toLowerCase()));
+                concepts.forEach(c => {
+                    const parent = c.parentName || c.mnemonic?.parentName;
+                    if (parent && !names.has(parent.toLowerCase())) domains.add(parent);
+                });
+            }
+            trunk = domains.size;
+        }
         return { trunk, branch, leaf, total: concepts.length };
     }, [parsedData]);
     const runAudit = useCallback((parsed: ParsedGeneratedContent, objectives: string[]) => {

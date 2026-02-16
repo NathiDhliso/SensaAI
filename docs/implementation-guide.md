@@ -367,6 +367,16 @@ Enforced in 4 places:
 - [ ] Works in both light and dark mode
 - [ ] Works in both playful and scholarly themes
 
+## Unit Testing (Vitest)
+
+Unit tests live in `src/` alongside the code they test (e.g., `json-parser-repro.test.ts`, `transformer-repro.test.ts`).
+
+`vite.config.ts` includes a `test` block (via `/// <reference types="vitest/config" />`) that excludes `node_modules`, `tests/**` (Playwright), `playwright/**`, and `backend/**` from vitest runs.
+
+```bash
+npx vitest run
+```
+
 ## E2E Testing (Playwright)
 
 Smoke tests cover all 22 features from `FEATURE_SUCCESS_CRITERIA.md` across admin and learner roles.

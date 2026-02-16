@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Home } from 'lucide-react';
-import { SensaShape } from '@/components/ui';
+import { SensaAnimLogo } from '@/components/ui';
 import styles from './NotFound.module.css';
 
 export default function NotFound() {
@@ -10,7 +10,7 @@ export default function NotFound() {
         <div className={styles.container}>
             <div className={styles.card}>
                 <div className={styles.shapeWrapper}>
-                    <SensaShape type="nebula" size="xl" animate={true} />
+                    <SensaAnimLogo size="3xl" />
                 </div>
                 <p className={styles.code}>404</p>
                 <h1 className={styles.title}>Page Not Found</h1>

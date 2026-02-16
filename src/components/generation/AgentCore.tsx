@@ -68,4 +68,4 @@ export const AgentCore: React.FC<AgentCoreProps> = ({ state, intensity = 0, glit
  </div>
  </div>
  );
-};
+};

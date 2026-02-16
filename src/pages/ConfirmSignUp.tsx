@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { getErrorMessage } from '@/shared/api/client';
 import { ShieldCheck, ArrowRight, Loader2, AlertCircle, RefreshCw, Lock } from 'lucide-react';
+import { SensaAnimLogo } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './Login.module.css';
 export function ConfirmSignUp() {
@@ -77,11 +78,10 @@ export function ConfirmSignUp() {
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.5, ease: 'easeOut' }}
  >
- {/* Visual Side (Left) */}
  <div className={styles.visualSide}>
  <div className={styles.visualContent}>
  <div className={styles.logoIcon} style={{ background: 'var(--overlay-white-20)' }}>
- <ShieldCheck size={24} />
+ <SensaAnimLogo size="2xl" />
  </div>
  <div className={styles.primeDirective}>
  <h2 className={styles.primeTitle}>Secure Your Data</h2>
@@ -95,11 +95,10 @@ export function ConfirmSignUp() {
  </div>
  </div>
  </div>
- {/* Form Side (Right) */}
  <div className={styles.formSide}>
  <div className={styles.header}>
  <div className={styles.logoIcon}>
- <ShieldCheck size={28} />
+ <SensaAnimLogo size="2xl" />
  </div>
  <h1 className={styles.title}>Verify Email</h1>
  <p className={styles.subtitle}>Enter the code sent to your inbox</p>

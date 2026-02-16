@@ -303,6 +303,93 @@ def handle_logout(event: Dict[str, Any]) -> Dict[str, Any]:
     return api_response(200, {"success": True}, event)
 
 
+def _cognito_user_to_profile(attrs: list) -> Dict[str, Any]:
+    """Convert Cognito user attributes list to profile dict."""
+    attr_map = {a["Name"]: a["Value"] for a in attrs}
+    return {
+        "id": attr_map.get("sub", ""),
+        "email": attr_map.get("email", ""),
+        "name": attr_map.get("name"),
+        "givenName": attr_map.get("given_name"),
+        "familyName": attr_map.get("family_name"),
+        "phoneNumber": attr_map.get("phone_number"),
+        "preferredUsername": attr_map.get("preferred_username"),
+    }
+
+
+def handle_get_profile(event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    GET /auth/profile
+    Fetch the authenticated user's profile from Cognito.
+    """
+    token = _get_bearer_token(event)
+    if not token:
+        return api_response(401, {"error": "Authorization required"}, event)
+
+    try:
+        response = cognito_client.get_user(AccessToken=token)
+        user = _cognito_user_to_profile(response.get("UserAttributes", []))
+        return api_response(200, {"user": user}, event)
+
+    except cognito_client.exceptions.NotAuthorizedException:
+        return api_response(401, {"error": "Session expired, please login again"}, event)
+    except Exception as e:
+        logger.error(f"Get profile error: {e}")
+        return api_response(500, {"error": "Failed to fetch profile"}, event)
+
+
+def handle_update_profile(event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    PUT /auth/profile
+    Update the authenticated user's profile attributes in Cognito.
+    """
+    token = _get_bearer_token(event)
+    if not token:
+        return api_response(401, {"error": "Authorization required"}, event)
+
+    try:
+        body = json.loads(event.get("body", "{}") or "{}")
+    except json.JSONDecodeError:
+        return api_response(400, {"error": "Invalid JSON body"}, event)
+
+    # Map frontend field names to Cognito attribute names
+    field_to_cognito = {
+        "name": "name",
+        "givenName": "given_name",
+        "familyName": "family_name",
+        "phoneNumber": "phone_number",
+        "preferredUsername": "preferred_username",
+    }
+
+    attributes = []
+    for field, cognito_name in field_to_cognito.items():
+        if field in body:
+            attributes.append({"Name": cognito_name, "Value": body[field]})
+
+    if not attributes:
+        return api_response(400, {"error": "No profile fields to update"}, event)
+
+    try:
+        cognito_client.update_user_attributes(
+            AccessToken=token,
+            UserAttributes=attributes,
+        )
+
+        # Fetch updated profile to return
+        response = cognito_client.get_user(AccessToken=token)
+        user = _cognito_user_to_profile(response.get("UserAttributes", []))
+        return api_response(200, {"user": user}, event)
+
+    except cognito_client.exceptions.NotAuthorizedException:
+        return api_response(401, {"error": "Session expired, please login again"}, event)
+    except cognito_client.exceptions.InvalidParameterException as e:
+        logger.warning(f"Invalid profile update: {e}")
+        return api_response(400, {"error": "Invalid profile data"}, event)
+    except Exception as e:
+        logger.error(f"Update profile error: {e}")
+        return api_response(500, {"error": "Failed to update profile"}, event)
+
+
 # ============================================================================
 # Lambda Entry Point
 # ============================================================================
@@ -325,6 +412,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         ("POST", "/auth/refresh"): handle_refresh,
         ("GET", "/auth/validate"): handle_validate,
         ("POST", "/auth/logout"): handle_logout,
+        ("GET", "/auth/profile"): handle_get_profile,
+        ("PUT", "/auth/profile"): handle_update_profile,
     }
 
     handler = routes.get((http_method, raw_path))

@@ -107,7 +107,7 @@ loadResult(id)
   → Resolve userId, sessionId, subject from job metadata
   → Fetch concepts by tier (trunk, branch, leaf) in parallel
   → If no concepts found, retry with jobId as fallback sessionId
-  → Build document from concepts (buildDocumentFromConcepts)
+  → Build document from concepts (buildDocumentFromConcepts — preserves parentName, trunkDomain)
   → Construct SavedResult with metadata + classification
   → Return SavedResult
 ```

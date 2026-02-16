@@ -1056,23 +1056,24 @@
 
 .tierHeader .tierCount {
     font-size: 0.75rem;
-    background: var(--overlay-white-20);
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.25);
     padding: 0.2rem 0.5rem;
     border-radius: var(--radius-sm);
 }
 
 .tierTrunk {
-    background: linear-gradient(135deg, var(--color-trunk) 0%, color-mix(in srgb, var(--color-trunk) 80%, black) 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-trunk) 85%, black) 0%, color-mix(in srgb, var(--color-trunk) 60%, black) 100%);
     color: white;
 }
 
 .tierBranch {
-    background: linear-gradient(135deg, var(--color-branch) 0%, color-mix(in srgb, var(--color-branch) 80%, black) 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-branch) 85%, black) 0%, color-mix(in srgb, var(--color-branch) 60%, black) 100%);
     color: white;
 }
 
 .tierLeaf {
-    background: linear-gradient(135deg, var(--color-leaf) 0%, color-mix(in srgb, var(--color-leaf) 80%, black) 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-leaf) 85%, black) 0%, color-mix(in srgb, var(--color-leaf) 60%, black) 100%);
     color: white;
 }
 

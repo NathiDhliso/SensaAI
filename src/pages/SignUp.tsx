@@ -2,7 +2,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { getErrorMessage } from '@/shared/api/client';
-import { Mail, Lock, User, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { SensaAnimLogo } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import styles from './Login.module.css';
@@ -53,7 +54,7 @@ export function SignUp() {
                 <div className={styles.visualSide}>
                     <div className={styles.visualContent}>
                         <div className={styles.logoIcon} style={{ background: 'var(--overlay-white-20)' }}>
-                            <Sparkles size={24} />
+                            <SensaAnimLogo size="2xl" />
                         </div>
                         <div className={styles.primeDirective}>
                             <h2 className={styles.primeTitle}>Join SensaAI</h2>
@@ -83,7 +84,7 @@ export function SignUp() {
                 <div className={styles.formSide}>
                     <div className={styles.header}>
                         <div className={styles.logoIcon}>
-                            <Sparkles size={28} />
+                            <SensaAnimLogo size="2xl" />
                         </div>
                         <h1 className={styles.title}>Create Account</h1>
                         <p className={styles.subtitle}>Begin your high-velocity learning journey</p>

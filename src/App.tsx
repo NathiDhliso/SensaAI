@@ -4,7 +4,7 @@ import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
 import { AppErrorBoundary } from './components/error/AppErrorBoundary';
 import BackgroundJobToast from './components/ui/BackgroundJobToast';
-import { SensaShape } from './components/ui';
+import { SensaAnimLogo } from './components/ui';
 import { useAuthStore } from './store/auth-store';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -28,7 +28,7 @@ function LoadingFallback() {
     return (
         <div className="loading-container">
             <div style={{ width: 48, height: 48, margin: '0 auto 1rem' }}>
-                <SensaShape type="nebula" size="md" animate={true} />
+                <SensaAnimLogo size="2xl" />
             </div>
             <p>Loading...</p>
         </div>

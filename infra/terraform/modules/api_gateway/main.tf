@@ -9,7 +9,7 @@ resource "aws_apigatewayv2_api" "main" {
 
   cors_configuration {
     allow_origins     = var.cors_allowed_origins
-    allow_methods     = ["GET", "POST", "DELETE", "OPTIONS"]
+    allow_methods     = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     allow_headers     = ["Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key"]
     expose_headers    = ["Content-Type"]
     allow_credentials = true
@@ -224,6 +224,18 @@ resource "aws_apigatewayv2_route" "auth_validate" {
 resource "aws_apigatewayv2_route" "auth_logout" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "POST /auth/logout"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+resource "aws_apigatewayv2_route" "auth_get_profile" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /auth/profile"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+resource "aws_apigatewayv2_route" "auth_update_profile" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "PUT /auth/profile"
   target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
 }
 

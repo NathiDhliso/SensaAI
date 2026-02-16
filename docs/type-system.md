@@ -64,8 +64,8 @@ Every field below MUST be consumed by the specified system. If you add a new con
 | Field | Consumed By | How |
 |-------|-----------|-----|
 | `tier` | SensaSynopticView (badge), concept-selection.ts (difficulty scoring, tier balance), interleaving.ts (tier distribution), preview-ai.ts (difficulty level) | Tier badge color, ordering weight, difficulty calc |
-| `parentName` | SensaSynopticView (breadcrumb), MicroLearningLoopController LearnPhase (breadcrumb hint) | `trunkDomain › parentName › name` hierarchy |
-| `trunkDomain` | SensaSynopticView (breadcrumb), MicroLearningLoopController LearnPhase (breadcrumb hint) | Top-level domain label |
+| `parentName` | SensaSynopticView (breadcrumb), MicroLearningLoopController LearnPhase (breadcrumb hint), SessionScoutPreview + ContentLaunchpad (trunk inference fallback) | `trunkDomain › parentName › name` hierarchy; infers implicit trunks when no explicit trunk-tier concepts exist |
+| `trunkDomain` | SensaSynopticView (breadcrumb), MicroLearningLoopController LearnPhase (breadcrumb hint), SessionScoutPreview + ContentLaunchpad (trunk inference primary) | Top-level domain label; used to synthesize virtual trunk entries for legacy content |
 | `cognitiveLevel` | MicroLearningLoopController (Bloom's badge), concept-selection.ts (difficulty), preview-ai.ts (difficulty), PeerReviewActivity (reviewer expertise matching) | Visual badge + scoring factor |
 | `lifecyclePhase` | concept-selection.ts (interleaving), interleaving.ts (phase scoring) | Alternates PREPARE/MODEL/DELIVER for variety |
 | `dependencies` | concept-selection.ts (prerequisite gating) | ID-based prerequisite check |

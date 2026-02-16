@@ -4,7 +4,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { getErrorMessage } from '@/shared/api/client';
 import { Mail, Lock, LogIn, Loader2, ArrowRight, Eye, EyeOff, Sparkles } from 'lucide-react';
-import { SensaShape } from '@/components/ui/SensaShape';
+import { SensaAnimLogo } from '@/components/ui';
 import styles from './Login.module.css';
 export function Login() {
  const navigate = useNavigate();
@@ -60,8 +60,8 @@ export function Login() {
  <div className={`${styles.visualShape} ${styles.shape2}`} />
  <div className={styles.visualContent}>
  <div className={styles.brandMark}>
- <SensaShape type="nebula" size="xl" animate={true} />
- </div>
+<SensaAnimLogo size="4xl" />
+</div>
  <div className={styles.quote}>
  "Intelligence is the ability to adapt to change."
  </div>
@@ -86,8 +86,8 @@ export function Login() {
  <div className={styles.formSide}>
  <div className={styles.header}>
  <div className={styles.logoIcon}>
- <SensaShape type="nebula" size="md" animate={true} />
- </div>
+<SensaAnimLogo size="2xl" />
+</div>
  <h1 className={styles.title}>Welcome Back</h1>
  <p className={styles.subtitle}>Sign in to continue your learning journey</p>
  </div>

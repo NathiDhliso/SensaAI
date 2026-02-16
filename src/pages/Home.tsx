@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Archive, Sparkles, Clock, Zap, Cloud, ChevronDown, ChevronUp, Target, Plus, X, GitBranch, Award, Wand2, Loader2 } from 'lucide-react';
-import { SensaShape } from '@/components/ui';
+import { SensaShape, SensaAnimLogo } from '@/components/ui';
 import { parseSyllabusText } from '@/features/content-audit';
 import type { SensaShapeType } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -257,11 +257,7 @@ export default function Home() {
  >
  {/* Reactive Sensa Shape - Wakes up on input */}
  <div className={styles.heroIcon}>
- <SensaShape
- type="nebula"
- size="xl"
- animate={true}
- />
+ <SensaAnimLogo size="3xl" />
  </div>
  {canGenerate ? (
  <>
