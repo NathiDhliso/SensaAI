@@ -81,21 +81,52 @@ export function SessionScoutPreview({
     const { markSessionScouted, markSessionPreviewed } = useLearningStore();
     const navigate = useNavigate();
     const narrative = useTreeNarrative();
-    // Group concepts by tier
     const conceptsByTier = useMemo(() => {
-        const trunk = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk');
+        let trunk = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'trunk');
         const branch = concepts.filter(c => (c.tier || c.mnemonic?.tier || '').toLowerCase() === 'branch');
         const leaf = concepts.filter(c => {
             const t = (c.tier || c.mnemonic?.tier || '').toLowerCase();
             return t !== 'trunk' && t !== 'branch';
         });
+        if (trunk.length === 0) {
+            const domainNames = new Set<string>();
+            concepts.forEach(c => { if (c.trunkDomain) domainNames.add(c.trunkDomain); });
+            if (domainNames.size === 0) {
+                const conceptNames = new Set(concepts.map(c => c.name.toLowerCase()));
+                branch.forEach(b => {
+                    const parent = b.parentName || b.mnemonic?.parentName;
+                    if (parent && !conceptNames.has(parent.toLowerCase())) {
+                        domainNames.add(parent);
+                    }
+                });
+            }
+            if (domainNames.size > 0) {
+                trunk = [...domainNames].map((name, i) => ({
+                    id: `trunk-synth-${i}`,
+                    name,
+                    stageId: 'stage-1-root',
+                    order: i + 1,
+                    tier: 'trunk' as const,
+                    lifecyclePhase: 'PREPARE' as const,
+                    dependencies: [],
+                    outdegree: branch.filter(b => b.trunkDomain === name || b.parentName === name).length,
+                    hookSentence: '',
+                    whyYouNeed: '',
+                    realWorldExample: '',
+                    howToUse: [],
+                    technicalDetails: '',
+                    prerequisites: [],
+                    visualElement: '',
+                    actionButtonText: '',
+                    lifecycle: { phase1: { title: 'PREPARE', steps: [] }, phase2: { title: 'MODEL', steps: [] }, phase3: { title: 'DELIVER', steps: [] } },
+                } as LearningConcept));
+            }
+        }
         return { trunk, branch, leaf };
     }, [concepts]);
     // Enhancement B: Foundation Concepts (Critical Path)
-    const foundationIds = useMemo(() => {
-        const foundations = getFoundationConcepts(concepts, 5);
-        return new Set(foundations.map(c => c.id));
-    }, [concepts]);
+    const foundationConcepts = useMemo(() => getFoundationConcepts(concepts, 5), [concepts]);
+    const foundationIds = useMemo(() => new Set(foundationConcepts.map(c => c.id)), [foundationConcepts]);
     // Generate AI Preview Analysis for priming step
     const aiPreview = useMemo(() => {
         return generatePreviewAnalysis(concepts, selectedPersona);
@@ -188,6 +219,21 @@ export function SessionScoutPreview({
                     </div>
                 </div>
             </div>
+            {foundationConcepts.length > 0 && (
+                <div className={styles.foundationBanner}>
+                    <div className={styles.foundationBannerText}>
+                        <Sparkles size={16} className={styles.foundationBannerIcon} />
+                        <span>
+                            These <strong>{foundationConcepts.length} foundation concepts</strong> unlock the majority of everything else — they're your starting point.
+                        </span>
+                    </div>
+                    <div className={styles.foundationBannerChips}>
+                        {foundationConcepts.map(c => (
+                            <span key={c.id} className={styles.foundationMiniChip}>★ {c.name}</span>
+                        ))}
+                    </div>
+                </div>
+            )}
             <div className={styles.tierInsight}>
                 <Sparkles size={16} />
                 <span>

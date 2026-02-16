@@ -285,8 +285,10 @@ function isTrunkLevel(concept: ParsedConcept, allConcepts: ParsedConcept[]): boo
  */
 function calculateTier(concept: ParsedConcept, allConcepts: ParsedConcept[]): 'trunk' | 'branch' | 'leaf' {
  if (concept.tier) {
- return concept.tier;
- }
+        const t = concept.tier.toLowerCase();
+        if (t === 'trunk' || t === 'branch' || t === 'leaf') return t as 'trunk' | 'branch' | 'leaf';
+        return 'leaf';
+    }
  if (concept.mnemonic?.tier) {
  return concept.mnemonic.tier;
  }
@@ -718,6 +720,8 @@ export function transformToLearningConcepts(
  eliminationLogic: parsedConcept.shape.eliminationLogic
  } : undefined,
  tier: calculateTier(parsedConcept, parsed.concepts),
+ parentName: parsedConcept.parentName,
+ trunkDomain: parsedConcept.trunkDomain,
  cognitiveLevel: parsedConcept.cognitiveLevel,
  commonPitfalls: parsedConcept.commonPitfalls,
  // Map raw stageId (PREPARE/MODEL/DELIVER) to lifecyclePhase with Robust Normalization

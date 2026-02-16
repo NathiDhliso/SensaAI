@@ -763,8 +763,9 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  const treeLevel = typeof c.treeLevel === 'string' ? c.treeLevel.toLowerCase() : '';
  if (treeLevel === 'trunk' || treeLevel === 'branch' || treeLevel === 'leaf') {
  tier = treeLevel as 'trunk' | 'branch' | 'leaf';
- } else if (typeof c.tier === 'string') {
- const t = c.tier.toLowerCase();
+ } else if (typeof c.tier === 'string' || typeof c.Tier === 'string') {
+        const rawTier = (typeof c.tier === 'string' ? c.tier : c.Tier) as string;
+        const t = rawTier.toLowerCase();
  if (t === 'trunk') tier = 'trunk';
  else if (t === 'branch') tier = 'branch';
  else if (t === 'leaf') tier = 'leaf';

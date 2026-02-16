@@ -324,6 +324,8 @@ export function buildDocumentFromConcepts(
  order: index + 1,
  name: concept.name,
  tier: concept.tier,
+ parentName: concept.parentName,
+ trunkDomain: concept.trunkDomain,
  stageId: concept.stageId,
  cognitiveLevel: concept.cognitiveLevel,
  commonPitfalls: concept.commonPitfalls || [],

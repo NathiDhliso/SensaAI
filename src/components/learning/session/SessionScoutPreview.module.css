@@ -1126,20 +1126,6 @@
     border-left: 3px solid var(--color-leaf);
 }
 
-/* Enhancement B: Critical Path gold ring for foundation concepts */
-.foundationChip {
-    border: 2px solid #DAA520;
-    box-shadow: 0 0 6px rgba(218, 165, 32, 0.35);
-    position: relative;
-}
-
-.foundationBadge {
-    font-size: 0.7rem;
-    color: #DAA520;
-    flex-shrink: 0;
-    margin-left: auto;
-}
-
 .moreChip {
     padding: 0.5rem 0.875rem;
     background: var(--color-surface-subtle);
@@ -1263,4 +1249,48 @@
     color: var(--color-warning);
     font-size: 0.85em;
     filter: drop-shadow(0 0 2px rgba(255, 193, 7, 0.4));
+}
+
+.foundationBanner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(218, 165, 32, 0.04) 100%);
+    border: 1px solid rgba(218, 165, 32, 0.3);
+    border-radius: var(--radius-md);
+}
+
+.foundationBannerText {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    line-height: 1.5;
+}
+
+.foundationBannerIcon {
+    color: #DAA520;
+    flex-shrink: 0;
+}
+
+.foundationBannerChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.foundationMiniChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.65rem;
+    background: rgba(218, 165, 32, 0.12);
+    border: 1px solid rgba(218, 165, 32, 0.25);
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #DAA520;
+    white-space: nowrap;
 }

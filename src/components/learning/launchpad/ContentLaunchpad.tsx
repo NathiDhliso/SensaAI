@@ -812,6 +812,16 @@ export default function ContentLaunchpad() {
                                             onClick={() => setExpandedConcept(isExpanded ? null : verdict.conceptId)}
                                         >
                                             <div className={styles.conceptRowLeft}>
+                                                {(() => {
+                                                    const h = healthData.find(d => d.id === verdict.conceptId);
+                                                    return h ? (
+                                                        <span
+                                                            className={styles.decayDot}
+                                                            data-status={h.decay}
+                                                            title={`${h.decay} — ${h.retention}% retention`}
+                                                        />
+                                                    ) : null;
+                                                })()}
                                                 <span className={styles.conceptName}>{verdict.conceptName}</span>
                                                 <span className={styles.tierBadge}>{verdict.tier}</span>
                                             </div>
