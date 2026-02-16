@@ -358,13 +358,11 @@ export default function ConceptMapBuilder({
  const totalHeight = preHeights.reduce((s, h) => s + h, 0) + TIER_GAP * (tierGroups.length - 1);
  let currentY = (canvasH / 2 - panOffset.y) / zoom - totalHeight / 2;
  const laid: MapNode[] = [];
- let tierIdx = 0;
  for (const group of [trunks, branches, leaves]) {
  if (group.length === 0) continue;
  const result = layoutSubClusters(group, cx, currentY, 100);
  laid.push(...result.laid);
  currentY += result.height + TIER_GAP;
- tierIdx++;
  }
  setNodes(laid);
  requestAnimationFrame(() => {
@@ -386,7 +384,7 @@ export default function ConceptMapBuilder({
  });
  setZoom(newZoom);
  });
- }, [nodes, concepts, pushHistory, panOffset, zoom, layoutCircle, layoutSubClusters, getParentGroup]);
+ }, [nodes, concepts, pushHistory, panOffset, zoom, layoutSubClusters, getParentGroup]);
  // =========================================================================
  // KEYBOARD SHORTCUTS
  // =========================================================================
