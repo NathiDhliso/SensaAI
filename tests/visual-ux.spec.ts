@@ -221,7 +221,7 @@ test.describe('Responsive Design', () => {
   test('home page works on mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await expect(input).toBeVisible();
     const generateBtn = page.getByRole('button', { name: /generate learning system/i });
     await expect(generateBtn).toBeVisible();
@@ -246,7 +246,7 @@ test.describe('Responsive Design', () => {
   test('home page works on tablet viewport', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await expect(input).toBeVisible();
   });
 });

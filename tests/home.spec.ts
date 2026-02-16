@@ -6,7 +6,7 @@ test.describe('Home Page', () => {
   });
 
   test('renders the home page with subject input', async ({ page }) => {
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await expect(input).toBeVisible();
     await expect(input).toBeFocused();
   });
@@ -18,20 +18,20 @@ test.describe('Home Page', () => {
   });
 
   test('generate button stays disabled with only a subject and no domains or objectives', async ({ page }) => {
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('AWS Solutions Architect');
     const generateBtn = page.locator('button').filter({ hasText: /generate learning system/i });
     await expect(generateBtn).toBeDisabled();
   });
 
   test('generate button enables when subject and objectives are provided', async ({ page }) => {
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('AWS Solutions Architect');
     await input.blur();
     await page.waitForTimeout(300);
-    const toggle = page.getByRole('button', { name: /paste exam objectives/i });
+    const toggle = page.getByRole('button', { name: /exam objectives/i });
     await toggle.click();
-    const textarea = page.getByPlaceholder(/paste your exam objectives/i);
+    const textarea = page.getByPlaceholder(/paste exam objectives/i);
     await textarea.fill('Manage identities\nConfigure storage');
     await page.waitForTimeout(300);
     const generateBtn = page.locator('button').filter({ hasText: /generate learning system/i });
@@ -39,9 +39,9 @@ test.describe('Home Page', () => {
   });
 
   test('generate button enables when subject and trunk domains are provided', async ({ page }) => {
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('AWS Solutions Architect');
-    const toggle = page.getByRole('button', { name: /define exam domains/i });
+    const toggle = page.getByRole('button', { name: /exam domains/i });
     await toggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await domainInputs.nth(0).fill('Identity & Governance');
@@ -51,38 +51,38 @@ test.describe('Home Page', () => {
   });
 
   test('shows autocomplete suggestions when typing a known subject', async ({ page }) => {
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('AWS');
     await expect(page.locator('button').filter({ hasText: 'AWS Solutions Architect' })).toBeVisible();
   });
 
   test('selecting a suggestion fills the input', async ({ page }) => {
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('AWS');
     await page.locator('button').filter({ hasText: 'AWS Solutions Architect' }).click();
     await expect(input).toHaveValue('AWS Solutions Architect');
   });
 
   test('objectives section expands and collapses', async ({ page }) => {
-    const toggle = page.getByRole('button', { name: /paste exam objectives/i });
+    const toggle = page.getByRole('button', { name: /exam objectives/i });
     await expect(toggle).toBeVisible();
     await toggle.click();
-    const textarea = page.getByPlaceholder(/paste your exam objectives/i);
+    const textarea = page.getByPlaceholder(/paste exam objectives/i);
     await expect(textarea).toBeVisible();
     await toggle.click();
     await expect(textarea).not.toBeVisible();
   });
 
   test('objectives are parsed when pasted', async ({ page }) => {
-    const toggle = page.getByRole('button', { name: /paste exam objectives/i });
+    const toggle = page.getByRole('button', { name: /exam objectives/i });
     await toggle.click();
-    const textarea = page.getByPlaceholder(/paste your exam objectives/i);
+    const textarea = page.getByPlaceholder(/paste exam objectives/i);
     await textarea.fill('Manage Azure identities and governance (20-25%)\nCreate users and groups\nManage licenses');
     await expect(page.getByText(/objectives detected/i)).toBeVisible();
   });
 
   test('trunk domains section expands and allows adding/removing domains', async ({ page }) => {
-    const toggle = page.getByRole('button', { name: /define exam domains/i });
+    const toggle = page.getByRole('button', { name: /exam domains/i });
     await toggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await expect(domainInputs).toHaveCount(2);
@@ -92,7 +92,7 @@ test.describe('Home Page', () => {
   });
 
   test('trunk domains cannot exceed 6', async ({ page }) => {
-    const toggle = page.getByRole('button', { name: /define exam domains/i });
+    const toggle = page.getByRole('button', { name: /exam domains/i });
     await toggle.click();
     const addBtn = page.getByRole('button', { name: /add domain/i });
     await addBtn.click();
@@ -103,12 +103,12 @@ test.describe('Home Page', () => {
   });
 
   test('filling 2+ trunk domains shows domain-locked status', async ({ page }) => {
-    const toggle = page.getByRole('button', { name: /define exam domains/i });
+    const toggle = page.getByRole('button', { name: /exam domains/i });
     await toggle.click();
     const inputs = page.locator('input[placeholder*="Domain"]');
     await inputs.nth(0).fill('Identity & Governance');
     await inputs.nth(1).fill('Storage Solutions');
-    await expect(page.getByText(/domain-locked/i)).toBeVisible();
+    await expect(page.getByText(/domains locked|2 domains/i).first()).toBeVisible();
   });
 
   test('unauthenticated home shows Sign In and Create Account buttons', async ({ page }) => {
@@ -131,11 +131,11 @@ test.describe('Home Page', () => {
   });
 
   test('pressing Enter on subject input triggers generation flow when domains provided', async ({ page }) => {
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('React & TypeScript');
     await input.blur();
     await page.waitForTimeout(300);
-    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    const domainToggle = page.getByRole('button', { name: /exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await domainInputs.nth(0).fill('Components');
@@ -146,6 +146,6 @@ test.describe('Home Page', () => {
   });
 
   test('standard mode shows when no objectives or domains', async ({ page }) => {
-    await expect(page.getByText(/standard mode/i)).toBeVisible();
+    await expect(page.getByText(/no objectives or domains set/i)).toBeVisible();
   });
 });

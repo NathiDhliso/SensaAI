@@ -3,11 +3,11 @@ import { test, expect } from '@playwright/test';
 test.describe('Generation Flow (Unauthenticated)', () => {
   test('full flow: home → type subject + domains → click generate → redirects to login', async ({ page }) => {
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('Machine Learning Fundamentals');
     await input.blur();
     await page.waitForTimeout(600);
-    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    const domainToggle = page.getByRole('button', { name: /exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await domainInputs.nth(0).fill('Supervised Learning');
@@ -19,11 +19,11 @@ test.describe('Generation Flow (Unauthenticated)', () => {
 
   test('subject is encoded in the generate URL', async ({ page }) => {
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('Azure Administrator');
     await input.blur();
     await page.waitForTimeout(600);
-    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    const domainToggle = page.getByRole('button', { name: /exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await domainInputs.nth(0).fill('Identity & Governance');
@@ -36,13 +36,13 @@ test.describe('Generation Flow (Unauthenticated)', () => {
 
   test('objectives are passed as context param in generate URL', async ({ page }) => {
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('Azure Administrator');
     await input.blur();
     await page.waitForTimeout(300);
-    const toggle = page.getByRole('button', { name: /paste exam objectives/i });
+    const toggle = page.getByRole('button', { name: /exam objectives/i });
     await toggle.click();
-    const textarea = page.getByPlaceholder(/paste your exam objectives/i);
+    const textarea = page.getByPlaceholder(/paste exam objectives/i);
     await textarea.fill('Manage identities\nConfigure storage\nDeploy VMs');
     await page.waitForTimeout(300);
     await page.locator('button').filter({ hasText: /generate learning system/i }).click();
@@ -55,11 +55,11 @@ test.describe('Generation Flow (Unauthenticated)', () => {
 
   test('trunk domains are passed as trunks param in generate URL', async ({ page }) => {
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('Azure Administrator');
     await input.blur();
     await page.waitForTimeout(300);
-    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    const domainToggle = page.getByRole('button', { name: /exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await domainInputs.nth(0).fill('Identity & Governance');

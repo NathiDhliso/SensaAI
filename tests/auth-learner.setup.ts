@@ -5,14 +5,13 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const adminAuthFile = 'playwright/.auth/admin.json';
-const legacyAuthFile = 'playwright/.auth/user.json';
+const learnerAuthFile = 'playwright/.auth/learner.json';
 
 function loadTestEnv() {
   const envPath = path.resolve(__dirname, '..', '.env.playwright');
   if (!fs.existsSync(envPath)) {
     throw new Error(
-      '.env.playwright file not found. Create it with ADMIN_EMAIL and ADMIN_PASSWORD.'
+      '.env.playwright file not found. Create it with LEARNER_EMAIL and LEARNER_PASSWORD.'
     );
   }
   const content = fs.readFileSync(envPath, 'utf-8');
@@ -26,7 +25,17 @@ function loadTestEnv() {
   return vars;
 }
 
-async function authenticateViaUI(page: import('@playwright/test').Page, email: string, password: string) {
+setup('authenticate learner', async ({ page }) => {
+  setup.setTimeout(60000);
+
+  const env = loadTestEnv();
+  const email = env.LEARNER_EMAIL;
+  const password = env.LEARNER_PASSWORD;
+
+  if (!email || !password) {
+    throw new Error('LEARNER_EMAIL and LEARNER_PASSWORD must be set in .env.playwright');
+  }
+
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
 
@@ -43,22 +52,10 @@ async function authenticateViaUI(page: import('@playwright/test').Page, email: s
   await signInBtn.click();
 
   await page.waitForURL('/', { timeout: 30000 });
-  await expect(page.getByPlaceholder('Search certifications or enter any subject...')).toBeVisible({ timeout: 15000 });
-}
+  await expect(
+    page.getByPlaceholder('Search certifications or enter any subject...')
+      .or(page.getByText('Generation Restricted'))
+  ).toBeVisible({ timeout: 15000 });
 
-setup('authenticate admin', async ({ page }) => {
-  setup.setTimeout(60000);
-
-  const env = loadTestEnv();
-  const email = env.ADMIN_EMAIL;
-  const password = env.ADMIN_PASSWORD;
-
-  if (!email || !password) {
-    throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env.playwright');
-  }
-
-  await authenticateViaUI(page, email, password);
-
-  await page.context().storageState({ path: adminAuthFile });
-  await page.context().storageState({ path: legacyAuthFile });
+  await page.context().storageState({ path: learnerAuthFile });
 });

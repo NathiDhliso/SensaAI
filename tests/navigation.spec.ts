@@ -4,7 +4,7 @@ test.describe('Navigation & Routing', () => {
   test('home page loads at root URL', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveURL('/');
-    await expect(page.getByPlaceholder('Enter any subject to learn...')).toBeVisible();
+    await expect(page.getByPlaceholder('Search certifications or enter any subject...')).toBeVisible();
   });
 
   test('login page loads', async ({ page }) => {
@@ -34,11 +34,11 @@ test.describe('Navigation & Routing', () => {
 
   test('generate button on home navigates to /generate/:subject', async ({ page }) => {
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('Docker Fundamentals');
     await input.press('Escape');
     await page.waitForTimeout(400);
-    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    const domainToggle = page.getByRole('button', { name: /exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await domainInputs.nth(0).fill('Container Basics');
@@ -52,7 +52,7 @@ test.describe('Loading States', () => {
   test('app renders content after load without getting stuck', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await expect(input).toBeVisible({ timeout: 10000 });
   });
 });

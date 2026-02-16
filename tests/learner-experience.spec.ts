@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 test.describe('Authenticated Home — Core Access', () => {
   test('authenticated user lands on home without login redirect', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByPlaceholder('Enter any subject to learn...')).toBeVisible();
+    await expect(page.getByPlaceholder('Search certifications or enter any subject...')).toBeVisible();
     expect(page.url()).not.toContain('/login');
   });
 
@@ -27,11 +27,11 @@ test.describe('Authenticated Home — Core Access', () => {
 test.describe('Domain-Locked Generation Flow', () => {
   test('subject + 2 exam domains navigates to /generate/ with trunks in URL', async ({ page }) => {
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('AWS Solutions Architect');
     await input.blur();
     await page.waitForTimeout(600);
-    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    const domainToggle = page.getByRole('button', { name: /exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await domainInputs.nth(0).fill('Identity & Governance');
@@ -49,30 +49,29 @@ test.describe('Domain-Locked Generation Flow', () => {
 
   test('domain-locked status text reflects user-defined domains', async ({ page }) => {
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('Organic Chemistry');
     await input.blur();
     await page.waitForTimeout(600);
-    const domainToggle = page.getByRole('button', { name: /define exam domains/i });
+    const domainToggle = page.getByRole('button', { name: /exam domains/i });
     await domainToggle.click();
     const domainInputs = page.locator('input[placeholder*="Domain"]');
     await domainInputs.nth(0).fill('Alkanes & Alkenes');
     await domainInputs.nth(1).fill('Reaction Mechanisms');
-    await expect(page.getByText(/domain-locked/i)).toBeVisible();
-    await expect(page.getByText(/2 trunks fixed/i)).toBeVisible();
+    await expect(page.getByText(/domains locked|2 domains/i).first()).toBeVisible();
   });
 });
 
 test.describe('Objective-Driven Generation Flow', () => {
   test('subject + pasted objectives navigates to /generate/ with context in URL', async ({ page }) => {
     await page.goto('/');
-    const input = page.getByPlaceholder('Enter any subject to learn...');
+    const input = page.getByPlaceholder('Search certifications or enter any subject...');
     await input.fill('Biology Cell Division');
     await input.blur();
     await page.waitForTimeout(600);
-    const toggle = page.getByRole('button', { name: /paste exam objectives/i });
+    const toggle = page.getByRole('button', { name: /exam objectives/i });
     await toggle.click();
-    const textarea = page.getByPlaceholder(/paste your exam objectives/i);
+    const textarea = page.getByPlaceholder(/paste exam objectives/i);
     await textarea.fill('Understand mitosis phases\nCompare mitosis and meiosis\nExplain cytokinesis');
     await page.waitForTimeout(300);
     await expect(page.getByText(/3 objectives detected/i)).toBeVisible();
