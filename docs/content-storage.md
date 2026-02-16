@@ -1,6 +1,6 @@
 # Content Storage
 
-**Last Updated:** February 13, 2026
+**Last Updated:** February 16, 2026
 **Status:** MANDATORY — Understand this before modifying storage flows.
 
 ---
@@ -69,9 +69,29 @@ Stores full generated documents for offline access. No TTL — persists until us
 
 Stores session progress (current concept, scores, completed concepts). TTL: 24 hours. Throttled saves (2-second interval) with flush-on-unmount to prevent data loss.
 
-### Layer 4: Zustand (Memory)
+### Layer 3b: localStorage (Activity Draft Autosave)
 
-Active session state lives in Zustand stores. Page lifetime only — lost on refresh (recovered from localStorage).
+**File:** `src/shared/hooks/useActivityAutosave.ts`
+
+Persists in-progress learning activity state so no work is lost on refresh, navigation, or accidental tab close. Uses the `sensa-activity-draft:{key}:{sessionId}` namespace.
+
+| Draft Key | Activity | What's Saved |
+|-----------|----------|--------------|
+| `concept-map` | ConceptMapBuilder | Nodes + connections (full `ConceptMapData`) |
+| `blank-sheet` | BlankSheetTest | Response text + concept ID |
+| `mastery` | MasteryChallenge | (reserved for future use) |
+| `explore-guesses` | SessionScoutPreview | (reserved for future use) |
+
+**Behavior:**
+- Throttled writes (2-second interval) matching session-tracker pattern
+- Immediate flush on `beforeunload` + component unmount
+- 24h TTL with auto-cleanup on app init (`cleanupExpiredActivityDrafts()` in `learning-store.ts`)
+- Draft cleared on successful `onComplete` — only in-progress work is stored
+- All keys registered in `src/shared/constants/storage-keys.ts` (`STORAGE_KEYS.DRAFT_*`)
+
+### Layer 4: Zustand (Memory + Persist)
+
+Active session state lives in Zustand stores. The `useLearningStore` is persisted to localStorage via `zustand/middleware/persist`, meaning the `currentSession`, `studySession` (including `conceptMap` and `equation` values), and focus settings survive page refresh. The `useSensaFlow` hook restores equation values (G, Q_P, Q_M, Q_f, I) and concept map data from the persisted `studySession` via `syncFromStore()`.
 
 ---
 
@@ -212,6 +232,8 @@ The `CloudStorage` class provides direct S3/DynamoDB access. Currently exported 
 | `src/features/content-storage/sync/sync-engine.ts` | Cloud ↔ local synchronization |
 | `src/features/content-storage/sync/import.ts` | File import utilities |
 | `src/features/content-storage/index.ts` | Barrel exports |
+| `src/shared/hooks/useActivityAutosave.ts` | Activity draft autosave hook (throttled localStorage) |
+| `src/shared/constants/storage-keys.ts` | Centralized localStorage key constants |
 | `src/shared/api/concepts.ts` | API endpoints for concept fetching (see full API surface below) |
 | `src/shared/utils/content-loader.ts` | Content loading + parsing orchestrator |
 

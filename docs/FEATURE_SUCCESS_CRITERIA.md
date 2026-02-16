@@ -58,6 +58,7 @@
 - Each connection has a labelled relationship type (requires, enables, is-part-of, is-type-of, causes, constrains) — forcing the learner to think about *how* ideas relate, not just *that* they relate.
 - Graph rules prevent nonsensical connections (e.g. a leaf concept can't require a concept from a different branch) — so the map stays logically sound.
 - An always-visible legend explains each relationship type in plain language — no guessing what the labels mean.
+- **Draft recovery:** If the learner refreshes the page mid-build or accidentally closes the tab, their in-progress concept map is restored from a locally saved draft — no work is lost.
 
 ---
 
@@ -112,6 +113,7 @@
 - The learner writes everything they can remember about a concept on a "blank sheet" — pure recall with no prompts.
 - AI-powered scoring evaluates depth, keyword coverage, and structural understanding — not just word count.
 - Forces the learner to organise knowledge from memory, which is the single strongest study technique according to learning science.
+- **Draft recovery:** If the learner refreshes mid-test, their partially written response is restored automatically — no retyping.
 
 ---
 
@@ -137,6 +139,7 @@
 - Each factor (mood bandwidth, content quality, review frequency, mastery depth, process fidelity) is visualised — the learner can see which variable is their weakest link.
 - When process quality drops below a threshold, the system warns "grinding is futile right now" and suggests backtracking — preventing wasted effort.
 - A mastery threshold progress bar shows how close the learner is to the 75% target.
+- **Persistence:** The equation values (G, Q_P, Q_M, Q_f, I) survive page refresh — the learner sees their accumulated progress immediately, not a reset to defaults.
 
 ---
 
@@ -155,6 +158,7 @@
 - An offline cache (IndexedDB) lets the learner keep studying even without internet — everything syncs when they're back online.
 - Import/export in JSON, PDF, and Markdown formats — the learner owns their data.
 - If a generation job is interrupted (browser crash, lost connection), the app recovers the background job automatically.
+- **Activity draft recovery:** In-progress learning activities (concept maps, blank sheet responses) are automatically saved as drafts and recovered on return — even if the browser was closed.
 
 ---
 
@@ -363,13 +367,17 @@ The diagram above isn't just a feature map — it's the **cognitive journey** a 
 
 ---
 
-# 🗺️ Roadmap Enhancements (Approved)
+# 🗺️ Roadmap Enhancements (Approved — All Implemented)
 
 > **Selection Criteria**: Every enhancement below follows one rule — **surface data the system already captures but currently hides from the learner.** No new infrastructure. No social platforms. No multi-modal research projects. Just finishing the job by making the invisible visible.
+>
+> **Status (Feb 2026)**: All four enhancements are implemented. See key files below each section.
 
 ---
 
-## Enhancement A: Contextual Spaced Repetition
+## Enhancement A: Contextual Spaced Repetition ✅
+
+> **Implemented in:** `src/components/learning/ui/ReviewContextPanel.tsx`
 
 _Currently: the app says "Review Concept X." Enhanced: the app says "Remember when you learned X and connected it to Y? Here's what you wrote last time."_
 
@@ -381,7 +389,9 @@ _Currently: the app says "Review Concept X." Enhanced: the app says "Remember wh
 
 ---
 
-## Enhancement B: Critical Path Visualisation in SCOUT
+## Enhancement B: Critical Path Visualisation in SCOUT ✅
+
+> **Implemented in:** `src/components/learning/session/SessionScoutPreview.tsx` (gold rings, foundation banner, `★` badges), `src/features/learning-session/algorithms/concept-selection.ts` (`getFoundationConcepts()`)
 
 _Currently: SCOUT shows the tier hierarchy (trunks, branches, leaves). Enhanced: SCOUT highlights the 5 concepts that unlock 80% of the rest._
 
@@ -393,7 +403,9 @@ _Currently: SCOUT shows the tier hierarchy (trunks, branches, leaves). Enhanced:
 
 ---
 
-## Enhancement C: Forgetting Curve Visualisation
+## Enhancement C: Forgetting Curve Visualisation ✅
+
+> **Implemented in:** Layer 1: `ContentLaunchpad.tsx` (decay dots on review cards + concept audit rows, Knowledge Health % in header). Layer 2: `src/components/learning/launchpad/KnowledgeHealthPanel.tsx` (per-concept retention bars, targeted review launcher). Spacing engine: `getDecayStatus()`, `getKnowledgeHealthPercent()` in `spacing-engine.ts`.
 
 _Currently: the spacing engine schedules reviews silently. Enhanced: the learner can see their knowledge fading in real time._
 
@@ -408,7 +420,9 @@ _Currently: the spacing engine schedules reviews silently. Enhanced: the learner
 
 ---
 
-## Enhancement D: Proactive AI Coach Interventions
+## Enhancement D: Proactive AI Coach Interventions ✅
+
+> **Implemented in:** `src/components/learning/ui/CoachInterventionBanner.tsx` (dismissible banner with trigger-based suggestions)
 
 _Currently: the coach reacts to phases and mood. Enhanced: the coach reads the session and makes strategic suggestions before the learner asks._
 

@@ -1,6 +1,6 @@
 # SensaAI — Master Context Document
 
-**Last Updated:** February 13, 2026
+**Last Updated:** February 16, 2026
 **Status:** MANDATORY — Read this before touching any code.
 
 ---
@@ -133,6 +133,7 @@ See: [Content Storage](./content-storage.md) for full catalog breakdown.
 | Add a generation parser | `src/features/content-generation/parsers/` |
 | Add a Zustand store | `src/store/` |
 | Add a reusable hook | `src/shared/hooks/` |
+| Add activity draft autosave | `useActivityAutosave` in `src/shared/hooks/` + key in `storage-keys.ts` |
 | Add a reusable UI component | `src/components/ui/` |
 | Add a page/route | `src/pages/` |
 | Modify AI coach behavior | `src/features/ai-coach/` |
@@ -194,7 +195,7 @@ Global overlays always mounted in `App.tsx`: `SettingsPanel` (slide-out), `Backg
 | `useThemeStore` | `theme-store.ts` | Light/dark/system + visual theme (playful/scholarly) |
 | `usePersonalizationStore` | `personalization-store.ts` | Persona, coach intensity, practice mode, stress-free mode, metaphor settings, semester date |
 | `useGenerationStore` | `generation-store.ts` | Generation jobs, progress, subjectType, macroWorkflow |
-| `useLearningStore` | `learning-store.ts` | Composed from 7 slices: session, navigation, study, cognitive, diagnostic, focus, UI |
+| `useLearningStore` | `learning-store.ts` | Composed from 7 slices: session, navigation, study, cognitive, diagnostic, focus, UI. Study slice persists equation values via `updateSessionEquation()`. |
 | `useAuthStore` | `auth-store.ts` | Authentication state |
 
 Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `SettingsPanel` reads/writes these stores directly. There is no `/settings` route.

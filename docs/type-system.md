@@ -1,6 +1,6 @@
 # Type System
 
-**Last Updated:** February 13, 2026
+**Last Updated:** February 16, 2026
 **Status:** MANDATORY — All new code must respect these type contracts.
 **Source of truth:** `src/shared/types/learning.ts`
 
@@ -293,6 +293,14 @@ interface StudySession {
   timeToastShownAt: string | null;
   // AI Coach Personalization
   mood?: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired';
+  // SENSA Equation Persistence (survives refresh via Zustand persist)
+  equation?: {
+    G: number;
+    Q_P: number;
+    Q_M: number;
+    Q_f: number;
+    I: number;
+  };
 }
 
 interface ConceptMapData {

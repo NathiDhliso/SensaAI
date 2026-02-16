@@ -1,6 +1,6 @@
 # Implementation Guide
 
-**Last Updated:** February 13, 2026
+**Last Updated:** February 16, 2026
 **Status:** MANDATORY — Follow these patterns for all new code.
 
 ---
@@ -65,6 +65,7 @@ function MyActivity({ concept, onComplete }: Props) {
 
 5. Export from `src/components/learning/activities/index.ts`
 6. Wire into `MicroLearningLoopController.tsx` or `GymActivityLauncher.tsx`
+7. **If the activity has user-generated state worth preserving** (typed responses, drawn maps, selections), wire `useActivityAutosave` from `@/shared/hooks/useActivityAutosave` with a key from `storage-keys.ts`. Call `saveDraft()` on every state change, `clearDraft()` on `onComplete`, and restore via `loadDraft()` on mount. See `ConceptMapBuilder.tsx` or `BlankSheetTest.tsx` for examples.
 
 ---
 
@@ -321,6 +322,8 @@ import { saveProgress } from '@/features/content-storage';
 - **SessionStartModal is singular** — Rendered only in `Study.tsx`. Never render in `VelocityLearning.tsx`. `MOOD_GOAL_MAP` in `SessionStartModal.tsx` is the single source of truth for mood→goal+duration.
 - **ContentContext was removed** — Use `useLearningStore().getConcepts()` to access loaded concepts.
 - **Hardcoded cognitive load** — Wire to `getCognitiveLoadLevel()` from CognitiveSlice. Never hardcode.
+- **Activity draft autosave** — In-progress activity state (concept maps, blank sheet responses) is autosaved via `useActivityAutosave`. Drafts use the `sensa-activity-draft:` localStorage prefix with 24h TTL. `cleanupExpiredActivityDrafts()` runs on app init in `learning-store.ts`. New draft keys must be registered in `storage-keys.ts`.
+- **SENSA equation persistence** — Equation values (G, Q_P, Q_M, Q_f, I) are synced to `StudySession.equation` via `updateSessionEquation()` in VelocityLearning and restored via `syncFromStore()` in `useSensaFlow`. Never assume equation state starts fresh on refresh.
 
 ### Skip Reason Routing
 When a user skips a concept, differentiate:
@@ -359,9 +362,38 @@ Enforced in 4 places:
 - [ ] Imports follow the hierarchy: Pages → Features → Components → Shared
 - [ ] No feature-to-feature imports
 - [ ] Imports at top of file only
+- [ ] If adding a learning activity with user state → wired `useActivityAutosave` with appropriate storage key
 - [ ] Mobile-responsive layout
 - [ ] Works in both light and dark mode
 - [ ] Works in both playful and scholarly themes
+
+## E2E Testing (Playwright)
+
+Smoke tests cover all 22 features from `FEATURE_SUCCESS_CRITERIA.md` across admin and learner roles.
+
+| Project | Auth | What it tests |
+|---------|------|---------------|
+| `setup-admin` | `nkosinathi.dhliso@gmail.com` (allowlisted) | Saves `playwright/.auth/admin.json` |
+| `setup-learner` | `dhlisob@gmail.com` (non-allowlisted) | Saves `playwright/.auth/learner.json` |
+| `admin-smoke` | Uses admin state | Library, community, settings, study, generation UI, themes, error resilience |
+| `learner-smoke` | Uses learner state | Generation Restricted page, community browse, settings, themes, error resilience |
+
+```bash
+npx playwright test --project=setup-admin --project=setup-learner --project=admin-smoke --project=learner-smoke
+```
+
+Key files:
+- `playwright.config.ts` — project definitions, storage state paths
+- `tests/auth.setup.ts` — admin auth via Login page UI
+- `tests/auth-learner.setup.ts` — learner auth via Login page UI
+- `tests/smoke-admin.spec.ts` — 28 admin smoke tests
+- `tests/smoke-learner.spec.ts` — 22 learner smoke tests
+- `.env.playwright` — credentials (gitignored)
+
+When updating UI selectors (placeholders, button text), update **all** test files:
+`home.spec.ts`, `learner-experience.spec.ts`, `navigation.spec.ts`, `visual-ux.spec.ts`, `generation-flow.spec.ts`, `smoke-admin.spec.ts`, `smoke-learner.spec.ts`
+
+---
 
 ## Post-Change Checklist
 
@@ -370,3 +402,4 @@ Enforced in 4 places:
 - [ ] **TypeScript clean** — `npx tsc --noEmit` returns 0 errors
 - [ ] **package.json current** — If you added/removed a dependency
 - [ ] **Lambda deployed** — If you changed `backend/lambda/` code (see `docs/generation-pipeline.md`)
+- [ ] **Playwright passes** — If you changed UI selectors or routes, run smoke tests

@@ -1,6 +1,6 @@
 # Generation Pipeline
 
-**Last Updated:** February 15, 2026
+**Last Updated:** February 16, 2026
 **Status:** MANDATORY — Understand this before modifying generation or parsing code.
 
 ---
@@ -345,7 +345,8 @@ backend/lambda/
 |-------|---------|-----|
 | IndexedDB | Full generated documents (offline access) | None |
 | localStorage | Session progress recovery | 24 hours |
-| Zustand (memory) | Active session state | Page lifetime |
+| localStorage (drafts) | Activity in-progress state (concept maps, blank sheet responses) | 24 hours (auto-cleanup) |
+| Zustand (memory + persist) | Active session state, equation values, concept maps | Page lifetime (persisted subset survives refresh) |
 
 ---
 

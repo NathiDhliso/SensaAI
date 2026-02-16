@@ -1,6 +1,6 @@
 # Learning Science
 
-**Last Updated:** February 14, 2026
+**Last Updated:** February 16, 2026
 **Status:** MANDATORY — All learning features must align with this model.
 
 ---
@@ -25,6 +25,8 @@ Tracked by `EquationTracker` component which provides:
 - Actionable recommendation banner identifying the bottleneck factor and specific corrective action
 - Proactive intervention when Q_P < 0.2 during Study/Apply ("grinding futile" warning with backtrack button)
 - Mastery threshold progress bar (75% target)
+
+**Persistence:** Equation values (G, Q_P, Q_M, Q_f, I) are persisted on `StudySession.equation` via `updateSessionEquation()` and survive page refresh. On mount, `syncFromStore()` in `useSensaFlow` restores them from the Zustand-persisted study session — the learner sees accumulated progress immediately, not a reset to defaults.
 
 ---
 
@@ -61,6 +63,8 @@ The Synoptic View help overlay mirrors the 6 canonical TRACES relationship label
 **Component:** `ConceptMapBuilder`
 **Purpose:** Construct connections between concepts visually.
 **Outputs:** `ConceptMapData { nodes[], connections[] }`
+
+**Draft Persistence:** In-progress concept maps are autosaved to localStorage via `useActivityAutosave` (throttled, 24h TTL). Completed maps are stored on `StudySession.conceptMap` (Zustand persist). When re-entering BUILD, `VelocityLearning` passes `initialData={studySession?.conceptMap}` to restore the previous map.
 
 The canvas includes an always-visible **Relationship Legend** with child-friendly definitions and examples for the 6 canonical labels: `requires`, `enables`, `is-part-of`, `is-type-of`, `causes`, `constrains`.
 
@@ -148,7 +152,7 @@ Activities available in the Gym (`GymActivityLauncher`) and some in the main loo
 | Activity | Where Used | Cognitive Target |
 |----------|-----------|-----------------|
 | **ConceptMapBuilder** | Main loop (Step 2) + Gym | Structural understanding, connection-making |
-| **BlankSheetTest** | Main loop (Retain AI) | Free recall, memory consolidation |
+| **BlankSheetTest** | Main loop (Retain AI) | Free recall, memory consolidation (response text autosaved) |
 | **ConfusionDrill** | Main loop (confusion state) | Discrimination between similar concepts |
 | **PeerReviewActivity (Interrogator)** | Main loop (social-learning) + Gym | Misconception diagnosis, defense under pressure |
 | **CreativeTransferActivity** | Main loop (creative-transfer) | Apply knowledge to novel scenarios |
