@@ -136,7 +136,7 @@ export default function CommunityLibrary() {
                 </div>
                 <div className={styles.cardActions}>
                   <button
-                    onClick={() => navigate(`/launchpad/${job.jobId}`)}
+                    onClick={() => navigate(`/launchpad/${job.jobId}`, { state: { ownerId: job.ownerId, community: true } })}
                     className={styles.viewButton}
                     title="View this learning system"
                   >

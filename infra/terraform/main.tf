@@ -93,6 +93,8 @@ module "lambda" {
   concepts_table_name = module.dynamodb.concepts_table_name
   jobs_table_arn      = module.dynamodb.jobs_table_arn
   jobs_table_name     = module.dynamodb.jobs_table_name
+  userdata_table_arn  = module.dynamodb.userdata_table_arn
+  userdata_table_name = module.dynamodb.userdata_table_name
 
   # Lambda source code
   source_dir = "${path.module}/../../backend/lambda"

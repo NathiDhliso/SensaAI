@@ -84,3 +84,33 @@ resource "aws_dynamodb_table" "generation_jobs" {
     Environment = var.environment
   })
 }
+
+# DynamoDB Table for User Data (learning progress, preferences, reviews)
+# Single-table design: PK=userId, SK=dataKey (e.g. REVIEW#conceptId, STATS#focus)
+resource "aws_dynamodb_table" "userdata" {
+  name         = "${var.project_name}-userdata-${var.environment}"
+  billing_mode = "PAY_PER_REQUEST"
+
+  hash_key  = "userId"
+  range_key = "dataKey"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  attribute {
+    name = "dataKey"
+    type = "S"
+  }
+
+  # Point-in-time recovery for production safety
+  point_in_time_recovery {
+    enabled = var.environment == "prod" ? true : false
+  }
+
+  tags = merge(var.tags, {
+    Name        = "${var.project_name}-userdata-${var.environment}"
+    Environment = var.environment
+  })
+}

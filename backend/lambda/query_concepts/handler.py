@@ -23,6 +23,7 @@ from shared.utils import (
 # Environment variables
 CONCEPTS_TABLE = os.environ.get("CONCEPTS_TABLE", "sensapbl-concepts-dev")
 JOBS_TABLE = os.environ.get("JOBS_TABLE", "sensapbl-jobs-dev")
+USERDATA_TABLE = os.environ.get("USERDATA_TABLE", "sensapbl-userdata-dev")
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
 # Default page size
 DEFAULT_LIMIT = 25
@@ -61,6 +62,16 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if not user_id or not subject_id:
                 return api_response(400, {"error": "userId (query param) and subjectId (path) are required"}, event)
             return handle_delete_subject(user_id, subject_id, event)
+
+        if http_method == "POST":
+            body = json.loads(event.get("body", "{}"))
+            action = body.get("action")
+            if action == "batch_put_userdata":
+                user_id = body.get("userId")
+                items = body.get("items", [])
+                if not user_id or not items:
+                    return api_response(400, {"error": "userId and items are required"}, event)
+                return handle_batch_put_userdata(user_id, items, event)
 
         # Parse query parameters
         params = event.get("queryStringParameters", {}) or {}
@@ -101,6 +112,17 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if not job_id or not owner_id:
                 return api_response(400, {"error": "jobId and ownerId are required"}, event)
             return handle_get_public_content(owner_id, job_id, event)
+        elif action == "get_userdata":
+            prefix = params.get("prefix", "")
+            return handle_get_userdata(user_id, prefix, event)
+        elif action == "put_userdata":
+            data_key = params.get("dataKey")
+            data_json = params.get("data")
+            if not data_key or not data_json:
+                return api_response(400, {"error": "dataKey and data are required"}, event)
+            import json as _json
+            data = _json.loads(data_json)
+            return handle_put_userdata(user_id, data_key, data, event)
         elif action == "list_subjects":
             return handle_list_subjects(user_id, event)
         elif action == "delete_subject":
@@ -588,3 +610,73 @@ def handle_get_public_content(owner_id: str, job_id: str, event=None) -> Dict[st
 def health_check(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Simple health check for Lambda"""
     return api_response(200, {"status": "healthy", "service": "query_concepts"})
+
+
+# ==============================================================================
+# USER DATA HANDLERS
+# ==============================================================================
+
+def handle_get_userdata(user_id: str, prefix: str, event=None) -> Dict[str, Any]:
+    """
+    Get user data items, optionally filtered by SK prefix.
+    """
+    table = dynamodb.Table(USERDATA_TABLE)
+    try:
+        if prefix:
+            response = table.query(
+                KeyConditionExpression=Key("userId").eq(user_id) & Key("dataKey").begins_with(prefix)
+            )
+        else:
+            response = table.query(
+                KeyConditionExpression=Key("userId").eq(user_id)
+            )
+        items = []
+        for item in response.get("Items", []):
+            items.append({
+                "userId": item.get("userId"),
+                "dataKey": item.get("dataKey"),
+                "data": item.get("data"),
+                "updatedAt": int(item.get("updatedAt", 0)),
+            })
+        return api_response(200, {"items": items, "count": len(items)}, event)
+    except Exception as e:
+        return api_response(500, {"error": f"Failed to get user data: {str(e)}"}, event)
+
+
+def handle_put_userdata(user_id: str, data_key: str, data: Any, event=None) -> Dict[str, Any]:
+    """
+    Upsert a single user data item.
+    """
+    import time
+    table = dynamodb.Table(USERDATA_TABLE)
+    try:
+        table.put_item(Item={
+            "userId": user_id,
+            "dataKey": data_key,
+            "data": data,
+            "updatedAt": int(time.time()),
+        })
+        return api_response(200, {"status": "ok", "dataKey": data_key}, event)
+    except Exception as e:
+        return api_response(500, {"error": f"Failed to put user data: {str(e)}"}, event)
+
+
+def handle_batch_put_userdata(user_id: str, items: List[Dict[str, Any]], event=None) -> Dict[str, Any]:
+    """
+    Batch upsert user data items (max 25 per batch).
+    """
+    import time
+    table = dynamodb.Table(USERDATA_TABLE)
+    now = int(time.time())
+    try:
+        with table.batch_writer() as batch:
+            for item in items:
+                batch.put_item(Item={
+                    "userId": user_id,
+                    "dataKey": item["dataKey"],
+                    "data": item["data"],
+                    "updatedAt": now,
+                })
+        return api_response(200, {"status": "ok", "count": len(items)}, event)
+    except Exception as e:
+        return api_response(500, {"error": f"Failed to batch put user data: {str(e)}"}, event)

@@ -32,6 +32,16 @@ variable "jobs_table_name" {
   type        = string
 }
 
+variable "userdata_table_arn" {
+  description = "ARN of the userdata DynamoDB table"
+  type        = string
+}
+
+variable "userdata_table_name" {
+  description = "Name of the userdata DynamoDB table"
+  type        = string
+}
+
 # Source Configuration
 variable "source_dir" {
   description = "Path to the Lambda source code directory"

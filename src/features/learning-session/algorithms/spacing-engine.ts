@@ -11,6 +11,8 @@
  * 
  * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7
  */
+import { userdataApi } from '@/shared/api/userdata';
+import { getCurrentUserId, fireAndForget } from '@/shared/api/cloud-sync';
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -102,9 +104,14 @@ export class SpacingEngine {
     private reviews: Map<string, ScheduledReview> = new Map();
     private config: SpacingConfig;
     private storageKey = 'sensa-ai-spacing-reviews';
+    /** Track the last-changed conceptId so saveToStorage can sync just that one */
+    private lastChangedConceptId: string | null = null;
+
     constructor(config: Partial<SpacingConfig> = {}) {
         this.config = { ...DEFAULT_CONFIG, ...config };
         this.loadFromStorage();
+        // Async: merge with cloud data after localStorage loads
+        this.initFromCloud();
     }
     // ─── PERSISTENCE ──────────────────────────────────────────────────────────
     private loadFromStorage(): void {
@@ -124,6 +131,84 @@ export class SpacingEngine {
             localStorage.setItem(this.storageKey, JSON.stringify(data));
         } catch (e) {
             console.warn('[SpacingEngine] Failed to save to storage:', e);
+        }
+        // Fire-and-forget cloud sync for the changed review
+        if (this.lastChangedConceptId) {
+            const review = this.reviews.get(this.lastChangedConceptId);
+            if (review) {
+                const userId = getCurrentUserId();
+                if (userId) {
+                    fireAndForget(
+                        () => userdataApi.put(userId, `REVIEW#${review.conceptId}`, review),
+                        'saveReview'
+                    );
+                }
+            }
+            this.lastChangedConceptId = null;
+        }
+    }
+
+    // ─── CLOUD SYNC ───────────────────────────────────────────────────────────
+    /**
+     * Load reviews from cloud and merge with local data.
+     * Cloud data wins for the same concept if it has more reviews (higher successCount + failCount).
+     */
+    private async initFromCloud(): Promise<void> {
+        const userId = getCurrentUserId();
+        if (!userId) return; // Not logged in yet
+        try {
+            const response = await userdataApi.getAll(userId, 'REVIEW#');
+            if (!response.items || response.items.length === 0) {
+                // No cloud data — push local data up
+                if (this.reviews.size > 0) {
+                    await this.syncAllToCloud();
+                }
+                return;
+            }
+            let merged = 0;
+            for (const item of response.items) {
+                const review = item.data as ScheduledReview;
+                if (!review?.conceptId) continue;
+                const local = this.reviews.get(review.conceptId);
+                const cloudTotal = (review.successCount || 0) + (review.failCount || 0);
+                const localTotal = local ? (local.successCount + local.failCount) : 0;
+                // Cloud wins if it has more review history
+                if (!local || cloudTotal > localTotal) {
+                    this.reviews.set(review.conceptId, review);
+                    merged++;
+                }
+            }
+            if (merged > 0) {
+                console.log(`[SpacingEngine] Merged ${merged} reviews from cloud`);
+                // Save merged state back to localStorage
+                try {
+                    const data = Array.from(this.reviews.values());
+                    localStorage.setItem(this.storageKey, JSON.stringify(data));
+                } catch { /* non-critical */ }
+            }
+            // Push any local-only reviews to cloud
+            await this.syncAllToCloud();
+        } catch (e) {
+            console.warn('[SpacingEngine] Cloud sync failed (non-blocking):', e);
+        }
+    }
+
+    /**
+     * Batch-write all reviews to cloud.
+     */
+    async syncAllToCloud(): Promise<void> {
+        const userId = getCurrentUserId();
+        if (!userId) return;
+        const items = Array.from(this.reviews.values()).map(review => ({
+            dataKey: `REVIEW#${review.conceptId}`,
+            data: review as unknown,
+        }));
+        if (items.length === 0) return;
+        try {
+            await userdataApi.batchPut(userId, items);
+            console.log(`[SpacingEngine] Synced ${items.length} reviews to cloud`);
+        } catch (e) {
+            console.warn('[SpacingEngine] Batch sync to cloud failed:', e);
         }
     }
     // ─── SCHEDULING ───────────────────────────────────────────────────────────
@@ -161,6 +246,7 @@ export class SpacingEngine {
             repetitions: 0
         };
         this.reviews.set(conceptId, review);
+        this.lastChangedConceptId = conceptId;
         this.saveToStorage();
         return review;
     }
@@ -256,6 +342,7 @@ export class SpacingEngine {
         review.dueDate = dueDate.toISOString();
         review.priority = this.calculatePriority(dueDate, review.hasConfusionPairs);
         this.reviews.set(conceptId, review);
+        this.lastChangedConceptId = conceptId;
         this.saveToStorage();
         return review;
     }

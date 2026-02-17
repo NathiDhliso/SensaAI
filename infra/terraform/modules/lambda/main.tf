@@ -68,7 +68,8 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Resource = [
           var.concepts_table_arn,
           "${var.concepts_table_arn}/index/*",
-          var.jobs_table_arn
+          var.jobs_table_arn,
+          var.userdata_table_arn
         ]
       },
       # Bedrock access for LLM
@@ -204,6 +205,7 @@ resource "aws_lambda_function" "query_concepts" {
       ENVIRONMENT    = var.environment
       CONCEPTS_TABLE = var.concepts_table_name
       JOBS_TABLE     = var.jobs_table_name
+      USERDATA_TABLE = var.userdata_table_name
       LOG_LEVEL      = var.environment == "prod" ? "INFO" : "DEBUG"
     }
   }

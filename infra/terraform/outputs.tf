@@ -48,6 +48,11 @@ output "dynamodb_jobs_table" {
   value       = module.dynamodb.jobs_table_name
 }
 
+output "dynamodb_userdata_table" {
+  description = "DynamoDB table name for user data"
+  value       = module.dynamodb.userdata_table_name
+}
+
 # ==============================================================================
 # LAMBDA - Functions
 # ==============================================================================

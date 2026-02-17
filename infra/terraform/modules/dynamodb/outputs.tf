@@ -17,3 +17,13 @@ output "jobs_table_arn" {
   description = "ARN of the generation jobs DynamoDB table"
   value       = aws_dynamodb_table.generation_jobs.arn
 }
+
+output "userdata_table_name" {
+  description = "Name of the user data DynamoDB table"
+  value       = aws_dynamodb_table.userdata.name
+}
+
+output "userdata_table_arn" {
+  description = "ARN of the user data DynamoDB table"
+  value       = aws_dynamodb_table.userdata.arn
+}

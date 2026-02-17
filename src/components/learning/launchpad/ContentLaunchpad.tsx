@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     ArrowLeft,
     Play,
@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storageManager } from '@/features/content-storage';
+import { conceptsApi } from '@/shared/api/concepts';
+import { buildDocumentFromConcepts } from '@/shared/utils/content-builder';
 import { parseGeneratedContent } from '@/features/content-generation/parsers';
 import type { ParsedGeneratedContent } from '@/features/content-generation/parsers/types';
 import type { SavedResult } from '@/features/content-storage/types';
@@ -76,6 +78,9 @@ const BANDWIDTH_CONFIG: Record<CognitiveBandwidth, { icon: React.ReactNode; labe
 export default function ContentLaunchpad() {
     const { subjectId } = useParams<{ subjectId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
+    const isCommunity = (location.state as { community?: boolean })?.community === true;
+    const communityOwnerId = (location.state as { ownerId?: string })?.ownerId;
     const { lastSessionMood } = usePersonalizationStore();
     const [activeTab, setActiveTab] = useState<LaunchpadTab>('gym');
     const [result, setResult] = useState<SavedResult | null>(null);
@@ -280,7 +285,37 @@ export default function ContentLaunchpad() {
         const loadData = async () => {
             if (!subjectId) return;
             try {
-                const data = await storageManager.loadResult(subjectId);
+                let data: SavedResult | null = null;
+
+                if (isCommunity && communityOwnerId) {
+                    // Community content: use public API with the owner's userId
+                    const publicData = await conceptsApi.getPublicContent(communityOwnerId, subjectId);
+                    const fullDocument = buildDocumentFromConcepts(publicData.subject, publicData.concepts);
+                    data = {
+                        id: publicData.jobId,
+                        subject: publicData.subject,
+                        generatedAt: new Date().toISOString(),
+                        fullDocument,
+                        pass1Data: {
+                            domain: publicData.subject,
+                            roleScope: 'General',
+                            lifecycle: { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' },
+                            concepts: publicData.concepts.map(c => c.name)
+                        },
+                        validation: {
+                            completeness: 90,
+                            lifecycleConsistency: 90,
+                            positiveFraming: 90,
+                            formatConsistency: 90
+                        },
+                        savedLocally: false,
+                        savedToCloud: true
+                    };
+                } else {
+                    // Own content: use storageManager (looks up with current user's ID)
+                    data = await storageManager.loadResult(subjectId);
+                }
+
                 if (data) {
                     setResult(data);
                     const parseResult = parseGeneratedContent(data.fullDocument);
@@ -305,7 +340,7 @@ export default function ContentLaunchpad() {
             }
         };
         loadData();
-    }, [subjectId, runAudit]);
+    }, [subjectId, isCommunity, communityOwnerId, runAudit]);
     useEffect(() => {
         try {
             const spacing = getSpacingEngine();
