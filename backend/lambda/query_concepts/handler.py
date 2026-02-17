@@ -53,6 +53,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         # Check for DELETE method (used by frontend apiClient.delete)
         http_method = event.get("requestContext", {}).get("http", {}).get("method", "GET")
+        raw_path = event.get("rawPath", "")
 
         if http_method == "DELETE":
             path_params = event.get("pathParameters", {}) or {}
@@ -63,6 +64,33 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return api_response(400, {"error": "userId (query param) and subjectId (path) are required"}, event)
             return handle_delete_subject(user_id, subject_id, event)
 
+        # Path-based routing for userdata endpoints
+        if http_method == "PUT" and "/concepts/userdata" in raw_path:
+            body = json.loads(event.get("body", "{}"))
+            user_id = body.get("userId")
+            data_key = body.get("dataKey")
+            data = body.get("data")
+            if not user_id or not data_key or data is None:
+                return api_response(400, {"error": "userId, dataKey, and data are required"}, event)
+            return handle_put_userdata(user_id, data_key, data, event)
+
+        if http_method == "POST" and "/concepts/userdata" in raw_path:
+            body = json.loads(event.get("body", "{}"))
+            # Support both path-based batch and action-based batch
+            user_id = body.get("userId")
+            items = body.get("items", [])
+            if not user_id or not items:
+                return api_response(400, {"error": "userId and items are required"}, event)
+            return handle_batch_put_userdata(user_id, items, event)
+
+        if http_method == "GET" and "/concepts/userdata" in raw_path:
+            params = event.get("queryStringParameters", {}) or {}
+            user_id = params.get("userId")
+            if not user_id:
+                return api_response(400, {"error": "userId is required"}, event)
+            prefix = params.get("prefix", "")
+            return handle_get_userdata(user_id, prefix, event)
+
         if http_method == "POST":
             body = json.loads(event.get("body", "{}"))
             action = body.get("action")
@@ -72,6 +100,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 if not user_id or not items:
                     return api_response(400, {"error": "userId and items are required"}, event)
                 return handle_batch_put_userdata(user_id, items, event)
+
 
         # Parse query parameters
         params = event.get("queryStringParameters", {}) or {}

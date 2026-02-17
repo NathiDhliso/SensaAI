@@ -296,6 +296,37 @@ resource "aws_apigatewayv2_route" "concepts_job_status" {
 }
 
 # ==============================================================================
+# User Data Routes (GET/PUT /concepts/userdata, POST /concepts/userdata/batch)
+# ==============================================================================
+
+resource "aws_apigatewayv2_route" "userdata_get" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /concepts/userdata"
+  target    = "integrations/${aws_apigatewayv2_integration.query_concepts.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
+}
+
+resource "aws_apigatewayv2_route" "userdata_put" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "PUT /concepts/userdata"
+  target    = "integrations/${aws_apigatewayv2_integration.query_concepts.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
+}
+
+resource "aws_apigatewayv2_route" "userdata_batch" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /concepts/userdata/batch"
+  target    = "integrations/${aws_apigatewayv2_integration.query_concepts.id}"
+
+  authorization_type = var.enable_jwt_authorizer ? "JWT" : "NONE"
+  authorizer_id      = var.enable_jwt_authorizer ? aws_apigatewayv2_authorizer.cognito[0].id : null
+}
+
+# ==============================================================================
 # Cognito JWT Authorizer (optional)
 # ==============================================================================
 
