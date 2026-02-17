@@ -622,6 +622,21 @@ export default function VelocityLearning() {
                             initialPhase={currentPhase === 'PREVIEW' ? 'sprint' : 'structure'}
                             onComplete={(guesses) => {
                                 sensaFlow.completeExplore(guesses);
+                                sensaFlow.updateLearnerMetrics({
+                                    completedConcepts: currentSession!.progress.completedConcepts.length,
+                                    totalConcepts: currentSession!.concepts.length,
+                                    consecutiveCorrect: 0,
+                                    consecutiveErrors: 0,
+                                    timeSpentMs: currentSession!.progress.sessionStartTime ? Date.now() - currentSession!.progress.sessionStartTime : 0,
+                                    targetDurationMs: (studySession?.targetDuration ?? 30) * 60000,
+                                    cycleCompletions: 0,
+                                    blankSheetScore: 0,
+                                    quizAccuracy: 0,
+                                    mapNodeCount: 0,
+                                    mapConnectionCount: 0,
+                                    guessCount: guesses.size,
+                                    avgResponseTimeMs: 0
+                                });
                             }}
                         />
                     </motion.div>
@@ -642,6 +657,21 @@ export default function VelocityLearning() {
                             onComplete={(data) => {
                                 markSessionMapBuilt(data);
                                 sensaFlow.completeNote(data);
+                                sensaFlow.updateLearnerMetrics({
+                                    completedConcepts: currentSession!.progress.completedConcepts.length,
+                                    totalConcepts: currentSession!.concepts.length,
+                                    consecutiveCorrect: 0,
+                                    consecutiveErrors: 0,
+                                    timeSpentMs: currentSession!.progress.sessionStartTime ? Date.now() - currentSession!.progress.sessionStartTime : 0,
+                                    targetDurationMs: (studySession?.targetDuration ?? 30) * 60000,
+                                    cycleCompletions: 0,
+                                    blankSheetScore: 0,
+                                    quizAccuracy: 0,
+                                    mapNodeCount: data.nodes.length,
+                                    mapConnectionCount: data.connections.length,
+                                    guessCount: Object.keys(studySession?.predictions ?? {}).length,
+                                    avgResponseTimeMs: 0
+                                });
                             }}
                         />
                     </motion.div>

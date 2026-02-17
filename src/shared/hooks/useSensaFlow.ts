@@ -230,11 +230,8 @@ export function useSensaFlow(): UseSensaFlowReturn {
     // =========================================================================
     const completeExplore = useCallback((guesses: Map<string, string>) => {
         setState(prev => {
-            // Guessing boosts Q_k (prior knowledge) and Q_c (connections)
-            const guessBonus = Math.min(guesses.size * 0.05, 0.25);
-            const Q_k = Math.min(1, prev.Q_k + 0.2 + guessBonus);
-            const Q_c = Math.min(1, prev.Q_c + 0.15 + guessBonus);
-            const next = { ...prev, Q_k, Q_c, userGuesses: guesses };
+            const Q_p = Math.min(1, prev.Q_p + 0.1);
+            const next = { ...prev, Q_p, userGuesses: guesses };
             return {
                 ...next,
                 I: recalcI(next),
@@ -245,13 +242,8 @@ export function useSensaFlow(): UseSensaFlowReturn {
     }, []);
     const completeNote = useCallback((mapData: ConceptMapData, validation?: ValidationResult) => {
         setState(prev => {
-            // Map building significantly boosts Q_c (connections) and Q_p (process)
-            const nodeBonus = Math.min(mapData.nodes.length * 0.02, 0.2);
-            const connBonus = Math.min(mapData.connections.length * 0.03, 0.2);
-            const accuracyBonus = validation ? (validation.guessAccuracy / 100) * 0.15 : 0;
-            const Q_c = Math.min(1, prev.Q_c + 0.25 + connBonus + accuracyBonus);
-            const Q_p = Math.min(1, prev.Q_p + 0.25 + nodeBonus);
-            const next = { ...prev, Q_c, Q_p, conceptMap: mapData, validationResult: validation || null };
+            const Q_p = Math.min(1, prev.Q_p + 0.1);
+            const next = { ...prev, Q_p, conceptMap: mapData, validationResult: validation || null };
             return {
                 ...next,
                 I: recalcI(next),
@@ -260,13 +252,10 @@ export function useSensaFlow(): UseSensaFlowReturn {
             };
         });
     }, []);
-    const completeStudy = useCallback((reconstructionScore: number) => {
+    const completeStudy = useCallback((_reconstructionScore: number) => {
         setState(prev => {
-            // Study phase boosts Q_r (recall) and Q_p (process fidelity)
-            const studyBonus = reconstructionScore * 0.25;
-            const Q_r = Math.min(1, prev.Q_r + studyBonus);
-            const Q_p = Math.min(1, prev.Q_p + studyBonus);
-            const next = { ...prev, Q_r, Q_p };
+            const Q_p = Math.min(1, prev.Q_p + 0.1);
+            const next = { ...prev, Q_p };
             return {
                 ...next,
                 I: recalcI(next),
@@ -275,9 +264,10 @@ export function useSensaFlow(): UseSensaFlowReturn {
             };
         });
     }, []);
-    const completeApply = useCallback((synthesisScore: number, flowModeCompleted: boolean, Q_f: number) => {
+    const completeApply = useCallback((synthesisScore: number, flowModeCompleted: boolean, _Q_f: number) => {
         setState(prev => {
-            const next = { ...prev, Q_f, synthesisScore, flowModeCompleted };
+            const Q_p = Math.min(1, prev.Q_p + 0.1);
+            const next = { ...prev, Q_p, synthesisScore, flowModeCompleted };
             return {
                 ...next,
                 I: recalcI(next),

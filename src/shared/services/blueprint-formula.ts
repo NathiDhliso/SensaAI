@@ -86,9 +86,8 @@ function calculateProceduralQ(inputs: QMetricInputs): LearnerQMetrics {
     const completionRate = inputs.totalConcepts > 0
         ? inputs.completedConcepts / inputs.totalConcepts : 0;
 
-    // Q_k: Prior knowledge — how well the learner's existing knowledge aligns
     const predictionAccuracy = inputs.guessCount > 0
-        ? clamp(inputs.guessCount * 0.15) : 0.3; // baseline if no predictions yet
+        ? clamp(inputs.guessCount * 0.15) : 0;
     const Q_k = clamp(predictionAccuracy * 0.6 + completionRate * 0.4);
 
     // Q_r: Recall — genuine unprompted retrieval quality
@@ -99,18 +98,17 @@ function calculateProceduralQ(inputs: QMetricInputs): LearnerQMetrics {
         ? clamp(inputs.mapConnectionCount / Math.max(1, inputs.mapNodeCount * 2)) : 0;
     const Q_c = clamp(connectionDensity * 0.7 + completionRate * 0.3);
 
-    // Q_f: Spacing — for now, use response time improvement as a proxy
-    // (full spacing engine integration is a future enhancement)
     const latencyFactor = inputs.avgResponseTimeMs > 0
-        ? clamp(1 - (inputs.avgResponseTimeMs / 30000)) : 0.5;
+        ? clamp(1 - (inputs.avgResponseTimeMs / 30000)) : 0;
     const continuity = inputs.consecutiveCorrect / Math.max(1, inputs.completedConcepts);
     const Q_f = clamp(latencyFactor * 0.4 + continuity * 0.6);
 
     // Q_p: Process — learning loop fidelity (Test→Encode→Verify completion)
     const handsOnRatio = inputs.timeSpentMs > 0
         ? Math.min(1, inputs.timeSpentMs / inputs.targetDurationMs) : 0;
-    const errorPenalty = inputs.consecutiveErrors > 0
-        ? clamp(1 - inputs.consecutiveErrors * 0.15) : 1.0;
+    const errorPenalty = inputs.completedConcepts > 0
+        ? (inputs.consecutiveErrors > 0 ? clamp(1 - inputs.consecutiveErrors * 0.15) : 1.0)
+        : 0;
     const Q_p = clamp(handsOnRatio * 0.5 + errorPenalty * 0.3 + (inputs.cycleCompletions > 0 ? 0.2 : 0));
 
     return {
@@ -129,9 +127,8 @@ function calculateConceptualQ(inputs: QMetricInputs): LearnerQMetrics {
     const completionRate = inputs.totalConcepts > 0
         ? inputs.completedConcepts / inputs.totalConcepts : 0;
 
-    // Q_k: Prior knowledge — predictions and context recognition
     const predictionAccuracy = inputs.guessCount > 0
-        ? clamp(inputs.guessCount * 0.12) : 0.3;
+        ? clamp(inputs.guessCount * 0.12) : 0;
     const Q_k = clamp(predictionAccuracy * 0.5 + completionRate * 0.5);
 
     // Q_r: Recall — transfer recognition from blank sheet and novel scenarios
@@ -143,14 +140,14 @@ function calculateConceptualQ(inputs: QMetricInputs): LearnerQMetrics {
     const Q_c = clamp(transferRate * 0.6 + completionRate * 0.4);
 
     // Q_f: Spacing — move fluency and context switching
-    const contextSwitch = inputs.consecutiveErrors === 0
-        ? 1.0 : clamp(1 - inputs.consecutiveErrors * 0.15);
+    const contextSwitch = inputs.consecutiveErrors === 0 && inputs.completedConcepts > 0
+        ? 1.0 : inputs.consecutiveErrors > 0 ? clamp(1 - inputs.consecutiveErrors * 0.15) : 0;
     const Q_f = clamp(inputs.quizAccuracy * 0.5 + contextSwitch * 0.5);
 
     // Q_p: Process — case work completion fidelity
     const caseWork = completionRate;
     const reflectionDepth = inputs.guessCount > 0 ? clamp(inputs.guessCount * 0.1) : 0;
-    const Q_p = clamp(caseWork * 0.6 + reflectionDepth * 0.4);
+    const Q_p = clamp(caseWork * 0.5 + reflectionDepth * 0.3 + (inputs.cycleCompletions > 0 ? 0.2 : 0));
 
     return {
         Q_k, Q_r, Q_c, Q_f, Q_p,
@@ -168,8 +165,7 @@ function calculateCyclicQ(inputs: QMetricInputs): LearnerQMetrics {
     const completionRate = inputs.totalConcepts > 0
         ? inputs.completedConcepts / inputs.totalConcepts : 0;
 
-    // Q_k: Prior knowledge — baseline confidence going into cycles
-    const Q_k = clamp(completionRate * 0.5 + (inputs.guessCount > 0 ? 0.3 : 0.2) + (inputs.consecutiveCorrect > 0 ? 0.2 : 0));
+    const Q_k = clamp(completionRate * 0.5 + (inputs.guessCount > 0 ? clamp(inputs.guessCount * 0.1) : 0) + (inputs.consecutiveCorrect > 0 ? 0.2 : 0));
 
     // Q_r: Recall — insight per cycle
     const Q_r = clamp(inputs.blankSheetScore * 0.5 + inputs.quizAccuracy * 0.5);
@@ -206,8 +202,7 @@ function calculatePerceptualQ(inputs: QMetricInputs): LearnerQMetrics {
     const completionRate = inputs.totalConcepts > 0
         ? inputs.completedConcepts / inputs.totalConcepts : 0;
 
-    // Q_k: Prior knowledge — pattern recognition baseline
-    const Q_k = clamp(completionRate * 0.4 + (inputs.guessCount > 0 ? 0.3 : 0.2) + (inputs.consecutiveCorrect > 3 ? 0.3 : inputs.consecutiveCorrect * 0.1));
+    const Q_k = clamp(completionRate * 0.4 + (inputs.guessCount > 0 ? clamp(inputs.guessCount * 0.1) : 0) + (inputs.consecutiveCorrect > 3 ? 0.3 : inputs.consecutiveCorrect * 0.1));
 
     // Q_r: Recall — discrimination accuracy
     const Q_r = clamp(inputs.quizAccuracy * 0.5 + inputs.blankSheetScore * 0.5);
