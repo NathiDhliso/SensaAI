@@ -1,12 +1,13 @@
 /**
  * LearningToolbar Component
- * 
- * Toolbar with learning utilities: Focus Timer, Progress Analytics, Quiz.
+ *
+ * Toolbar with learning utilities: Focus Timer, Progress Analytics, Quiz,
+ * and a compact Learning Health indicator pill.
  * When a focus session is active, the timer button is hidden since
  * UnifiedSessionBar handles session display.
  */
 import { useState } from 'react';
-import { Timer, BarChart3, Brain, Flame, FileText, RotateCcw, Zap, AlertCircle } from 'lucide-react';
+import { Timer, BarChart3, Brain, Flame, FileText, RotateCcw, Zap, AlertCircle, Activity, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useFlowState } from '@/shared/hooks/useFlowState';
 import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
@@ -14,7 +15,14 @@ import { FocusTimer } from './FocusTimer';
 import { ProgressAnalytics } from './ProgressAnalytics';
 import { QuickQuiz } from './QuickQuiz';
 import styles from './LearningToolbar.module.css';
-export function LearningToolbar() {
+
+interface LearningToolbarProps {
+    healthPercent?: number;
+    isHealthOpen?: boolean;
+    onToggleHealth?: () => void;
+}
+
+export function LearningToolbar({ healthPercent, isHealthOpen, onToggleHealth }: LearningToolbarProps = {}) {
  const { currentSession, isSessionActive, resetProgress, getCognitiveLoadLevel } = useLearningStore();
  const progress = currentSession?.progress;
  const flowState = useFlowState();
@@ -106,6 +114,20 @@ export function LearningToolbar() {
  <RotateCcw size={14} />
  Reset
  </button>
+ )}
+ {healthPercent !== undefined && onToggleHealth && (
+ <>
+ <div className={styles.toolbarDivider} />
+ <button
+ className={`${styles.healthPill} ${isHealthOpen ? styles.healthPillOpen : ''}`}
+ onClick={onToggleHealth}
+ title="Toggle Learning Health Panel"
+ >
+ <Activity size={14} />
+ <span className={styles.healthPillValue}>{healthPercent}%</span>
+ {isHealthOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+ </button>
+ </>
  )}
  </div>
  <FocusTimer

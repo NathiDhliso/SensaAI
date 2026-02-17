@@ -292,15 +292,9 @@ interface StudySession {
   isInFlowState: boolean;
   timeToastShownAt: string | null;
   // AI Coach Personalization
-  mood?: 'pumped' | 'good' | 'okay' | 'struggling' | 'tired';
-  // SENSA Equation Persistence (survives refresh via Zustand persist)
-  equation?: {
-    G: number;
-    Q_P: number;
-    Q_M: number;
-    Q_f: number;
-    I: number;
-  };
+  mood?: 'energized' | 'neutral' | 'tired' | 'stressed';
+  // Learning Health Equation Persistence (survives refresh via Zustand persist)
+  equation?: LearningHealthEquation; // { h, Q_k, Q_r, Q_c, Q_f, Q_p, I }
 }
 
 interface ConceptMapData {

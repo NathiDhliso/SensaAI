@@ -133,13 +133,13 @@
 
 ---
 
-## 15. Universal Learning Equation Tracker
+## 15. Learning Health Equation Tracker
 
-- A live dashboard showing the learner's "learning absorption" score: **I = min(h, G × Q_f × Q_M × Q_P)**.
-- Each factor (mood bandwidth, content quality, review frequency, mastery depth, process fidelity) is visualised — the learner can see which variable is their weakest link.
-- When process quality drops below a threshold, the system warns "grinding is futile right now" and suggests backtracking — preventing wasted effort.
-- A mastery threshold progress bar shows how close the learner is to the 75% target.
-- **Persistence:** The equation values (G, Q_P, Q_M, Q_f, I) survive page refresh — the learner sees their accumulated progress immediately, not a reset to defaults.
+- A live dashboard showing the learner's "learning health" score: **I = min(h, Q_k × Q_r × Q_c × Q_f × Q_p)**.
+- Each factor (prior knowledge, recall quality, connection quality, spacing quality, process fidelity) is visualised — the learner can see which variable is their weakest link. The mood-dependent bandwidth ceiling (h) is shown separately.
+- When process quality (Q_p) drops below a threshold, the system warns "grinding is futile right now" — preventing wasted effort.
+- A health threshold progress bar shows how close the learner is to the 75% target.
+- **Persistence:** The equation values (h, Q_k, Q_r, Q_c, Q_f, Q_p, I) survive page refresh — the learner sees their accumulated progress immediately, not a reset to defaults.
 
 ---
 
@@ -245,9 +245,9 @@ flowchart TD
     subgraph STUDY["Step 3 — STUDY (Core Engine)"]
         direction TB
         N["Concept Selection Algorithm\n(Prerequisites → Interleaving → Tier Balance)"]
-        O["Phase 1: PREVIEW AI\n(Test Before Teaching)"]
-        P["Phase 2: BUILD AI\n(Structured Learn —\nMetaphor → Architecture → Pitfalls)"]
-        Q["Phase 3: RETAIN AI\n(Verify with Pattern Recognition)"]
+        O["Test\n(Predict & Expose Gaps)"]
+        P["Encode\n(Build Understanding —\nMetaphor → Architecture → Pitfalls)"]
+        Q["Verify\n(Confirm Retention)"]
         N --> O --> P --> Q
         Q -->|"Next Concept"| N
     end
@@ -355,9 +355,9 @@ The diagram above isn't just a feature map — it's the **cognitive journey** a 
 
 1. **Nomenclature First** → You can't reason about a subject if you don't speak its language. The Sprint ensures term fluency *before* deep study.
 2. **Structure Before Detail** → The Concept Map forces the learner to see the forest before the trees. Relationships (TRACES) build the mental scaffold that individual facts hang on.
-3. **Test Before Teach** → Preview AI deliberately exposes gaps. This "desirable difficulty" makes the subsequent learning phase dramatically more effective.
-4. **Learn with Layers** → Build AI doesn't dump information — it layers metaphor → architecture → execution → pitfalls → high-stakes, building understanding from intuition to precision.
-5. **Verify While Fresh** → Retain AI locks in the concept with a pattern-recognition check before the learner moves on.
+3. **Test Before Teach** → The Test phase deliberately exposes gaps. This "desirable difficulty" makes the subsequent learning phase dramatically more effective.
+4. **Learn with Layers** → The Encode phase doesn't dump information — it layers metaphor → architecture → execution → pitfalls → high-stakes, building understanding from intuition to precision.
+5. **Verify While Fresh** → The Verify phase locks in the concept with a pattern-recognition check before the learner moves on.
 6. **Interleave & Space** → The algorithm ensures variety (preventing rote repetition) and the spacing engine schedules future reviews at scientifically optimal intervals.
 7. **Apply Across Concepts** → Mastery Challenge forces *integration* — the learner must combine multiple concepts, proving they can reason, not just recall.
 8. **Gym for Targeted Weakness** → Weak areas identified in the main flow can be attacked with specialised drills (confusion, recall, transfer, pre-mortem) in a pressure-free zone.
@@ -485,9 +485,9 @@ flowchart TD
     subgraph STUDY["Step 3 — STUDY (Core Engine)"]
         direction TB
         N["Concept Selection Algorithm\n(Prerequisites → Interleaving → Tier Balance)"]
-        O["Phase 1: PREVIEW AI\n(Test Before Teaching)"]
-        P["Phase 2: BUILD AI\n(Structured Learn —\nMetaphor → Architecture → Pitfalls)"]
-        Q["Phase 3: RETAIN AI\n(Verify with Pattern Recognition)"]
+        O["Test\n(Predict & Expose Gaps)"]
+        P["Encode\n(Build Understanding —\nMetaphor → Architecture → Pitfalls)"]
+        Q["Verify\n(Confirm Retention)"]
         N --> O --> P --> Q
         Q -->|"Next Concept"| N
     end

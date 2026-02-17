@@ -323,7 +323,7 @@ import { saveProgress } from '@/features/content-storage';
 - **ContentContext was removed** — Use `useLearningStore().getConcepts()` to access loaded concepts.
 - **Hardcoded cognitive load** — Wire to `getCognitiveLoadLevel()` from CognitiveSlice. Never hardcode.
 - **Activity draft autosave** — In-progress activity state (concept maps, blank sheet responses) is autosaved via `useActivityAutosave`. Drafts use the `sensa-activity-draft:` localStorage prefix with 24h TTL. `cleanupExpiredActivityDrafts()` runs on app init in `learning-store.ts`. New draft keys must be registered in `storage-keys.ts`.
-- **SENSA equation persistence** — Equation values (G, Q_P, Q_M, Q_f, I) are synced to `StudySession.equation` via `updateSessionEquation()` in VelocityLearning and restored via `syncFromStore()` in `useSensaFlow`. Never assume equation state starts fresh on refresh.
+- **SENSA equation persistence** — Equation values (h, Q_k, Q_r, Q_c, Q_f, Q_p, I) are synced to `StudySession.equation` via `updateSessionEquation()` in VelocityLearning and restored via `syncFromStore()` in `useSensaFlow`. Never assume equation state starts fresh on refresh.
 
 ### Skip Reason Routing
 When a user skips a concept, differentiate:

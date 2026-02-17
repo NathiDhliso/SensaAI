@@ -213,23 +213,26 @@ Every session step in SensaAI maps to exactly one cell in this matrix. When you'
 
 ---
 
-## The Universal Learning Equation
+## The Learning Health Equation
 
-SensaAI tracks the health of this entire cycle with a single equation:
+SensaAI tracks the health of your learning with a single equation:
 
 ```
-I = min(h, G × Q_f × Q_M × Q_P)
+I = min(h, Q_k × Q_r × Q_c × Q_f × Q_p)
 ```
+
+This measures **only you** — not the AI, not the platform.
 
 | Factor | What It Measures | Which Phase It Maps To |
 |---|---|---|
-| **h** (bandwidth ceiling) | Your cognitive state right now (mood-dependent) | Pre-condition for all phases |
-| **G** (generation quality) | Richness of the AI-generated content | Phase 1 + 2 (quality of the landscape and concepts) |
-| **Q_f** (frequency quality) | Consistency of spaced repetition | Phase 4 (are you showing up for reviews?) |
-| **Q_M** (mastery quality) | Depth of understanding demonstrated | Phase 2 + 3 (do you understand and can you execute?) |
-| **Q_P** (process quality) | Fidelity of the learning loop | All phases (are you following the full cycle?) |
+| **h** (bandwidth ceiling) | Your cognitive state right now (mood-dependent, 0.4–1.0) | Pre-condition for all phases |
+| **Q_k** (prior knowledge) | How well your existing knowledge aligns with the material | Phase 1 (Scout predictions, diagnostic confidence) |
+| **Q_r** (recall quality) | Genuine unprompted retrieval from memory | Phase 3 (blank sheet score, quiz accuracy) |
+| **Q_c** (connection quality) | How well you link concepts together, not just list them | Phase 2 (map connections, label accuracy) |
+| **Q_f** (spacing quality) | Consistency of spaced repetition and review | Phase 4 (are you showing up for reviews?) |
+| **Q_p** (process quality) | Fidelity of the learning loop — are you following the full cycle? | All phases (phase completion, cycle completions) |
 
-**I** (information absorbed) is capped by your weakest factor. If your content is excellent (G=1) but you never review (Q_f=0.2), your absorption collapses. If you review religiously but the content is shallow, same result. The equation makes the bottleneck visible so you can fix it.
+**I** (information absorbed) is capped by your weakest factor. If your recall is strong (Q_r=0.9) but you never review (Q_f=0.2), your absorption collapses. If you review religiously but skip building connections (Q_c=0.1), same result. The equation makes the bottleneck visible so you can fix it.
 
 ---
 

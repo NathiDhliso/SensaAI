@@ -114,6 +114,9 @@
 .canvasArea.isPanning {
  cursor: grabbing;
 }
+.canvasArea.spaceHeld {
+ cursor: grab;
+}
 .canvasGrid {
  position: absolute;
  inset: 0;
@@ -303,7 +306,11 @@
 .node.selected {
  border-color: var(--color-accent-alt);
  box-shadow: 0 0 0 4px var(--color-warning-border);
- /* accent-alt-rgb */
+}
+.node.groupDragging {
+ border-color: var(--color-primary);
+ box-shadow: 0 0 0 3px var(--overlay-primary-10);
+ opacity: 0.9;
 }
 .nodeInfoPopover {
  position: absolute;

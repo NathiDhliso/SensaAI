@@ -91,7 +91,7 @@ Persists in-progress learning activity state so no work is lost on refresh, navi
 
 ### Layer 4: Zustand (Memory + Persist)
 
-Active session state lives in Zustand stores. The `useLearningStore` is persisted to localStorage via `zustand/middleware/persist`, meaning the `currentSession`, `studySession` (including `conceptMap` and `equation` values), and focus settings survive page refresh. The `useSensaFlow` hook restores equation values (G, Q_P, Q_M, Q_f, I) and concept map data from the persisted `studySession` via `syncFromStore()`.
+Active session state lives in Zustand stores. The `useLearningStore` is persisted to localStorage via `zustand/middleware/persist`, meaning the `currentSession`, `studySession` (including `conceptMap` and `equation` values), and focus settings survive page refresh. The `useSensaFlow` hook restores equation values (h, Q_k, Q_r, Q_c, Q_f, Q_p, I) and concept map data from the persisted `studySession` via `syncFromStore()`.
 
 ---
 

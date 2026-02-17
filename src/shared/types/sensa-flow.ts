@@ -1,7 +1,7 @@
 /**
  * SENSA v2.0 Flow Types
  * 
- * Maps to Universal Learning Equation: I = min(h, G × f(M(P(x))))
+ * Maps to Learning Health Equation: I = min(h, Q_k × Q_r × Q_c × Q_f × Q_p)
  */
 import type { ConceptMapData } from './learning';
 // ============================================================================
@@ -43,54 +43,43 @@ export interface QualityComponents {
  [key: string]: number; // Each component is 0-1
 }
 export interface QualityScore {
- score: number; // 0-1, the Q_P/Q_M/Q_f value
+ score: number;
  components: QualityComponents;
  reasoning: string;
  improvementAreas: string[];
 }
-export interface GovernanceScore {
- score: number; // The G multiplier (typically 0.8-1.2)
- modifiers: {
- recency: number;
- authoritySource: number;
- domainComplexity: number;
- };
- reasoning: string;
-}
 export interface BaselineMastery {
- value: number; // I = G × Q_f × Q_M × Q_P
+ value: number;
  calculation: string;
  interpretation: string;
 }
 export interface EquationMetadata {
- Q_P: QualityScore;
- Q_M: QualityScore;
+ Q_k: QualityScore;
+ Q_r: QualityScore;
+ Q_c: QualityScore;
  Q_f: QualityScore;
- G: GovernanceScore;
+ Q_p: QualityScore;
  I_baseline: BaselineMastery;
 }
 // ============================================================================
 // SENSA Flow State Machine
 // ============================================================================
 export interface SensaFlowState {
- /** Current phase in the 5-step flow */
  phase: SensaPhase;
- /** Equation tracking: I = G × Q_f × Q_M × Q_P */
- G: number; // Generation quality factor (content quality)
- Q_P: number; // Practice quality (engagement)
- Q_M: number; // Mastery quality (concept scores)
- Q_f: number; // Flow quality (momentum tracking)
- I: number; // Information absorbed (calculated continuously)
- /** Step-specific data */
- userGuesses: Map<string, string>; // From Step 2: Explore
- conceptMap: ConceptMapData | null; // From Step 3: Note
- reconstructionScore: number; // From Step 4: Study
- synthesisScore: number; // From Step 5: Apply
- flowModeUnlocked: boolean; // Unlocked when synthesis ≥ 0.7
- /** Analytics */
+ h: number;
+ Q_k: number;
+ Q_r: number;
+ Q_c: number;
+ Q_f: number;
+ Q_p: number;
+ I: number;
+ userGuesses: Map<string, string>;
+ conceptMap: ConceptMapData | null;
+ synthesisScore: number;
+ flowModeCompleted: boolean;
  startedAt: Date;
  completedSteps: SensaPhase[];
- timePerStep: Record<SensaPhase, number>; // minutes per step
+ timePerStep: Partial<Record<SensaPhase, number>>;
 }
 export interface ValidationResult {
  guessAccuracy: number; // 0-100

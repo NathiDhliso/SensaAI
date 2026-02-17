@@ -1,17 +1,17 @@
 /**
  * Velocity Learning Page
- * 
+ *
  * Main entry point for the SensaAI Learning Velocity Engine.
  * Orchestrates the SENSA v2.0 5-Step Flow with Universal Learning Equation tracking.
- * I = min(h, G × Q_f × Q_M × Q_P)
+ * I = min(h, Q_k × Q_r × Q_c × Q_f × Q_p)
  */
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Brain, Home } from 'lucide-react';
+import { useSensaFlow } from '@/shared/hooks/useSensaFlow';
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/shared/hooks/useLearningFlow';
-import { useSensaFlow } from '@/shared/hooks/useSensaFlow';
 import { useFlowState } from '@/shared/hooks/useFlowState';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
 import { useCoachMessage } from '@/shared/hooks/useCoachMessage';
@@ -20,7 +20,6 @@ import { loadSessionProgress, getProgressAge, cleanupExpiredProgress } from '@/f
 import { toast } from '@/shared/utils/toast';
 import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
 import { BlueprintFormulaDashboard } from '@/components/dashboard/BlueprintFormulaDashboard';
-import { EquationTracker } from '@/components/ui/EquationTracker';
 import { FlowProgressBar } from '@/components/ui/FlowProgressBar';
 import { ConceptProgressIndicator } from '@/components/ui/ConceptProgressIndicator';
 import MomentumCheckpoint from '@/components/ui/MomentumCheckpoint';
@@ -35,17 +34,17 @@ import SensaSynopticView from '@/components/learning/ui/SensaSynopticView';
 import SkipReasonModal, { type SkipReasonData } from '@/components/learning/feedback/SkipReasonModal';
 import PhaseNavigator from '@/components/learning/ui/PhaseNavigator';
 import { LearningToolbar } from '@/components/learning/LearningToolbar';
-import type {
-    LearningConcept
-} from '@/shared/types/learning';
+import type { LearningConcept } from '@/shared/types/learning';
 import type { SensaAILearningConcept } from '@/features/content-generation/parsers/transformer';
 import CoachInterventionBanner, { type InterventionType } from '@/components/learning/ui/CoachInterventionBanner';
 import ReviewContextPanel, { type ReviewContext } from '@/components/learning/ui/ReviewContextPanel';
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
 import styles from './VelocityLearning.module.css';
+
 export default function VelocityLearning() {
     // 0. Navigation
     const navigate = useNavigate();
+
     // 1. Core State & Actions
     const {
         currentSession,
@@ -63,24 +62,30 @@ export default function VelocityLearning() {
         clearSession,
         updateSessionEquation
     } = useLearningStore();
+
     type DiagnosticResults = {
         knownConcepts: string[];
         knowledgeGaps: string[];
         confidenceScores: Record<string, number>;
         canSkipTrunk: boolean;
     };
+
     // 2. The State Machine Hook (legacy - used for phase detection)
     const {
         currentPhase,
         completedPhases,
         activeConcept
     } = useLearningFlow();
+
     // 2b. SENSA v2.0 Flow State Machine
     const sensaFlow = useSensaFlow();
+
     // 2c. Flow State Detection (Momentum Checkpoints)
     const flowState = useFlowState();
+
     // 2d. Struggle Detection + Coach Messages
     const { showMessage: showCoachMessage } = useCoachMessage();
+
     useStruggleDetector({
         idleThresholdSeconds: 60,
         errorThreshold: 2,
@@ -93,72 +98,91 @@ export default function VelocityLearning() {
             }
         }
     });
-    // 2e. Initialize G baseline from subject classification
+
+    // Initialize Subject Type & Mood
     useEffect(() => {
         if (currentSession?.subjectType) {
-            const confidence = currentSession.macroWorkflow?.classification?.confidence;
-            sensaFlow.initializeFromClassification(currentSession.subjectType, confidence);
+            sensaFlow.initializeSubjectType(currentSession.subjectType);
         }
-    }, [currentSession?.subjectType]);
+        if (studySession?.mood) {
+            sensaFlow.initializeH(studySession.mood);
+        }
+    }, [currentSession?.subjectType, studySession?.mood, sensaFlow]);
+
     const selectionReason = useMemo(() => {
         if (!activeConcept || !currentSession) return null;
         const completed = currentSession.progress.completedConcepts;
         const tier = activeConcept.tier;
+
         if (tier === 'trunk' && completed.length < 3) return 'Building foundations first';
         if (tier === 'leaf') return 'Applying knowledge — leaf concept';
+
         const lastCompleted = completed[completed.length - 1];
         if (lastCompleted) {
             const lastConcept = currentSession.concepts.find(c => c.id === lastCompleted);
             if (lastConcept && lastConcept.tier !== tier) return `Interleaved from ${lastConcept.tier} ${tier}`;
         }
+
         if (tier === 'trunk') return 'Core concept — connecting ideas';
         return null;
     }, [activeConcept, currentSession]);
-    // 3. Local UI State (MUST be declared before useEffects that reference them)
+
+    // 3. Local UI State
     const [lockedIn, setLockedIn] = useState(() => {
-        // Skip lock-in gate for returning users
         return localStorage.getItem('hasLockedIn') === 'true';
     });
+
     // ARCHITECT ENHANCEMENT: Skip Diagnostics
     const [showSkipModal, setShowSkipModal] = useState(false);
     const [pendingSkipConcept, setPendingSkipConcept] = useState<string | null>(null);
     const [showTimeToast, setShowTimeToast] = useState(false);
     const [showCheckpoint, setShowCheckpoint] = useState(false);
     const [timeToastDismissed, setTimeToastDismissed] = useState(false);
+
     // ENHANCEMENT D: Coach Intervention State
     const [intervention, setIntervention] = useState<InterventionType | null>(null);
-    // ENHANCEMENT A: Review Context State
+
+    // ENHANCEMENT A: ReviewContext State
     const [reviewContext, setReviewContext] = useState<ReviewContext | null>(null);
+
+    const [showHealthPanel, setShowHealthPanel] = useState(false);
+
     // Sync SENSA flow state from persisted study session on mount/change
     useEffect(() => {
         if (studySession) {
             sensaFlow.syncFromStore(studySession);
         }
-    }, [studySession, sensaFlow]);
+    }, [studySession]); // removed sensaFlow from deps to avoid loop
 
-    // Persist SENSA equation values to the store (survives refresh via Zustand persist)
+    // Persist Equation State to Store
     useEffect(() => {
         if (!studySession) return;
-        // Only persist if any value is non-zero (session is active)
-        if (sensaFlow.G === 0 && sensaFlow.Q_P === 0 && sensaFlow.Q_M === 0 && sensaFlow.Q_f === 0) return;
+
+        // Don't sync if all zeros (initial state)
+        if (sensaFlow.Q_k === 0 && sensaFlow.Q_r === 0 && sensaFlow.Q_c === 0 && sensaFlow.Q_f === 0 && sensaFlow.Q_p === 0) return;
+
         const current = studySession.equation;
-        // Avoid unnecessary writes if values haven't changed
         if (
             current &&
-            current.G === sensaFlow.G &&
-            current.Q_P === sensaFlow.Q_P &&
-            current.Q_M === sensaFlow.Q_M &&
+            current.h === sensaFlow.h &&
+            current.Q_k === sensaFlow.Q_k &&
+            current.Q_r === sensaFlow.Q_r &&
+            current.Q_c === sensaFlow.Q_c &&
             current.Q_f === sensaFlow.Q_f &&
+            current.Q_p === sensaFlow.Q_p &&
             current.I === sensaFlow.I
         ) return;
+
         updateSessionEquation({
-            G: sensaFlow.G,
-            Q_P: sensaFlow.Q_P,
-            Q_M: sensaFlow.Q_M,
+            h: sensaFlow.h,
+            Q_k: sensaFlow.Q_k,
+            Q_r: sensaFlow.Q_r,
+            Q_c: sensaFlow.Q_c,
             Q_f: sensaFlow.Q_f,
+            Q_p: sensaFlow.Q_p,
             I: sensaFlow.I
         });
-    }, [sensaFlow.G, sensaFlow.Q_P, sensaFlow.Q_M, sensaFlow.Q_f, sensaFlow.I, studySession, updateSessionEquation]);
+    }, [sensaFlow.h, sensaFlow.Q_k, sensaFlow.Q_r, sensaFlow.Q_c, sensaFlow.Q_f, sensaFlow.Q_p, sensaFlow.I, studySession, updateSessionEquation]);
 
     const progressRestoredRef = useRef(false);
     useEffect(() => {
@@ -178,9 +202,9 @@ export default function VelocityLearning() {
             }
         }
     }, [currentSession?.id]);
+
     useEffect(() => {
         if (currentPhase === 'PRIME' && lockedIn) {
-            // Mark that user has locked in before
             localStorage.setItem('hasLockedIn', 'true');
             const timer = setTimeout(() => {
                 const goal = studySession?.goal ?? ('learn-new' as const);
@@ -190,13 +214,14 @@ export default function VelocityLearning() {
             return () => clearTimeout(timer);
         }
     }, [currentPhase, lockedIn, startStudySession, currentSession]);
+
     // Momentum Checkpoint: Show time toast when goal exceeded
     useEffect(() => {
         if (flowState.timeGoalExceeded && !timeToastDismissed && !flowState.isInFlow) {
             setShowTimeToast(true);
         }
     }, [flowState.timeGoalExceeded, timeToastDismissed, flowState.isInFlow]);
-    // 4. Effects
+
     // Initialize session timer
     useEffect(() => {
         if (currentSession && !currentSession.progress.sessionStartTime) {
@@ -213,7 +238,6 @@ export default function VelocityLearning() {
                 setReviewContext({
                     lastReviewDate: review.lastReviewDate,
                     decayStatus: spacing.getDecayStatus(activeConcept.id),
-                    // Placeholder for future implementation of these fields
                     previousResponse: undefined,
                     failedQuestion: undefined
                 });
@@ -224,16 +248,19 @@ export default function VelocityLearning() {
             setReviewContext(null);
         }
     }, [activeConcept]);
+
     // Auto-start diagnostic if needed
     useEffect(() => {
         if (currentPhase === 'DIAGNOSE') {
             startDiagnostic();
         }
     }, [currentPhase, startDiagnostic]);
+
     const unmountRef = useRef({ currentSession, currentPhase, getNextConcept });
     useEffect(() => {
         unmountRef.current = { currentSession, currentPhase, getNextConcept };
     });
+
     useEffect(() => {
         return () => {
             const { currentSession: session, currentPhase: phase, getNextConcept: getNext } = unmountRef.current;
@@ -253,16 +280,14 @@ export default function VelocityLearning() {
             } catch (_) { /* non-critical */ }
         };
     }, []);
+
     // 5. Handlers
     const handleLoopComplete = (outcome: 'mastered' | 'needs-learning' | 'needs-review', _timeSpent: number) => {
         if (!activeConcept) return;
-        // "Sonic Boom" Effect for Mastery
-        if (outcome === 'mastered') {
-            // Voice celebration handled by coach messages
-            // Could add a specific mastery celebration here if needed
-        }
+
         const score = outcome === 'mastered' ? 1.0 : outcome === 'needs-review' ? 0.6 : 0.3;
         completeConcept(activeConcept.id, score, outcome);
+
         setTimeout(() => {
             const { lastSpacingUpdate } = useLearningStore.getState();
             if (lastSpacingUpdate) {
@@ -274,33 +299,47 @@ export default function VelocityLearning() {
                 );
             }
         }, 500);
+
         if (currentSession?.subjectType) {
             const progress = currentSession.progress;
             const metrics = currentSession.cognitiveMetrics;
-            sensaFlow.updateTypeAwareMetrics({
+
+            // Process signals for 5 learner variables
+            sensaFlow.updateLearnerMetrics({
                 completedConcepts: progress.completedConcepts.length + 1,
                 totalConcepts: currentSession.concepts.length,
+
+                // Q_p signals
                 consecutiveCorrect: metrics.consecutiveCorrect,
                 consecutiveErrors: metrics.consecutiveErrors,
-                avgResponseTimeMs: metrics.avgResponseTimeMs,
-                mapNodeCount: studySession?.conceptMap?.nodes?.length ?? 0,
-                mapConnectionCount: studySession?.conceptMap?.connections?.length ?? 0,
-                guessCount: Object.keys(studySession?.predictions ?? {}).length,
+                timeSpentMs: progress.sessionStartTime ? Date.now() - progress.sessionStartTime : 0,
+                targetDurationMs: (studySession?.targetDuration ?? 30) * 60000,
                 cycleCompletions: progress.completedConcepts.length,
+
+                // Q_r signals
                 blankSheetScore: score,
                 quizAccuracy: score,
-                timeSpentMs: progress.sessionStartTime ? Date.now() - progress.sessionStartTime : 0,
-                targetDurationMs: (studySession?.targetDuration ?? 30) * 60000
+
+                // Q_c signals
+                mapNodeCount: studySession?.conceptMap?.nodes?.length ?? 0,
+                mapConnectionCount: studySession?.conceptMap?.connections?.length ?? 0,
+
+                // Q_k signals
+                guessCount: Object.keys(studySession?.predictions ?? {}).length,
+
+                // Q_f signals
+                avgResponseTimeMs: metrics.avgResponseTimeMs
             });
         }
     };
+
     // ARCHITECT ENHANCEMENT: Diagnostic Skip with Reason Capture
     const handleSkipConcept = () => {
-        // Get the current concept name before showing modal
         const currentConceptId = activeConcept?.id || '';
         setPendingSkipConcept(currentConceptId);
         setShowSkipModal(true);
     };
+
     const handleSkipReasonConfirm = (data: SkipReasonData) => {
         setShowSkipModal(false);
         if (data.reason === 'too-easy') {
@@ -327,38 +366,37 @@ export default function VelocityLearning() {
         }
         setPendingSkipConcept(null);
     };
+
     const handleSkipReasonCancel = () => {
         setShowSkipModal(false);
         setPendingSkipConcept(null);
     };
+
     const handleDiagnosticComplete = (results: DiagnosticResults) => {
         completeDiagnostic(results);
     };
-    // Navigation Handlers (Dead-End Fixes)
+
     const handleReturnToDashboard = () => {
-        // Critical: Clear session state to prevent zombie sessions
         clearSession();
         navigate('/');
     };
-    // Return to concept map from micro-learning loop (SENSA v2.0 flow)
+
     const handleReturnToMap = () => {
-        // Transition back to 'note' phase (concept map building)
-        // This allows user to revise connections if they realize misunderstanding
         returnToMapBuilding();
     };
+
     const handleGoToLibrary = () => {
         navigate('/');
     };
+
     // 6. Rendering Logic
-    // Hydration grace period: Wait briefly for parent Study.tsx to hydrate before showing empty state
     const [isInitializing, setIsInitializing] = useState(true);
     useEffect(() => {
         const timer = setTimeout(() => setIsInitializing(false), UI_TIMINGS.DELAY_SHORT);
         return () => clearTimeout(timer);
     }, []);
-    // IDLE State or waiting for hydration
+
     if (currentPhase === 'IDLE' || !currentSession) {
-        // During first 500ms, show loading instead of empty state
         if (isInitializing) {
             return (
                 <div className={styles.container}>
@@ -387,29 +425,32 @@ export default function VelocityLearning() {
             </div>
         );
     }
-    // GATE State: Lock In (Before Prime)
-    // If we are in PRIME phase but local 'lockedIn' is false, show gate.
-    // Note: Once session starts, 'PRIME' phase might stick around until 'primer' is set in store.
-    // But store action startStudySession sets session active. useLearningFlow returns PRIME if !studySession.
-    // So: switch(currentPhase) 'PRIME' -> check lockedIn.
+
     const cognitiveLoadLevel = useLearningStore.getState().getCognitiveLoadLevel();
     const cognitiveLoad = { low: 0.2, optimal: 0.5, high: 0.75, overload: 1.0 }[cognitiveLoadLevel];
+
     return (
         <div className={styles.container} style={{ '--cognitive-load': cognitiveLoad } as React.CSSProperties}>
             <main className={styles.content}>
                 <div className={styles.mainArea}>
-                    {/* Learning Toolbar - Stats, Quiz, Timer, Reset */}
+                    {/* Learning Toolbar */}
                     {currentSession && (
-                        <LearningToolbar />
+                        <LearningToolbar
+                            healthPercent={Math.round(sensaFlow.I * 100)}
+                            isHealthOpen={showHealthPanel}
+                            onToggleHealth={() => setShowHealthPanel(prev => !prev)}
+                        />
                     )}
-                    {/* Phase Navigator - Hidden in Explore Mode */}
+
+                    {/* Phase Navigator */}
                     {currentSession && studySession?.goal !== 'explore' && (
                         <PhaseNavigator
                             currentPhase={currentPhase}
                             completedPhases={completedPhases}
                         />
                     )}
-                    {/* Explore Mode: Calming Header (replaces PhaseNavigator) */}
+
+                    {/* Explore Mode Header */}
                     {studySession?.goal === 'explore' && (
                         <motion.div
                             className={styles.exploreHeader}
@@ -420,10 +461,10 @@ export default function VelocityLearning() {
                             <span className={styles.exploreTagline}>Breathe. Browse. No pressure.</span>
                         </motion.div>
                     )}
-                    {/* SENSA v2.0: Equation Tracker - Hide in Explore Mode */}
+
+                    {/* Learning Health Panel (collapsible from toolbar) */}
                     {studySession?.goal !== 'explore' && (
                         <>
-                            {/* Concept Progress Indicator - Shows "Concept X of Y" */}
                             {currentSession && currentPhase === 'LEARN' && (
                                 <ConceptProgressIndicator
                                     current={currentSession.progress.completedConcepts.length + 1}
@@ -432,21 +473,7 @@ export default function VelocityLearning() {
                                     selectionReason={selectionReason}
                                 />
                             )}
-                            <EquationTracker
-                                G={sensaFlow.G}
-                                Q_P={sensaFlow.Q_P}
-                                Q_M={sensaFlow.Q_M}
-                                Q_f={sensaFlow.Q_f}
-                                I={sensaFlow.I}
-                                weakestVariable={sensaFlow.weakestVariable.variable}
-                                compact={true}
-                                currentPhase={sensaFlow.phase}
-                                onSuggestBacktrack={() => {
-                                    // Navigate back to Explore phase if Q_P is critically low
-                                    sensaFlow.setPhase('explore');
-                                }}
-                            />
-                            {/* SENSA v2.0: Flow Progress Bar with Sub-Progress */}
+
                             <FlowProgressBar
                                 currentPhase={sensaFlow.phase}
                                 completedPhases={sensaFlow.completedSteps}
@@ -457,31 +484,38 @@ export default function VelocityLearning() {
                                         : 0
                                 }
                             />
-                            {currentSession?.subjectType && (
-                                <BlueprintFormulaDashboard
-                                    subjectType={sensaFlow.subjectType}
-                                    G={sensaFlow.G}
-                                    gBaseline={sensaFlow.gBaseline}
-                                    Q_f={sensaFlow.Q_f}
-                                    Q_M={sensaFlow.Q_M}
-                                    Q_P={sensaFlow.Q_P}
-                                    I={sensaFlow.I}
-                                    phase={sensaFlow.phase}
-                                    qLabels={sensaFlow.qLabels}
-                                    typeAwareMetrics={sensaFlow.typeAwareMetrics}
-                                    feedbackSignal={sensaFlow.feedbackSignal}
-                                    recommendation={sensaFlow.recommendation}
-                                    weakestVariable={sensaFlow.weakestVariable}
-                                />
-                            )}
+
+                            <AnimatePresence>
+                                {showHealthPanel && currentSession?.subjectType && (
+                                    <BlueprintFormulaDashboard
+                                        subjectType={sensaFlow.subjectType}
+                                        h={sensaFlow.h}
+                                        I={sensaFlow.I}
+                                        phase={sensaFlow.phase}
+                                        metrics={{
+                                            Q_k: sensaFlow.Q_k,
+                                            Q_r: sensaFlow.Q_r,
+                                            Q_c: sensaFlow.Q_c,
+                                            Q_f: sensaFlow.Q_f,
+                                            Q_p: sensaFlow.Q_p,
+                                            labels: sensaFlow.qLabels
+                                        }}
+                                        weakestVariable={sensaFlow.weakestVariable}
+                                        recommendation={sensaFlow.recommendation}
+                                        feedbackSignal={sensaFlow.feedbackSignal}
+                                    />
+                                )}
+                            </AnimatePresence>
                         </>
                     )}
+
                     {/* Main Content Switcher */}
                     <AnimatePresence mode="wait">
                         {renderPhaseContent()}
                     </AnimatePresence>
                 </div>
             </main>
+
             <AnimatePresence>
                 {showSkipModal && activeConcept && (
                     <SkipReasonModal
@@ -491,7 +525,7 @@ export default function VelocityLearning() {
                     />
                 )}
             </AnimatePresence>
-            {/* Momentum Checkpoint System */}
+
             <AnimatePresence>
                 {showTimeToast && (
                     <SessionTimeToast
@@ -512,6 +546,7 @@ export default function VelocityLearning() {
                     />
                 )}
             </AnimatePresence>
+
             <AnimatePresence>
                 {showCheckpoint && (
                     <MomentumCheckpoint
@@ -531,10 +566,10 @@ export default function VelocityLearning() {
             </AnimatePresence>
         </div>
     );
+
     function renderPhaseContent() {
         switch (currentPhase) {
             case 'PRIME':
-                // Before showing the modal, we show the Gate if not locked in
                 if (!lockedIn) {
                     return (
                         <motion.div key="gate" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -600,7 +635,6 @@ export default function VelocityLearning() {
                             domain={currentSession!.subject}
                             diagnosticReady={currentSession!.metadata?.diagnosticReady ?? false}
                             onStartLearning={() => {
-                                // Skip diagnostic and go straight to learning
                                 completeDiagnostic({
                                     knownConcepts: [],
                                     knowledgeGaps: [],
@@ -613,7 +647,7 @@ export default function VelocityLearning() {
                     </motion.div>
                 );
             case 'LEARN':
-                if (!activeConcept) return null; // Should not happen in LEARN state
+                if (!activeConcept) return null;
                 return (
                     <motion.div
                         key={`loop-${activeConcept.id}`}
@@ -629,7 +663,6 @@ export default function VelocityLearning() {
                                     type={intervention}
                                     onPrimary={() => {
                                         setIntervention(null);
-                                        // Handle specific primary actions if needed
                                     }}
                                     onSecondary={() => setIntervention(null)}
                                     onDismiss={() => setIntervention(null)}
@@ -643,6 +676,7 @@ export default function VelocityLearning() {
                                     conceptName={activeConcept.name}
                                     context={reviewContext}
                                 />
+
                             </div>
                         )}
 
@@ -672,9 +706,9 @@ export default function VelocityLearning() {
                             onComplete={(passed) => {
                                 markSessionMastered();
                                 sensaFlow.completeApply(
-                                    passed ? 0.85 : 0.5, // synthesisScore
-                                    passed, // flowModeCompleted
-                                    passed ? 0.8 : 0.4 // Q_f estimate
+                                    passed ? 0.85 : 0.5,
+                                    passed,
+                                    passed ? 0.8 : 0.4
                                 );
                             }}
                         />
@@ -682,12 +716,9 @@ export default function VelocityLearning() {
                 );
             case 'COMPLETE':
             default:
-                // Check if user has actually completed any concepts
                 const hasCompletedConcepts = (currentSession?.progress?.completedConcepts?.length ?? 0) > 0;
                 const hasStartedSession = studySession !== null;
-                // For explore mode (stressed users): Show calming browse experience
                 if (studySession?.goal === 'explore') {
-                    // Stressed Mode: Show "Sensa Synoptic View" (Mind Map)
                     return (
                         <SensaSynopticView
                             concepts={currentSession!.concepts}
@@ -695,7 +726,6 @@ export default function VelocityLearning() {
                         />
                     );
                 }
-                // Case 1: User hasn't started learning yet (no session, no completed concepts)
                 if (!hasStartedSession && !hasCompletedConcepts) {
                     return (
                         <div className={styles.emptyState}>
@@ -731,32 +761,25 @@ export default function VelocityLearning() {
                             subjectName={currentSession!.subject}
                             sessionStartTime={currentSession!.progress.sessionStartTime || Date.now()}
                             equation={{
-                                G: sensaFlow.G,
+                                h: sensaFlow.h,
+                                Q_k: sensaFlow.Q_k,
+                                Q_r: sensaFlow.Q_r,
+                                Q_c: sensaFlow.Q_c,
                                 Q_f: sensaFlow.Q_f,
-                                Q_M: sensaFlow.Q_M,
-                                Q_P: sensaFlow.Q_P,
-                                I: sensaFlow.I,
-                                phase: sensaFlow.phase
+                                Q_p: sensaFlow.Q_p,
+                                I: sensaFlow.I
                             }}
                             streakCount={flowState.streakCount}
                             onReturnHome={handleReturnToDashboard}
                             onReviewConcepts={() => {
-                                console.log('[VelocityLearning] Review Concepts clicked', {
-                                    currentSession,
-                                    subjectId: currentSession?.subjectId,
-                                    id: currentSession?.id
-                                });
                                 const targetId = currentSession?.subjectId || currentSession?.id;
                                 if (targetId) {
                                     navigate(`/study/${targetId}?tab=overview`);
-                                } else {
-                                    console.error('[VelocityLearning] No valid session ID found');
                                 }
                             }}
                         />
                     );
                 }
-                // Case 3: Fallback - All caught up (shouldn't normally reach here)
                 return (
                     <div className={styles.emptyState}>
                         <Brain size={48} className={styles.emptyIcon} />

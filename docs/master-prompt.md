@@ -37,7 +37,7 @@ See: [Styling Specifications](./styling-specifications.md)
 ### 3. The Learning Loop Is a 3-Phase Cycle Per Concept
 
 ```
-Preview AI (Test) → Build AI (Learn) → Retain AI (Verify)
+Test (Predict & Expose Gaps) → Encode (Build Understanding) → Verify (Confirm Retention)
 ```
 
 Each concept goes through this micro-loop. The macro flow is a 5-step session:

@@ -1,32 +1,57 @@
 # Learning Science
 
-**Last Updated:** February 16, 2026
+**Last Updated:** February 17, 2026
 **Status:** MANDATORY — All learning features must align with this model.
 
 ---
 
-## The Universal Learning Equation
+## The Learning Health Equation
 
 ```
-I = min(h, G × Q_f × Q_M × Q_P)
+I = min(h, Q_k × Q_r × Q_c × Q_f × Q_p)
 ```
 
-| Symbol | Meaning | Range |
-|--------|---------|-------|
-| `I` | Information absorbed | 0–1 |
-| `h` | Bandwidth ceiling (mood-dependent) | 0.4–1.0 |
-| `G` | Generation quality (AI content richness) | 0–1 |
-| `Q_f` | Frequency quality (spaced repetition) | 0–1 |
-| `Q_M` | Mastery quality (depth of understanding) | 0–1 |
-| `Q_P` | Process quality (learning loop fidelity) | 0–1 |
+This equation measures **ONLY the learner** — not the AI, not the platform.
+
+| Symbol | Meaning | Signal Source | Range |
+|--------|---------|---------------|-------|
+| `I` | Information absorbed into long-term memory | Calculated | 0–1 |
+| `h` | Cognitive bandwidth ceiling | Mood selection at session start | 0.4–1.0 |
+| `Q_k` | Prior knowledge alignment | Diagnostic confidence, prediction accuracy | 0–1 |
+| `Q_r` | Recall quality (unprompted retrieval) | Blank sheet score, quiz accuracy | 0–1 |
+| `Q_c` | Connection quality (concept linking) | Map connections / map nodes, label accuracy | 0–1 |
+| `Q_f` | Spacing/frequency quality | Response time improvement, review schedule adherence | 0–1 |
+| `Q_p` | Process quality (learning loop fidelity) | Phase completion, cycle completions, dwell times | 0–1 |
+
+**Mood → h mapping** (`MOOD_H_MAP` in `learning.ts`):
+
+| Mood | h | Session curation |
+|------|---|-----------------|
+| Energized | 1.0 | 45 min, challenging concepts first |
+| Neutral | 0.8 | 30 min, balanced mix |
+| Tired | 0.6 | 15 min, spaced review only |
+| Stressed | 0.4 | 15 min, free exploration, easy wins |
+
+**Subject-type-aware labels:** Each Q variable gets contextual labels depending on the subject classification (procedural/conceptual/cyclic/perceptual). See `blueprint-formula.ts` for per-type label mappings.
 
 Tracked by `EquationTracker` component which provides:
-- Real-time factor visualization with weakest variable highlighting
-- Actionable recommendation banner identifying the bottleneck factor and specific corrective action
-- Proactive intervention when Q_P < 0.2 during Study/Apply ("grinding futile" warning with backtrack button)
-- Mastery threshold progress bar (75% target)
+- Real-time 5-variable visualization with weakest variable highlighting
+- h ceiling indicator showing mood-dependent bandwidth
+- Actionable recommendation banner identifying the bottleneck variable and specific corrective action
+- Proactive intervention when Q_p < 0.2 during Study ("grinding futile" warning)
+- Health threshold progress bar (75% target)
 
-**Persistence:** Equation values (G, Q_P, Q_M, Q_f, I) are persisted on `StudySession.equation` via `updateSessionEquation()` and survive page refresh. On mount, `syncFromStore()` in `useSensaFlow` restores them from the Zustand-persisted study session — the learner sees accumulated progress immediately, not a reset to defaults.
+`BlueprintFormulaDashboard` provides the detailed breakdown with subject-type badge and per-variable bars.
+
+**Persistence:** Equation values (h, Q_k, Q_r, Q_c, Q_f, Q_p, I) are persisted on `StudySession.equation` via `updateSessionEquation()` and survive page refresh. On mount, `syncFromStore()` in `useSensaFlow` restores them from the Zustand-persisted study session.
+
+**Key files:**
+- Types: `src/shared/types/learning.ts` — `LearningHealthEquation`, `LearnerMood`, `MOOD_H_MAP`
+- Constants: `src/shared/constants/sensa-flow-constants.ts` — `calculateHealthIndex()`, `findWeakestVariable()`, `EQUATION_COLORS`
+- Formula engine: `src/shared/services/blueprint-formula.ts` — `calculateLearnerMetrics()`, `getLearnerRecommendation()`
+- State hook: `src/shared/hooks/useSensaFlow.ts` — full state machine with 5 Q variables + h
+- Components: `src/components/ui/EquationTracker.tsx`, `src/components/dashboard/BlueprintFormulaDashboard.tsx`, `src/components/dashboard/MasteryDashboard.tsx`
+- Store: `src/store/slices/createStudySlice.ts` — `updateSessionEquation()`
 
 ---
 
@@ -105,7 +130,7 @@ See detailed breakdown below.
 3. `concept.workedExample.problem` (problem statement)
 4. `concept.lifecycle.phase1.steps[0]` (process question)
 
-No synthetic fallback questions are generated. Concepts without explicit question/hint material are skipped by Preview AI.
+No synthetic fallback questions are generated. Concepts without explicit question/hint material are skipped by the Test phase.
 
 **Hint source priority:**
 1. `concept.shape.simpleCore`
@@ -239,7 +264,7 @@ Users select a persona that affects coach messaging tone:
 ### Mood System
 Mood affects cognitive bandwidth ceiling (`h` in the equation):
 ```typescript
-type Mood = 'pumped' | 'good' | 'okay' | 'struggling' | 'tired';
+type Mood = 'energized' | 'neutral' | 'tired' | 'stressed';
 ```
 `moodToBandwidth()` maps mood to `CognitiveBandwidth`: `'high' | 'medium' | 'low'`
 

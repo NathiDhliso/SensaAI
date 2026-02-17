@@ -41,9 +41,9 @@ interface SessionScoutPreviewProps {
     initialPhase?: string;
 }
 const STEP_CONFIG = {
-    structure: { label: 'Tier Structure', icon: Layers, eqVar: 'Q_P' },
-    sprint: { label: 'Nomenclature Sprint', icon: Zap, eqVar: 'Q_M' },
-    prime: { label: 'Gap Priming', icon: AlertCircle, eqVar: 'Q_M' }
+    structure: { label: 'Tier Structure', icon: Layers, eqVar: 'Q_c' },
+    sprint: { label: 'Nomenclature Sprint', icon: Zap, eqVar: 'Q_k' },
+    prime: { label: 'Gap Priming', icon: AlertCircle, eqVar: 'Q_k' }
 } as const;
 const STEPS_ORDER: ExploreStep[] = ['structure', 'sprint', 'prime'];
 // Helper component for concept chips that respects metaphor settings

@@ -17,6 +17,7 @@ import {
  ArrowRight,
  ArrowLeft,
  Move,
+ Group,
  Check,
  Sparkles,
  Lightbulb,
@@ -167,13 +168,16 @@ export default function ConceptMapBuilder({
  // History for Undo/Redo
  const [history, setHistory] = useState<HistoryEntry[]>([]);
  const [historyIndex, setHistoryIndex] = useState(-1);
- // Tools: 'select' (drag nodes), 'connect' (draw lines)
+ // Tools: 'select' (drag nodes/groups), 'connect' (draw lines)
  const [activeTool, setActiveTool] = useState<'select' | 'connect'>('select');
+ const [groupDrag, setGroupDrag] = useState(false);
  // Interaction State
  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
  const [connectingFromId, setConnectingFromId] = useState<string | null>(null);
  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+ const [draggingGroupTier, setDraggingGroupTier] = useState<string | null>(null);
+ const dragLastPosRef = useRef<{ x: number; y: number } | null>(null);
  // Inline Label Editor State
  const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
  const [labelInput, setLabelInput] = useState('');
@@ -261,21 +265,16 @@ export default function ConceptMapBuilder({
  // =========================================================================
  // AUTO-LAYOUT FUNCTION
  // =========================================================================
- const layoutCircle = useCallback((circleNodes: MapNode[], centerX: number, centerY: number, baseRadius: number): MapNode[] => {
- if (circleNodes.length === 0) return [];
- if (circleNodes.length === 1) {
- return [{ ...circleNodes[0], x: Math.round(centerX / 20) * 20, y: Math.round(centerY / 20) * 20 }];
- }
- const radius = Math.max(baseRadius, circleNodes.length * 30);
- return circleNodes.map((n, i) => {
- const angle = (2 * Math.PI * i) / circleNodes.length - Math.PI / 2;
- return {
- ...n,
- x: Math.round((centerX + radius * Math.cos(angle)) / 20) * 20,
- y: Math.round((centerY + radius * Math.sin(angle)) / 20) * 20
- };
- });
- }, []);
+ const NODE_HEIGHT = 40;
+ const NODE_H_PAD = 32;
+ const MIN_GAP = 60;
+
+ const estimateNodeWidth = useCallback((node: MapNode): number => {
+ const concept = concepts.find(c => c.id === node.conceptId);
+ const name = concept?.name || node.conceptName || 'Unknown';
+ return Math.max(120, name.length * 9 + NODE_H_PAD);
+ }, [concepts]);
+
  const getParentGroup = useCallback((node: MapNode): string => {
  const c = concepts.find(cc => cc.id === node.conceptId);
  if (!c) return 'ungrouped';
@@ -284,49 +283,99 @@ export default function ConceptMapBuilder({
  if (tier === 'branch') return c.trunkDomain || c.parentName || 'ungrouped';
  return c.parentName || c.trunkDomain || 'ungrouped';
  }, [concepts]);
- const layoutSubClusters = useCallback((
+
+ const resolveCollisions = useCallback((laid: MapNode[], iterations: number = 30): MapNode[] => {
+ const result = laid.map(n => ({ ...n }));
+ const widths = result.map(n => estimateNodeWidth(n));
+ for (let iter = 0; iter < iterations; iter++) {
+ let moved = false;
+ for (let i = 0; i < result.length; i++) {
+ for (let j = i + 1; j < result.length; j++) {
+ const a = result[i];
+ const b = result[j];
+ const wA = widths[i] / 2;
+ const wB = widths[j] / 2;
+ const hA = NODE_HEIGHT / 2;
+ const hB = NODE_HEIGHT / 2;
+ const minDistX = wA + wB + MIN_GAP;
+ const minDistY = hA + hB + MIN_GAP * 0.6;
+ const dx = b.x - a.x;
+ const dy = b.y - a.y;
+ const overlapX = minDistX - Math.abs(dx);
+ const overlapY = minDistY - Math.abs(dy);
+ if (overlapX > 0 && overlapY > 0) {
+ moved = true;
+ if (overlapX < overlapY) {
+ const pushX = overlapX / 2 + 1;
+ const signX = dx >= 0 ? 1 : -1;
+ a.x -= signX * pushX;
+ b.x += signX * pushX;
+ } else {
+ const pushY = overlapY / 2 + 1;
+ const signY = dy >= 0 ? 1 : -1;
+ a.y -= signY * pushY;
+ b.y += signY * pushY;
+ }
+ }
+ }
+ }
+ if (!moved) break;
+ }
+ return result.map(n => ({
+ ...n,
+ x: Math.round(n.x / 20) * 20,
+ y: Math.round(n.y / 20) * 20
+ }));
+ }, [estimateNodeWidth]);
+
+ const layoutTierRows = useCallback((
  tierNodes: MapNode[],
- tierCenterX: number,
- tierTopY: number,
- clusterBaseRadius: number
+ centerX: number,
+ startY: number,
+ maxWidth: number
  ): { laid: MapNode[]; height: number } => {
  if (tierNodes.length === 0) return { laid: [], height: 0 };
- const groups = new Map<string, MapNode[]>();
- for (const n of tierNodes) {
- const key = getParentGroup(n);
- if (!groups.has(key)) groups.set(key, []);
- groups.get(key)!.push(n);
+ const sorted = [...tierNodes].sort((a, b) => estimateNodeWidth(b) - estimateNodeWidth(a));
+ const rows: MapNode[][] = [];
+ const rowWidths: number[] = [];
+ const ROW_GAP = NODE_HEIGHT + MIN_GAP * 0.6;
+ for (const node of sorted) {
+ const nw = estimateNodeWidth(node) + MIN_GAP;
+ let placed = false;
+ for (let r = 0; r < rows.length; r++) {
+ if (rowWidths[r] + nw <= maxWidth) {
+ rows[r].push(node);
+ rowWidths[r] += nw;
+ placed = true;
+ break;
  }
- const clusterEntries = Array.from(groups.entries());
- if (clusterEntries.length <= 1) {
- const r = tierNodes.length <= 1 ? 40 : Math.max(clusterBaseRadius, tierNodes.length * 30);
- const cy = tierTopY + r;
- return { laid: layoutCircle(tierNodes, tierCenterX, cy, clusterBaseRadius), height: r * 2 };
  }
- const CLUSTER_GAP = 60;
- const clusterRadii = clusterEntries.map(([, ns]) =>
- ns.length <= 1 ? 40 : Math.max(60, ns.length * 28)
- );
- const totalWidth = clusterRadii.reduce((sum, r) => sum + r * 2, 0) + CLUSTER_GAP * (clusterEntries.length - 1);
- let curX = tierCenterX - totalWidth / 2;
- const maxR = Math.max(...clusterRadii);
- const cy = tierTopY + maxR;
+ if (!placed) {
+ rows.push([node]);
+ rowWidths.push(nw);
+ }
+ }
  const laid: MapNode[] = [];
- for (let i = 0; i < clusterEntries.length; i++) {
- const [, clusterNodes] = clusterEntries[i];
- const r = clusterRadii[i];
- const clusterCx = curX + r;
- laid.push(...layoutCircle(clusterNodes, clusterCx, cy, Math.max(40, r * 0.6)));
- curX += r * 2 + CLUSTER_GAP;
+ let curY = startY;
+ for (const row of rows) {
+ const totalRowW = row.reduce((s, n) => s + estimateNodeWidth(n) + MIN_GAP, 0) - MIN_GAP;
+ let curX = centerX - totalRowW / 2;
+ for (const node of row) {
+ const nw = estimateNodeWidth(node);
+ laid.push({ ...node, x: Math.round((curX + nw / 2) / 20) * 20, y: Math.round(curY / 20) * 20 });
+ curX += nw + MIN_GAP;
  }
- return { laid, height: maxR * 2 };
- }, [layoutCircle, getParentGroup]);
+ curY += ROW_GAP;
+ }
+ return { laid, height: Math.max(ROW_GAP, curY - startY) };
+ }, [estimateNodeWidth]);
+
  const autoLayout = useCallback(() => {
  if (nodes.length === 0) return;
  pushHistory();
  const canvasW = canvasRef.current?.clientWidth || 800;
- const canvasH = canvasRef.current?.clientHeight || 600;
- const cx = (canvasW / 2 - panOffset.x) / zoom;
+ const maxWidth = Math.max(600, canvasW * 2);
+ const cx = canvasW / 2;
  const trunks: MapNode[] = [];
  const branches: MapNode[] = [];
  const leaves: MapNode[] = [];
@@ -338,53 +387,35 @@ export default function ConceptMapBuilder({
  else leaves.push(n);
  }
  const TIER_GAP = 100;
- const tierGroups = [trunks, branches, leaves].filter(g => g.length > 0);
- const preHeights = tierGroups.map(g => {
- if (g.length <= 1) return 80;
- const groups = new Map<string, MapNode[]>();
- for (const n of g) {
- const key = getParentGroup(n);
- if (!groups.has(key)) groups.set(key, []);
- groups.get(key)!.push(n);
- }
- const entries = Array.from(groups.values());
- if (entries.length <= 1) {
- const r = Math.max(100, g.length * 30);
- return r * 2;
- }
- const maxR = Math.max(...entries.map(ns => ns.length <= 1 ? 40 : Math.max(60, ns.length * 28)));
- return maxR * 2;
- });
- const totalHeight = preHeights.reduce((s, h) => s + h, 0) + TIER_GAP * (tierGroups.length - 1);
- let currentY = (canvasH / 2 - panOffset.y) / zoom - totalHeight / 2;
- const laid: MapNode[] = [];
+ let currentY = 100;
+ let laid: MapNode[] = [];
  for (const group of [trunks, branches, leaves]) {
  if (group.length === 0) continue;
- const result = layoutSubClusters(group, cx, currentY, 100);
+ const result = layoutTierRows(group, cx, currentY, maxWidth);
  laid.push(...result.laid);
  currentY += result.height + TIER_GAP;
  }
+ laid = resolveCollisions(laid);
  setNodes(laid);
  requestAnimationFrame(() => {
  if (laid.length === 0) return;
  const rect = canvasRef.current?.getBoundingClientRect();
  if (!rect) return;
- const xs = laid.map(n => n.x);
- const ys = laid.map(n => n.y);
- const minX = Math.min(...xs) - 120;
- const maxX = Math.max(...xs) + 120;
- const minY = Math.min(...ys) - 120;
- const maxY = Math.max(...ys) + 120;
+ const widths = laid.map(n => estimateNodeWidth(n));
+ const minX = Math.min(...laid.map((n, i) => n.x - widths[i] / 2)) - 60;
+ const maxX = Math.max(...laid.map((n, i) => n.x + widths[i] / 2)) + 60;
+ const minY = Math.min(...laid.map(n => n.y)) - 60;
+ const maxY = Math.max(...laid.map(n => n.y)) + 60;
  const contentW = maxX - minX;
  const contentH = maxY - minY;
- const newZoom = Math.min(2, Math.max(0.3, Math.min(rect.width / contentW, rect.height / contentH) * 0.85));
+ const newZoom = Math.min(1.5, Math.max(0.2, Math.min(rect.width / contentW, rect.height / contentH) * 0.9));
  setPanOffset({
  x: (rect.width - contentW * newZoom) / 2 - minX * newZoom,
  y: (rect.height - contentH * newZoom) / 2 - minY * newZoom
  });
  setZoom(newZoom);
  });
- }, [nodes, concepts, pushHistory, panOffset, zoom, layoutSubClusters, getParentGroup]);
+ }, [nodes, concepts, pushHistory, layoutTierRows, resolveCollisions, estimateNodeWidth]);
  // =========================================================================
  // KEYBOARD SHORTCUTS
  // =========================================================================
@@ -543,26 +574,43 @@ export default function ConceptMapBuilder({
  };
  const GRID_SIZE = 20;
  const snapToGrid = (val: number) => Math.round(val / GRID_SIZE) * GRID_SIZE;
- const getCircleCenter = useCallback((tier: string, allNodes: MapNode[]) => {
+ const findOpenPosition = useCallback((tier: string, allNodes: MapNode[], newNode: MapNode): { x: number; y: number } => {
  const canvasW = canvasRef.current?.clientWidth || 800;
  const canvasH = canvasRef.current?.clientHeight || 600;
  const cx = (canvasW / 2 - panOffset.x) / zoom;
  const tiers = ['trunk', 'branch', 'leaf'];
- const groups = tiers.map(t => allNodes.filter(n => {
- const c = concepts.find(cc => cc.id === n.conceptId);
- return (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase() === t;
- }));
- const CIRCLE_GAP = 80;
- const radii = groups.map(g => g.length <= 1 ? 40 : Math.max(100, g.length * 30));
- const totalHeight = radii.reduce((sum, r) => sum + r * 2, 0) + CIRCLE_GAP * 2;
- let currentY = (canvasH / 2 - panOffset.y) / zoom - totalHeight / 2;
  const tierIdx = tiers.indexOf(tier);
- for (let i = 0; i <= tierIdx; i++) {
- if (i === tierIdx) return { cx, cy: currentY + radii[i] };
- currentY += radii[i] * 2 + CIRCLE_GAP;
+ const baseY = (canvasH * 0.2 - panOffset.y) / zoom + tierIdx * 200;
+ const newW = estimateNodeWidth(newNode);
+ const tierNodes = allNodes.filter(n => {
+ if (n.id === newNode.id) return false;
+ const c = concepts.find(cc => cc.id === n.conceptId);
+ return (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase() === tier;
+ });
+ if (tierNodes.length === 0) return { x: cx, y: baseY };
+ const avgX = tierNodes.reduce((s, n) => s + n.x, 0) / tierNodes.length;
+ const avgY = tierNodes.reduce((s, n) => s + n.y, 0) / tierNodes.length;
+ const angles = [0, Math.PI, Math.PI / 2, -Math.PI / 2, Math.PI / 4, -Math.PI / 4, 3 * Math.PI / 4, -3 * Math.PI / 4];
+ for (let dist = newW + MIN_GAP; dist < 2000; dist += 80) {
+ for (const angle of angles) {
+ const testX = avgX + dist * Math.cos(angle);
+ const testY = avgY + dist * Math.sin(angle);
+ let collides = false;
+ for (const existing of allNodes) {
+ if (existing.id === newNode.id) continue;
+ const ew = estimateNodeWidth(existing);
+ const minDx = (newW + ew) / 2 + MIN_GAP;
+ const minDy = NODE_HEIGHT + MIN_GAP * 0.5;
+ if (Math.abs(testX - existing.x) < minDx && Math.abs(testY - existing.y) < minDy) {
+ collides = true;
+ break;
  }
- return { cx, cy: currentY };
- }, [concepts, panOffset, zoom]);
+ }
+ if (!collides) return { x: snapToGrid(testX), y: snapToGrid(testY) };
+ }
+ }
+ return { x: cx + (tierNodes.length * 150), y: baseY };
+ }, [concepts, panOffset, zoom, estimateNodeWidth]);
  const createLogicalConnections = useCallback((allNodes: MapNode[], existingConns: Connection[]): Connection[] => {
  const newConns: Connection[] = [];
  const existingKeys = new Set(existingConns.map(c => `${c.fromId}->${c.toId}`));
@@ -645,17 +693,10 @@ export default function ConceptMapBuilder({
  setAddedConceptIds(prev => new Set(prev).add(concept.id));
  };
  const rebalanceTier = (allNodes: MapNode[], tier: string): MapNode[] => {
- const tierNodes: MapNode[] = [];
- const otherNodes: MapNode[] = [];
- for (const n of allNodes) {
- const c = concepts.find(cc => cc.id === n.conceptId);
- const nTier = (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase();
- if (nTier === tier) tierNodes.push(n);
- else otherNodes.push(n);
- }
- const { cx, cy } = getCircleCenter(tier, allNodes);
- const arranged = layoutCircle(tierNodes, cx, cy, 100);
- return [...otherNodes, ...arranged];
+ const newNode = allNodes[allNodes.length - 1];
+ if (!newNode) return allNodes;
+ const pos = findOpenPosition(tier, allNodes, newNode);
+ return allNodes.map(n => n.id === newNode.id ? { ...n, x: pos.x, y: pos.y } : n);
  };
  const handleAddAll = () => {
  if (readOnly) return;
@@ -684,6 +725,12 @@ export default function ConceptMapBuilder({
  });
  setTimeout(() => autoLayout(), 50);
  };
+ const getNodeTier = useCallback((nodeId: string): string => {
+ const node = nodes.find(n => n.id === nodeId);
+ if (!node) return 'leaf';
+ const c = concepts.find(cc => cc.id === node.conceptId);
+ return (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase();
+ }, [nodes, concepts]);
  const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
  e.stopPropagation();
  if (activeTool === 'connect' && !readOnly) {
@@ -696,7 +743,18 @@ export default function ConceptMapBuilder({
  }
  setSelectedNodeId(nodeId);
  setSelectedConnectionId(null);
+ if (activeTool === 'select') {
+ const pos = screenToCanvas(e.clientX, e.clientY);
+ dragLastPosRef.current = pos;
+ if (groupDrag) {
+ const tier = getNodeTier(nodeId);
+ setDraggingGroupTier(tier);
  setDraggingNodeId(nodeId);
+ } else {
+ setDraggingNodeId(nodeId);
+ setDraggingGroupTier(null);
+ }
+ }
  };
  const screenToCanvas = (clientX: number, clientY: number) => {
  const rect = canvasRef.current!.getBoundingClientRect();
@@ -728,9 +786,23 @@ export default function ConceptMapBuilder({
  const handleCanvasMouseMove = (e: React.MouseEvent) => {
  if (draggingNodeId && canvasRef.current) {
  const pos = screenToCanvas(e.clientX, e.clientY);
+ if (draggingGroupTier && dragLastPosRef.current) {
+ const dx = pos.x - dragLastPosRef.current.x;
+ const dy = pos.y - dragLastPosRef.current.y;
+ dragLastPosRef.current = pos;
+ setNodes(prev => prev.map(n => {
+ const c = concepts.find(cc => cc.id === n.conceptId);
+ const nTier = (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase();
+ if (nTier === draggingGroupTier) {
+ return { ...n, x: n.x + dx, y: n.y + dy };
+ }
+ return n;
+ }));
+ } else {
  setNodes(prev => prev.map(n =>
  n.id === draggingNodeId ? { ...n, x: pos.x, y: pos.y } : n
  ));
+ }
  return;
  }
  if (isPanning) {
@@ -744,11 +816,24 @@ export default function ConceptMapBuilder({
  };
  const handleCanvasMouseUp = () => {
  if (draggingNodeId) {
+ if (draggingGroupTier) {
+ setNodes(prev => prev.map(n => {
+ const c = concepts.find(cc => cc.id === n.conceptId);
+ const nTier = (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase();
+ if (nTier === draggingGroupTier) {
+ return { ...n, x: snapToGrid(n.x), y: snapToGrid(n.y) };
+ }
+ return n;
+ }));
+ } else {
  setNodes(prev => prev.map(n =>
  n.id === draggingNodeId ? { ...n, x: snapToGrid(n.x), y: snapToGrid(n.y) } : n
  ));
  }
+ }
  setDraggingNodeId(null);
+ setDraggingGroupTier(null);
+ dragLastPosRef.current = null;
  setIsPanning(false);
  };
  const handleWheel = useCallback((e: WheelEvent) => {
@@ -1494,10 +1579,15 @@ export default function ConceptMapBuilder({
  return rings;
  })()}
  {/* Nodes */}
- {nodes.map(node => (
+ {nodes.map(node => {
+ const isGroupTarget = draggingGroupTier && (() => {
+ const c = concepts.find(cc => cc.id === node.conceptId);
+ return (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase() === draggingGroupTier;
+ })();
+ return (
  <div
  key={node.id}
- className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''}`}
+ className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''} ${isGroupTarget ? styles.groupDragging : ''}`}
  style={{ left: node.x, top: node.y }}
  onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
  onDoubleClick={(e) => handleNodeDoubleClick(e, node.id)}
@@ -1516,7 +1606,8 @@ export default function ConceptMapBuilder({
  </button>
  )}
  </div>
- ))}
+ );
+ })}
  {/* Node Info Popover */}
  {inspectedNode && (
  <div
@@ -1588,6 +1679,13 @@ export default function ConceptMapBuilder({
  title="Move Mode (drag nodes)"
  >
  <Move size={20} />
+ </button>
+ <button
+ className={`${styles.toolButton} ${groupDrag ? styles.active : ''}`}
+ onClick={() => setGroupDrag(g => !g)}
+ title={groupDrag ? 'Group Drag ON — drag moves entire tier' : 'Group Drag OFF — drag moves single node'}
+ >
+ <Group size={20} />
  </button>
  <button
  className={`${styles.toolButton} ${activeTool === 'connect' ? styles.active : ''}`}
