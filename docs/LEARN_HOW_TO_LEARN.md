@@ -157,7 +157,7 @@ Phase 4 is not a final step you complete once. It's a continuous loop that runs 
 │  Phase 2: CONCEPTUAL                                            │
 │  "Know the ideas"                                               │
 │  ┌──────────────────────────────────────────────────────┐       │
-│  │ Test First → Metaphor → Relationships → Pitfalls     │       │
+│  │ Map → Test → Encode → Verify                         │       │
 │  └──────────────────────────┬───────────────────────────┘       │
 │                             │                                   │
 │                             ▼                                   │
@@ -196,6 +196,23 @@ This feedback loop transforms the four phases from a one-time sequence into a li
 
 ---
 
+## Verb × Phase Matrix
+
+The three core learning verbs — **See**, **Know**, **Do** — each dominate one phase, while **Keep** sustains them all. This matrix shows the primary verb active in each cognitive phase:
+
+```
+              │  See  │  Know │  Do   │  Keep │
+──────────────┼───────┼───────┼───────┼───────┤
+ PERCEPTUAL   │   ●   │       │       │       │
+ CONCEPTUAL   │       │   ●   │       │       │
+ PROCEDURAL   │       │       │   ●   │       │
+ CYCLIC       │       │       │       │   ●   │
+```
+
+Every session step in SensaAI maps to exactly one cell in this matrix. When you're in SCOUT, you're **Seeing**. When you're in the micro-loop (Test → Encode → Verify), you're **Knowing**. When you're in APPLY or GYM, you're **Doing**. When the spacing engine fires, you're **Keeping**.
+
+---
+
 ## The Universal Learning Equation
 
 SensaAI tracks the health of this entire cycle with a single equation:
@@ -231,46 +248,35 @@ This is how humans learn. SensaAI just makes it systematic.
 
 ## Appendix: Where SensaAI Implements Each Phase
 
-### Phase 1: Perceptual — SensaAI Mapping
+The table below traces a learner's complete journey through SensaAI. Each row belongs to exactly one cognitive phase and one core verb — so you can read top-to-bottom and watch the 4-phase cycle unfold in the actual app.
 
-| Session Step | What Happens | Cognitive Function |
-|---|---|---|
-| **Home — Subject + Exam Selection** | Define the subject and select the certification exam (auto-loads official objectives as verb-concept structure) | Answer Question 1: define the goal |
-| **Home — Domain Trunks** | Define 2-6 exam domains as trunks (chunked paths) | Answer Question 2: chunk the paths |
-| **Generation — AI Classification** | AI decomposes the subject into domains with weighted objectives | Automated chunking for subjects without predefined structure |
-| **SCOUT — Structure Preview** | View the trunk/branch/leaf hierarchy of the entire study pack | See the tree that emerged from your goal decomposition |
-| **SCOUT — Critical Path** | Foundation concepts highlighted in gold | See which 5 concepts unlock 80% of the rest |
-| **SCOUT — Nomenclature Sprint** | 60-second term-to-metaphor matching game | Build vocabulary fluency before deep study |
-| **SCOUT — Gap Priming** | Preview questions that activate prior knowledge | Create hooks for new information |
-
-### Phase 2: Conceptual — SensaAI Mapping
-
-| Session Step | What Happens | Cognitive Function |
-|---|---|---|
-| **BUILD — Concept Map** | Drag and connect concepts with labelled TRACES relationships | Force explicit relationship thinking |
-| **STUDY — Preview AI (Test First)** | Answer a diagnostic question before being taught | Activate prediction error, expose gaps |
-| **STUDY — Build AI (Learn)** | Layered presentation: metaphor → architecture → execution → pitfalls → high-stakes scenario | Build understanding from intuition to precision |
-| **STUDY — Retain AI (Verify)** | Pattern-recognition question to confirm the concept stuck | Lock in understanding before moving on |
-
-### Phase 3: Procedural — SensaAI Mapping
-
-| Session Step | What Happens | Cognitive Function |
-|---|---|---|
-| **APPLY — Mastery Challenge** | Cross-concept test requiring integration of multiple ideas | Prove you can reason, not just recall |
-| **GYM — Blank Sheet Test** | Write everything you know from pure memory | Force organised retrieval of procedures |
-| **GYM — Creative Transfer** | Apply knowledge to a novel scenario you've never seen | Test whether understanding transfers beyond the original context |
-| **GYM — Pre-Mortem** | Predict what could go wrong in a procedure | Build failure-awareness before it happens in reality |
-| **GYM — Peer Review (Interrogator)** | Defend your procedural decisions under pressure | Stress-test your reasoning against challenges |
-| **GYM — Confusion Drill** | Distinguish between easily-confused procedures | Sharpen discrimination at the action level |
-
-### Phase 4: Cyclic — SensaAI Mapping
-
-| System Component | What Happens | Cognitive Function |
-|---|---|---|
-| **Spacing Engine (SM-2)** | Schedules reviews at optimal intervals based on past performance | Fight the forgetting curve with minimal effort |
-| **Forgetting Curve Visualisation** | Green/yellow/red decay indicators on every concept | Make the invisible forgetting curve visible and urgent |
-| **Knowledge Health %** | Overall percentage of study pack still in the green zone | One number that tells you how much you still know |
-| **Contextual Spaced Repetition** | Shows your concept map, previous responses, and failed questions during review | Make reviews personal, not generic |
-| **Interleaving Bridge Narratives** | Generates "X requires Y" transitions when switching concepts | Maintain relational structure during review |
-| **Proactive AI Coach** | Detects patterns (3 skips, 90 min elapsed, score streaks) and intervenes | Prevent grinding when returns are diminishing |
-| **GYM — Daily Stack** | SM-2 driven review queue, always available | Voluntary adherence to spacing schedule |
+| Phase | Verb | Session Step | What Happens | Cognitive Function |
+|---|---|---|---|---|
+| | | | | |
+| **PERCEPTUAL** | **See** | **Home — Subject + Exam Selection** | Define the subject and select the certification exam (auto-loads official objectives as verb-concept structure) | Answer Question 1: define the goal |
+| | | **Home — Domain Trunks** | Define 2–6 exam domains as trunks (chunked paths) | Answer Question 2: chunk the paths |
+| | | **Generation — AI Classification** | AI decomposes the subject into domains with weighted objectives | Automated chunking for subjects without predefined structure |
+| | | **SCOUT — Structure Preview** | View the trunk/branch/leaf hierarchy of the entire study pack | **See** the tree that emerged from your goal decomposition |
+| | | **SCOUT — Critical Path** | Foundation concepts highlighted in gold | **See** which 5 concepts unlock 80% of the rest |
+| | | **SCOUT — Nomenclature Sprint** | 60-second term-to-metaphor matching game | Build vocabulary fluency before deep study |
+| | | **SCOUT — Gap Priming** | Preview questions that activate prior knowledge | Create hooks for new information |
+| | | | | |
+| **CONCEPTUAL** | **Know** | **BUILD — Concept Map** | Drag and connect concepts with labelled TRACES relationships | Force explicit relationship thinking |
+| | | **LEARN — Test** (predict & expose gaps) | Answer a diagnostic question *before* being taught | Activate prediction error, expose gaps |
+| | | **LEARN — Encode** (build understanding) | Layered presentation: metaphor → architecture → execution → pitfalls → high-stakes scenario | Build understanding from intuition to precision |
+| | | **LEARN — Verify** (confirm retention) | Pattern-recognition question to confirm the concept stuck | Lock in understanding before moving on |
+| | | | | |
+| **PROCEDURAL** | **Do** | **APPLY — Mastery Challenge** | Cross-concept test requiring integration of multiple ideas | Prove you can reason, not just recall |
+| | | **GYM — Blank Sheet Test** | Write everything you know from pure memory | Force organised retrieval of procedures |
+| | | **GYM — Creative Transfer** | Apply knowledge to a novel scenario you've never seen | Test whether understanding transfers beyond the original context |
+| | | **GYM — Pre-Mortem** | Predict what could go wrong in a procedure | Build failure-awareness before it happens in reality |
+| | | **GYM — Peer Review (Interrogator)** | Defend your procedural decisions under pressure | Stress-test your reasoning against challenges |
+| | | **GYM — Confusion Drill** | Distinguish between easily-confused procedures | Sharpen discrimination at the action level |
+| | | | | |
+| **CYCLIC** | **Keep** | **Spacing Engine (SM-2)** | Schedules reviews at optimal intervals based on past performance | Fight the forgetting curve with minimal effort |
+| | | **Forgetting Curve Visualisation** | Green/yellow/red decay indicators on every concept | Make the invisible forgetting curve visible and urgent |
+| | | **Knowledge Health %** | Overall percentage of study pack still in the green zone | One number that tells you how much you still know |
+| | | **Contextual Spaced Repetition** | Shows your concept map, previous responses, and failed questions during review | Make reviews personal, not generic |
+| | | **Interleaving Bridge Narratives** | Generates "X requires Y" transitions when switching concepts | Maintain relational structure during review |
+| | | **Proactive AI Coach** | Detects patterns (3 skips, 90 min elapsed, score streaks) and intervenes | Prevent grinding when returns are diminishing |
+| | | **GYM — Daily Stack** | SM-2 driven review queue, always available | Voluntary adherence to spacing schedule |

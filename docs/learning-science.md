@@ -82,7 +82,7 @@ The canvas includes an always-visible **Relationship Legend** with child-friendl
 
 ```
 For each concept:
-  Preview AI (Test) → Build AI (Learn) → Retain AI (Verify)
+  Test (Predict & Expose Gaps) → Encode (Build Understanding) → Verify (Confirm Retention)
 ```
 
 See detailed breakdown below.
@@ -93,9 +93,9 @@ See detailed breakdown below.
 
 ---
 
-## The 3-Phase Micro-Loop (Step 3 Detail)
+## The 3-Step Micro-Loop (Step 3 Detail)
 
-### Phase 1: Preview AI (Test First)
+### Step 3a: Test (Predict & Expose Gaps)
 **File:** `src/features/learning-session/phases/preview-ai.ts`
 **Purpose:** Test BEFORE teaching — activates retrieval and reveals gaps.
 
@@ -117,7 +117,7 @@ No synthetic fallback questions are generated. Concepts without explicit questio
 - `tier` (leaf = harder, branch = medium)
 - `cognitiveLevel` (evaluate/create = harder)
 
-### Phase 2: Build AI (Learn)
+### Step 3b: Encode (Build Understanding)
 **Component:** `LearnPhase` in `MicroLearningLoopController.tsx`
 **Purpose:** Structured knowledge presentation with AI-generated organization.
 
@@ -134,7 +134,7 @@ No synthetic fallback questions are generated. Concepts without explicit questio
 
 **Content categorization:** `categorizeKeyPoints()` splits `keyPoints + howToUse` into architecture/execution/systemPhysics buckets using keyword matching.
 
-### Phase 3: Retain AI (Verify)
+### Step 3c: Verify (Confirm Retention)
 **Component:** `VerifyPhase` in `MicroLearningLoopController.tsx`
 **Purpose:** Quick verification question using AI-generated `patternRecognition` data.
 
@@ -152,7 +152,7 @@ Activities available in the Gym (`GymActivityLauncher`) and some in the main loo
 | Activity | Where Used | Cognitive Target |
 |----------|-----------|-----------------|
 | **ConceptMapBuilder** | Main loop (Step 2) + Gym | Structural understanding, connection-making |
-| **BlankSheetTest** | Main loop (Retain AI) | Free recall, memory consolidation (response text autosaved) |
+| **BlankSheetTest** | Main loop (Verify) | Free recall, memory consolidation (response text autosaved) |
 | **ConfusionDrill** | Main loop (confusion state) | Discrimination between similar concepts |
 | **PeerReviewActivity (Interrogator)** | Main loop (social-learning) + Gym | Misconception diagnosis, defense under pressure |
 | **CreativeTransferActivity** | Main loop (creative-transfer) | Apply knowledge to novel scenarios |
