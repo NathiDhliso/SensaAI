@@ -615,6 +615,7 @@ export default function ConceptMapBuilder({
  const newConns: Connection[] = [];
  const existingKeys = new Set(existingConns.map(c => `${c.fromId}->${c.toId}`));
  const nodeByConceptId = new Map(allNodes.map(n => [n.conceptId, n]));
+ let connIdx = 0;
  if (dependencyGraph?.edges) {
  for (const edge of dependencyGraph.edges) {
  const fromNode = nodeByConceptId.get(edge.from);
@@ -625,7 +626,7 @@ export default function ConceptMapBuilder({
  if (existingKeys.has(key) || existingKeys.has(reverseKey)) continue;
  const label = edge.type === 'prerequisite' ? 'requires' : edge.type === 'optional' ? 'enables' : 'enables';
  newConns.push({
- id: `conn-${Date.now()}-${edge.from}-${edge.to}`,
+ id: `conn-${Date.now()}-${connIdx++}-${edge.from}-${edge.to}`,
  fromId: fromNode.id,
  toId: toNode.id,
  label
@@ -644,7 +645,7 @@ export default function ConceptMapBuilder({
  const reverseKey = `${targetNode.id}->${sourceNode.id}`;
  if (existingKeys.has(key) || existingKeys.has(reverseKey)) continue;
  newConns.push({
- id: `conn-${Date.now()}-${concept.id}-${conn.target}`,
+ id: `conn-${Date.now()}-${connIdx++}-${concept.id}-${conn.target}`,
  fromId: sourceNode.id,
  toId: targetNode.id,
  label: conn.type
@@ -660,7 +661,7 @@ export default function ConceptMapBuilder({
  const reverseKey = `${depNode.id}->${sourceNode.id}`;
  if (existingKeys.has(key) || existingKeys.has(reverseKey)) continue;
  newConns.push({
- id: `conn-${Date.now()}-${concept.id}-${depId}`,
+ id: `conn-${Date.now()}-${connIdx++}-${concept.id}-${depId}`,
  fromId: sourceNode.id,
  toId: depNode.id,
  label: 'requires'

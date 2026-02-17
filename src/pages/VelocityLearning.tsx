@@ -100,14 +100,15 @@ export default function VelocityLearning() {
     });
 
     // Initialize Subject Type & Mood
+    const { initializeSubjectType, initializeH } = sensaFlow;
     useEffect(() => {
         if (currentSession?.subjectType) {
-            sensaFlow.initializeSubjectType(currentSession.subjectType);
+            initializeSubjectType(currentSession.subjectType);
         }
         if (studySession?.mood) {
-            sensaFlow.initializeH(studySession.mood);
+            initializeH(studySession.mood);
         }
-    }, [currentSession?.subjectType, studySession?.mood, sensaFlow]);
+    }, [currentSession?.subjectType, studySession?.mood, initializeSubjectType, initializeH]);
 
     const selectionReason = useMemo(() => {
         if (!activeConcept || !currentSession) return null;
