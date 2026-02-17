@@ -148,18 +148,19 @@ export default function VelocityLearning() {
 
     const [showHealthPanel, setShowHealthPanel] = useState(false);
 
-    // Sync SENSA flow state from persisted study session on mount/change
+    const syncingFromStoreRef = useRef(false);
+
     useEffect(() => {
         if (studySession) {
+            syncingFromStoreRef.current = true;
             sensaFlow.syncFromStore(studySession);
+            requestAnimationFrame(() => { syncingFromStoreRef.current = false; });
         }
-    }, [studySession]); // removed sensaFlow from deps to avoid loop
+    }, [studySession]);
 
-    // Persist Equation State to Store
     useEffect(() => {
         if (!studySession) return;
-
-        // Don't sync if all zeros (initial state)
+        if (syncingFromStoreRef.current) return;
         if (sensaFlow.Q_k === 0 && sensaFlow.Q_r === 0 && sensaFlow.Q_c === 0 && sensaFlow.Q_f === 0 && sensaFlow.Q_p === 0) return;
 
         const current = studySession.equation;

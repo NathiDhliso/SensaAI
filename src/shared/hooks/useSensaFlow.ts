@@ -334,11 +334,12 @@ export function useSensaFlow(): UseSensaFlowReturn {
                 conceptMap: studySession.conceptMap
             } : {};
 
-            // Only update if changes found to avoid loops
+            const conceptMapUnchanged = !studySession.conceptMap || prev.conceptMap === studySession.conceptMap;
             if (
                 prev.phase === phase &&
                 prev.completedSteps.length === completedSteps.length &&
-                (!eq || (prev.h === eq.h && prev.Q_k === eq.Q_k && prev.Q_r === eq.Q_r && prev.Q_c === eq.Q_c && prev.Q_f === eq.Q_f && prev.Q_p === eq.Q_p))
+                conceptMapUnchanged &&
+                (!eq || (prev.h === eq.h && prev.Q_k === eq.Q_k && prev.Q_r === eq.Q_r && prev.Q_c === eq.Q_c && prev.Q_f === eq.Q_f && prev.Q_p === eq.Q_p && prev.I === eq.I))
             ) {
                 return prev;
             }
