@@ -1,16 +1,7 @@
-/**
- * BlueprintFormulaDashboard Component
- *
- * Unified Learning Health panel — collapsible from the toolbar.
- * I = min(h, Q_k × Q_r × Q_c × Q_f × Q_p)
- *
- * Merges the old EquationTracker (progress bar, grind warning) with
- * the detailed Q-variable breakdown into one expandable panel.
- */
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lightbulb, Info, Target, AlertTriangle } from 'lucide-react';
+import { Lightbulb, Info, AlertTriangle, BookOpen, Layers, TrendingUp, X } from 'lucide-react';
 import type { HealthVariable } from '@/shared/constants/sensa-flow-constants';
-import { EQUATION_COLORS, HEALTH_THRESHOLD } from '@/shared/constants/sensa-flow-constants';
+import { EQUATION_COLORS_HEX, HEALTH_THRESHOLD } from '@/shared/constants/sensa-flow-constants';
 import type { LearnerQMetrics, FeedbackSignal } from '@/shared/services/blueprint-formula';
 import type { SubjectType } from '@/shared/types/macro-workflow';
 import type { SensaPhase } from '@/shared/types/sensa-flow';
@@ -25,15 +16,36 @@ export interface BlueprintFormulaDashboardProps {
     recommendation: string;
     subjectType: SubjectType | undefined;
     feedbackSignal: FeedbackSignal | null;
+    subjectName?: string;
+    conceptsCompleted?: number;
+    conceptsTotal?: number;
+    onClose?: () => void;
 }
 
-const VARIABLE_CONFIG: Record<HealthVariable, { symbol: string; color: string }> = {
-    Q_k: { symbol: 'Q_k', color: EQUATION_COLORS.Q_k },
-    Q_r: { symbol: 'Q_r', color: EQUATION_COLORS.Q_r },
-    Q_c: { symbol: 'Q_c', color: EQUATION_COLORS.Q_c },
-    Q_f: { symbol: 'Q_f', color: EQUATION_COLORS.Q_f },
-    Q_p: { symbol: 'Q_p', color: EQUATION_COLORS.Q_p }
+const PHASE_LABELS: Record<SensaPhase, string> = {
+    see: 'See — Preview & Predict',
+    explore: 'Explore — Deep Dive',
+    note: 'Note — Capture Insights',
+    study: 'Study — Active Recall',
+    apply: 'Apply — Real Problems',
+    complete: 'Complete — Mastered'
 };
+
+const VARIABLE_CONFIG: Record<HealthVariable, { symbol: string; color: string; icon: string }> = {
+    Q_k: { symbol: 'Qk', color: EQUATION_COLORS_HEX.Q_k, icon: '🧠' },
+    Q_r: { symbol: 'Qr', color: EQUATION_COLORS_HEX.Q_r, icon: '🔁' },
+    Q_c: { symbol: 'Qc', color: EQUATION_COLORS_HEX.Q_c, icon: '🔗' },
+    Q_f: { symbol: 'Qf', color: EQUATION_COLORS_HEX.Q_f, icon: '⏱' },
+    Q_p: { symbol: 'Qp', color: EQUATION_COLORS_HEX.Q_p, icon: '⚡' }
+};
+
+function getHealthLevel(percent: number): { label: string; className: string } {
+    if (percent >= 80) return { label: 'Excellent', className: styles.healthExcellent };
+    if (percent >= 60) return { label: 'Good', className: styles.healthGood };
+    if (percent >= 40) return { label: 'Building', className: styles.healthBuilding };
+    if (percent >= 20) return { label: 'Developing', className: styles.healthDeveloping };
+    return { label: 'Starting Out', className: styles.healthStarting };
+}
 
 export function BlueprintFormulaDashboard({
     h,
@@ -43,12 +55,18 @@ export function BlueprintFormulaDashboard({
     weakestVariable,
     recommendation,
     subjectType,
-    feedbackSignal
+    feedbackSignal,
+    subjectName,
+    conceptsCompleted = 0,
+    conceptsTotal = 0,
+    onClose
 }: BlueprintFormulaDashboardProps) {
     if (!metrics) return null;
 
     const healthPercent = Math.round(I * 100);
     const isGrindingFutile = phase === 'study' && metrics.Q_p < 0.2;
+    const healthLevel = getHealthLevel(healthPercent);
+    const targetPercent = Math.round(HEALTH_THRESHOLD * 100);
 
     const rows: { key: HealthVariable; value: number; label: string }[] = [
         { key: 'Q_k', value: metrics.Q_k, label: metrics.labels.Q_k },
@@ -59,43 +77,81 @@ export function BlueprintFormulaDashboard({
     ];
 
     return (
-        <motion.div
-            className={styles.container}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-        >
+        <div className={styles.container}>
             <div className={styles.header}>
-                <span className={styles.headerTitle}>Learning Health Diagnostics</span>
-                {subjectType && (
-                    <span className={styles.typeBadge}>
-                        {subjectType}
-                    </span>
+                <div className={styles.headerLeft}>
+                    <TrendingUp size={16} className={styles.headerIcon} />
+                    <span className={styles.headerTitle}>Learning Health</span>
+                </div>
+                {onClose && (
+                    <button className={styles.closeButton} onClick={onClose}>
+                        <X size={16} />
+                    </button>
                 )}
             </div>
 
-            <div className={styles.progressContainer}>
-                <div className={styles.progressTrack}>
-                    <motion.div
-                        className={styles.progressFill}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${healthPercent}%` }}
-                        transition={{ duration: 0.5 }}
-                    />
-                    <div
-                        className={styles.healthTarget}
-                        style={{ left: `${HEALTH_THRESHOLD * 100}%` }}
-                    >
-                        <Target size={10} />
+            {subjectName && (
+                <div className={styles.contextSection}>
+                    <div className={styles.contextRow}>
+                        <BookOpen size={14} />
+                        <span className={styles.contextLabel}>{subjectName}</span>
+                        {subjectType && <span className={styles.typeBadge}>{subjectType}</span>}
+                    </div>
+                    <div className={styles.contextRow}>
+                        <Layers size={14} />
+                        <span className={styles.contextLabel}>{PHASE_LABELS[phase]}</span>
+                    </div>
+                    {conceptsTotal > 0 && (
+                        <div className={styles.progressMini}>
+                            <span className={styles.progressMiniLabel}>
+                                {conceptsCompleted} / {conceptsTotal} concepts
+                            </span>
+                            <div className={styles.progressMiniTrack}>
+                                <motion.div
+                                    className={styles.progressMiniFill}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.round((conceptsCompleted / conceptsTotal) * 100)}%` }}
+                                    transition={{ duration: 0.4 }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <div className={styles.scoreSection}>
+                <div className={styles.scoreRing}>
+                    <svg viewBox="0 0 100 100" className={styles.scoreSvg}>
+                        <circle cx="50" cy="50" r="42" className={styles.scoreTrack} />
+                        <motion.circle
+                            cx="50" cy="50" r="42"
+                            className={styles.scoreFill}
+                            strokeDasharray={`${healthPercent * 2.64} 264`}
+                            initial={{ strokeDasharray: '0 264' }}
+                            animate={{ strokeDasharray: `${healthPercent * 2.64} 264` }}
+                            transition={{ duration: 0.8, ease: 'easeOut' }}
+                        />
+                    </svg>
+                    <div className={styles.scoreValue}>
+                        <span className={styles.scoreNumber}>{healthPercent}</span>
+                        <span className={styles.scoreUnit}>%</span>
                     </div>
                 </div>
-                <span className={styles.progressLabel}>
-                    {healthPercent}% to healthy
-                </span>
+                <div className={styles.scoreInfo}>
+                    <span className={`${styles.scoreStatus} ${healthLevel.className}`}>
+                        {healthLevel.label}
+                    </span>
+                    <span className={styles.scoreTarget}>
+                        Target: {targetPercent}%
+                    </span>
+                    <span className={styles.scoreEquation}>
+                        I = min(h, Qk × Qr × Qc × Qf × Qp)
+                    </span>
+                </div>
             </div>
 
             <div className={styles.metricsGrid}>
+                <div className={styles.metricsHeader}>Variable Breakdown</div>
                 {rows.map(({ key, value, label }) => {
                     const isWeakest = weakestVariable.variable === key;
                     const percent = Math.round(value * 100);
@@ -106,28 +162,37 @@ export function BlueprintFormulaDashboard({
                             key={key}
                             className={`${styles.metricRow} ${isWeakest ? styles.weakest : ''}`}
                         >
+                            <span className={styles.metricIcon}>{config.icon}</span>
                             <div className={styles.metricLabel}>
                                 <span className={styles.labelName}>{label}</span>
-                                <span className={styles.labelSymbol}>{config.symbol}</span>
                             </div>
-
                             <div className={styles.barTrack}>
                                 <motion.div
                                     className={styles.barFill}
                                     style={{ backgroundColor: config.color }}
                                     initial={{ width: 0 }}
                                     animate={{ width: `${percent}%` }}
-                                    transition={{ duration: 0.5 }}
+                                    transition={{ duration: 0.5, delay: 0.1 }}
                                 />
                             </div>
-
-                            <span className={styles.metricValue}>{percent}%</span>
+                            <span className={styles.metricValue} style={{ color: config.color }}>
+                                {percent}%
+                            </span>
+                            {isWeakest && <span className={styles.weakBadge}>Weakest</span>}
                         </div>
                     );
                 })}
 
                 <div className={styles.moodRow}>
-                    <span className={styles.moodLabel}>Cognitive Bandwidth (h)</span>
+                    <span className={styles.moodLabel}>Cognitive Bandwidth</span>
+                    <div className={styles.moodBar}>
+                        <motion.div
+                            className={styles.moodBarFill}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.round(h * 100)}%` }}
+                            transition={{ duration: 0.5 }}
+                        />
+                    </div>
                     <span className={styles.moodValue}>{Math.round(h * 100)}%</span>
                 </div>
             </div>
@@ -179,7 +244,7 @@ export function BlueprintFormulaDashboard({
                     </div>
                 </motion.div>
             )}
-        </motion.div>
+        </div>
     );
 }
 

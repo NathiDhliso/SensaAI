@@ -249,3 +249,24 @@
         transform: translateY(0);
     }
 }
+
+.healthModalOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--overlay-black-40);
+    backdrop-filter: blur(6px);
+    padding: 2rem;
+}
+
+.healthModalContent {
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+}

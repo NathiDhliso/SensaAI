@@ -486,27 +486,6 @@ export default function VelocityLearning() {
                                 }
                             />
 
-                            <AnimatePresence>
-                                {showHealthPanel && currentSession?.subjectType && (
-                                    <BlueprintFormulaDashboard
-                                        subjectType={sensaFlow.subjectType}
-                                        h={sensaFlow.h}
-                                        I={sensaFlow.I}
-                                        phase={sensaFlow.phase}
-                                        metrics={{
-                                            Q_k: sensaFlow.Q_k,
-                                            Q_r: sensaFlow.Q_r,
-                                            Q_c: sensaFlow.Q_c,
-                                            Q_f: sensaFlow.Q_f,
-                                            Q_p: sensaFlow.Q_p,
-                                            labels: sensaFlow.qLabels
-                                        }}
-                                        weakestVariable={sensaFlow.weakestVariable}
-                                        recommendation={sensaFlow.recommendation}
-                                        feedbackSignal={sensaFlow.feedbackSignal}
-                                    />
-                                )}
-                            </AnimatePresence>
                         </>
                     )}
 
@@ -563,6 +542,50 @@ export default function VelocityLearning() {
                             navigate(`/study/${currentSession?.id}?tab=overview`);
                         }}
                     />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showHealthPanel && (
+                    <motion.div
+                        className={styles.healthModalOverlay}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={() => setShowHealthPanel(false)}
+                    >
+                        <motion.div
+                            className={styles.healthModalContent}
+                            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <BlueprintFormulaDashboard
+                                subjectType={sensaFlow.subjectType}
+                                h={sensaFlow.h}
+                                I={sensaFlow.I}
+                                phase={sensaFlow.phase}
+                                metrics={{
+                                    Q_k: sensaFlow.Q_k,
+                                    Q_r: sensaFlow.Q_r,
+                                    Q_c: sensaFlow.Q_c,
+                                    Q_f: sensaFlow.Q_f,
+                                    Q_p: sensaFlow.Q_p,
+                                    labels: sensaFlow.qLabels
+                                }}
+                                weakestVariable={sensaFlow.weakestVariable}
+                                recommendation={sensaFlow.recommendation}
+                                feedbackSignal={sensaFlow.feedbackSignal}
+                                subjectName={currentSession?.subject}
+                                conceptsCompleted={currentSession?.progress?.completedConcepts?.length ?? 0}
+                                conceptsTotal={currentSession?.concepts?.length ?? 0}
+                                onClose={() => setShowHealthPanel(false)}
+                            />
+                        </motion.div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>
