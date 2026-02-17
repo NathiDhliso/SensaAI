@@ -18,6 +18,8 @@ import { useGenerationStore } from '@/store/generation-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import type { StudyGoal } from '@/shared/types/learning';
 import { storageManager } from '@/features/content-storage';
+import { conceptsApi } from '@/shared/api/concepts';
+import { buildDocumentFromConcepts } from '@/shared/utils/content-builder';
 import { parseAndLoadContent } from '@/shared/utils/content-loader';
 import { getTimeUntilExpiry } from '@/features/learning-session/progress/session-tracker';
 import { StudyLayout, type StudyTab } from '@/components/layout';
@@ -106,8 +108,7 @@ export default function Study() {
  return;
  }
  }
- // Check if this is a fresh generation (content already parsed and loaded)
- const navigationState = location.state as { freshGeneration?: boolean } | null;
+ const navigationState = location.state as { freshGeneration?: boolean; community?: boolean; ownerId?: string } | null;
  if (navigationState?.freshGeneration && currentSession) {
  return;
  }
@@ -115,8 +116,33 @@ export default function Study() {
  setIsHydrating(true);
  setHydrationError(null);
  try {
- // Attempt 1: Load from storage using the ID directly
- let result = await storageManager.loadResult(subjectId);
+ let result = null;
+ if (navigationState?.community && navigationState?.ownerId) {
+ const publicData = await conceptsApi.getPublicContent(navigationState.ownerId, subjectId);
+ const fullDocument = buildDocumentFromConcepts(publicData.subject, publicData.concepts);
+ result = {
+ id: publicData.jobId,
+ subject: publicData.subject,
+ generatedAt: new Date().toISOString(),
+ fullDocument,
+ pass1Data: {
+ domain: publicData.subject,
+ roleScope: 'General',
+ lifecycle: { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' },
+ concepts: publicData.concepts.map((c: { name: string }) => c.name)
+ },
+ validation: {
+ completeness: 90,
+ lifecycleConsistency: 90,
+ positiveFraming: 90,
+ formatConsistency: 90
+ },
+ savedLocally: false,
+ savedToCloud: true
+ };
+ } else {
+ result = await storageManager.loadResult(subjectId);
+ }
  // Attempt 2: Check if it's an active job (generation in progress)
  if (!result) {
  const { hasActiveJob, getActiveJob } = useGenerationStore.getState();

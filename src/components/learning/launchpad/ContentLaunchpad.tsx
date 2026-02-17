@@ -375,14 +375,15 @@ export default function ContentLaunchpad() {
             }
         } catch { /* spacing not initialized yet */ }
     }, [parsedData]);
+    const communityState = isCommunity ? { state: { community: true, ownerId: communityOwnerId } } : undefined;
     const handleStartLearning = () => {
-        navigate(`/study/${subjectId}?tab=learn`);
+        navigate(`/study/${subjectId}?tab=learn`, communityState);
     };
     const handleReviewConcept = (conceptId: string) => {
-        navigate(`/study/${subjectId}?tab=learn&concept=${conceptId}`);
+        navigate(`/study/${subjectId}?tab=learn&concept=${conceptId}`, communityState);
     };
     const handleGymActivity = (activity: string) => {
-        navigate(`/study/${subjectId}?tab=learn&activity=${activity}`);
+        navigate(`/study/${subjectId}?tab=learn&activity=${activity}`, communityState);
     };
     const handleSaveObjectives = () => {
         if (!parsedData || !subjectId) return;
@@ -824,7 +825,7 @@ export default function ContentLaunchpad() {
                         <div className={styles.healthPanelWrapper}>
                             <KnowledgeHealthPanel
                                 concepts={healthData}
-                                onLaunchTargetedReview={(ids) => navigate(`/study/${subjectId}?tab=learn&concepts=${ids.join(',')}`)}
+                                onLaunchTargetedReview={(ids) => navigate(`/study/${subjectId}?tab=learn&concepts=${ids.join(',')}`, communityState)}
                             />
                         </div>
                         <div className={styles.sectionTitle}>
