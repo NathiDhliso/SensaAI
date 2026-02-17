@@ -19,9 +19,9 @@ PERCEPTUAL → CONCEPTUAL → PROCEDURAL → CYCLIC
 
 ## Phase 1: Perceptual — See the Landscape
 
-**Goal:** Decompose the subject into its verbs and concepts so you can see the entire playing field before you touch any detail.
+Decompose the subject into its verbs and concepts so you can see the entire playing field before you touch any detail.
 
-When you sit down to learn something new, your first job is not to memorise facts. It's to *see*. But seeing isn't passive — it's an active decomposition. You need to crack open the subject and identify two things: **what you will do** (the verbs) and **what you will do it to** (the concepts).
+Imagine you're about to hike through a national park you've never visited. You don't start walking into the trees. You find a lookout point first. From up there you can see the whole park — the mountain range to the north, the river valley in the middle, the forest to the south. You can see which trails connect them. Now you know where you're going and roughly how to get there. Learning a subject works the same way: get to the lookout point before you start walking.
 
 ### The Two Questions
 
@@ -35,15 +35,11 @@ Not a vague goal like "pass the exam" or "learn Azure." A *structural* goal — 
 
 That single sentence contains everything: the role (Azure administrator), the verbs (create, configure, monitor), and the concepts (identity, governance, storage, networking, compute, monitoring). You now know what "done" looks like.
 
-Other examples across domains:
-
 | Domain | Goal as Verb-Concept Structure |
 |---|---|
 | **Constitutional Law** | *Analyse, argue, and distinguish* the following doctrines: *separation of powers, due process, equal protection, federalism, and individual rights* |
 | **Jazz Improvisation** | *Hear, voice-lead, and improvise over* the following structures: *ii-V-I progressions, modal interchange, tritone substitutions, rhythm changes, and blues form* |
 | **Medical Radiology** | *Identify, differentiate, and report* the following findings: *consolidation, effusion, pneumothorax, masses, fractures, and normal variants* |
-
-The pattern is always **[verbs] × [concepts]**. The verbs tell you what competence *looks like*. The concepts tell you what competence *operates on*.
 
 **Question 2: What is the path to that goal?**
 
@@ -51,19 +47,12 @@ Now that you have a verb-concept structure, the path reveals itself. Each concep
 
 But real subjects are messy — the concepts interconnect, the verbs overlap, and 80 objectives across 5 domains can feel like a tangled web. This is where **chunking** comes in.
 
-**Chunking strategy for complex goals:**
-
-1. **Collapse the web into a few paths.** Group the interconnected goals into a small number of chunked paths — ideally 3 to 6. Each chunk is a domain of related concepts that share verbs. For AZ-104, the 82 objectives collapse into 5 domain paths: Identity & Governance, Storage, Networking, Compute, and Monitoring.
-2. **Name each chunk as a mini-goal.** Each chunk gets its own verb-concept sentence: "Create and manage storage accounts, configure blob access, and implement lifecycle policies." Now you have 5 manageable goals instead of 82 scattered objectives.
-3. **Break each chunk into granular steps.** Within each chunked path, order the individual concepts from foundational to advanced. "Virtual Networks" comes before "Network Security Groups" which comes before "Azure Firewall." The granular path emerges from the dependencies between concepts within each chunk.
-4. **Look for shared ground between chunks.** Some concepts (like Azure Active Directory) appear across multiple domain paths. These shared concepts are your foundation — learn them first and they unlock progress across multiple paths simultaneously.
-
-You're working top-down: the macro goal decomposes into chunked paths, each chunked path decomposes into granular concept sequences. The hierarchy is already emerging.
-
 ### What This Looks Like in Practice
 
-With the goal defined and the paths chunked, the rest of the Perceptual phase fills in the detail:
-
+- **Collapse the web into a few paths.** Group the interconnected goals into 3 to 6 chunked paths. Each chunk is a domain of related concepts that share verbs. For AZ-104, 82 objectives collapse into 5 domain paths: Identity & Governance, Storage, Networking, Compute, and Monitoring.
+- **Name each chunk as a mini-goal.** Each chunk gets its own verb-concept sentence: "Create and manage storage accounts, configure blob access, and implement lifecycle policies." Five manageable goals instead of 82 scattered objectives.
+- **Break each chunk into granular steps.** Within each chunked path, order the individual concepts from foundational to advanced. "Virtual Networks" before "Network Security Groups" before "Azure Firewall." The granular path emerges from the dependencies between concepts within each chunk.
+- **Find shared ground between chunks.** Some concepts (like Azure Active Directory) appear across multiple domain paths. These shared concepts are your foundation — learn them first and they unlock progress across multiple paths simultaneously.
 - **See the hierarchy.** Your chunked paths are the trunks (big domains). Within each trunk, related concepts cluster into branches (sub-topics). Each branch contains leaves (granular testable skills). You now see the tree — trunk, branch, leaf — before you climb it.
 - **Spot the critical path.** Some concepts unlock disproportionately many others. In any subject, roughly 5 foundation concepts unlock 80% of everything else. Identify them. They're your first targets.
 - **Prime your vocabulary.** You can't think about a subject if you don't speak its language. Match each key term to a plain-English metaphor so the jargon stops being a wall and starts being a window.
@@ -71,132 +60,85 @@ With the goal defined and the paths chunked, the rest of the Perceptual phase fi
 
 ### Why It Matters
 
-Novices dive into details and drown. Experts always start with the verb-concept structure — they know what they're doing and what they're doing it to before they start. Research on expert categorisation (Chi, Feltovich & Glaser, 1981) shows that experts organise knowledge by structural principles, while novices organise by surface features. Defining the goal as verbs × concepts is what separates learning from flailing.
+- **Expert categorisation** (Chi, Feltovich & Glaser, 1981): Experts and novices look at the same material and literally see different things. Brain imaging shows that experts activate prefrontal schema networks that compress complex information into structural categories, while novices process each surface feature individually, overwhelming working memory. Defining the goal as verbs × concepts forces the expert's structural view from the start.
+- **Advance organisers** (Ausubel, 1968): A conceptual framework presented *before* detailed learning creates a neural scaffolding — a set of activated association cortex pathways — that new information physically binds to during encoding. Without the scaffold, new facts float unattached and are pruned during sleep consolidation.
+- **Working memory limits** (Miller, 1956): The prefrontal cortex can hold roughly 7±2 items simultaneously. Eighty objectives exceed this by an order of magnitude. Chunking compresses without losing structure — each chunk becomes a single "slot" in working memory, with its internal structure retrievable on demand.
 
-The chunking strategy is backed by Miller's research on working memory (1956): humans can hold 7±2 items in working memory. Eighty objectives overwhelm; five chunked paths don't. Chunking is not simplification — it's compression that preserves the structure.
-
-### Where SensaAI Does This
-
-| Session Step | What Happens | Cognitive Function |
-|---|---|---|
-| **Home — Subject + Exam Selection** | Define the subject and select the certification exam (auto-loads official objectives as verb-concept structure) | Answer Question 1: define the goal |
-| **Home — Domain Trunks** | Define 2-6 exam domains as trunks (chunked paths) | Answer Question 2: chunk the paths |
-| **Generation — AI Classification** | AI decomposes the subject into domains with weighted objectives | Automated chunking for subjects without predefined structure |
-| **SCOUT — Structure Preview** | View the trunk/branch/leaf hierarchy of the entire study pack | See the tree that emerged from your goal decomposition |
-| **SCOUT — Critical Path** | Foundation concepts highlighted in gold | See which 5 concepts unlock 80% of the rest |
-| **SCOUT — Nomenclature Sprint** | 60-second term-to-metaphor matching game | Build vocabulary fluency before deep study |
-| **SCOUT — Gap Priming** | Preview questions that activate prior knowledge | Create hooks for new information |
-
-**The output of Phase 1 is a verb-concept map.** You know what you'll do (the verbs), what you'll do it to (the concepts), how they're grouped (the chunked paths), and in what order you'll tackle them (the hierarchy). You don't know the details yet — but you can see the entire playing field. This map is the scaffold that everything else hangs on.
+**The output of Phase 1 is a verb-concept map.** You know what you'll do, what you'll do it to, how they're grouped, and in what order you'll tackle them.
 
 ---
 
 ## Phase 2: Conceptual — Know the Ideas
 
-**Goal:** Deeply understand the core concepts — what each one means, how it connects to others, and why it matters.
+Deeply understand each concept — what it means, how it connects to its neighbours, and why it matters.
 
-Now that you can see the landscape, you zoom in. You take each concept and build a rich mental model around it: a metaphor, a core explanation, common mistakes, a real-world example, and — critically — how it relates to the concepts around it.
-
-This is conceptual learning. You're not memorising; you're understanding.
+Think about the first day at a new school. You don't learn everything about every person at once. You meet one person at a time. You learn their name, something memorable about them ("she's the one who plays drums"), and how they relate to people you already know ("she's in the same class as the boy you met yesterday"). After a few days, you don't just know names — you know the social map. Learning concepts works the same way: meet each one individually, anchor it to something memorable, and connect it to the ones you already know.
 
 ### What This Looks Like in Practice
 
-- **Test yourself before you study.** Answer a question about the concept *before* reading the explanation. This "desirable difficulty" (Bjork & Bjork, 1992) makes the subsequent learning dramatically more effective because your brain is actively searching for the answer, not passively receiving it.
-- **Build from metaphor to precision.** Start with an analogy you already understand, then layer on the technical detail. Understanding moves from intuition ("it's like a bouncer at a nightclub") to precision ("rules evaluated by priority number, lower = higher precedence").
-- **Map the relationships.** How does this concept connect to others? Does it *require* something else as a prerequisite? Is it *part of* a larger system? Does it *cause* something downstream? The type of relationship matters — it becomes a retrieval cue later.
-- **Confront the pitfalls.** Every concept has common mistakes and misconceptions. Encountering them during learning, not during an exam, is how you build discrimination.
+- **Test yourself before you study.** Answer a question about the concept *before* reading the explanation. Get it wrong — that's the point. The act of searching for an answer you don't have yet primes the brain to absorb the correct answer more deeply when it arrives.
+- **Build from metaphor to precision.** Start with an analogy you already understand, then layer on the technical detail. Understanding moves from intuition ("it's like a bouncer at a nightclub") to precision ("rules evaluated by priority number, lower = higher precedence"). The metaphor gives your brain a familiar structure to hang unfamiliar details on.
+- **Map the relationships.** How does this concept connect to others? Does it *require* something else as a prerequisite? Is it *part of* a larger system? Does it *cause* something downstream? The *type* of relationship matters — it becomes a distinct retrieval cue later. Six types form the TRACES framework: requires, enables, is-part-of, is-type-of, causes, constrains.
+- **Confront the pitfalls.** Every concept has common mistakes and misconceptions. Encountering them during learning, not during an exam, is how you build discrimination. "NSGs are stateful" is a fact; "Thinking you need separate outbound rules for return traffic" is the pitfall that makes the fact stick.
 
 ### Why It Matters
 
-Ausubel's theory of meaningful learning (1968) shows that new knowledge sticks only when it connects to existing knowledge through explicit relationships. Isolated facts are forgotten. Connected ideas form a network that supports recall and reasoning.
+- **Encoding specificity** (Tulving & Thomson, 1973): The way you encode a memory determines which cues can retrieve it. Neurologically, each relationship type ("requires," "causes," "is-part-of") activates a distinct pattern of hippocampal-cortical binding during encoding, creating a separate retrieval route. Encoding a concept with multiple typed relationships gives you multiple independent paths back to it during recall.
+- **Desirable difficulties** (Bjork & Bjork, 1992): When you attempt retrieval and fail, the brain generates a *prediction error* — a dopaminergic signal from the midbrain that flags the gap between expectation and reality. This signal strengthens the synaptic connections formed when the correct answer is subsequently presented. Testing before teaching exploits this mechanism directly.
+- **Structural alignment** (Gentner & Markman, 1997): The hippocampus doesn't store isolated facts — it binds features into relational structures. Deep learning is the process of encoding *relationships between* ideas, not the ideas themselves. A concept connected to five others through typed relationships is neurally richer (more dendritic connections, more retrieval pathways) than five isolated facts.
+- **Meaningful learning** (Ausubel, 1968): New knowledge integrates into existing cortical schemas only when explicit links are formed during encoding. Without those links, the hippocampus treats the information as episodic noise and prunes it during overnight synaptic homeostasis.
 
-The TRACES framework — **T**yped **R**elational **A**rchitecture for **C**ognitive **E**ncoding **S**pecificity — encodes six distinct relationship types (requires, enables, is-part-of, is-type-of, causes, constrains). Each type activates a different retrieval pathway in memory. "What must I know before this?" is a fundamentally different cognitive question than "What happens because of this?" — and the brain stores them differently.
-
-### Where SensaAI Does This
-
-| Session Step | What Happens | Cognitive Function |
-|---|---|---|
-| **BUILD — Concept Map** | Drag and connect concepts with labelled TRACES relationships | Force explicit relationship thinking |
-| **STUDY — Preview AI (Test First)** | Answer a diagnostic question before being taught | Activate retrieval, expose gaps |
-| **STUDY — Build AI (Learn)** | Layered presentation: metaphor → architecture → execution → pitfalls → high-stakes scenario | Build understanding from intuition to precision |
-| **STUDY — Retain AI (Verify)** | Pattern-recognition question to confirm the concept stuck | Lock in understanding before moving on |
-
-**The output of Phase 2 is understanding.** You can explain each concept in your own words. You can draw the connections between concepts. You know the common mistakes and can avoid them. You don't just know *what* — you know *why* and *how it fits*.
+**The output of Phase 2 is understanding.** You can explain each concept in your own words, draw the connections between them, and identify the common mistakes.
 
 ---
 
 ## Phase 3: Procedural — Do the Work
 
-**Goal:** Connect the dots with action — execute grouped verbs at both the high-level view and the granular step level.
+Connect the dots with action — execute the verbs of the subject at both the macro flow and the granular step level.
 
-Understanding is necessary but not sufficient. You now need to *do* things with what you know. This is where you engage with the verbs of the subject — configure, analyse, compose, diagnose, argue, design — and practice executing them at two levels:
-
-1. **High-level procedural flow:** The macro sequence of actions across multiple concepts (e.g., "First assess the network topology, then configure security groups, then validate with monitoring").
-2. **Granular execution steps:** The specific micro-steps within each concept (e.g., "Navigate to NSG → Add inbound rule → Set priority 100 → Protocol TCP → Port 443 → Allow").
+Think about learning a sport. You can watch football all day and understand the rules, the positions, the strategies. But the first time you step onto the pitch and someone passes you the ball, understanding isn't enough — you have to *do* something with it. And "doing" operates at two levels: the big picture (read the field, identify the open player, decide to pass or shoot) and the micro-execution (plant your foot, angle your body, strike the ball with the inside of your foot). Learning a subject is the same: you need to execute both the strategic flow across multiple concepts and the precise steps within each one.
 
 ### What This Looks Like in Practice
 
-- **Cross-concept synthesis.** Combine multiple ideas into a coherent action plan. The mastery challenge doesn't test isolated facts — it tests whether you can *integrate* concepts to solve a problem that spans several of them.
-- **Worked examples.** Walk through a complete problem from start to finish: what's the scenario, what's the solution, what are the specific steps? Then attempt a similar problem yourself.
-- **Elimination logic.** Learn the decision trees: "If the question mentions X, choose A. If it mentions Y, choose B." This is how experts navigate complex decision spaces quickly.
-- **Deliberate practice on weak areas.** Identify the specific procedures you struggle with and attack them with targeted drills — not random repetition, but focused effort on the gap.
+- **Cross-concept synthesis.** Combine multiple ideas into a coherent action plan. A real problem never isolates a single concept — it spans several. You need to integrate storage configuration with networking rules with identity permissions into one solution, not recite each in isolation.
+- **Worked examples.** Walk through a complete problem from start to finish: what's the scenario, what's the solution, what are the specific steps? Then attempt a similar problem yourself. The gap between watching and doing is where procedural memory forms.
+- **Elimination logic.** Build decision trees: "If the question mentions traffic between subnets in the same VNet → NSG. If it mentions traffic across VNets → Azure Firewall. If it mentions URL filtering → Application Gateway WAF." This is how experts navigate complex decision spaces in seconds.
+- **Deliberate practice on weak areas.** Identify the specific procedures you struggle with and attack them with targeted drills — not random repetition, but focused effort on the exact gap. Practice the pass you keep missing, not the one you already nail.
 
 ### Why It Matters
 
-Ericsson's deliberate practice research (1993) shows that expertise comes from voluntary, focused practice with immediate feedback — not from passive review. The procedural phase is where you transform theoretical understanding into executable skill.
+- **Deliberate practice** (Ericsson, 1993): Procedural skill consolidates in the basal ganglia and cerebellum through repeated effortful execution with immediate feedback. The key word is *effortful* — passive repetition doesn't trigger the cortical-striatal loop that converts declarative knowledge ("I know what an NSG is") into procedural memory ("I can configure an NSG without thinking about each step"). The feedback is what calibrates each repetition.
+- **Productive failure** (Kapur, 2008): When learners attempt a problem and fail *before* seeing the correct procedure, they generate multiple partial solution schemas. These failed schemas aren't wasted — they create a richer associative network in the prefrontal cortex, so when the correct procedure is finally presented, it integrates into a web of attempted alternatives rather than sitting in isolation. The struggle literally builds more neural scaffolding for the solution to attach to.
+- **Transfer-appropriate processing** (Morris, Bransford & Franks, 1977): Memory retrieval is strongest when the cognitive processes used at retrieval match those used at encoding. If you encoded the knowledge by reading, you'll be best at recognising it in text. If you encoded it by *doing*, you'll be best at *doing* it again. The procedural phase ensures you encode through action, so you can retrieve through action.
 
-Kapur's productive failure research (2008) adds a crucial nuance: struggling *before* receiving the correct procedure leads to deeper learning than being shown the procedure first. This is why the mastery challenge is hard — the struggle is the point.
-
-### Where SensaAI Does This
-
-| Session Step | What Happens | Cognitive Function |
-|---|---|---|
-| **APPLY — Mastery Challenge** | Cross-concept test requiring integration of multiple ideas | Prove you can reason, not just recall |
-| **GYM — Blank Sheet Test** | Write everything you know from pure memory | Force organised retrieval of procedures |
-| **GYM — Creative Transfer** | Apply knowledge to a novel scenario you've never seen | Test whether understanding transfers beyond the original context |
-| **GYM — Pre-Mortem** | Predict what could go wrong in a procedure | Build failure-awareness before it happens in reality |
-| **GYM — Peer Review (Interrogator)** | Defend your procedural decisions under pressure | Stress-test your reasoning against challenges |
-| **GYM — Confusion Drill** | Distinguish between easily-confused procedures | Sharpen discrimination at the action level |
-
-**The output of Phase 3 is competence.** You can execute the procedures of the subject. You can solve cross-concept problems. You can make decisions under ambiguity using elimination logic. You don't just understand the ideas — you can *do* things with them.
+**The output of Phase 3 is competence.** You can execute the procedures, solve cross-concept problems, and make decisions under ambiguity.
 
 ---
 
 ## Phase 4: Cyclic — Keep It Forever
 
-**Goal:** Lock knowledge into long-term memory through spaced repetition, interleaving, and deliberate review cycles.
+Lock knowledge into long-term memory through spaced repetition, interleaving, and deliberate review cycles.
 
-Learning is not a single event. Memory decays. The forgetting curve (Ebbinghaus, 1885) is real and relentless — within 24 hours of learning something, you've already lost most of it unless you actively intervene.
+Think about a garden. You plant seeds (Phase 1–3), and for a while the garden looks great. But if you walk away and never come back, the plants die. Keeping a garden alive requires a rhythm — you come back regularly, water what's drying out, prune what's overgrown, and check which plants need more attention than others. You don't water everything the same amount on the same day; you water each plant based on how thirsty *it* is. Learning is the same: knowledge dies without regular, targeted return visits, and each concept needs a different schedule based on how well you know it.
 
-Phase 4 is not a final step you complete once. It's a continuous loop that runs alongside and after the other three phases. It's the cyclic action of returning, reviewing, and reinforcing — with increasing intervals between each return.
+Phase 4 is not a final step you complete once. It's a continuous loop that runs alongside and after the other three phases.
 
 ### What This Looks Like in Practice
 
 - **Spaced repetition.** Review each concept at scientifically optimal intervals. The better you performed last time, the longer before you need to revisit. The spacing engine handles the scheduling — you just show up.
-- **Interleaving.** Don't review all concepts from one domain in a row. Mix them. Alternating between different types of problems (even when it feels harder) produces deeper learning than blocked practice (Rohrer & Taylor, 2007).
-- **Contextual review.** When a concept comes up for review, you don't just see a cold flashcard. You see your own history — your concept map with the relevant node highlighted, your previous blank sheet response, the mastery question that tripped you up last time. Episodic memory (remembering *your experience* of learning) is far more powerful than semantic memory (being told a fact again).
-- **Forgetting curve awareness.** Watch your knowledge health in real time. Green means fresh, yellow means fading, red means probably forgotten. The visual urgency of seeing knowledge decay creates motivation that abstract "5 concepts due" never can.
-- **Targeted branch review.** When a cluster of related concepts all decay at the same time, review them together as a connected group — not as isolated cards.
+- **Interleaving.** Don't review all concepts from one domain in a row. Mix them. Alternate between different types of problems even when it feels harder. The friction of switching is the point — it forces deeper processing.
+- **Contextual review.** When a concept comes up for review, you don't see a cold flashcard. You see your own history — your concept map with the relevant node highlighted, your previous blank sheet response, the mastery question that tripped you up. Remembering *your experience* of learning triggers recall far more powerfully than being told a fact again.
+- **Forgetting curve awareness.** Watch your knowledge health in real time. Green means fresh, yellow means fading, red means probably forgotten. The visual urgency of watching knowledge decay creates motivation that abstract "5 concepts due" never can.
+- **Targeted branch review.** When a cluster of related concepts all decay at the same time, review them together as a connected group — not as isolated cards. Relationships refresh alongside facts.
 
 ### Why It Matters
 
-Spaced repetition is the single most evidence-backed technique in all of learning science. But it only works if the learner actually shows up for reviews. The cyclic phase solves the compliance problem by making the forgetting curve visible, making reviews personal (contextual), and making the review experience itself a learning event (interleaved, not rote).
+- **Forgetting curve** (Ebbinghaus, 1885): Without reactivation, synaptic connections physically weaken as the receptor proteins that maintain long-term potentiation degrade over hours and days. Each reactivation triggers *reconsolidation* — the memory trace is destabilised, updated, and physically rebuilt with stronger synaptic weights and more redundant pathways. This is why spaced retrieval makes memories more durable: each recall event literally reconstructs the trace stronger.
+- **Interleaving effect** (Rohrer & Taylor, 2007): Blocked practice ("study all of Topic A, then all of Topic B") feels easier but produces weaker long-term retention. Interleaving forces the prefrontal cortex to perform *discrimination* — "is this a Topic A problem or a Topic B problem?" — before executing the solution. This discrimination step strengthens the brain's categorisation circuits, making retrieval more precise under exam conditions where problems arrive in random order.
+- **Sleep consolidation** (Walker, 2005): During slow-wave sleep, the hippocampus "replays" recently encoded memories to the neocortex, transferring them from fragile hippocampal traces to distributed cortical networks. Spaced repetition across multiple days gives the brain multiple replay opportunities, each one strengthening the cortical representation. Cramming in a single session gives the hippocampus one shot — and one shot is rarely enough.
+- **Construction-integration** (Kintsch, 1988): During the integration phase of memory consolidation, the brain prunes vague or weakly-connected associations and strengthens specific, well-connected ones. Interleaved review — where concepts from different domains are mixed — forces the integration process to maintain precise boundaries between related ideas, preventing the blurring that comes from blocked repetition of similar material.
 
-The interleaving bridge — a narrative transition between concepts ("X requires Y — let's build on that foundation") — maintains the relational structure from Phase 2 even during reviews. You never lose the *why* behind the *what*.
-
-### Where SensaAI Does This
-
-| System Component | What Happens | Cognitive Function |
-|---|---|---|
-| **Spacing Engine (SM-2)** | Schedules reviews at optimal intervals based on past performance | Fight the forgetting curve with minimal effort |
-| **Forgetting Curve Visualisation** | Green/yellow/red decay indicators on every concept | Make the invisible forgetting curve visible and urgent |
-| **Knowledge Health %** | Overall percentage of study pack still in the green zone | One number that tells you how much you still know |
-| **Contextual Spaced Repetition** | Shows your concept map, previous responses, and failed questions during review | Make reviews personal, not generic |
-| **Interleaving Bridge Narratives** | Generates "X requires Y" transitions when switching concepts | Maintain relational structure during review |
-| **Proactive AI Coach** | Detects patterns (3 skips, 90 min elapsed, score streaks) and intervenes | Prevent grinding when returns are diminishing |
-| **GYM — Daily Stack** | SM-2 driven review queue, always available | Voluntary adherence to spacing schedule |
-
-**The output of Phase 4 is retention.** You don't just know the subject today — you know it next week, next month, and next year. The cyclic loop transforms short-term understanding into durable, retrievable knowledge.
+**The output of Phase 4 is retention.** You don't just know the subject today — you know it next week, next month, and next year.
 
 ---
 
@@ -208,24 +150,22 @@ The interleaving bridge — a narrative transition between concepts ("X requires
 │  Phase 1: PERCEPTUAL                                            │
 │  "See the landscape"                                            │
 │  ┌──────────────────────────────────────────────────────┐       │
-│  │ Structure Preview → Nomenclature → Gap Priming       │       │
-│  │ → Critical Path                                      │       │
+│  │ Goal → Path → Chunk → Hierarchy → Vocabulary         │       │
 │  └──────────────────────────┬───────────────────────────┘       │
 │                             │                                   │
 │                             ▼                                   │
 │  Phase 2: CONCEPTUAL                                            │
 │  "Know the ideas"                                               │
 │  ┌──────────────────────────────────────────────────────┐       │
-│  │ Concept Map → Test First → Learn (layered)           │       │
-│  │ → Verify                                             │       │
+│  │ Test First → Metaphor → Relationships → Pitfalls     │       │
 │  └──────────────────────────┬───────────────────────────┘       │
 │                             │                                   │
 │                             ▼                                   │
 │  Phase 3: PROCEDURAL                                            │
 │  "Do the work"                                                  │
 │  ┌──────────────────────────────────────────────────────┐       │
-│  │ Mastery Challenge → Blank Sheet → Creative Transfer  │       │
-│  │ → Confusion Drill → Pre-Mortem                       │       │
+│  │ Synthesis → Worked Examples → Decision Trees         │       │
+│  │ → Deliberate Practice                                │       │
 │  └──────────────────────────┬───────────────────────────┘       │
 │                             │                                   │
 │                             ▼                                   │
@@ -233,9 +173,8 @@ The interleaving bridge — a narrative transition between concepts ("X requires
 │  "Keep it forever"                                              │
 │  ┌──────────────────────────────────────────────────────┐       │
 │  │ Spaced Repetition → Interleaving → Contextual Review │       │
-│  │ → Forgetting Curve → Coach Interventions             │       │
+│  │ → Forgetting Curve → Targeted Branch Review          │       │
 │  └──────────────────────────┬───────────────────────────┘       │
-│                             │                                   │
 │                             │                                   │
 │               ┌─────────────┘                                   │
 │               │ Decay detected?                                 │
@@ -247,13 +186,13 @@ The interleaving bridge — a narrative transition between concepts ("X requires
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-The cycle is not strictly linear. Phase 4 (Cyclic) continuously feeds back into the earlier phases:
+The cycle is not strictly linear. Phase 4 continuously feeds back into the earlier phases:
 
 - **Decay detected** → Return to Phase 2 (re-learn the faded concept with contextual review)
 - **New concepts added** → Return to Phase 1 (re-scan the updated landscape)
-- **Weak procedures surfaced** → Return to Phase 3 (targeted practice in the Gym)
+- **Weak procedures surfaced** → Return to Phase 3 (targeted practice)
 
-This feedback loop is what transforms the four phases from a one-time sequence into a living system of continuous mastery.
+This feedback loop transforms the four phases from a one-time sequence into a living system of continuous mastery.
 
 ---
 
@@ -277,25 +216,6 @@ I = min(h, G × Q_f × Q_M × Q_P)
 
 ---
 
-## The Research Foundation
-
-Each phase is grounded in decades of cognitive science:
-
-| Phase | Key Research | Core Finding |
-|---|---|---|
-| **Perceptual** | Chi, Feltovich & Glaser (1981) — Expert Categorisation | Experts see structural principles; novices see surface features. Start with structure. |
-| **Perceptual** | Ausubel (1968) — Advance Organisers | A conceptual framework presented *before* detailed learning dramatically improves retention. |
-| **Conceptual** | Tulving & Thomson (1973) — Encoding Specificity | The way you encode information determines how you retrieve it. Relationship *type* matters. |
-| **Conceptual** | Bjork & Bjork (1992) — Desirable Difficulties | Making learning harder (test before teach) improves long-term retention. |
-| **Conceptual** | Gentner & Markman (1997) — Structural Alignment | Deep learning = encoding relational structure, not surface features. |
-| **Procedural** | Ericsson (1993) — Deliberate Practice | Expertise requires focused, voluntary practice with immediate feedback. |
-| **Procedural** | Kapur (2008) — Productive Failure | Struggling before instruction produces deeper learning than instruction-first approaches. |
-| **Cyclic** | Ebbinghaus (1885) — Forgetting Curve | Memory decays exponentially without reinforcement. |
-| **Cyclic** | Rohrer & Taylor (2007) — Interleaving Effect | Mixed practice outperforms blocked practice for long-term retention. |
-| **Cyclic** | Kintsch (1988) — Construction-Integration | The integration phase prunes vague links and strengthens specific ones. |
-
----
-
 ## One Sentence Per Phase
 
 If you remember nothing else from this document, remember this:
@@ -306,3 +226,51 @@ If you remember nothing else from this document, remember this:
 4. **Cyclic** — Return, review, and reinforce at spaced intervals so you never lose what you learned.
 
 This is how humans learn. SensaAI just makes it systematic.
+
+---
+
+## Appendix: Where SensaAI Implements Each Phase
+
+### Phase 1: Perceptual — SensaAI Mapping
+
+| Session Step | What Happens | Cognitive Function |
+|---|---|---|
+| **Home — Subject + Exam Selection** | Define the subject and select the certification exam (auto-loads official objectives as verb-concept structure) | Answer Question 1: define the goal |
+| **Home — Domain Trunks** | Define 2-6 exam domains as trunks (chunked paths) | Answer Question 2: chunk the paths |
+| **Generation — AI Classification** | AI decomposes the subject into domains with weighted objectives | Automated chunking for subjects without predefined structure |
+| **SCOUT — Structure Preview** | View the trunk/branch/leaf hierarchy of the entire study pack | See the tree that emerged from your goal decomposition |
+| **SCOUT — Critical Path** | Foundation concepts highlighted in gold | See which 5 concepts unlock 80% of the rest |
+| **SCOUT — Nomenclature Sprint** | 60-second term-to-metaphor matching game | Build vocabulary fluency before deep study |
+| **SCOUT — Gap Priming** | Preview questions that activate prior knowledge | Create hooks for new information |
+
+### Phase 2: Conceptual — SensaAI Mapping
+
+| Session Step | What Happens | Cognitive Function |
+|---|---|---|
+| **BUILD — Concept Map** | Drag and connect concepts with labelled TRACES relationships | Force explicit relationship thinking |
+| **STUDY — Preview AI (Test First)** | Answer a diagnostic question before being taught | Activate prediction error, expose gaps |
+| **STUDY — Build AI (Learn)** | Layered presentation: metaphor → architecture → execution → pitfalls → high-stakes scenario | Build understanding from intuition to precision |
+| **STUDY — Retain AI (Verify)** | Pattern-recognition question to confirm the concept stuck | Lock in understanding before moving on |
+
+### Phase 3: Procedural — SensaAI Mapping
+
+| Session Step | What Happens | Cognitive Function |
+|---|---|---|
+| **APPLY — Mastery Challenge** | Cross-concept test requiring integration of multiple ideas | Prove you can reason, not just recall |
+| **GYM — Blank Sheet Test** | Write everything you know from pure memory | Force organised retrieval of procedures |
+| **GYM — Creative Transfer** | Apply knowledge to a novel scenario you've never seen | Test whether understanding transfers beyond the original context |
+| **GYM — Pre-Mortem** | Predict what could go wrong in a procedure | Build failure-awareness before it happens in reality |
+| **GYM — Peer Review (Interrogator)** | Defend your procedural decisions under pressure | Stress-test your reasoning against challenges |
+| **GYM — Confusion Drill** | Distinguish between easily-confused procedures | Sharpen discrimination at the action level |
+
+### Phase 4: Cyclic — SensaAI Mapping
+
+| System Component | What Happens | Cognitive Function |
+|---|---|---|
+| **Spacing Engine (SM-2)** | Schedules reviews at optimal intervals based on past performance | Fight the forgetting curve with minimal effort |
+| **Forgetting Curve Visualisation** | Green/yellow/red decay indicators on every concept | Make the invisible forgetting curve visible and urgent |
+| **Knowledge Health %** | Overall percentage of study pack still in the green zone | One number that tells you how much you still know |
+| **Contextual Spaced Repetition** | Shows your concept map, previous responses, and failed questions during review | Make reviews personal, not generic |
+| **Interleaving Bridge Narratives** | Generates "X requires Y" transitions when switching concepts | Maintain relational structure during review |
+| **Proactive AI Coach** | Detects patterns (3 skips, 90 min elapsed, score streaks) and intervenes | Prevent grinding when returns are diminishing |
+| **GYM — Daily Stack** | SM-2 driven review queue, always available | Voluntary adherence to spacing schedule |
