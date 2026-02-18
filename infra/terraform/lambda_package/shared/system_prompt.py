@@ -136,6 +136,7 @@ Classification goal: {classification_goal}
 - Gateway Skill: {gateway_skill}
 - Threshold Concept: {threshold_concept}
 - Signature Move: {signature_move}
+{ulc_naming_guidance}
 {context}
 ---
 ## 2. TREE STRUCTURE RULES
@@ -553,6 +554,7 @@ def get_tree_generation_prompt(
     cls = classification or {}
     cls_data = cls.get("classification", {})
     tissue = cls.get("connectiveTissue", {})
+    lifecycle = cls.get("lifecycle", {})
     subject_type = cls.get("subjectType", "conceptual")
     type_labels = {
         "procedural": "Procedural Mastery",
@@ -560,6 +562,37 @@ def get_tree_generation_prompt(
         "cyclic": "Adaptive Integration",
         "perceptual": "Embodied Judgment",
     }
+    
+    # ULC Naming Guidance (only for procedural subjects)
+    ulc_naming_guidance = ""
+    if subject_type == "procedural" and lifecycle:
+        phase1_verb = lifecycle.get("phase1", "").upper()
+        phase2_verb = lifecycle.get("phase2", "").upper()
+        phase3_verb = lifecycle.get("phase3", "").upper()
+        
+        if phase1_verb and phase2_verb and phase3_verb:
+            ulc_naming_guidance = f"""
+### Universal Life Cycle (ULC) Naming Convention:
+**CRITICAL for Procedural Subjects**: This subject follows a systematic pattern where learners apply consistent verbs across multiple objects/resources.
+
+**Lifecycle Verbs** (from classification): {phase1_verb}, {phase2_verb}, {phase3_verb}
+
+**Naming Rules for LEAF Concepts**:
+- Use the pattern: **[Verb] [Object/Resource]**
+- Examples:
+  - "{phase1_verb.capitalize()} Azure Storage Accounts"
+  - "{phase2_verb.capitalize()} Virtual Networks"
+  - "{phase3_verb.capitalize()} Identity Services"
+- The verb should be one of the lifecycle verbs or a closely related action verb
+- The object should be a clear, specific resource/entity (2-3 words max)
+- Avoid generic names like "Storage Overview" — use "{phase1_verb.capitalize()} Storage Accounts" instead
+
+**Why This Matters**: Systematic verb-object naming enables learners to see the Universal Life Cycle pattern — the same actions applied across different resources. This makes the subject structure immediately visible and supports systematic practice.
+
+**Branch Concepts**: Can use broader names (e.g., "Storage Management", "Networking Fundamentals")
+**Trunk Concept**: Use the domain name as-is (e.g., "{domain_name}")
+"""
+    
     return TREE_GENERATION_PROMPT.format(
         subject=subject,
         domain_name=domain_name,
@@ -570,6 +603,7 @@ def get_tree_generation_prompt(
         gateway_skill=tissue.get("gatewaySkill", "Core domain skill"),
         threshold_concept=tissue.get("thresholdConcept", "Fundamental insight"),
         signature_move=tissue.get("signatureMove", "Expert-level application"),
+        ulc_naming_guidance=ulc_naming_guidance,
         context=context_block,
         branch_count=branch_count,
         branch_list=branch_list,

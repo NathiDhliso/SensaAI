@@ -89,9 +89,11 @@ function extractVerb(conceptName: string): string | null {
 /**
  * Extract object/resource from concept name after removing verb
  * Examples:
- * - "Create Azure Storage Accounts" → "Storage"
- * - "Configure Virtual Networks" → "Networks"
- * - "Monitor Identity Services" → "Identity"
+ * - "Create Azure Storage Accounts" → "Storage Accounts"
+ * - "Configure Virtual Networks" → "Virtual Networks"
+ * - "Monitor Identity Services" → "Identity Services"
+ * 
+ * Strategy: Take 2-3 significant words after verb removal to capture multi-word objects
  */
 function extractObject(conceptName: string, verb: string | null): string | null {
   let cleaned = conceptName.trim();
@@ -109,13 +111,17 @@ function extractObject(conceptName: string, verb: string | null): string | null 
     .replace(/\b(azure|aws|gcp|google|microsoft|the|a|an|and|or|of|for|with|using|in|on|to|your|their|its)\b/gi, ' ')
     .trim();
   
-  // Take first significant word as the object
+  // Take first 2-3 significant words as the object (handles multi-word resources)
   const words = cleaned.split(/\s+/).filter(w => w.length > 2);
   if (words.length === 0) return null;
   
-  // If we have multiple words, try to find the key noun
-  // Prefer words that appear in multiple concepts (domain terms)
-  return words[0].charAt(0).toUpperCase() + words[0].slice(1);
+  // Take up to 2 words for the object name (balance between specificity and grouping)
+  const objectWords = words.slice(0, Math.min(2, words.length));
+  
+  // Capitalize first letter of each word
+  return objectWords
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
 }
 
 /**
@@ -312,19 +318,6 @@ export function getNextULCCell(pattern: ULCPattern): ULCCell | null {
   }
 
   return null;
-}
-
-/**
- * Calculate ULC completion percentage
- */
-export function getULCCompletion(pattern: ULCPattern): number {
-  if (!pattern.detected || pattern.totalCells === 0) return 0;
-  
-  const masteredCells = pattern.matrix
-    .flat()
-    .filter(cell => cell.status === 'mastered').length;
-  
-  return Math.round((masteredCells / pattern.totalCells) * 100);
 }
 
 /**
