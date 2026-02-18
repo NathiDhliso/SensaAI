@@ -368,12 +368,37 @@ function ULCMacroView({
               <span className={styles.objectName}>{pattern.objects[rowIndex]}</span>
             </div>
             {row.map((cell, cellIndex) => {
-              const cellConcepts = concepts.filter(c => {
-                const name = c.name.toLowerCase();
-                return name.includes(cell.object.toLowerCase());
-              });
+              // Map verb back to phase
+              const verbToPhase: Record<string, 'PREPARE' | 'MODEL' | 'DELIVER'> = {
+                'Prepare': 'PREPARE',
+                'Implement': 'MODEL',
+                'Verify': 'DELIVER'
+              };
+              const mappedPhase = verbToPhase[cell.verb];
+              
+              // Count concepts that match this cell
+              // Check if object is a trunk domain name or a tier name
+              const isTrunkDomain = concepts.some(c => c.tier === 'trunk' && c.name === cell.object);
+              
+              let cellConcepts: LearningConcept[] = [];
+              if (isTrunkDomain) {
+                // Object is a trunk concept name - find children with this phase
+                cellConcepts = concepts.filter(c => 
+                  (c.trunkDomain === cell.object || c.parentName === cell.object) &&
+                  c.lifecyclePhase === mappedPhase
+                );
+              } else {
+                // Object is a tier name (Trunk/Branch/Leaf)
+                const tier = cell.object.toLowerCase() as 'trunk' | 'branch' | 'leaf';
+                cellConcepts = concepts.filter(c => 
+                  c.tier === tier && c.lifecyclePhase === mappedPhase
+                );
+              }
+              
               const count = cellConcepts.length;
               const isEmpty = count === 0;
+              
+              console.log(`[ULCMatrix] Cell ${cell.verb} × ${cell.object}: ${count} concepts (phase=${mappedPhase}, isTrunk=${isTrunkDomain})`);
 
               return (
                 <motion.button
