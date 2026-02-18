@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lightbulb, Info, AlertTriangle, BookOpen, Layers, TrendingUp, X } from 'lucide-react';
+import { Lightbulb, Info, AlertTriangle, BookOpen, Layers, TrendingUp, X, Brain, RotateCcw, Link, Clock, Zap } from 'lucide-react';
 import type { HealthVariable } from '@/shared/constants/sensa-flow-constants';
 import { EQUATION_COLORS_HEX, HEALTH_THRESHOLD } from '@/shared/constants/sensa-flow-constants';
 import type { LearnerQMetrics, FeedbackSignal } from '@/shared/services/blueprint-formula';
@@ -31,12 +31,12 @@ const PHASE_LABELS: Record<SensaPhase, string> = {
     complete: 'Complete — Mastered'
 };
 
-const VARIABLE_CONFIG: Record<HealthVariable, { symbol: string; color: string; icon: string }> = {
-    Q_k: { symbol: 'Qk', color: EQUATION_COLORS_HEX.Q_k, icon: '🧠' },
-    Q_r: { symbol: 'Qr', color: EQUATION_COLORS_HEX.Q_r, icon: '🔁' },
-    Q_c: { symbol: 'Qc', color: EQUATION_COLORS_HEX.Q_c, icon: '🔗' },
-    Q_f: { symbol: 'Qf', color: EQUATION_COLORS_HEX.Q_f, icon: '⏱' },
-    Q_p: { symbol: 'Qp', color: EQUATION_COLORS_HEX.Q_p, icon: '⚡' }
+const VARIABLE_CONFIG: Record<HealthVariable, { symbol: string; color: string; icon: React.ComponentType<{ size?: number; className?: string }> }> = {
+    Q_k: { symbol: 'Qk', color: EQUATION_COLORS_HEX.Q_k, icon: Brain },
+    Q_r: { symbol: 'Qr', color: EQUATION_COLORS_HEX.Q_r, icon: RotateCcw },
+    Q_c: { symbol: 'Qc', color: EQUATION_COLORS_HEX.Q_c, icon: Link },
+    Q_f: { symbol: 'Qf', color: EQUATION_COLORS_HEX.Q_f, icon: Clock },
+    Q_p: { symbol: 'Qp', color: EQUATION_COLORS_HEX.Q_p, icon: Zap }
 };
 
 function getHealthLevel(percent: number): { label: string; className: string } {
@@ -156,13 +156,16 @@ export function BlueprintFormulaDashboard({
                     const isWeakest = weakestVariable.variable === key;
                     const percent = Math.round(value * 100);
                     const config = VARIABLE_CONFIG[key];
+                    const IconComponent = config.icon;
 
                     return (
                         <div
                             key={key}
                             className={`${styles.metricRow} ${isWeakest ? styles.weakest : ''}`}
                         >
-                            <span className={styles.metricIcon}>{config.icon}</span>
+                            <span className={styles.metricIcon}>
+                                <IconComponent size={16} />
+                            </span>
                             <div className={styles.metricLabel}>
                                 <span className={styles.labelName}>{label}</span>
                             </div>
