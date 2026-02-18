@@ -59,6 +59,7 @@ const createStudySession = (
  conceptMap: null,
  mapReconstructed: false,
  mastered: false,
+ overviewViewed: false,
  predictions: {},
  checkpointOffers: 0,
  lastCheckpointAt: null,
@@ -132,6 +133,13 @@ export const createStudySlice: StateCreator<
  set((state) => ({
  studySession: state.studySession
  ? { ...state.studySession, mapBuilt: true, conceptMap: data || null }
+ : null
+ }));
+ },
+ markOverviewViewed: () => {
+ set((state) => ({
+ studySession: state.studySession
+ ? { ...state.studySession, overviewViewed: true }
  : null
  }));
  },

@@ -21,9 +21,12 @@ Start here: **[master-prompt.md](./master-prompt.md)** — read this before touc
 |----------|-------|
 | [Visual Theme System](./VISUAL_THEME_SYSTEM.md) | Playful vs Scholarly modes (4 combinations) |
 | [Metaphor System](./metaphor-system.md) | useMetaphorContent hook, data flow, toggle architecture |
+| [ULC Integration Spec](./ULC_INTEGRATION_SPEC.md) | Universal Life Cycle pattern detection and visualization |
+| [Learn How to Learn](./LEARN_HOW_TO_LEARN.md) | 3-phase learning model (Declarative → Procedural → Conditional) |
 | [Desirable Results](./DESIRABLE_RESULTS.md) | Field-by-field examples of quality generated content |
 | [Gym UX Philosophy](./GYM_UX_PHILOSOPHY.md) | Gym activity design principles |
 | [Mastery Scoring Guide](./MASTERY_SCORING_GUIDE.md) | Grade thresholds (S/A/B/C/D) |
+| [Feature Success Criteria](./FEATURE_SUCCESS_CRITERIA.md) | Acceptance criteria for all features |
 
 ## Testing
 

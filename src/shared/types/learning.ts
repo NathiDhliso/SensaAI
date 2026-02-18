@@ -279,6 +279,8 @@ export interface StudySession {
     mapReconstructed: boolean;
     // SENSA Phase 4: Apply
     mastered: boolean;
+    // Low Energy Overview Map (passive consumption for tired users)
+    overviewViewed: boolean;
     // Step 3: The Guess (Priming) - User predictions per concept
     predictions: Record<string, string>;
     // ========== MOMENTUM CHECKPOINT SYSTEM ==========

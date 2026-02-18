@@ -201,6 +201,21 @@
 
 ---
 
+## 23. Low Energy Overview Map (OVERVIEW_MAP Phase) ✅
+
+> **Implemented in:** `src/components/learning/overview/OverviewMapView.tsx`
+
+- When a low-energy (tired) user starts a session with NO prior progress, they see a **read-only overview map** instead of the interactive BUILD phase.
+- The overview map shows the complete subject structure in a **passive, no-pressure format** — perfect for tired learners who need orientation without cognitive effort.
+- **ULC Pattern Display:** If the subject follows a Universal Life Cycle pattern (e.g., Azure AZ-104 with "Create, Configure, Monitor" verbs across resources), the ULC matrix is shown as a **legend** with concept counts per cell.
+- **Macro View:** Click any ULC cell to zoom into the concepts within that cell — showing the sequential "how" steps from phase1.execution.
+- **Micro View:** Each concept displays its procedural "how" step (e.g., "Azure Portal → Users → New User") — emphasizing procedure over rationale.
+- **Hierarchical Fallback:** For non-ULC subjects, concepts are grouped by tier (trunk/branch/leaf) in a simple hierarchical view.
+- **"I've Seen Enough" Button:** The learner controls when to exit — no time pressure, no forced interaction.
+- **Why it matters:** Low-energy users need passive consumption, not active construction. Building a concept map requires cognitive effort that contradicts "light review only." The overview map respects the learner's energy level while still providing structural orientation.
+
+---
+
 ## How It All Fits Together
 
 ```mermaid

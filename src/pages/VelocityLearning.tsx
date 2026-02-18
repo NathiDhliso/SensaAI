@@ -31,6 +31,7 @@ import { SessionScoutPreview } from '@/components/learning/session/SessionScoutP
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
 import MasteryChallenge from '@/components/learning/activities/MasteryChallenge';
 import SensaSynopticView from '@/components/learning/ui/SensaSynopticView';
+import OverviewMapView from '@/components/learning/overview/OverviewMapView';
 import SkipReasonModal, { type SkipReasonData } from '@/components/learning/feedback/SkipReasonModal';
 import PhaseNavigator from '@/components/learning/ui/PhaseNavigator';
 import { LearningToolbar } from '@/components/learning/LearningToolbar';
@@ -39,6 +40,7 @@ import type { SensaAILearningConcept } from '@/features/content-generation/parse
 import CoachInterventionBanner, { type InterventionType } from '@/components/learning/ui/CoachInterventionBanner';
 import ReviewContextPanel, { type ReviewContext } from '@/components/learning/ui/ReviewContextPanel';
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
+import { detectULC } from '@/features/content-generation/parsers/ulc-detector';
 import styles from './VelocityLearning.module.css';
 
 export default function VelocityLearning() {
@@ -638,6 +640,26 @@ export default function VelocityLearning() {
                                     guessCount: guesses.size,
                                     avgResponseTimeMs: 0
                                 });
+                            }}
+                        />
+                    </motion.div>
+                );
+            case 'OVERVIEW_MAP':
+                return (
+                    <motion.div
+                        key="overview-map"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className={styles.fullWidthContainer}
+                    >
+                        <OverviewMapView
+                            concepts={currentSession!.concepts}
+                            ulcPattern={detectULC(currentSession!.concepts)}
+                            onComplete={() => {
+                                const { markOverviewViewed } = useLearningStore.getState();
+                                markOverviewViewed();
+                                toast.success('Overview complete — ready to start learning!', { duration: 3000 });
                             }}
                         />
                     </motion.div>

@@ -152,6 +152,7 @@ export type StudySliceActions = {
     markSessionScouted: () => void;
     markSessionPreviewed: () => void;
     markSessionMapBuilt: (data?: ConceptMapData) => void;
+    markOverviewViewed: () => void;
     returnToMapBuilding: () => void;
     markSessionMapReconstructed: (passed: boolean) => void;
     markSessionMastered: () => void;

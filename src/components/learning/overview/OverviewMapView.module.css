@@ -1,0 +1,513 @@
+/* Overview Map View - Read-Only Concept Overview */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 600px;
+  background: var(--color-background);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.headerContent svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: var(--spacing-xs) 0 0;
+}
+
+.completeButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.completeButton:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+/* Macro View */
+.macroView {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-xl);
+}
+
+/* ULC Macro View */
+.ulcContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ulcLegend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.ulcLegend svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.ulcLegend h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text);
+}
+
+.ulcLegend p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.ulcMatrix {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
+}
+
+.matrixHeader {
+  display: table-row;
+}
+
+.matrixCorner {
+  display: table-cell;
+  width: 150px;
+}
+
+.matrixVerb {
+  display: table-cell;
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-align: center;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+}
+
+.matrixRow {
+  display: table-row;
+}
+
+.matrixObject {
+  display: table-cell;
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  vertical-align: middle;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+}
+
+.matrixCell {
+  display: table-cell;
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  height: 80px;
+}
+
+.matrixCell:not(.cellEmpty):hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cellEmpty {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cellEmpty:hover {
+  transform: none;
+  border-color: var(--color-border);
+}
+
+.cellFilled {
+  border-color: var(--color-primary-light);
+}
+
+.cellContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cellCount {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.cellIcon {
+  color: var(--color-text-muted);
+}
+
+.ulcHint {
+  text-align: center;
+  padding: var(--spacing-lg);
+  background: var(--color-info-bg);
+  border: 1px solid var(--color-info);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+}
+
+.ulcHint p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+/* Hierarchy Macro View (Fallback) */
+.hierarchyContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.hierarchyLegend {
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+}
+
+.hierarchyLegend h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text);
+}
+
+.hierarchyLegend p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.tierSection {
+  margin-bottom: var(--spacing-xl);
+}
+
+.tierHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.tierBadge {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: white;
+}
+
+.tierCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.conceptList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.conceptCard {
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.conceptCard:hover {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.conceptCard h4 {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-sm);
+  color: var(--color-text);
+}
+
+.conceptHook {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Micro View */
+.microView {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-xl);
+}
+
+.microContainer {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: var(--spacing-lg);
+}
+
+.backButton:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+}
+
+.microHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.microHeader h3 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.microCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--color-background);
+  border-radius: var(--radius-full);
+}
+
+.microSequence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.sequenceItem {
+  display: flex;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+}
+
+.sequenceItem:hover {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sequenceNumber {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+}
+
+.sequenceContent {
+  flex: 1;
+}
+
+.sequenceContent h4 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-md);
+  color: var(--color-text);
+}
+
+.howStep {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-info-bg);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.howLabel {
+  font-weight: 600;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.howText {
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.sequenceHook {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-md);
+  line-height: 1.5;
+}
+
+.keyPoints {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.keyPoints li {
+  margin-bottom: var(--spacing-xs);
+}
+
+.microFooter {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.backButtonLarge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButtonLarge:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+
+  .completeButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ulcMatrix {
+    font-size: var(--font-size-sm);
+  }
+
+  .matrixCell {
+    min-width: 70px;
+    height: 60px;
+    padding: var(--spacing-sm);
+  }
+
+  .conceptList {
+    grid-template-columns: 1fr;
+  }
+
+  .sequenceItem {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .sequenceNumber {
+    width: 32px;
+    height: 32px;
+    font-size: var(--font-size-base);
+  }
+}

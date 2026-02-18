@@ -8,6 +8,7 @@ export type LearningPhase =
  | 'LOCK_IN' // Confirmation gate (VelocityLockInGate)
  | 'SCOUT' // Initial survey (SessionScoutPreview)
  | 'PREVIEW' // Question preview (SessionScoutPreview phase=preview)
+ | 'OVERVIEW_MAP' // Read-only overview for low energy users (OverviewMapView)
  | 'BUILD' // Concept Mapping (ConceptMapBuilder)
  | 'DIAGNOSE' // Diagnostic Assessment (DiagnosticLaunchSystem)
  | 'LEARN' // Micro-Learning Loop (MicroLearningLoopController)
@@ -112,9 +113,9 @@ export function useLearningFlow(): LearningFlow {
  // User has progress, let them continue the full flow
  // (Will fall through to standard flow below)
  } else {
- // Fresh review session - light map review only
- if (!studySession.mapBuilt) return 'BUILD';
- // After map, show review interface (COMPLETE with review mode)
+ // Fresh review session - show read-only overview map (passive consumption)
+ if (!studySession.overviewViewed) return 'OVERVIEW_MAP';
+ // After overview, show review interface (COMPLETE with review mode)
  return 'COMPLETE';
  }
  }
@@ -163,6 +164,9 @@ export function useLearningFlow(): LearningFlow {
  if (studySession.primer) {
  completed.push('PRIME');
  }
+ if (studySession.overviewViewed) {
+ completed.push('OVERVIEW_MAP');
+ }
  if (studySession.mapBuilt) {
  completed.push('BUILD');
  }
@@ -181,7 +185,7 @@ export function useLearningFlow(): LearningFlow {
  completed.push('MASTER');
  }
  return completed;
- }, [currentSession, studySession, diagnosticSession]);
+ }, [currentSession, studySession, diagnosticSession, currentPhase]);
  // 3. Calculated Metrics
  const progress = useMemo(() => {
  if (!currentSession) return { completed: 0, total: 0, percentage: 0 };
@@ -196,7 +200,7 @@ export function useLearningFlow(): LearningFlow {
  // 4. UI Flags
  const showDashboard = useMemo(() => {
  // Show dashboard during "Meta" phases, hide during deep work
- return ['SCOUT', 'PREVIEW', 'DIAGNOSE', 'COMPLETE', 'IDLE'].includes(currentPhase);
+ return ['SCOUT', 'PREVIEW', 'OVERVIEW_MAP', 'DIAGNOSE', 'COMPLETE', 'IDLE'].includes(currentPhase);
  }, [currentPhase]);
  const showStartModal = currentPhase === 'PRIME';
  return {

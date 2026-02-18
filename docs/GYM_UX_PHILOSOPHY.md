@@ -205,3 +205,88 @@ This visual hierarchy guides users toward productive practice while respecting t
 ## Conclusion
 The Gym's UX is designed around a simple truth: **expertise comes from voluntary, repeated practice with immediate feedback**. By removing blocking, providing rich feedback, and respecting user agency, we create an environment where learners **want** to practice, not where they're **forced** to practice.
 This approach aligns with decades of learning science research and creates a sustainable path to mastery.
+
+
+---
+
+## Low Energy Overview Map (OVERVIEW_MAP Phase)
+
+### Purpose
+When a low-energy (tired) user starts a session with NO prior progress, they need **passive consumption**, not active construction. The Overview Map provides a read-only structural orientation without cognitive effort.
+
+### Design Principles
+
+#### 1. **Passive Consumption**
+- **No dragging** - concepts are pre-positioned
+- **No editing** - read-only view
+- **No quizzing** - just viewing
+- **No time pressure** - user controls when to exit
+
+#### 2. **ULC as Structural Guide**
+- **Legend, not interactive tool** - shows structure, doesn't require interaction
+- **Macro → Micro** - start with big picture, drill down as needed
+- **Procedural focus** - emphasize "how" steps, not "why" rationale
+
+#### 3. **Low Cognitive Load**
+- **Minimal text** - short labels, concise "how" steps
+- **Visual hierarchy** - clear grouping by ULC cell or tier
+- **Smooth transitions** - no jarring animations
+- **Easy exit** - prominent "I've seen enough" button
+
+### Research Foundation
+
+#### Cognitive Load Theory (Sweller, 1988)
+- **Key Finding**: Working memory has limited capacity (~7 items)
+- **Application**: Low-energy users have reduced working memory capacity
+- **Critical Element**: Passive viewing requires minimal working memory
+
+#### Mood-Congruent Learning (Bower, 1981)
+- **Key Finding**: Learning is more effective when task difficulty matches mood/energy
+- **Application**: Tired users need low-effort tasks, not high-effort construction
+- **Critical Element**: Respecting energy levels prevents frustration and dropout
+
+#### Procedural vs. Declarative Knowledge (Anderson, 1982)
+- **Key Finding**: Procedures ("how") are more stable than rationale ("why")
+- **Application**: ULC emphasizes "how" steps, which are easier to scan when tired
+- **Critical Element**: "How before why" reduces cognitive load
+
+### Implementation Details
+
+**Files Created:**
+- `src/components/learning/overview/OverviewMapView.tsx` - Main component (370 lines)
+- `src/components/learning/overview/OverviewMapView.module.css` - Styling (450 lines)
+
+**Files Modified:**
+- `src/shared/hooks/useLearningFlow.ts` - Added OVERVIEW_MAP phase
+- `src/shared/types/learning.ts` - Added overviewViewed flag
+- `src/store/slices/createStudySlice.ts` - Initialize overviewViewed, add markOverviewViewed action
+- `src/pages/VelocityLearning.tsx` - Integrate OverviewMapView component
+
+### Success Metrics
+
+#### Engagement Metrics
+- **View Duration**: Average time spent in overview map (target: 3-5 min)
+- **Drill-Down Rate**: % of users who zoom into ULC cells (target: >60%)
+- **Completion Rate**: % of users who click "I've seen enough" vs abandoning (target: >80%)
+
+#### Learning Outcomes
+- **Orientation Score**: Post-overview quiz on subject structure (target: >70% correct)
+- **Session Continuation**: % of low-energy users who continue to active learning after overview (target: >40%)
+
+### Anti-Patterns to Avoid
+
+#### Forcing Interaction
+**Why it's bad**: Contradicts "passive consumption" principle  
+**What we do instead**: Everything is read-only, no required clicks except exit
+
+#### Time Pressure
+**Why it's bad**: Creates stress for already-tired users  
+**What we do instead**: User controls when to exit, no timers
+
+#### Information Overload
+**Why it's bad**: Overwhelms limited working memory  
+**What we do instead**: Macro view first, drill down optional
+
+#### Hiding the Exit
+**Why it's bad**: Traps users in a view they don't want  
+**What we do instead**: "I've Seen Enough" button always visible in header
