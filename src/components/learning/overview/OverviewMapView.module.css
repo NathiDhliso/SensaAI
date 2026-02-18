@@ -1491,3 +1491,543 @@
     gap: var(--spacing-sm);
   }
 }
+
+/* ============================================================
+   CELL STATUS VARIANTS
+   ============================================================ */
+
+.cellMastered {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.cellMastered:hover {
+  border-color: rgba(34, 197, 94, 0.8);
+  background: rgba(34, 197, 94, 0.15);
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.25);
+}
+
+.cellLearning {
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.cellLearning:hover {
+  border-color: rgba(251, 191, 36, 0.8);
+  background: rgba(251, 191, 36, 0.15);
+  box-shadow: 0 8px 32px rgba(251, 191, 36, 0.25);
+}
+
+.cellStatusRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.cellStatusIcon {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cellMastered .cellStatusIcon {
+  color: rgba(34, 197, 94, 0.9);
+}
+
+.cellLearning .cellStatusIcon {
+  color: rgba(251, 191, 36, 0.9);
+}
+
+.cellStatusLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.cellMastered .cellStatusLabel {
+  color: rgba(34, 197, 94, 0.8);
+}
+
+.cellLearning .cellStatusLabel {
+  color: rgba(251, 191, 36, 0.8);
+}
+
+.cellConceptName {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.4;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================================
+   MICRO VIEW - NAV BAR
+   ============================================================ */
+
+.microNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-8);
+  flex-wrap: wrap;
+}
+
+.verbNavigator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2) var(--spacing-4);
+}
+
+.verbNavBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.verbNavBtn:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.verbNavDisabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.verbNavCurrent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0 var(--spacing-4);
+}
+
+.verbNavObject {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.verbNavDots {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.verbNavDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.verbNavDotActive {
+  background: #a78bfa;
+  transform: scale(1.3);
+}
+
+/* ============================================================
+   MICRO VIEW - HEADER ENHANCEMENTS
+   ============================================================ */
+
+.microConceptName {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: rgba(255, 255, 255, 0.9);
+  margin: var(--spacing-4) 0 var(--spacing-6);
+}
+
+.microStatus {
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+}
+
+.statusMastered {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: rgba(134, 239, 172, 0.95);
+}
+
+.statusLearning {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: rgba(253, 224, 71, 0.95);
+}
+
+.statusNotStarted {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.microPhase {
+  padding: var(--spacing-2) var(--spacing-4);
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: rgba(165, 180, 252, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ============================================================
+   SECTION TABS
+   ============================================================ */
+
+.sectionTabs {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: var(--spacing-2);
+}
+
+.sectionTab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.sectionTab:hover {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sectionTabActive {
+  color: rgba(167, 139, 250, 0.95);
+}
+
+.sectionTabActive::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #8b5cf6, #6366f1);
+  border-radius: 2px 2px 0 0;
+}
+
+.sectionContent {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ============================================================
+   OVERVIEW SECTION
+   ============================================================ */
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-6);
+}
+
+.overviewCard {
+  padding: var(--spacing-6);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.2s ease;
+}
+
+.overviewCard:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.overviewCardFull {
+  grid-column: 1 / -1;
+}
+
+.overviewCardLabel {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(139, 92, 246, 0.8);
+  margin-bottom: var(--spacing-3);
+}
+
+.overviewCardText {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.keyPointsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.keyPoint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+.keyPoint::before {
+  content: '→';
+  color: rgba(139, 92, 246, 0.7);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ============================================================
+   STEPS SECTION
+   ============================================================ */
+
+.stepsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-10);
+}
+
+.stepsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.stepsGroupLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(59, 130, 246, 0.8);
+}
+
+.executionBlock {
+  padding: var(--spacing-6);
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+}
+
+.workedExample {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.workedProblem {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  padding: var(--spacing-4);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-md);
+  border-left: 3px solid rgba(99, 102, 241, 0.6);
+}
+
+.workedSolution {
+  font-size: var(--font-size-sm);
+  color: rgba(134, 239, 172, 0.9);
+  margin: 0;
+  padding: var(--spacing-4);
+  background: rgba(34, 197, 94, 0.06);
+  border-radius: var(--radius-md);
+  border-left: 3px solid rgba(34, 197, 94, 0.5);
+}
+
+/* ============================================================
+   DETAILS SECTION
+   ============================================================ */
+
+.detailsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.detailCard {
+  padding: var(--spacing-6);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+}
+
+.detailCardLabel {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(251, 191, 36, 0.8);
+  margin-bottom: var(--spacing-4);
+}
+
+.detailCardText {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.detailQuestion {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 var(--spacing-3);
+}
+
+.detailAnswer {
+  font-size: var(--font-size-sm);
+  color: rgba(165, 243, 252, 0.85);
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  background: rgba(6, 182, 212, 0.06);
+  border-radius: var(--radius-md);
+  border-left: 3px solid rgba(6, 182, 212, 0.4);
+}
+
+.pitfallsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.pitfallItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.6;
+}
+
+.pitfallIcon {
+  flex-shrink: 0;
+  color: rgba(251, 191, 36, 0.7);
+  margin-top: 2px;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.emptySection {
+  padding: var(--spacing-12);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: var(--font-size-sm);
+}
+
+.noPatternText {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--font-size-base);
+  text-align: center;
+  padding: var(--spacing-12);
+}
+
+/* ============================================================
+   STATS BAR
+   ============================================================ */
+
+.statsBar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding: var(--spacing-4) var(--spacing-8);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 5;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.statValue {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.statsProgressWrap {
+  flex: 1;
+  min-width: 80px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.statsProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.statDivider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.1);
+}
