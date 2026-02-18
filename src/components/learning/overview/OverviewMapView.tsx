@@ -252,8 +252,16 @@ function HierarchyMacroView({
             {conceptsByTier.trunk.map(concept => (
               <div key={concept.id} className={styles.conceptCard}>
                 <h4>{concept.name}</h4>
-                {concept.hookSentence && (
-                  <p className={styles.conceptHook}>{concept.hookSentence}</p>
+                {/* Show HOW steps instead of hook sentence */}
+                {concept.howToUse && concept.howToUse.length > 0 && (
+                  <div className={styles.howSteps}>
+                    {concept.howToUse.slice(0, 2).map((step, i) => (
+                      <div key={i} className={styles.howStep}>
+                        <span className={styles.stepBullet}>→</span>
+                        <span className={styles.stepText}>{step}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}
@@ -273,8 +281,15 @@ function HierarchyMacroView({
             {conceptsByTier.branch.map(concept => (
               <div key={concept.id} className={styles.conceptCard}>
                 <h4>{concept.name}</h4>
-                {concept.hookSentence && (
-                  <p className={styles.conceptHook}>{concept.hookSentence}</p>
+                {concept.howToUse && concept.howToUse.length > 0 && (
+                  <div className={styles.howSteps}>
+                    {concept.howToUse.slice(0, 2).map((step, i) => (
+                      <div key={i} className={styles.howStep}>
+                        <span className={styles.stepBullet}>→</span>
+                        <span className={styles.stepText}>{step}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}
@@ -294,8 +309,15 @@ function HierarchyMacroView({
             {conceptsByTier.leaf.map(concept => (
               <div key={concept.id} className={styles.conceptCard}>
                 <h4>{concept.name}</h4>
-                {concept.hookSentence && (
-                  <p className={styles.conceptHook}>{concept.hookSentence}</p>
+                {concept.howToUse && concept.howToUse.length > 0 && (
+                  <div className={styles.howSteps}>
+                    {concept.howToUse.slice(0, 2).map((step, i) => (
+                      <div key={i} className={styles.howStep}>
+                        <span className={styles.stepBullet}>→</span>
+                        <span className={styles.stepText}>{step}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}
@@ -337,23 +359,16 @@ function MicroView({
             <div className={styles.sequenceContent}>
               <h4>{concept.name}</h4>
               
+              {/* Show HOW steps - procedural instructions */}
               {concept.howToUse && concept.howToUse.length > 0 && (
-                <div className={styles.howStep}>
-                  <span className={styles.howLabel}>How:</span>
-                  <span className={styles.howText}>{concept.howToUse[0]}</span>
-                </div>
-              )}
-
-              {concept.hookSentence && (
-                <p className={styles.sequenceHook}>{concept.hookSentence}</p>
-              )}
-
-              {concept.keyPoints && concept.keyPoints.length > 0 && (
-                <ul className={styles.keyPoints}>
-                  {concept.keyPoints.slice(0, 2).map((point, i) => (
-                    <li key={i}>{point}</li>
+                <div className={styles.howSteps}>
+                  {concept.howToUse.map((step, i) => (
+                    <div key={i} className={styles.howStep}>
+                      <span className={styles.stepBullet}>→</span>
+                      <span className={styles.stepText}>{step}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
             </div>
           </div>

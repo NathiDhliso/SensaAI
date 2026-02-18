@@ -405,25 +405,32 @@
   color: var(--color-text);
 }
 
+.howSteps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
 .howStep {
   display: flex;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  background: var(--color-info-bg);
-  border-left: 3px solid var(--color-primary);
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.howLabel {
-  font-weight: 600;
-  color: var(--color-primary);
-  flex-shrink: 0;
-}
-
-.howText {
+  align-items: flex-start;
+  font-size: var(--font-size-sm);
   color: var(--color-text);
   line-height: 1.5;
+}
+
+.stepBullet {
+  color: var(--color-primary);
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stepText {
+  flex: 1;
+  color: var(--color-text-muted);
 }
 
 .sequenceHook {
