@@ -549,8 +549,8 @@ export default function ContentLaunchpad() {
                         </div>
                     )}
                     
-                    {/* ULC Pattern Visualization */}
-                    {ulcPattern && ulcPattern.detected && (
+                    {/* ULC Pattern Visualization - Only for Medium/High Energy */}
+                    {ulcPattern && ulcPattern.detected && bandwidth !== 'low' && (
                         <section className={styles.ulcPattern}>
                             <div className={styles.ulcHeader}>
                                 <Target size={18} />
