@@ -43,61 +43,63 @@ export default function OverviewMapView({
   const [viewMode, setViewMode] = useState<ViewMode>('macro');
   const [selectedCell, setSelectedCell] = useState<MicroViewData | null>(null);
 
-  // SILVER BULLET: Use existing structured data (lifecyclePhase + tier) for dynamic ULC
+  // SILVER BULLET: Use AI-generated lifecycle labels as ULC verbs
   const detectedPattern = useMemo(() => {
     if (ulcPattern && ulcPattern.detected) return ulcPattern;
     
     console.log('[OverviewMap] Total concepts:', concepts.length);
     console.log('[OverviewMap] Sample concept:', concepts[0]);
     
-    // Use lifecyclePhase as verbs (already dynamically assigned by AI)
-    const phaseToVerb: Record<string, string> = {
-      'PREPARE': 'Prepare',
-      'MODEL': 'Implement', 
-      'DELIVER': 'Verify'
+    // Extract AI-generated lifecycle labels from concepts
+    // These are the actual ULC verbs (e.g., "Create", "Configure", "Monitor" for Azure)
+    const lifecycleLabels = concepts[0]?.lifecycle;
+    const verbs = lifecycleLabels 
+      ? [lifecycleLabels.phase1.title, lifecycleLabels.phase2.title, lifecycleLabels.phase3.title]
+      : ['Prepare', 'Implement', 'Verify']; // Fallback
+    
+    console.log('[OverviewMap] ULC Verbs from AI:', verbs);
+    
+    // Map verbs to internal phase keys
+    const verbToPhase: Record<string, 'PREPARE' | 'MODEL' | 'DELIVER'> = {
+      [verbs[0]]: 'PREPARE',
+      [verbs[1]]: 'MODEL',
+      [verbs[2]]: 'DELIVER'
     };
     
-    // Group concepts by tier (trunk = major domains/resources)
-    const trunkConcepts = concepts.filter(c => c.tier === 'trunk');
-    console.log('[OverviewMap] Trunk concepts:', trunkConcepts.length, trunkConcepts.map(c => c.name));
+    // Extract unique objects (resources) from concept names
+    // For Azure: "Storage", "Identity", "Networking", etc.
+    const objectSet = new Set<string>();
+    concepts.forEach(c => {
+      // Try to extract object from trunkDomain or parentName
+      if (c.trunkDomain) {
+        objectSet.add(c.trunkDomain);
+      } else if (c.parentName && c.tier !== 'trunk') {
+        objectSet.add(c.parentName);
+      }
+    });
     
-    // Check what tiers we actually have
-    const tierCounts = {
-      trunk: concepts.filter(c => c.tier === 'trunk').length,
-      branch: concepts.filter(c => c.tier === 'branch').length,
-      leaf: concepts.filter(c => c.tier === 'leaf').length
-    };
-    console.log('[OverviewMap] Tier distribution:', tierCounts);
+    const objects = Array.from(objectSet);
+    console.log('[OverviewMap] ULC Objects extracted:', objects);
     
-    // Check what phases we have
-    const phaseCounts = {
-      PREPARE: concepts.filter(c => c.lifecyclePhase === 'PREPARE').length,
-      MODEL: concepts.filter(c => c.lifecyclePhase === 'MODEL').length,
-      DELIVER: concepts.filter(c => c.lifecyclePhase === 'DELIVER').length
-    };
-    console.log('[OverviewMap] Phase distribution:', phaseCounts);
-    
-    // If we have trunk concepts, use them as objects (resources)
-    if (trunkConcepts.length >= 2) {
-      const verbs = ['Prepare', 'Implement', 'Verify'];
-      const objects = trunkConcepts.map(c => c.name);
-      
-      // Build matrix: for each trunk (object), find concepts in each phase (verb)
-      const matrix = objects.map(trunkName => 
+    // If we have objects, build ULC matrix
+    if (objects.length >= 2) {
+      // Build matrix: objects × verbs
+      // Each object (e.g., "Storage") appears in ALL verbs (Create, Configure, Monitor)
+      const matrix = objects.map(objectName => 
         verbs.map(verb => {
-          const phase = Object.entries(phaseToVerb).find(([_, v]) => v === verb)?.[0] as 'PREPARE' | 'MODEL' | 'DELIVER';
+          const phase = verbToPhase[verb];
           
-          // Find branch/leaf concepts under this trunk with this phase
+          // Find concepts for this object × verb combination
           const matchingConcepts = concepts.filter(c => 
-            (c.trunkDomain === trunkName || c.parentName === trunkName) &&
+            (c.trunkDomain === objectName || c.parentName === objectName) &&
             c.lifecyclePhase === phase
           );
           
-          console.log(`[OverviewMap] Cell ${verb} × ${trunkName}:`, matchingConcepts.length, 'concepts');
+          console.log(`[OverviewMap] Cell ${verb} × ${objectName}:`, matchingConcepts.length, 'concepts');
           
           return {
             verb,
-            object: trunkName,
+            object: objectName,
             conceptId: matchingConcepts[0]?.id,
             conceptName: matchingConcepts[0]?.name,
             status: 'not-started' as const
@@ -112,36 +114,26 @@ export default function OverviewMapView({
         confidence: 95,
         matrix,
         totalCells: verbs.length * objects.length,
-        explanation: `This subject has ${objects.length} major domains, each with 3 lifecycle phases.`
+        explanation: `Master ${objects.length} resources through ${verbs.length} operations`
       };
     }
     
-    // Fallback: Group all concepts by lifecyclePhase
-    const phaseGroups = {
-      PREPARE: concepts.filter(c => c.lifecyclePhase === 'PREPARE'),
-      MODEL: concepts.filter(c => c.lifecyclePhase === 'MODEL'),
-      DELIVER: concepts.filter(c => c.lifecyclePhase === 'DELIVER')
+    // Fallback: Use tier-based grouping
+    const tierCounts = {
+      trunk: concepts.filter(c => c.tier === 'trunk').length,
+      branch: concepts.filter(c => c.tier === 'branch').length,
+      leaf: concepts.filter(c => c.tier === 'leaf').length
     };
+    console.log('[OverviewMap] Tier distribution:', tierCounts);
     
-    // If we have concepts in multiple phases, show phase-based view
-    const phasesWithConcepts = Object.entries(phaseGroups).filter(([_, cs]) => cs.length > 0);
+    const tierObjects = Object.entries(tierCounts)
+      .filter(([_, count]) => count > 0)
+      .map(([tier]) => tier.charAt(0).toUpperCase() + tier.slice(1));
     
-    if (phasesWithConcepts.length >= 2) {
-      const verbs = phasesWithConcepts.map(([phase]) => phaseToVerb[phase]);
-      
-      // Group by tier as objects
-      const tierGroups = new Map<string, number>();
-      concepts.forEach(c => {
-        const tierName = c.tier.charAt(0).toUpperCase() + c.tier.slice(1);
-        tierGroups.set(tierName, (tierGroups.get(tierName) || 0) + 1);
-      });
-      
-      const objects = Array.from(tierGroups.keys());
-      console.log('[OverviewMap] Using tier-based fallback. Objects:', objects);
-      
-      const matrix = objects.map(tierName => 
+    if (tierObjects.length >= 2) {
+      const matrix = tierObjects.map(tierName => 
         verbs.map(verb => {
-          const phase = Object.entries(phaseToVerb).find(([_, v]) => v === verb)?.[0] as 'PREPARE' | 'MODEL' | 'DELIVER';
+          const phase = verbToPhase[verb];
           const tier = tierName.toLowerCase() as 'trunk' | 'branch' | 'leaf';
           
           const matchingConcepts = concepts.filter(c => 
@@ -163,11 +155,11 @@ export default function OverviewMapView({
       return {
         detected: true,
         verbs,
-        objects,
+        objects: tierObjects,
         confidence: 85,
         matrix,
-        totalCells: verbs.length * objects.length,
-        explanation: `Learning organized by ${verbs.length} phases across ${objects.length} concept tiers.`
+        totalCells: verbs.length * tierObjects.length,
+        explanation: `Master ${tierObjects.length} concept levels through ${verbs.length} operations`
       };
     }
     
@@ -186,11 +178,11 @@ export default function OverviewMapView({
   const handleCellClick = (verb: string, object: string) => {
     if (!detectedPattern.detected) return;
 
-    // Map verb back to lifecyclePhase
+    // Map verb to phase dynamically
     const verbToPhase: Record<string, 'PREPARE' | 'MODEL' | 'DELIVER'> = {
-      'Prepare': 'PREPARE',
-      'Implement': 'MODEL',
-      'Verify': 'DELIVER'
+      [detectedPattern.verbs[0]]: 'PREPARE',
+      [detectedPattern.verbs[1]]: 'MODEL',
+      [detectedPattern.verbs[2]]: 'DELIVER'
     };
     
     const phase = verbToPhase[verb];
@@ -244,11 +236,13 @@ export default function OverviewMapView({
           </motion.div>
           <div>
             <h2 className={styles.title}>
-              {viewMode === 'macro' ? 'Knowledge Matrix' : 'Deep Dive'}
+              {viewMode === 'macro' ? 'Universal Learning Cycle' : 'Deep Dive'}
             </h2>
             <p className={styles.subtitle}>
               {viewMode === 'macro' 
-                ? `${detectedPattern.detected ? detectedPattern.objects.length : concepts.length} concepts • ${detectedPattern.detected ? detectedPattern.verbs.length : 3} operations`
+                ? detectedPattern.detected 
+                  ? `${detectedPattern.objects.length} resources × ${detectedPattern.verbs.join(' → ')}`
+                  : `${concepts.length} concepts to master`
                 : `${selectedCell?.verb} → ${selectedCell?.object}`
               }
             </p>
@@ -317,6 +311,13 @@ function ULCMacroView({
   concepts: LearningConcept[];
   onCellClick: (verb: string, object: string) => void;
 }) {
+  // Map verbs to phases dynamically
+  const verbToPhase: Record<string, 'PREPARE' | 'MODEL' | 'DELIVER'> = {
+    [pattern.verbs[0]]: 'PREPARE',
+    [pattern.verbs[1]]: 'MODEL',
+    [pattern.verbs[2]]: 'DELIVER'
+  };
+
   return (
     <div className={styles.ulcContainer}>
       <motion.div 
@@ -329,7 +330,6 @@ function ULCMacroView({
           <Layers size={24} />
         </div>
         <div className={styles.legendContent}>
-          <h3>Universal Learning Cycle</h3>
           <p>{pattern.explanation}</p>
         </div>
       </motion.div>
@@ -368,12 +368,6 @@ function ULCMacroView({
               <span className={styles.objectName}>{pattern.objects[rowIndex]}</span>
             </div>
             {row.map((cell, cellIndex) => {
-              // Map verb back to phase
-              const verbToPhase: Record<string, 'PREPARE' | 'MODEL' | 'DELIVER'> = {
-                'Prepare': 'PREPARE',
-                'Implement': 'MODEL',
-                'Verify': 'DELIVER'
-              };
               const mappedPhase = verbToPhase[cell.verb];
               
               // Count concepts that match this cell
