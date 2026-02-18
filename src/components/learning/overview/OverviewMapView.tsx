@@ -12,7 +12,6 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ZoomIn,
-  ZoomOut,
   ArrowLeft,
   CheckCircle,
   Target,
@@ -338,10 +337,10 @@ function MicroView({
             <div className={styles.sequenceContent}>
               <h4>{concept.name}</h4>
               
-              {concept.phase1?.execution && (
+              {concept.howToUse && concept.howToUse.length > 0 && (
                 <div className={styles.howStep}>
                   <span className={styles.howLabel}>How:</span>
-                  <span className={styles.howText}>{concept.phase1.execution}</span>
+                  <span className={styles.howText}>{concept.howToUse[0]}</span>
                 </div>
               )}
 

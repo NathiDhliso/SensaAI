@@ -655,7 +655,7 @@ export default function VelocityLearning() {
                     >
                         <OverviewMapView
                             concepts={currentSession!.concepts}
-                            ulcPattern={detectULC(currentSession!.concepts)}
+                            ulcPattern={detectULC(currentSession!.concepts as any)}
                             onComplete={() => {
                                 const { markOverviewViewed } = useLearningStore.getState();
                                 markOverviewViewed();
