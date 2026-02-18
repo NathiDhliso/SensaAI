@@ -66,40 +66,87 @@ export default function OverviewMapView({
       [verbs[2]]: 'DELIVER'
     };
     
-    // Extract unique objects (resources) from concept names
-    // For Azure: "Storage", "Identity", "Networking", etc.
-    const objectSet = new Set<string>();
+    // STRATEGY: For Azure-style subjects, the concept names themselves contain the resource
+    // e.g., "Implement and Manage Storage" → resource is "Storage"
+    // We need to extract the resource name from the concept name and group by it
+    
+    // Extract unique resources from concept names
+    const resourceMap = new Map<string, LearningConcept[]>();
+    
     concepts.forEach(c => {
-      // Try to extract object from trunkDomain or parentName
+      // Try multiple strategies to extract resource name
+      let resourceName: string | null = null;
+      
+      // Strategy 1: Use trunkDomain if available
       if (c.trunkDomain) {
-        objectSet.add(c.trunkDomain);
-      } else if (c.parentName && c.tier !== 'trunk') {
-        objectSet.add(c.parentName);
+        resourceName = c.trunkDomain;
+      }
+      // Strategy 2: Use parentName if available
+      else if (c.parentName) {
+        resourceName = c.parentName;
+      }
+      // Strategy 3: Extract from concept name
+      // Look for patterns like "Implement and Manage Storage" → "Storage"
+      // or "Deploy and Manage Azure Compute Resources" → "Compute"
+      else {
+        const name = c.name;
+        // Common Azure resource keywords
+        const resourceKeywords = [
+          'Storage', 'Networking', 'Network', 'Identity', 'Identities', 
+          'Compute', 'Security', 'Monitor', 'Database', 'Container',
+          'Virtual Machine', 'App Service', 'Function', 'Kubernetes'
+        ];
+        
+        for (const keyword of resourceKeywords) {
+          if (name.includes(keyword)) {
+            resourceName = keyword;
+            break;
+          }
+        }
+        
+        // If still no match, try to extract the last significant word
+        if (!resourceName) {
+          const words = name.split(' ').filter(w => 
+            w.length > 3 && 
+            !['and', 'the', 'for', 'with', 'Azure', 'Manage', 'Deploy', 'Implement', 'Monitor'].includes(w)
+          );
+          if (words.length > 0) {
+            resourceName = words[words.length - 1];
+          }
+        }
+      }
+      
+      if (resourceName) {
+        if (!resourceMap.has(resourceName)) {
+          resourceMap.set(resourceName, []);
+        }
+        resourceMap.get(resourceName)!.push(c);
       }
     });
     
-    const objects = Array.from(objectSet);
-    console.log('[OverviewMap] ULC Objects extracted:', objects);
+    const objects = Array.from(resourceMap.keys());
+    console.log('[OverviewMap] ULC Resources extracted:', objects);
+    console.log('[OverviewMap] Resource map:', Array.from(resourceMap.entries()).map(([k, v]) => `${k}: ${v.length} concepts`));
     
-    // If we have objects, build ULC matrix
+    // If we have resources, build ULC matrix
     if (objects.length >= 2) {
       // Build matrix: objects × verbs
-      // Each object (e.g., "Storage") appears in ALL verbs (Create, Configure, Monitor)
-      const matrix = objects.map(objectName => 
+      // Each resource appears in ALL verbs with the SAME concepts
+      const matrix = objects.map(resourceName => 
         verbs.map(verb => {
-          const phase = verbToPhase[verb];
+          // Get all concepts for this resource
+          const resourceConcepts = resourceMap.get(resourceName) || [];
           
-          // Find concepts for this object × verb combination
-          const matchingConcepts = concepts.filter(c => 
-            (c.trunkDomain === objectName || c.parentName === objectName) &&
-            c.lifecyclePhase === phase
-          );
+          // For ULC pattern: the SAME concepts appear in all verbs
+          // The difference is which lifecycle phase steps are shown
+          // So we return ALL concepts for this resource, regardless of their current lifecyclePhase
+          const matchingConcepts = resourceConcepts;
           
-          console.log(`[OverviewMap] Cell ${verb} × ${objectName}:`, matchingConcepts.length, 'concepts');
+          console.log(`[OverviewMap] Cell ${verb} × ${resourceName}:`, matchingConcepts.length, 'concepts', matchingConcepts.map(c => c.name));
           
           return {
             verb,
-            object: objectName,
+            object: resourceName,
             conceptId: matchingConcepts[0]?.id,
             conceptName: matchingConcepts[0]?.name,
             status: 'not-started' as const
@@ -178,36 +225,24 @@ export default function OverviewMapView({
   const handleCellClick = (verb: string, object: string) => {
     if (!detectedPattern.detected) return;
 
-    // Map verb to phase dynamically
-    const verbToPhase: Record<string, 'PREPARE' | 'MODEL' | 'DELIVER'> = {
-      [detectedPattern.verbs[0]]: 'PREPARE',
-      [detectedPattern.verbs[1]]: 'MODEL',
-      [detectedPattern.verbs[2]]: 'DELIVER'
-    };
-    
-    const phase = verbToPhase[verb];
-    
-    // Find concepts matching this cell using structured data
-    let cellConcepts: LearningConcept[] = [];
-    
-    // Check if object is a trunk domain
-    const isTrunkDomain = concepts.some(c => c.tier === 'trunk' && c.name === object);
-    
-    if (isTrunkDomain && phase) {
-      // Find branch/leaf concepts under this trunk with this phase
-      cellConcepts = concepts.filter(c => 
-        (c.trunkDomain === object || c.parentName === object) &&
-        c.lifecyclePhase === phase
-      );
-    } else {
-      // Object is a tier name (Trunk/Branch/Leaf)
-      const tier = object.toLowerCase() as 'trunk' | 'branch' | 'leaf';
-      if (phase) {
-        cellConcepts = concepts.filter(c => 
-          c.tier === tier && c.lifecyclePhase === phase
-        );
+    // For ULC pattern: ALL concepts for a resource appear in ALL verbs
+    // The difference is which lifecycle phase steps we show
+    // So we find all concepts that match this resource
+    const cellConcepts = concepts.filter(c => {
+      // Check if concept belongs to this resource
+      if (c.trunkDomain === object || c.parentName === object) {
+        return true;
       }
-    }
+      
+      // Also check if resource name is in the concept name
+      if (c.name.includes(object)) {
+        return true;
+      }
+      
+      return false;
+    });
+
+    console.log(`[OverviewMap] Clicked ${verb} × ${object}: ${cellConcepts.length} concepts`);
 
     if (cellConcepts.length > 0) {
       setSelectedCell({ verb, object, concepts: cellConcepts });
@@ -311,13 +346,6 @@ function ULCMacroView({
   concepts: LearningConcept[];
   onCellClick: (verb: string, object: string) => void;
 }) {
-  // Map verbs to phases dynamically
-  const verbToPhase: Record<string, 'PREPARE' | 'MODEL' | 'DELIVER'> = {
-    [pattern.verbs[0]]: 'PREPARE',
-    [pattern.verbs[1]]: 'MODEL',
-    [pattern.verbs[2]]: 'DELIVER'
-  };
-
   return (
     <div className={styles.ulcContainer}>
       <motion.div 
@@ -368,31 +396,26 @@ function ULCMacroView({
               <span className={styles.objectName}>{pattern.objects[rowIndex]}</span>
             </div>
             {row.map((cell, cellIndex) => {
-              const mappedPhase = verbToPhase[cell.verb];
-              
-              // Count concepts that match this cell
-              // Check if object is a trunk domain name or a tier name
-              const isTrunkDomain = concepts.some(c => c.tier === 'trunk' && c.name === cell.object);
-              
-              let cellConcepts: LearningConcept[] = [];
-              if (isTrunkDomain) {
-                // Object is a trunk concept name - find children with this phase
-                cellConcepts = concepts.filter(c => 
-                  (c.trunkDomain === cell.object || c.parentName === cell.object) &&
-                  c.lifecyclePhase === mappedPhase
-                );
-              } else {
-                // Object is a tier name (Trunk/Branch/Leaf)
-                const tier = cell.object.toLowerCase() as 'trunk' | 'branch' | 'leaf';
-                cellConcepts = concepts.filter(c => 
-                  c.tier === tier && c.lifecyclePhase === mappedPhase
-                );
-              }
+              // For ULC pattern: ALL concepts for a resource appear in ALL verbs
+              // Count all concepts that match this resource
+              const cellConcepts = concepts.filter(c => {
+                // Check if concept belongs to this resource
+                if (c.trunkDomain === cell.object || c.parentName === cell.object) {
+                  return true;
+                }
+                
+                // Also check if resource name is in the concept name
+                if (c.name.includes(cell.object)) {
+                  return true;
+                }
+                
+                return false;
+              });
               
               const count = cellConcepts.length;
               const isEmpty = count === 0;
               
-              console.log(`[ULCMatrix] Cell ${cell.verb} × ${cell.object}: ${count} concepts (phase=${mappedPhase}, isTrunk=${isTrunkDomain})`);
+              console.log(`[ULCMatrix] Cell ${cell.verb} × ${cell.object}: ${count} concepts`);
 
               return (
                 <motion.button
@@ -551,6 +574,21 @@ function MicroView({
   concepts: LearningConcept[];
   onBack: () => void;
 }) {
+  // Determine which lifecycle phase to show based on verb
+  // verb is one of the AI-generated labels (e.g., "Create", "Configure", "Monitor")
+  // We need to map it to phase1, phase2, or phase3
+  const getPhaseKey = (verb: string, concept: LearningConcept): 'phase1' | 'phase2' | 'phase3' => {
+    if (!concept.lifecycle) return 'phase1';
+    
+    // Match verb to lifecycle phase title
+    if (concept.lifecycle.phase1.title === verb) return 'phase1';
+    if (concept.lifecycle.phase2.title === verb) return 'phase2';
+    if (concept.lifecycle.phase3.title === verb) return 'phase3';
+    
+    // Fallback: assume order (first verb = phase1, second = phase2, third = phase3)
+    return 'phase1';
+  };
+
   return (
     <div className={styles.microContainer}>
       <motion.button 
@@ -576,47 +614,52 @@ function MicroView({
         </div>
         <div className={styles.microMeta}>
           <span className={styles.microCount}>{concepts.length} concepts</span>
-          <span className={styles.microSteps}>{concepts.reduce((acc, c) => acc + (c.howToUse?.length || 0), 0)} steps</span>
         </div>
       </motion.div>
 
       <div className={styles.microSequence}>
-        {concepts.map((concept, index) => (
-          <motion.div 
-            key={concept.id} 
-            className={styles.sequenceItem}
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.4 }}
-          >
-            <div className={styles.sequenceNumber}>
-              <span className={styles.numberValue}>{index + 1}</span>
-              <div className={styles.numberGlow} />
-            </div>
-            <div className={styles.sequenceContent}>
-              <h4 className={styles.sequenceTitle}>{concept.name}</h4>
-              
-              {/* Show HOW steps - procedural instructions */}
-              {concept.howToUse && concept.howToUse.length > 0 && (
-                <div className={styles.howSteps}>
-                  {concept.howToUse.map((step, i) => (
-                    <motion.div 
-                      key={i} 
-                      className={styles.howStep}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 + i * 0.05, duration: 0.3 }}
-                    >
-                      <span className={styles.stepNumber}>{i + 1}</span>
-                      <span className={styles.stepText}>{step}</span>
-                      <div className={styles.stepConnector} />
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        ))}
+        {concepts.map((concept, index) => {
+          // Get the correct phase steps for this verb
+          const phaseKey = getPhaseKey(verb, concept);
+          const phaseSteps = concept.lifecycle?.[phaseKey]?.steps || concept.howToUse || [];
+          
+          return (
+            <motion.div 
+              key={concept.id} 
+              className={styles.sequenceItem}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+            >
+              <div className={styles.sequenceNumber}>
+                <span className={styles.numberValue}>{index + 1}</span>
+                <div className={styles.numberGlow} />
+              </div>
+              <div className={styles.sequenceContent}>
+                <h4 className={styles.sequenceTitle}>{concept.name}</h4>
+                
+                {/* Show verb-specific steps from lifecycle phase */}
+                {phaseSteps.length > 0 && (
+                  <div className={styles.howSteps}>
+                    {phaseSteps.map((step, i) => (
+                      <motion.div 
+                        key={i} 
+                        className={styles.howStep}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 + i * 0.05, duration: 0.3 }}
+                      >
+                        <span className={styles.stepNumber}>{i + 1}</span>
+                        <span className={styles.stepText}>{step}</span>
+                        <div className={styles.stepConnector} />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       <motion.div 
