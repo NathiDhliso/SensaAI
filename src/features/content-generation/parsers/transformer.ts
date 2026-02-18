@@ -755,18 +755,19 @@ function normalizeLifecyclePhase(input: string | undefined): 'PREPARE' | 'MODEL'
  return 'PREPARE'; // Default
 }
 // Helper to force-balance distribution if AI fails to spread concepts
-// Helper to force-balance distribution if AI fails to spread concepts
 function balanceLifecycleDistribution(concepts: LearningConcept[]) {
  const counts = { PREPARE: 0, MODEL: 0, DELIVER: 0 };
  concepts.forEach(c => { if (c.lifecyclePhase) counts[c.lifecyclePhase]++; });
  const total = concepts.length;
  if (total < 3) return; // Too few to balance
+ 
  // If any sector is empty or heavily skewed (>70%), redistribute by Order
  const isSkewed = (counts.PREPARE === 0 || counts.MODEL === 0 || counts.DELIVER === 0) ||
  (counts.PREPARE / total > 0.7) ||
  (counts.MODEL / total > 0.7);
+ 
  if (isSkewed) {
- // console.log('ℹ Lifecycle Distribution Skewed. Force Balancing by Order.');
+ console.log('ℹ️ Lifecycle Distribution Skewed. Force Balancing by Order.');
  // Sort a copy to determine rank
  const sortedIds = [...concepts].sort((a, b) => (a.order || 0) - (b.order || 0)).map(c => c.id);
  const chunkSize = Math.ceil(total / 3);
@@ -778,6 +779,33 @@ function balanceLifecycleDistribution(concepts: LearningConcept[]) {
  else c.lifecyclePhase = 'DELIVER';
  });
  }
+ 
+ // TIER-AWARE BALANCING: Also balance within each tier for better matrix distribution
+ ['trunk', 'branch', 'leaf'].forEach(tierName => {
+ const tierConcepts = concepts.filter(c => c.tier === tierName);
+ if (tierConcepts.length < 3) return; // Too few to balance
+ 
+ const tierCounts = { PREPARE: 0, MODEL: 0, DELIVER: 0 };
+ tierConcepts.forEach(c => { if (c.lifecyclePhase) tierCounts[c.lifecyclePhase]++; });
+ 
+ // Check if this tier is skewed (any phase empty or >70%)
+ const tierSkewed = (tierCounts.PREPARE === 0 || tierCounts.MODEL === 0 || tierCounts.DELIVER === 0) ||
+ (tierCounts.PREPARE / tierConcepts.length > 0.7) ||
+ (tierCounts.MODEL / tierConcepts.length > 0.7) ||
+ (tierCounts.DELIVER / tierConcepts.length > 0.7);
+ 
+ if (tierSkewed) {
+ console.log(`ℹ️ Tier "${tierName}" distribution skewed. Rebalancing ${tierConcepts.length} concepts.`);
+ // Redistribute this tier's concepts evenly across phases
+ const sortedTier = [...tierConcepts].sort((a, b) => (a.order || 0) - (b.order || 0));
+ const tierChunkSize = Math.ceil(tierConcepts.length / 3);
+ sortedTier.forEach((c, i) => {
+ if (i < tierChunkSize) c.lifecyclePhase = 'PREPARE';
+ else if (i < tierChunkSize * 2) c.lifecyclePhase = 'MODEL';
+ else c.lifecyclePhase = 'DELIVER';
+ });
+ }
+ });
 }
 // ============================================================================
 // SILVER BULLET: ROBUST TIER CLASSIFICATION
