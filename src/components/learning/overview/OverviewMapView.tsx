@@ -53,6 +53,11 @@ export default function OverviewMapView({
     // Extract AI-generated lifecycle labels from concepts
     // These are the actual ULC verbs (e.g., "Create", "Configure", "Monitor" for Azure)
     const lifecycleLabels = concepts[0]?.lifecycle;
+    
+    // Debug: Check what lifecycle data we have
+    console.log('[OverviewMap] Lifecycle labels:', lifecycleLabels);
+    console.log('[OverviewMap] First concept full data:', JSON.stringify(concepts[0], null, 2));
+    
     const verbs = lifecycleLabels 
       ? [lifecycleLabels.phase1.title, lifecycleLabels.phase2.title, lifecycleLabels.phase3.title]
       : ['Prepare', 'Implement', 'Verify']; // Fallback
