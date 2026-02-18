@@ -359,7 +359,6 @@ export default function ContentLaunchpad() {
             setSpacingMetrics(spacing.getMetrics());
             setKnowledgeHealth(spacing.getKnowledgeHealthPercent());
 
-            // Enhancement C: Populate Health Data
             if (parsedData?.concepts) {
                 const health: ConceptHealth[] = parsedData.concepts.map(c => {
                     const status = spacing.getDecayStatus(c.id);
@@ -369,7 +368,6 @@ export default function ContentLaunchpad() {
                     else if (status === 'fading') retention = 65;
                     else retention = 95;
 
-                    // Refine retention based on SM-2 if available
                     if (review?.easeFactor && review.repetitions > 0) {
                         retention = Math.min(retention, Math.round(review.easeFactor * 30));
                     }
@@ -383,21 +381,20 @@ export default function ContentLaunchpad() {
                     };
                 });
                 setHealthData(health);
-                
-                // Update ULC pattern with progress
-                if (ulcPattern) {
+
+                setUlcPattern(prev => {
+                    if (!prev) return prev;
                     const progressEntries: [string, 'not-started' | 'learning' | 'mastered'][] = health.map(h => {
                         if (h.retention >= 80) return [h.id, 'mastered' as const];
                         if (h.retention >= 40) return [h.id, 'learning' as const];
                         return [h.id, 'not-started' as const];
                     });
                     const progressMap = new Map(progressEntries);
-                    const updatedULC = updateULCProgress(ulcPattern, progressMap);
-                    setUlcPattern(updatedULC);
-                }
+                    return updateULCProgress(prev, progressMap);
+                });
             }
         } catch { /* spacing not initialized yet */ }
-    }, [parsedData, ulcPattern]);
+    }, [parsedData]);
     const communityState = isCommunity ? { state: { community: true, ownerId: communityOwnerId } } : undefined;
     const handleStartLearning = () => {
         navigate(`/study/${subjectId}?tab=learn`, communityState);
@@ -571,21 +568,22 @@ export default function ContentLaunchpad() {
                                 </p>
                             </div>
                             
-                            <div className={styles.ulcMatrix}>
-                                <div className={styles.matrixHeader}>
-                                    <div className={styles.matrixCorner}></div>
+                            <div className={styles.ulcMatrix} role="grid" aria-label="ULC Learning Pattern Matrix">
+                                <div className={styles.matrixHeader} role="row">
+                                    <div className={styles.matrixCorner} role="columnheader"></div>
                                     {ulcPattern.verbs.map(verb => (
-                                        <div key={verb} className={styles.matrixVerb}>{verb}</div>
+                                        <div key={verb} className={styles.matrixVerb} role="columnheader">{verb}</div>
                                     ))}
                                 </div>
                                 {ulcPattern.matrix.map((row, rowIndex) => (
-                                    <div key={rowIndex} className={styles.matrixRow}>
-                                        <div className={styles.matrixObject}>{ulcPattern.objects[rowIndex]}</div>
+                                    <div key={rowIndex} className={styles.matrixRow} role="row">
+                                        <div className={styles.matrixObject} role="rowheader">{ulcPattern.objects[rowIndex]}</div>
                                         {row.map((cell, cellIndex) => {
                                             const isEmpty = !cell.conceptId;
                                             const statusClass = isEmpty 
                                                 ? styles.statusEmpty 
                                                 : styles[`status${cell.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`];
+                                            const statusLabel = isEmpty ? 'No concept' : cell.status === 'mastered' ? 'Mastered' : cell.status === 'learning' ? 'Learning' : 'Not started';
                                             
                                             return (
                                                 <button
@@ -593,12 +591,14 @@ export default function ContentLaunchpad() {
                                                     className={`${styles.matrixCell} ${statusClass}`}
                                                     onClick={() => cell.conceptId && handleReviewConcept(cell.conceptId)}
                                                     disabled={isEmpty}
+                                                    role="gridcell"
+                                                    aria-label={`${cell.verb} ${cell.object}: ${statusLabel}`}
+                                                    aria-disabled={isEmpty}
                                                 >
                                                     {isEmpty ? '—' : cell.status === 'mastered' ? '✓' : cell.status === 'learning' ? '○' : '·'}
                                                     
-                                                    {/* Tooltip showing the "how" */}
                                                     {!isEmpty && (
-                                                        <div className={styles.cellTooltip}>
+                                                        <div className={styles.cellTooltip} role="tooltip">
                                                             <div className={styles.tooltipHeader}>
                                                                 <span className={styles.tooltipTitle}>
                                                                     {cell.verb} {cell.object}

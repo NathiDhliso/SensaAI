@@ -1457,7 +1457,7 @@
 }
 
 .matrixCorner {
-    /* Empty corner cell */
+    min-width: 0;
 }
 
 .matrixVerb {
@@ -1522,10 +1522,18 @@
     z-index: 10;
 }
 
-.matrixCell:hover .cellTooltip {
+.matrixCell:hover .cellTooltip,
+.matrixCell:focus-visible .cellTooltip {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+}
+
+.matrixCell:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-color: var(--color-accent);
+    z-index: 10;
 }
 
 .cellTooltip {
@@ -1781,5 +1789,16 @@
 
     .ulcStats {
         gap: 1rem;
+    }
+
+    .cellTooltip {
+        min-width: 220px;
+        max-width: 300px;
+        left: 0;
+        transform: translateY(-4px);
+    }
+
+    .cellTooltip::after {
+        left: 24px;
     }
 }

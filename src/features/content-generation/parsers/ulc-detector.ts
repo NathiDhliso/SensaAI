@@ -46,36 +46,43 @@ const COMMON_VERBS = [
  * - "Configuring Virtual Networks" → "Configure"
  * - "Identity Management" → "Manage"
  */
+function stemIng(word: string): string | null {
+  if (!word.endsWith('ing')) return null;
+  const base = word.slice(0, -3);
+  if (COMMON_VERBS.includes(base)) return base;
+  if (COMMON_VERBS.includes(base + 'e')) return base + 'e';
+  if (base.length > 1 && base[base.length - 1] === base[base.length - 2]) {
+    const dedoubled = base.slice(0, -1);
+    if (COMMON_VERBS.includes(dedoubled)) return dedoubled;
+  }
+  return null;
+}
+
 function extractVerb(conceptName: string): string | null {
   const normalized = conceptName.toLowerCase().trim();
-  
-  // Check for verb at start (most common pattern)
-  for (const verb of COMMON_VERBS) {
-    if (normalized.startsWith(verb)) {
-      return verb.charAt(0).toUpperCase() + verb.slice(1);
-    }
-    // Check for -ing form
-    if (normalized.startsWith(verb + 'ing')) {
-      return verb.charAt(0).toUpperCase() + verb.slice(1);
-    }
+  const firstWord = normalized.split(/\s+/)[0].replace(/[^a-z]/g, '');
+
+  if (COMMON_VERBS.includes(firstWord)) {
+    return firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
   }
-  
-  // Check for verb anywhere in the name
+
+  const stemmed = stemIng(firstWord);
+  if (stemmed) {
+    return stemmed.charAt(0).toUpperCase() + stemmed.slice(1);
+  }
+
   const words = normalized.split(/\s+/);
   for (const word of words) {
     const cleaned = word.replace(/[^a-z]/g, '');
     if (COMMON_VERBS.includes(cleaned)) {
       return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
     }
-    // Check -ing form
-    if (cleaned.endsWith('ing')) {
-      const base = cleaned.slice(0, -3);
-      if (COMMON_VERBS.includes(base)) {
-        return base.charAt(0).toUpperCase() + base.slice(1);
-      }
+    const wordStem = stemIng(cleaned);
+    if (wordStem) {
+      return wordStem.charAt(0).toUpperCase() + wordStem.slice(1);
     }
   }
-  
+
   return null;
 }
 
@@ -89,15 +96,17 @@ function extractVerb(conceptName: string): string | null {
 function extractObject(conceptName: string, verb: string | null): string | null {
   let cleaned = conceptName.trim();
   
-  // Remove verb if present
   if (verb) {
-    const verbPattern = new RegExp(`^${verb}(ing)?\\s+`, 'i');
+    const escaped = verb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const ingForm = verb.endsWith('e') ? verb.slice(0, -1) + 'ing' : verb + 'ing';
+    const ingEscaped = ingForm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const verbPattern = new RegExp(`^(${escaped}|${ingEscaped})\\s+`, 'i');
     cleaned = cleaned.replace(verbPattern, '');
   }
   
   // Remove common filler words
   cleaned = cleaned
-    .replace(/\b(azure|aws|the|a|an|for|with|using|in|on|to)\b/gi, ' ')
+    .replace(/\b(azure|aws|gcp|google|microsoft|the|a|an|and|or|of|for|with|using|in|on|to|your|their|its)\b/gi, ' ')
     .trim();
   
   // Take first significant word as the object
@@ -115,28 +124,26 @@ function extractObject(conceptName: string, verb: string | null): string | null 
  */
 function normalizeVerb(verb: string): string {
   const lower = verb.toLowerCase();
-  
-  // Remove -ing
-  if (lower.endsWith('ing')) {
-    const base = lower.slice(0, -3);
-    if (COMMON_VERBS.includes(base)) {
-      return base.charAt(0).toUpperCase() + base.slice(1);
-    }
+
+  if (COMMON_VERBS.includes(lower)) {
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
   }
-  
-  // Remove -ed
+
+  const ingResult = stemIng(lower);
+  if (ingResult) return ingResult.charAt(0).toUpperCase() + ingResult.slice(1);
+
   if (lower.endsWith('ed')) {
     const base = lower.slice(0, -2);
-    if (COMMON_VERBS.includes(base)) {
-      return base.charAt(0).toUpperCase() + base.slice(1);
-    }
+    if (COMMON_VERBS.includes(base)) return base.charAt(0).toUpperCase() + base.slice(1);
+    if (COMMON_VERBS.includes(base + 'e')) return (base + 'e').charAt(0).toUpperCase() + (base + 'e').slice(1);
   }
-  
+
   return verb.charAt(0).toUpperCase() + verb.slice(1);
 }
 
 /**
  * Detect ULC pattern from concepts
+ * Strict detection - only shows ULC when content is properly structured with clear verbs
  */
 export function detectULC(concepts: ParsedConcept[]): ULCPattern {
   if (concepts.length < 6) {
@@ -150,7 +157,7 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
     };
   }
   
-  // Step 1: Extract verbs and objects from all concepts
+  // Step 1: Extract verbs and objects from concept names (strict - no fallback)
   const verbCounts = new Map<string, number>();
   const objectCounts = new Map<string, number>();
   const conceptMap = new Map<string, { verb: string; object: string; concept: ParsedConcept }>();
@@ -163,20 +170,17 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
     const object = extractObject(concept.name, verb);
     if (!object) continue;
     
-    // Count occurrences
     verbCounts.set(normalizedVerb, (verbCounts.get(normalizedVerb) || 0) + 1);
     objectCounts.set(object, (objectCounts.get(object) || 0) + 1);
     
-    // Store mapping
     const key = `${normalizedVerb}:${object}`;
     conceptMap.set(key, { verb: normalizedVerb, object, concept });
   }
   
   // Step 2: Find verbs that appear across multiple objects (ULC candidates)
-  const ulcVerbs = Array.from(verbCounts.entries())
-    .filter(([_, count]) => count >= 3) // Verb must appear at least 3 times
+  const allVerbs = Array.from(verbCounts.entries())
+    .filter(([_, count]) => count >= 2) // Verb must appear at least 2 times
     .sort((a, b) => b[1] - a[1]) // Sort by frequency
-    .slice(0, 6) // Take top 6 verbs max
     .map(([verb]) => verb);
   
   // Step 3: Find objects that have multiple verbs applied (resources in ULC)
@@ -186,11 +190,31 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
     .slice(0, 10) // Take top 10 objects max
     .map(([obj]) => obj);
   
-  // Step 4: Calculate confidence
-  // High confidence if:
-  // - We have 2-6 verbs
-  // - We have 3+ objects
-  // - Most verb×object combinations exist
+  // Step 4: Handle multiple verb sets (e.g., AZ-104 + AZ-305 combined)
+  // If we have 6+ verbs, take the top 3-5 most frequent
+  let ulcVerbs: string[];
+  let phaseNote: string | undefined;
+  
+  if (allVerbs.length >= 6) {
+    // Multiple phases detected - take top 5 verbs
+    ulcVerbs = allVerbs.slice(0, 5);
+    phaseNote = `Note: ${allVerbs.length} verbs detected. Showing top ${ulcVerbs.length}. Consider splitting into separate phases.`;
+  } else if (allVerbs.length >= 3) {
+    // Standard ULC - 3-5 verbs
+    ulcVerbs = allVerbs.slice(0, 5);
+  } else {
+    // Not enough verbs for ULC pattern
+    return {
+      detected: false,
+      verbs: [],
+      objects: [],
+      confidence: 0,
+      matrix: [],
+      totalCells: 0
+    };
+  }
+  
+  // Step 5: Calculate confidence (strict)
   const expectedCells = ulcVerbs.length * ulcObjects.length;
   const actualCells = Array.from(conceptMap.keys()).filter(key => {
     const [verb, obj] = key.split(':');
@@ -199,14 +223,26 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
   
   const coverage = expectedCells > 0 ? (actualCells / expectedCells) * 100 : 0;
   
-  // Confidence factors
-  const verbCountScore = ulcVerbs.length >= 2 && ulcVerbs.length <= 6 ? 30 : 0;
+  // Strict confidence scoring
+  const verbCountScore = ulcVerbs.length >= 3 && ulcVerbs.length <= 6 ? 30 : 0;
   const objectCountScore = ulcObjects.length >= 3 ? 30 : 0;
   const coverageScore = coverage * 0.4; // Up to 40 points
   
   const confidence = Math.round(verbCountScore + objectCountScore + coverageScore);
   
-  // Step 5: Build matrix
+  // Only show ULC if confidence is high (strict threshold)
+  if (confidence < 70) {
+    return {
+      detected: false,
+      verbs: [],
+      objects: [],
+      confidence,
+      matrix: [],
+      totalCells: 0
+    };
+  }
+  
+  // Step 6: Build matrix
   const matrix: ULCCell[][] = ulcObjects.map(object => 
     ulcVerbs.map(verb => {
       const key = `${verb}:${object}`;
@@ -217,20 +253,21 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
         object,
         conceptId: entry?.concept.id,
         conceptName: entry?.concept.name,
-        howSteps: entry?.concept.phase1?.execution, // Extract the "how"
-        status: 'not-started' as const // Will be updated by caller with actual progress
+        howSteps: entry?.concept.phase1?.execution,
+        status: 'not-started' as const
       };
     })
   );
   
-  // Step 6: Generate explanation
-  let explanation = '';
-  if (confidence >= 70) {
-    explanation = `This subject follows a Universal Life Cycle pattern: ${ulcVerbs.length} core actions (${ulcVerbs.join(', ')}) applied across ${ulcObjects.length} resources.`;
+  // Step 7: Generate explanation
+  let explanation = `This subject follows a Universal Life Cycle pattern: ${ulcVerbs.length} core actions (${ulcVerbs.join(', ')}) applied across ${ulcObjects.length} resources.`;
+  
+  if (phaseNote) {
+    explanation += ` ${phaseNote}`;
   }
   
   return {
-    detected: confidence >= 70,
+    detected: true,
     verbs: ulcVerbs,
     objects: ulcObjects,
     confidence,
@@ -266,16 +303,14 @@ export function updateULCProgress(
  */
 export function getNextULCCell(pattern: ULCPattern): ULCCell | null {
   if (!pattern.detected) return null;
-  
-  // Find first object with incomplete verbs
+
   for (const row of pattern.matrix) {
-    const incompleteCells = row.filter(cell => cell.status !== 'mastered');
+    const incompleteCells = row.filter(cell => cell.conceptId && cell.status !== 'mastered');
     if (incompleteCells.length > 0) {
-      // Return first incomplete cell in this row
       return incompleteCells[0];
     }
   }
-  
+
   return null;
 }
 
@@ -317,28 +352,29 @@ export function getULCStats(pattern: ULCPattern): ULCStats {
       verbsCompleted: 0
     };
   }
-  
-  const allCells = pattern.matrix.flat();
-  const masteredCells = allCells.filter(c => c.status === 'mastered').length;
-  const learningCells = allCells.filter(c => c.status === 'learning').length;
-  const notStartedCells = allCells.filter(c => c.status === 'not-started').length;
-  
-  // Count completed objects (all verbs mastered for that object)
-  const objectsCompleted = pattern.matrix.filter(row =>
-    row.every(cell => cell.status === 'mastered')
-  ).length;
-  
-  // Count completed verbs (verb mastered across all objects)
-  const verbsCompleted = pattern.verbs.filter((_, verbIndex) =>
-    pattern.matrix.every(row => row[verbIndex].status === 'mastered')
-  ).length;
-  
+
+  const filledCells = pattern.matrix.flat().filter(c => c.conceptId);
+  const masteredCells = filledCells.filter(c => c.status === 'mastered').length;
+  const learningCells = filledCells.filter(c => c.status === 'learning').length;
+  const notStartedCells = filledCells.filter(c => c.status === 'not-started').length;
+  const filledTotal = filledCells.length;
+
+  const objectsCompleted = pattern.matrix.filter(row => {
+    const filled = row.filter(cell => cell.conceptId);
+    return filled.length > 0 && filled.every(cell => cell.status === 'mastered');
+  }).length;
+
+  const verbsCompleted = pattern.verbs.filter((_, verbIndex) => {
+    const columnCells = pattern.matrix.map(row => row[verbIndex]).filter(cell => cell.conceptId);
+    return columnCells.length > 0 && columnCells.every(cell => cell.status === 'mastered');
+  }).length;
+
   return {
-    totalCells: pattern.totalCells,
+    totalCells: filledTotal,
     masteredCells,
     learningCells,
     notStartedCells,
-    completionPercent: getULCCompletion(pattern),
+    completionPercent: filledTotal > 0 ? Math.round((masteredCells / filledTotal) * 100) : 0,
     objectsCompleted,
     verbsCompleted
   };
