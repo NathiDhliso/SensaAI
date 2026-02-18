@@ -47,6 +47,9 @@ export default function OverviewMapView({
   const detectedPattern = useMemo(() => {
     if (ulcPattern && ulcPattern.detected) return ulcPattern;
     
+    console.log('[OverviewMap] Total concepts:', concepts.length);
+    console.log('[OverviewMap] Sample concept:', concepts[0]);
+    
     // Use lifecyclePhase as verbs (already dynamically assigned by AI)
     const phaseToVerb: Record<string, string> = {
       'PREPARE': 'Prepare',
@@ -56,6 +59,23 @@ export default function OverviewMapView({
     
     // Group concepts by tier (trunk = major domains/resources)
     const trunkConcepts = concepts.filter(c => c.tier === 'trunk');
+    console.log('[OverviewMap] Trunk concepts:', trunkConcepts.length, trunkConcepts.map(c => c.name));
+    
+    // Check what tiers we actually have
+    const tierCounts = {
+      trunk: concepts.filter(c => c.tier === 'trunk').length,
+      branch: concepts.filter(c => c.tier === 'branch').length,
+      leaf: concepts.filter(c => c.tier === 'leaf').length
+    };
+    console.log('[OverviewMap] Tier distribution:', tierCounts);
+    
+    // Check what phases we have
+    const phaseCounts = {
+      PREPARE: concepts.filter(c => c.lifecyclePhase === 'PREPARE').length,
+      MODEL: concepts.filter(c => c.lifecyclePhase === 'MODEL').length,
+      DELIVER: concepts.filter(c => c.lifecyclePhase === 'DELIVER').length
+    };
+    console.log('[OverviewMap] Phase distribution:', phaseCounts);
     
     // If we have trunk concepts, use them as objects (resources)
     if (trunkConcepts.length >= 2) {
@@ -72,6 +92,8 @@ export default function OverviewMapView({
             (c.trunkDomain === trunkName || c.parentName === trunkName) &&
             c.lifecyclePhase === phase
           );
+          
+          console.log(`[OverviewMap] Cell ${verb} × ${trunkName}:`, matchingConcepts.length, 'concepts');
           
           return {
             verb,
@@ -115,6 +137,7 @@ export default function OverviewMapView({
       });
       
       const objects = Array.from(tierGroups.keys());
+      console.log('[OverviewMap] Using tier-based fallback. Objects:', objects);
       
       const matrix = objects.map(tierName => 
         verbs.map(verb => {
@@ -124,6 +147,8 @@ export default function OverviewMapView({
           const matchingConcepts = concepts.filter(c => 
             c.tier === tier && c.lifecyclePhase === phase
           );
+          
+          console.log(`[OverviewMap] Fallback cell ${verb} × ${tierName}:`, matchingConcepts.length, 'concepts');
           
           return {
             verb,
@@ -146,6 +171,7 @@ export default function OverviewMapView({
       };
     }
     
+    console.log('[OverviewMap] No ULC pattern detected');
     return { detected: false, verbs: [], objects: [], confidence: 0, matrix: [], totalCells: 0 };
   }, [concepts, ulcPattern]);
 
