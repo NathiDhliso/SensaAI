@@ -42,7 +42,8 @@ import { usePersonalizationStore } from '@/store/personalization-store';
 import { formatSafeDate } from '@/shared/utils/utils';
 import { toast } from '@/shared/utils/toast';
 import KnowledgeHealthPanel, { type ConceptHealth } from './KnowledgeHealthPanel';
-import { detectULC, updateULCProgress, getULCStats, type ULCPattern } from '@/features/content-generation/parsers/ulc-detector';
+import { detectULC, updateULCProgress, type ULCPattern } from '@/features/content-generation/parsers/ulc-detector';
+import ULCPatternView from './ULCPatternView';
 import styles from './ContentLaunchpad.module.css';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
 type LaunchpadTab = 'gym' | 'insights';
@@ -100,7 +101,6 @@ export default function ContentLaunchpad() {
     const [objectivesSaved, setObjectivesSaved] = useState(false);
     const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
     const [ulcPattern, setUlcPattern] = useState<ULCPattern | null>(null);
-    const [ulcExpanded, setUlcExpanded] = useState(false);
     const parsedPreview = useMemo(() => {
         if (!objectivesText.trim()) return [];
         return parseSyllabusText(objectivesText);
@@ -551,140 +551,10 @@ export default function ContentLaunchpad() {
                     
                     {/* ULC Pattern Visualization - Only for Medium/High Energy */}
                     {ulcPattern && ulcPattern.detected && bandwidth !== 'low' && (
-                        <section className={styles.ulcPattern}>
-                            <div className={styles.ulcHeader}>
-                                <Target size={18} />
-                                <h3>Learning Pattern Detected</h3>
-                                <span className={styles.ulcBadge}>
-                                    {ulcPattern.verbs.length} verbs × {ulcPattern.objects.length} resources
-                                </span>
-                            </div>
-                            
-                            <div className={styles.ulcExplanation}>
-                                <p>{ulcPattern.explanation}</p>
-                                <p className={styles.ulcTip}>
-                                    💡 <strong>Pro tip:</strong> Master the "how" (procedure) first, 
-                                    then layer on the "why" (context). The how is stable; the why changes.
-                                </p>
-                            </div>
-                            
-                            <div className={styles.ulcMatrix} role="grid" aria-label="ULC Learning Pattern Matrix">
-                                <div className={styles.matrixHeader} role="row">
-                                    <div className={styles.matrixCorner} role="columnheader"></div>
-                                    {ulcPattern.verbs.map(verb => (
-                                        <div key={verb} className={styles.matrixVerb} role="columnheader">{verb}</div>
-                                    ))}
-                                </div>
-                                {ulcPattern.matrix.map((row, rowIndex) => (
-                                    <div key={rowIndex} className={styles.matrixRow} role="row">
-                                        <div className={styles.matrixObject} role="rowheader">{ulcPattern.objects[rowIndex]}</div>
-                                        {row.map((cell, cellIndex) => {
-                                            const isEmpty = !cell.conceptId;
-                                            const statusClass = isEmpty 
-                                                ? styles.statusEmpty 
-                                                : styles[`status${cell.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`];
-                                            const statusLabel = isEmpty ? 'No concept' : cell.status === 'mastered' ? 'Mastered' : cell.status === 'learning' ? 'Learning' : 'Not started';
-                                            
-                                            return (
-                                                <button
-                                                    key={cellIndex}
-                                                    className={`${styles.matrixCell} ${statusClass}`}
-                                                    onClick={() => cell.conceptId && handleReviewConcept(cell.conceptId)}
-                                                    disabled={isEmpty}
-                                                    role="gridcell"
-                                                    aria-label={`${cell.verb} ${cell.object}: ${statusLabel}`}
-                                                    aria-disabled={isEmpty}
-                                                >
-                                                    {isEmpty ? '—' : cell.status === 'mastered' ? '✓' : cell.status === 'learning' ? '○' : '·'}
-                                                    
-                                                    {!isEmpty && (
-                                                        <div className={styles.cellTooltip} role="tooltip">
-                                                            <div className={styles.tooltipHeader}>
-                                                                <span className={styles.tooltipTitle}>
-                                                                    {cell.verb} {cell.object}
-                                                                </span>
-                                                            </div>
-                                                            {cell.conceptName && (
-                                                                <div className={styles.tooltipConceptName}>
-                                                                    {cell.conceptName}
-                                                                </div>
-                                                            )}
-                                                            {cell.howSteps ? (
-                                                                <>
-                                                                    <div className={styles.tooltipHowLabel}>
-                                                                        ⚡ How (Procedure):
-                                                                    </div>
-                                                                    <div className={styles.tooltipContent}>
-                                                                        {cell.howSteps}
-                                                                    </div>
-                                                                </>
-                                                            ) : (
-                                                                <div className={styles.tooltipEmpty}>
-                                                                    Click to learn the procedure
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                ))}
-                            </div>
-                            
-                            <div className={styles.ulcStats}>
-                                {(() => {
-                                    const stats = getULCStats(ulcPattern);
-                                    return (
-                                        <>
-                                            <div className={styles.ulcStat}>
-                                                <span className={styles.ulcStatValue}>{stats.completionPercent}%</span>
-                                                <span className={styles.ulcStatLabel}>Complete</span>
-                                            </div>
-                                            <div className={styles.ulcStat}>
-                                                <span className={styles.ulcStatValue}>{stats.masteredCells}/{stats.totalCells}</span>
-                                                <span className={styles.ulcStatLabel}>Cells Mastered</span>
-                                            </div>
-                                            <div className={styles.ulcStat}>
-                                                <span className={styles.ulcStatValue}>{stats.objectsCompleted}/{ulcPattern.objects.length}</span>
-                                                <span className={styles.ulcStatLabel}>Objects Done</span>
-                                            </div>
-                                            <div className={styles.ulcStat}>
-                                                <span className={styles.ulcStatValue}>{stats.verbsCompleted}/{ulcPattern.verbs.length}</span>
-                                                <span className={styles.ulcStatLabel}>Verbs Done</span>
-                                            </div>
-                                        </>
-                                    );
-                                })()}
-                            </div>
-                            
-                            <button 
-                                className={styles.ulcToggle}
-                                onClick={() => setUlcExpanded(!ulcExpanded)}
-                            >
-                                {ulcExpanded ? 'Hide Details' : 'Learn More About This Pattern'}
-                            </button>
-                            
-                            <AnimatePresence>
-                                {ulcExpanded && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.25 }}
-                                        className={styles.ulcDetails}
-                                    >
-                                        <h4>How to Use This Pattern</h4>
-                                        <ol>
-                                            <li><strong>Work systematically:</strong> One object at a time, one verb at a time. Complete a row before moving to the next.</li>
-                                            <li><strong>How before why:</strong> Learn the procedure first (stable), then the rationale (context-dependent).</li>
-                                            <li><strong>Track your progress:</strong> Each cell in the matrix is a skill to master. Click any cell to practice that specific combination.</li>
-                                            <li><strong>Cross-object practice:</strong> Real problems combine multiple cells. Once you've mastered individual cells, practice scenarios that span multiple objects.</li>
-                                        </ol>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </section>
+                        <ULCPatternView
+                            pattern={ulcPattern}
+                            onCellClick={handleReviewConcept}
+                        />
                     )}
                     
                     <section className={styles.zone}>
@@ -987,6 +857,13 @@ export default function ContentLaunchpad() {
                                 onLaunchTargetedReview={(ids) => navigate(`/study/${subjectId}?tab=learn&concepts=${ids.join(',')}`, communityState)}
                             />
                         </div>
+                        {/* ULC Pattern View in Insights - compact version showing progress */}
+                        {ulcPattern && ulcPattern.detected && (
+                            <ULCPatternView
+                                pattern={ulcPattern}
+                                onCellClick={handleReviewConcept}
+                            />
+                        )}
                         <div className={styles.sectionTitle}>
                             <span><AlertTriangle size={14} /> Honest Assessment</span>
                         </div>

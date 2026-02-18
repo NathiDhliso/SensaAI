@@ -9,13 +9,16 @@ import {
  AlertTriangle,
  CheckCircle,
  RefreshCw,
- Lightbulb
+ Lightbulb,
+ Target
 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
 import { PeerReviewActivity } from '@/components/learning/activities/PeerReviewActivity';
 import MasteryChallenge from '@/components/learning/activities/MasteryChallenge';
 import PreMortemActivity from '@/components/learning/activities/PreMortemActivity';
+import type { ULCPattern } from '@/features/content-generation/parsers/ulc-detector';
+import { getNextULCCell } from '@/features/content-generation/parsers/ulc-detector';
 import styles from './GymActivityLauncher.module.css';
 
 export type GymActivity = 'concept-map' | 'peer-review' | 'mastery' | 'pre-mortem';
@@ -24,6 +27,10 @@ interface GymActivityLauncherProps {
  activity: GymActivity;
  concepts: LearningConcept[];
  onBack: () => void;
+ /** Optional ULC pattern for ULC-aware concept selection */
+ ulcPattern?: ULCPattern | null;
+ /** Optional: pre-select a specific concept (e.g., from ULC cell click) */
+ initialConceptId?: string | null;
 }
 
 const ACTIVITY_META: Record<GymActivity, { label: string; icon: React.ReactNode; needsConcept: boolean; description: string }> = {
@@ -55,51 +62,39 @@ const ACTIVITY_META: Record<GymActivity, { label: string; icon: React.ReactNode;
 
 type LauncherPhase = 'active' | 'result';
 
-export default function GymActivityLauncher({ activity, concepts, onBack }: GymActivityLauncherProps) {
+export default function GymActivityLauncher({
+ activity,
+ concepts,
+ onBack,
+ ulcPattern,
+ initialConceptId
+}: GymActivityLauncherProps) {
  const navigate = useNavigate();
  const { subjectId } = useParams<{ subjectId: string }>();
  const meta = ACTIVITY_META[activity];
 
- // Auto-select first concept if activity needs one
- const grouped = meta.needsConcept ? groupByTier(concepts) : null;
- const firstAvailableConcept = meta.needsConcept 
- ? (grouped?.trunk?.[0] || grouped?.branch?.[0] || grouped?.leaf?.[0])?.id || null
- : null;
+ // Determine initial concept: prefer initialConceptId, then ULC next cell, then tier-based
+ const getInitialConceptId = (): string | null => {
+ if (!meta.needsConcept) return null;
+ // 1. Explicit initial concept (e.g., from ULC cell click)
+ if (initialConceptId && concepts.find(c => c.id === initialConceptId)) {
+ return initialConceptId;
+ }
+ // 2. ULC-aware: next recommended cell
+ if (ulcPattern?.detected) {
+ const nextCell = getNextULCCell(ulcPattern);
+ if (nextCell?.conceptId && concepts.find(c => c.id === nextCell.conceptId)) {
+ return nextCell.conceptId;
+ }
+ }
+ // 3. Tier-based fallback
+ const grouped = groupByTier(concepts);
+ return (grouped.trunk?.[0] || grouped.branch?.[0] || grouped.leaf?.[0])?.id || null;
+ };
 
- const [phase, setPhase] = useState<LauncherPhase>('active'); // Start directly in active phase
- const [selectedConceptId, setSelectedConceptId] = useState<string | null>(firstAvailableConcept);
+ const [phase, setPhase] = useState<LauncherPhase>('active');
+ const [selectedConceptId, setSelectedConceptId] = useState<string | null>(getInitialConceptId);
  const [result, setResult] = useState<{ passed: boolean } | null>(null);
-
- const selectedConcept = concepts.find(c => c.id === selectedConceptId) || null;
-
- const handleComplete = useCallback((passed: boolean) => {
- setResult({ passed });
- setPhase('result');
-
- // Auto-advance after 3 seconds if passed
- if (passed) {
- setTimeout(() => {
- // Auto-select next concept and restart
- const currentIndex = concepts.findIndex(c => c.id === selectedConceptId);
- const nextConcept = concepts[currentIndex + 1];
-
- if (nextConcept) {
- setSelectedConceptId(nextConcept.id);
- setResult(null);
- setPhase('active');
- } else {
- // All concepts done, go back to gym
- handleBackToGym();
- }
- }, 3000);
- }
- }, [concepts, selectedConceptId]);
-
- const handleRetry = useCallback(() => {
- setResult(null);
- setPhase('active');
- // Keep the same concept selected for retry
- }, []);
 
  const handleBackToGym = useCallback(() => {
  if (subjectId) {
@@ -108,6 +103,58 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
  onBack();
  }
  }, [subjectId, navigate, onBack]);
+
+ const selectedConcept = concepts.find(c => c.id === selectedConceptId) || null;
+
+ // Get ULC context for the selected concept
+ const ulcCellContext = ulcPattern?.detected && selectedConceptId
+ ? (() => {
+ for (const row of ulcPattern.matrix) {
+ for (const cell of row) {
+ if (cell.conceptId === selectedConceptId) {
+ return { verb: cell.verb, object: cell.object };
+ }
+ }
+ }
+ return null;
+ })()
+ : null;
+
+ const handleComplete = useCallback((passed: boolean) => {
+ setResult({ passed });
+ setPhase('result');
+
+ // Auto-advance after 3 seconds if passed
+ if (passed) {
+ setTimeout(() => {
+ // Try ULC-aware next concept first
+ if (ulcPattern?.detected) {
+ const nextCell = getNextULCCell(ulcPattern);
+ if (nextCell?.conceptId && concepts.find(c => c.id === nextCell.conceptId)) {
+ setSelectedConceptId(nextCell.conceptId);
+ setResult(null);
+ setPhase('active');
+ return;
+ }
+ }
+ // Fallback: sequential next concept
+ const currentIndex = concepts.findIndex(c => c.id === selectedConceptId);
+ const nextConcept = concepts[currentIndex + 1];
+ if (nextConcept) {
+ setSelectedConceptId(nextConcept.id);
+ setResult(null);
+ setPhase('active');
+ } else {
+ handleBackToGym();
+ }
+ }, 3000);
+ }
+ }, [concepts, selectedConceptId, ulcPattern, handleBackToGym]);
+
+ const handleRetry = useCallback(() => {
+ setResult(null);
+ setPhase('active');
+ }, []);
 
  const renderActivity = () => {
  switch (activity) {
@@ -182,21 +229,30 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
  </div>
  )}
  <div className={styles.resultActions}>
- <button 
- className={styles.resultActionPrimary} 
+ <button
+ className={styles.resultActionPrimary}
  onClick={handleRetry}
  title="Practice makes progress — try again with the feedback in mind"
  >
  <RefreshCw size={14} /> Try Again
  </button>
  {meta.needsConcept ? (
- // For single-concept activities, allow moving to next concept
- <button 
- className={styles.resultActionSecondary} 
+ <button
+ className={styles.resultActionSecondary}
  onClick={() => {
+ // ULC-aware next concept
+ if (ulcPattern?.detected) {
+ const nextCell = getNextULCCell(ulcPattern);
+ if (nextCell?.conceptId && concepts.find(c => c.id === nextCell.conceptId)) {
+ setSelectedConceptId(nextCell.conceptId);
+ setResult(null);
+ setPhase('active');
+ return;
+ }
+ }
+ // Sequential fallback
  const currentIndex = concepts.findIndex(c => c.id === selectedConceptId);
  const nextConcept = concepts[currentIndex + 1];
-
  if (nextConcept) {
  setSelectedConceptId(nextConcept.id);
  setResult(null);
@@ -210,9 +266,8 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
  <ArrowRight size={14} /> {concepts.findIndex(c => c.id === selectedConceptId) < concepts.length - 1 ? 'Next Concept' : 'Back to Gym'}
  </button>
  ) : (
- // For multi-concept activities (like Mastery), just go back to gym
- <button 
- className={styles.resultActionSecondary} 
+ <button
+ className={styles.resultActionSecondary}
  onClick={handleBackToGym}
  title="Return to the gym dashboard"
  >
@@ -220,8 +275,8 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
  </button>
  )}
  {meta.needsConcept && (
- <button 
- className={styles.resultActionTertiary} 
+ <button
+ className={styles.resultActionTertiary}
  onClick={handleBackToGym}
  title="Return to the gym dashboard"
  >
@@ -249,9 +304,17 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
  )}
  </span>
  </div>
+ <div className={styles.headerRight}>
+ {/* ULC context badge */}
+ {ulcCellContext && (
+ <span className={styles.ulcContextBadge} title="ULC-aware: practicing this verb × resource combination">
+ <Target size={12} />
+ {ulcCellContext.verb} × {ulcCellContext.object}
+ </span>
+ )}
  {/* Quick concept switcher for concept-based activities */}
  {meta.needsConcept && phase === 'active' && concepts.length > 1 && (
- <select 
+ <select
  className={styles.conceptSwitcher}
  value={selectedConceptId || ''}
  onChange={(e) => setSelectedConceptId(e.target.value)}
@@ -261,6 +324,7 @@ export default function GymActivityLauncher({ activity, concepts, onBack }: GymA
  ))}
  </select>
  )}
+ </div>
  </div>
 
  <div className={styles.activityContent}>

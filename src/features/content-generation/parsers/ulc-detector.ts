@@ -60,8 +60,28 @@ function stemIng(word: string): string | null {
 
 function extractVerb(conceptName: string): string | null {
   const normalized = conceptName.toLowerCase().trim();
+  
+  // Handle compound verbs like "Implement and manage", "Create and configure"
+  const compoundPatterns = [
+    /^(implement and manage|create and configure|deploy and manage|setup and configure)/,
+    /^(create|configure|implement|deploy|manage|monitor|secure|optimize|design|analyze|evaluate|test|maintain|troubleshoot)/
+  ];
+  
+  for (const pattern of compoundPatterns) {
+    const match = normalized.match(pattern);
+    if (match) {
+      const verb = match[1];
+      // Normalize to single verb form
+      if (verb.includes(' and ')) {
+        const primaryVerb = verb.split(' and ')[0];
+        return primaryVerb.charAt(0).toUpperCase() + primaryVerb.slice(1);
+      }
+      return verb.charAt(0).toUpperCase() + verb.slice(1);
+    }
+  }
+  
+  // Check first word against common verbs
   const firstWord = normalized.split(/\s+/)[0].replace(/[^a-z]/g, '');
-
   if (COMMON_VERBS.includes(firstWord)) {
     return firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
   }
@@ -71,6 +91,7 @@ function extractVerb(conceptName: string): string | null {
     return stemmed.charAt(0).toUpperCase() + stemmed.slice(1);
   }
 
+  // Check all words for verbs
   const words = normalized.split(/\s+/);
   for (const word of words) {
     const cleaned = word.replace(/[^a-z]/g, '');
@@ -99,24 +120,49 @@ function extractObject(conceptName: string, verb: string | null): string | null 
   let cleaned = conceptName.trim();
   
   if (verb) {
+    // Handle compound verbs like "Implement and manage"
     const escaped = verb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const ingForm = verb.endsWith('e') ? verb.slice(0, -1) + 'ing' : verb + 'ing';
     const ingEscaped = ingForm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const verbPattern = new RegExp(`^(${escaped}|${ingEscaped})\\s+`, 'i');
-    cleaned = cleaned.replace(verbPattern, '');
+    
+    // Remove verb patterns including compound forms
+    const verbPatterns = [
+      new RegExp(`^(${escaped}|${ingEscaped})\\s+`, 'i'),
+      new RegExp(`^(implement and manage|create and configure|deploy and manage|setup and configure)\\s+`, 'i')
+    ];
+    
+    for (const pattern of verbPatterns) {
+      cleaned = cleaned.replace(pattern, '');
+    }
   }
   
-  // Remove common filler words
+  // Remove common filler words and prefixes
   cleaned = cleaned
-    .replace(/\b(azure|aws|gcp|google|microsoft|the|a|an|and|or|of|for|with|using|in|on|to|your|their|its)\b/gi, ' ')
+    .replace(/\b(azure|aws|gcp|google|microsoft|the|a|an|and|or|of|for|with|using|in|on|to|your|their|its|access|to)\b/gi, ' ')
+    .replace(/\b(you|need|must|should|will|can|may)\b/gi, ' ')
     .trim();
   
-  // Take first 2-3 significant words as the object (handles multi-word resources)
+  // Extract key resource terms (2-3 words for better specificity)
   const words = cleaned.split(/\s+/).filter(w => w.length > 2);
   if (words.length === 0) return null;
   
-  // Take up to 2 words for the object name (balance between specificity and grouping)
-  const objectWords = words.slice(0, Math.min(2, words.length));
+  // Look for key resource indicators
+  const resourceIndicators = ['storage', 'network', 'compute', 'security', 'identity', 'database', 'monitoring', 'backup', 'firewall', 'virtual', 'account', 'service'];
+  
+  // Try to find the most significant resource term
+  let objectWords: string[] = [];
+  for (let i = 0; i < words.length; i++) {
+    if (resourceIndicators.some(indicator => words[i].toLowerCase().includes(indicator))) {
+      // Take this word and possibly the next one for context
+      objectWords = words.slice(i, Math.min(i + 2, words.length));
+      break;
+    }
+  }
+  
+  // If no resource indicator found, take first 2-3 words
+  if (objectWords.length === 0) {
+    objectWords = words.slice(0, Math.min(2, words.length));
+  }
   
   // Capitalize first letter of each word
   return objectWords
@@ -191,7 +237,7 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
   
   // Step 3: Find objects that have multiple verbs applied (resources in ULC)
   const ulcObjects = Array.from(objectCounts.entries())
-    .filter(([_, count]) => count >= 2) // Object must have at least 2 verbs
+    .filter(([_, count]) => count >= 1) // Object must have at least 1 verb (more flexible)
     .sort((a, b) => b[1] - a[1]) // Sort by frequency
     .slice(0, 10) // Take top 10 objects max
     .map(([obj]) => obj);
@@ -205,8 +251,8 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
     // Multiple phases detected - take top 5 verbs
     ulcVerbs = allVerbs.slice(0, 5);
     phaseNote = `Note: ${allVerbs.length} verbs detected. Showing top ${ulcVerbs.length}. Consider splitting into separate phases.`;
-  } else if (allVerbs.length >= 3) {
-    // Standard ULC - 3-5 verbs
+  } else if (allVerbs.length >= 2) {
+    // Flexible ULC - 2+ verbs (for real-world content)
     ulcVerbs = allVerbs.slice(0, 5);
   } else {
     // Not enough verbs for ULC pattern
@@ -229,15 +275,15 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
   
   const coverage = expectedCells > 0 ? (actualCells / expectedCells) * 100 : 0;
   
-  // Strict confidence scoring
-  const verbCountScore = ulcVerbs.length >= 3 && ulcVerbs.length <= 6 ? 30 : 0;
-  const objectCountScore = ulcObjects.length >= 3 ? 30 : 0;
-  const coverageScore = coverage * 0.4; // Up to 40 points
+  // Adjusted confidence scoring for real-world content
+  const verbCountScore = ulcVerbs.length >= 2 ? Math.min(25, ulcVerbs.length * 8) : 0;
+  const objectCountScore = ulcObjects.length >= 2 ? Math.min(25, ulcObjects.length * 8) : 0;
+  const coverageScore = coverage * 0.5; // Up to 50 points for coverage
   
   const confidence = Math.round(verbCountScore + objectCountScore + coverageScore);
   
-  // Only show ULC if confidence is high (strict threshold)
-  if (confidence < 70) {
+  // Only show ULC if confidence is reasonable (adjusted for real-world content)
+  if (confidence < 60) {
     return {
       detected: false,
       verbs: [],
@@ -249,17 +295,41 @@ export function detectULC(concepts: ParsedConcept[]): ULCPattern {
   }
   
   // Step 6: Build matrix
-  const matrix: ULCCell[][] = ulcObjects.map(object => 
+  const matrix: ULCCell[][] = ulcObjects.map(object =>
     ulcVerbs.map(verb => {
       const key = `${verb}:${object}`;
       const entry = conceptMap.get(key);
+      
+      // Extract howSteps with fallback chain:
+      // 1. phase1.execution (primary - the procedural "how")
+      // 2. phase1.selection joined (decision patterns)
+      // 3. shape.simpleCore (simple explanation)
+      // 4. keyPoints[0] (first key point)
+      // 5. phase1.hookSentence (last resort)
+      let howSteps: string | undefined;
+      if (entry?.concept) {
+        const c = entry.concept;
+        howSteps = c.phase1?.execution?.trim() || undefined;
+        if (!howSteps && c.phase1?.selection && c.phase1.selection.length > 0) {
+          howSteps = c.phase1.selection.filter(s => s.trim()).join(' → ');
+        }
+        if (!howSteps && c.shape?.simpleCore?.trim()) {
+          howSteps = c.shape.simpleCore.trim();
+        }
+        if (!howSteps && c.keyPoints && c.keyPoints.length > 0) {
+          howSteps = c.keyPoints[0];
+        }
+        if (!howSteps && c.phase1?.hookSentence?.trim()) {
+          howSteps = c.phase1.hookSentence.trim();
+        }
+      }
       
       return {
         verb,
         object,
         conceptId: entry?.concept.id,
         conceptName: entry?.concept.name,
-        howSteps: entry?.concept.phase1?.execution,
+        howSteps,
         status: 'not-started' as const
       };
     })

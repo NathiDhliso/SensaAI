@@ -22,6 +22,27 @@
  gap: 0.75rem;
 }
 
+.headerRight {
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+}
+
+.ulcContextBadge {
+ display: inline-flex;
+ align-items: center;
+ gap: 0.3rem;
+ padding: 0.3rem 0.625rem;
+ background: var(--color-accent-bg, rgba(100, 149, 237, 0.1));
+ color: var(--color-accent);
+ border: 1px solid var(--color-accent-light, rgba(100, 149, 237, 0.25));
+ border-radius: var(--radius-full);
+ font-size: 0.6875rem;
+ font-weight: 700;
+ font-family: var(--font-mono);
+ white-space: nowrap;
+}
+
 .backButton {
  display: inline-flex;
  align-items: center;

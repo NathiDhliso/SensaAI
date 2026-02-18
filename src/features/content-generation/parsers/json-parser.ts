@@ -817,19 +817,25 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  if (Array.isArray(a.criticalDistinctions)) criticalDistinctions = flattenAnnotation(a.criticalDistinctions);
  if (Array.isArray(a.designBoundaries)) designBoundaries = flattenAnnotation(a.designBoundaries);
  }
+ // Merge phase1 carefully: extracted values take priority over raw spread
+ // The spread was overwriting execution/hookSentence with raw JSON values
+ const rawPhase1 = (c.phase1 && typeof c.phase1 === 'object') ? c.phase1 as Record<string, unknown> : {};
+ const mergedPhase1 = {
+ // Raw spread first (lowest priority)
+ ...rawPhase1,
+ // Then our carefully extracted values (highest priority - override raw)
+ hookSentence: hookSentence || (typeof rawPhase1.hookSentence === 'string' ? rawPhase1.hookSentence : '') || (shape?.simpleCore || ''),
+ microMetaphor: microMetaphor || (typeof rawPhase1.microMetaphor === 'string' ? rawPhase1.microMetaphor : ''),
+ prerequisite: prerequisite || (typeof rawPhase1.prerequisite === 'string' ? rawPhase1.prerequisite : ''),
+ selection: selection.length > 0 ? selection : (Array.isArray(rawPhase1.selection) ? rawPhase1.selection as string[] : []),
+ execution: execution || (typeof rawPhase1.execution === 'string' ? rawPhase1.execution : ''),
+ };
  return {
  id: `concept-${order}`,
  name,
  order,
  stageId: determineStageId(order),
- phase1: {
- hookSentence: hookSentence || (shape?.simpleCore || ''),
- microMetaphor,
- prerequisite,
- selection,
- execution,
- ...((c.phase1 && typeof c.phase1 === 'object') ? c.phase1 as Record<string, unknown> : {})
- },
+ phase1: mergedPhase1,
  phase2,
  phase3: {
  tool,
