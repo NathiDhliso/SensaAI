@@ -43,62 +43,39 @@ export default function OverviewMapView({
   const [viewMode, setViewMode] = useState<ViewMode>('macro');
   const [selectedCell, setSelectedCell] = useState<MicroViewData | null>(null);
 
-  // Detect ULC pattern from concept names if not provided
+  // SILVER BULLET: Use existing structured data (lifecyclePhase + tier) for dynamic ULC
   const detectedPattern = useMemo(() => {
     if (ulcPattern && ulcPattern.detected) return ulcPattern;
     
-    // For Azure-style concepts, extract the resource/object first
-    // Example: "Blob Storage Management" → object: "Blob Storage", implied verbs: manage, configure, monitor
+    // Use lifecyclePhase as verbs (already dynamically assigned by AI)
+    const phaseToVerb: Record<string, string> = {
+      'PREPARE': 'Prepare',
+      'MODEL': 'Implement', 
+      'DELIVER': 'Verify'
+    };
     
-    // Common Azure/cloud resource patterns
-    const resourcePatterns = [
-      'storage', 'network', 'identity', 'compute', 'database', 'security',
-      'backup', 'recovery', 'policy', 'governance', 'role', 'access',
-      'virtual', 'container', 'service', 'account', 'management'
-    ];
+    // Group concepts by tier (trunk = major domains/resources)
+    const trunkConcepts = concepts.filter(c => c.tier === 'trunk');
     
-    // Extract resources from concept names
-    const resources = new Map<string, number>();
-    
-    concepts.forEach(concept => {
-      const name = concept.name.toLowerCase();
-      const words = name.split(/\s+/);
+    // If we have trunk concepts, use them as objects (resources)
+    if (trunkConcepts.length >= 2) {
+      const verbs = ['Prepare', 'Implement', 'Verify'];
+      const objects = trunkConcepts.map(c => c.name);
       
-      // Find resource keywords
-      const foundResources = words.filter(w => resourcePatterns.includes(w));
-      if (foundResources.length > 0) {
-        // Take first 2-3 words as resource name
-        const resourceName = words.slice(0, Math.min(3, words.length))
-          .filter(w => w.length > 2)
-          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(' ');
-        
-        if (resourceName.length > 3) {
-          resources.set(resourceName, (resources.get(resourceName) || 0) + 1);
-        }
-      }
-    });
-    
-    // Standard ULC verbs for cloud/IT subjects
-    const verbs = ['Create', 'Configure', 'Monitor', 'Manage', 'Secure'];
-    
-    const objects = Array.from(resources.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
-      .map(([obj]) => obj);
-    
-    if (objects.length >= 3) {
-      // Build matrix
-      const matrix = objects.map(object => 
+      // Build matrix: for each trunk (object), find concepts in each phase (verb)
+      const matrix = objects.map(trunkName => 
         verbs.map(verb => {
-          // Find concepts that match this object
+          const phase = Object.entries(phaseToVerb).find(([_, v]) => v === verb)?.[0] as 'PREPARE' | 'MODEL' | 'DELIVER';
+          
+          // Find branch/leaf concepts under this trunk with this phase
           const matchingConcepts = concepts.filter(c => 
-            c.name.toLowerCase().includes(object.toLowerCase())
+            (c.trunkDomain === trunkName || c.parentName === trunkName) &&
+            c.lifecyclePhase === phase
           );
           
           return {
             verb,
-            object,
+            object: trunkName,
             conceptId: matchingConcepts[0]?.id,
             conceptName: matchingConcepts[0]?.name,
             status: 'not-started' as const
@@ -110,10 +87,62 @@ export default function OverviewMapView({
         detected: true,
         verbs,
         objects,
-        confidence: 80,
+        confidence: 95,
         matrix,
         totalCells: verbs.length * objects.length,
-        explanation: `This subject covers ${objects.length} key resources with ${verbs.length} core operations.`
+        explanation: `This subject has ${objects.length} major domains, each with 3 lifecycle phases.`
+      };
+    }
+    
+    // Fallback: Group all concepts by lifecyclePhase
+    const phaseGroups = {
+      PREPARE: concepts.filter(c => c.lifecyclePhase === 'PREPARE'),
+      MODEL: concepts.filter(c => c.lifecyclePhase === 'MODEL'),
+      DELIVER: concepts.filter(c => c.lifecyclePhase === 'DELIVER')
+    };
+    
+    // If we have concepts in multiple phases, show phase-based view
+    const phasesWithConcepts = Object.entries(phaseGroups).filter(([_, cs]) => cs.length > 0);
+    
+    if (phasesWithConcepts.length >= 2) {
+      const verbs = phasesWithConcepts.map(([phase]) => phaseToVerb[phase]);
+      
+      // Group by tier as objects
+      const tierGroups = new Map<string, number>();
+      concepts.forEach(c => {
+        const tierName = c.tier.charAt(0).toUpperCase() + c.tier.slice(1);
+        tierGroups.set(tierName, (tierGroups.get(tierName) || 0) + 1);
+      });
+      
+      const objects = Array.from(tierGroups.keys());
+      
+      const matrix = objects.map(tierName => 
+        verbs.map(verb => {
+          const phase = Object.entries(phaseToVerb).find(([_, v]) => v === verb)?.[0] as 'PREPARE' | 'MODEL' | 'DELIVER';
+          const tier = tierName.toLowerCase() as 'trunk' | 'branch' | 'leaf';
+          
+          const matchingConcepts = concepts.filter(c => 
+            c.tier === tier && c.lifecyclePhase === phase
+          );
+          
+          return {
+            verb,
+            object: tierName,
+            conceptId: matchingConcepts[0]?.id,
+            conceptName: matchingConcepts[0]?.name,
+            status: 'not-started' as const
+          };
+        })
+      );
+      
+      return {
+        detected: true,
+        verbs,
+        objects,
+        confidence: 85,
+        matrix,
+        totalCells: verbs.length * objects.length,
+        explanation: `Learning organized by ${verbs.length} phases across ${objects.length} concept tiers.`
       };
     }
     
@@ -131,12 +160,36 @@ export default function OverviewMapView({
   const handleCellClick = (verb: string, object: string) => {
     if (!detectedPattern.detected) return;
 
-    // Find all concepts in this cell
-    const cellConcepts = concepts.filter(c => {
-      const conceptVerb = extractVerbFromName(c.name);
-      const conceptObject = extractObjectFromName(c.name);
-      return conceptVerb === verb && conceptObject === object;
-    });
+    // Map verb back to lifecyclePhase
+    const verbToPhase: Record<string, 'PREPARE' | 'MODEL' | 'DELIVER'> = {
+      'Prepare': 'PREPARE',
+      'Implement': 'MODEL',
+      'Verify': 'DELIVER'
+    };
+    
+    const phase = verbToPhase[verb];
+    
+    // Find concepts matching this cell using structured data
+    let cellConcepts: LearningConcept[] = [];
+    
+    // Check if object is a trunk domain
+    const isTrunkDomain = concepts.some(c => c.tier === 'trunk' && c.name === object);
+    
+    if (isTrunkDomain && phase) {
+      // Find branch/leaf concepts under this trunk with this phase
+      cellConcepts = concepts.filter(c => 
+        (c.trunkDomain === object || c.parentName === object) &&
+        c.lifecyclePhase === phase
+      );
+    } else {
+      // Object is a tier name (Trunk/Branch/Leaf)
+      const tier = object.toLowerCase() as 'trunk' | 'branch' | 'leaf';
+      if (phase) {
+        cellConcepts = concepts.filter(c => 
+          c.tier === tier && c.lifecyclePhase === phase
+        );
+      }
+    }
 
     if (cellConcepts.length > 0) {
       setSelectedCell({ verb, object, concepts: cellConcepts });
@@ -147,26 +200,6 @@ export default function OverviewMapView({
   const handleBackToMacro = () => {
     setViewMode('macro');
     setSelectedCell(null);
-  };
-
-  // Helper to extract verb from concept name (simplified)
-  const extractVerbFromName = (name: string): string | null => {
-    if (!detectedPattern.detected) return null;
-    const lower = name.toLowerCase();
-    for (const verb of detectedPattern.verbs) {
-      if (lower.includes(verb.toLowerCase())) return verb;
-    }
-    return null;
-  };
-
-  // Helper to extract object from concept name (simplified)
-  const extractObjectFromName = (name: string): string | null => {
-    if (!detectedPattern.detected) return null;
-    const lower = name.toLowerCase();
-    for (const obj of detectedPattern.objects) {
-      if (lower.includes(obj.toLowerCase())) return obj;
-    }
-    return null;
   };
 
   return (
