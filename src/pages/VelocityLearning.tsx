@@ -15,6 +15,8 @@ import { useLearningFlow } from '@/shared/hooks/useLearningFlow';
 import { useFlowState } from '@/shared/hooks/useFlowState';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
 import { useCoachMessage } from '@/shared/hooks/useCoachMessage';
+import { usePhaseAdapter } from '@/shared/hooks/usePhaseAdapter';
+import { getComponent, shouldUseUnifiedFlow } from '@/features/unified-flow/utils/component-loader';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { loadSessionProgress, getProgressAge, cleanupExpiredProgress } from '@/features/learning-session/progress/session-tracker';
 import { toast } from '@/shared/utils/toast';
@@ -40,6 +42,7 @@ import type { SensaAILearningConcept } from '@/features/content-generation/parse
 import CoachInterventionBanner, { type InterventionType } from '@/components/learning/ui/CoachInterventionBanner';
 import ReviewContextPanel, { type ReviewContext } from '@/components/learning/ui/ReviewContextPanel';
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
+import { Suspense } from 'react';
 import styles from './VelocityLearning.module.css';
 
 export default function VelocityLearning() {
@@ -75,7 +78,8 @@ export default function VelocityLearning() {
     const {
         currentPhase,
         completedPhases,
-        activeConcept
+        activeConcept,
+        unifiedPhase
     } = useLearningFlow();
 
     // 2b. SENSA v2.0 Flow State Machine
@@ -392,6 +396,35 @@ export default function VelocityLearning() {
         navigate('/');
     };
 
+    // ============================================================================
+    // UNIFIED FLOW INTEGRATION
+    // ============================================================================
+    
+    // Get phase adapter for current unified phase and mood
+    const currentMood = studySession?.mood || 'okay';
+    const phaseAdapter = usePhaseAdapter(unifiedPhase, currentMood);
+    
+    // Handler for unified flow phase completion
+    const handleUnifiedPhaseComplete = () => {
+        if (!phaseAdapter || !studySession) return;
+        
+        const updates = phaseAdapter.completionHandler(studySession);
+        const { updateSession } = useLearningStore.getState();
+        updateSession(updates);
+        
+        // Show success toast
+        const phaseNames = {
+            'ORIENT': 'Schema Priming',
+            'STRUCTURE': 'Structure Building',
+            'ENCODE': 'Learning',
+            'VERIFY': 'Verification'
+        };
+        const phaseName = phaseNames[phaseAdapter.phase as keyof typeof phaseNames];
+        if (phaseName) {
+            toast.success(`${phaseName} complete!`, { duration: 2000 });
+        }
+    };
+
     // 6. Rendering Logic
     const [isInitializing, setIsInitializing] = useState(true);
     useEffect(() => {
@@ -594,6 +627,44 @@ export default function VelocityLearning() {
     );
 
     function renderPhaseContent() {
+        // ========================================================================
+        // UNIFIED FLOW ROUTING (Feature Flag Controlled)
+        // ========================================================================
+        
+        // Check if we should use unified flow for current phase
+        if (shouldUseUnifiedFlow(unifiedPhase) && phaseAdapter && currentSession && studySession) {
+            const Component = getComponent(phaseAdapter.componentName);
+            
+            if (Component) {
+                return (
+                    <motion.div
+                        key={`unified-${unifiedPhase}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className={styles.fullWidthContainer}
+                    >
+                        <Suspense fallback={
+                            <div className={styles.emptyState}>
+                                <Brain size={48} className={styles.emptyIcon} style={{ animation: 'pulse 1.5s ease-in-out infinite' }} />
+                                <p>Loading {unifiedPhase.toLowerCase()} phase...</p>
+                            </div>
+                        }>
+                            <Component
+                                concepts={currentSession.concepts}
+                                session={studySession}
+                                onComplete={handleUnifiedPhaseComplete}
+                            />
+                        </Suspense>
+                    </motion.div>
+                );
+            }
+        }
+        
+        // ========================================================================
+        // LEGACY FLOW (Fallback when unified flow not enabled or component N/A)
+        // ========================================================================
+        
         switch (currentPhase) {
             case 'PRIME':
                 if (!lockedIn) {

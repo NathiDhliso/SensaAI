@@ -116,7 +116,8 @@ export default function ContentLaunchpad() {
         // Convert ParsedConcept to LearningConcept format for detector
         const learningConcepts = parsedData.concepts.map(c => ({
             ...c,
-            lifecyclePhase: 'MODEL' as const, // Default phase
+            tier: c.tier || 'leaf' as 'trunk' | 'branch' | 'leaf',
+            lifecyclePhase: 'MODEL' as const,
             dependencies: c.dependsOn || [],
             outdegree: 0,
         }));

@@ -1,0 +1,105 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 3rem 2rem;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.celebration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon {
+  color: var(--color-accent);
+  animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.celebration h2 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.summary, .consolidation {
+  background: var(--color-surface);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: left;
+}
+
+.summary h3, .consolidation h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.summary ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.summary li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.summary li:last-child {
+  border-bottom: none;
+}
+
+.consolidation p {
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.sleepTip {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-background);
+  border-radius: 8px;
+  border-left: 4px solid var(--color-accent);
+}
+
+.sleepIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.sleepTip p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.button {
+  padding: 1rem 3rem;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.125rem;
+  font-weight: 500;
+  cursor: pointer;
+  align-self: center;
+}
+
+.button:hover {
+  background: var(--color-accent-hover);
+}
