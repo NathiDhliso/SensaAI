@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Brain, Home, Map, Grid3X3 } from 'lucide-react';
+import { AlertCircle, Brain, Home, Map, Layers } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/shared/hooks/useLearningFlow';
 import { useSensaFlow } from '@/shared/hooks/useSensaFlow';
@@ -40,7 +40,7 @@ export default function VelocityLearning() {
     const sensaFlow = useSensaFlow();
     const currentMood = studySession?.mood || 'okay';
 
-    const [activeTab, setActiveTab] = useState<ActiveTab>('map');
+    const [activeTab, setActiveTab] = useState<ActiveTab>('ulc');
     const [isInitializing, setIsInitializing] = useState(true);
 
     useEffect(() => {
@@ -195,29 +195,48 @@ export default function VelocityLearning() {
         <div className={styles.container}>
             <nav className={styles.tabBar}>
                 <button
+                    className={`${styles.tab} ${activeTab === 'ulc' ? styles.tabActive : ''}`}
+                    onClick={() => setActiveTab('ulc')}
+                >
+                    <Layers size={16} />
+                    ULC — How
+                </button>
+                <button
                     className={`${styles.tab} ${activeTab === 'map' ? styles.tabActive : ''}`}
                     onClick={() => setActiveTab('map')}
                 >
                     <Map size={16} />
-                    Build Map
-                </button>
-                <button
-                    className={`${styles.tab} ${activeTab === 'ulc' ? styles.tabActive : ''}`}
-                    onClick={() => setActiveTab('ulc')}
-                >
-                    <Grid3X3 size={16} />
-                    ULC
+                    Build Map — Why
                 </button>
             </nav>
 
             <AnimatePresence mode="wait">
-                {activeTab === 'map' && (
+                {activeTab === 'ulc' && (
                     <motion.div
-                        key="map"
+                        key="ulc"
                         className={styles.tabContent}
                         initial={{ opacity: 0, x: -16 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -16 }}
+                        transition={{ duration: 0.18 }}
+                    >
+                        <ULCPracticeController
+                            concepts={currentSession.concepts}
+                            completedConceptIds={currentSession.progress.completedConcepts}
+                            subjectType={currentSession.subjectType}
+                            onCellComplete={handleCellComplete}
+                            onAllComplete={handleReturnToDashboard}
+                        />
+                    </motion.div>
+                )}
+
+                {activeTab === 'map' && (
+                    <motion.div
+                        key="map"
+                        className={styles.tabContent}
+                        initial={{ opacity: 0, x: 16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 16 }}
                         transition={{ duration: 0.18 }}
                     >
                         <Suspense fallback={
@@ -237,24 +256,6 @@ export default function VelocityLearning() {
                     </motion.div>
                 )}
 
-                {activeTab === 'ulc' && (
-                    <motion.div
-                        key="ulc"
-                        className={styles.tabContent}
-                        initial={{ opacity: 0, x: 16 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 16 }}
-                        transition={{ duration: 0.18 }}
-                    >
-                        <ULCPracticeController
-                            concepts={currentSession.concepts}
-                            completedConceptIds={currentSession.progress.completedConcepts}
-                            subjectType={currentSession.subjectType}
-                            onCellComplete={handleCellComplete}
-                            onAllComplete={handleReturnToDashboard}
-                        />
-                    </motion.div>
-                )}
             </AnimatePresence>
         </div>
     );

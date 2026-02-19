@@ -27,7 +27,7 @@ import CelebrationModal from '@/components/learning/feedback/CelebrationModal';
 import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
 import { SessionSummary } from '@/components/learning/session/SessionSummary';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
-import { SessionStartModal, MOOD_GOAL_MAP, SessionScoutPreview } from '@/components/learning/session';
+import { SessionStartModal, MOOD_GOAL_MAP } from '@/components/learning/session';
 import { CoachMessage } from '@/features/ai-coach/components';
 import { MetaphorToggle } from '@/features/personalization';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
@@ -443,23 +443,41 @@ export default function Study() {
  switch (activeTab) {
  case 'overview':
  return (
- <div style={{ height: '100%', minHeight: '600px' }}>
- <SessionScoutPreview
- concepts={concepts}
- initialPhase="scout"
- onComplete={() => {
- // Auto-start with defaults for returning users
+ <div className={styles.overviewPanel}>
+ <div className={styles.overviewCard}>
+ <div className={styles.overviewMeta}>
+ <span className={styles.overviewLabel}>Subject</span>
+ <h1 className={styles.overviewTitle}>{currentSession?.subject || subjectName}</h1>
+ </div>
+ <div className={styles.overviewStats}>
+ <div className={styles.overviewStat}>
+ <span className={styles.overviewStatValue}>{concepts.length}</span>
+ <span className={styles.overviewStatLabel}>Concepts</span>
+ </div>
+ <div className={styles.overviewStat}>
+ <span className={styles.overviewStatValue}>{session?.progress?.completedConcepts?.length || 0}</span>
+ <span className={styles.overviewStatLabel}>Mastered</span>
+ </div>
+ <div className={styles.overviewStat}>
+ <span className={styles.overviewStatValue}>{Math.max(0, concepts.length - (session?.progress?.completedConcepts?.length || 0))}</span>
+ <span className={styles.overviewStatLabel}>Remaining</span>
+ </div>
+ </div>
+ <button
+ className={styles.overviewStartBtn}
+ onClick={() => {
  if (hasSeenSessionConfig) {
- // Use last session settings or sensible defaults
  const lastGoal = localStorage.getItem('lastSessionGoal') as StudyGoal || 'learn-new';
  const lastDuration = parseInt(localStorage.getItem('lastSessionDuration') || '30');
  handleSessionStart(lastGoal, lastDuration);
  } else {
- // First time users see the full modal
  setShowSessionConfig(true);
  }
  }}
- />
+ >
+ Start Learning
+ </button>
+ </div>
  </div>
  );
  case 'learn': {

@@ -164,3 +164,90 @@
  color: var(--color-text-primary);
  background: var(--color-surface-subtle);
 }
+
+.overviewPanel {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ height: 100%;
+ min-height: 400px;
+ padding: 2rem;
+}
+
+.overviewCard {
+ display: flex;
+ flex-direction: column;
+ gap: 2rem;
+ background: var(--color-surface-elevated);
+ border: 1px solid var(--color-border);
+ border-radius: var(--radius-xl);
+ padding: 2.5rem 3rem;
+ max-width: 520px;
+ width: 100%;
+ box-shadow: var(--shadow-lg);
+}
+
+.overviewMeta {
+ display: flex;
+ flex-direction: column;
+ gap: 0.4rem;
+}
+
+.overviewLabel {
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-text-muted);
+ letter-spacing: var(--letter-spacing-wider);
+ text-transform: uppercase;
+}
+
+.overviewTitle {
+ font-size: var(--font-size-2xl);
+ font-weight: var(--font-weight-bold);
+ color: var(--color-text-dark);
+ margin: 0;
+ line-height: 1.2;
+}
+
+.overviewStats {
+ display: flex;
+ gap: 1.5rem;
+}
+
+.overviewStat {
+ display: flex;
+ flex-direction: column;
+ gap: 0.2rem;
+}
+
+.overviewStatValue {
+ font-size: var(--font-size-2xl);
+ font-weight: var(--font-weight-bold);
+ color: var(--color-accent);
+ line-height: 1;
+}
+
+.overviewStatLabel {
+ font-size: var(--font-size-xs);
+ color: var(--color-text-muted);
+ text-transform: uppercase;
+ letter-spacing: var(--letter-spacing-wide);
+}
+
+.overviewStartBtn {
+ padding: 0.75rem 1.5rem;
+ background: var(--gradient-accent);
+ color: var(--color-text-on-accent);
+ border: none;
+ border-radius: var(--radius-md);
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ cursor: pointer;
+ transition: all var(--transition-fast);
+ align-self: flex-start;
+}
+
+.overviewStartBtn:hover {
+ transform: translateY(-1px);
+ box-shadow: var(--shadow-glow-primary);
+}
