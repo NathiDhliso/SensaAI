@@ -90,9 +90,11 @@ export function ULCPracticeController({
   const totalCells = useMemo(() => {
     const seen = new Set<string>();
     for (const concept of payload.matrix) {
-      for (const verb of payload.verbs) {
-        const realId = concept.cellConceptIds?.[verb];
-        if (realId) seen.add(realId);
+      for (const leaf of concept.children) {
+        for (const verb of payload.verbs) {
+          const realId = leaf.cellConceptIds?.[verb];
+          if (realId) seen.add(realId);
+        }
       }
     }
     return seen.size;

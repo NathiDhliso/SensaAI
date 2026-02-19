@@ -4,16 +4,18 @@ export interface DrillDownAction {
   steps: string[];
 }
 
-export interface MatrixSubConcept {
+export interface LeafRow {
   conceptId: string;
   conceptName: string;
   actions: Record<string, DrillDownAction | null>;
+  cellConceptIds: Record<string, string>;
 }
 
 export interface MatrixConcept {
   conceptId: string;
   conceptName: string;
-  subConcepts?: MatrixSubConcept[];
+  isParent: boolean;
+  children: LeafRow[];
   actions?: Record<string, DrillDownAction | null>;
   cellConceptIds?: Record<string, string>;
 }

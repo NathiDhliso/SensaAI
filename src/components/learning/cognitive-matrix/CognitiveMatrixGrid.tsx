@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Play } from 'lucide-react';
-import type { MatrixPayload, MatrixConcept, SelectedCell, DrillDownAction } from './types';
+import { CheckCircle, Play, ChevronRight } from 'lucide-react';
+import type { MatrixPayload, MatrixConcept, LeafRow, SelectedCell, DrillDownAction } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
 
 interface ExpandedCell {
@@ -28,6 +28,8 @@ export function CognitiveMatrixGrid({
   const colCount = payload.verbs.length;
   const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
 
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(() => new Set());
+
   const handleCellTap = (cell: ExpandedCell) => {
     setExpandedCell(prev =>
       prev?.conceptId === cell.conceptId && prev?.verb === cell.verb ? null : cell
@@ -47,11 +49,20 @@ export function CognitiveMatrixGrid({
     setExpandedCell(null);
   };
 
+  const toggleParent = (id: string) => {
+    setExpandedParents(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); setExpandedCell(null); }
+      else next.add(id);
+      return next;
+    });
+  };
+
   return (
     <div className={styles.gridWrapper}>
       <div
         className={styles.grid}
-        style={{ gridTemplateColumns: `minmax(180px, auto) repeat(${colCount}, minmax(110px, 1fr))` }}
+        style={{ gridTemplateColumns: `minmax(200px, auto) repeat(${colCount}, minmax(110px, 1fr))` }}
       >
         <div className={styles.cornerCell}>RESOURCE</div>
         {payload.verbs.map(verb => (
@@ -59,14 +70,16 @@ export function CognitiveMatrixGrid({
         ))}
 
         {payload.matrix.map(concept => (
-          <ConceptRows
+          <ParentRows
             key={concept.conceptId}
             concept={concept}
             verbs={payload.verbs}
             masteredIds={masteredIds}
             suggestedId={suggestedId}
             expandedCell={expandedCell}
+            isOpen={expandedParents.has(concept.conceptId)}
             colCount={colCount}
+            onToggle={() => toggleParent(concept.conceptId)}
             onCellTap={handleCellTap}
             onStartDrill={handleStartDrill}
             onCloseDrawer={() => setExpandedCell(null)}
@@ -77,13 +90,15 @@ export function CognitiveMatrixGrid({
   );
 }
 
-function ConceptRows({
+function ParentRows({
   concept,
   verbs,
   masteredIds,
   suggestedId,
   expandedCell,
+  isOpen,
   colCount,
+  onToggle,
   onCellTap,
   onStartDrill,
   onCloseDrawer,
@@ -93,33 +108,119 @@ function ConceptRows({
   masteredIds: Set<string>;
   suggestedId: string | null;
   expandedCell: ExpandedCell | null;
+  isOpen: boolean;
+  colCount: number;
+  onToggle: () => void;
+  onCellTap: (cell: ExpandedCell) => void;
+  onStartDrill: () => void;
+  onCloseDrawer: () => void;
+}) {
+  const masteredInGroup = concept.children.filter(leaf =>
+    Object.values(leaf.cellConceptIds).some(id => masteredIds.has(id))
+  ).length;
+  const totalLeaves = concept.children.length;
+
+  return (
+    <>
+      <div
+        className={styles.parentLabel}
+        onClick={onToggle}
+        role="button"
+        aria-expanded={isOpen}
+      >
+        <motion.span
+          className={styles.chevron}
+          animate={{ rotate: isOpen ? 90 : 0 }}
+          transition={{ duration: 0.18 }}
+        >
+          <ChevronRight size={14} />
+        </motion.span>
+        <span className={styles.parentName}>{concept.conceptName}</span>
+        <span className={styles.parentCount}>{masteredInGroup}/{totalLeaves}</span>
+      </div>
+
+      {verbs.map(verb => (
+        <div key={`${concept.conceptId}-${verb}-ph`} className={styles.parentPlaceholder} />
+      ))}
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className={styles.childrenBlock}
+            style={{ gridColumn: `1 / ${colCount + 2}` }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 36 }}
+          >
+            {concept.children.map(leaf => (
+              <LeafRowComponent
+                key={leaf.conceptId}
+                leaf={leaf}
+                verbs={verbs}
+                masteredIds={masteredIds}
+                suggestedId={suggestedId}
+                expandedCell={expandedCell}
+                colCount={colCount}
+                onCellTap={onCellTap}
+                onStartDrill={onStartDrill}
+                onCloseDrawer={onCloseDrawer}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function LeafRowComponent({
+  leaf,
+  verbs,
+  masteredIds,
+  suggestedId,
+  expandedCell,
+  colCount,
+  onCellTap,
+  onStartDrill,
+  onCloseDrawer,
+}: {
+  leaf: LeafRow;
+  verbs: string[];
+  masteredIds: Set<string>;
+  suggestedId: string | null;
+  expandedCell: ExpandedCell | null;
   colCount: number;
   onCellTap: (cell: ExpandedCell) => void;
   onStartDrill: () => void;
   onCloseDrawer: () => void;
 }) {
-  const isDrawerOpen = expandedCell?.conceptId === concept.conceptId;
+  const isDrawerOpen = expandedCell?.conceptId === leaf.conceptId;
 
   return (
-    <>
-      <div className={styles.parentLabel}>
-        <span>{concept.conceptName}</span>
+    <div
+      className={styles.leafGrid}
+      style={{ gridTemplateColumns: `minmax(200px, auto) repeat(${colCount}, minmax(110px, 1fr))` }}
+    >
+      <div className={styles.leafLabel}>
+        <span className={styles.leafIndent} />
+        <span>{leaf.conceptName}</span>
       </div>
 
       {verbs.map(verb => {
-        const action = concept.actions?.[verb] ?? null;
-        const realConceptId = concept.cellConceptIds?.[verb] ?? concept.conceptId;
-        const isExpanded = expandedCell?.conceptId === concept.conceptId && expandedCell?.verb === verb;
+        const action = leaf.actions?.[verb] ?? null;
+        const realConceptId = leaf.cellConceptIds?.[verb] ?? leaf.conceptId;
+        const isExpanded = expandedCell?.conceptId === leaf.conceptId && expandedCell?.verb === verb;
         return (
           <GridCell
-            key={`${concept.conceptId}-${verb}`}
-            conceptId={concept.conceptId}
+            key={`${leaf.conceptId}-${verb}`}
+            conceptId={leaf.conceptId}
             realConceptId={realConceptId}
-            conceptName={concept.conceptName}
+            conceptName={leaf.conceptName}
             verb={verb}
             action={action}
             isMastered={masteredIds.has(realConceptId)}
-            isSuggested={suggestedId === `${concept.conceptId}::${verb}`}
+            isSuggested={suggestedId === `${leaf.conceptId}::${verb}`}
             isExpanded={isExpanded}
             onCellTap={onCellTap}
           />
@@ -189,7 +290,7 @@ function ConceptRows({
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
 
