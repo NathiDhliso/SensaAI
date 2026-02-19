@@ -99,7 +99,6 @@ export default function ContentLaunchpad() {
     const [objectivesPanelOpen, setObjectivesPanelOpen] = useState(false);
     const [objectivesSaved, setObjectivesSaved] = useState(false);
     const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
-    const [showPrimingZone, setShowPrimingZone] = useState(false);
     const [showEquationMonitor, setShowEquationMonitor] = useState(false);
     const parsedPreview = useMemo(() => {
         if (!objectivesText.trim()) return [];
@@ -110,19 +109,6 @@ export default function ContentLaunchpad() {
     }, [lastSessionMood]);
     const bwConfig = BANDWIDTH_CONFIG[bandwidth];
     
-    // Detect ULC pattern from concepts
-    const ulcMatrix = useMemo(() => {
-        if (!parsedData?.concepts || parsedData.concepts.length < 6 || !subjectId) return null;
-        // Convert ParsedConcept to LearningConcept format for detector
-        const learningConcepts = parsedData.concepts.map(c => ({
-            ...c,
-            tier: c.tier || 'leaf' as 'trunk' | 'branch' | 'leaf',
-            lifecyclePhase: 'MODEL' as const,
-            dependencies: c.dependsOn || [],
-            outdegree: 0,
-        }));
-        return detectULCPattern(learningConcepts, subjectId, result?.subject);
-    }, [parsedData, subjectId, result]);
     
     const tierCounts = useMemo(() => {
         if (!parsedData) return { trunk: 0, branch: 0, leaf: 0, total: 0 };
@@ -573,32 +559,6 @@ export default function ContentLaunchpad() {
                         </div>
                     )}
                     
-                    {/* ULC Pattern Visualization - Futuristic Priming Zone */}
-                    {ulcMatrix && bandwidth !== 'low' && (
-                        <section className={styles.zone}>
-                            <div className={styles.zoneHeader}>
-                                <div className={styles.zoneTitle}>
-                                    <Zap size={18} />
-                                    <h2>Priming Zone</h2>
-                                </div>
-                                <span className={styles.zoneBadge}>
-                                    ULC Pattern Detected
-                                </span>
-                            </div>
-                            <div className={styles.zoneContent}>
-                                <p className={styles.zoneDescription}>
-                                    This content follows a Universal Life Cycle pattern. Click below to explore the interactive matrix.
-                                </p>
-                                <button
-                                    onClick={() => setShowPrimingZone(true)}
-                                    className={styles.primingZoneButton}
-                                >
-                                    <Sparkles size={18} />
-                                    Open Priming Zone
-                                </button>
-                            </div>
-                        </section>
-                    )}
                     
                     <section className={styles.zone}>
                         <div className={styles.zoneHeader}>
@@ -1066,13 +1026,6 @@ export default function ContentLaunchpad() {
                 </div>
             </footer>
             
-            {/* Futuristic Priming Zone Modal */}
-            {showPrimingZone && ulcMatrix && (
-                <FuturisticPrimingZone
-                    matrix={ulcMatrix}
-                    onClose={() => setShowPrimingZone(false)}
-                />
-            )}
 
             {/* Equation Monitor Modal */}
             {showEquationMonitor && (
