@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { useState, useMemo, useCallback, useRef } from 'react';
+import { ArrowLeft, Maximize, Minimize } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import type { LearningConcept } from '@/shared/types/learning';
@@ -33,6 +33,18 @@ export function ULCPracticeController({
   const lifecycleVerbs = useGenerationStore(state => state.pass1Data?.lifecycle);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [inLoop, setInLoop] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const zoneRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      zoneRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  }, []);
 
 
   const masteredIds = useMemo(() => new Set(completedConceptIds), [completedConceptIds]);
@@ -126,13 +138,18 @@ export function ULCPracticeController({
   }
 
   return (
-    <div className={styles.zone}>
+    <div className={styles.zone} ref={zoneRef}>
       <div className={styles.zoneHeader}>
         <div className={styles.zoneTitleGroup}>
           <span className={styles.zoneTitle}>Sensa AI Priming Zone</span>
           <span className={styles.zoneSubject}>{payload.subject}</span>
         </div>
-        <span className={styles.progressPill}>{masteredIds.size}/{totalCells} mastered</span>
+        <div className={styles.zoneHeaderRight}>
+          <span className={styles.progressPill}>{masteredIds.size}/{totalCells} mastered</span>
+          <button className={styles.fullscreenBtn} onClick={toggleFullscreen} title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}>
+            {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+          </button>
+        </div>
       </div>
 
       <CognitiveMatrixGrid

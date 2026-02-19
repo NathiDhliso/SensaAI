@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Play, ChevronRight } from 'lucide-react';
+import { CheckCircle, Play, ChevronRight, Maximize2, X } from 'lucide-react';
 import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, SelectedCell, DrillDownAction } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
 
@@ -24,6 +24,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
   const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
   const [openTrunks, setOpenTrunks] = useState<Set<string>>(() => new Set());
   const [openBranches, setOpenBranches] = useState<Set<string>>(() => new Set());
+  const [focusedTrunkId, setFocusedTrunkId] = useState<string | null>(null);
 
   const handleCellTap = (cell: ExpandedCell) => {
     setExpandedCell(prev =>
@@ -62,43 +63,116 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
     });
   };
 
+  const focusedTrunk = focusedTrunkId ? payload.matrix.find(t => t.conceptId === focusedTrunkId) ?? null : null;
   const colTemplate = `minmax(220px, auto) repeat(${colCount}, minmax(110px, 1fr))`;
+  const focusColTemplate = `minmax(280px, auto) repeat(${colCount}, minmax(160px, 1fr))`;
 
   return (
-    <div className={styles.gridWrapper}>
-      <div className={styles.grid} style={{ gridTemplateColumns: colTemplate }}>
-        <div className={styles.cornerCell}>DOMAINS</div>
-        {payload.verbs.map(verb => (
-          <div key={verb} className={styles.verbHeader}>{verb.toUpperCase()}</div>
-        ))}
-        {payload.matrix.map(trunk => (
-          <TrunkRowGroup
-            key={trunk.conceptId}
-            trunk={trunk}
-            verbs={payload.verbs}
-            masteredIds={masteredIds}
-            suggestedId={suggestedId}
-            expandedCell={expandedCell}
-            isTrunkOpen={openTrunks.has(trunk.conceptId)}
-            openBranches={openBranches}
-            colCount={colCount}
-            colTemplate={colTemplate}
-            onToggleTrunk={() => toggleTrunk(trunk.conceptId)}
-            onToggleBranch={toggleBranch}
-            onCellTap={handleCellTap}
-            onStartDrill={handleStartDrill}
-            onCloseDrawer={() => setExpandedCell(null)}
-          />
-        ))}
+    <>
+      <div className={styles.gridWrapper}>
+        <div className={styles.grid} style={{ gridTemplateColumns: colTemplate }}>
+          <div className={styles.cornerCell}>DOMAINS</div>
+          {payload.verbs.map(verb => (
+            <div key={verb} className={styles.verbHeader}>{verb.toUpperCase()}</div>
+          ))}
+          {payload.matrix.map(trunk => (
+            <TrunkRowGroup
+              key={trunk.conceptId}
+              trunk={trunk}
+              verbs={payload.verbs}
+              masteredIds={masteredIds}
+              suggestedId={suggestedId}
+              expandedCell={expandedCell}
+              isTrunkOpen={openTrunks.has(trunk.conceptId)}
+              openBranches={openBranches}
+              colCount={colCount}
+              colTemplate={colTemplate}
+              onToggleTrunk={() => toggleTrunk(trunk.conceptId)}
+              onToggleBranch={toggleBranch}
+              onFocus={() => { setFocusedTrunkId(trunk.conceptId); setExpandedCell(null); }}
+              onCellTap={handleCellTap}
+              onStartDrill={handleStartDrill}
+              onCloseDrawer={() => setExpandedCell(null)}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+
+      <AnimatePresence>
+        {focusedTrunk && (
+          <motion.div
+            className={styles.focusOverlay}
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+          >
+            <div className={styles.focusHeader}>
+              <div className={styles.focusTitleGroup}>
+                <span className={styles.focusLabel}>FOCUS MODE</span>
+                <span className={styles.focusTitle}>{focusedTrunk.conceptName}</span>
+              </div>
+              <button className={styles.focusClose} onClick={() => setFocusedTrunkId(null)}>
+                <X size={16} />
+                Exit Focus
+              </button>
+            </div>
+
+            <div className={styles.focusBody}>
+              <div className={styles.focusGrid} style={{ gridTemplateColumns: focusColTemplate }}>
+                <div className={styles.focusCorner}>RESOURCE</div>
+                {payload.verbs.map(verb => (
+                  <div key={verb} className={styles.focusVerbHeader}>{verb.toUpperCase()}</div>
+                ))}
+
+                {focusedTrunk.branches.map(branch => (
+                  <BranchRowGroup
+                    key={branch.conceptId}
+                    branch={branch}
+                    verbs={payload.verbs}
+                    masteredIds={masteredIds}
+                    suggestedId={suggestedId}
+                    expandedCell={expandedCell}
+                    isOpen={openBranches.has(branch.conceptId)}
+                    colCount={colCount}
+                    colTemplate={focusColTemplate}
+                    onToggle={() => toggleBranch(branch.conceptId)}
+                    onCellTap={handleCellTap}
+                    onStartDrill={handleStartDrill}
+                    onCloseDrawer={() => setExpandedCell(null)}
+                    focusMode
+                  />
+                ))}
+                {focusedTrunk.children.map(leaf => (
+                  <LeafRowComponent
+                    key={leaf.conceptId}
+                    leaf={leaf}
+                    verbs={payload.verbs}
+                    masteredIds={masteredIds}
+                    suggestedId={suggestedId}
+                    expandedCell={expandedCell}
+                    colCount={colCount}
+                    colTemplate={focusColTemplate}
+                    depth={1}
+                    onCellTap={handleCellTap}
+                    onStartDrill={handleStartDrill}
+                    onCloseDrawer={() => setExpandedCell(null)}
+                    focusMode
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
 function TrunkRowGroup({
   trunk, verbs, masteredIds, suggestedId, expandedCell,
   isTrunkOpen, openBranches, colCount, colTemplate,
-  onToggleTrunk, onToggleBranch, onCellTap, onStartDrill, onCloseDrawer,
+  onToggleTrunk, onToggleBranch, onFocus, onCellTap, onStartDrill, onCloseDrawer,
 }: {
   trunk: MatrixConcept;
   verbs: string[];
@@ -111,6 +185,7 @@ function TrunkRowGroup({
   colTemplate: string;
   onToggleTrunk: () => void;
   onToggleBranch: (id: string) => void;
+  onFocus: () => void;
   onCellTap: (cell: ExpandedCell) => void;
   onStartDrill: () => void;
   onCloseDrawer: () => void;
@@ -132,6 +207,13 @@ function TrunkRowGroup({
         </motion.span>
         <span className={styles.parentName}>{trunk.conceptName}</span>
         <span className={styles.parentCount}>{masteredLeaves}/{totalLeaves}</span>
+        <button
+          className={styles.focusBtn}
+          onClick={e => { e.stopPropagation(); onFocus(); }}
+          title={`Focus on ${trunk.conceptName}`}
+        >
+          <Maximize2 size={12} />
+        </button>
       </div>
       {verbs.map(verb => (
         <div key={`${trunk.conceptId}-${verb}-ph`} className={styles.trunkPlaceholder} />
@@ -189,7 +271,7 @@ function TrunkRowGroup({
 
 function BranchRowGroup({
   branch, verbs, masteredIds, suggestedId, expandedCell,
-  isOpen, colCount, colTemplate, onToggle, onCellTap, onStartDrill, onCloseDrawer,
+  isOpen, colCount, colTemplate, onToggle, onCellTap, onStartDrill, onCloseDrawer, focusMode,
 }: {
   branch: BranchRow;
   verbs: string[];
@@ -203,6 +285,7 @@ function BranchRowGroup({
   onCellTap: (cell: ExpandedCell) => void;
   onStartDrill: () => void;
   onCloseDrawer: () => void;
+  focusMode?: boolean;
 }) {
   const masteredInBranch = branch.children.filter(l =>
     Object.values(l.cellConceptIds).some(id => masteredIds.has(id))
@@ -210,11 +293,11 @@ function BranchRowGroup({
 
   return (
     <>
-      <div className={styles.branchGrid} style={{ gridTemplateColumns: colTemplate }}>
-        <div className={styles.branchLabel} onClick={onToggle} role="button" aria-expanded={isOpen}>
+      <div className={focusMode ? styles.focusBranchGrid : styles.branchGrid} style={{ gridTemplateColumns: colTemplate }}>
+        <div className={focusMode ? styles.focusBranchLabel : styles.branchLabel} onClick={onToggle} role="button" aria-expanded={isOpen}>
           <span className={styles.branchIndent} />
           <motion.span className={styles.chevron} animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.18 }}>
-            <ChevronRight size={12} />
+            <ChevronRight size={focusMode ? 14 : 12} />
           </motion.span>
           <span className={styles.branchName}>{branch.conceptName}</span>
           <span className={styles.parentCount}>{masteredInBranch}/{branch.children.length}</span>
@@ -246,6 +329,7 @@ function BranchRowGroup({
                 onCellTap={onCellTap}
                 onStartDrill={onStartDrill}
                 onCloseDrawer={onCloseDrawer}
+                focusMode={focusMode}
               />
             ))}
           </motion.div>
@@ -257,7 +341,7 @@ function BranchRowGroup({
 
 function LeafRowComponent({
   leaf, verbs, masteredIds, suggestedId, expandedCell,
-  colCount, colTemplate, depth, onCellTap, onStartDrill, onCloseDrawer,
+  colCount, colTemplate, depth, onCellTap, onStartDrill, onCloseDrawer, focusMode,
 }: {
   leaf: LeafRow;
   verbs: string[];
@@ -270,13 +354,19 @@ function LeafRowComponent({
   onCellTap: (cell: ExpandedCell) => void;
   onStartDrill: () => void;
   onCloseDrawer: () => void;
+  focusMode?: boolean;
 }) {
   const isDrawerOpen = expandedCell?.conceptId === leaf.conceptId;
 
+  const labelClass = focusMode
+    ? (depth === 2 ? styles.focusLeafLabelDeep : styles.focusLeafLabel)
+    : (depth === 2 ? styles.leafLabelDeep : styles.leafLabel);
+  const indentClass = depth === 2 ? styles.leafIndentDeep : styles.leafIndent;
+
   return (
     <div className={styles.leafGrid} style={{ gridTemplateColumns: colTemplate }}>
-      <div className={depth === 2 ? styles.leafLabelDeep : styles.leafLabel}>
-        <span className={depth === 2 ? styles.leafIndentDeep : styles.leafIndent} />
+      <div className={labelClass}>
+        <span className={indentClass} />
         <span>{leaf.conceptName}</span>
       </div>
 
