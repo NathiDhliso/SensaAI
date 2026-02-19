@@ -3,44 +3,48 @@
  * Hardcoded seed data for testing the Futuristic Priming Zone
  */
 
-import type { ConceptMatrix, AtomicConcept, MatrixCell } from './types';
+import type { PrimingMatrixData, AtomicConcept, MatrixCell } from './types';
 
 // Y-Axis: Azure Concepts with nested hierarchy
 const azureConcepts: AtomicConcept[] = [
   {
     id: 'identity',
     name: 'Identity',
+    tier: 'trunk',
     children: [
-      { id: 'identity-users', name: 'Users' },
-      { id: 'identity-groups', name: 'Groups' },
-      { id: 'identity-rbac', name: 'RBAC Roles' },
+      { id: 'identity-users', name: 'Users', tier: 'leaf' },
+      { id: 'identity-groups', name: 'Groups', tier: 'leaf' },
+      { id: 'identity-rbac', name: 'RBAC Roles', tier: 'leaf' },
     ],
   },
   {
     id: 'networking',
     name: 'Networking',
+    tier: 'trunk',
     children: [
-      { id: 'networking-vnet', name: 'Virtual Network' },
-      { id: 'networking-nsg', name: 'Network Security Group' },
-      { id: 'networking-peering', name: 'VNet Peering' },
+      { id: 'networking-vnet', name: 'Virtual Network', tier: 'leaf' },
+      { id: 'networking-nsg', name: 'Network Security Group', tier: 'leaf' },
+      { id: 'networking-peering', name: 'VNet Peering', tier: 'leaf' },
     ],
   },
   {
     id: 'compute',
     name: 'Compute',
+    tier: 'trunk',
     children: [
-      { id: 'compute-vm', name: 'Virtual Machine' },
-      { id: 'compute-scale-set', name: 'VM Scale Set' },
-      { id: 'compute-app-service', name: 'App Service' },
+      { id: 'compute-vm', name: 'Virtual Machine', tier: 'leaf' },
+      { id: 'compute-scale-set', name: 'VM Scale Set', tier: 'leaf' },
+      { id: 'compute-app-service', name: 'App Service', tier: 'leaf' },
     ],
   },
   {
     id: 'storage',
     name: 'Storage',
+    tier: 'trunk',
     children: [
-      { id: 'storage-account', name: 'Storage Account' },
-      { id: 'storage-blob', name: 'Blob Container' },
-      { id: 'storage-keys', name: 'Access Keys' },
+      { id: 'storage-account', name: 'Storage Account', tier: 'leaf' },
+      { id: 'storage-blob', name: 'Blob Container', tier: 'leaf' },
+      { id: 'storage-keys', name: 'Access Keys', tier: 'leaf' },
     ],
   },
 ];
@@ -54,11 +58,11 @@ const azureMatrixCells: MatrixCell[] = [
     conceptPath: ['Storage', 'Storage Account'],
     primingCard: {
       trick: {
-        title: '🧠 The Trick',
+        title: '🧠 The Trick: UNDERSTAND',
         content: 'Storage accounts follow the "Name-Region-Redundancy" trinity. Think: WHERE you store, HOW redundant, WHAT name (globally unique).',
       },
       chain: {
-        title: '🔗 The Chain',
+        title: '🔗 The Chain: Prerequisites',
         constraints: [
           'Active Azure subscription',
           'Resource group must exist in target region',
@@ -66,7 +70,7 @@ const azureMatrixCells: MatrixCell[] = [
         ],
       },
       steps: {
-        title: '⚡ Atomic Steps',
+        title: '⚡ Atomic Steps: How to UNDERSTAND',
         actions: [
           'Portal → Search "Storage accounts"',
           'Click "+ Create"',
@@ -88,11 +92,11 @@ const azureMatrixCells: MatrixCell[] = [
     conceptPath: ['Storage', 'Storage Account'],
     primingCard: {
       trick: {
-        title: '🧠 The Trick',
+        title: '🧠 The Trick: LINK',
         content: 'The "5-Tab Rule": Configuration, Networking, Data protection, Encryption, Access keys. Always left-to-right.',
       },
       chain: {
-        title: '🔗 The Chain',
+        title: '🔗 The Chain: Prerequisites',
         constraints: [
           'Storage account must be created',
           'Appropriate permissions (Storage Account Contributor)',
@@ -100,7 +104,7 @@ const azureMatrixCells: MatrixCell[] = [
         ],
       },
       steps: {
-        title: '⚡ Atomic Steps',
+        title: '⚡ Atomic Steps: How to LINK',
         actions: [
           'Navigate to storage account',
           'Left menu → "Configuration"',
@@ -122,11 +126,11 @@ const azureMatrixCells: MatrixCell[] = [
     conceptPath: ['Storage', 'Storage Account'],
     primingCard: {
       trick: {
-        title: '🧠 The Trick',
+        title: '🧠 The Trick: COMMIT',
         content: 'Metrics live in "Monitoring" section. Think: Capacity (how full), Transactions (how busy), Availability (how healthy).',
       },
       chain: {
-        title: '🔗 The Chain',
+        title: '🔗 The Chain: Prerequisites',
         constraints: [
           'Storage account exists',
           'Monitoring Reader role or higher',
@@ -134,7 +138,7 @@ const azureMatrixCells: MatrixCell[] = [
         ],
       },
       steps: {
-        title: '⚡ Atomic Steps',
+        title: '⚡ Atomic Steps: How to COMMIT',
         actions: [
           'Navigate to storage account',
           'Left menu → "Monitoring" section',
@@ -156,11 +160,11 @@ const azureMatrixCells: MatrixCell[] = [
     conceptPath: ['Compute', 'Virtual Machine'],
     primingCard: {
       trick: {
-        title: '🧠 The Trick',
+        title: '🧠 The Trick: UNDERSTAND',
         content: 'VM creation is a "Wizard of 5": Basics, Disks, Networking, Management, Review. Each tab unlocks the next.',
       },
       chain: {
-        title: '🔗 The Chain',
+        title: '🔗 The Chain: Prerequisites',
         constraints: [
           'Active subscription with available quota',
           'Resource group exists',
@@ -169,7 +173,7 @@ const azureMatrixCells: MatrixCell[] = [
         ],
       },
       steps: {
-        title: '⚡ Atomic Steps',
+        title: '⚡ Atomic Steps: How to UNDERSTAND',
         actions: [
           'Portal → "Virtual machines"',
           'Click "+ Create" → "Azure virtual machine"',
@@ -192,11 +196,11 @@ const azureMatrixCells: MatrixCell[] = [
     conceptPath: ['Compute', 'Virtual Machine'],
     primingCard: {
       trick: {
-        title: '🧠 The Trick',
+        title: '🧠 The Trick: LINK',
         content: 'Post-creation config follows "SNAP": Size, Networking, Availability, Protection. Always stop VM before resizing.',
       },
       chain: {
-        title: '🔗 The Chain',
+        title: '🔗 The Chain: Prerequisites',
         constraints: [
           'VM must be created',
           'VM Contributor role',
@@ -204,7 +208,7 @@ const azureMatrixCells: MatrixCell[] = [
         ],
       },
       steps: {
-        title: '⚡ Atomic Steps',
+        title: '⚡ Atomic Steps: How to LINK',
         actions: [
           'Navigate to VM',
           'Stop VM (if resizing)',
@@ -227,11 +231,11 @@ const azureMatrixCells: MatrixCell[] = [
     conceptPath: ['Compute', 'Virtual Machine'],
     primingCard: {
       trick: {
-        title: '🧠 The Trick',
+        title: '🧠 The Trick: COMMIT',
         content: 'VM health = "CPU + Memory + Disk + Network". All 4 must be green. Check "Metrics" for trends, "Insights" for anomalies.',
       },
       chain: {
-        title: '🔗 The Chain',
+        title: '🔗 The Chain: Prerequisites',
         constraints: [
           'VM exists and is running',
           'Azure Monitor agent installed (for guest metrics)',
@@ -239,7 +243,7 @@ const azureMatrixCells: MatrixCell[] = [
         ],
       },
       steps: {
-        title: '⚡ Atomic Steps',
+        title: '⚡ Atomic Steps: How to COMMIT',
         actions: [
           'Navigate to VM',
           'Left menu → "Monitoring" → "Metrics"',
@@ -261,11 +265,11 @@ const azureMatrixCells: MatrixCell[] = [
     conceptPath: ['Networking', 'Virtual Network'],
     primingCard: {
       trick: {
-        title: '🧠 The Trick',
+        title: '🧠 The Trick: UNDERSTAND',
         content: 'VNets are "Address Space + Subnets". Think: Big CIDR block (e.g., 10.0.0.0/16), then carve subnets (e.g., 10.0.1.0/24).',
       },
       chain: {
-        title: '🔗 The Chain',
+        title: '🔗 The Chain: Prerequisites',
         constraints: [
           'Active subscription',
           'Resource group exists',
@@ -273,7 +277,7 @@ const azureMatrixCells: MatrixCell[] = [
         ],
       },
       steps: {
-        title: '⚡ Atomic Steps',
+        title: '⚡ Atomic Steps: How to UNDERSTAND',
         actions: [
           'Portal → "Virtual networks"',
           'Click "+ Create"',
@@ -295,11 +299,11 @@ const azureMatrixCells: MatrixCell[] = [
     conceptPath: ['Identity', 'RBAC Roles'],
     primingCard: {
       trick: {
-        title: '🧠 The Trick',
+        title: '🧠 The Trick: LINK',
         content: 'RBAC = "Who + What + Where". User/Group (who), Role (what permissions), Scope (subscription/RG/resource).',
       },
       chain: {
-        title: '🔗 The Chain',
+        title: '🔗 The Chain: Prerequisites',
         constraints: [
           'User Access Administrator or Owner role',
           'Target user/group exists in Azure AD',
@@ -307,7 +311,7 @@ const azureMatrixCells: MatrixCell[] = [
         ],
       },
       steps: {
-        title: '⚡ Atomic Steps',
+        title: '⚡ Atomic Steps: How to LINK',
         actions: [
           'Navigate to target scope (subscription/RG/resource)',
           'Left menu → "Access control (IAM)"',
@@ -323,9 +327,15 @@ const azureMatrixCells: MatrixCell[] = [
   },
 ];
 
-export const azureBlueprint: ConceptMatrix = {
+export const azureBlueprint: PrimingMatrixData = {
+  verbs: {
+    verb1: 'UNDERSTAND',
+    verb2: 'LINK',
+    verb3: 'COMMIT',
+  },
   concepts: azureConcepts,
   cells: azureMatrixCells,
   domain: 'Azure Administration',
-  version: '1.0.0',
+  subjectId: 'azure-demo',
+  generatedAt: new Date().toISOString(),
 };

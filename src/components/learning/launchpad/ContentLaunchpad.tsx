@@ -112,7 +112,7 @@ export default function ContentLaunchpad() {
     
     // Detect ULC pattern from concepts
     const ulcMatrix = useMemo(() => {
-        if (!parsedData?.concepts || parsedData.concepts.length < 6) return null;
+        if (!parsedData?.concepts || parsedData.concepts.length < 6 || !subjectId) return null;
         // Convert ParsedConcept to LearningConcept format for detector
         const learningConcepts = parsedData.concepts.map(c => ({
             ...c,
@@ -121,8 +121,8 @@ export default function ContentLaunchpad() {
             dependencies: c.dependsOn || [],
             outdegree: 0,
         }));
-        return detectULCPattern(learningConcepts);
-    }, [parsedData]);
+        return detectULCPattern(learningConcepts, subjectId, result?.subject);
+    }, [parsedData, subjectId, result]);
     
     const tierCounts = useMemo(() => {
         if (!parsedData) return { trunk: 0, branch: 0, leaf: 0, total: 0 };

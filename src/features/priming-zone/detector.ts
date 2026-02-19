@@ -4,20 +4,24 @@
  */
 
 import type { LearningConcept } from '@/shared/types/learning';
-import type { ConceptMatrix, MatrixCell, AtomicConcept, UniversalAction, PrimingCard } from './types';
+import type { PrimingMatrixData, MatrixCell, AtomicConcept, UniversalAction, PrimingCard, ULCVerbs } from './types';
 
 /**
  * Detect if concepts follow a ULC pattern and extract the matrix
  * Returns null if no valid ULC pattern is detected
  */
-export function detectULCPattern(concepts: LearningConcept[]): ConceptMatrix | null {
+export function detectULCPattern(
+  concepts: LearningConcept[],
+  subjectId: string,
+  subjectName?: string
+): PrimingMatrixData | null {
   if (!concepts || concepts.length === 0) return null;
 
   // Analyze the concept structure dynamically
   const structure = analyzeConceptStructure(concepts);
 
   // Build the matrix from detected patterns
-  const matrix = buildMatrix(structure, concepts);
+  const matrix = buildMatrix(structure, concepts, subjectId, subjectName);
 
   // Validate minimum viable matrix
   if (!matrix.concepts.length || matrix.cells.length < 1) {
@@ -28,6 +32,7 @@ export function detectULCPattern(concepts: LearningConcept[]): ConceptMatrix | n
 }
 
 interface ConceptStructure {
+  verbs: ULCVerbs;
   actionMap: Map<string, UniversalAction>;
   conceptHierarchy: Map<string, AtomicConcept>;
   domain: string;
@@ -44,10 +49,13 @@ function analyzeConceptStructure(concepts: LearningConcept[]): ConceptStructure 
   // Extract domain from first concept or common trunk
   const domain = extractDomain(concepts);
 
+  // Extract ULC verbs from lifecycle phases
+  const verbs = extractULCVerbs(concepts);
+
   // Build concept hierarchy
   for (const concept of concepts) {
     // Determine which ULC action this concept maps to
-    const action = matchConceptToAction(concept);
+    const action = matchConceptToAction(concept, verbs);
     if (action) {
       actionMap.set(concept.id, action);
     }
@@ -59,6 +67,7 @@ function analyzeConceptStructure(concepts: LearningConcept[]): ConceptStructure 
       conceptHierarchy.set(rootKey, {
         id: slugify(rootKey),
         name: rootKey,
+        tier: 'trunk',
         children: [],
       });
     }
@@ -75,12 +84,36 @@ function analyzeConceptStructure(concepts: LearningConcept[]): ConceptStructure 
         root.children.push({
           id: concept.id,
           name: concept.name,
+          tier: concept.tier,
         });
       }
     }
   }
 
-  return { actionMap, conceptHierarchy, domain };
+  return { verbs, actionMap, conceptHierarchy, domain };
+}
+
+/**
+ * Extract ULC verbs from lifecycle phases
+ */
+function extractULCVerbs(concepts: LearningConcept[]): ULCVerbs {
+  // Check if concepts have lifecycle phases
+  const phases = new Set(concepts.map(c => c.lifecyclePhase).filter(Boolean));
+  
+  if (phases.has('PREPARE') && phases.has('MODEL') && phases.has('DELIVER')) {
+    return {
+      verb1: 'PREPARE',
+      verb2: 'EXECUTE',
+      verb3: 'VERIFY',
+    };
+  }
+
+  // Fallback to generic ULC verbs
+  return {
+    verb1: 'UNDERSTAND',
+    verb2: 'LINK',
+    verb3: 'COMMIT',
+  };
 }
 
 /**
@@ -88,9 +121,11 @@ function analyzeConceptStructure(concepts: LearningConcept[]): ConceptStructure 
  */
 function buildMatrix(
   structure: ConceptStructure,
-  concepts: LearningConcept[]
-): ConceptMatrix {
-  const { actionMap, conceptHierarchy, domain } = structure;
+  concepts: LearningConcept[],
+  subjectId: string,
+  subjectName?: string
+): PrimingMatrixData {
+  const { verbs, actionMap, conceptHierarchy, domain } = structure;
 
   // Convert hierarchy map to array
   const atomicConcepts = Array.from(conceptHierarchy.values());
@@ -102,7 +137,7 @@ function buildMatrix(
     const action = actionMap.get(concept.id);
     
     if (action) {
-      const primingCard = buildPrimingCard(concept);
+      const primingCard = buildPrimingCard(concept, action);
       
       cells.push({
         action,
@@ -114,53 +149,58 @@ function buildMatrix(
   }
 
   return {
+    verbs,
     concepts: atomicConcepts,
     cells,
-    domain,
-    version: '1.0.0',
+    domain: subjectName || domain,
+    subjectId,
+    generatedAt: new Date().toISOString(),
   };
 }
 
 /**
  * Match concept to universal action based on lifecycle phase and content
  */
-function matchConceptToAction(concept: LearningConcept): UniversalAction | null {
+function matchConceptToAction(concept: LearningConcept, verbs: ULCVerbs): UniversalAction | null {
   // Primary: Use lifecycle phase if available
   if (concept.lifecyclePhase) {
     const phase = concept.lifecyclePhase.toUpperCase();
-    if (phase === 'PREPARE') return 'UNDERSTAND';
-    if (phase === 'MODEL') return 'LINK';
-    if (phase === 'DELIVER') return 'COMMIT';
+    if (phase === 'PREPARE') return verbs.verb1;
+    if (phase === 'MODEL') return verbs.verb2;
+    if (phase === 'DELIVER') return verbs.verb3;
   }
 
   // Secondary: Analyze concept name for action keywords
   const nameLower = concept.name.toLowerCase();
   
-  // UNDERSTAND indicators
+  // Verb 1 indicators (UNDERSTAND/PREPARE)
   if (nameLower.includes('understand') || 
       nameLower.includes('learn') || 
       nameLower.includes('know') ||
       nameLower.includes('define') ||
+      nameLower.includes('prepare') ||
       nameLower.includes('explain')) {
-    return 'UNDERSTAND';
+    return verbs.verb1;
   }
   
-  // LINK indicators
+  // Verb 2 indicators (LINK/EXECUTE)
   if (nameLower.includes('link') || 
       nameLower.includes('connect') || 
       nameLower.includes('relate') ||
       nameLower.includes('compare') ||
+      nameLower.includes('execute') ||
       nameLower.includes('integrate')) {
-    return 'LINK';
+    return verbs.verb2;
   }
   
-  // COMMIT indicators
+  // Verb 3 indicators (COMMIT/VERIFY)
   if (nameLower.includes('commit') || 
       nameLower.includes('apply') || 
       nameLower.includes('practice') ||
-      nameLower.includes('execute') ||
+      nameLower.includes('verify') ||
+      nameLower.includes('deliver') ||
       nameLower.includes('perform')) {
-    return 'COMMIT';
+    return verbs.verb3;
   }
 
   return null;
@@ -184,18 +224,18 @@ function buildConceptPath(concept: LearningConcept): string[] {
 /**
  * Build priming card from concept's own data - no hardcoded content
  */
-function buildPrimingCard(concept: LearningConcept): PrimingCard {
+function buildPrimingCard(concept: LearningConcept, action: string): PrimingCard {
   return {
     trick: {
-      title: '🧠 The Trick',
+      title: `🧠 The Trick: ${action}`,
       content: buildTrickContent(concept),
     },
     chain: {
-      title: '🔗 The Chain',
+      title: '🔗 The Chain: Prerequisites',
       constraints: buildConstraints(concept),
     },
     steps: {
-      title: '⚡ Atomic Steps',
+      title: `⚡ Atomic Steps: How to ${action}`,
       actions: buildAtomicSteps(concept),
     },
   };

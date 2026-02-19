@@ -9,36 +9,42 @@ import { X, AlertCircle } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import GlassMatrixTable from './GlassMatrixTable';
 import PrimingDrillDownCard from './PrimingDrillDownCard';
-import type { ConceptMatrix, MatrixCell } from '../types';
+import type { PrimingMatrixData, MatrixCell } from '../types';
 import { detectULCPattern } from '../detector';
 import styles from './FuturisticPrimingZone.module.css';
 
 interface FuturisticPrimingZoneProps {
   onClose?: () => void;
   /** Optional: Provide pre-built matrix (for testing/demo only) */
-  matrix?: ConceptMatrix;
-  /** Required: Provide learning concepts to detect pattern */
-  concepts: LearningConcept[];
+  matrix?: PrimingMatrixData;
+  /** Optional: Provide learning concepts to detect pattern (not needed if matrix provided) */
+  concepts?: LearningConcept[];
+  /** Optional: Subject ID for tracking */
+  subjectId?: string;
+  /** Optional: Subject name for display */
+  subjectName?: string;
 }
 
 export default function FuturisticPrimingZone({
   onClose,
   matrix: providedMatrix,
   concepts,
+  subjectId = 'unknown',
+  subjectName,
 }: FuturisticPrimingZoneProps) {
   const [selectedCell, setSelectedCell] = useState<MatrixCell | null>(null);
-  const [detectedMatrix, setDetectedMatrix] = useState<ConceptMatrix | null>(null);
+  const [detectedMatrix, setDetectedMatrix] = useState<PrimingMatrixData | null>(null);
   const [isDetecting, setIsDetecting] = useState(false);
 
   // Detect ULC pattern from concepts
   useEffect(() => {
-    if (concepts && concepts.length > 0) {
+    if (concepts && concepts.length > 0 && !providedMatrix) {
       setIsDetecting(true);
-      const detected = detectULCPattern(concepts);
+      const detected = detectULCPattern(concepts, subjectId, subjectName);
       setDetectedMatrix(detected);
       setIsDetecting(false);
     }
-  }, [concepts]);
+  }, [concepts, providedMatrix, subjectId, subjectName]);
 
   // Use provided matrix or detected matrix (no hardcoded fallback)
   const activeMatrix = providedMatrix || detectedMatrix;

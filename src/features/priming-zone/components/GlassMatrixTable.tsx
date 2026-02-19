@@ -1,27 +1,27 @@
 /**
  * Glass Matrix Table - The 2D Grid (X × Y Axes)
- * X-Axis: CREATE, CONFIGURE, MONITOR
+ * X-Axis: Dynamic ULC Verbs (extracted from subject)
  * Y-Axis: Concepts (with nested hierarchy support)
  */
 
 import { useMemo } from 'react';
 import { ChevronRight } from 'lucide-react';
-import type { ConceptMatrix, MatrixCell, AtomicConcept, UniversalAction } from '../types';
+import type { PrimingMatrixData, MatrixCell, AtomicConcept } from '../types';
 import styles from './GlassMatrixTable.module.css';
 
 interface GlassMatrixTableProps {
-  matrix: ConceptMatrix;
+  matrix: PrimingMatrixData;
   onCellClick: (cell: MatrixCell) => void;
   selectedCell: MatrixCell | null;
 }
-
-const ACTIONS: UniversalAction[] = ['UNDERSTAND', 'LINK', 'COMMIT'];
 
 export default function GlassMatrixTable({
   matrix,
   onCellClick,
   selectedCell,
 }: GlassMatrixTableProps) {
+  const ACTIONS = [matrix.verbs.verb1, matrix.verbs.verb2, matrix.verbs.verb3];
+
   // Flatten concepts into rows (including nested children)
   const flattenedRows = useMemo(() => {
     const rows: Array<{ concept: AtomicConcept; depth: number }> = [];
@@ -29,7 +29,7 @@ export default function GlassMatrixTable({
     const flatten = (concepts: AtomicConcept[], depth = 0) => {
       concepts.forEach(concept => {
         rows.push({ concept, depth });
-        if (concept.children) {
+        if (concept.children && concept.children.length > 0) {
           flatten(concept.children, depth + 1);
         }
       });
@@ -40,7 +40,7 @@ export default function GlassMatrixTable({
   }, [matrix.concepts]);
 
   // Get cell for a specific action × concept intersection
-  const getCell = (action: UniversalAction, conceptId: string): MatrixCell | undefined => {
+  const getCell = (action: string, conceptId: string): MatrixCell | undefined => {
     return matrix.cells.find(
       cell => cell.action === action && cell.conceptId === conceptId
     );

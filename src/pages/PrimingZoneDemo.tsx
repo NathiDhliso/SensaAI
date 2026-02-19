@@ -6,5 +6,5 @@
 import { FuturisticPrimingZone } from '@/features/priming-zone';
 
 export default function PrimingZoneDemo() {
-  return <FuturisticPrimingZone />;
+  return <FuturisticPrimingZone concepts={[]} />;
 }
