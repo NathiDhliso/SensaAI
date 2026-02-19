@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Circle, Target, ArrowRight } from 'lucide-react';
+import { X, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { QMetricInputs } from '@/shared/services/blueprint-formula';
@@ -10,17 +10,20 @@ import {
   getNextULCCell,
   detectVerbJump,
   type ULCPattern,
-  type ULCCell
+  type ULCCell,
 } from '@/features/content-generation/parsers/ulc-detector';
 import MicroLearningLoopController from './MicroLearningLoopController';
-import CoachInterventionBanner from './ui/CoachInterventionBanner';
 import styles from './ULCPracticeController.module.css';
 
 interface ULCPracticeControllerProps {
   concepts: LearningConcept[];
   completedConceptIds: string[];
   subjectType?: string;
-  onCellComplete: (conceptId: string, outcome: 'mastered' | 'needs-learning' | 'needs-review', metrics: Partial<QMetricInputs>) => void;
+  onCellComplete: (
+    conceptId: string,
+    outcome: 'mastered' | 'needs-learning' | 'needs-review',
+    metrics: Partial<QMetricInputs>
+  ) => void;
   onAllComplete: () => void;
 }
 
@@ -29,12 +32,12 @@ export function ULCPracticeController({
   completedConceptIds,
   subjectType,
   onCellComplete,
-  onAllComplete
+  onAllComplete,
 }: ULCPracticeControllerProps) {
   const { studySession } = useLearningStore();
-  const [activeCellKey, setActiveCellKey] = useState<string | null>(null);
-  const [showVerbJumpWarning, setShowVerbJumpWarning] = useState(false);
-  const [pendingJumpKey, setPendingJumpKey] = useState<string | null>(null);
+  const [drillCell, setDrillCell] = useState<ULCCell | null>(null);
+  const [inLoop, setInLoop] = useState(false);
+  const [pendingJumpCell, setPendingJumpCell] = useState<ULCCell | null>(null);
 
   const ulcPattern: ULCPattern = useMemo(() => detectULC(concepts), [concepts]);
 
@@ -49,16 +52,17 @@ export function ULCPracticeController({
   );
 
   const activeConcept = useMemo(() => {
-    if (!activeCellKey) return null;
-    const [verb, obj] = activeCellKey.split('::');
-    const cell = matrix.flat().find(c => c.verb === verb && c.object === obj);
-    if (!cell?.conceptId) return null;
-    return concepts.find(c => c.id === cell.conceptId) ?? null;
-  }, [activeCellKey, matrix, concepts]);
+    if (!drillCell?.conceptId) return null;
+    return concepts.find(c => c.id === drillCell.conceptId) ?? null;
+  }, [drillCell, concepts]);
+
+  const drillConcept = useMemo(() => {
+    if (!drillCell?.conceptId) return null;
+    return concepts.find(c => c.id === drillCell.conceptId) ?? null;
+  }, [drillCell, concepts]);
 
   const handleCellClick = useCallback((cell: ULCCell) => {
     if (!cell.conceptId || cell.status === 'mastered') return;
-    const key = `${cell.verb}::${cell.object}`;
 
     const isVerbJump = detectVerbJump(
       [...completedConceptIds, cell.conceptId],
@@ -66,13 +70,16 @@ export function ULCPracticeController({
     );
 
     if (isVerbJump && ulcPattern.detected) {
-      setPendingJumpKey(key);
-      setShowVerbJumpWarning(true);
+      setPendingJumpCell(cell);
       return;
     }
 
-    setActiveCellKey(key);
+    setDrillCell(cell);
   }, [completedConceptIds, ulcPattern]);
+
+  const handleStartLoop = useCallback(() => {
+    setInLoop(true);
+  }, []);
 
   const handleLoopComplete = useCallback((
     outcome: 'mastered' | 'needs-learning' | 'needs-review',
@@ -82,7 +89,7 @@ export function ULCPracticeController({
 
     const progress = studySession ? {
       mapNodeCount: studySession.conceptMap?.nodes?.length ?? 0,
-      mapConnectionCount: studySession.conceptMap?.connections?.length ?? 0
+      mapConnectionCount: studySession.conceptMap?.connections?.length ?? 0,
     } : { mapNodeCount: 0, mapConnectionCount: 0 };
 
     const score = outcome === 'mastered' ? 1.0 : outcome === 'needs-review' ? 0.6 : 0.3;
@@ -92,51 +99,28 @@ export function ULCPracticeController({
       blankSheetScore: score,
       timeSpentMs: timeSpentSeconds * 1000,
       avgResponseTimeMs: timeSpentSeconds > 0 ? (timeSpentSeconds * 1000) / 3 : 0,
-      ...progress
+      ...progress,
     });
 
-    setActiveCellKey(null);
+    setDrillCell(null);
+    setInLoop(false);
 
-    const remaining = concepts.filter(c => !completedConceptIds.includes(c.id) && c.id !== activeConcept.id);
-    if (remaining.length === 0) {
-      onAllComplete();
-    }
+    const remaining = concepts.filter(
+      c => !completedConceptIds.includes(c.id) && c.id !== activeConcept.id
+    );
+    if (remaining.length === 0) onAllComplete();
   }, [activeConcept, studySession, onCellComplete, onAllComplete, concepts, completedConceptIds]);
 
-  const handleConfirmJump = useCallback(() => {
-    setShowVerbJumpWarning(false);
-    if (pendingJumpKey) {
-      setActiveCellKey(pendingJumpKey);
-      setPendingJumpKey(null);
-    }
-  }, [pendingJumpKey]);
+  const masteredCount = completedConceptIds.length;
+  const totalCells = matrix.flat().filter(c => c.conceptId).length;
 
-  const handleDismissJump = useCallback(() => {
-    setShowVerbJumpWarning(false);
-    setPendingJumpKey(null);
-  }, []);
-
-  if (activeConcept) {
+  if (inLoop && activeConcept) {
     return (
-      <motion.div
-        key={`ulc-loop-${activeConcept.id}`}
-        className={styles.loopWrapper}
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 1.02 }}
-      >
-        <div className={styles.loopHeader}>
-          <Target size={16} className={styles.loopHeaderIcon} />
-          <span className={styles.loopHeaderLabel}>
-            {activeCellKey?.replace('::', ' × ')}
-          </span>
-          <button
-            className={styles.backToMatrix}
-            onClick={() => setActiveCellKey(null)}
-          >
-            ← Matrix
-          </button>
-        </div>
+      <div className={styles.loopWrapper}>
+        <button className={styles.backBtn} onClick={() => { setInLoop(false); setDrillCell(null); }}>
+          <ArrowLeft size={15} />
+          Back to Matrix
+        </button>
         <MicroLearningLoopController
           key={activeConcept.id}
           concept={activeConcept}
@@ -145,69 +129,35 @@ export function ULCPracticeController({
           userVelocity={1.0}
           subjectType={subjectType as any}
           onLoopComplete={handleLoopComplete}
-          onSkip={() => setActiveCellKey(null)}
+          onSkip={() => { setInLoop(false); setDrillCell(null); }}
         />
-      </motion.div>
+      </div>
     );
   }
 
   if (!ulcPattern.detected) {
-    return <FallbackConceptList concepts={concepts} completedConceptIds={completedConceptIds} onSelect={(c) => {
-      const key = `${c.name}::${c.id}`;
-      setActiveCellKey(key);
-    }} />;
+    return (
+      <FallbackList
+        concepts={concepts}
+        completedConceptIds={completedConceptIds}
+        onSelect={(cell) => setDrillCell(cell)}
+      />
+    );
   }
 
-  const masteredCount = completedConceptIds.length;
-  const totalCells = matrix.flat().filter(c => c.conceptId).length;
-
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <Target size={20} className={styles.headerIcon} />
-          <div>
-            <h2 className={styles.title}>ULC Mastery Matrix</h2>
-            <p className={styles.subtitle}>
-              {ulcPattern.verbs.length} actions × {ulcPattern.objects.length} resources
-            </p>
-          </div>
-        </div>
-        <div className={styles.progressBadge}>
-          <span className={styles.progressCount}>{masteredCount}/{totalCells}</span>
-          <span className={styles.progressLabel}>mastered</span>
-        </div>
+    <div className={styles.zone}>
+      <div className={styles.zoneHeader}>
+        <span className={styles.zoneTitle}>Sensa AI Priming Zone</span>
+        <span className={styles.progressPill}>{masteredCount}/{totalCells} mastered</span>
       </div>
 
-      <AnimatePresence>
-        {showVerbJumpWarning && (
-          <div className={styles.interventionWrapper}>
-            <CoachInterventionBanner
-              type="skip_streak"
-              onPrimary={handleConfirmJump}
-              onSecondary={handleDismissJump}
-              onDismiss={handleDismissJump}
-            />
-          </div>
-        )}
-      </AnimatePresence>
-
-      {suggestedCell && (
-        <button
-          className={styles.suggestedCell}
-          onClick={() => handleCellClick(suggestedCell)}
-        >
-          <ArrowRight size={16} />
-          <span>Suggested next: <strong>{suggestedCell.verb} {suggestedCell.object}</strong></span>
-        </button>
-      )}
-
-      <div className={styles.matrixWrapper}>
+      <div className={styles.matrixScroll}>
         <div
           className={styles.matrix}
-          style={{ gridTemplateColumns: `minmax(120px, 1fr) repeat(${ulcPattern.verbs.length}, 1fr)` }}
+          style={{ gridTemplateColumns: `minmax(140px, auto) repeat(${ulcPattern.verbs.length}, 1fr)` }}
         >
-          <div className={styles.cornerCell} />
+          <div className={styles.cornerCell}>RESOURCE</div>
           {ulcPattern.verbs.map(verb => (
             <div key={verb} className={styles.verbHeader}>{verb}</div>
           ))}
@@ -231,6 +181,104 @@ export function ULCPracticeController({
         </div>
       </div>
 
+      <AnimatePresence>
+        {drillCell && drillConcept && !inLoop && (
+          <motion.div
+            className={styles.drillOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={() => setDrillCell(null)}
+          >
+            <motion.div
+              className={styles.drillPanel}
+              initial={{ opacity: 0, scale: 0.96, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 24 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className={styles.drillHeader}>
+                <span className={styles.drillTitle}>
+                  {drillCell.verb} {drillCell.object}
+                </span>
+                <button className={styles.drillClose} onClick={() => setDrillCell(null)}>
+                  <X size={16} />
+                </button>
+              </div>
+
+              <DrillBlock
+                icon="🧠"
+                label="THE TRICK"
+                sublabel="Schema"
+                content={drillConcept.mnemonic?.anchor || drillConcept.shape?.simpleCore || drillConcept.name}
+              />
+
+              <DrillBlock
+                icon="🔗"
+                label="THE CHAIN"
+                sublabel="Prerequisites"
+                content={
+                  drillConcept.prerequisites?.length
+                    ? drillConcept.prerequisites.join('\n')
+                    : drillConcept.mnemonic?.story || 'No prerequisites listed.'
+                }
+                list
+              />
+
+              <DrillBlock
+                icon="⚡"
+                label="ATOMIC STEPS"
+                sublabel="Execution"
+                content={
+                  drillConcept.lifecycle?.phase1?.steps?.join('\n') ||
+                  drillConcept.keyPoints?.join('\n') ||
+                  'Open the resource → Configure settings → Review + Create'
+                }
+                list
+              />
+
+              <button className={styles.drillStart} onClick={handleStartLoop}>
+                Start Drill
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {pendingJumpCell && (
+          <motion.div
+            className={styles.drillOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPendingJumpCell(null)}
+          >
+            <motion.div
+              className={styles.jumpWarning}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <p className={styles.jumpTitle}>Verb jump detected</p>
+              <p className={styles.jumpBody}>
+                You're skipping ahead to <strong>{pendingJumpCell.verb}</strong> before finishing the current action across all resources. Mastering one verb fully first builds stronger recall.
+              </p>
+              <div className={styles.jumpActions}>
+                <button className={styles.jumpConfirm} onClick={() => { setDrillCell(pendingJumpCell); setPendingJumpCell(null); }}>
+                  Continue anyway
+                </button>
+                <button className={styles.jumpCancel} onClick={() => setPendingJumpCell(null)}>
+                  Stay on track
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -238,57 +286,93 @@ export function ULCPracticeController({
 function MatrixCell({
   cell,
   isSuggested,
-  onClick
+  onClick,
 }: {
   cell: ULCCell;
   isSuggested: boolean;
   onClick: () => void;
 }) {
   const isClickable = !!cell.conceptId && cell.status !== 'mastered';
+  const statusClass = cell.status === 'mastered'
+    ? styles.cellMastered
+    : cell.status === 'learning'
+      ? styles.cellLearning
+      : styles.cellNotStarted;
 
   return (
     <motion.button
-      className={`${styles.cell} ${styles[`cell--${cell.status}`]} ${isSuggested ? styles['cell--suggested'] : ''} ${!cell.conceptId ? styles['cell--empty'] : ''}`}
+      className={`${styles.cell} ${statusClass} ${isSuggested ? styles.cellSuggested : ''} ${!cell.conceptId ? styles.cellEmpty : ''}`}
       onClick={isClickable ? onClick : undefined}
       disabled={!isClickable}
-      whileHover={isClickable ? { scale: 1.05 } : {}}
-      whileTap={isClickable ? { scale: 0.97 } : {}}
-      title={cell.conceptId ? `${cell.verb} ${cell.object}` : 'No concept mapped'}
+      whileHover={isClickable ? { scale: 1.04 } : {}}
+      whileTap={isClickable ? { scale: 0.96 } : {}}
+      title={cell.conceptId ? `${cell.verb} × ${cell.object}` : undefined}
     >
-      {cell.status === 'mastered' && <CheckCircle size={18} />}
-      {cell.status === 'learning' && <Circle size={18} />}
-      {cell.status === 'not-started' && cell.conceptId && <span className={styles.dot}>·</span>}
-      {!cell.conceptId && <span className={styles.emptyDash}>—</span>}
+      {cell.status === 'mastered' && <CheckCircle size={16} />}
+      {cell.status !== 'mastered' && cell.conceptId && (
+        <span className={styles.cellLabel}>
+          {isSuggested ? 'Start here' : 'Drill'}
+        </span>
+      )}
+      {!cell.conceptId && <span className={styles.cellEmpty}>—</span>}
     </motion.button>
   );
 }
 
-function FallbackConceptList({
+function DrillBlock({
+  icon,
+  label,
+  sublabel,
+  content,
+  list,
+}: {
+  icon: string;
+  label: string;
+  sublabel: string;
+  content: string;
+  list?: boolean;
+}) {
+  const lines = content.split('\n').filter(Boolean);
+
+  return (
+    <div className={styles.drillBlock}>
+      <div className={styles.drillBlockHeader}>
+        <span className={styles.drillBlockIcon}>{icon}</span>
+        <span className={styles.drillBlockLabel}>{label}</span>
+        <span className={styles.drillBlockSub}>({sublabel})</span>
+      </div>
+      {list && lines.length > 1 ? (
+        <ol className={styles.drillBlockList}>
+          {lines.map((line, i) => <li key={i}>{line}</li>)}
+        </ol>
+      ) : (
+        <p className={styles.drillBlockText}>{content}</p>
+      )}
+    </div>
+  );
+}
+
+function FallbackList({
   concepts,
   completedConceptIds,
-  onSelect
+  onSelect,
 }: {
   concepts: LearningConcept[];
   completedConceptIds: string[];
-  onSelect: (concept: LearningConcept) => void;
+  onSelect: (cell: ULCCell) => void;
 }) {
   const incomplete = concepts.filter(c => !completedConceptIds.includes(c.id));
 
   return (
     <div className={styles.fallbackList}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>Concept Practice</h2>
-        <p className={styles.subtitle}>Select a concept to practice</p>
-      </div>
+      <p className={styles.fallbackHint}>Select a concept to drill</p>
       {incomplete.map(concept => (
         <button
           key={concept.id}
           className={styles.fallbackItem}
-          onClick={() => onSelect(concept)}
+          onClick={() => onSelect({ verb: concept.name, object: concept.id, conceptId: concept.id, status: 'not-started' })}
         >
-          <Circle size={16} className={styles.learningIcon} />
           <span>{concept.name}</span>
-          <ArrowRight size={16} />
         </button>
       ))}
     </div>

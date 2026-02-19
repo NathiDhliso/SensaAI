@@ -216,7 +216,7 @@ export function useLearningFlow(): LearningFlow {
  const unifiedPhase = useMemo((): UnifiedPhase => {
  if (!currentSession) return 'IDLE';
 
- if (!studySession?.isActive || !studySession.primer) {
+ if (!studySession?.isActive) {
  return 'PRIME';
  }
 
