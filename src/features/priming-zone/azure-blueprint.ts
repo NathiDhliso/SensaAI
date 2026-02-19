@@ -47,9 +47,9 @@ const azureConcepts: AtomicConcept[] = [
 
 // Matrix Cells: Sample intersections with Priming Cards
 const azureMatrixCells: MatrixCell[] = [
-  // ── STORAGE ACCOUNT × CREATE ──────────────────────────────────────────────
+  // ── STORAGE ACCOUNT × UNDERSTAND ──────────────────────────────────────────────
   {
-    action: 'CREATE',
+    action: 'UNDERSTAND',
     conceptId: 'storage-account',
     conceptPath: ['Storage', 'Storage Account'],
     primingCard: {
@@ -81,9 +81,9 @@ const azureMatrixCells: MatrixCell[] = [
     },
   },
 
-  // ── STORAGE ACCOUNT × CONFIGURE ───────────────────────────────────────────
+  // ── STORAGE ACCOUNT × LINK ───────────────────────────────────────────
   {
-    action: 'CONFIGURE',
+    action: 'LINK',
     conceptId: 'storage-account',
     conceptPath: ['Storage', 'Storage Account'],
     primingCard: {
@@ -115,9 +115,9 @@ const azureMatrixCells: MatrixCell[] = [
     },
   },
 
-  // ── STORAGE ACCOUNT × MONITOR ─────────────────────────────────────────────
+  // ── STORAGE ACCOUNT × COMMIT ─────────────────────────────────────────────
   {
-    action: 'MONITOR',
+    action: 'COMMIT',
     conceptId: 'storage-account',
     conceptPath: ['Storage', 'Storage Account'],
     primingCard: {
@@ -149,9 +149,9 @@ const azureMatrixCells: MatrixCell[] = [
     },
   },
 
-  // ── VIRTUAL MACHINE × CREATE ──────────────────────────────────────────────
+  // ── VIRTUAL MACHINE × UNDERSTAND ──────────────────────────────────────────────
   {
-    action: 'CREATE',
+    action: 'UNDERSTAND',
     conceptId: 'compute-vm',
     conceptPath: ['Compute', 'Virtual Machine'],
     primingCard: {
@@ -185,9 +185,9 @@ const azureMatrixCells: MatrixCell[] = [
     },
   },
 
-  // ── VIRTUAL MACHINE × CONFIGURE ───────────────────────────────────────────
+  // ── VIRTUAL MACHINE × LINK ───────────────────────────────────────────
   {
-    action: 'CONFIGURE',
+    action: 'LINK',
     conceptId: 'compute-vm',
     conceptPath: ['Compute', 'Virtual Machine'],
     primingCard: {
@@ -220,9 +220,9 @@ const azureMatrixCells: MatrixCell[] = [
     },
   },
 
-  // ── VIRTUAL MACHINE × MONITOR ─────────────────────────────────────────────
+  // ── VIRTUAL MACHINE × COMMIT ─────────────────────────────────────────────
   {
-    action: 'MONITOR',
+    action: 'COMMIT',
     conceptId: 'compute-vm',
     conceptPath: ['Compute', 'Virtual Machine'],
     primingCard: {
@@ -254,9 +254,9 @@ const azureMatrixCells: MatrixCell[] = [
     },
   },
 
-  // ── VIRTUAL NETWORK × CREATE ──────────────────────────────────────────────
+  // ── VIRTUAL NETWORK × UNDERSTAND ──────────────────────────────────────────────
   {
-    action: 'CREATE',
+    action: 'UNDERSTAND',
     conceptId: 'networking-vnet',
     conceptPath: ['Networking', 'Virtual Network'],
     primingCard: {
@@ -288,9 +288,9 @@ const azureMatrixCells: MatrixCell[] = [
     },
   },
 
-  // ── RBAC ROLES × CONFIGURE ────────────────────────────────────────────────
+  // ── RBAC ROLES × LINK ────────────────────────────────────────────────
   {
-    action: 'CONFIGURE',
+    action: 'LINK',
     conceptId: 'identity-rbac',
     conceptPath: ['Identity', 'RBAC Roles'],
     primingCard: {

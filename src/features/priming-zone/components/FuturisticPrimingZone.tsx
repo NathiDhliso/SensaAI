@@ -11,15 +11,14 @@ import GlassMatrixTable from './GlassMatrixTable';
 import PrimingDrillDownCard from './PrimingDrillDownCard';
 import type { ConceptMatrix, MatrixCell } from '../types';
 import { detectULCPattern } from '../detector';
-import { azureBlueprint } from '../azure-blueprint';
 import styles from './FuturisticPrimingZone.module.css';
 
 interface FuturisticPrimingZoneProps {
   onClose?: () => void;
-  /** Optional: Provide pre-built matrix (for testing) */
+  /** Optional: Provide pre-built matrix (for testing/demo only) */
   matrix?: ConceptMatrix;
-  /** Dynamic: Provide learning concepts to detect pattern */
-  concepts?: LearningConcept[];
+  /** Required: Provide learning concepts to detect pattern */
+  concepts: LearningConcept[];
 }
 
 export default function FuturisticPrimingZone({
@@ -41,8 +40,8 @@ export default function FuturisticPrimingZone({
     }
   }, [concepts]);
 
-  // Use provided matrix, detected matrix, or fallback to Azure blueprint
-  const activeMatrix = providedMatrix || detectedMatrix || azureBlueprint;
+  // Use provided matrix or detected matrix (no hardcoded fallback)
+  const activeMatrix = providedMatrix || detectedMatrix;
 
   const handleCellClick = (cell: MatrixCell) => {
     setSelectedCell(cell);
@@ -68,8 +67,8 @@ export default function FuturisticPrimingZone({
     );
   }
 
-  // Show no pattern detected
-  if (concepts && !detectedMatrix) {
+  // Show no pattern detected or no matrix available
+  if (!activeMatrix) {
     return (
       <div className={styles.primingZone}>
         <div className={styles.header}>

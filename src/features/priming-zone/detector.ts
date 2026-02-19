@@ -8,146 +8,70 @@ import type { ConceptMatrix, MatrixCell, AtomicConcept, UniversalAction, Priming
 
 /**
  * Detect if concepts follow a ULC pattern and extract the matrix
+ * Returns null if no valid ULC pattern is detected
  */
 export function detectULCPattern(concepts: LearningConcept[]): ConceptMatrix | null {
-  if (concepts.length < 6) return null;
+  if (!concepts || concepts.length === 0) return null;
 
-  // Extract verbs and objects from concept names
-  const { verbs, objects, conceptMap } = analyzeConceptStructure(concepts);
+  // Analyze the concept structure dynamically
+  const structure = analyzeConceptStructure(concepts);
 
-  // Need at least 2 verbs and 2 objects for a valid pattern
-  if (verbs.length < 2 || objects.length < 2) return null;
+  // Build the matrix from detected patterns
+  const matrix = buildMatrix(structure, concepts);
 
-  // Build the matrix
-  const matrix = buildMatrix(verbs, objects, conceptMap, concepts);
-
-  if (matrix.cells.length < 4) return null; // Need minimum cells
+  // Validate minimum viable matrix
+  if (!matrix.concepts.length || matrix.cells.length < 1) {
+    return null;
+  }
 
   return matrix;
 }
 
 interface ConceptStructure {
-  verbs: string[];
-  objects: string[];
-  conceptMap: Map<string, LearningConcept>;
+  actionMap: Map<string, UniversalAction>;
+  conceptHierarchy: Map<string, AtomicConcept>;
+  domain: string;
 }
 
 /**
- * Analyze concept names to extract verbs and objects
+ * Analyze concept names to extract ULC actions and build hierarchy
+ * Fully dynamic - no hardcoded assumptions
  */
 function analyzeConceptStructure(concepts: LearningConcept[]): ConceptStructure {
-  const verbCounts = new Map<string, number>();
-  const objectCounts = new Map<string, number>();
-  const conceptMap = new Map<string, LearningConcept>();
-
-  // Common action verbs that indicate ULC pattern
-  const actionVerbs = [
-    'create', 'configure', 'monitor', 'manage', 'implement', 'deploy',
-    'setup', 'install', 'maintain', 'troubleshoot', 'optimize', 'secure'
-  ];
-
-  for (const concept of concepts) {
-    conceptMap.set(concept.id, concept);
-    
-    const nameLower = concept.name.toLowerCase();
-    
-    // Extract verb from concept name
-    for (const verb of actionVerbs) {
-      if (nameLower.includes(verb)) {
-        const capitalizedVerb = verb.charAt(0).toUpperCase() + verb.slice(1);
-        verbCounts.set(capitalizedVerb, (verbCounts.get(capitalizedVerb) || 0) + 1);
-        
-        // Extract object (what comes after the verb)
-        const parts = concept.name.split(new RegExp(verb, 'i'));
-        if (parts.length > 1) {
-          const object = parts[1].trim();
-          if (object) {
-            objectCounts.set(object, (objectCounts.get(object) || 0) + 1);
-          }
-        }
-      }
-    }
-  }
-
-  // Get top verbs and objects
-  const verbs = Array.from(verbCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([verb]) => verb);
-
-  const objects = Array.from(objectCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([obj]) => obj);
-
-  // conceptMap is built but not used in return - keeping for future use
-  void conceptMap;
-
-  return { verbs, objects, conceptMap };
-}
-
-/**
- * Build the concept matrix from detected patterns
- */
-function buildMatrix(
-  verbs: string[],
-  objects: string[],
-  _conceptMap: Map<string, LearningConcept>,
-  concepts: LearningConcept[]
-): ConceptMatrix {
-  // Build atomic concepts with hierarchy
-  const atomicConcepts: AtomicConcept[] = buildAtomicConcepts(concepts);
-
-  // Build matrix cells
-  const cells: MatrixCell[] = [];
-
-  for (const concept of concepts) {
-    const matchedAction = matchConceptToAction(concept, verbs);
-    const matchedObject = matchConceptToObject(concept, objects);
-
-    if (matchedAction && matchedObject) {
-      const primingCard = buildPrimingCard(concept);
-      
-      cells.push({
-        action: matchedAction,
-        conceptId: concept.id,
-        conceptPath: buildConceptPath(concept, concepts),
-        primingCard,
-      });
-    }
-  }
-
-  return {
-    concepts: atomicConcepts,
-    cells,
-    domain: extractDomain(concepts),
-    version: '1.0.0',
-  };
-}
-
-
-/**
- * Build atomic concepts with hierarchy from learning concepts
- */
-function buildAtomicConcepts(concepts: LearningConcept[]): AtomicConcept[] {
-  const rootConcepts = new Map<string, AtomicConcept>();
+  const actionMap = new Map<string, UniversalAction>();
+  const conceptHierarchy = new Map<string, AtomicConcept>();
   
-  // Group by trunk domain or parent
+  // Extract domain from first concept or common trunk
+  const domain = extractDomain(concepts);
+
+  // Build concept hierarchy
   for (const concept of concepts) {
-    const rootName = concept.trunkDomain || concept.parentName || concept.name;
+    // Determine which ULC action this concept maps to
+    const action = matchConceptToAction(concept);
+    if (action) {
+      actionMap.set(concept.id, action);
+    }
+
+    // Build hierarchical structure
+    const rootKey = concept.trunkDomain || concept.parentName || 'root';
     
-    if (!rootConcepts.has(rootName)) {
-      rootConcepts.set(rootName, {
-        id: slugify(rootName),
-        name: rootName,
+    if (!conceptHierarchy.has(rootKey)) {
+      conceptHierarchy.set(rootKey, {
+        id: slugify(rootKey),
+        name: rootKey,
         children: [],
       });
     }
 
-    // Add as child if it has a parent
-    if (concept.parentName && concept.parentName !== rootName) {
-      const root = rootConcepts.get(rootName);
-      if (root && root.children) {
+    const root = conceptHierarchy.get(rootKey)!;
+    
+    // Add concept as child if it's not the root itself
+    if (concept.name !== rootKey) {
+      if (!root.children) root.children = [];
+      
+      // Check if already exists
+      const exists = root.children.some(c => c.id === concept.id);
+      if (!exists) {
         root.children.push({
           id: concept.id,
           name: concept.name,
@@ -156,61 +80,96 @@ function buildAtomicConcepts(concepts: LearningConcept[]): AtomicConcept[] {
     }
   }
 
-  return Array.from(rootConcepts.values());
+  return { actionMap, conceptHierarchy, domain };
 }
 
 /**
- * Match concept to universal action
+ * Build the concept matrix from detected patterns
  */
-function matchConceptToAction(concept: LearningConcept, _verbs: string[]): UniversalAction | null {
-  const nameLower = concept.name.toLowerCase();
-  
-  // Map verbs to universal actions
-  const actionMap: Record<string, UniversalAction> = {
-    'create': 'CREATE',
-    'install': 'CREATE',
-    'deploy': 'CREATE',
-    'configure': 'CONFIGURE',
-    'manage': 'CONFIGURE',
-    'setup': 'CONFIGURE',
-    'monitor': 'MONITOR',
-    'troubleshoot': 'MONITOR',
-    'maintain': 'MONITOR',
-  };
+function buildMatrix(
+  structure: ConceptStructure,
+  concepts: LearningConcept[]
+): ConceptMatrix {
+  const { actionMap, conceptHierarchy, domain } = structure;
 
-  for (const [verb, action] of Object.entries(actionMap)) {
-    if (nameLower.includes(verb)) {
-      return action;
+  // Convert hierarchy map to array
+  const atomicConcepts = Array.from(conceptHierarchy.values());
+
+  // Build matrix cells for each concept that has an action mapping
+  const cells: MatrixCell[] = [];
+
+  for (const concept of concepts) {
+    const action = actionMap.get(concept.id);
+    
+    if (action) {
+      const primingCard = buildPrimingCard(concept);
+      
+      cells.push({
+        action,
+        conceptId: concept.id,
+        conceptPath: buildConceptPath(concept),
+        primingCard,
+      });
     }
   }
 
-  // Check lifecycle phase as fallback
-  if (concept.lifecyclePhase === 'PREPARE') return 'CREATE';
-  if (concept.lifecyclePhase === 'MODEL') return 'CONFIGURE';
-  if (concept.lifecyclePhase === 'DELIVER') return 'MONITOR';
+  return {
+    concepts: atomicConcepts,
+    cells,
+    domain,
+    version: '1.0.0',
+  };
+}
+
+/**
+ * Match concept to universal action based on lifecycle phase and content
+ */
+function matchConceptToAction(concept: LearningConcept): UniversalAction | null {
+  // Primary: Use lifecycle phase if available
+  if (concept.lifecyclePhase) {
+    const phase = concept.lifecyclePhase.toUpperCase();
+    if (phase === 'PREPARE') return 'UNDERSTAND';
+    if (phase === 'MODEL') return 'LINK';
+    if (phase === 'DELIVER') return 'COMMIT';
+  }
+
+  // Secondary: Analyze concept name for action keywords
+  const nameLower = concept.name.toLowerCase();
+  
+  // UNDERSTAND indicators
+  if (nameLower.includes('understand') || 
+      nameLower.includes('learn') || 
+      nameLower.includes('know') ||
+      nameLower.includes('define') ||
+      nameLower.includes('explain')) {
+    return 'UNDERSTAND';
+  }
+  
+  // LINK indicators
+  if (nameLower.includes('link') || 
+      nameLower.includes('connect') || 
+      nameLower.includes('relate') ||
+      nameLower.includes('compare') ||
+      nameLower.includes('integrate')) {
+    return 'LINK';
+  }
+  
+  // COMMIT indicators
+  if (nameLower.includes('commit') || 
+      nameLower.includes('apply') || 
+      nameLower.includes('practice') ||
+      nameLower.includes('execute') ||
+      nameLower.includes('perform')) {
+    return 'COMMIT';
+  }
 
   return null;
 }
 
 /**
- * Match concept to object/resource
+ * Build concept path for breadcrumb from concept's own hierarchy data
  */
-function matchConceptToObject(concept: LearningConcept, objects: string[]): string | null {
-  const nameLower = concept.name.toLowerCase();
-  
-  for (const obj of objects) {
-    if (nameLower.includes(obj.toLowerCase())) {
-      return obj;
-    }
-  }
-
-  return concept.parentName || concept.trunkDomain || null;
-}
-
-/**
- * Build concept path for breadcrumb
- */
-function buildConceptPath(concept: LearningConcept, _allConcepts: LearningConcept[]): string[] {
+function buildConceptPath(concept: LearningConcept): string[] {
   const path: string[] = [];
 
   if (concept.trunkDomain) path.push(concept.trunkDomain);
@@ -223,14 +182,13 @@ function buildConceptPath(concept: LearningConcept, _allConcepts: LearningConcep
 }
 
 /**
- * Build priming card from concept data
+ * Build priming card from concept's own data - no hardcoded content
  */
 function buildPrimingCard(concept: LearningConcept): PrimingCard {
   return {
     trick: {
       title: '🧠 The Trick',
-      content: concept.metaphor || concept.hookSentence || concept.whyYouNeed || 
-               'Mental model for understanding this concept.',
+      content: buildTrickContent(concept),
     },
     chain: {
       title: '🔗 The Chain',
@@ -244,74 +202,76 @@ function buildPrimingCard(concept: LearningConcept): PrimingCard {
 }
 
 /**
- * Build constraints from concept prerequisites
+ * Build the "Trick" content from concept's mental model data
+ */
+function buildTrickContent(concept: LearningConcept): string {
+  // Priority order: metaphor > hookSentence > whyYouNeed
+  if (concept.metaphor) return concept.metaphor;
+  if (concept.hookSentence) return concept.hookSentence;
+  if (concept.whyYouNeed) return concept.whyYouNeed;
+  
+  // Fallback: construct from key points
+  if (concept.keyPoints && concept.keyPoints.length > 0) {
+    return concept.keyPoints[0];
+  }
+  
+  return `Mental model for ${concept.name}`;
+}
+
+/**
+ * Build constraints from concept's own prerequisite data
  */
 function buildConstraints(concept: LearningConcept): string[] {
   const constraints: string[] = [];
 
-  // Add prerequisites
+  // Add explicit prerequisites
   if (concept.prerequisites && concept.prerequisites.length > 0) {
-    constraints.push(...concept.prerequisites.map(p => `Prerequisite: ${p}`));
+    constraints.push(...concept.prerequisites);
   }
 
-  // Add from lifecycle phase 1
+  // Extract from lifecycle phase 1 (preparation/prerequisites)
   if (concept.lifecycle?.phase1?.steps) {
-    const prereqSteps = concept.lifecycle.phase1.steps.filter(s => 
-      s.toLowerCase().includes('prerequisite') || 
-      s.toLowerCase().includes('require')
-    );
-    constraints.push(...prereqSteps);
+    constraints.push(...concept.lifecycle.phase1.steps);
   }
 
-  // Add common pitfalls as constraints
+  // Add common pitfalls as constraints (what NOT to do)
   if (concept.commonPitfalls && concept.commonPitfalls.length > 0) {
     constraints.push(...concept.commonPitfalls.slice(0, 2));
   }
 
-  // Fallback
-  if (constraints.length === 0) {
-    constraints.push('Basic understanding of the domain');
-    constraints.push('Access to required tools/platform');
-  }
-
+  // If no constraints found, return empty array (better than fake data)
   return constraints.slice(0, 5); // Limit to 5 constraints
 }
 
 /**
- * Build atomic steps from concept lifecycle
+ * Build atomic steps from concept's own lifecycle and example data
  */
 function buildAtomicSteps(concept: LearningConcept): string[] {
   const steps: string[] = [];
 
-  // Extract from howToUse
-  if (concept.howToUse && concept.howToUse.length > 0) {
-    steps.push(...concept.howToUse);
-  }
-
-  // Extract from lifecycle phases
-  if (concept.lifecycle) {
-    if (concept.lifecycle.phase1?.steps) {
-      steps.push(...concept.lifecycle.phase1.steps);
-    }
-    if (concept.lifecycle.phase2?.steps) {
-      steps.push(...concept.lifecycle.phase2.steps);
-    }
-    if (concept.lifecycle.phase3?.steps) {
-      steps.push(...concept.lifecycle.phase3.steps);
-    }
-  }
-
-  // Extract from worked example
-  if (concept.workedExample?.steps) {
+  // Priority 1: Worked example steps (most concrete)
+  if (concept.workedExample?.steps && concept.workedExample.steps.length > 0) {
     steps.push(...concept.workedExample.steps);
   }
 
-  // Fallback to key points
+  // Priority 2: How to use instructions
+  if (steps.length === 0 && concept.howToUse && concept.howToUse.length > 0) {
+    steps.push(...concept.howToUse);
+  }
+
+  // Priority 3: Lifecycle phase steps
+  if (steps.length === 0 && concept.lifecycle) {
+    if (concept.lifecycle.phase1?.steps) steps.push(...concept.lifecycle.phase1.steps);
+    if (concept.lifecycle.phase2?.steps) steps.push(...concept.lifecycle.phase2.steps);
+    if (concept.lifecycle.phase3?.steps) steps.push(...concept.lifecycle.phase3.steps);
+  }
+
+  // Priority 4: Key points as fallback
   if (steps.length === 0 && concept.keyPoints) {
     steps.push(...concept.keyPoints);
   }
 
-  // Clean and limit steps
+  // Clean and format steps
   return steps
     .filter(s => s && s.length > 5)
     .map(s => s.replace(/^(Step \d+:|•|-|\d+\.)\s*/i, '').trim())
@@ -319,10 +279,12 @@ function buildAtomicSteps(concept: LearningConcept): string[] {
 }
 
 /**
- * Extract domain name from concepts
+ * Extract domain name from concepts' own metadata
  */
 function extractDomain(concepts: LearningConcept[]): string {
-  // Try to find common trunk domain
+  if (!concepts || concepts.length === 0) return 'Learning Domain';
+
+  // Try trunk domain (most specific)
   const trunkDomains = concepts
     .map(c => c.trunkDomain)
     .filter(Boolean);
@@ -331,8 +293,17 @@ function extractDomain(concepts: LearningConcept[]): string {
     return trunkDomains[0]!;
   }
 
-  // Fallback to first concept's parent or name
-  return concepts[0]?.parentName || concepts[0]?.name || 'Learning Domain';
+  // Try parent name
+  const parentNames = concepts
+    .map(c => c.parentName)
+    .filter(Boolean);
+
+  if (parentNames.length > 0) {
+    return parentNames[0]!;
+  }
+
+  // Fallback to first concept name
+  return concepts[0].name;
 }
 
 /**

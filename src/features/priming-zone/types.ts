@@ -4,9 +4,10 @@
  */
 
 /**
- * The 3 Universal Actions (X-Axis)
+ * The 3 Universal Life Cycle Actions (X-Axis)
+ * STRICT: Always exactly these three verbs matching the generation
  */
-export type UniversalAction = 'CREATE' | 'CONFIGURE' | 'MONITOR';
+export type UniversalAction = 'UNDERSTAND' | 'LINK' | 'COMMIT';
 
 /**
  * A single atomic concept in the hierarchy

@@ -2,9 +2,9 @@
 
 ## Overview
 
-The Futuristic Priming Zone is a complete replacement for the old ULC (Universal Life Cycle) implementation. It's an immersive, glassmorphism-styled cognitive reference tool that teaches users the "HOW" of technical disciplines through atomic drill-downs.
+The Futuristic Priming Zone is an immersive, glassmorphism-styled cognitive reference tool that teaches users the "HOW" of technical disciplines through atomic drill-downs.
 
-**KEY FEATURE: Fully Dynamic** - The system automatically detects ULC patterns from your generated `LearningConcept` data. No hardcoding required!
+**KEY FEATURE: Fully Dynamic** - The system automatically detects ULC patterns from your generated `LearningConcept` data. **No hardcoded syllabus or content.**
 
 ## Architecture
 
@@ -15,7 +15,7 @@ The Futuristic Priming Zone is a complete replacement for the old ULC (Universal
    - CONFIGURE
    - MONITOR
 
-2. **Y-Axis (Rows)**: Concepts/Resources with nested hierarchy support
+2. **Y-Axis (Rows)**: Concepts/Resources with nested hierarchy
    - Dynamically extracted from `LearningConcept.trunkDomain` and `parentName`
    - Example: Storage → Storage Account → Access Keys
    - Supports unlimited nesting depth
@@ -31,55 +31,59 @@ Every priming card MUST contain exactly three sections:
 
 1. **🧠 The Trick (Schema Construction)**
    - Mental model or pattern to find the setting
+   - Extracted from: `metaphor`, `hookSentence`, or `whyYouNeed`
    - No rote memorization required
-   - Example: "The 5-Tab Rule"
 
 2. **🔗 The Chain (Constraints)**
    - Strict prerequisites that MUST exist
+   - Extracted from: `prerequisites`, `lifecycle.phase1.steps`, `commonPitfalls`
    - Dependencies and requirements
-   - Example: "Active Azure subscription"
 
 3. **⚡ Atomic Steps (Execution)**
    - Numbered list of exact clicks required
+   - Extracted from: `workedExample.steps`, `howToUse`, `lifecycle` phases
    - Pure execution, no explanations
-   - No "why", only "how"
 
 ## Visual Design
 
 ### Glassmorphism Aesthetic
 
-- Deep, immersive frosted glass panels
-- Subtle glowing neon borders (blues/purples)
-- Deep dark backgrounds (#0a0a1a, #1a0a2e)
-- High-contrast glowing text
-- Animated background particles
+- Strict frosted glass panels: `rgba(255, 255, 255, 0.03)` with `backdrop-filter: blur(16px)`
+- Neon cyan glow on hover: `box-shadow: 0 0 20px rgba(56, 189, 248, 0.2)`
+- Deep dark background: `radial-gradient(circle at center, #0f172a 0%, #000000 100%)`
+- High-contrast text: `#e2e8f0`
 
-### Color Palette
+### Section Colors
 
-- Primary: `#8a2be2` (Purple)
-- Secondary: `#00bfff` (Cyan)
-- Background: `#0a0a1a` → `#1a0a2e` gradient
-- Glass: `rgba(26, 10, 46, 0.4)` with `backdrop-filter: blur(20px)`
+- 🧠 Understanding: Pink `#ec4899`
+- 🔗 Linking: Cyan `#06b6d4`
+- ⚡ Committing: Yellow `#fbbf24`
 
 ## Components
 
 ### FuturisticPrimingZone
 Main container component that orchestrates the entire experience.
 
-**Dynamic Detection:**
+**Usage:**
 ```tsx
-import { FuturisticPrimingZone } from '@/features/priming-zone';
+import FuturisticPrimingZone from '@/features/priming-zone/components/FuturisticPrimingZone';
 import type { LearningConcept } from '@/shared/types/learning';
 
-// Automatically detect and display ULC pattern from your concepts
+// REQUIRED: Pass your dynamically generated concepts
 <FuturisticPrimingZone 
-  concepts={learningConcepts}  // Your generated LearningConcept[]
-  onClose={() => {}}
+  concepts={learningConcepts}  // Your LearningConcept[] array
+  onClose={() => console.log('Closed')}
 />
+```
 
-// Or provide a pre-built matrix for testing
+**Testing Only:**
+```tsx
+import { azureBlueprint } from '@/features/priming-zone/azure-blueprint';
+
+// For testing/demo purposes only - NOT for production
 <FuturisticPrimingZone 
-  matrix={customMatrix}
+  matrix={azureBlueprint}
+  concepts={[]}  // Empty when using test blueprint
   onClose={() => {}}
 />
 ```
@@ -88,20 +92,19 @@ import type { LearningConcept } from '@/shared/types/learning';
 The intelligent detector that analyzes your `LearningConcept[]` data:
 
 ```tsx
-import { detectULCPattern } from '@/features/priming-zone';
+import { detectULCPattern } from '@/features/priming-zone/detector';
 
 const matrix = detectULCPattern(concepts);
 // Returns ConceptMatrix | null
 ```
 
 **Detection Logic:**
-- Extracts action verbs from concept names (create, configure, monitor, etc.)
-- Identifies objects/resources being acted upon
 - Maps concepts to Universal Actions based on:
-  1. Concept name analysis
-  2. `lifecyclePhase` (PREPARE → CREATE, MODEL → CONFIGURE, DELIVER → MONITOR)
+  1. `lifecyclePhase` (PREPARE → CREATE, MODEL → CONFIGURE, DELIVER → MONITOR)
+  2. Concept name analysis (keywords: create, configure, monitor, etc.)
 - Builds hierarchy from `trunkDomain`, `parentName`, and concept relationships
-- Generates priming cards from `lifecycle`, `howToUse`, `prerequisites`, `metaphor`
+- Generates priming cards from concept's own data fields
+- **No hardcoded assumptions or fallback content**
 
 ### GlassMatrixTable
 The 2D grid displaying the matrix (X × Y axes).
@@ -114,9 +117,9 @@ The Z-axis modal that displays the 3-part priming content.
 ### ConceptMatrix
 ```typescript
 interface ConceptMatrix {
-  concepts: AtomicConcept[];
-  cells: MatrixCell[];
-  domain: string;
+  concepts: AtomicConcept[];      // Y-axis hierarchy
+  cells: MatrixCell[];            // Action × Concept intersections
+  domain: string;                 // Extracted from concepts
   version: string;
 }
 ```
@@ -124,10 +127,10 @@ interface ConceptMatrix {
 ### MatrixCell
 ```typescript
 interface MatrixCell {
-  action: UniversalAction;
+  action: UniversalAction;        // CREATE | CONFIGURE | MONITOR
   conceptId: string;
-  conceptPath: string[];
-  primingCard: PrimingCard;
+  conceptPath: string[];          // Breadcrumb trail
+  primingCard: PrimingCard;       // The 3-section content
 }
 ```
 
@@ -140,61 +143,32 @@ interface PrimingCard {
 }
 ```
 
-## Seed Data
-
-The system includes a complete Azure Administration blueprint with:
-- 4 root concepts (Identity, Networking, Compute, Storage)
-- 12 nested concepts
-- 9 fully populated matrix cells with priming cards
-
-## Usage
-
-### Demo Page
-Access the standalone demo at `/priming-zone-demo`:
-
-```tsx
-import PrimingZoneDemo from '@/pages/PrimingZoneDemo';
-```
-
-### Custom Matrix
-Create your own matrix by following the `azure-blueprint.ts` structure:
-
-```typescript
-import type { ConceptMatrix } from '@/features/priming-zone';
-
-const myMatrix: ConceptMatrix = {
-  concepts: [...],
-  cells: [...],
-  domain: 'My Domain',
-  version: '1.0.0',
-};
-```
-
 ## Design Principles
 
-1. **No Gamification**: Pure cognitive reference tool
-2. **No Chat Interfaces**: Direct, focused information
-3. **Cognitive Load Management**: 3-section structure reduces overwhelm
-4. **Immersive Experience**: Feels like stepping into a "holodeck"
-5. **HOW, Not WHY**: Pure execution focus
+1. **No Hardcoded Content**: All content extracted from `LearningConcept[]`
+2. **No Gamification**: Pure cognitive reference tool
+3. **No Chat Interfaces**: Direct, focused information
+4. **Cognitive Load Management**: 3-section structure reduces overwhelm
+5. **Immersive Experience**: Feels like stepping into a "holodeck"
+6. **HOW, Not WHY**: Pure execution focus
 
-## Migration from Old ULC
+## Strict Rules
 
-The old ULC implementation has been completely removed:
-- ❌ `src/components/learning/launchpad/ULCPatternView.tsx`
-- ❌ `src/shared/hooks/useULCCoach.ts`
-- ❌ `src/features/content-generation/parsers/ulc-detector.ts`
+1. **Three Actions Only:** CREATE, CONFIGURE, MONITOR (never more)
+2. **Three Sections Only:** Trick, Chain, Steps (never more)
+3. **No "Why":** Only mental models, prerequisites, and execution steps
+4. **No Gamification:** Pure reference tool, no points or progress bars
+5. **No Hardcoded Syllabus:** All content must come from dynamic `LearningConcept[]` data
 
-All references have been cleaned up from:
-- `VelocityLearning.tsx`
-- `OverviewMapView.tsx`
-- `GymActivityLauncher.tsx`
+## Testing
+
+The `azure-blueprint.ts` file contains a hardcoded Azure Administration matrix for testing purposes only. This should NEVER be used as a fallback in production - it's purely for demos and development.
 
 ## Future Enhancements
 
 Potential additions (not in current scope):
 - Export priming cards as PDF
 - Keyboard navigation
-- Progress tracking per cell
+- Search/filter matrix cells
 - Custom themes
 - Multi-domain support

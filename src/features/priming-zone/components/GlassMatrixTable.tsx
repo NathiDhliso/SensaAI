@@ -15,7 +15,7 @@ interface GlassMatrixTableProps {
   selectedCell: MatrixCell | null;
 }
 
-const ACTIONS: UniversalAction[] = ['CREATE', 'CONFIGURE', 'MONITOR'];
+const ACTIONS: UniversalAction[] = ['UNDERSTAND', 'LINK', 'COMMIT'];
 
 export default function GlassMatrixTable({
   matrix,
