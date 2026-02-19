@@ -209,55 +209,35 @@ export function useLearningFlow(): LearningFlow {
  return ['SCOUT', 'PREVIEW', 'OVERVIEW_MAP', 'DIAGNOSE', 'COMPLETE', 'IDLE'].includes(currentPhase);
  }, [currentPhase]);
  const showStartModal = currentPhase === 'PRIME';
- 
+
  // ============================================================================
- // NEW: Unified Phase Determination (Uses phaseProgress)
+ // Unified Phase Determination — Binary: STRUCTURE → ULC_MASTERY
  // ============================================================================
  const unifiedPhase = useMemo((): UnifiedPhase => {
-   // Level 0: No session
-   if (!currentSession) return 'IDLE';
-   
-   // Level 1: Session exists but not active or no primer
-   if (!studySession?.isActive || !studySession.primer) {
-     return 'PRIME';
-   }
-   
-   // If session has phaseProgress (migrated or new), use unified logic
-   if (studySession.phaseProgress) {
-     const { phaseProgress } = studySession;
-     
-     // Level 2: ORIENT (Schema Priming)
-     if (!phaseProgress.orientCompleted) {
-       return 'ORIENT';
-     }
-     
-     // Level 3: STRUCTURE (Schema Building)
-     if (!phaseProgress.structureCompleted) {
-       return 'STRUCTURE';
-     }
-     
-     // Level 4: ENCODE (Memory Formation)
-     // Continue until all concepts are learned
-     const hasMoreConcepts = currentSession.progress.completedConcepts.length 
-       < currentSession.concepts.length;
-     
-     if (hasMoreConcepts) {
-       return 'ENCODE';
-     }
-     
-     // Level 5: VERIFY (Consolidation)
-     if (!phaseProgress.verifyCompleted) {
-       return 'VERIFY';
-     }
-     
-     // Level 6: COMPLETE
-     return 'COMPLETE';
-   }
-   
-   // Fallback to old logic if not migrated yet
-   return 'PRIME';
+ if (!currentSession) return 'IDLE';
+
+ if (!studySession?.isActive || !studySession.primer) {
+ return 'PRIME';
+ }
+
+ const phaseProgress = studySession.phaseProgress;
+
+ // Step 1: Build the Concept Map first (mandatory)
+ if (!phaseProgress?.structureCompleted) {
+ return 'STRUCTURE';
+ }
+
+ // Step 2: ULC Mastery loop — continues until all concepts done
+ const allConceptsDone =
+ currentSession.progress.completedConcepts.length >= currentSession.concepts.length;
+
+ if (!allConceptsDone) {
+ return 'ULC_MASTERY';
+ }
+
+ return 'COMPLETE';
  }, [currentSession, studySession]);
- 
+
  return {
  currentPhase,
  completedPhases,

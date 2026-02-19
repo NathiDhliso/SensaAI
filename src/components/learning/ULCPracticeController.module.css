@@ -1,0 +1,311 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.headerIcon {
+  color: var(--color-primary, #1976d2);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text, #1a1a1a);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #666);
+  margin: 0;
+}
+
+.progressBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-surface-elevated, #f5f5f5);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  min-width: 72px;
+}
+
+.progressCount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary, #1976d2);
+  line-height: 1;
+}
+
+.progressLabel {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.methodTip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: var(--color-info-bg, #e3f2fd);
+  border: 1px solid var(--color-info-border, #90caf9);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--color-text, #1a1a1a);
+  line-height: 1.5;
+}
+
+.tipIcon {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.interventionWrapper {
+  width: 100%;
+}
+
+.suggestedCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-primary, #1976d2);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  align-self: flex-start;
+}
+
+.suggestedCell:hover {
+  background: var(--color-primary-dark, #1565c0);
+}
+
+.matrixWrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--color-border, #e0e0e0);
+}
+
+.matrix {
+  display: grid;
+  min-width: 400px;
+}
+
+.cornerCell {
+  background: var(--color-surface-elevated, #f5f5f5);
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  border-right: 1px solid var(--color-border, #e0e0e0);
+  padding: 0.75rem;
+}
+
+.verbHeader {
+  background: var(--color-surface-elevated, #f5f5f5);
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  border-right: 1px solid var(--color-border, #e0e0e0);
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text, #1a1a1a);
+}
+
+.matrixRow {
+  display: contents;
+}
+
+.objectLabel {
+  background: var(--color-surface-elevated, #f5f5f5);
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  border-right: 1px solid var(--color-border, #e0e0e0);
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text, #1a1a1a);
+  display: flex;
+  align-items: center;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  border-right: 1px solid var(--color-border, #e0e0e0);
+  padding: 0.75rem;
+  background: var(--color-surface, #fff);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  min-height: 52px;
+}
+
+.cell--mastered {
+  background: var(--color-success-bg, #e8f5e9);
+  color: var(--color-success, #2e7d32);
+  cursor: default;
+}
+
+.cell--learning {
+  background: var(--color-warning-bg, #fff8e1);
+  color: var(--color-warning, #f57f17);
+}
+
+.cell--learning:hover {
+  background: var(--color-warning-hover, #fff3cd);
+}
+
+.cell--not-started {
+  background: var(--color-surface, #fff);
+  color: var(--color-text-secondary, #999);
+}
+
+.cell--not-started:hover {
+  background: var(--color-surface-hover, #f9f9f9);
+}
+
+.cell--suggested {
+  outline: 2px solid var(--color-primary, #1976d2);
+  outline-offset: -2px;
+}
+
+.cell--empty {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.dot {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-text-tertiary, #ccc);
+}
+
+.emptyDash {
+  font-size: 1rem;
+  color: var(--color-text-tertiary, #ccc);
+}
+
+.legend {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #666);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.masteredIcon {
+  color: var(--color-success, #2e7d32);
+}
+
+.learningIcon {
+  color: var(--color-warning, #f57f17);
+}
+
+.notStartedIcon {
+  color: var(--color-text-tertiary, #bbb);
+}
+
+.loopWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.loopHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-surface-elevated, #f5f5f5);
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  font-size: 0.875rem;
+}
+
+.loopHeaderIcon {
+  color: var(--color-primary, #1976d2);
+}
+
+.loopHeaderLabel {
+  font-weight: 600;
+  color: var(--color-text, #1a1a1a);
+  flex: 1;
+}
+
+.backToMatrix {
+  background: none;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 6px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--color-text-secondary, #666);
+  transition: background 0.15s;
+}
+
+.backToMatrix:hover {
+  background: var(--color-surface-hover, #f0f0f0);
+}
+
+.fallbackList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.fallbackItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-text, #1a1a1a);
+  transition: background 0.15s, border-color 0.15s;
+  text-align: left;
+}
+
+.fallbackItem:hover {
+  background: var(--color-surface-hover, #f9f9f9);
+  border-color: var(--color-primary, #1976d2);
+}
+
+.fallbackItem span {
+  flex: 1;
+}
