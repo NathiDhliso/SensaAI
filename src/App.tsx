@@ -6,6 +6,7 @@ import { AppErrorBoundary } from './components/error/AppErrorBoundary';
 import BackgroundJobToast from './components/ui/BackgroundJobToast';
 import { SensaAnimLogo } from './components/ui';
 import { useAuthStore } from './store/auth-store';
+import { useMigration } from './features/unified-flow/hooks/useMigration';
 
 const Home = lazy(() => import('./pages/Home'));
 const Generate = lazy(() => import('./pages/Generate'));
@@ -15,6 +16,7 @@ const CommunityLibrary = lazy(() => import('./pages/CommunityLibrary'));
 const Study = lazy(() => import('./pages/Study'));
 const ContentLaunchpad = lazy(() => import('./components/learning/launchpad/ContentLaunchpad'));
 const DocumentView = lazy(() => import('./pages/DocumentView'));
+const PrimingZoneDemo = lazy(() => import('./pages/PrimingZoneDemo'));
 
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const SignUp = lazy(() => import('./pages/SignUp').then(m => ({ default: m.SignUp })));
@@ -37,6 +39,9 @@ function LoadingFallback() {
 
 function App() {
     const initializeAuthListeners = useAuthStore(state => state.initializeAuthListeners);
+    
+    // Run migration on app mount
+    useMigration();
 
     useEffect(() => {
         return initializeAuthListeners();
@@ -102,6 +107,11 @@ function App() {
                         {/* Document Viewer */}
                         <Route path="/view/:id" element={
                             <ProtectedRoute><DocumentView /></ProtectedRoute>
+                        } />
+
+                        {/* Priming Zone Demo */}
+                        <Route path="/priming-demo" element={
+                            <ProtectedRoute><PrimingZoneDemo /></ProtectedRoute>
                         } />
 
                         {/* Catch-all 404 */}

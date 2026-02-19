@@ -42,9 +42,8 @@ import { usePersonalizationStore } from '@/store/personalization-store';
 import { formatSafeDate } from '@/shared/utils/utils';
 import { toast } from '@/shared/utils/toast';
 import KnowledgeHealthPanel, { type ConceptHealth } from './KnowledgeHealthPanel';
-// ULC Pattern detection temporarily disabled - module not yet implemented
-// import { detectULC, updateULCProgress, type ULCPattern } from '@/features/content-generation/parsers/ulc-detector';
-// import ULCPatternView from './ULCPatternView';
+import { FuturisticPrimingZone } from '@/features/priming-zone';
+import { detectULCPattern } from '@/features/priming-zone/detector';
 import styles from './ContentLaunchpad.module.css';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
 type LaunchpadTab = 'gym' | 'insights';
@@ -101,7 +100,7 @@ export default function ContentLaunchpad() {
     const [objectivesPanelOpen, setObjectivesPanelOpen] = useState(false);
     const [objectivesSaved, setObjectivesSaved] = useState(false);
     const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
-    // const [ulcPattern, setUlcPattern] = useState<ULCPattern | null>(null);
+    const [showPrimingZone, setShowPrimingZone] = useState(false);
     const parsedPreview = useMemo(() => {
         if (!objectivesText.trim()) return [];
         return parseSyllabusText(objectivesText);
@@ -110,6 +109,20 @@ export default function ContentLaunchpad() {
         return lastSessionMood ? moodToBandwidth(lastSessionMood) : 'medium';
     }, [lastSessionMood]);
     const bwConfig = BANDWIDTH_CONFIG[bandwidth];
+    
+    // Detect ULC pattern from concepts
+    const ulcMatrix = useMemo(() => {
+        if (!parsedData?.concepts || parsedData.concepts.length < 6) return null;
+        // Convert ParsedConcept to LearningConcept format for detector
+        const learningConcepts = parsedData.concepts.map(c => ({
+            ...c,
+            lifecyclePhase: 'MODEL' as const, // Default phase
+            dependencies: c.dependsOn || [],
+            outdegree: 0,
+        }));
+        return detectULCPattern(learningConcepts);
+    }, [parsedData]);
+    
     const tierCounts = useMemo(() => {
         if (!parsedData) return { trunk: 0, branch: 0, leaf: 0, total: 0 };
         const concepts = parsedData.concepts || [];
@@ -559,13 +572,32 @@ export default function ContentLaunchpad() {
                         </div>
                     )}
                     
-                    {/* ULC Pattern Visualization - Temporarily disabled until module is implemented */}
-                    {/* {ulcPattern && ulcPattern.detected && bandwidth !== 'low' && (
-                        <ULCPatternView
-                            pattern={ulcPattern}
-                            onCellClick={handleReviewConcept}
-                        />
-                    )} */}
+                    {/* ULC Pattern Visualization - Futuristic Priming Zone */}
+                    {ulcMatrix && bandwidth !== 'low' && (
+                        <section className={styles.zone}>
+                            <div className={styles.zoneHeader}>
+                                <div className={styles.zoneTitle}>
+                                    <Zap size={18} />
+                                    <h2>Priming Zone</h2>
+                                </div>
+                                <span className={styles.zoneBadge}>
+                                    ULC Pattern Detected
+                                </span>
+                            </div>
+                            <div className={styles.zoneContent}>
+                                <p className={styles.zoneDescription}>
+                                    This content follows a Universal Life Cycle pattern. Click below to explore the interactive matrix.
+                                </p>
+                                <button
+                                    onClick={() => setShowPrimingZone(true)}
+                                    className={styles.primingZoneButton}
+                                >
+                                    <Sparkles size={18} />
+                                    Open Priming Zone
+                                </button>
+                            </div>
+                        </section>
+                    )}
                     
                     <section className={styles.zone}>
                         <div className={styles.zoneHeader}>
@@ -1032,6 +1064,14 @@ export default function ContentLaunchpad() {
                     )}
                 </div>
             </footer>
+            
+            {/* Futuristic Priming Zone Modal */}
+            {showPrimingZone && ulcMatrix && (
+                <FuturisticPrimingZone
+                    matrix={ulcMatrix}
+                    onClose={() => setShowPrimingZone(false)}
+                />
+            )}
         </div>
     );
 }

@@ -169,6 +169,16 @@ export type StudySliceActions = {
         conceptsCompleted: number;
         goalProgress: number;
     } | null;
+    // ========== UNIFIED FLOW ACTIONS ==========
+    /** Update session with partial updates */
+    updateSession: (updates: Partial<StudySession>) => void;
+    /** Complete a specific phase */
+    completePhase: (phase: 'orientCompleted' | 'structureCompleted' | 'encodeStarted' | 'verifyCompleted') => void;
+    /** Set adaptation mode for a phase */
+    setAdaptation: (
+        phase: 'orientMode' | 'structureMode' | 'encodeMode' | 'verifyMode',
+        mode: string
+    ) => void;
 };
 export type SpacingFeedback = {
     conceptName: string;

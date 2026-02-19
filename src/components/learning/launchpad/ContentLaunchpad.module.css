@@ -1802,3 +1802,35 @@
         left: 24px;
     }
 }
+
+/* Priming Zone Button */
+.primingZoneButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #00bfff 0%, #8a2be2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+}
+
+.primingZoneButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(138, 43, 226, 0.5);
+}
+
+.primingZoneButton:active {
+    transform: translateY(0);
+}
+
+.zoneDescription {
+    margin-bottom: 1rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}

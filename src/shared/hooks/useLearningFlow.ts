@@ -2,6 +2,9 @@
 import { useMemo } from 'react';
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/shared/types/learning';
+import type { UnifiedPhase } from './usePhaseAdapter';
+
+// Keep old type for backward compatibility during transition
 export type LearningPhase =
  | 'IDLE' // No active session
  | 'PRIME' // Intent setting (Start Modal)
@@ -15,6 +18,7 @@ export type LearningPhase =
  | 'REMEDIATE' // Neural Reset (triggered when Blank Sheet score < 60%)
  | 'MASTER' // Mastery Challenge (MasteryChallenge)
  | 'COMPLETE'; // All caught up
+
 export interface LearningFlow {
  currentPhase: LearningPhase;
  completedPhases: LearningPhase[];
@@ -26,6 +30,8 @@ export interface LearningFlow {
  };
  showDashboard: boolean;
  showStartModal: boolean;
+ // NEW: Unified phase for new flow
+ unifiedPhase: UnifiedPhase;
 }
 export function useLearningFlow(): LearningFlow {
  const {
@@ -203,12 +209,62 @@ export function useLearningFlow(): LearningFlow {
  return ['SCOUT', 'PREVIEW', 'OVERVIEW_MAP', 'DIAGNOSE', 'COMPLETE', 'IDLE'].includes(currentPhase);
  }, [currentPhase]);
  const showStartModal = currentPhase === 'PRIME';
+ 
+ // ============================================================================
+ // NEW: Unified Phase Determination (Uses phaseProgress)
+ // ============================================================================
+ const unifiedPhase = useMemo((): UnifiedPhase => {
+   // Level 0: No session
+   if (!currentSession) return 'IDLE';
+   
+   // Level 1: Session exists but not active or no primer
+   if (!studySession?.isActive || !studySession.primer) {
+     return 'PRIME';
+   }
+   
+   // If session has phaseProgress (migrated or new), use unified logic
+   if (studySession.phaseProgress) {
+     const { phaseProgress } = studySession;
+     
+     // Level 2: ORIENT (Schema Priming)
+     if (!phaseProgress.orientCompleted) {
+       return 'ORIENT';
+     }
+     
+     // Level 3: STRUCTURE (Schema Building)
+     if (!phaseProgress.structureCompleted) {
+       return 'STRUCTURE';
+     }
+     
+     // Level 4: ENCODE (Memory Formation)
+     // Continue until all concepts are learned
+     const hasMoreConcepts = currentSession.progress.completedConcepts.length 
+       < currentSession.concepts.length;
+     
+     if (hasMoreConcepts) {
+       return 'ENCODE';
+     }
+     
+     // Level 5: VERIFY (Consolidation)
+     if (!phaseProgress.verifyCompleted) {
+       return 'VERIFY';
+     }
+     
+     // Level 6: COMPLETE
+     return 'COMPLETE';
+   }
+   
+   // Fallback to old logic if not migrated yet
+   return 'PRIME';
+ }, [currentSession, studySession]);
+ 
  return {
  currentPhase,
  completedPhases,
  activeConcept,
  progress,
  showDashboard,
- showStartModal
+ showStartModal,
+ unifiedPhase
  };
 }

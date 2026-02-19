@@ -250,6 +250,53 @@ export interface CelebrationData {
     timeSpent?: number;
     badgeIcon?: string;
 }
+// ============================================================================
+// Unified Progressive Flow Types
+// ============================================================================
+
+/**
+ * Phase progress tracking for unified flow.
+ * Replaces scattered flags (scouted, previewed, overviewViewed, mapBuilt, mastered)
+ */
+export interface PhaseProgress {
+    orientCompleted: boolean;
+    structureCompleted: boolean;
+    encodeStarted: boolean;
+    verifyCompleted: boolean;
+}
+
+/**
+ * Adaptation modes for each phase.
+ * Tracks which cognitive method was used based on mood/energy level.
+ */
+export type OrientMode = 
+    | 'prior-knowledge'      // Tired: Activate existing schemas
+    | 'prediction-skeleton'  // Medium: Scaffolded predictions
+    | 'generative';          // High: Full scout + predict + questions
+
+export type StructureMode =
+    | 'annotate'    // Tired: Read + annotate pre-built map
+    | 'guided'      // Medium: Guided construction with hints
+    | 'full';       // High: Full generative construction
+
+export type EncodeMode =
+    | 'retrieval'           // Tired (returning): Spaced repetition
+    | 'minimal-encoding'    // Tired (new): Low-interference presentation
+    | 'standard'            // Medium: Elaboration prompts
+    | 'interleaved';        // High: Mixed concepts
+
+export type VerifyMode =
+    | 'recognition'   // Tired: Multiple choice, "did you see this?"
+    | 'cued-recall'   // Medium: Hints available
+    | 'free-recall';  // High: No cues, transfer tasks
+
+export interface PhaseAdaptations {
+    orientMode?: OrientMode;
+    structureMode?: StructureMode;
+    encodeMode?: EncodeMode;
+    verifyMode?: VerifyMode;
+}
+
 export interface StudySession {
     id: string;
     subjectId: string;
@@ -268,19 +315,28 @@ export interface StudySession {
     goalAchieved: boolean;
     // SENSA Phase 0: See
     primer: SessionPrimer | null;
-    // SENSA Phase 1: Explore
+    
+    // ========== UNIFIED PROGRESSIVE FLOW ==========
+    /** Universal phase completion tracking */
+    phaseProgress: PhaseProgress;
+    /** Method tracking (which variant was used) */
+    adaptations: PhaseAdaptations;
+    
+    // ========== DEPRECATED (keep for migration, remove after 30 days) ==========
+    /** @deprecated Use phaseProgress.orientCompleted instead */
     scouted: boolean;
-    // SENSA Explore+
+    /** @deprecated Use phaseProgress.orientCompleted instead */
     previewed: boolean;
-    // SENSA Phase 2: Note
+    /** @deprecated Use phaseProgress.structureCompleted instead */
     mapBuilt: boolean;
     conceptMap?: ConceptMapData | null;
-    // SENSA Phase 3: Study
+    /** @deprecated No longer used */
     mapReconstructed: boolean;
-    // SENSA Phase 4: Apply
+    /** @deprecated Use phaseProgress.verifyCompleted instead */
     mastered: boolean;
-    // Low Energy Overview Map (passive consumption for tired users)
+    /** @deprecated Use phaseProgress.orientCompleted instead */
     overviewViewed: boolean;
+    
     // Step 3: The Guess (Priming) - User predictions per concept
     predictions: Record<string, string>;
     // ========== MOMENTUM CHECKPOINT SYSTEM ==========

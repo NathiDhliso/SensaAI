@@ -53,6 +53,16 @@ const createStudySession = (
  isActive: true,
  goalAchieved: false,
  primer: primer,
+ // NEW: Initialize phase progress
+ phaseProgress: {
+   orientCompleted: false,
+   structureCompleted: false,
+   encodeStarted: false,
+   verifyCompleted: false
+ },
+ // NEW: Initialize adaptations
+ adaptations: {},
+ // DEPRECATED: Keep for backward compatibility
  scouted: false,
  previewed: false,
  mapBuilt: false,
@@ -293,6 +303,52 @@ export const createStudySlice: StateCreator<
  conceptsCompleted: session.conceptsCompleted.length,
  goalProgress: Math.min(100, Math.round(goalProgress))
  };
+ },
+ 
+ // ========== UNIFIED FLOW ACTIONS ==========
+ updateSession: (updates: Partial<StudySession>) => {
+ const state = get();
+ if (!state.studySession) return;
+ 
+ set({
+ studySession: {
+ ...state.studySession,
+ ...updates
+ }
+ });
+ },
+ 
+ completePhase: (phase: keyof import('@/shared/types/learning').PhaseProgress) => {
+ const state = get();
+ if (!state.studySession) return;
+ 
+ set({
+ studySession: {
+ ...state.studySession,
+ phaseProgress: {
+ ...state.studySession.phaseProgress,
+ [phase]: true
+ }
+ }
+ });
+ },
+ 
+ setAdaptation: (
+ phase: 'orientMode' | 'structureMode' | 'encodeMode' | 'verifyMode',
+ mode: string
+ ) => {
+ const state = get();
+ if (!state.studySession) return;
+ 
+ set({
+ studySession: {
+ ...state.studySession,
+ adaptations: {
+ ...state.studySession.adaptations,
+ [phase]: mode
+ }
+ }
+ });
  }
 });
 // Export helper for use in other slices

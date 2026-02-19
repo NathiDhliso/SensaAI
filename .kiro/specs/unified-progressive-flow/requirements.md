@@ -3,20 +3,38 @@
 ## 1. Overview
 
 ### 1.1 Purpose
-Transform the fragmented, mood-dependent learning flow into a unified progressive architecture where all users follow the same cognitive phases, with depth adapting to their current energy level rather than skipping entire phases.
+Transform the fragmented, mood-dependent learning flow into a unified progressive architecture where all users follow the same cognitive phases, with each phase's METHOD adapting to current cognitive capacity while maintaining its core COGNITIVE GOAL.
 
 ### 1.2 Problem Statement
 The current learning flow architecture has critical flaws:
 - Low energy users skip ALL learning phases and "start over" when energized
 - Progress is not preserved across mood changes
-- Phase logic doesn't follow neuroscience principles (passive → active → mastery)
+- Phase logic doesn't follow neuroscience principles (encoding requires schema, retrieval beats re-reading)
 - Features are goal-dependent rather than mood-adaptive
 - Users experience a "starting over" feeling when switching moods
+- **Critical neuroscience violation:** Architecture treats "tired" as "do less" rather than "do differently"
 
 ### 1.3 Core Principle
-**Same phases for everyone, depth adapts to mood.**
+**Same cognitive goals for everyone, methods adapt to working memory capacity.**
 
-All users progress through the same cognitive phases (PRIME → ORIENT → STRUCTURE → ENCODE → VERIFY → COMPLETE), but the implementation of each phase adapts to their current energy level.
+All users progress through the same cognitive phases (PRIME → ORIENT → STRUCTURE → ENCODE → VERIFY → COMPLETE). Each phase has a fixed cognitive goal that doesn't change with mood. What changes is the METHOD of achieving that goal based on current working memory capacity and inhibitory control.
+
+### 1.4 Neuroscience Foundation
+
+#### 1.4.1 Encoding Requires Prior Schema
+You cannot encode new information without somewhere to "hang" it. This is why STRUCTURE must precede ENCODE. ORIENT isn't just passive overview — it's schema activation. For tired users, this means activating existing schemas (what do they already know that's adjacent?). For pumped users, it means building a new schema skeleton.
+
+#### 1.4.2 Cognitive Load is Asymmetric
+Tired users don't just have "less energy" — they have reduced working memory capacity and weaker inhibitory control (harder to filter irrelevant information). Adaptation shouldn't be "fewer things" but "less interference." A tired user shown a complex interactive preview isn't getting a lighter experience — they're getting a more cognitively costly one because they can't filter the noise.
+
+#### 1.4.3 Retrieval Beats Re-Reading
+Returning users in ENCODE should do retrieval practice, not re-reading. Spaced review for tired users is neuroscientifically stronger than standard encoding for medium energy users. The architecture must not frame retrieval as a "lesser version" when it's actually the most valuable phase.
+
+#### 1.4.4 Sleep and Consolidation
+The tired state might be post-sleep consolidation time — the best moment for retrieval practice and connecting concepts, not for new encoding. The architecture must distinguish between "tired because it's 9am" (prime retrieval time) and "tired because it's 11pm" (wind down and prime for overnight consolidation).
+
+#### 1.4.5 Testing Effect
+Even failed retrieval attempts strengthen memory. A tired user skipping VERIFY entirely misses this benefit. Better model: tired users get low-stakes recognition tasks (multiple choice) rather than recall tasks ("explain this from scratch").
 
 ---
 
@@ -82,15 +100,17 @@ All users progress through the same cognitive phases (PRIME → ORIENT → STRUC
 #### 3.1.1 Universal Phase Progression
 **REQ-3.1.1:** The system MUST implement exactly 6 phases in this order:
 1. PRIME (Intent Setting)
-2. ORIENT (Passive Exposure)
+2. ORIENT (Schema Priming)
 3. STRUCTURE (Schema Building)
-4. ENCODE (Active Learning)
-5. VERIFY (Mastery Check)
-6. COMPLETE (Session End)
+4. ENCODE (Memory Formation)
+5. VERIFY (Consolidation)
+6. COMPLETE (Session End + Consolidation Handoff)
 
 **REQ-3.1.2:** All users MUST progress through the same phases regardless of mood or goal.
 
-**REQ-3.1.3:** The system MUST NOT skip phases based on mood; instead, it MUST adapt phase depth.
+**REQ-3.1.3:** The system MUST NOT skip phases based on mood; instead, it MUST adapt phase METHOD while maintaining cognitive GOAL.
+
+**REQ-3.1.4:** Each phase MUST have a clearly defined cognitive goal that remains constant across all mood variants.
 
 #### 3.1.2 Phase Completion Tracking
 **REQ-3.1.4:** The system MUST track phase completion using a `phaseProgress` object with these flags:
@@ -107,135 +127,199 @@ All users progress through the same cognitive phases (PRIME → ORIENT → STRUC
 **REQ-3.1.7:** The system MUST track which mood-variant was used for each phase in an `adaptations` object:
 ```typescript
 adaptations: {
-  orientMode: 'passive' | 'interactive' | 'full';
-  structureMode: 'skip' | 'guided' | 'full';
-  encodeMode: 'review' | 'standard' | 'diagnostic';
-  verifyMode: 'skip' | 'light' | 'full';
+  orientMode: 'prior-knowledge' | 'prediction-skeleton' | 'generative';
+  structureMode: 'annotate' | 'guided' | 'full';
+  encodeMode: 'retrieval' | 'minimal-encoding' | 'standard' | 'interleaved';
+  verifyMode: 'recognition' | 'cued-recall' | 'free-recall';
 }
 ```
 
 **REQ-3.1.8:** Adaptation tracking MUST allow users to experience different variants of the same phase in different sessions.
 
-### 3.2 ORIENT Phase (Passive Exposure)
+**REQ-3.1.9:** Adaptation names MUST reflect the cognitive method, not just difficulty level (e.g., 'retrieval' not 'easy').
+
+### 3.2 ORIENT Phase (Schema Priming)
+
+**COGNITIVE GOAL:** Activate or build mental schemas to prepare the brain to receive new information.
 
 #### 3.2.1 Low Energy Variant (Tired)
-**REQ-3.2.1:** When mood is 'tired', ORIENT phase MUST display PassiveOverviewMap component.
+**Neuroscience Rationale:** Low working memory capacity requires activating existing schemas rather than building new ones. Reduce competing demands on working memory.
 
-**REQ-3.2.2:** PassiveOverviewMap MUST be read-only with no interactive elements.
+**REQ-3.2.1:** When mood is 'tired', ORIENT phase MUST display PriorKnowledgeActivation component.
 
-**REQ-3.2.3:** PassiveOverviewMap MUST show all concepts in a visual hierarchy.
+**REQ-3.2.2:** PriorKnowledgeActivation MUST ask retrieval cues: "What do you already know about X?"
 
-**REQ-3.2.4:** Completing PassiveOverviewMap MUST set `orientCompleted = true` and `adaptations.orientMode = 'passive'`.
+**REQ-3.2.3:** PriorKnowledgeActivation MUST focus on connecting new content to existing knowledge.
+
+**REQ-3.2.4:** PriorKnowledgeActivation MUST minimize visual noise and competing information.
+
+**REQ-3.2.5:** Completing PriorKnowledgeActivation MUST set `orientCompleted = true` and `adaptations.orientMode = 'prior-knowledge'`.
 
 #### 3.2.2 Medium Energy Variant (Okay/Struggling)
-**REQ-3.2.5:** When mood is 'okay' or 'struggling', ORIENT phase MUST display InteractivePreview component.
+**Neuroscience Rationale:** Moderate working memory capacity allows building a prediction skeleton without full generative load.
 
-**REQ-3.2.6:** InteractivePreview MUST allow users to make predictions about concepts.
+**REQ-3.2.6:** When mood is 'okay' or 'struggling', ORIENT phase MUST display PredictionSkeleton component.
 
-**REQ-3.2.7:** InteractivePreview MUST provide hints and guidance.
+**REQ-3.2.7:** PredictionSkeleton MUST show content structure and ask "What do you expect each part means?"
 
-**REQ-3.2.8:** Completing InteractivePreview MUST set `orientCompleted = true` and `adaptations.orientMode = 'interactive'`.
+**REQ-3.2.8:** PredictionSkeleton MUST provide scaffolding for predictions without requiring full generation.
+
+**REQ-3.2.9:** Completing PredictionSkeleton MUST set `orientCompleted = true` and `adaptations.orientMode = 'prediction-skeleton'`.
 
 #### 3.2.3 High Energy Variant (Pumped/Good)
-**REQ-3.2.9:** When mood is 'pumped' or 'good', ORIENT phase MUST display FullScoutPreview component.
+**Neuroscience Rationale:** High working memory capacity enables full generative orienting, which creates stronger encoding.
 
-**REQ-3.2.10:** FullScoutPreview MUST include both scout and preview sub-phases.
+**REQ-3.2.10:** When mood is 'pumped' or 'good', ORIENT phase MUST display GenerativeOrienting component.
 
-**REQ-3.2.11:** FullScoutPreview MUST allow detailed predictions and note-taking.
+**REQ-3.2.11:** GenerativeOrienting MUST include scout (survey content) + predict + question-generation.
 
-**REQ-3.2.12:** Completing FullScoutPreview MUST set `orientCompleted = true` and `adaptations.orientMode = 'full'`.
+**REQ-3.2.12:** GenerativeOrienting MUST encourage deep predictions and self-generated questions.
+
+**REQ-3.2.13:** Completing GenerativeOrienting MUST set `orientCompleted = true` and `adaptations.orientMode = 'generative'`.
 
 ### 3.3 STRUCTURE Phase (Schema Building)
 
+**COGNITIVE GOAL:** Build or strengthen mental schemas that organize concepts and their relationships.
+
+**CRITICAL NEUROSCIENCE PRINCIPLE:** Schema building is MORE important when encoding capacity is low, not less. A tired user needs a clear map more than a pumped user who can hold more in working memory.
+
 #### 3.3.1 Low Energy Variant (Tired)
-**REQ-3.3.1:** When mood is 'tired', STRUCTURE phase MUST be auto-completed.
+**Neuroscience Rationale:** Low working memory capacity requires externalized schema. Provide pre-built map to read and annotate rather than generate. Same cognitive goal (schema building), lower generation demand.
 
-**REQ-3.3.2:** Auto-completion MUST use a pre-generated concept map.
+**REQ-3.3.1:** When mood is 'tired', STRUCTURE phase MUST display AnnotatableMap component.
 
-**REQ-3.3.3:** Auto-completion MUST set `structureCompleted = true` and `adaptations.structureMode = 'skip'`.
+**REQ-3.3.2:** AnnotatableMap MUST show a pre-generated concept map with clear visual hierarchy.
 
-**REQ-3.3.4:** Auto-completion MUST happen immediately without user interaction.
+**REQ-3.3.3:** AnnotatableMap MUST allow users to add notes, highlights, or simple annotations.
+
+**REQ-3.3.4:** AnnotatableMap MUST require active engagement (reading + annotation), NOT passive viewing.
+
+**REQ-3.3.5:** Completing AnnotatableMap MUST set `structureCompleted = true` and `adaptations.structureMode = 'annotate'`.
+
+**REQ-3.3.6:** System MUST NOT skip STRUCTURE phase for tired users.
 
 #### 3.3.2 Medium Energy Variant (Okay/Struggling)
-**REQ-3.3.5:** When mood is 'okay' or 'struggling', STRUCTURE phase MUST display GuidedMapBuilder component.
+**Neuroscience Rationale:** Moderate working memory capacity allows guided construction with scaffolding.
 
-**REQ-3.3.6:** GuidedMapBuilder MUST provide hints for concept relationships.
+**REQ-3.3.7:** When mood is 'okay' or 'struggling', STRUCTURE phase MUST display GuidedMapBuilder component.
 
-**REQ-3.3.7:** GuidedMapBuilder MUST allow partial user input with suggestions.
+**REQ-3.3.8:** GuidedMapBuilder MUST provide hints for concept relationships.
 
-**REQ-3.3.8:** Completing GuidedMapBuilder MUST set `structureCompleted = true` and `adaptations.structureMode = 'guided'`.
+**REQ-3.3.9:** GuidedMapBuilder MUST allow partial user input with suggestions.
+
+**REQ-3.3.10:** Completing GuidedMapBuilder MUST set `structureCompleted = true` and `adaptations.structureMode = 'guided'`.
 
 #### 3.3.3 High Energy Variant (Pumped/Good)
-**REQ-3.3.9:** When mood is 'pumped' or 'good', STRUCTURE phase MUST display ConceptMapBuilder component.
+**Neuroscience Rationale:** High working memory capacity enables full generative schema construction, which creates strongest encoding.
 
-**REQ-3.3.10:** ConceptMapBuilder MUST require full user-driven map construction.
+**REQ-3.3.11:** When mood is 'pumped' or 'good', STRUCTURE phase MUST display ConceptMapBuilder component.
 
-**REQ-3.3.11:** ConceptMapBuilder MUST NOT provide hints unless requested.
+**REQ-3.3.12:** ConceptMapBuilder MUST require full user-driven map construction.
 
-**REQ-3.3.12:** Completing ConceptMapBuilder MUST set `structureCompleted = true` and `adaptations.structureMode = 'full'`.
+**REQ-3.3.13:** ConceptMapBuilder MUST NOT provide hints unless requested.
 
-### 3.4 ENCODE Phase (Active Learning)
+**REQ-3.3.14:** Completing ConceptMapBuilder MUST set `structureCompleted = true` and `adaptations.structureMode = 'full'`.
+
+### 3.4 ENCODE Phase (Memory Formation)
+
+**COGNITIVE GOAL:** Form long-term memory traces through encoding (first exposure) or retrieval practice (subsequent exposure).
+
+**CRITICAL NEUROSCIENCE PRINCIPLE:** Retrieval practice is MORE effective than re-encoding. Tired users doing retrieval are getting a neuroscientifically superior experience, not a lesser one.
 
 #### 3.4.1 Low Energy Variant (Tired)
-**REQ-3.4.1:** When mood is 'tired' AND user has prior progress, ENCODE phase MUST show SpacedReview component.
+**Neuroscience Rationale:** Low working memory capacity is ideal for retrieval practice (if prior exposure exists) or minimal-interference encoding (if new). Retrieval strengthens memory more than re-reading.
 
-**REQ-3.4.2:** When mood is 'tired' AND user has NO prior progress, ENCODE phase MUST be skipped.
+**REQ-3.4.1:** When mood is 'tired' AND user has prior progress, ENCODE phase MUST show RetrievalPractice component.
 
-**REQ-3.4.3:** SpacedReview MUST focus on previously learned concepts only.
+**REQ-3.4.2:** RetrievalPractice MUST use spaced repetition algorithm to select concepts.
 
-**REQ-3.4.4:** SpacedReview MUST use minimal cognitive load interactions.
+**REQ-3.4.3:** RetrievalPractice MUST focus on retrieval cues, not re-presentation of content.
 
-**REQ-3.4.5:** Starting SpacedReview MUST set `encodeStarted = true` and `adaptations.encodeMode = 'review'`.
+**REQ-3.4.4:** RetrievalPractice MUST minimize visual interference and competing information.
+
+**REQ-3.4.5:** When mood is 'tired' AND user has NO prior progress, ENCODE phase MUST show MinimalInterferenceEncoding component.
+
+**REQ-3.4.6:** MinimalInterferenceEncoding MUST present one concept at a time with minimal distractions.
+
+**REQ-3.4.7:** MinimalInterferenceEncoding MUST use simple recognition checks, not complex generation tasks.
+
+**REQ-3.4.8:** Starting either component MUST set `encodeStarted = true` and `adaptations.encodeMode = 'retrieval'` or `'minimal-encoding'`.
 
 #### 3.4.2 Medium Energy Variant (Okay/Struggling)
-**REQ-3.4.6:** When mood is 'okay' or 'struggling', ENCODE phase MUST display MicroLearningLoop component.
+**Neuroscience Rationale:** Moderate working memory capacity allows standard encoding with elaboration.
 
-**REQ-3.4.7:** MicroLearningLoop MUST use standard difficulty level.
+**REQ-3.4.9:** When mood is 'okay' or 'struggling', ENCODE phase MUST display StandardAcquisition component.
 
-**REQ-3.4.8:** MicroLearningLoop MUST NOT include diagnostic assessments.
+**REQ-3.4.10:** StandardAcquisition MUST use micro-learning loop with elaboration prompts.
 
-**REQ-3.4.9:** Starting MicroLearningLoop MUST set `encodeStarted = true` and `adaptations.encodeMode = 'standard'`.
+**REQ-3.4.11:** StandardAcquisition MUST include simple self-explanation tasks.
+
+**REQ-3.4.12:** Starting StandardAcquisition MUST set `encodeStarted = true` and `adaptations.encodeMode = 'standard'`.
 
 #### 3.4.3 High Energy Variant (Pumped/Good)
-**REQ-3.4.10:** When mood is 'pumped' or 'good', ENCODE phase MUST display MicroLearningLoop with diagnostic option.
+**Neuroscience Rationale:** High working memory capacity enables interleaved practice and deeper elaboration, which creates stronger, more flexible memory traces.
 
-**REQ-3.4.11:** High energy ENCODE MUST allow optional diagnostic assessments.
+**REQ-3.4.13:** When mood is 'pumped' or 'good', ENCODE phase MUST display InterleavedAcquisition component.
 
-**REQ-3.4.12:** Starting high energy ENCODE MUST set `encodeStarted = true` and `adaptations.encodeMode = 'diagnostic'`.
+**REQ-3.4.14:** InterleavedAcquisition MUST mix concepts from different categories (interleaving).
+
+**REQ-3.4.15:** InterleavedAcquisition MUST include deep elaboration and connection-making tasks.
+
+**REQ-3.4.16:** InterleavedAcquisition MUST allow optional diagnostic assessments.
+
+**REQ-3.4.17:** Starting InterleavedAcquisition MUST set `encodeStarted = true` and `adaptations.encodeMode = 'interleaved'`.
 
 #### 3.4.4 Concept Completion
-**REQ-3.4.13:** Completing a concept in ENCODE phase MUST add it to `completedConcepts` array.
+**REQ-3.4.18:** Completing a concept in ENCODE phase MUST add it to `completedConcepts` array.
 
-**REQ-3.4.14:** Concept completion MUST persist across mood changes.
+**REQ-3.4.19:** Concept completion MUST persist across mood changes.
 
-**REQ-3.4.15:** When all concepts are completed, system MUST transition to VERIFY phase.
+**REQ-3.4.20:** When all concepts are completed, system MUST transition to VERIFY phase.
 
-### 3.5 VERIFY Phase (Mastery Check)
+### 3.5 VERIFY Phase (Consolidation)
+
+**COGNITIVE GOAL:** Strengthen memory through retrieval practice and identify gaps for future sessions.
+
+**CRITICAL NEUROSCIENCE PRINCIPLE:** Testing effect research shows that even failed retrieval attempts strengthen memory. Skipping VERIFY entirely wastes this benefit. Low-stakes recognition tasks provide the benefit without high cognitive load.
 
 #### 3.5.1 Low Energy Variant (Tired)
-**REQ-3.5.1:** When mood is 'tired', VERIFY phase MUST be auto-completed.
+**Neuroscience Rationale:** Low working memory capacity requires recognition tasks rather than recall. Recognition still provides testing effect benefits without high generation demand.
 
-**REQ-3.5.2:** Auto-completion MUST mark concepts as "reviewed" rather than "mastered".
+**REQ-3.5.1:** When mood is 'tired', VERIFY phase MUST display RecognitionTasks component.
 
-**REQ-3.5.3:** Auto-completion MUST set `verifyCompleted = true` and `adaptations.verifyMode = 'skip'`.
+**REQ-3.5.2:** RecognitionTasks MUST use low-stakes recognition format (multiple choice, "did you see this?").
+
+**REQ-3.5.3:** RecognitionTasks MUST NOT require free recall or generation.
+
+**REQ-3.5.4:** RecognitionTasks MUST provide immediate feedback to strengthen correct associations.
+
+**REQ-3.5.5:** Completing RecognitionTasks MUST set `verifyCompleted = true` and `adaptations.verifyMode = 'recognition'`.
+
+**REQ-3.5.6:** System MUST NOT skip VERIFY phase for tired users.
 
 #### 3.5.2 Medium Energy Variant (Okay/Struggling)
-**REQ-3.5.4:** When mood is 'okay' or 'struggling', VERIFY phase MUST display LightQuiz component.
+**Neuroscience Rationale:** Moderate working memory capacity allows cued recall, which is more demanding than recognition but less than free recall.
 
-**REQ-3.5.5:** LightQuiz MUST contain 3-5 questions.
+**REQ-3.5.7:** When mood is 'okay' or 'struggling', VERIFY phase MUST display CuedRecall component.
 
-**REQ-3.5.6:** LightQuiz MUST use multiple choice or simple recall format.
+**REQ-3.5.8:** CuedRecall MUST provide retrieval cues to scaffold recall.
 
-**REQ-3.5.7:** Completing LightQuiz MUST set `verifyCompleted = true` and `adaptations.verifyMode = 'light'`.
+**REQ-3.5.9:** CuedRecall MUST contain 3-5 questions with hints available.
+
+**REQ-3.5.10:** Completing CuedRecall MUST set `verifyCompleted = true` and `adaptations.verifyMode = 'cued-recall'`.
 
 #### 3.5.3 High Energy Variant (Pumped/Good)
-**REQ-3.5.8:** When mood is 'pumped' or 'good', VERIFY phase MUST display MasteryChallenge component.
+**Neuroscience Rationale:** High working memory capacity enables free recall and transfer tasks, which create the strongest memory consolidation.
 
-**REQ-3.5.9:** MasteryChallenge MUST include comprehensive assessment.
+**REQ-3.5.11:** When mood is 'pumped' or 'good', VERIFY phase MUST display FreeRecallTransfer component.
 
-**REQ-3.5.10:** MasteryChallenge MUST test application and synthesis.
+**REQ-3.5.12:** FreeRecallTransfer MUST require free recall without cues.
 
-**REQ-3.5.11:** Completing MasteryChallenge MUST set `verifyCompleted = true` and `adaptations.verifyMode = 'full'`.
+**REQ-3.5.13:** FreeRecallTransfer MUST include transfer tasks (apply to new contexts).
+
+**REQ-3.5.14:** FreeRecallTransfer MUST test synthesis and application, not just recognition.
+
+**REQ-3.5.15:** Completing FreeRecallTransfer MUST set `verifyCompleted = true` and `adaptations.verifyMode = 'free-recall'`.
 
 ### 3.6 Phase Progression Logic
 
@@ -244,21 +328,45 @@ adaptations: {
 
 **REQ-3.6.2:** Phase skipping MUST happen automatically without user interaction.
 
-**REQ-3.6.3:** System MUST show visual indication of skipped phases.
+**REQ-3.6.3:** System MUST show visual indication of already-completed phases.
+
+**REQ-3.6.4:** System MUST NOT skip phases based on mood alone — only based on completion status.
 
 #### 3.6.2 Phase Transitions
-**REQ-3.6.4:** Phase transitions MUST be sequential (no jumping ahead).
+**REQ-3.6.5:** Phase transitions MUST be sequential (no jumping ahead).
 
-**REQ-3.6.5:** User MUST NOT be able to manually skip phases.
+**REQ-3.6.6:** User MUST NOT be able to manually skip phases.
 
-**REQ-3.6.6:** System MUST transition to next phase immediately after current phase completion.
+**REQ-3.6.7:** System MUST transition to next phase immediately after current phase completion.
 
 #### 3.6.3 Session Resumption
-**REQ-3.6.7:** When resuming a session, system MUST start at the first incomplete phase.
+**REQ-3.6.8:** When resuming a session, system MUST start at the first incomplete phase.
 
-**REQ-3.6.8:** System MUST use current mood to determine phase variant.
+**REQ-3.6.9:** System MUST use current mood to determine phase variant (method), not which phases to show.
 
-**REQ-3.6.9:** System MUST NOT re-show completed phases unless explicitly requested.
+**REQ-3.6.10:** System MUST NOT re-show completed phases unless explicitly requested.
+
+### 3.7 COMPLETE Phase (Consolidation Handoff)
+
+**COGNITIVE GOAL:** Prime the brain for overnight consolidation and set expectations for next session.
+
+**NEUROSCIENCE PRINCIPLE:** What happens after a session matters. Telling the learner what to expect their brain to do overnight (consolidate, connect, surface questions) primes better recall in the next session.
+
+#### 3.7.1 Consolidation Priming
+**REQ-3.7.1:** COMPLETE phase MUST include explicit consolidation priming message.
+
+**REQ-3.7.2:** Consolidation message MUST explain what the brain will do overnight: "Your brain will consolidate these concepts while you sleep, making new connections and strengthening memories."
+
+**REQ-3.7.3:** Consolidation message MUST set expectations: "You might wake up with new questions or insights — that's your brain working."
+
+**REQ-3.7.4:** Message MUST be shown regardless of mood or session length.
+
+#### 3.7.2 Session Summary
+**REQ-3.7.5:** COMPLETE phase MUST show session summary with concepts covered.
+
+**REQ-3.7.6:** Summary MUST highlight which cognitive methods were used (e.g., "You practiced retrieval today").
+
+**REQ-3.7.7:** Summary MUST provide next session preview based on current progress.
 
 ---
 
@@ -321,8 +429,16 @@ adaptations: {
 }
 ```
 
-#### 5.1.2 Deprecated Fields
-**REQ-5.1.3:** Mark as deprecated (keep for migration):
+##### 5.1.3 Time-of-Day Context (Future Enhancement)
+**REQ-5.1.4:** Consider adding optional `timeContext` field to distinguish:
+```typescript
+timeContext?: 'morning-post-sleep' | 'midday' | 'evening-pre-sleep';
+```
+
+**Rationale:** Morning tired (post-sleep) is prime retrieval time. Evening tired (pre-sleep) is prime for consolidation priming. This distinction could further optimize phase adaptations.
+
+#### 5.1.4 Deprecated Fields
+**REQ-5.1.5:** Mark as deprecated (keep for migration):
 - `scouted?: boolean`
 - `previewed?: boolean`
 - `overviewViewed?: boolean`
@@ -381,6 +497,11 @@ export type LearningPhase =
 **REQ-6.2.2:** System MUST support both old and new formats during transition period.
 
 **REQ-6.2.3:** Old format support MUST be removed after 30 days.
+
+### 6.3 User Communication
+**REQ-6.3.1:** System MUST show onboarding message explaining new approach: "We've improved how learning adapts to your energy. Now, tired sessions use scientifically-proven retrieval practice instead of skipping content."
+
+**REQ-6.3.2:** Message MUST emphasize that tired ≠ lesser: "Retrieval practice when tired is actually MORE effective than re-reading when energized."
 
 ---
 
@@ -441,15 +562,30 @@ export type LearningPhase =
 - Existing session types (`StudySession`)
 
 ### 9.3 Component Dependencies
-- PassiveOverviewMap (low energy ORIENT)
-- InteractivePreview (medium energy ORIENT)
-- FullScoutPreview (high energy ORIENT)
-- GuidedMapBuilder (medium energy STRUCTURE)
-- ConceptMapBuilder (high energy STRUCTURE)
-- SpacedReview (low energy ENCODE)
-- MicroLearningLoop (standard ENCODE)
-- LightQuiz (medium energy VERIFY)
-- MasteryChallenge (high energy VERIFY)
+
+**ORIENT Phase:**
+- PriorKnowledgeActivation (low energy - retrieval cues)
+- PredictionSkeleton (medium energy - scaffolded predictions)
+- GenerativeOrienting (high energy - full scout + predict + questions)
+
+**STRUCTURE Phase:**
+- AnnotatableMap (low energy - read + annotate pre-built map)
+- GuidedMapBuilder (medium energy - guided construction)
+- ConceptMapBuilder (high energy - full construction)
+
+**ENCODE Phase:**
+- RetrievalPractice (low energy with prior progress - spaced repetition)
+- MinimalInterferenceEncoding (low energy, new learner - simple presentation)
+- StandardAcquisition (medium energy - elaboration prompts)
+- InterleavedAcquisition (high energy - mixed concepts)
+
+**VERIFY Phase:**
+- RecognitionTasks (low energy - multiple choice, "did you see this?")
+- CuedRecall (medium energy - hints available)
+- FreeRecallTransfer (high energy - no cues, apply to new contexts)
+
+**COMPLETE Phase:**
+- ConsolidationHandoff (all moods - overnight priming message)
 
 ---
 
@@ -534,50 +670,102 @@ export type LearningPhase =
 
 ---
 
-## Appendix A: Mood-Phase Matrix
+## Appendix A: Cognitive Phase Matrix
 
-| Phase | Tired (Low Energy) | Okay/Struggling (Medium) | Pumped/Good (High Energy) |
-|-------|-------------------|-------------------------|--------------------------|
-| **PRIME** | Intent setting (all moods) | Intent setting (all moods) | Intent setting (all moods) |
-| **ORIENT** | PassiveOverviewMap (read-only) | InteractivePreview (with guessing) | FullScoutPreview (with predictions) |
-| **STRUCTURE** | Auto-complete (generated map) | GuidedMapBuilder (with hints) | ConceptMapBuilder (full control) |
-| **ENCODE** | SpacedReview (if prior progress) | MicroLearningLoop (standard) | MicroLearningLoop + Diagnostic |
-| **VERIFY** | Auto-complete (mark as reviewed) | LightQuiz (3-5 questions) | MasteryChallenge (comprehensive) |
-| **COMPLETE** | Session summary | Session summary + next steps | Session summary + advanced options |
+**Key Principle:** Each phase has a fixed COGNITIVE GOAL. What changes is the METHOD based on working memory capacity.
+
+| Phase | Cognitive Goal | Tired (Low WM) | Okay/Struggling (Medium WM) | Pumped/Good (High WM) |
+|-------|---------------|----------------|----------------------------|----------------------|
+| **PRIME** | Intention + Context | Retrieval cue: "Last time you learned X" | Goal setting | Goal + prediction |
+| **ORIENT** | Schema Priming | Prior knowledge activation ("What do you know about X?") | Prediction skeleton ("What do you expect?") | Generative orienting (scout + predict + question) |
+| **STRUCTURE** | Schema Building | Read pre-built map + annotate | Guided construction (with hints) | Full construction (generative) |
+| **ENCODE** | Memory Formation | Retrieval practice (if prior) / Minimal-interference encoding (if new) | Standard acquisition (with elaboration) | Interleaved acquisition (mixed concepts) |
+| **VERIFY** | Consolidation | Recognition tasks (multiple choice) | Cued recall (with hints) | Free recall + transfer (apply to new contexts) |
+| **COMPLETE** | Consolidation Handoff | Session summary + overnight consolidation priming | Session summary + overnight consolidation priming | Session summary + overnight consolidation priming |
+
+**Critical Neuroscience Notes:**
+- STRUCTURE is NOT skipped for tired users — they need schemas MORE, not less
+- ENCODE retrieval practice for tired users is neuroscientifically SUPERIOR to standard encoding
+- VERIFY is NOT skipped for tired users — recognition tasks still provide testing effect benefits
+- Adaptation is about METHOD (how to achieve the goal), not DEPTH (easier version of the goal)
 
 ---
 
 ## Appendix B: Example User Journeys
 
-### B.1 Tired → Pumped Transition
+### B.1 Tired → Pumped Transition (New Learner)
 ```
-Day 1 (Tired):
-  PRIME → ORIENT (passive overview) → STRUCTURE (auto) → ENCODE (skip, no prior progress) → VERIFY (auto) → COMPLETE
-  Progress: { orientCompleted: true, structureCompleted: true, verifyCompleted: true }
-  Adaptations: { orientMode: 'passive', structureMode: 'skip', verifyMode: 'skip' }
+Day 1 (Tired, 9am - post-sleep, prime retrieval time):
+  PRIME (retrieval cue: "What did you learn yesterday?") 
+  → ORIENT (prior knowledge activation: "What do you know about cloud storage?") 
+  → STRUCTURE (annotate pre-built map) 
+  → ENCODE (minimal-interference encoding: 2 concepts, simple recognition checks) 
+  → VERIFY (recognition tasks: "Which of these did you see?") 
+  → COMPLETE (consolidation priming: "Your brain will strengthen these tonight")
+  
+  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, verifyCompleted: true, completedConcepts: [2] }
+  Adaptations: { orientMode: 'prior-knowledge', structureMode: 'annotate', encodeMode: 'minimal-encoding', verifyMode: 'recognition' }
 
 Day 2 (Pumped):
-  PRIME → ORIENT (skip, already done) → STRUCTURE (skip, already done) → ENCODE (full learning) → VERIFY (mastery challenge) → COMPLETE
-  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, verifyCompleted: true, completedConcepts: [5 concepts] }
-  Adaptations: { orientMode: 'passive', structureMode: 'skip', encodeMode: 'diagnostic', verifyMode: 'full' }
+  PRIME (goal + prediction) 
+  → ORIENT (skip, already done) 
+  → STRUCTURE (skip, already done) 
+  → ENCODE (interleaved acquisition: continue from concept 3, mix categories) 
+  → VERIFY (free recall + transfer) 
+  → COMPLETE (consolidation priming)
+  
+  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, verifyCompleted: true, completedConcepts: [7] }
+  Adaptations: { orientMode: 'prior-knowledge', structureMode: 'annotate', encodeMode: 'interleaved', verifyMode: 'free-recall' }
 ```
 
-### B.2 Pumped → Tired Transition
+**Neuroscience Note:** Day 1 tired user got BETTER encoding foundation through minimal interference. Day 2 builds on solid base.
+
+### B.2 Pumped → Tired Transition (Returning Learner)
 ```
 Day 1 (Pumped):
-  PRIME → ORIENT (full scout) → STRUCTURE (map building) → ENCODE (5 concepts) → COMPLETE (time limit reached)
-  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, completedConcepts: [5 concepts] }
+  PRIME (goal + prediction) 
+  → ORIENT (generative orienting: scout + predict + questions) 
+  → STRUCTURE (full map construction) 
+  → ENCODE (interleaved acquisition: 5 concepts) 
+  → COMPLETE (time limit reached, VERIFY not yet done)
+  
+  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, completedConcepts: [5] }
+  Adaptations: { orientMode: 'generative', structureMode: 'full', encodeMode: 'interleaved' }
 
-Day 2 (Tired):
-  PRIME → ORIENT (skip) → STRUCTURE (skip) → ENCODE (spaced review of 5 concepts) → VERIFY (auto) → COMPLETE
-  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, verifyCompleted: true, completedConcepts: [5 concepts reviewed] }
+Day 2 (Tired, 9am - post-sleep consolidation):
+  PRIME (retrieval cue: "What did you learn yesterday?") 
+  → ORIENT (skip, already done) 
+  → STRUCTURE (skip, already done) 
+  → ENCODE (retrieval practice: spaced repetition of 5 concepts - THIS IS SUPERIOR TO RE-ENCODING) 
+  → VERIFY (recognition tasks: "Which statement is correct?") 
+  → COMPLETE (consolidation priming)
+  
+  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, verifyCompleted: true, completedConcepts: [5 strengthened] }
+  Adaptations: { orientMode: 'generative', structureMode: 'full', encodeMode: 'retrieval', verifyMode: 'recognition' }
 ```
+
+**Neuroscience Note:** Day 2 retrieval practice is MORE effective than re-reading. Tired user got the BEST possible learning activity for consolidation.
 
 ### B.3 Steady Throughout
 ```
 Day 1 (Okay):
-  PRIME → ORIENT (interactive preview) → STRUCTURE (guided map) → ENCODE (3 concepts) → COMPLETE
+  PRIME (goal setting) 
+  → ORIENT (prediction skeleton: "Here's the structure, what do you expect?") 
+  → STRUCTURE (guided map building with hints) 
+  → ENCODE (standard acquisition with elaboration: 3 concepts) 
+  → COMPLETE
+  
+  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, completedConcepts: [3] }
+  Adaptations: { orientMode: 'prediction-skeleton', structureMode: 'guided', encodeMode: 'standard' }
 
 Day 2 (Okay):
-  PRIME → ORIENT (skip) → STRUCTURE (skip) → ENCODE (continue from concept 4) → VERIFY (light quiz) → COMPLETE
+  PRIME (goal setting) 
+  → ORIENT (skip, already done) 
+  → STRUCTURE (skip, already done) 
+  → ENCODE (standard acquisition: continue from concept 4) 
+  → VERIFY (cued recall with hints: "What happens when...?") 
+  → COMPLETE (consolidation priming)
+  
+  Progress: { orientCompleted: true, structureCompleted: true, encodeStarted: true, verifyCompleted: true, completedConcepts: [7] }
+  Adaptations: { orientMode: 'prediction-skeleton', structureMode: 'guided', encodeMode: 'standard', verifyMode: 'cued-recall' }
 ```
