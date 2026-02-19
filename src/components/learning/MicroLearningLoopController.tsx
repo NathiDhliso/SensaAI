@@ -817,12 +817,6 @@ export function MicroLearningLoopController({
     }, [totalTimeSpent, recordInteraction, handleLoopCompleteInternal]);
     return (
         <div className={styles.container}>
-            {/* Cognitive Phase Context */}
-            <div className={styles.cognitivePhaseContext}>
-                <span className={styles.cognitiveVerb}>Know</span>
-                <span className={styles.cognitiveSeparator}>·</span>
-                <span className={styles.cognitiveLabel}>Conceptual Phase</span>
-            </div>
             {/* Phase indicator */}
             <div className={styles.phaseIndicator}>
                 <div className={`${styles.phaseStep} ${loopState === 'worked-example' ? styles.active : ''} ${['learn', 'verify'].includes(loopState) ? styles.complete : ''}`}>
