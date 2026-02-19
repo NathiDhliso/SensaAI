@@ -142,12 +142,12 @@
  border-radius: var(--radius-premium-sm);
  font-size: 0.875rem;
  font-weight: 500;
- color: var(--color-text-light);
+ color: var(--color-text-secondary);
  cursor: pointer;
  transition: all 0.3s var(--ease-premium);
 }
 .tabButton:hover:not(.tabActive) {
- color: var(--color-text-dark);
+ color: var(--color-text-primary);
  background: var(--glass-surface-elevated);
 }
 .tabButton.tabActive {

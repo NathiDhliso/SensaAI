@@ -27,7 +27,7 @@ import CelebrationModal from '@/components/learning/feedback/CelebrationModal';
 import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
 import { SessionSummary } from '@/components/learning/session/SessionSummary';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
-import { SessionScoutPreview, SessionStartModal, MOOD_GOAL_MAP } from '@/components/learning/session';
+import { SessionStartModal, MOOD_GOAL_MAP } from '@/components/learning/session';
 import { CoachMessage } from '@/features/ai-coach/components';
 import { MetaphorToggle } from '@/features/personalization';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
@@ -567,3 +567,4 @@ export default function Study() {
  </>
  );
 }
+
