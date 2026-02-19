@@ -1,13 +1,21 @@
-import { motion } from 'framer-motion';
-import { CheckCircle } from 'lucide-react';
-import type { MatrixPayload, MatrixConcept, SelectedCell } from './types';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, Play } from 'lucide-react';
+import type { MatrixPayload, MatrixConcept, SelectedCell, DrillDownAction } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
+
+interface ExpandedCell {
+  conceptId: string;
+  verb: string;
+  action: DrillDownAction;
+  conceptName: string;
+  realConceptId: string;
+}
 
 interface CognitiveMatrixGridProps {
   payload: MatrixPayload;
   masteredIds: Set<string>;
   suggestedId: string | null;
-  selectedCell: SelectedCell | null;
   onCellClick: (cell: SelectedCell) => void;
 }
 
@@ -15,10 +23,29 @@ export function CognitiveMatrixGrid({
   payload,
   masteredIds,
   suggestedId,
-  selectedCell,
   onCellClick,
 }: CognitiveMatrixGridProps) {
   const colCount = payload.verbs.length;
+  const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
+
+  const handleCellTap = (cell: ExpandedCell) => {
+    setExpandedCell(prev =>
+      prev?.conceptId === cell.conceptId && prev?.verb === cell.verb ? null : cell
+    );
+  };
+
+  const handleStartDrill = () => {
+    if (!expandedCell) return;
+    onCellClick({
+      conceptId: expandedCell.conceptId,
+      realConceptId: expandedCell.realConceptId,
+      conceptName: expandedCell.conceptName,
+      verb: expandedCell.verb,
+      action: expandedCell.action,
+      isMastered: false,
+    });
+    setExpandedCell(null);
+  };
 
   return (
     <div className={styles.gridWrapper}>
@@ -38,8 +65,11 @@ export function CognitiveMatrixGrid({
             verbs={payload.verbs}
             masteredIds={masteredIds}
             suggestedId={suggestedId}
-            selectedCell={selectedCell}
-            onCellClick={onCellClick}
+            expandedCell={expandedCell}
+            colCount={colCount}
+            onCellTap={handleCellTap}
+            onStartDrill={handleStartDrill}
+            onCloseDrawer={() => setExpandedCell(null)}
           />
         ))}
       </div>
@@ -52,16 +82,24 @@ function ConceptRows({
   verbs,
   masteredIds,
   suggestedId,
-  selectedCell,
-  onCellClick,
+  expandedCell,
+  colCount,
+  onCellTap,
+  onStartDrill,
+  onCloseDrawer,
 }: {
   concept: MatrixConcept;
   verbs: string[];
   masteredIds: Set<string>;
   suggestedId: string | null;
-  selectedCell: SelectedCell | null;
-  onCellClick: (cell: SelectedCell) => void;
+  expandedCell: ExpandedCell | null;
+  colCount: number;
+  onCellTap: (cell: ExpandedCell) => void;
+  onStartDrill: () => void;
+  onCloseDrawer: () => void;
 }) {
+  const isDrawerOpen = expandedCell?.conceptId === concept.conceptId;
+
   return (
     <>
       <div className={styles.parentLabel}>
@@ -71,6 +109,7 @@ function ConceptRows({
       {verbs.map(verb => {
         const action = concept.actions?.[verb] ?? null;
         const realConceptId = concept.cellConceptIds?.[verb] ?? concept.conceptId;
+        const isExpanded = expandedCell?.conceptId === concept.conceptId && expandedCell?.verb === verb;
         return (
           <GridCell
             key={`${concept.conceptId}-${verb}`}
@@ -81,14 +120,89 @@ function ConceptRows({
             action={action}
             isMastered={masteredIds.has(realConceptId)}
             isSuggested={suggestedId === `${concept.conceptId}::${verb}`}
-            isSelected={
-              selectedCell?.conceptId === concept.conceptId &&
-              selectedCell?.verb === verb
-            }
-            onCellClick={onCellClick}
+            isExpanded={isExpanded}
+            onCellTap={onCellTap}
           />
         );
-      })}    </>
+      })}
+
+      <AnimatePresence>
+        {isDrawerOpen && expandedCell && (
+          <motion.div
+            className={styles.drawer}
+            style={{ gridColumn: `1 / ${colCount + 2}` }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+          >
+            <div className={styles.drawerInner}>
+              <div className={styles.drawerMeta}>
+                <span className={styles.drawerVerb}>{expandedCell.verb}</span>
+                <span className={styles.drawerSep}>×</span>
+                <span className={styles.drawerConcept}>{expandedCell.conceptName}</span>
+              </div>
+
+              <div className={styles.drawerCards}>
+                <div className={styles.drawerCard}>
+                  <div className={styles.drawerCardHeader}>
+                    <span className={styles.drawerCardIcon}>🧠</span>
+                    <span className={styles.drawerCardLabel}>THE TRICK</span>
+                  </div>
+                  <p className={styles.drawerCardBody}>{expandedCell.action.trick}</p>
+                </div>
+
+                <div className={styles.drawerCard}>
+                  <div className={styles.drawerCardHeader}>
+                    <span className={styles.drawerCardIcon}>🔗</span>
+                    <span className={styles.drawerCardLabel}>THE CHAIN</span>
+                  </div>
+                  {expandedCell.action.chain.length > 0 ? (
+                    <ul className={styles.drawerChainList}>
+                      {expandedCell.action.chain.map((item, i) => (
+                        <li key={i} className={styles.drawerChainItem}>
+                          <span className={styles.drawerChainBullet} />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={styles.drawerEmpty}>No prerequisites.</p>
+                  )}
+                </div>
+
+                <div className={styles.drawerCard}>
+                  <div className={styles.drawerCardHeader}>
+                    <span className={styles.drawerCardIcon}>⚡</span>
+                    <span className={styles.drawerCardLabel}>ATOMIC STEPS</span>
+                  </div>
+                  {expandedCell.action.steps.length > 0 ? (
+                    <ol className={styles.drawerStepsList}>
+                      {expandedCell.action.steps.map((step, i) => (
+                        <li key={i} className={styles.drawerStepItem}>
+                          <span className={styles.drawerStepNum}>{i + 1}</span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className={styles.drawerEmpty}>No steps defined.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.drawerFooter}>
+                <button className={styles.drawerClose} onClick={onCloseDrawer}>Dismiss</button>
+                <button className={styles.drawerDrill} onClick={onStartDrill}>
+                  <Play size={13} />
+                  Start Drill
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -100,24 +214,24 @@ function GridCell({
   action,
   isMastered,
   isSuggested,
-  isSelected,
-  onCellClick,
+  isExpanded,
+  onCellTap,
 }: {
   conceptId: string;
   realConceptId: string;
   conceptName: string;
   verb: string;
-  action: import('./types').DrillDownAction | null;
+  action: DrillDownAction | null;
   isMastered: boolean;
   isSuggested: boolean;
-  isSelected: boolean;
-  onCellClick: (cell: SelectedCell) => void;
+  isExpanded: boolean;
+  onCellTap: (cell: ExpandedCell) => void;
 }) {
   const isActive = !!action && !isMastered;
 
   const handleClick = () => {
     if (!action || isMastered) return;
-    onCellClick({ conceptId, realConceptId, conceptName, verb, action, isMastered });
+    onCellTap({ conceptId, realConceptId, conceptName, verb, action });
   };
 
   return (
@@ -127,7 +241,7 @@ function GridCell({
         isMastered ? styles.cellMastered : '',
         isActive && !isMastered ? styles.cellActive : '',
         isSuggested ? styles.cellSuggested : '',
-        isSelected ? styles.cellSelected : '',
+        isExpanded ? styles.cellSelected : '',
         !action ? styles.cellNull : '',
       ].filter(Boolean).join(' ')}
       onClick={handleClick}

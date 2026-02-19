@@ -158,3 +158,198 @@
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.1);
 }
+
+.drawer {
+  overflow: hidden;
+  border-bottom: 1px solid rgba(120, 80, 255, 0.18);
+}
+
+.drawerInner {
+  padding: 1.25rem 1.5rem 1rem;
+  background: rgba(18, 12, 36, 0.82);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(120, 80, 255, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.drawerMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.drawerVerb {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(180, 140, 255, 1);
+  text-transform: uppercase;
+  background: rgba(120, 80, 255, 0.18);
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.drawerSep {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.drawerConcept {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(230, 220, 255, 0.9);
+}
+
+.drawerCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.drawerCard {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(120, 80, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.drawerCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.drawerCardIcon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.drawerCardLabel {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgba(180, 150, 255, 0.8);
+  text-transform: uppercase;
+}
+
+.drawerCardBody {
+  font-size: 0.82rem;
+  color: rgba(210, 200, 255, 0.85);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.drawerChainList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.drawerChainItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: rgba(200, 185, 255, 0.8);
+}
+
+.drawerChainBullet {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(160, 120, 255, 0.7);
+  flex-shrink: 0;
+}
+
+.drawerStepsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.drawerStepItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: rgba(200, 185, 255, 0.8);
+  line-height: 1.4;
+}
+
+.drawerStepNum {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(120, 80, 255, 0.3);
+  border: 1px solid rgba(160, 120, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(200, 170, 255, 0.9);
+  margin-top: 1px;
+}
+
+.drawerEmpty {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.25);
+  margin: 0;
+  font-style: italic;
+}
+
+.drawerFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding-top: 0.25rem;
+}
+
+.drawerClose {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.78rem;
+  color: rgba(200, 185, 255, 0.6);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.drawerClose:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(200, 185, 255, 0.9);
+}
+
+.drawerDrill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(120, 80, 255, 0.85);
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 12px rgba(120, 80, 255, 0.35);
+}
+
+.drawerDrill:hover {
+  background: rgba(140, 100, 255, 1);
+  box-shadow: 0 4px 18px rgba(120, 80, 255, 0.55);
+}

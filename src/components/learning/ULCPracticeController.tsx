@@ -6,7 +6,6 @@ import type { LearningConcept } from '@/shared/types/learning';
 import type { QMetricInputs } from '@/shared/services/blueprint-formula';
 import { buildMatrixPayload, getFirstSuggestedKey } from './cognitive-matrix/buildMatrixPayload';
 import { CognitiveMatrixGrid } from './cognitive-matrix/CognitiveMatrixGrid';
-import { DrillDownCard } from './cognitive-matrix/DrillDownCard';
 import type { SelectedCell } from './cognitive-matrix/types';
 import MicroLearningLoopController from './MicroLearningLoopController';
 import styles from './ULCPracticeController.module.css';
@@ -35,6 +34,7 @@ export function ULCPracticeController({
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [inLoop, setInLoop] = useState(false);
 
+
   const masteredIds = useMemo(() => new Set(completedConceptIds), [completedConceptIds]);
 
   const payload = useMemo(
@@ -54,6 +54,7 @@ export function ULCPracticeController({
 
   const handleCellClick = useCallback((cell: SelectedCell) => {
     setSelectedCell(cell);
+    setInLoop(true);
   }, []);
 
   const handleLoopComplete = useCallback((
@@ -128,23 +129,12 @@ export function ULCPracticeController({
         <span className={styles.progressPill}>{masteredIds.size}/{totalCells} mastered</span>
       </div>
 
-      <div className={styles.matrixAndPanel}>
-        <div className={styles.matrixArea}>
-          <CognitiveMatrixGrid
-            payload={payload}
-            masteredIds={masteredIds}
-            suggestedId={suggestedId}
-            selectedCell={selectedCell}
-            onCellClick={handleCellClick}
-          />
-        </div>
-
-        <DrillDownCard
-          cell={selectedCell}
-          onClose={() => setSelectedCell(null)}
-          onStartDrill={() => setInLoop(true)}
-        />
-      </div>
+      <CognitiveMatrixGrid
+        payload={payload}
+        masteredIds={masteredIds}
+        suggestedId={suggestedId}
+        onCellClick={handleCellClick}
+      />
 
     </div>
   );
