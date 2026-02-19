@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Brain, Home, Map, Layers } from 'lucide-react';
@@ -9,17 +9,8 @@ import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { toast } from '@/shared/utils/toast';
 import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
 import { ULCPracticeController } from '@/components/learning/ULCPracticeController';
+import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
 import styles from './VelocityLearning.module.css';
-
-const AnnotatableMap = lazy(() =>
-  import('@/features/unified-flow/components/structure/AnnotatableMap').then(m => ({ default: m.AnnotatableMap }))
-);
-const GuidedMapBuilder = lazy(() =>
-  import('@/features/unified-flow/components/structure/GuidedMapBuilder').then(m => ({ default: m.GuidedMapBuilder }))
-);
-const FullMapBuilder = lazy(() =>
-  import('@/features/unified-flow/components/structure/FullMapBuilder').then(m => ({ default: m.FullMapBuilder }))
-);
 
 type ActiveTab = 'map' | 'ulc';
 
@@ -38,8 +29,6 @@ export default function VelocityLearning() {
 
     const { currentPhase } = useLearningFlow();
     const sensaFlow = useSensaFlow();
-    const currentMood = studySession?.mood || 'okay';
-
     const [activeTab, setActiveTab] = useState<ActiveTab>('ulc');
     const [isInitializing, setIsInitializing] = useState(true);
 
@@ -239,20 +228,17 @@ export default function VelocityLearning() {
                         exit={{ opacity: 0, x: 16 }}
                         transition={{ duration: 0.18 }}
                     >
-                        <Suspense fallback={
-                            <div className={styles.emptyState}>
-                                <Brain size={40} className={styles.emptyIcon} />
-                                <p>Loading map builder...</p>
-                            </div>
-                        }>
-                            {studySession && (
-                                currentMood === 'tired'
-                                    ? <AnnotatableMap concepts={currentSession.concepts} session={studySession} onComplete={handleMapComplete} />
-                                    : currentMood === 'pumped' || currentMood === 'good'
-                                        ? <FullMapBuilder concepts={currentSession.concepts} session={studySession} onComplete={handleMapComplete} />
-                                        : <GuidedMapBuilder concepts={currentSession.concepts} session={studySession} onComplete={handleMapComplete} />
-                            )}
-                        </Suspense>
+                        <ConceptMapBuilder
+                            concepts={currentSession.concepts}
+                            mode="free"
+                            subjectName={currentSession.subject}
+                            onComplete={(data) => {
+                                if (studySession) {
+                                    useLearningStore.getState().markSessionMapBuilt(data);
+                                }
+                                handleMapComplete();
+                            }}
+                        />
                     </motion.div>
                 )}
 

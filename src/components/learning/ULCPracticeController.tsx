@@ -49,7 +49,7 @@ export function ULCPracticeController({
 
   const activeConcept = useMemo(() => {
     if (!selectedCell) return null;
-    return concepts.find(c => c.id === selectedCell.conceptId) ?? null;
+    return concepts.find(c => c.id === selectedCell.realConceptId) ?? null;
   }, [selectedCell, concepts]);
 
   const handleCellClick = useCallback((cell: SelectedCell) => {

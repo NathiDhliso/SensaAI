@@ -15,6 +15,7 @@ export interface MatrixConcept {
   conceptName: string;
   subConcepts?: MatrixSubConcept[];
   actions?: Record<string, DrillDownAction | null>;
+  cellConceptIds?: Record<string, string>;
 }
 
 export interface MatrixPayload {
@@ -25,6 +26,7 @@ export interface MatrixPayload {
 
 export interface SelectedCell {
   conceptId: string;
+  realConceptId: string;
   conceptName: string;
   verb: string;
   action: DrillDownAction;

@@ -1,8 +1,5 @@
 import type { LearningConcept } from '@/shared/types/learning';
-import {
-  detectULC,
-  type ULCPattern,
-} from '@/features/content-generation/parsers/ulc-detector';
+import { detectULC, type ULCPattern } from '@/features/content-generation/parsers/ulc-detector';
 import type { MatrixPayload, MatrixConcept, DrillDownAction } from './types';
 
 function buildAction(concept: LearningConcept): DrillDownAction {
@@ -30,6 +27,7 @@ export function buildMatrixPayload(
   if (pattern.detected) {
     const matrix: MatrixConcept[] = pattern.objects.map(obj => {
       const actions: Record<string, DrillDownAction | null> = {};
+      const cellConceptIds: Record<string, string> = {};
 
       for (const verb of pattern.verbs) {
         const key = `${verb}::${obj}`;
@@ -37,22 +35,17 @@ export function buildMatrixPayload(
         if (conceptId) {
           const concept = concepts.find(c => c.id === conceptId);
           actions[verb] = concept ? buildAction(concept) : null;
+          if (conceptId) cellConceptIds[verb] = conceptId;
         } else {
           actions[verb] = null;
         }
       }
 
-      const representativeId = pattern.cellMap[`${pattern.verbs[0]}::${obj}`];
-      const representativeConcept = representativeId
-        ? concepts.find(c => c.id === representativeId)
-        : null;
-
       return {
         conceptId: obj,
-        conceptName: representativeConcept
-          ? obj
-          : obj,
+        conceptName: obj,
         actions,
+        cellConceptIds,
       };
     });
 

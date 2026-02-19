@@ -102,10 +102,12 @@ function ConceptRows({
 
       {verbs.map(verb => {
         const action = concept.actions?.[verb] ?? null;
+        const realConceptId = concept.cellConceptIds?.[verb] ?? concept.conceptId;
         return (
           <GridCell
             key={`${concept.conceptId}-${verb}`}
             conceptId={concept.conceptId}
+            realConceptId={realConceptId}
             conceptName={concept.conceptName}
             verb={verb}
             action={action}
@@ -165,6 +167,7 @@ function SubConceptRow({
           <GridCell
             key={`${sub.conceptId}-${verb}`}
             conceptId={sub.conceptId}
+            realConceptId={sub.conceptId}
             conceptName={sub.conceptName}
             verb={verb}
             action={action}
@@ -184,6 +187,7 @@ function SubConceptRow({
 
 function GridCell({
   conceptId,
+  realConceptId,
   conceptName,
   verb,
   action,
@@ -193,6 +197,7 @@ function GridCell({
   onCellClick,
 }: {
   conceptId: string;
+  realConceptId: string;
   conceptName: string;
   verb: string;
   action: import('./types').DrillDownAction | null;
@@ -205,7 +210,7 @@ function GridCell({
 
   const handleClick = () => {
     if (!action || isMastered) return;
-    onCellClick({ conceptId, conceptName, verb, action, isMastered });
+    onCellClick({ conceptId, realConceptId, conceptName, verb, action, isMastered });
   };
 
   return (
