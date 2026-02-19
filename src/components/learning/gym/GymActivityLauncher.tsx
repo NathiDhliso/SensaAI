@@ -5,7 +5,6 @@ import {
  ArrowRight,
  Map,
  MessageCircle,
- Trophy,
  AlertTriangle,
  CheckCircle,
  RefreshCw,

@@ -1,7 +1,6 @@
 // Learning Session Feature
 // Everything related to learning activities and progress
 // Activities
-export * from './activities/confusion-generator';
 // Progress
 export * from './progress/session-tracker';
 export * from './progress/metrics-tracker';

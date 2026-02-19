@@ -1080,10 +1080,10 @@ export default function ContentLaunchpad() {
             {showEquationMonitor && (
                 <BlueprintFormulaDashboard
                     h={knowledgeHealth / 100}
-                    I={spacingMetrics ? Math.min(knowledgeHealth / 100, (spacingMetrics.averageRetention ?? 0.5)) : knowledgeHealth / 100}
+                    I={knowledgeHealth / 100}
                     phase="study"
                     metrics={null}
-                    weakestVariable={{ variable: 'Q_r', value: spacingMetrics?.averageRetention ?? 0.5 }}
+                    weakestVariable={{ variable: 'Q_r', value: spacingMetrics ? spacingMetrics.adherencePercent / 100 : 0.5 }}
                     recommendation={knowledgeHealth < 50 ? 'Focus on spaced repetition — your retention is low.' : 'Keep reviewing due concepts to maintain health.'}
                     subjectType={undefined}
                     subjectName={result?.subject}

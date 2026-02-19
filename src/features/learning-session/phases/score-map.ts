@@ -8,7 +8,7 @@
  * - Tier Balance: All three tiers represented
  */
 import type { LearningConcept, ConceptMapData } from '@/shared/types/learning';
-import { getPersonaResponse, type PersonaId } from '@/shared/utils/persona';
+import { getPersonaResponse, type PersonaId } from '@/features/ai-coach/personas';
 // ============================================================================
 // TYPES
 // ============================================================================

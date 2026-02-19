@@ -7,7 +7,7 @@
  * - Label validation for connection descriptions
  */
 import type { LearningConcept } from '@/shared/types/learning';
-import { getPersonaResponse, type PersonaId } from '@/shared/utils/persona';
+import { getPersonaResponse, type PersonaId } from '@/features/ai-coach/personas';
 const GENERIC_STOP_WORDS = new Set([
     'the', 'and', 'or', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'as',
     'is', 'are', 'was', 'were', 'be', 'been', 'being',

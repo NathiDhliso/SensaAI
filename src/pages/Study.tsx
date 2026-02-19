@@ -482,7 +482,7 @@ export default function Study() {
  );
  case 'learn': {
  const activityParam = searchParams.get('activity') as GymActivity | null;
- const validActivities: GymActivity[] = ['concept-map', 'peer-review', 'mastery', 'pre-mortem'];
+ const validActivities: GymActivity[] = ['concept-map', 'peer-review', 'pre-mortem'];
  if (activityParam && validActivities.includes(activityParam) && concepts.length > 0) {
  return (
  <GymActivityLauncher

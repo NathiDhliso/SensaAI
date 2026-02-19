@@ -814,7 +814,6 @@ export function MicroLearningLoopController({
     const [sessionContext, setSessionContext] = useState<{ intent?: string; prediction?: string }>({});
     const [testResult, setTestResult] = useState<TestPhaseResult | null>(null);
     const [totalTimeSpent, setTotalTimeSpent] = useState(0);
-    const [verifyResultData, setVerifyResultData] = useState<{ correct: boolean, timeSpent: number } | null>(null);
     // 3. Handlers
     const handleLoopCompleteInternal = (outcome: LoopOutcome) => {
         const timeSpent = (Date.now() - loopStartTime) / 1000;
