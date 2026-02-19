@@ -163,7 +163,7 @@ export function BranchRowGroup({ branch, verbs, masteredIds, suggestedId, expand
           <span className={styles.branchName}>{branch.conceptName}</span>
           <span className={styles.parentCount}>{masteredInBranch}/{branch.children.length}</span>
         </div>
-        {verbs.map(verb => <div key={`${branch.conceptId}-${verb}-ph`} className={styles.branchPlaceholder} />)}
+        {verbs.map(verb => <div key={`${branch.conceptId}-${verb}-ph`} className={styles.branchPlaceholder} style={{ gridColumn: 'auto' }} />)}
       </div>
       <AnimatePresence>
         {isOpen && (
@@ -195,17 +195,19 @@ export function TrunkRowGroup({ trunk, verbs, masteredIds, suggestedId, expanded
 
   return (
     <>
-      <div className={styles.trunkLabel} onClick={onToggleTrunk} role="button" aria-expanded={isTrunkOpen}>
-        <motion.span className={styles.chevron} animate={{ rotate: isTrunkOpen ? 90 : 0 }} transition={{ duration: 0.18 }}>
-          <ChevronRight size={14} />
-        </motion.span>
-        <span className={styles.parentName}>{trunk.conceptName}</span>
-        <ProgressRing value={masteredLeaves} total={totalLeaves} />
-        <button className={styles.focusBtn} onClick={e => { e.stopPropagation(); onFocus(); }} title={`Focus: ${trunk.conceptName}`}>
-          <Maximize2 size={12} />
-        </button>
+      <div className={styles.trunkRow} style={{ gridTemplateColumns: colTemplate }}>
+        <div className={styles.trunkLabel} onClick={onToggleTrunk} role="button" aria-expanded={isTrunkOpen}>
+          <motion.span className={styles.chevron} animate={{ rotate: isTrunkOpen ? 90 : 0 }} transition={{ duration: 0.18 }}>
+            <ChevronRight size={14} />
+          </motion.span>
+          <span className={styles.parentName}>{trunk.conceptName}</span>
+          <ProgressRing value={masteredLeaves} total={totalLeaves} />
+          <button className={styles.focusBtn} onClick={e => { e.stopPropagation(); onFocus(); }} title={`Focus: ${trunk.conceptName}`}>
+            <Maximize2 size={12} />
+          </button>
+        </div>
+        {verbs.map(verb => <div key={`${trunk.conceptId}-${verb}-ph`} className={styles.trunkPlaceholder} />)}
       </div>
-      {verbs.map(verb => <div key={`${trunk.conceptId}-${verb}-ph`} className={styles.trunkPlaceholder} />)}
       <AnimatePresence>
         {isTrunkOpen && (
           <motion.div className={styles.childrenBlock} style={{ gridColumn: `1 / ${colCount + 2}` }}

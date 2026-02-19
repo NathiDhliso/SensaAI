@@ -8,8 +8,13 @@
 }
 
 .grid {
-  display: grid;
+  display: block;
   min-width: 420px;
+}
+
+.trunkRow {
+  display: grid;
+  border-bottom: 1px solid rgba(120, 80, 255, 0.18);
 }
 
 .cornerCell {
@@ -45,7 +50,6 @@
   gap: 0.5rem;
   padding: 0.7rem 1rem;
   background: rgba(120, 80, 255, 0.09);
-  border-bottom: 1px solid rgba(120, 80, 255, 0.2);
   border-right: 1px solid rgba(120, 80, 255, 0.2);
   font-size: 0.8rem;
   font-weight: 700;

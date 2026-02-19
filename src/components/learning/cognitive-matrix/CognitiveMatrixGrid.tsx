@@ -180,7 +180,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
               <div key={verb} className={styles.verbHeader}>{verb.toUpperCase()}</div>
             ))}
           </div>
-          <div className={styles.grid} style={{ gridTemplateColumns: colTemplate }}>
+          <div className={styles.grid}>
             {payload.matrix.map(trunk => {
               if (matchingTrunkIds && !matchingTrunkIds.has(trunk.conceptId)) return null;
               return (
