@@ -143,45 +143,32 @@ function ConceptRows({
                 <span className={styles.drawerConcept}>{expandedCell.conceptName}</span>
               </div>
 
-              <div className={styles.drawerCards}>
-                <div className={styles.drawerCard}>
-                  <div className={styles.drawerCardHeader}>
-                    <span className={styles.drawerCardIcon}>🧠</span>
-                    <span className={styles.drawerCardLabel}>THE TRICK</span>
+              <div className={styles.drawerBody}>
+                <div className={styles.trickBox}>
+                  <div className={styles.trickLabel}>
+                    <span className={styles.trickIcon}>🧠</span>
+                    <span>THE TRICK</span>
+                    <span className={styles.trickTag}>Mental Shortcut</span>
                   </div>
-                  <p className={styles.drawerCardBody}>{expandedCell.action.trick}</p>
+                  <p className={styles.trickText}>{expandedCell.action.trick}</p>
                 </div>
 
-                <div className={styles.drawerCard}>
-                  <div className={styles.drawerCardHeader}>
-                    <span className={styles.drawerCardIcon}>🔗</span>
-                    <span className={styles.drawerCardLabel}>THE CHAIN</span>
-                  </div>
-                  {expandedCell.action.chain.length > 0 ? (
-                    <ul className={styles.drawerChainList}>
-                      {expandedCell.action.chain.map((item, i) => (
-                        <li key={i} className={styles.drawerChainItem}>
-                          <span className={styles.drawerChainBullet} />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className={styles.drawerEmpty}>No prerequisites.</p>
-                  )}
-                </div>
-
-                <div className={styles.drawerCard}>
-                  <div className={styles.drawerCardHeader}>
-                    <span className={styles.drawerCardIcon}>⚡</span>
-                    <span className={styles.drawerCardLabel}>ATOMIC STEPS</span>
+                <div className={styles.checklistPanel}>
+                  <div className={styles.checklistHeader}>
+                    <span className={styles.checklistIcon}>⚡</span>
+                    <span className={styles.checklistTitle}>EXECUTION CHECKLIST</span>
+                    {expandedCell.action.chain.length > 0 && (
+                      <span className={styles.prereqPill}>
+                        Needs: {expandedCell.action.chain.join(' → ')}
+                      </span>
+                    )}
                   </div>
                   {expandedCell.action.steps.length > 0 ? (
-                    <ol className={styles.drawerStepsList}>
+                    <ol className={styles.checklist}>
                       {expandedCell.action.steps.map((step, i) => (
-                        <li key={i} className={styles.drawerStepItem}>
-                          <span className={styles.drawerStepNum}>{i + 1}</span>
-                          <span>{step}</span>
+                        <li key={i} className={styles.checklistItem}>
+                          <span className={styles.checklistNum}>{i + 1}</span>
+                          <span className={styles.checklistText}>{step}</span>
                         </li>
                       ))}
                     </ol>
