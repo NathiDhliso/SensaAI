@@ -2,7 +2,8 @@
 import { useMemo } from 'react';
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/shared/types/learning';
-import type { UnifiedPhase } from './usePhaseAdapter';
+
+export type UnifiedPhase = 'IDLE' | 'PRIME' | 'STRUCTURE' | 'ULC_MASTERY' | 'COMPLETE';
 
 // Keep old type for backward compatibility during transition
 export type LearningPhase =

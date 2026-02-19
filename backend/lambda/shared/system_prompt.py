@@ -184,52 +184,25 @@ Generate concepts in a strict 3-level tree:
 ### 3.3 MNEMONIC RULES:
 - `anchor`: Concrete physical object (e.g., "3-Story Building"), NOT abstract
 - `story`: Map concepts to physical parts with spatial language
-### 3.4 TRACES — Typed Relational Architecture for Cognitive Encoding Specificity
-Neuroscience shows that the TYPE of relationship between concepts determines retrieval strength (Tulving, 1973), spreading activation paths (Anderson, 1983), and expert-vs-novice knowledge organization (Chi et al., 1981). Vague links ("enables") produce shallow encoding. Specific links ("requires", "constrains") create precision retrieval cues.
-**THE 6 TRACES TYPES** (each activates a distinct cognitive retrieval pathway):
-| Type | Cognitive Operation | The learner asks... |
-|---|---|---|
-| **requires** | Prerequisite sequencing | "What must I know BEFORE this?" |
-| **enables** | Capability chaining | "What can I do AFTER learning this?" |
-| **is-part-of** | Compositional decomposition | "What is this a PIECE of?" |
-| **is-type-of** | Taxonomic classification | "What CATEGORY does this belong to?" |
-| **causes** | Causal reasoning | "What HAPPENS because of this?" |
-| **constrains** | Boundary recognition | "What LIMITS or governs this?" |
-**TRACES DECISION ALGORITHM** — For each connection, ask these questions IN ORDER. Use the FIRST match:
-1. Must you understand B before A makes sense? → `requires`
-2. Is A a component or sub-part of B? → `is-part-of`
-3. Is A a specific instance or variant of B? → `is-type-of`
-4. Does A directly produce, trigger, or result in B? → `causes`
-5. Does A set rules, limits, policies, or boundaries on B? → `constrains`
-6. ONLY IF none of the above apply: Does learning A make B accessible? → `enables`
-**DISTRIBUTION CONSTRAINT**: `enables` must NOT exceed 20% of all connections across the tree. If you find yourself defaulting to "enables", re-run the decision algorithm — most "enables" are actually "requires", "causes", or "constrains" in disguise.
-**FORBIDDEN**: "related-to", "relates", "extends", "depends-on", or any vague association.
-**GRAPH TOPOLOGY RULES** (these produce a clean, readable concept map):
-1. **STRUCTURAL SPINE**: Every branch has exactly 1 `is-part-of` → its trunk. Every leaf has exactly 1 `is-part-of` → its branch. Trunks have 0 outgoing connections. This spine is mandatory and non-negotiable.
-2. **MAX CONNECTIONS**: Trunk = 0, Branch = 2, Leaf = 3. Exceeding these caps causes **automatic rejection**.
-3. **DIRECTIONAL FLOW**: `requires` MUST point to a concept with a LOWER `order` number. If concept A (order 15) requires concept B, then B.order < 15. This enforces a prerequisite chain that flows forward through the learning sequence. Backward requires (pointing to higher-order concepts) are **forbidden**.
-4. **NO CYCLES**: If A requires B, then B must NOT require A, and no chain B→...→A may exist. Before adding a `requires`, verify the target does not already require the source through any path.
-5. **SAME-BRANCH LOCALITY**: Leaf connections beyond the mandatory `is-part-of` MUST target other leaves within the SAME branch. Cross-branch leaf connections are forbidden — they create tangled, unreadable graphs.
-6. **BRANCH PREREQUISITES ONLY**: The only cross-branch connection allowed is a branch-to-branch `requires` (e.g., "Prompt Engineering" requires "Document Creation"). This creates a clean inter-branch learning sequence without leaf-level cross-wiring.
-### 3.5 SELECTION FIELD PATTERN:
-Each item: "When [Scenario] Choose [Option] Unlocks [Capability]"
-### 3.6 COGNITIVE LEVELS (Bloom's):
-Assign one: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`
-Trunk concepts: always `understand`
-Branch concepts: `understand` or `apply`
-Leaf concepts: prefer `apply`, `analyze`, `evaluate`, `create`
-### 3.7 POSITIVE FRAMING:
-| Avoid | Use |
-|---|---|
-| "Cannot change after creation" | "Selection made at creation time" |
-| "Will fail if X" | "Verify X before proceeding" |
+### 3.4 TRACES CONNECTION TYPES
+Use the FIRST match when deciding a connection type:
+1. Must you understand B before A? → `requires`
+2. Is A a component of B? → `is-part-of`
+3. Is A a variant of B? → `is-type-of`
+4. Does A trigger or produce B? → `causes`
+5. Does A limit or govern B? → `constrains`
+6. ONLY if none above → `enables`
+FORBIDDEN types: "related-to", "extends", "depends-on". `enables` must not exceed 20% of connections.
+**GRAPH TOPOLOGY RULES**:
+- Trunk = 0 outgoing connections. Branch = max 2 (1 `is-part-of` → trunk + 0-1 `requires` → sibling branch). Leaf = max 3 (1 `is-part-of` → branch + 1-2 same-branch connections).
+- `requires` MUST point to a LOWER `order` number. No cycles.
+- Cross-branch leaf connections are FORBIDDEN.
+### 3.5 COGNITIVE LEVELS (Bloom's):
+Trunk: `understand`. Branch: `understand`/`apply`. Leaf: prefer `apply`, `analyze`, `evaluate`, `create`.
 ---
 ## 4. OUTPUT FORMAT
 Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
-### 4.1 DOMAIN-ADAPTIVE CONTENT:
-**phase2**: Procedural=execution steps, Conceptual=critical inquiry, Cyclic=iteration protocol, Perceptual=observation protocol
-**workedExample**: Procedural=config walkthrough, Conceptual=case study, Cyclic=iteration log, Perceptual=diagnostic walkthrough
-### 4.2 QUALITY STANDARD — CONCRETE EXAMPLE
+### 4.1 QUALITY STANDARD — CONCRETE EXAMPLE
 Below is ONE fully-worked leaf concept. **Every concept you generate must match this depth and specificity.** Do NOT use placeholder text like "Detailed explanation of..." or "Why X matters" — write real technical content.
 ### FIELD STYLE GUIDE (violating these causes automatic rejection):
 **hookSentence** — Lead with a surprising fact, a specific failure scenario, or a concrete exam trap from the subject domain. BANNED: "Without proper X...", "Without X...", "Improperly configured X...". GOOD examples:
@@ -314,24 +287,17 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
 ---
 ## 5. CRITICAL RULES
 1. **TREE INTEGRITY**: Every branch `parentName` = trunk name. Every leaf `parentName` = a branch name. Trunk `parentName` = null.
-2. **QUANTITY**: Generate approximately {count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).
+2. **QUANTITY**: ~{count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).
 3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
-4. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
-5. **ASSESSMENT CONTEXT**: Every concept framed for how it would be tested or assessed, not casual exploration.
-6. **REAL EXAMPLES**: `shape.highStakesExample` must reference a real event, case study, or documented scenario with specifics (names, dates, outcomes). **SUBJECT-SPECIFIC**: Use examples from the actual subject domain — technology subjects use tech incidents, law subjects use landmark cases, science subjects use documented experiments or events, etc.
-7. **NO DUPLICATION**: Only generate for "{domain_name}". Other domains are separate.
-8. **UNIQUE EXAMPLES**: Every concept MUST use a DIFFERENT company/incident for `highStakesExample`. Never repeat the same case study across concepts. Every `mnemonic.anchor` must be a unique physical object — no two concepts may share the same anchor. Every `shape.patternRecognition.question` must present a unique scenario.
-9. **CRITICAL DISTINCTIONS QUALITY**: The `incorrect` side must be a **plausible misconception** that a real student would hold — NOT an obviously wrong strawman. Bad: "IaaS and PaaS are the same thing". Good: "PaaS handles OS patching automatically" vs "PaaS still requires you to manage OS updates like IaaS".
-10. **NO GENERIC FILLER**: Every field must contain domain-specific technical content. The following patterns cause **automatic rejection**:
-   - "Why X matters", "Think of X as...", "Detailed explanation of Y", "Proper use of X vs Common misunderstanding"
-   - "Without proper X, your/you...", "Improperly configured X...", "Without X security/access/controls..."
-   - "X is a crucial/critical/essential component/part/aspect", "X provides a secure way to", "X are essential/crucial for"
-11. **COMPLETE WORKED EXAMPLES**: Every branch and leaf concept MUST include a `workedExample` with ALL three fields populated:
-   - `problem`: A specific, realistic scenario or exam-style question (minimum 20 words)
-   - `solution`: The complete, correct answer with reasoning (minimum 20 words)
-   - `steps`: Array of 3-6 numbered solution steps showing the reasoning process
-   Empty or placeholder workedExamples cause **automatic rejection**.
-12. **OBJECTIVE-BOUND GENERATION**: If exam objectives are listed above, every leaf concept MUST map to at least one listed objective. Do NOT invent topics beyond the provided objectives. Do NOT add concepts for technologies, features, or skills not explicitly listed. Concepts that cannot be traced back to a specific listed objective will be **automatically rejected**. If the objectives are silent on a topic, that topic is out of scope — even if it seems related.
+4. **NAME FIELD**: Human-readable names only.
+5. **ASSESSMENT CONTEXT**: Frame every concept for how it would be tested, not casual exploration.
+6. **REAL EXAMPLES**: `shape.highStakesExample` must reference a real event with specifics (names, dates, outcomes) from the subject domain.
+7. **NO DUPLICATION**: Only generate for "{domain_name}".
+8. **UNIQUENESS**: Every `highStakesExample` uses a different case. Every `mnemonic.anchor` is a unique physical object. Every `patternRecognition.question` is a unique scenario.
+9. **CRITICAL DISTINCTIONS**: The `incorrect` side must be a plausible misconception, not an obvious strawman.
+10. **NO GENERIC FILLER** — BANNED patterns: "Why X matters", "Think of X as...", "Without proper X...", "X is crucial/essential...", "Detailed explanation of..."
+11. **COMPLETE WORKED EXAMPLES**: `problem` (20+ words), `solution` (20+ words), `steps` (3-6 items). All three required.
+12. **OBJECTIVE-BOUND**: If exam objectives are listed, every leaf MUST map to a listed objective. Do NOT invent topics beyond the provided objectives.
 Generate the concept tree for "{domain_name}" now:"""
 def _parse_exam_tree(context: str) -> list:
     import re as _re

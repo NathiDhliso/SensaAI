@@ -17,11 +17,6 @@ import type { SubjectType } from '@/shared/types/macro-workflow';
 import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
 import { synthesizeExample } from '@/shared/utils/example-synthesis';
 import BlankSheetTest from '@/components/learning/activities/BlankSheetTest';
-import ConfusionDrill from '@/components/learning/activities/ConfusionDrill';
-import { PeerReviewActivity } from '@/components/learning/activities/PeerReviewActivity';
-import { CreativeTransferActivity } from '@/components/learning/activities/CreativeTransferActivity';
-import { findConfusionPairs, generateConfusionQuestions } from '@/features/learning-session/activities/confusion-generator';
-import type { ConfusionDrillResult, ConfusionPair } from '@/features/learning-session/activities/confusion-generator';
 import { getRandomElaborationPrompt } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
@@ -31,7 +26,7 @@ import styles from './MicroLearningLoopController.module.css';
 // ============================================================================
 // TYPES
 // ============================================================================
-export type LoopPhase = 'worked-example' | 'faded-example' | 'test' | 'learn' | 'verify' | 'confusion' | 'social-learning' | 'creative-transfer';
+export type LoopPhase = 'worked-example' | 'faded-example' | 'test' | 'learn' | 'verify';
 export type LoopOutcome = 'mastered' | 'needs-learning' | 'needs-review';
 export interface MicroLearningLoopProps {
     concept: LearningConcept;
@@ -48,23 +43,6 @@ interface TestPhaseResult {
     totalPoints: number;
     confidence: number;
     timeSpent: number;
-}
-// ============================================================================
-// TYPE-AWARE ACTIVITY SELECTION
-// ============================================================================
-function selectPostConfusionActivity(subjectType?: SubjectType): LoopPhase {
-    switch (subjectType) {
-        case 'procedural':
-            return 'creative-transfer';
-        case 'conceptual':
-            return 'creative-transfer';
-        case 'cyclic':
-            return 'social-learning';
-        case 'perceptual':
-            return 'creative-transfer';
-        default:
-            return Math.random() > 0.5 ? 'social-learning' : 'creative-transfer';
-    }
 }
 // ============================================================================
 // ADAPTIVE TIMING CALCULATIONS
@@ -837,9 +815,6 @@ export function MicroLearningLoopController({
     const [testResult, setTestResult] = useState<TestPhaseResult | null>(null);
     const [totalTimeSpent, setTotalTimeSpent] = useState(0);
     const [verifyResultData, setVerifyResultData] = useState<{ correct: boolean, timeSpent: number } | null>(null);
-    // State for Confusion Drill Queue
-    const [confusionQueue, setConfusionQueue] = useState<ConfusionPair[]>([]);
-    const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
     // 3. Handlers
     const handleLoopCompleteInternal = (outcome: LoopOutcome) => {
         const timeSpent = (Date.now() - loopStartTime) / 1000;
@@ -860,14 +835,6 @@ export function MicroLearningLoopController({
             reasons.push('Trunk concept — prerequisite for others');
         } else if (concept.tier === 'leaf') {
             reasons.push('Leaf concept — specialized application');
-        }
-        if (loopState === 'social-learning' && subjectType === 'cyclic') {
-            reasons.push('Peer review selected — cyclic subjects benefit from dialogue');
-        } else if (loopState === 'creative-transfer') {
-            const typeLabel = subjectType ? { procedural: 'procedural', conceptual: 'conceptual', cyclic: 'cyclic', perceptual: 'perceptual' }[subjectType] : null;
-            reasons.push(typeLabel ? `Transfer task — ${typeLabel} scenario` : 'Transfer task — applying to new context');
-        } else if (loopState === 'confusion') {
-            reasons.push('Similar concepts detected — discrimination training');
         }
         return reasons.length > 0 ? reasons[0] : null;
     }, [userVelocity, concept.tier, loopState, subjectType]);
@@ -892,12 +859,6 @@ export function MicroLearningLoopController({
             prediction: studySession?.predictions?.[concept.id]
         });
     }, [concept, studySession]);
-    // Check if confusion prevention is needed
-    const hasConfusionPairs = useMemo(() => {
-        if (!allConcepts) return false;
-        const pairs = findConfusionPairs(concept, allConcepts);
-        return pairs.length > 0;
-    }, [concept, allConcepts]);
     // Unified handler for Worked/Faded phases
     const handlePhaseComplete = useCallback((phase: LoopPhase, data: { timeSpent: number }) => {
         setTotalTimeSpent(prev => prev + data.timeSpent);
@@ -920,23 +881,11 @@ export function MicroLearningLoopController({
         const finalTimeSpent = totalTimeSpent + timeSpent;
         setTotalTimeSpent(finalTimeSpent);
         setVerifyResultData({ correct, timeSpent });
-        // Record the interaction for cognitive metrics
         recordInteraction(correct, timeSpent * 1000);
         const currentTestResult = testResult || { recalledPoints: 0, totalPoints: 0, confidence: 0, timeSpent: 0 };
         const outcome = determineOutcome(currentTestResult, { correct, timeSpent });
-        // If mastered AND has potential confusion pairs, go to confusion phase
-        // This ensures we only clarify confusion for concepts the user is starting to get right
-        if (hasConfusionPairs && loopState !== 'confusion') {
-            const pairs = findConfusionPairs(concept, allConcepts || []);
-            if (pairs.length > 0) {
-                setConfusionQueue(pairs);
-                setCurrentDrillIndex(0);
-                setLoopState('confusion');
-                return;
-            }
-        }
         handleLoopCompleteInternal(outcome);
-    }, [testResult, totalTimeSpent, recordInteraction, hasConfusionPairs, loopState, concept, allConcepts, handleLoopCompleteInternal]);
+    }, [testResult, totalTimeSpent, recordInteraction, concept, handleLoopCompleteInternal]);
     return (
         <div className={styles.container}>
             {/* Cognitive Phase Context */}
@@ -947,17 +896,17 @@ export function MicroLearningLoopController({
             </div>
             {/* Phase indicator */}
             <div className={styles.phaseIndicator}>
-                <div className={`${styles.phaseStep} ${loopState === 'worked-example' ? styles.active : ''} ${['test', 'learn', 'verify', 'confusion'].includes(loopState) ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${loopState === 'worked-example' ? styles.active : ''} ${['test', 'learn', 'verify'].includes(loopState) ? styles.complete : ''}`}>
                     <Lightbulb size={18} />
                     <span>Real</span>
                 </div>
                 <div className={styles.phaseLine} />
-                <div className={`${styles.phaseStep} ${loopState === 'test' ? styles.active : ''} ${['learn', 'verify', 'confusion'].includes(loopState) ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${loopState === 'test' ? styles.active : ''} ${['learn', 'verify'].includes(loopState) ? styles.complete : ''}`}>
                     <Brain size={18} />
                     <span>Test</span>
                 </div>
                 <div className={styles.phaseLine} />
-                <div className={`${styles.phaseStep} ${loopState === 'learn' ? styles.active : ''} ${['verify', 'confusion'].includes(loopState) ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${loopState === 'learn' ? styles.active : ''} ${['verify'].includes(loopState) ? styles.complete : ''}`}>
                     <BookOpen size={18} />
                     <span>Encode</span>
                 </div>
@@ -1018,62 +967,6 @@ export function MicroLearningLoopController({
                             keyPoints={keyPoints}
                             onComplete={handleVerifyComplete}
                         />
-                    )}
-                    {loopState === 'confusion' && confusionQueue.length > 0 && currentDrillIndex < confusionQueue.length && (
-                        <ConfusionDrill
-                            key={`drill-${confusionQueue[currentDrillIndex].concept2.id}`}
-                            pair={confusionQueue[currentDrillIndex]}
-                            questions={generateConfusionQuestions(confusionQueue[currentDrillIndex])}
-                            onComplete={(res: ConfusionDrillResult) => {
-                                // Accumulate time
-                                const newTime = totalTimeSpent + res.timeSpent;
-                                setTotalTimeSpent(newTime);
-                                // Advance to next drill or finish
-                                if (currentDrillIndex < confusionQueue.length - 1) {
-                                    setCurrentDrillIndex(prev => prev + 1);
-                                } else {
-                                    // All drills done
-                                    const outcome = testResult && verifyResultData
-                                        ? determineOutcome(testResult, verifyResultData)
-                                        : 'mastered';
-                                    if (outcome === 'mastered') {
-                                        const nextPhase = selectPostConfusionActivity(subjectType);
-                                        setLoopState(nextPhase);
-                                    } else if (outcome === 'needs-review') {
-                                        // If not mastered, or needs review, complete the loop normally
-                                        handleLoopCompleteInternal(outcome);
-                                    } else {
-                                        // Default case for other outcomes
-                                        handleLoopCompleteInternal(outcome);
-                                    }
-                                }
-                            }}
-                            onClose={() => {
-                                // Allow early exit
-                                const outcome = testResult && verifyResultData
-                                    ? determineOutcome(testResult, verifyResultData)
-                                    : 'mastered'; // Assume mastered if exiting early from confusion drill
-                                handleLoopCompleteInternal(outcome);
-                            }}
-                        />
-                    )}
-                    {loopState === 'social-learning' && (
-                        <div className={styles.phaseCard}>
-                            <PeerReviewActivity
-                                concept={concept}
-                                allConcepts={allConcepts}
-                                onComplete={() => handlePhaseComplete('social-learning', { timeSpent: 45 })}
-                            />
-                        </div>
-                    )}
-                    {loopState === 'creative-transfer' && (
-                        <div className={styles.phaseCard}>
-                            <CreativeTransferActivity
-                                concept={concept}
-                                subjectType={subjectType}
-                                onComplete={() => handlePhaseComplete('creative-transfer', { timeSpent: 60 })}
-                            />
-                        </div>
                     )}
                 </AnimatePresence>
                 {/* ARCHITECT ENHANCEMENT: Navigation Flexibility */}

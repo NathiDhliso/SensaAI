@@ -14,11 +14,10 @@ import {
 import type { LearningConcept } from '@/shared/types/learning';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
 import { PeerReviewActivity } from '@/components/learning/activities/PeerReviewActivity';
-import MasteryChallenge from '@/components/learning/activities/MasteryChallenge'; // Legacy stub
 import PreMortemActivity from '@/components/learning/activities/PreMortemActivity';
 import styles from './GymActivityLauncher.module.css';
 
-export type GymActivity = 'concept-map' | 'peer-review' | 'mastery' | 'pre-mortem';
+export type GymActivity = 'concept-map' | 'peer-review' | 'pre-mortem';
 
 interface GymActivityLauncherProps {
  activity: GymActivity;
@@ -42,12 +41,6 @@ const ACTIVITY_META: Record<GymActivity, { label: string; icon: React.ReactNode;
  icon: <MessageCircle size={20} />,
  needsConcept: true,
  description: 'Defend your understanding against a simulated peer'
- },
- 'mastery': {
- label: 'Mastery Challenge',
- icon: <Trophy size={20} />,
- needsConcept: false,
- description: 'Prove deep understanding across multiple concepts'
  },
  'pre-mortem': {
  label: 'Pre-Mortem',
@@ -139,14 +132,6 @@ export default function GymActivityLauncher({
  concept={selectedConcept}
  allConcepts={concepts}
  onComplete={(success: boolean) => handleComplete(success)}
- />
- );
-
- case 'mastery':
- return (
- <MasteryChallenge
- concepts={concepts}
- onComplete={(passed: boolean) => handleComplete(passed)}
  />
  );
 

@@ -44,6 +44,7 @@ import { toast } from '@/shared/utils/toast';
 import KnowledgeHealthPanel, { type ConceptHealth } from './KnowledgeHealthPanel';
 import { FuturisticPrimingZone } from '@/features/priming-zone';
 import { detectULCPattern } from '@/features/priming-zone/detector';
+import BlueprintFormulaDashboard from '@/components/dashboard/BlueprintFormulaDashboard';
 import styles from './ContentLaunchpad.module.css';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
 type LaunchpadTab = 'gym' | 'insights';
@@ -101,6 +102,7 @@ export default function ContentLaunchpad() {
     const [objectivesSaved, setObjectivesSaved] = useState(false);
     const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
     const [showPrimingZone, setShowPrimingZone] = useState(false);
+    const [showEquationMonitor, setShowEquationMonitor] = useState(false);
     const parsedPreview = useMemo(() => {
         if (!objectivesText.trim()) return [];
         return parseSyllabusText(objectivesText);
@@ -702,6 +704,18 @@ export default function ContentLaunchpad() {
                         <div className={styles.zoneCards}>
                             <button
                                 className={styles.activityCard}
+                                onClick={() => setShowEquationMonitor(true)}
+                            >
+                                <div className={styles.activityIcon}>
+                                    <BarChart3 size={24} />
+                                </div>
+                                <div className={styles.activityInfo}>
+                                    <span className={styles.activityName}>Equation Monitor</span>
+                                    <span className={styles.activityDesc}>Track your learning health formula</span>
+                                </div>
+                            </button>
+                            <button
+                                className={styles.activityCard}
                                 onClick={() => handleGymActivity('concept-map')}
                             >
                                 <div className={styles.activityIcon}>
@@ -734,18 +748,6 @@ export default function ContentLaunchpad() {
                             </div>
                         </div>
                         <div className={styles.zoneCards}>
-                            <button
-                                className={styles.activityCard}
-                                onClick={() => handleGymActivity('mastery')}
-                            >
-                                <div className={styles.activityIcon}>
-                                    <Trophy size={24} />
-                                </div>
-                                <div className={styles.activityInfo}>
-                                    <span className={styles.activityName}>Mastery Challenge</span>
-                                    <span className={styles.activityDesc}>Prove deep understanding</span>
-                                </div>
-                            </button>
                             <button
                                 className={styles.activityCard}
                                 onClick={() => handleGymActivity('pre-mortem')}
@@ -1071,6 +1073,24 @@ export default function ContentLaunchpad() {
                 <FuturisticPrimingZone
                     matrix={ulcMatrix}
                     onClose={() => setShowPrimingZone(false)}
+                />
+            )}
+
+            {/* Equation Monitor Modal */}
+            {showEquationMonitor && (
+                <BlueprintFormulaDashboard
+                    h={knowledgeHealth / 100}
+                    I={spacingMetrics ? Math.min(knowledgeHealth / 100, (spacingMetrics.averageRetention ?? 0.5)) : knowledgeHealth / 100}
+                    phase="study"
+                    metrics={null}
+                    weakestVariable={{ variable: 'Q_r', value: spacingMetrics?.averageRetention ?? 0.5 }}
+                    recommendation={knowledgeHealth < 50 ? 'Focus on spaced repetition — your retention is low.' : 'Keep reviewing due concepts to maintain health.'}
+                    subjectType={undefined}
+                    subjectName={result?.subject}
+                    conceptsCompleted={dueReviews.length}
+                    conceptsTotal={tierCounts.total}
+                    feedbackSignal={null}
+                    onClose={() => setShowEquationMonitor(false)}
                 />
             )}
         </div>

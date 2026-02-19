@@ -12,8 +12,6 @@ export * from './utils/alias-generator';
 export * from './utils/subject-domain-detector';
 export * from './utils/performance';
 export * from './utils/content-loader';
-export * from './utils/context-optimizer';
-export * from './utils/persona';
 export * from './utils/content-builder';
 // Layout utils (has TierType)
 export {
@@ -34,9 +32,8 @@ export type {
  SubjectGraph
 } from './types/learning';
 export type {
- ConfusionPair,
- ConfusionDrillResult
-} from './types/confusion';
+ ConfusionPair
+} from './types/sensa-flow';
 export type {
  TierDistribution
 } from './types/content-analytics';
@@ -66,7 +63,6 @@ export * from './hooks/useClickOutside';
 export * from './hooks/useCollisionDetection';
 export * from './hooks/useCountdownTimer';
 export * from './hooks/useEscapeKey';
-export * from './hooks/useFlowState';
 export * from './hooks/useGenerationEngine';
 export * from './hooks/useGenerationRecovery';
 export * from './hooks/useLearningFlow';

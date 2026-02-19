@@ -1,8 +1,0 @@
-User Journey Analysis
-1. User arrives → Home/Dashboard 
-2. User generates/selects content → Generate page 
-3. User starts learning → Study page (Overview tab) 
-4. User begins session → Mood selector appears 
-5. User learns → Coach provides contextual guidance 
-6. User struggles → Coach offers encouragement 
-7. User completes → Celebration
