@@ -879,7 +879,6 @@ export function MicroLearningLoopController({
     const handleVerifyComplete = useCallback((correct: boolean, timeSpent: number) => {
         const finalTimeSpent = totalTimeSpent + timeSpent;
         setTotalTimeSpent(finalTimeSpent);
-        setVerifyResultData({ correct, timeSpent });
         recordInteraction(correct, timeSpent * 1000);
         const currentTestResult = testResult || { recalledPoints: 0, totalPoints: 0, confidence: 0, timeSpent: 0 };
         const outcome = determineOutcome(currentTestResult, { correct, timeSpent });
