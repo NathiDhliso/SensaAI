@@ -1,18 +1,29 @@
 import type { LearningConcept } from '@/shared/types/learning';
-import type { MatrixPayload, MatrixConcept, LeafRow, DrillDownAction } from './types';
+import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, DrillDownAction } from './types';
 
 function buildAction(concept: LearningConcept): DrillDownAction {
-  return {
-    trick: concept.mnemonic?.anchor || concept.shape?.simpleCore || concept.name,
-    chain: concept.mnemonic?.story
+  const trick =
+    concept.shape?.analogicalModel ||
+    concept.shape?.simpleCore ||
+    concept.hookSentence ||
+    concept.name;
+
+  const chain: string[] = concept.prerequisites?.length
+    ? concept.prerequisites
+    : concept.mnemonic?.story
       ? [concept.mnemonic.story]
-      : [],
-    steps: concept.lifecycle?.phase1?.steps?.length
-      ? concept.lifecycle.phase1.steps
-      : concept.keyPoints?.length
-        ? concept.keyPoints
-        : [],
-  };
+      : [];
+
+  const steps: string[] =
+    concept.workedExample?.steps?.length
+      ? concept.workedExample.steps
+      : concept.lifecycle?.phase1?.steps?.length
+        ? concept.lifecycle.phase1.steps
+        : concept.keyPoints?.length
+          ? concept.keyPoints
+          : [];
+
+  return { trick, chain, steps };
 }
 
 export function buildMatrixPayload(
@@ -25,86 +36,97 @@ export function buildMatrixPayload(
   const verb3 = (lifecycleVerbs?.phase3 || 'DELIVER').toUpperCase();
   const verbs = [verb1, verb2, verb3];
 
-  function phaseVerb(concept: LearningConcept): string {
-    const phase = (concept.lifecyclePhase || '').toUpperCase();
-    if (phase === 'PREPARE') return verb1;
-    if (phase === 'MODEL') return verb2;
-    if (phase === 'DELIVER') return verb3;
-    const l = (concept.cognitiveLevel || '').toLowerCase();
-    if (l === 'evaluate' || l === 'create') return verb3;
-    if (l === 'apply' || l === 'analyze') return verb2;
-    return verb1;
-  }
-
-  const leaves = concepts.filter(c => c.tier === 'leaf');
+  const trunks = concepts.filter(c => c.tier === 'trunk');
   const branches = concepts.filter(c => c.tier === 'branch');
+  const leaves = concepts.filter(c => c.tier === 'leaf');
 
-  const branchNames = new Set(branches.map(b => b.name));
+  const branchByName: Record<string, LearningConcept> = {};
+  for (const b of branches) branchByName[b.name] = b;
 
-  const branchToLeaves: Record<string, LearningConcept[]> = {};
+  const leafesByBranch: Record<string, LearningConcept[]> = {};
   for (const leaf of leaves) {
-    const parent = leaf.parentName || leaf.trunkDomain || 'General';
-    if (!branchToLeaves[parent]) branchToLeaves[parent] = [];
-    branchToLeaves[parent].push(leaf);
+    const key = leaf.parentName || leaf.trunkDomain || 'General';
+    if (!leafesByBranch[key]) leafesByBranch[key] = [];
+    leafesByBranch[key].push(leaf);
   }
 
-  const parentNames = new Set([
-    ...branches.map(b => b.name),
-    ...Object.keys(branchToLeaves).filter(k => !branchNames.has(k)),
-  ]);
+  const branchesByTrunk: Record<string, LearningConcept[]> = {};
+  for (const branch of branches) {
+    const key = branch.parentName || branch.trunkDomain || 'General';
+    if (!branchesByTrunk[key]) branchesByTrunk[key] = [];
+    branchesByTrunk[key].push(branch);
+  }
+
+  function buildLeafRow(leaf: LearningConcept): LeafRow {
+    const action = buildAction(leaf);
+    const actions: Record<string, DrillDownAction> = {};
+    const cellConceptIds: Record<string, string> = {};
+    for (const verb of verbs) {
+      actions[verb] = action;
+      cellConceptIds[verb] = leaf.id;
+    }
+    return { conceptId: leaf.id, conceptName: leaf.name, actions, cellConceptIds };
+  }
+
+  function buildBranchRow(branch: LearningConcept): BranchRow {
+    const children = (leafesByBranch[branch.name] ?? []).map(buildLeafRow);
+    return {
+      conceptId: branch.id,
+      conceptName: branch.name,
+      children,
+    };
+  }
 
   const matrix: MatrixConcept[] = [];
 
-  for (const parentName of parentNames) {
-    const group = branchToLeaves[parentName] ?? [];
+  for (const trunk of trunks) {
+    const trunkBranches = branchesByTrunk[trunk.name] ?? [];
+    const branchRows = trunkBranches.map(buildBranchRow);
 
-    const children: LeafRow[] = group.map(leaf => {
-      const leafActions: Record<string, DrillDownAction | null> = {};
-      const leafIds: Record<string, string> = {};
-      const assignedVerb = phaseVerb(leaf);
-      for (const verb of verbs) {
-        if (verb === assignedVerb) {
-          leafActions[verb] = buildAction(leaf);
-          leafIds[verb] = leaf.id;
-        } else {
-          leafActions[verb] = null;
-        }
-      }
-      return {
-        conceptId: leaf.id,
-        conceptName: leaf.name,
-        actions: leafActions,
-        cellConceptIds: leafIds,
-      };
-    });
+    const orphanLeaves = (leafesByBranch[trunk.name] ?? []).map(buildLeafRow);
+    if (orphanLeaves.length > 0) {
+      branchRows.push({
+        conceptId: `${trunk.id}-general`,
+        conceptName: 'General',
+        children: orphanLeaves,
+      });
+    }
 
     matrix.push({
-      conceptId: parentName,
-      conceptName: parentName,
+      conceptId: trunk.id,
+      conceptName: trunk.name,
       isParent: true,
-      children,
+      branches: branchRows,
+      children: [],
     });
   }
 
   if (matrix.length === 0) {
-    const fallbackGroups: Record<string, LearningConcept[]> = {};
-    for (const concept of concepts) {
-      const domain = concept.trunkDomain || concept.parentName || 'General';
-      if (!fallbackGroups[domain]) fallbackGroups[domain] = [];
-      fallbackGroups[domain].push(concept);
+    const grouped: Record<string, LearningConcept[]> = {};
+    for (const c of concepts) {
+      const key = c.trunkDomain || c.parentName || 'General';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(c);
     }
-    for (const [domain, group] of Object.entries(fallbackGroups)) {
-      const children: LeafRow[] = group.map(c => {
-        const a: Record<string, DrillDownAction | null> = {};
-        const ids: Record<string, string> = {};
-        const v = phaseVerb(c);
-        for (const verb of verbs) {
-          if (verb === v) { a[verb] = buildAction(c); ids[verb] = c.id; }
-          else a[verb] = null;
-        }
-        return { conceptId: c.id, conceptName: c.name, actions: a, cellConceptIds: ids };
+    for (const [domain, group] of Object.entries(grouped)) {
+      const subGroups: Record<string, LearningConcept[]> = {};
+      for (const c of group) {
+        const key = c.parentName && c.parentName !== domain ? c.parentName : '_root';
+        if (!subGroups[key]) subGroups[key] = [];
+        subGroups[key].push(c);
+      }
+      const branchRows: BranchRow[] = Object.entries(subGroups).map(([bName, bGroup]) => ({
+        conceptId: `${domain}-${bName}`,
+        conceptName: bName === '_root' ? domain : bName,
+        children: bGroup.map(buildLeafRow),
+      }));
+      matrix.push({
+        conceptId: domain,
+        conceptName: domain,
+        isParent: true,
+        branches: branchRows,
+        children: [],
       });
-      matrix.push({ conceptId: domain, conceptName: domain, isParent: true, children });
     }
   }
 
@@ -116,8 +138,16 @@ export function getFirstSuggestedKey(
   masteredIds: Set<string>
 ): string | null {
   for (const verb of payload.verbs) {
-    for (const concept of payload.matrix) {
-      for (const leaf of concept.children) {
+    for (const trunk of payload.matrix) {
+      for (const branch of trunk.branches) {
+        for (const leaf of branch.children) {
+          const realId = leaf.cellConceptIds?.[verb];
+          if (realId && !masteredIds.has(realId) && leaf.actions?.[verb]) {
+            return `${leaf.conceptId}::${verb}`;
+          }
+        }
+      }
+      for (const leaf of trunk.children) {
         const realId = leaf.cellConceptIds?.[verb];
         if (realId && !masteredIds.has(realId) && leaf.actions?.[verb]) {
           return `${leaf.conceptId}::${verb}`;

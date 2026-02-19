@@ -89,12 +89,16 @@ export function ULCPracticeController({
 
   const totalCells = useMemo(() => {
     const seen = new Set<string>();
-    for (const concept of payload.matrix) {
-      for (const leaf of concept.children) {
-        for (const verb of payload.verbs) {
-          const realId = leaf.cellConceptIds?.[verb];
+    for (const trunk of payload.matrix) {
+      for (const branch of trunk.branches) {
+        for (const leaf of branch.children) {
+          const realId = leaf.cellConceptIds?.[payload.verbs[0]];
           if (realId) seen.add(realId);
         }
+      }
+      for (const leaf of trunk.children) {
+        const realId = leaf.cellConceptIds?.[payload.verbs[0]];
+        if (realId) seen.add(realId);
       }
     }
     return seen.size;

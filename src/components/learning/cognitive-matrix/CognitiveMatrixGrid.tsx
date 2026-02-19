@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Play, ChevronRight } from 'lucide-react';
-import type { MatrixPayload, MatrixConcept, LeafRow, SelectedCell, DrillDownAction } from './types';
+import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, SelectedCell, DrillDownAction } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
 
 interface ExpandedCell {
@@ -19,16 +19,11 @@ interface CognitiveMatrixGridProps {
   onCellClick: (cell: SelectedCell) => void;
 }
 
-export function CognitiveMatrixGrid({
-  payload,
-  masteredIds,
-  suggestedId,
-  onCellClick,
-}: CognitiveMatrixGridProps) {
+export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellClick }: CognitiveMatrixGridProps) {
   const colCount = payload.verbs.length;
   const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
-
-  const [expandedParents, setExpandedParents] = useState<Set<string>>(() => new Set());
+  const [openTrunks, setOpenTrunks] = useState<Set<string>>(() => new Set());
+  const [openBranches, setOpenBranches] = useState<Set<string>>(() => new Set());
 
   const handleCellTap = (cell: ExpandedCell) => {
     setExpandedCell(prev =>
@@ -49,8 +44,8 @@ export function CognitiveMatrixGrid({
     setExpandedCell(null);
   };
 
-  const toggleParent = (id: string) => {
-    setExpandedParents(prev => {
+  const toggleTrunk = (id: string) => {
+    setOpenTrunks(prev => {
       const next = new Set(prev);
       if (next.has(id)) { next.delete(id); setExpandedCell(null); }
       else next.add(id);
@@ -58,28 +53,38 @@ export function CognitiveMatrixGrid({
     });
   };
 
+  const toggleBranch = (id: string) => {
+    setOpenBranches(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); setExpandedCell(null); }
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const colTemplate = `minmax(220px, auto) repeat(${colCount}, minmax(110px, 1fr))`;
+
   return (
     <div className={styles.gridWrapper}>
-      <div
-        className={styles.grid}
-        style={{ gridTemplateColumns: `minmax(200px, auto) repeat(${colCount}, minmax(110px, 1fr))` }}
-      >
-        <div className={styles.cornerCell}>RESOURCE</div>
+      <div className={styles.grid} style={{ gridTemplateColumns: colTemplate }}>
+        <div className={styles.cornerCell}>DOMAINS</div>
         {payload.verbs.map(verb => (
           <div key={verb} className={styles.verbHeader}>{verb.toUpperCase()}</div>
         ))}
-
-        {payload.matrix.map(concept => (
-          <ParentRows
-            key={concept.conceptId}
-            concept={concept}
+        {payload.matrix.map(trunk => (
+          <TrunkRowGroup
+            key={trunk.conceptId}
+            trunk={trunk}
             verbs={payload.verbs}
             masteredIds={masteredIds}
             suggestedId={suggestedId}
             expandedCell={expandedCell}
-            isOpen={expandedParents.has(concept.conceptId)}
+            isTrunkOpen={openTrunks.has(trunk.conceptId)}
+            openBranches={openBranches}
             colCount={colCount}
-            onToggle={() => toggleParent(concept.conceptId)}
+            colTemplate={colTemplate}
+            onToggleTrunk={() => toggleTrunk(trunk.conceptId)}
+            onToggleBranch={toggleBranch}
             onCellTap={handleCellTap}
             onStartDrill={handleStartDrill}
             onCloseDrawer={() => setExpandedCell(null)}
@@ -90,61 +95,50 @@ export function CognitiveMatrixGrid({
   );
 }
 
-function ParentRows({
-  concept,
-  verbs,
-  masteredIds,
-  suggestedId,
-  expandedCell,
-  isOpen,
-  colCount,
-  onToggle,
-  onCellTap,
-  onStartDrill,
-  onCloseDrawer,
+function TrunkRowGroup({
+  trunk, verbs, masteredIds, suggestedId, expandedCell,
+  isTrunkOpen, openBranches, colCount, colTemplate,
+  onToggleTrunk, onToggleBranch, onCellTap, onStartDrill, onCloseDrawer,
 }: {
-  concept: MatrixConcept;
+  trunk: MatrixConcept;
   verbs: string[];
   masteredIds: Set<string>;
   suggestedId: string | null;
   expandedCell: ExpandedCell | null;
-  isOpen: boolean;
+  isTrunkOpen: boolean;
+  openBranches: Set<string>;
   colCount: number;
-  onToggle: () => void;
+  colTemplate: string;
+  onToggleTrunk: () => void;
+  onToggleBranch: (id: string) => void;
   onCellTap: (cell: ExpandedCell) => void;
   onStartDrill: () => void;
   onCloseDrawer: () => void;
 }) {
-  const masteredInGroup = concept.children.filter(leaf =>
-    Object.values(leaf.cellConceptIds).some(id => masteredIds.has(id))
+  const allLeaves = [
+    ...trunk.branches.flatMap(b => b.children),
+    ...trunk.children,
+  ];
+  const totalLeaves = allLeaves.length;
+  const masteredLeaves = allLeaves.filter(l =>
+    Object.values(l.cellConceptIds).some(id => masteredIds.has(id))
   ).length;
-  const totalLeaves = concept.children.length;
 
   return (
     <>
-      <div
-        className={styles.parentLabel}
-        onClick={onToggle}
-        role="button"
-        aria-expanded={isOpen}
-      >
-        <motion.span
-          className={styles.chevron}
-          animate={{ rotate: isOpen ? 90 : 0 }}
-          transition={{ duration: 0.18 }}
-        >
+      <div className={styles.trunkLabel} onClick={onToggleTrunk} role="button" aria-expanded={isTrunkOpen}>
+        <motion.span className={styles.chevron} animate={{ rotate: isTrunkOpen ? 90 : 0 }} transition={{ duration: 0.18 }}>
           <ChevronRight size={14} />
         </motion.span>
-        <span className={styles.parentName}>{concept.conceptName}</span>
-        <span className={styles.parentCount}>{masteredInGroup}/{totalLeaves}</span>
+        <span className={styles.parentName}>{trunk.conceptName}</span>
+        <span className={styles.parentCount}>{masteredLeaves}/{totalLeaves}</span>
       </div>
-
       {verbs.map(verb => (
-        <div key={`${concept.conceptId}-${verb}-ph`} className={styles.parentPlaceholder} />
+        <div key={`${trunk.conceptId}-${verb}-ph`} className={styles.trunkPlaceholder} />
       ))}
 
       <AnimatePresence>
-        {isOpen && (
+        {isTrunkOpen && (
           <motion.div
             className={styles.childrenBlock}
             style={{ gridColumn: `1 / ${colCount + 2}` }}
@@ -153,7 +147,24 @@ function ParentRows({
             exit={{ opacity: 0, height: 0 }}
             transition={{ type: 'spring', stiffness: 360, damping: 36 }}
           >
-            {concept.children.map(leaf => (
+            {trunk.branches.map(branch => (
+              <BranchRowGroup
+                key={branch.conceptId}
+                branch={branch}
+                verbs={verbs}
+                masteredIds={masteredIds}
+                suggestedId={suggestedId}
+                expandedCell={expandedCell}
+                isOpen={openBranches.has(branch.conceptId)}
+                colCount={colCount}
+                colTemplate={colTemplate}
+                onToggle={() => onToggleBranch(branch.conceptId)}
+                onCellTap={onCellTap}
+                onStartDrill={onStartDrill}
+                onCloseDrawer={onCloseDrawer}
+              />
+            ))}
+            {trunk.children.map(leaf => (
               <LeafRowComponent
                 key={leaf.conceptId}
                 leaf={leaf}
@@ -162,6 +173,76 @@ function ParentRows({
                 suggestedId={suggestedId}
                 expandedCell={expandedCell}
                 colCount={colCount}
+                colTemplate={colTemplate}
+                depth={1}
+                onCellTap={onCellTap}
+                onStartDrill={onStartDrill}
+                onCloseDrawer={onCloseDrawer}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function BranchRowGroup({
+  branch, verbs, masteredIds, suggestedId, expandedCell,
+  isOpen, colCount, colTemplate, onToggle, onCellTap, onStartDrill, onCloseDrawer,
+}: {
+  branch: BranchRow;
+  verbs: string[];
+  masteredIds: Set<string>;
+  suggestedId: string | null;
+  expandedCell: ExpandedCell | null;
+  isOpen: boolean;
+  colCount: number;
+  colTemplate: string;
+  onToggle: () => void;
+  onCellTap: (cell: ExpandedCell) => void;
+  onStartDrill: () => void;
+  onCloseDrawer: () => void;
+}) {
+  const masteredInBranch = branch.children.filter(l =>
+    Object.values(l.cellConceptIds).some(id => masteredIds.has(id))
+  ).length;
+
+  return (
+    <>
+      <div className={styles.branchGrid} style={{ gridTemplateColumns: colTemplate }}>
+        <div className={styles.branchLabel} onClick={onToggle} role="button" aria-expanded={isOpen}>
+          <span className={styles.branchIndent} />
+          <motion.span className={styles.chevron} animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.18 }}>
+            <ChevronRight size={12} />
+          </motion.span>
+          <span className={styles.branchName}>{branch.conceptName}</span>
+          <span className={styles.parentCount}>{masteredInBranch}/{branch.children.length}</span>
+        </div>
+        {verbs.map(verb => (
+          <div key={`${branch.conceptId}-${verb}-ph`} className={styles.branchPlaceholder} />
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 38 }}
+          >
+            {branch.children.map(leaf => (
+              <LeafRowComponent
+                key={leaf.conceptId}
+                leaf={leaf}
+                verbs={verbs}
+                masteredIds={masteredIds}
+                suggestedId={suggestedId}
+                expandedCell={expandedCell}
+                colCount={colCount}
+                colTemplate={colTemplate}
+                depth={2}
                 onCellTap={onCellTap}
                 onStartDrill={onStartDrill}
                 onCloseDrawer={onCloseDrawer}
@@ -175,15 +256,8 @@ function ParentRows({
 }
 
 function LeafRowComponent({
-  leaf,
-  verbs,
-  masteredIds,
-  suggestedId,
-  expandedCell,
-  colCount,
-  onCellTap,
-  onStartDrill,
-  onCloseDrawer,
+  leaf, verbs, masteredIds, suggestedId, expandedCell,
+  colCount, colTemplate, depth, onCellTap, onStartDrill, onCloseDrawer,
 }: {
   leaf: LeafRow;
   verbs: string[];
@@ -191,6 +265,8 @@ function LeafRowComponent({
   suggestedId: string | null;
   expandedCell: ExpandedCell | null;
   colCount: number;
+  colTemplate: string;
+  depth: 1 | 2;
   onCellTap: (cell: ExpandedCell) => void;
   onStartDrill: () => void;
   onCloseDrawer: () => void;
@@ -198,12 +274,9 @@ function LeafRowComponent({
   const isDrawerOpen = expandedCell?.conceptId === leaf.conceptId;
 
   return (
-    <div
-      className={styles.leafGrid}
-      style={{ gridTemplateColumns: `minmax(200px, auto) repeat(${colCount}, minmax(110px, 1fr))` }}
-    >
-      <div className={styles.leafLabel}>
-        <span className={styles.leafIndent} />
+    <div className={styles.leafGrid} style={{ gridTemplateColumns: colTemplate }}>
+      <div className={depth === 2 ? styles.leafLabelDeep : styles.leafLabel}>
+        <span className={depth === 2 ? styles.leafIndentDeep : styles.leafIndent} />
         <span>{leaf.conceptName}</span>
       </div>
 
@@ -295,15 +368,8 @@ function LeafRowComponent({
 }
 
 function GridCell({
-  conceptId,
-  realConceptId,
-  conceptName,
-  verb,
-  action,
-  isMastered,
-  isSuggested,
-  isExpanded,
-  onCellTap,
+  conceptId, realConceptId, conceptName, verb, action,
+  isMastered, isSuggested, isExpanded, onCellTap,
 }: {
   conceptId: string;
   realConceptId: string;
@@ -327,7 +393,7 @@ function GridCell({
       className={[
         styles.cell,
         isMastered ? styles.cellMastered : '',
-        isActive && !isMastered ? styles.cellActive : '',
+        isActive ? styles.cellActive : '',
         isSuggested ? styles.cellSuggested : '',
         isExpanded ? styles.cellSelected : '',
         !action ? styles.cellNull : '',
@@ -336,12 +402,10 @@ function GridCell({
       disabled={!isActive}
       whileHover={isActive ? { scale: 1.05 } : {}}
       whileTap={isActive ? { scale: 0.95 } : {}}
-      title={action ? `${verb} ${conceptName}` : undefined}
+      title={action ? `${verb} · ${conceptName}` : undefined}
     >
       {isMastered && <CheckCircle size={15} className={styles.masteredIcon} />}
-      {!isMastered && isActive && (
-        <span className={styles.cellDot} />
-      )}
+      {!isMastered && isActive && <span className={styles.cellDot} />}
       {!action && <span className={styles.nullDash}>—</span>}
     </motion.button>
   );

@@ -39,25 +39,33 @@
   text-transform: uppercase;
 }
 
-.parentLabel {
+.trunkLabel {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background: rgba(120, 80, 255, 0.06);
-  border-bottom: 1px solid rgba(120, 80, 255, 0.15);
+  padding: 0.7rem 1rem;
+  background: rgba(120, 80, 255, 0.09);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.2);
   border-right: 1px solid rgba(120, 80, 255, 0.2);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: rgba(210, 195, 255, 0.9);
+  color: rgba(220, 205, 255, 0.95);
   white-space: nowrap;
   user-select: none;
   cursor: pointer;
   transition: background 0.15s;
+  letter-spacing: 0.02em;
 }
 
-.parentLabel:hover {
-  background: rgba(120, 80, 255, 0.12);
+.trunkLabel:hover {
+  background: rgba(120, 80, 255, 0.15);
+}
+
+.trunkPlaceholder {
+  background: rgba(120, 80, 255, 0.04);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.12);
+  border-right: 1px solid rgba(120, 80, 255, 0.08);
+  min-height: 44px;
 }
 
 .chevron {
@@ -84,22 +92,65 @@
   flex-shrink: 0;
 }
 
-.parentPlaceholder {
-  background: rgba(120, 80, 255, 0.03);
-  border-bottom: 1px solid rgba(120, 80, 255, 0.1);
-  border-right: 1px solid rgba(120, 80, 255, 0.08);
-  min-height: 40px;
-}
-
 .childrenBlock {
   overflow: hidden;
   grid-column: 1 / -1;
-  border-bottom: 1px solid rgba(120, 80, 255, 0.15);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.18);
+}
+
+.branchGrid {
+  display: grid;
+  border-bottom: 1px solid rgba(120, 80, 255, 0.08);
+}
+
+.branchLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem 0.55rem 0;
+  background: rgba(120, 80, 255, 0.04);
+  border-right: 1px solid rgba(120, 80, 255, 0.15);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: rgba(200, 185, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.branchLabel:hover {
+  background: rgba(120, 80, 255, 0.09);
+}
+
+.branchIndent {
+  display: inline-block;
+  width: 20px;
+  flex-shrink: 0;
+  border-left: 2px solid rgba(120, 80, 255, 0.3);
+  margin-left: 1rem;
+  height: 1.2em;
+  align-self: center;
+}
+
+.branchName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.branchPlaceholder {
+  background: rgba(120, 80, 255, 0.02);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.06);
+  border-right: 1px solid rgba(120, 80, 255, 0.06);
+  min-height: 38px;
 }
 
 .leafGrid {
   display: grid;
-  border-bottom: 1px solid rgba(120, 80, 255, 0.07);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.05);
 }
 
 .leafGrid:last-child {
@@ -109,13 +160,12 @@
 .leafLabel {
   display: flex;
   align-items: center;
-  gap: 0;
-  padding: 0.55rem 0.75rem 0.55rem 0;
-  background: rgba(255, 255, 255, 0.015);
-  border-right: 1px solid rgba(120, 80, 255, 0.15);
-  font-size: 0.78rem;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  background: rgba(255, 255, 255, 0.01);
+  border-right: 1px solid rgba(120, 80, 255, 0.12);
+  font-size: 0.76rem;
   font-weight: 400;
-  color: rgba(200, 185, 255, 0.8);
+  color: rgba(195, 180, 240, 0.75);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -123,11 +173,35 @@
 
 .leafIndent {
   display: inline-block;
-  width: 28px;
+  width: 20px;
   flex-shrink: 0;
-  border-left: 2px solid rgba(120, 80, 255, 0.25);
-  margin-left: 1.25rem;
-  height: 1.3em;
+  border-left: 2px solid rgba(120, 80, 255, 0.2);
+  margin-left: 1.5rem;
+  height: 1.2em;
+  align-self: center;
+}
+
+.leafLabelDeep {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  background: rgba(255, 255, 255, 0.008);
+  border-right: 1px solid rgba(120, 80, 255, 0.1);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: rgba(185, 170, 230, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leafIndentDeep {
+  display: inline-block;
+  width: 20px;
+  flex-shrink: 0;
+  border-left: 2px solid rgba(120, 80, 255, 0.18);
+  margin-left: 2.75rem;
+  height: 1.2em;
   align-self: center;
 }
 

@@ -11,10 +11,17 @@ export interface LeafRow {
   cellConceptIds: Record<string, string>;
 }
 
+export interface BranchRow {
+  conceptId: string;
+  conceptName: string;
+  children: LeafRow[];
+}
+
 export interface MatrixConcept {
   conceptId: string;
   conceptName: string;
   isParent: boolean;
+  branches: BranchRow[];
   children: LeafRow[];
   actions?: Record<string, DrillDownAction | null>;
   cellConceptIds?: Record<string, string>;
