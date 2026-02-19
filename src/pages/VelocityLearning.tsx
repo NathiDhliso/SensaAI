@@ -40,7 +40,6 @@ import type { SensaAILearningConcept } from '@/features/content-generation/parse
 import CoachInterventionBanner, { type InterventionType } from '@/components/learning/ui/CoachInterventionBanner';
 import ReviewContextPanel, { type ReviewContext } from '@/components/learning/ui/ReviewContextPanel';
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
-import { detectULC } from '@/features/content-generation/parsers/ulc-detector';
 import styles from './VelocityLearning.module.css';
 
 export default function VelocityLearning() {
@@ -655,7 +654,7 @@ export default function VelocityLearning() {
                     >
                         <OverviewMapView
                             concepts={currentSession!.concepts}
-                            ulcPattern={detectULC(currentSession!.concepts as any)}
+                            ulcPattern={null}
                             onComplete={() => {
                                 const { markOverviewViewed } = useLearningStore.getState();
                                 markOverviewViewed();

@@ -10,15 +10,12 @@ import {
  CheckCircle,
  RefreshCw,
  Lightbulb,
- Target
 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
 import { PeerReviewActivity } from '@/components/learning/activities/PeerReviewActivity';
 import MasteryChallenge from '@/components/learning/activities/MasteryChallenge';
 import PreMortemActivity from '@/components/learning/activities/PreMortemActivity';
-import type { ULCPattern } from '@/features/content-generation/parsers/ulc-detector';
-import { getNextULCCell } from '@/features/content-generation/parsers/ulc-detector';
 import styles from './GymActivityLauncher.module.css';
 
 export type GymActivity = 'concept-map' | 'peer-review' | 'mastery' | 'pre-mortem';
@@ -27,9 +24,9 @@ interface GymActivityLauncherProps {
  activity: GymActivity;
  concepts: LearningConcept[];
  onBack: () => void;
- /** Optional ULC pattern for ULC-aware concept selection */
- ulcPattern?: ULCPattern | null;
- /** Optional: pre-select a specific concept (e.g., from ULC cell click) */
+ /** Deprecated - kept for compatibility */
+ ulcPattern?: null;
+ /** Optional: pre-select a specific concept */
  initialConceptId?: string | null;
 }
 
@@ -66,28 +63,20 @@ export default function GymActivityLauncher({
  activity,
  concepts,
  onBack,
- ulcPattern,
  initialConceptId
 }: GymActivityLauncherProps) {
  const navigate = useNavigate();
  const { subjectId } = useParams<{ subjectId: string }>();
  const meta = ACTIVITY_META[activity];
 
- // Determine initial concept: prefer initialConceptId, then ULC next cell, then tier-based
+ // Determine initial concept: prefer initialConceptId, then tier-based
  const getInitialConceptId = (): string | null => {
  if (!meta.needsConcept) return null;
- // 1. Explicit initial concept (e.g., from ULC cell click)
+ // 1. Explicit initial concept
  if (initialConceptId && concepts.find(c => c.id === initialConceptId)) {
  return initialConceptId;
  }
- // 2. ULC-aware: next recommended cell
- if (ulcPattern?.detected) {
- const nextCell = getNextULCCell(ulcPattern);
- if (nextCell?.conceptId && concepts.find(c => c.id === nextCell.conceptId)) {
- return nextCell.conceptId;
- }
- }
- // 3. Tier-based fallback
+ // 2. Tier-based fallback
  const grouped = groupByTier(concepts);
  return (grouped.trunk?.[0] || grouped.branch?.[0] || grouped.leaf?.[0])?.id || null;
  };
@@ -106,20 +95,6 @@ export default function GymActivityLauncher({
 
  const selectedConcept = concepts.find(c => c.id === selectedConceptId) || null;
 
- // Get ULC context for the selected concept
- const ulcCellContext = ulcPattern?.detected && selectedConceptId
- ? (() => {
- for (const row of ulcPattern.matrix) {
- for (const cell of row) {
- if (cell.conceptId === selectedConceptId) {
- return { verb: cell.verb, object: cell.object };
- }
- }
- }
- return null;
- })()
- : null;
-
  const handleComplete = useCallback((passed: boolean) => {
  setResult({ passed });
  setPhase('result');
@@ -127,17 +102,7 @@ export default function GymActivityLauncher({
  // Auto-advance after 3 seconds if passed
  if (passed) {
  setTimeout(() => {
- // Try ULC-aware next concept first
- if (ulcPattern?.detected) {
- const nextCell = getNextULCCell(ulcPattern);
- if (nextCell?.conceptId && concepts.find(c => c.id === nextCell.conceptId)) {
- setSelectedConceptId(nextCell.conceptId);
- setResult(null);
- setPhase('active');
- return;
- }
- }
- // Fallback: sequential next concept
+ // Sequential next concept
  const currentIndex = concepts.findIndex(c => c.id === selectedConceptId);
  const nextConcept = concepts[currentIndex + 1];
  if (nextConcept) {
@@ -149,7 +114,7 @@ export default function GymActivityLauncher({
  }
  }, 3000);
  }
- }, [concepts, selectedConceptId, ulcPattern, handleBackToGym]);
+ }, [concepts, selectedConceptId, handleBackToGym]);
 
  const handleRetry = useCallback(() => {
  setResult(null);
@@ -240,17 +205,7 @@ export default function GymActivityLauncher({
  <button
  className={styles.resultActionSecondary}
  onClick={() => {
- // ULC-aware next concept
- if (ulcPattern?.detected) {
- const nextCell = getNextULCCell(ulcPattern);
- if (nextCell?.conceptId && concepts.find(c => c.id === nextCell.conceptId)) {
- setSelectedConceptId(nextCell.conceptId);
- setResult(null);
- setPhase('active');
- return;
- }
- }
- // Sequential fallback
+ // Sequential next concept
  const currentIndex = concepts.findIndex(c => c.id === selectedConceptId);
  const nextConcept = concepts[currentIndex + 1];
  if (nextConcept) {
@@ -305,13 +260,6 @@ export default function GymActivityLauncher({
  </span>
  </div>
  <div className={styles.headerRight}>
- {/* ULC context badge */}
- {ulcCellContext && (
- <span className={styles.ulcContextBadge} title="ULC-aware: practicing this verb × resource combination">
- <Target size={12} />
- {ulcCellContext.verb} × {ulcCellContext.object}
- </span>
- )}
  {/* Quick concept switcher for concept-based activities */}
  {meta.needsConcept && phase === 'active' && concepts.length > 1 && (
  <select
