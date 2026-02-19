@@ -1284,22 +1284,6 @@ export default function ConceptMapBuilder({
  const canComplete = nodesComplete && connectionsComplete;
  return (
  <div className={styles.phaseHeader}>
- <div className={styles.phaseHeaderContent}>
- <div className={styles.phaseInfo}>
- <h1 className={styles.phaseTitle}>Step 3: Note - Build Your Concept Map</h1>
- <p className={styles.phaseDescription}>
- {mapMode === 'guided' 
- ? 'Connect concepts to show relationships. AI coach will provide suggestions and validate your work.'
- : 'Free exploration mode - build your map without AI guidance or validation.'}
- </p>
- </div>
- <div className={styles.phaseProgress}>
- <div className={styles.progressItem}>
- <span className={styles.progressLabel}>Phase Progress</span>
- <span className={styles.progressValue}>3 of 6</span>
- </div>
- </div>
- </div>
  <div className={styles.completionRequirements}>
  <div className={`${styles.requirement} ${nodesComplete ? styles.requirementComplete : ''}`}>
  <span className={styles.requirementIcon}>{nodesComplete ? '' : ''}</span>
