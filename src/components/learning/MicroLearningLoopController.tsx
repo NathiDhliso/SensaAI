@@ -16,7 +16,6 @@ import type { LearningConcept } from '@/shared/types/learning';
 import type { SubjectType } from '@/shared/types/macro-workflow';
 import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
 import { synthesizeExample } from '@/shared/utils/example-synthesis';
-import BlankSheetTest from '@/components/learning/activities/BlankSheetTest';
 import { getRandomElaborationPrompt } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
@@ -26,7 +25,7 @@ import styles from './MicroLearningLoopController.module.css';
 // ============================================================================
 // TYPES
 // ============================================================================
-export type LoopPhase = 'worked-example' | 'faded-example' | 'test' | 'learn' | 'verify';
+export type LoopPhase = 'worked-example' | 'faded-example' | 'learn' | 'verify';
 export type LoopOutcome = 'mastered' | 'needs-learning' | 'needs-review';
 export interface MicroLearningLoopProps {
     concept: LearningConcept;
@@ -37,12 +36,6 @@ export interface MicroLearningLoopProps {
     onLoopComplete: (outcome: LoopOutcome, timeSpent: number) => void;
     onSkip: () => void;
     onReturnToMap?: () => void;
-}
-interface TestPhaseResult {
-    recalledPoints: number;
-    totalPoints: number;
-    confidence: number;
-    timeSpent: number;
 }
 // ============================================================================
 // ADAPTIVE TIMING CALCULATIONS
@@ -321,34 +314,6 @@ function FadedExamplePhase({ concept, onComplete, sessionContext }: WorkedExampl
                 </div>
             </div>
         </motion.div>
-    );
-}
-interface TestPhaseProps {
-    concept: LearningConcept;
-    keyPoints: string[];
-    timeLimit: number;
-    onComplete: (result: TestPhaseResult) => void;
-}
-/**
- * Test Phase: Blank sheet recall
- * Uses the comprehensive BlankSheetTest component
- */
-function TestPhase({ concept, keyPoints, onComplete }: TestPhaseProps) {
-    const handleComplete = useCallback((result: { score: number; scoringConfidence: number; metrics: { totalTime: number } }) => {
-        // Map BlankSheetResult to TestPhaseResult
-        onComplete({
-            recalledPoints: result.score / 100 * keyPoints.length, // approximation
-            totalPoints: keyPoints.length,
-            confidence: result.scoringConfidence * 5,
-            timeSpent: result.metrics.totalTime
-        });
-    }, [keyPoints.length, onComplete]);
-    return (
-        <BlankSheetTest
-            concept={concept}
-            keyPoints={keyPoints}
-            onComplete={handleComplete}
-        />
     );
 }
 interface LearnPhaseProps {
@@ -812,7 +777,6 @@ export function MicroLearningLoopController({
     const [loopStartTime] = useState(Date.now());
     const [keyPoints, setKeyPoints] = useState<string[]>([]);
     const [sessionContext, setSessionContext] = useState<{ intent?: string; prediction?: string }>({});
-    const [testResult, setTestResult] = useState<TestPhaseResult | null>(null);
     const [totalTimeSpent, setTotalTimeSpent] = useState(0);
     // 3. Handlers
     const handleLoopCompleteInternal = (outcome: LoopOutcome) => {
@@ -858,20 +822,11 @@ export function MicroLearningLoopController({
             prediction: studySession?.predictions?.[concept.id]
         });
     }, [concept, studySession]);
-    // Unified handler for Worked/Faded phases
     const handlePhaseComplete = useCallback((phase: LoopPhase, data: { timeSpent: number }) => {
         setTotalTimeSpent(prev => prev + data.timeSpent);
-        // Transition logic
         if (phase === 'worked-example' || phase === 'faded-example') {
-            setLoopState('test'); // Move to Blank Sheet Test
+            setLoopState('learn');
         }
-    }, []);
-    const handleTestComplete = useCallback((result: TestPhaseResult) => {
-        setTestResult(result);
-        setTotalTimeSpent(prev => prev + result.timeSpent);
-        // If test score is very low, go straight to learn phase
-        // Otherwise, go to learn phase anyway to reinforce
-        setLoopState('learn');
     }, []);
     const handleLearnComplete = useCallback(() => {
         setLoopState('verify');
@@ -880,10 +835,9 @@ export function MicroLearningLoopController({
         const finalTimeSpent = totalTimeSpent + timeSpent;
         setTotalTimeSpent(finalTimeSpent);
         recordInteraction(correct, timeSpent * 1000);
-        const currentTestResult = testResult || { recalledPoints: 0, totalPoints: 0, confidence: 0, timeSpent: 0 };
-        const outcome = determineOutcome(currentTestResult, { correct, timeSpent });
+        const outcome: LoopOutcome = correct ? 'mastered' : 'needs-review';
         handleLoopCompleteInternal(outcome);
-    }, [testResult, totalTimeSpent, recordInteraction, concept, handleLoopCompleteInternal]);
+    }, [totalTimeSpent, recordInteraction, handleLoopCompleteInternal]);
     return (
         <div className={styles.container}>
             {/* Cognitive Phase Context */}
@@ -894,14 +848,9 @@ export function MicroLearningLoopController({
             </div>
             {/* Phase indicator */}
             <div className={styles.phaseIndicator}>
-                <div className={`${styles.phaseStep} ${loopState === 'worked-example' ? styles.active : ''} ${['test', 'learn', 'verify'].includes(loopState) ? styles.complete : ''}`}>
+                <div className={`${styles.phaseStep} ${loopState === 'worked-example' ? styles.active : ''} ${['learn', 'verify'].includes(loopState) ? styles.complete : ''}`}>
                     <Lightbulb size={18} />
                     <span>Real</span>
-                </div>
-                <div className={styles.phaseLine} />
-                <div className={`${styles.phaseStep} ${loopState === 'test' ? styles.active : ''} ${['learn', 'verify'].includes(loopState) ? styles.complete : ''}`}>
-                    <Brain size={18} />
-                    <span>Test</span>
                 </div>
                 <div className={styles.phaseLine} />
                 <div className={`${styles.phaseStep} ${loopState === 'learn' ? styles.active : ''} ${['verify'].includes(loopState) ? styles.complete : ''}`}>
@@ -938,15 +887,6 @@ export function MicroLearningLoopController({
                             concept={concept}
                             onComplete={(time) => handlePhaseComplete('faded-example', { timeSpent: time })}
                             sessionContext={sessionContext}
-                        />
-                    )}
-                    {loopState === 'test' && (
-                        <TestPhase
-                            key="test"
-                            concept={concept}
-                            keyPoints={keyPoints}
-                            timeLimit={Math.round(loopDuration * 0.4)}
-                            onComplete={handleTestComplete}
                         />
                     )}
                     {loopState === 'learn' && (
