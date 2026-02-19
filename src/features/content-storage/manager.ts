@@ -112,9 +112,13 @@ export class StorageManager {
  generatedAt: new Date().toISOString(),
  fullDocument,
  pass1Data: {
- domain: resolvedSubject, // Usually same as subject if not stored separately
+ domain: resolvedSubject,
  roleScope: 'General',
- lifecycle: { phase1: 'PREPARE', phase2: 'MODEL', phase3: 'DELIVER' },
+ lifecycle: {
+ phase1: jobStatus.classification?.lifecycle?.phase1 || 'PREPARE',
+ phase2: jobStatus.classification?.lifecycle?.phase2 || 'MODEL',
+ phase3: jobStatus.classification?.lifecycle?.phase3 || 'DELIVER',
+ },
  concepts: allConcepts.map(c => c.name)
  },
  validation: {

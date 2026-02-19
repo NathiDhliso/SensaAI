@@ -17,19 +17,25 @@ function buildAction(concept: LearningConcept): DrillDownAction {
   };
 }
 
-const ULC_VERBS = ['Recall', 'Apply', 'Create'];
-
 export function buildMatrixPayload(
   concepts: LearningConcept[],
-  subject: string
+  subject: string,
+  lifecycleVerbs?: { phase1: string; phase2: string; phase3: string }
 ): MatrixPayload {
-  const ULC_VERBS_LOCAL = ULC_VERBS;
+  const verb1 = (lifecycleVerbs?.phase1 || 'PREPARE').toUpperCase();
+  const verb2 = (lifecycleVerbs?.phase2 || 'MODEL').toUpperCase();
+  const verb3 = (lifecycleVerbs?.phase3 || 'DELIVER').toUpperCase();
+  const verbs = [verb1, verb2, verb3];
 
-  function cognitiveVerb(level?: string): string {
-    const l = (level || '').toLowerCase();
-    if (l === 'evaluate' || l === 'create') return 'Create';
-    if (l === 'apply' || l === 'analyze') return 'Apply';
-    return 'Recall';
+  function phaseVerb(concept: LearningConcept): string {
+    const phase = (concept.lifecyclePhase || '').toUpperCase();
+    if (phase === 'PREPARE') return verb1;
+    if (phase === 'MODEL') return verb2;
+    if (phase === 'DELIVER') return verb3;
+    const l = (concept.cognitiveLevel || '').toLowerCase();
+    if (l === 'evaluate' || l === 'create') return verb3;
+    if (l === 'apply' || l === 'analyze') return verb2;
+    return verb1;
   }
 
   const grouped: Record<string, LearningConcept[]> = {};
@@ -43,8 +49,8 @@ export function buildMatrixPayload(
     const actions: Record<string, DrillDownAction | null> = {};
     const cellConceptIds: Record<string, string> = {};
 
-    for (const verb of ULC_VERBS_LOCAL) {
-      const match = group.find(c => cognitiveVerb(c.cognitiveLevel) === verb) ?? group[0];
+    for (const verb of verbs) {
+      const match = group.find(c => phaseVerb(c) === verb) ?? group[0];
       if (match) {
         actions[verb] = buildAction(match);
         cellConceptIds[verb] = match.id;
@@ -61,7 +67,7 @@ export function buildMatrixPayload(
     };
   });
 
-  return { subject, verbs: ULC_VERBS_LOCAL, matrix };
+  return { subject, verbs, matrix };
 }
 
 export function getFirstSuggestedKey(

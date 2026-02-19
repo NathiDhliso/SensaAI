@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
+import { useGenerationStore } from '@/store/generation-store';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { QMetricInputs } from '@/shared/services/blueprint-formula';
 import { buildMatrixPayload, getFirstSuggestedKey } from './cognitive-matrix/buildMatrixPayload';
@@ -30,14 +31,15 @@ export function ULCPracticeController({
   onAllComplete,
 }: ULCPracticeControllerProps) {
   const { studySession, currentSession } = useLearningStore();
+  const lifecycleVerbs = useGenerationStore(state => state.pass1Data?.lifecycle);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [inLoop, setInLoop] = useState(false);
 
   const masteredIds = useMemo(() => new Set(completedConceptIds), [completedConceptIds]);
 
   const payload = useMemo(
-    () => buildMatrixPayload(concepts, currentSession?.subject ?? 'Concepts'),
-    [concepts, currentSession?.subject]
+    () => buildMatrixPayload(concepts, currentSession?.subject ?? 'Concepts', lifecycleVerbs ?? undefined),
+    [concepts, currentSession?.subject, lifecycleVerbs]
   );
 
   const suggestedId = useMemo(
