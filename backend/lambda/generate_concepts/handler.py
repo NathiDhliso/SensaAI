@@ -160,6 +160,8 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
     print(f"[Handler] Starting parallel generation for: {subject}")
     if context:
         print(f"[Handler] Using user-provided context ({len(context)} chars)")
+    concepts = []
+    classification = None
     try:
         remaining_ms = None
         if _lambda_context and hasattr(_lambda_context, 'get_remaining_time_in_millis'):
@@ -170,8 +172,17 @@ def _handle_generate(request: Dict[str, Any]) -> Dict[str, Any]:
             print(f"[Handler] Classification: {classification.get('subjectType', 'unknown')}")
     except Exception as e:
         print(f"[Handler] ERROR: Bedrock generation failed: {str(e)}")
-        dynamo_service.mark_job_failed(job_id, user_id, str(e))
+        if concepts:
+            print(f"[Handler] Saving {len(concepts)} partial concepts before failing")
+            dynamo_service.store_concepts(user_id, session_id, concepts, subject)
+            dynamo_service.mark_job_completed(job_id, user_id, len(concepts), classification)
+        else:
+            dynamo_service.mark_job_failed(job_id, user_id, str(e))
         return api_response(500, {"error": f"Generation failed: {str(e)}"}, _current_event)
+    if not concepts:
+        print(f"[Handler] ERROR: No concepts generated")
+        dynamo_service.mark_job_failed(job_id, user_id, "No concepts generated")
+        return api_response(500, {"error": "No concepts generated"}, _current_event)
     # Step 4: Store concepts in DynamoDB
     print(f"[Handler] Storing concepts...")
     dynamo_service.store_concepts(user_id, session_id, concepts, subject)

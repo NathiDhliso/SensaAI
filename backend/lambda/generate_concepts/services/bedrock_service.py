@@ -202,12 +202,26 @@ class BedrockService:
                         time.sleep(sleep_time)
             print(f"[ERROR] generate_domain_with_retry failed after {self.MAX_RETRIES} attempts: {last_error}")
             return []
+        per_domain_timeout = None
+        if remaining_time_ms is not None:
+            budget_ms = remaining_time_ms - 120_000
+            if budget_ms > 0:
+                per_domain_timeout = (budget_ms / 1000) / max(num_partitions / self.MAX_WORKERS, 1)
+                per_domain_timeout = max(per_domain_timeout, 90)
+                print(f"[BedrockService] Per-domain timeout: {per_domain_timeout:.0f}s")
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
             futures = [
                 executor.submit(generate_domain_with_retry, i)
                 for i in range(num_partitions)
             ]
-            results = [f.result() for f in futures]
+            results = []
+            for f in futures:
+                try:
+                    results.append(f.result(timeout=per_domain_timeout))
+                except concurrent.futures.TimeoutError:
+                    domain_name = domains[futures.index(f)].get("name", "unknown")
+                    print(f"[BedrockService] Domain '{domain_name}' timed out, skipping")
+                    results.append([])
         all_concepts = []
         for part_concepts in results:
             all_concepts.extend(part_concepts)
@@ -425,10 +439,12 @@ class BedrockService:
             return False
         if not shape.get("simpleCore"):
             return False
-        connections = concept.get("connections", [])
-        if not isinstance(connections, list) or len(connections) < 1:
-            print(f"[BedrockService] Validation fail: '{name}' has no connections")
-            return False
+        tree_level_check = (concept.get("treeLevel") or "").lower().strip()
+        if tree_level_check != "trunk":
+            connections = concept.get("connections", [])
+            if not isinstance(connections, list) or len(connections) < 1:
+                print(f"[BedrockService] Validation fail: '{name}' has no connections")
+                return False
         valid_levels = {"remember", "understand", "apply", "analyze", "evaluate", "create"}
         level = (concept.get("cognitiveLevel") or "").lower().strip()
         if level not in valid_levels:
