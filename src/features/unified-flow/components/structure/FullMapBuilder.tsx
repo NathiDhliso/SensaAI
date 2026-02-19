@@ -1,5 +1,6 @@
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
-import type { LearningConcept, StudySession } from '@/shared/types/learning';
+import { useLearningStore } from '@/store/learning-store';
+import type { LearningConcept, StudySession, ConceptMapData } from '@/shared/types/learning';
 
 interface FullMapBuilderProps {
   concepts: LearningConcept[];
@@ -7,13 +8,20 @@ interface FullMapBuilderProps {
   onComplete: () => void;
 }
 
-export function FullMapBuilder({ concepts, session, onComplete }: FullMapBuilderProps) {
+export function FullMapBuilder({ concepts, onComplete }: FullMapBuilderProps) {
+  const { markSessionMapBuilt, currentSession } = useLearningStore();
+
+  const handleComplete = (data: ConceptMapData) => {
+    markSessionMapBuilt(data);
+    onComplete();
+  };
+
   return (
     <ConceptMapBuilder
       concepts={concepts}
       mode="free"
-      onComplete={() => onComplete()}
-      subjectName={session.subjectId}
+      onComplete={handleComplete}
+      subjectName={currentSession?.subject}
     />
   );
 }

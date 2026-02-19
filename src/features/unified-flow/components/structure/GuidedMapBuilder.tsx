@@ -1,5 +1,6 @@
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
-import type { LearningConcept, StudySession } from '@/shared/types/learning';
+import { useLearningStore } from '@/store/learning-store';
+import type { LearningConcept, StudySession, ConceptMapData } from '@/shared/types/learning';
 
 interface GuidedMapBuilderProps {
   concepts: LearningConcept[];
@@ -7,13 +8,20 @@ interface GuidedMapBuilderProps {
   onComplete: () => void;
 }
 
-export function GuidedMapBuilder({ concepts, session, onComplete }: GuidedMapBuilderProps) {
+export function GuidedMapBuilder({ concepts, onComplete }: GuidedMapBuilderProps) {
+  const { markSessionMapBuilt, currentSession } = useLearningStore();
+
+  const handleComplete = (data: ConceptMapData) => {
+    markSessionMapBuilt(data);
+    onComplete();
+  };
+
   return (
     <ConceptMapBuilder
       concepts={concepts}
       mode="guided"
-      onComplete={() => onComplete()}
-      subjectName={session.subjectId}
+      onComplete={handleComplete}
+      subjectName={currentSession?.subject}
     />
   );
 }

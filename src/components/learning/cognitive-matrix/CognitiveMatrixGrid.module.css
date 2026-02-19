@@ -1,0 +1,160 @@
+.gridWrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 80, 255, 0.2);
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.grid {
+  display: grid;
+  min-width: 420px;
+}
+
+.cornerCell {
+  padding: 0.75rem 1rem;
+  background: rgba(120, 80, 255, 0.1);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.22);
+  border-right: 1px solid rgba(120, 80, 255, 0.22);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(180, 160, 255, 0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+
+.verbHeader {
+  padding: 0.75rem 0.5rem;
+  background: rgba(120, 80, 255, 0.1);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.22);
+  border-right: 1px solid rgba(120, 80, 255, 0.12);
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(210, 190, 255, 0.9);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.parentLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.12);
+  border-right: 1px solid rgba(120, 80, 255, 0.2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(230, 220, 255, 0.9);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.parentLabelClickable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.parentLabelClickable:hover {
+  background: rgba(120, 80, 255, 0.08);
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  color: rgba(180, 160, 255, 0.6);
+  flex-shrink: 0;
+}
+
+.childLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem 0.6rem 0;
+  background: rgba(255, 255, 255, 0.015);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.08);
+  border-right: 1px solid rgba(120, 80, 255, 0.2);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: rgba(200, 185, 255, 0.75);
+  white-space: nowrap;
+}
+
+.childIndent {
+  display: inline-block;
+  width: 28px;
+  flex-shrink: 0;
+  border-left: 2px solid rgba(120, 80, 255, 0.2);
+  margin-left: 1rem;
+  height: 1.2em;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-bottom: 1px solid rgba(120, 80, 255, 0.08);
+  border-right: 1px solid rgba(120, 80, 255, 0.08);
+  background: transparent;
+  min-height: 48px;
+  min-width: 80px;
+  cursor: default;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.cellActive {
+  cursor: pointer;
+}
+
+.cellActive:hover {
+  background: rgba(120, 80, 255, 0.1);
+}
+
+.cellNull {
+  cursor: default;
+}
+
+.cellMastered {
+  background: rgba(50, 200, 120, 0.07);
+}
+
+.cellSuggested {
+  outline: 1.5px solid rgba(160, 120, 255, 0.75);
+  outline-offset: -1.5px;
+  background: rgba(120, 80, 255, 0.1);
+}
+
+.cellSelected {
+  background: rgba(120, 80, 255, 0.18);
+  outline: 1.5px solid rgba(160, 120, 255, 0.9);
+  outline-offset: -1.5px;
+}
+
+.cellDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(160, 120, 255, 0.7);
+  box-shadow: 0 0 6px rgba(160, 120, 255, 0.5);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.cellActive:hover .cellDot {
+  background: rgba(200, 170, 255, 0.95);
+  box-shadow: 0 0 10px rgba(160, 120, 255, 0.8);
+}
+
+.masteredIcon {
+  color: rgba(80, 220, 140, 0.85);
+}
+
+.nullDash {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.1);
+}

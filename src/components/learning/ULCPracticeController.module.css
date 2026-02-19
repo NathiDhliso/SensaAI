@@ -1,150 +1,70 @@
 .zone {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
   background: radial-gradient(ellipse at 60% 20%, #1a1040 0%, #0d0d1a 60%, #080812 100%);
-  padding: 1.5rem 2rem;
-  gap: 1.25rem;
+  overflow: hidden;
 }
 
 .zoneHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0.875rem 1.5rem;
+  border-bottom: 1px solid rgba(120, 80, 255, 0.18);
+  flex-shrink: 0;
   gap: 1rem;
 }
 
+.zoneTitleGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
 .zoneTitle {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: rgba(180, 160, 255, 0.85);
-  letter-spacing: var(--letter-spacing-wider);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(180, 160, 255, 0.7);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
+.zoneSubject {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(220, 210, 255, 0.85);
+}
+
 .progressPill {
-  font-size: var(--font-size-xs);
+  font-size: 0.7rem;
   color: rgba(180, 160, 255, 0.6);
   background: rgba(120, 80, 255, 0.12);
   border: 1px solid rgba(120, 80, 255, 0.25);
   border-radius: 999px;
   padding: 0.2rem 0.75rem;
-  letter-spacing: var(--letter-spacing-wide);
-}
-
-.matrixScroll {
-  overflow-x: auto;
-  border-radius: 12px;
-  border: 1px solid rgba(120, 80, 255, 0.2);
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.matrix {
-  display: grid;
-  min-width: 400px;
-}
-
-.cornerCell {
-  background: rgba(120, 80, 255, 0.1);
-  border-bottom: 1px solid rgba(120, 80, 255, 0.2);
-  border-right: 1px solid rgba(120, 80, 255, 0.2);
-  padding: 0.75rem 1rem;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  color: rgba(180, 160, 255, 0.5);
-  letter-spacing: var(--letter-spacing-wider);
-  text-transform: uppercase;
-}
-
-.verbHeader {
-  background: rgba(120, 80, 255, 0.1);
-  border-bottom: 1px solid rgba(120, 80, 255, 0.2);
-  border-right: 1px solid rgba(120, 80, 255, 0.15);
-  padding: 0.75rem 0.5rem;
-  text-align: center;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  color: rgba(200, 180, 255, 0.9);
-  letter-spacing: var(--letter-spacing-wider);
-  text-transform: uppercase;
-}
-
-.matrixRow {
-  display: contents;
-}
-
-.objectLabel {
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(120, 80, 255, 0.12);
-  border-right: 1px solid rgba(120, 80, 255, 0.2);
-  padding: 0.75rem 1rem;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: rgba(220, 210, 255, 0.8);
-  display: flex;
-  align-items: center;
+  letter-spacing: 0.05em;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.cell {
+.matrixAndPanel {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-bottom: 1px solid rgba(120, 80, 255, 0.1);
-  border-right: 1px solid rgba(120, 80, 255, 0.1);
-  padding: 0.625rem 0.5rem;
-  background: transparent;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-  min-height: 52px;
-  min-width: 100px;
+  position: relative;
+  overflow: hidden;
 }
 
-.cellNotStarted {
-  color: rgba(180, 160, 255, 0.5);
+.matrixArea {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 1.25rem 1.5rem;
 }
 
-.cellNotStarted:hover {
-  background: rgba(120, 80, 255, 0.12);
-}
-
-.cellLearning {
-  background: rgba(255, 180, 50, 0.06);
-  color: rgba(255, 200, 80, 0.8);
-}
-
-.cellLearning:hover {
-  background: rgba(255, 180, 50, 0.12);
-}
-
-.cellMastered {
-  background: rgba(50, 200, 120, 0.08);
-  color: rgba(80, 220, 140, 0.9);
-  cursor: default;
-}
-
-.cellSuggested {
-  outline: 1.5px solid rgba(160, 120, 255, 0.7);
-  outline-offset: -1.5px;
-  background: rgba(120, 80, 255, 0.1);
-}
-
-.cellEmpty {
-  cursor: default;
-  color: rgba(255, 255, 255, 0.1);
-  font-size: var(--font-size-sm);
-}
-
-.cellLabel {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--letter-spacing-wide);
-}
-
-.drillOverlay {
+.jumpOverlay {
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -156,132 +76,8 @@
   padding: 1.5rem;
 }
 
-.drillPanel {
-  width: 100%;
-  max-width: 560px;
-  max-height: 85vh;
-  overflow-y: auto;
-  background: rgba(18, 12, 40, 0.92);
-  border: 1px solid rgba(120, 80, 255, 0.3);
-  border-radius: 16px;
-  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  overflow: hidden;
-}
-
-.drillHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(120, 80, 255, 0.2);
-  background: rgba(120, 80, 255, 0.08);
-}
-
-.drillTitle {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  color: rgba(220, 210, 255, 0.95);
-}
-
-.drillClose {
-  background: none;
-  border: none;
-  color: rgba(180, 160, 255, 0.5);
-  cursor: pointer;
-  padding: 0.25rem;
-  display: flex;
-  align-items: center;
-  border-radius: var(--radius-sm);
-  transition: color var(--transition-fast), background var(--transition-fast);
-}
-
-.drillClose:hover {
-  color: rgba(220, 210, 255, 0.9);
-  background: rgba(120, 80, 255, 0.15);
-}
-
-.drillBlock {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(120, 80, 255, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.drillBlock:last-of-type {
-  border-bottom: none;
-}
-
-.drillBlockHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.drillBlockIcon {
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.drillBlockLabel {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  color: rgba(200, 180, 255, 0.9);
-  letter-spacing: var(--letter-spacing-wider);
-  text-transform: uppercase;
-}
-
-.drillBlockSub {
-  font-size: var(--font-size-xs);
-  color: rgba(180, 160, 255, 0.45);
-}
-
-.drillBlockText {
-  font-size: var(--font-size-sm);
-  color: rgba(220, 210, 255, 0.8);
-  line-height: var(--line-height-relaxed);
-  margin: 0;
-}
-
-.drillBlockList {
-  margin: 0;
-  padding-left: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.drillBlockList li {
-  font-size: var(--font-size-sm);
-  color: rgba(220, 210, 255, 0.8);
-  line-height: var(--line-height-relaxed);
-}
-
-.drillStart {
-  margin: 1rem 1.25rem;
-  padding: 0.625rem 1.25rem;
-  background: linear-gradient(135deg, rgba(120, 80, 255, 0.9), rgba(160, 100, 255, 0.8));
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  align-self: flex-start;
-  box-shadow: 0 2px 12px rgba(120, 80, 255, 0.35);
-}
-
-.drillStart:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(120, 80, 255, 0.5);
-}
-
 .jumpWarning {
-  background: rgba(18, 12, 40, 0.95);
+  background: rgba(18, 12, 40, 0.97);
   border: 1px solid rgba(255, 160, 60, 0.35);
   border-radius: 14px;
   padding: 1.5rem;
@@ -294,16 +90,16 @@
 }
 
 .jumpTitle {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
+  font-size: 0.95rem;
+  font-weight: 600;
   color: rgba(255, 200, 100, 0.95);
   margin: 0;
 }
 
 .jumpBody {
-  font-size: var(--font-size-sm);
+  font-size: 0.82rem;
   color: rgba(220, 210, 255, 0.75);
-  line-height: var(--line-height-relaxed);
+  line-height: 1.6;
   margin: 0;
 }
 
@@ -317,12 +113,12 @@
   padding: 0.5rem 1rem;
   background: rgba(255, 160, 60, 0.15);
   border: 1px solid rgba(255, 160, 60, 0.35);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   color: rgba(255, 200, 100, 0.9);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-size: 0.82rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background 0.15s;
 }
 
 .jumpConfirm:hover {
@@ -333,12 +129,12 @@
   padding: 0.5rem 1rem;
   background: rgba(120, 80, 255, 0.12);
   border: 1px solid rgba(120, 80, 255, 0.25);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   color: rgba(200, 180, 255, 0.8);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-size: 0.82rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background 0.15s;
 }
 
 .jumpCancel:hover {
@@ -348,65 +144,30 @@
 .loopWrapper {
   display: flex;
   flex-direction: column;
-  gap: 0;
   width: 100%;
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
+  background: radial-gradient(ellipse at 60% 20%, #1a1040 0%, #0d0d1a 60%, #080812 100%);
 }
 
 .backBtn {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.5rem 1rem;
+  padding: 0.45rem 0.875rem;
   background: rgba(120, 80, 255, 0.1);
   border: 1px solid rgba(120, 80, 255, 0.2);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   color: rgba(200, 180, 255, 0.8);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+  font-size: 0.75rem;
+  font-weight: 500;
   cursor: pointer;
-  margin: 0.75rem 1rem;
+  margin: 0.75rem 1.5rem;
   align-self: flex-start;
-  transition: background var(--transition-fast);
+  transition: background 0.15s;
 }
 
 .backBtn:hover {
   background: rgba(120, 80, 255, 0.2);
   color: rgba(220, 210, 255, 0.95);
-}
-
-.fallbackList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1.5rem 2rem;
-  max-width: 520px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.fallbackHint {
-  font-size: var(--font-size-sm);
-  color: rgba(180, 160, 255, 0.6);
-  margin: 0 0 0.5rem;
-}
-
-.fallbackItem {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(120, 80, 255, 0.18);
-  border-radius: var(--radius-lg);
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  font-size: var(--font-size-sm);
-  color: rgba(220, 210, 255, 0.85);
-  transition: background var(--transition-fast), border-color var(--transition-fast);
-  text-align: left;
-}
-
-.fallbackItem:hover {
-  background: rgba(120, 80, 255, 0.1);
-  border-color: rgba(120, 80, 255, 0.4);
 }
