@@ -27,7 +27,7 @@ import CelebrationModal from '@/components/learning/feedback/CelebrationModal';
 import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
 import { SessionSummary } from '@/components/learning/session/SessionSummary';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
-import { SessionStartModal, MOOD_GOAL_MAP } from '@/components/learning/session';
+import { MOOD_GOAL_MAP } from '@/components/learning/session';
 import { CoachMessage } from '@/features/ai-coach/components';
 import { MetaphorToggle } from '@/features/personalization';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
@@ -52,12 +52,7 @@ export default function Study() {
  const [activeTab, setActiveTab] = useState<StudyTab>(initialTab);
  const [isHydrating, setIsHydrating] = useState(false);
  // Session configuration state
- const [showSessionConfig, setShowSessionConfig] = useState(false);
  const [showHelpModal, setShowHelpModal] = useState(false);
- // Track if user has seen session config before (skip for returning users)
- const [hasSeenSessionConfig, setHasSeenSessionConfig] = useState(() => {
- return localStorage.getItem('hasSeenSessionConfig') === 'true';
- });
  // Coach message hook with 30s cooldown
  const { currentMessage: coachMessage, showMessage: showCoachMessage } = useCoachMessage({
  autoDismissMs: 8000,
@@ -242,8 +237,6 @@ export default function Study() {
  const handleSessionStart = useCallback((goal: StudyGoal, duration: number, primer?: { reason: string; action: string; reward: string }) => {
  const { startStudySession, setMood } = useLearningStore.getState();
  // Mark that user has seen session config
- localStorage.setItem('hasSeenSessionConfig', 'true');
- setHasSeenSessionConfig(true);
  // Get current personalization settings
  const { practiceMode } = usePersonalizationStore.getState();
  const { getConcepts } = useLearningStore.getState();
@@ -284,8 +277,6 @@ export default function Study() {
  const mappedMood = MOOD_GOAL_MAP[lastSessionMood]?.storeMood || 'good';
  setMood(mappedMood as LearnerMood);
  }
- // Close modal
- setShowSessionConfig(false);
  // Show coach intro message (mood-adjusted)
  showCoachMessage('prime', 'intro', 8000);
  // Navigate to learn tab
@@ -300,8 +291,7 @@ export default function Study() {
  return;
  }
  if (!studySession && !hasGymActivity) {
- setShowSessionConfig(true);
- return;
+ handleSessionStart('learn-new', 30);
  }
  }
  setActiveTab(tab);
@@ -318,7 +308,6 @@ export default function Study() {
  }
  if (!studySession) {
  if (concepts.length > 0) {
- setShowSessionConfig(true);
  setActiveTab('overview');
  } else {
  setActiveTab('overview');
@@ -466,13 +455,9 @@ export default function Study() {
  <button
  className={styles.overviewStartBtn}
  onClick={() => {
- if (hasSeenSessionConfig) {
  const lastGoal = localStorage.getItem('lastSessionGoal') as StudyGoal || 'learn-new';
  const lastDuration = parseInt(localStorage.getItem('lastSessionDuration') || '30');
  handleSessionStart(lastGoal, lastDuration);
- } else {
- setShowSessionConfig(true);
- }
  }}
  >
  Start Learning
@@ -526,15 +511,6 @@ export default function Study() {
  subjectName={subjectName}
  headerActions={
  <div className={styles.headerActions}>
- {useLearningStore.getState().studySession && (
- <button
- onClick={() => setShowSessionConfig(true)}
- title="Recalibrate session — change your energy level"
- className={styles.recalibrateButton}
- >
- Recalibrate
- </button>
- )}
  <button
  onClick={() => setShowHelpModal(true)}
  title="Help & Shortcuts"
@@ -557,16 +533,6 @@ export default function Study() {
  compact
  />
  </div>
- )}
- {/* Session Configuration Modal - Shows when user clicks "Start Learning" */}
- {showSessionConfig && (
- <SessionStartModal
- subjectName={subjectName}
- totalConcepts={concepts.length}
- completedConcepts={session?.progress?.completedConcepts?.length || 0}
- onStart={handleSessionStart}
- onBack={() => setShowSessionConfig(false)}
- />
  )}
  {/* Celebration Modal */}
  {showCelebration && celebrationData && (
