@@ -43,7 +43,7 @@ export default function PrimingDrillDownCard({
                 {conceptPath.join(' → ')}
               </div>
               <h2 className={styles.cardTitle}>
-                <span className={styles.actionBadge}>{action}</span>
+                <span className={styles.actionBadge} data-action={action}>{action}</span>
               </h2>
             </div>
             <button
