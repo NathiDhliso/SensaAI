@@ -3,7 +3,6 @@ import { ArrowLeft } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { QMetricInputs } from '@/shared/services/blueprint-formula';
-import { detectVerbJump } from '@/features/content-generation/parsers/ulc-detector';
 import { buildMatrixPayload, getFirstSuggestedKey } from './cognitive-matrix/buildMatrixPayload';
 import { CognitiveMatrixGrid } from './cognitive-matrix/CognitiveMatrixGrid';
 import { DrillDownCard } from './cognitive-matrix/DrillDownCard';
@@ -33,7 +32,6 @@ export function ULCPracticeController({
   const { studySession, currentSession } = useLearningStore();
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [inLoop, setInLoop] = useState(false);
-  const [pendingJumpVerb, setPendingJumpVerb] = useState<SelectedCell | null>(null);
 
   const masteredIds = useMemo(() => new Set(completedConceptIds), [completedConceptIds]);
 
@@ -53,17 +51,8 @@ export function ULCPracticeController({
   }, [selectedCell, concepts]);
 
   const handleCellClick = useCallback((cell: SelectedCell) => {
-    const ulcPattern = { detected: payload.verbs.length > 1, verbs: payload.verbs, objects: [], confidence: 0, cellMap: {} };
-    const isVerbJump = detectVerbJump(
-      [...completedConceptIds, cell.conceptId],
-      ulcPattern
-    );
-    if (isVerbJump) {
-      setPendingJumpVerb(cell);
-      return;
-    }
     setSelectedCell(cell);
-  }, [completedConceptIds, payload.verbs]);
+  }, []);
 
   const handleLoopComplete = useCallback((
     outcome: 'mastered' | 'needs-learning' | 'needs-review',
@@ -96,15 +85,14 @@ export function ULCPracticeController({
   }, [activeConcept, studySession, onCellComplete, onAllComplete, concepts, completedConceptIds]);
 
   const totalCells = useMemo(() => {
-    let count = 0;
+    const seen = new Set<string>();
     for (const concept of payload.matrix) {
-      if (concept.subConcepts) {
-        count += concept.subConcepts.length;
-      } else {
-        count += 1;
+      for (const verb of payload.verbs) {
+        const realId = concept.cellConceptIds?.[verb];
+        if (realId) seen.add(realId);
       }
     }
-    return count;
+    return seen.size;
   }, [payload]);
 
   if (inLoop && activeConcept) {
@@ -156,24 +144,6 @@ export function ULCPracticeController({
         />
       </div>
 
-      {pendingJumpVerb && (
-        <div className={styles.jumpOverlay} onClick={() => setPendingJumpVerb(null)}>
-          <div className={styles.jumpWarning} onClick={e => e.stopPropagation()}>
-            <p className={styles.jumpTitle}>Verb jump detected</p>
-            <p className={styles.jumpBody}>
-              You're skipping ahead to <strong>{pendingJumpVerb.verb}</strong> before finishing the current action across all resources. Mastering one verb fully first builds stronger recall.
-            </p>
-            <div className={styles.jumpActions}>
-              <button className={styles.jumpConfirm} onClick={() => { setSelectedCell(pendingJumpVerb); setPendingJumpVerb(null); }}>
-                Continue anyway
-              </button>
-              <button className={styles.jumpCancel} onClick={() => setPendingJumpVerb(null)}>
-                Stay on track
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

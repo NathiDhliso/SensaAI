@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, CheckCircle } from 'lucide-react';
-import type { MatrixPayload, MatrixConcept, MatrixSubConcept, SelectedCell } from './types';
+import { CheckCircle } from 'lucide-react';
+import type { MatrixPayload, MatrixConcept, SelectedCell } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
 
 interface CognitiveMatrixGridProps {
@@ -19,17 +18,6 @@ export function CognitiveMatrixGrid({
   selectedCell,
   onCellClick,
 }: CognitiveMatrixGridProps) {
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
-
-  const toggleCollapse = (id: string) => {
-    setCollapsedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
   const colCount = payload.verbs.length;
 
   return (
@@ -51,8 +39,6 @@ export function CognitiveMatrixGrid({
             masteredIds={masteredIds}
             suggestedId={suggestedId}
             selectedCell={selectedCell}
-            collapsed={collapsedIds.has(concept.conceptId)}
-            onToggle={() => toggleCollapse(concept.conceptId)}
             onCellClick={onCellClick}
           />
         ))}
@@ -67,8 +53,6 @@ function ConceptRows({
   masteredIds,
   suggestedId,
   selectedCell,
-  collapsed,
-  onToggle,
   onCellClick,
 }: {
   concept: MatrixConcept;
@@ -76,27 +60,11 @@ function ConceptRows({
   masteredIds: Set<string>;
   suggestedId: string | null;
   selectedCell: SelectedCell | null;
-  collapsed: boolean;
-  onToggle: () => void;
   onCellClick: (cell: SelectedCell) => void;
 }) {
-  const hasChildren = concept.subConcepts && concept.subConcepts.length > 0;
-
   return (
     <>
-      <div
-        className={`${styles.parentLabel} ${hasChildren ? styles.parentLabelClickable : ''}`}
-        onClick={hasChildren ? onToggle : undefined}
-      >
-        {hasChildren && (
-          <motion.span
-            className={styles.chevron}
-            animate={{ rotate: collapsed ? 0 : 90 }}
-            transition={{ duration: 0.15 }}
-          >
-            <ChevronRight size={14} />
-          </motion.span>
-        )}
+      <div className={styles.parentLabel}>
         <span>{concept.conceptName}</span>
       </div>
 
@@ -111,7 +79,7 @@ function ConceptRows({
             conceptName={concept.conceptName}
             verb={verb}
             action={action}
-            isMastered={masteredIds.has(concept.conceptId)}
+            isMastered={masteredIds.has(realConceptId)}
             isSuggested={suggestedId === `${concept.conceptId}::${verb}`}
             isSelected={
               selectedCell?.conceptId === concept.conceptId &&
@@ -120,68 +88,7 @@ function ConceptRows({
             onCellClick={onCellClick}
           />
         );
-      })}
-
-      {hasChildren && !collapsed &&
-        concept.subConcepts!.map(sub => (
-          <SubConceptRow
-            key={sub.conceptId}
-            sub={sub}
-            verbs={verbs}
-            masteredIds={masteredIds}
-            suggestedId={suggestedId}
-            selectedCell={selectedCell}
-            onCellClick={onCellClick}
-          />
-        ))
-      }
-    </>
-  );
-}
-
-function SubConceptRow({
-  sub,
-  verbs,
-  masteredIds,
-  suggestedId,
-  selectedCell,
-  onCellClick,
-}: {
-  sub: MatrixSubConcept;
-  verbs: string[];
-  masteredIds: Set<string>;
-  suggestedId: string | null;
-  selectedCell: SelectedCell | null;
-  onCellClick: (cell: SelectedCell) => void;
-}) {
-  return (
-    <>
-      <div className={styles.childLabel}>
-        <span className={styles.childIndent} />
-        <span>{sub.conceptName}</span>
-      </div>
-
-      {verbs.map(verb => {
-        const action = sub.actions[verb] ?? null;
-        return (
-          <GridCell
-            key={`${sub.conceptId}-${verb}`}
-            conceptId={sub.conceptId}
-            realConceptId={sub.conceptId}
-            conceptName={sub.conceptName}
-            verb={verb}
-            action={action}
-            isMastered={masteredIds.has(sub.conceptId)}
-            isSuggested={suggestedId === `${sub.conceptId}::${verb}`}
-            isSelected={
-              selectedCell?.conceptId === sub.conceptId &&
-              selectedCell?.verb === verb
-            }
-            onCellClick={onCellClick}
-          />
-        );
-      })}
-    </>
+      })}    </>
   );
 }
 
