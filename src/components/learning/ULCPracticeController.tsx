@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Circle, Target, ArrowRight, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Circle, Target, ArrowRight } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { QMetricInputs } from '@/shared/services/blueprint-formula';
@@ -179,11 +179,6 @@ export function ULCPracticeController({
         </div>
       </div>
 
-      <div className={styles.methodTip}>
-        <span className={styles.tipIcon}>💡</span>
-        <span>Master the <strong>how</strong> (procedure) first, then layer on the <strong>why</strong> (context). Work one verb across all resources before switching.</span>
-      </div>
-
       <AnimatePresence>
         {showVerbJumpWarning && (
           <div className={styles.interventionWrapper}>
@@ -236,17 +231,6 @@ export function ULCPracticeController({
         </div>
       </div>
 
-      <div className={styles.legend}>
-        <span className={styles.legendItem}>
-          <CheckCircle size={14} className={styles.masteredIcon} /> Mastered
-        </span>
-        <span className={styles.legendItem}>
-          <Circle size={14} className={styles.learningIcon} /> In Progress
-        </span>
-        <span className={styles.legendItem}>
-          <AlertTriangle size={14} className={styles.notStartedIcon} /> Not Started
-        </span>
-      </div>
     </div>
   );
 }
