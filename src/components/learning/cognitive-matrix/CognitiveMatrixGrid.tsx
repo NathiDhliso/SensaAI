@@ -1,16 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Play, ChevronRight, Maximize2, X } from 'lucide-react';
-import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, SelectedCell, DrillDownAction } from './types';
+import { X, Search, ChevronsUpDown, ChevronsDownUp, Zap } from 'lucide-react';
+import type { MatrixPayload, BranchRow, SelectedCell } from './types';
+import { TrunkRowGroup, BranchRowGroup, LeafRowComponent, ProgressRing } from './CognitiveMatrixGridParts';
+import type { ExpandedCell } from './CognitiveMatrixGridParts';
 import styles from './CognitiveMatrixGrid.module.css';
-
-interface ExpandedCell {
-  conceptId: string;
-  verb: string;
-  action: DrillDownAction;
-  conceptName: string;
-  realConceptId: string;
-}
 
 interface CognitiveMatrixGridProps {
   payload: MatrixPayload;
@@ -25,76 +19,194 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
   const [openTrunks, setOpenTrunks] = useState<Set<string>>(() => new Set());
   const [openBranches, setOpenBranches] = useState<Set<string>>(() => new Set());
   const [focusedTrunkId, setFocusedTrunkId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [heatmap, setHeatmap] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const [cmdQuery, setCmdQuery] = useState('');
+  const cmdRef = useRef<HTMLInputElement>(null);
+
+  const q = searchQuery.trim().toLowerCase();
+
+  const allLeafEntries = payload.matrix.flatMap(trunk => [
+    ...trunk.branches.flatMap(b => b.children.map(l => ({ trunk, branch: b as BranchRow | null, leaf: l }))),
+    ...trunk.children.map(l => ({ trunk, branch: null as BranchRow | null, leaf: l })),
+  ]);
+
+  const matchingLeafIds = q
+    ? new Set(allLeafEntries.filter(e => e.leaf.conceptName.toLowerCase().includes(q)).map(e => e.leaf.conceptId))
+    : null;
+
+  const matchingTrunkIds = matchingLeafIds
+    ? new Set(payload.matrix.filter(t =>
+        [...t.branches.flatMap(b => b.children), ...t.children].some(l => matchingLeafIds.has(l.conceptId))
+      ).map(t => t.conceptId))
+    : null;
+
+  const matchingBranchIds = matchingLeafIds
+    ? new Set(payload.matrix.flatMap(t => t.branches).filter(b =>
+        b.children.some(l => matchingLeafIds.has(l.conceptId))
+      ).map(b => b.conceptId))
+    : null;
+
+  useEffect(() => {
+    if (!q) return;
+    if (matchingTrunkIds) setOpenTrunks(prev => new Set([...prev, ...matchingTrunkIds]));
+    if (matchingBranchIds) setOpenBranches(prev => new Set([...prev, ...matchingBranchIds]));
+  }, [q]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setCmdOpen(o => !o); setCmdQuery(''); }
+      if (e.key === 'Escape') { setCmdOpen(false); setFocusedTrunkId(null); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  useEffect(() => { if (cmdOpen) setTimeout(() => cmdRef.current?.focus(), 50); }, [cmdOpen]);
 
   const handleCellTap = (cell: ExpandedCell) => {
-    setExpandedCell(prev =>
-      prev?.conceptId === cell.conceptId && prev?.verb === cell.verb ? null : cell
-    );
+    setExpandedCell(prev => prev?.conceptId === cell.conceptId && prev?.verb === cell.verb ? null : cell);
   };
 
   const handleStartDrill = () => {
     if (!expandedCell) return;
-    onCellClick({
-      conceptId: expandedCell.conceptId,
-      realConceptId: expandedCell.realConceptId,
-      conceptName: expandedCell.conceptName,
-      verb: expandedCell.verb,
-      action: expandedCell.action,
-      isMastered: false,
-    });
+    onCellClick({ conceptId: expandedCell.conceptId, realConceptId: expandedCell.realConceptId, conceptName: expandedCell.conceptName, verb: expandedCell.verb, action: expandedCell.action, isMastered: false });
     setExpandedCell(null);
   };
 
-  const toggleTrunk = (id: string) => {
-    setOpenTrunks(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) { next.delete(id); setExpandedCell(null); }
-      else next.add(id);
-      return next;
-    });
-  };
+  const toggleTrunk = (id: string) => setOpenTrunks(prev => {
+    const n = new Set(prev);
+    if (n.has(id)) { n.delete(id); setExpandedCell(null); } else n.add(id);
+    return n;
+  });
 
-  const toggleBranch = (id: string) => {
-    setOpenBranches(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) { next.delete(id); setExpandedCell(null); }
-      else next.add(id);
-      return next;
-    });
+  const toggleBranch = (id: string) => setOpenBranches(prev => {
+    const n = new Set(prev);
+    if (n.has(id)) { n.delete(id); setExpandedCell(null); } else n.add(id);
+    return n;
+  });
+
+  const expandAll = useCallback(() => {
+    setOpenTrunks(new Set(payload.matrix.map(t => t.conceptId)));
+    setOpenBranches(new Set(payload.matrix.flatMap(t => t.branches.map(b => b.conceptId))));
+  }, [payload]);
+
+  const collapseAll = useCallback(() => {
+    setOpenTrunks(new Set());
+    setOpenBranches(new Set());
+    setExpandedCell(null);
+  }, []);
+
+  const jumpToLeaf = useCallback((entry: typeof allLeafEntries[0]) => {
+    setCmdOpen(false);
+    setOpenTrunks(prev => new Set([...prev, entry.trunk.conceptId]));
+    if (entry.branch) setOpenBranches(prev => new Set([...prev, entry.branch!.conceptId]));
+    setTimeout(() => document.getElementById(`leaf-${entry.leaf.conceptId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+  }, []);
+
+  const suggestedEntry = suggestedId ? allLeafEntries.find(e => suggestedId.startsWith(e.leaf.conceptId)) : null;
+
+  const handleStartSuggested = () => {
+    if (!suggestedEntry || !suggestedId) return;
+    const verb = suggestedId.split('::')[1];
+    const action = suggestedEntry.leaf.actions?.[verb];
+    if (!action) return;
+    setOpenTrunks(prev => new Set([...prev, suggestedEntry.trunk.conceptId]));
+    if (suggestedEntry.branch) setOpenBranches(prev => new Set([...prev, suggestedEntry.branch!.conceptId]));
+    setExpandedCell({ conceptId: suggestedEntry.leaf.conceptId, realConceptId: suggestedEntry.leaf.cellConceptIds?.[verb] ?? suggestedEntry.leaf.conceptId, conceptName: suggestedEntry.leaf.conceptName, verb, action });
+    setTimeout(() => document.getElementById(`leaf-${suggestedEntry.leaf.conceptId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
   };
 
   const focusedTrunk = focusedTrunkId ? payload.matrix.find(t => t.conceptId === focusedTrunkId) ?? null : null;
   const colTemplate = `minmax(220px, auto) repeat(${colCount}, minmax(110px, 1fr))`;
   const focusColTemplate = `minmax(280px, auto) repeat(${colCount}, minmax(160px, 1fr))`;
+  const allExpanded = openTrunks.size >= payload.matrix.length;
+  const cmdResults = (cmdQuery.trim()
+    ? allLeafEntries.filter(e => e.leaf.conceptName.toLowerCase().includes(cmdQuery.trim().toLowerCase()))
+    : allLeafEntries
+  ).slice(0, 12);
+
+  const focusedAllLeaves = focusedTrunk
+    ? [...focusedTrunk.branches.flatMap(b => b.children), ...focusedTrunk.children]
+    : [];
+  const focusedMastered = focusedAllLeaves.filter(l => Object.values(l.cellConceptIds).some(id => masteredIds.has(id))).length;
 
   return (
     <>
+      <div className={styles.matrixControls}>
+        <div className={styles.searchWrap}>
+          <Search size={13} className={styles.searchIcon} />
+          <input
+            className={styles.searchInput}
+            placeholder="Filter concepts…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button className={styles.searchClear} onClick={() => setSearchQuery('')}>
+              <X size={11} />
+            </button>
+          )}
+        </div>
+        <div className={styles.controlsRight}>
+          {suggestedEntry && (
+            <button className={styles.suggestedBtn} onClick={handleStartSuggested} title="Jump to next suggested concept">
+              <Zap size={13} />
+              Start Suggested
+            </button>
+          )}
+          <button className={styles.controlBtn} onClick={allExpanded ? collapseAll : expandAll}>
+            {allExpanded ? <ChevronsDownUp size={13} /> : <ChevronsUpDown size={13} />}
+            {allExpanded ? 'Collapse' : 'Expand'} All
+          </button>
+          <button
+            className={`${styles.controlBtn} ${heatmap ? styles.controlBtnActive : ''}`}
+            onClick={() => setHeatmap(h => !h)}
+          >
+            Heatmap
+          </button>
+          <button className={styles.controlBtn} onClick={() => { setCmdOpen(true); setCmdQuery(''); }}>
+            ⌘K
+          </button>
+        </div>
+      </div>
+
       <div className={styles.gridWrapper}>
-        <div className={styles.grid} style={{ gridTemplateColumns: colTemplate }}>
-          <div className={styles.cornerCell}>DOMAINS</div>
-          {payload.verbs.map(verb => (
-            <div key={verb} className={styles.verbHeader}>{verb.toUpperCase()}</div>
-          ))}
-          {payload.matrix.map(trunk => (
-            <TrunkRowGroup
-              key={trunk.conceptId}
-              trunk={trunk}
-              verbs={payload.verbs}
-              masteredIds={masteredIds}
-              suggestedId={suggestedId}
-              expandedCell={expandedCell}
-              isTrunkOpen={openTrunks.has(trunk.conceptId)}
-              openBranches={openBranches}
-              colCount={colCount}
-              colTemplate={colTemplate}
-              onToggleTrunk={() => toggleTrunk(trunk.conceptId)}
-              onToggleBranch={toggleBranch}
-              onFocus={() => { setFocusedTrunkId(trunk.conceptId); setExpandedCell(null); }}
-              onCellTap={handleCellTap}
-              onStartDrill={handleStartDrill}
-              onCloseDrawer={() => setExpandedCell(null)}
-            />
-          ))}
+        <div className={styles.gridScroll}>
+          <div className={styles.stickyHeader} style={{ gridTemplateColumns: colTemplate }}>
+            <div className={styles.cornerCell}>DOMAINS</div>
+            {payload.verbs.map(verb => (
+              <div key={verb} className={styles.verbHeader}>{verb.toUpperCase()}</div>
+            ))}
+          </div>
+          <div className={styles.grid} style={{ gridTemplateColumns: colTemplate }}>
+            {payload.matrix.map(trunk => {
+              if (matchingTrunkIds && !matchingTrunkIds.has(trunk.conceptId)) return null;
+              return (
+                <TrunkRowGroup
+                  key={trunk.conceptId}
+                  trunk={trunk}
+                  verbs={payload.verbs}
+                  masteredIds={masteredIds}
+                  suggestedId={suggestedId}
+                  expandedCell={expandedCell}
+                  isTrunkOpen={openTrunks.has(trunk.conceptId)}
+                  openBranches={openBranches}
+                  colCount={colCount}
+                  colTemplate={colTemplate}
+                  heatmap={heatmap}
+                  matchingLeafIds={matchingLeafIds}
+                  onToggleTrunk={() => toggleTrunk(trunk.conceptId)}
+                  onToggleBranch={toggleBranch}
+                  onFocus={() => { setFocusedTrunkId(trunk.conceptId); setExpandedCell(null); }}
+                  onCellTap={handleCellTap}
+                  onStartDrill={handleStartDrill}
+                  onCloseDrawer={() => setExpandedCell(null)}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -112,19 +224,19 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                 <span className={styles.focusLabel}>FOCUS MODE</span>
                 <span className={styles.focusTitle}>{focusedTrunk.conceptName}</span>
               </div>
-              <button className={styles.focusClose} onClick={() => setFocusedTrunkId(null)}>
-                <X size={16} />
-                Exit Focus
-              </button>
+              <div className={styles.focusHeaderRight}>
+                <ProgressRing value={focusedMastered} total={focusedAllLeaves.length} size={32} />
+                <button className={styles.focusClose} onClick={() => setFocusedTrunkId(null)}>
+                  <X size={16} />Exit Focus
+                </button>
+              </div>
             </div>
-
             <div className={styles.focusBody}>
               <div className={styles.focusGrid} style={{ gridTemplateColumns: focusColTemplate }}>
                 <div className={styles.focusCorner}>RESOURCE</div>
                 {payload.verbs.map(verb => (
                   <div key={verb} className={styles.focusVerbHeader}>{verb.toUpperCase()}</div>
                 ))}
-
                 {focusedTrunk.branches.map(branch => (
                   <BranchRowGroup
                     key={branch.conceptId}
@@ -136,6 +248,8 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                     isOpen={openBranches.has(branch.conceptId)}
                     colCount={colCount}
                     colTemplate={focusColTemplate}
+                    heatmap={heatmap}
+                    matchingLeafIds={null}
                     onToggle={() => toggleBranch(branch.conceptId)}
                     onCellTap={handleCellTap}
                     onStartDrill={handleStartDrill}
@@ -154,6 +268,8 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                     colCount={colCount}
                     colTemplate={focusColTemplate}
                     depth={1}
+                    heatmap={heatmap}
+                    isMatch={null}
                     onCellTap={handleCellTap}
                     onStartDrill={handleStartDrill}
                     onCloseDrawer={() => setExpandedCell(null)}
@@ -165,338 +281,52 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
           </motion.div>
         )}
       </AnimatePresence>
-    </>
-  );
-}
-
-function TrunkRowGroup({
-  trunk, verbs, masteredIds, suggestedId, expandedCell,
-  isTrunkOpen, openBranches, colCount, colTemplate,
-  onToggleTrunk, onToggleBranch, onFocus, onCellTap, onStartDrill, onCloseDrawer,
-}: {
-  trunk: MatrixConcept;
-  verbs: string[];
-  masteredIds: Set<string>;
-  suggestedId: string | null;
-  expandedCell: ExpandedCell | null;
-  isTrunkOpen: boolean;
-  openBranches: Set<string>;
-  colCount: number;
-  colTemplate: string;
-  onToggleTrunk: () => void;
-  onToggleBranch: (id: string) => void;
-  onFocus: () => void;
-  onCellTap: (cell: ExpandedCell) => void;
-  onStartDrill: () => void;
-  onCloseDrawer: () => void;
-}) {
-  const allLeaves = [
-    ...trunk.branches.flatMap(b => b.children),
-    ...trunk.children,
-  ];
-  const totalLeaves = allLeaves.length;
-  const masteredLeaves = allLeaves.filter(l =>
-    Object.values(l.cellConceptIds).some(id => masteredIds.has(id))
-  ).length;
-
-  return (
-    <>
-      <div className={styles.trunkLabel} onClick={onToggleTrunk} role="button" aria-expanded={isTrunkOpen}>
-        <motion.span className={styles.chevron} animate={{ rotate: isTrunkOpen ? 90 : 0 }} transition={{ duration: 0.18 }}>
-          <ChevronRight size={14} />
-        </motion.span>
-        <span className={styles.parentName}>{trunk.conceptName}</span>
-        <span className={styles.parentCount}>{masteredLeaves}/{totalLeaves}</span>
-        <button
-          className={styles.focusBtn}
-          onClick={e => { e.stopPropagation(); onFocus(); }}
-          title={`Focus on ${trunk.conceptName}`}
-        >
-          <Maximize2 size={12} />
-        </button>
-      </div>
-      {verbs.map(verb => (
-        <div key={`${trunk.conceptId}-${verb}-ph`} className={styles.trunkPlaceholder} />
-      ))}
 
       <AnimatePresence>
-        {isTrunkOpen && (
+        {cmdOpen && (
           <motion.div
-            className={styles.childrenBlock}
-            style={{ gridColumn: `1 / ${colCount + 2}` }}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: 'spring', stiffness: 360, damping: 36 }}
+            className={styles.cmdOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setCmdOpen(false)}
           >
-            {trunk.branches.map(branch => (
-              <BranchRowGroup
-                key={branch.conceptId}
-                branch={branch}
-                verbs={verbs}
-                masteredIds={masteredIds}
-                suggestedId={suggestedId}
-                expandedCell={expandedCell}
-                isOpen={openBranches.has(branch.conceptId)}
-                colCount={colCount}
-                colTemplate={colTemplate}
-                onToggle={() => onToggleBranch(branch.conceptId)}
-                onCellTap={onCellTap}
-                onStartDrill={onStartDrill}
-                onCloseDrawer={onCloseDrawer}
-              />
-            ))}
-            {trunk.children.map(leaf => (
-              <LeafRowComponent
-                key={leaf.conceptId}
-                leaf={leaf}
-                verbs={verbs}
-                masteredIds={masteredIds}
-                suggestedId={suggestedId}
-                expandedCell={expandedCell}
-                colCount={colCount}
-                colTemplate={colTemplate}
-                depth={1}
-                onCellTap={onCellTap}
-                onStartDrill={onStartDrill}
-                onCloseDrawer={onCloseDrawer}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
-function BranchRowGroup({
-  branch, verbs, masteredIds, suggestedId, expandedCell,
-  isOpen, colCount, colTemplate, onToggle, onCellTap, onStartDrill, onCloseDrawer, focusMode,
-}: {
-  branch: BranchRow;
-  verbs: string[];
-  masteredIds: Set<string>;
-  suggestedId: string | null;
-  expandedCell: ExpandedCell | null;
-  isOpen: boolean;
-  colCount: number;
-  colTemplate: string;
-  onToggle: () => void;
-  onCellTap: (cell: ExpandedCell) => void;
-  onStartDrill: () => void;
-  onCloseDrawer: () => void;
-  focusMode?: boolean;
-}) {
-  const masteredInBranch = branch.children.filter(l =>
-    Object.values(l.cellConceptIds).some(id => masteredIds.has(id))
-  ).length;
-
-  return (
-    <>
-      <div className={focusMode ? styles.focusBranchGrid : styles.branchGrid} style={{ gridTemplateColumns: colTemplate }}>
-        <div className={focusMode ? styles.focusBranchLabel : styles.branchLabel} onClick={onToggle} role="button" aria-expanded={isOpen}>
-          <span className={styles.branchIndent} />
-          <motion.span className={styles.chevron} animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.18 }}>
-            <ChevronRight size={focusMode ? 14 : 12} />
-          </motion.span>
-          <span className={styles.branchName}>{branch.conceptName}</span>
-          <span className={styles.parentCount}>{masteredInBranch}/{branch.children.length}</span>
-        </div>
-        {verbs.map(verb => (
-          <div key={`${branch.conceptId}-${verb}-ph`} className={styles.branchPlaceholder} />
-        ))}
-      </div>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 38 }}
-          >
-            {branch.children.map(leaf => (
-              <LeafRowComponent
-                key={leaf.conceptId}
-                leaf={leaf}
-                verbs={verbs}
-                masteredIds={masteredIds}
-                suggestedId={suggestedId}
-                expandedCell={expandedCell}
-                colCount={colCount}
-                colTemplate={colTemplate}
-                depth={2}
-                onCellTap={onCellTap}
-                onStartDrill={onStartDrill}
-                onCloseDrawer={onCloseDrawer}
-                focusMode={focusMode}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
-function LeafRowComponent({
-  leaf, verbs, masteredIds, suggestedId, expandedCell,
-  colCount, colTemplate, depth, onCellTap, onStartDrill, onCloseDrawer, focusMode,
-}: {
-  leaf: LeafRow;
-  verbs: string[];
-  masteredIds: Set<string>;
-  suggestedId: string | null;
-  expandedCell: ExpandedCell | null;
-  colCount: number;
-  colTemplate: string;
-  depth: 1 | 2;
-  onCellTap: (cell: ExpandedCell) => void;
-  onStartDrill: () => void;
-  onCloseDrawer: () => void;
-  focusMode?: boolean;
-}) {
-  const isDrawerOpen = expandedCell?.conceptId === leaf.conceptId;
-
-  const labelClass = focusMode
-    ? (depth === 2 ? styles.focusLeafLabelDeep : styles.focusLeafLabel)
-    : (depth === 2 ? styles.leafLabelDeep : styles.leafLabel);
-  const indentClass = depth === 2 ? styles.leafIndentDeep : styles.leafIndent;
-
-  return (
-    <div className={styles.leafGrid} style={{ gridTemplateColumns: colTemplate }}>
-      <div className={labelClass}>
-        <span className={indentClass} />
-        <span>{leaf.conceptName}</span>
-      </div>
-
-      {verbs.map(verb => {
-        const action = leaf.actions?.[verb] ?? null;
-        const realConceptId = leaf.cellConceptIds?.[verb] ?? leaf.conceptId;
-        const isExpanded = expandedCell?.conceptId === leaf.conceptId && expandedCell?.verb === verb;
-        return (
-          <GridCell
-            key={`${leaf.conceptId}-${verb}`}
-            conceptId={leaf.conceptId}
-            realConceptId={realConceptId}
-            conceptName={leaf.conceptName}
-            verb={verb}
-            action={action}
-            isMastered={masteredIds.has(realConceptId)}
-            isSuggested={suggestedId === `${leaf.conceptId}::${verb}`}
-            isExpanded={isExpanded}
-            onCellTap={onCellTap}
-          />
-        );
-      })}
-
-      <AnimatePresence>
-        {isDrawerOpen && expandedCell && (
-          <motion.div
-            className={styles.drawer}
-            style={{ gridColumn: `1 / ${colCount + 2}` }}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
-          >
-            <div className={styles.drawerInner}>
-              <div className={styles.drawerMeta}>
-                <span className={styles.drawerVerb}>{expandedCell.verb}</span>
-                <span className={styles.drawerSep}>×</span>
-                <span className={styles.drawerConcept}>{expandedCell.conceptName}</span>
+            <motion.div
+              className={styles.cmdPalette}
+              initial={{ opacity: 0, y: -16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className={styles.cmdSearch}>
+                <Search size={14} className={styles.cmdIcon} />
+                <input
+                  ref={cmdRef}
+                  className={styles.cmdInput}
+                  placeholder="Jump to concept…"
+                  value={cmdQuery}
+                  onChange={e => setCmdQuery(e.target.value)}
+                />
+                <kbd className={styles.cmdEsc}>ESC</kbd>
               </div>
-
-              <div className={styles.drawerBody}>
-                <div className={styles.trickBox}>
-                  <div className={styles.trickLabel}>
-                    <span className={styles.trickIcon}>🧠</span>
-                    <span>THE TRICK</span>
-                    <span className={styles.trickTag}>Mental Shortcut</span>
-                  </div>
-                  <p className={styles.trickText}>{expandedCell.action.trick}</p>
-                </div>
-
-                <div className={styles.checklistPanel}>
-                  <div className={styles.checklistHeader}>
-                    <span className={styles.checklistIcon}>⚡</span>
-                    <span className={styles.checklistTitle}>EXECUTION CHECKLIST</span>
-                    {expandedCell.action.chain.length > 0 && (
-                      <span className={styles.prereqPill}>
-                        Needs: {expandedCell.action.chain.join(' → ')}
+              <ul className={styles.cmdList}>
+                {cmdResults.map(entry => (
+                  <li key={entry.leaf.conceptId}>
+                    <button className={styles.cmdItem} onClick={() => jumpToLeaf(entry)}>
+                      <span className={styles.cmdItemPath}>
+                        {entry.trunk.conceptName}{entry.branch ? ` › ${entry.branch.conceptName}` : ''}
                       </span>
-                    )}
-                  </div>
-                  {expandedCell.action.steps.length > 0 ? (
-                    <ol className={styles.checklist}>
-                      {expandedCell.action.steps.map((step, i) => (
-                        <li key={i} className={styles.checklistItem}>
-                          <span className={styles.checklistNum}>{i + 1}</span>
-                          <span className={styles.checklistText}>{step}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p className={styles.drawerEmpty}>No steps defined.</p>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.drawerFooter}>
-                <button className={styles.drawerClose} onClick={onCloseDrawer}>Dismiss</button>
-                <button className={styles.drawerDrill} onClick={onStartDrill}>
-                  <Play size={13} />
-                  Start Drill
-                </button>
-              </div>
-            </div>
+                      <span className={styles.cmdItemName}>{entry.leaf.conceptName}</span>
+                    </button>
+                  </li>
+                ))}
+                {cmdResults.length === 0 && <li className={styles.cmdEmpty}>No concepts found</li>}
+              </ul>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-function GridCell({
-  conceptId, realConceptId, conceptName, verb, action,
-  isMastered, isSuggested, isExpanded, onCellTap,
-}: {
-  conceptId: string;
-  realConceptId: string;
-  conceptName: string;
-  verb: string;
-  action: DrillDownAction | null;
-  isMastered: boolean;
-  isSuggested: boolean;
-  isExpanded: boolean;
-  onCellTap: (cell: ExpandedCell) => void;
-}) {
-  const isActive = !!action && !isMastered;
-
-  const handleClick = () => {
-    if (!action || isMastered) return;
-    onCellTap({ conceptId, realConceptId, conceptName, verb, action });
-  };
-
-  return (
-    <motion.button
-      className={[
-        styles.cell,
-        isMastered ? styles.cellMastered : '',
-        isActive ? styles.cellActive : '',
-        isSuggested ? styles.cellSuggested : '',
-        isExpanded ? styles.cellSelected : '',
-        !action ? styles.cellNull : '',
-      ].filter(Boolean).join(' ')}
-      onClick={handleClick}
-      disabled={!isActive}
-      whileHover={isActive ? { scale: 1.05 } : {}}
-      whileTap={isActive ? { scale: 0.95 } : {}}
-      title={action ? `${verb} · ${conceptName}` : undefined}
-    >
-      {isMastered && <CheckCircle size={15} className={styles.masteredIcon} />}
-      {!isMastered && isActive && <span className={styles.cellDot} />}
-      {!action && <span className={styles.nullDash}>—</span>}
-    </motion.button>
+    </>
   );
 }

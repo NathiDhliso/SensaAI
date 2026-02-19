@@ -687,3 +687,297 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.focusHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.matrixControls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(120, 80, 255, 0.04);
+  border: 1px solid rgba(120, 80, 255, 0.15);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  flex-wrap: wrap;
+}
+
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(120, 80, 255, 0.18);
+  border-radius: 7px;
+  padding: 0.3rem 0.6rem;
+  flex: 1;
+  min-width: 160px;
+  max-width: 280px;
+}
+
+.searchIcon {
+  color: rgba(160, 130, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.78rem;
+  color: rgba(220, 210, 255, 0.9);
+  flex: 1;
+  min-width: 0;
+}
+
+.searchInput::placeholder {
+  color: rgba(160, 130, 255, 0.35);
+}
+
+.searchClear {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: rgba(160, 130, 255, 0.5);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.searchClear:hover {
+  color: rgba(200, 170, 255, 0.85);
+}
+
+.controlsRight {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(120, 80, 255, 0.08);
+  border: 1px solid rgba(120, 80, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(180, 155, 255, 0.7);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.controlBtn:hover {
+  background: rgba(120, 80, 255, 0.18);
+  color: rgba(210, 190, 255, 0.95);
+  border-color: rgba(160, 120, 255, 0.4);
+}
+
+.controlBtnActive {
+  background: rgba(120, 80, 255, 0.22);
+  color: rgba(220, 205, 255, 1);
+  border-color: rgba(160, 120, 255, 0.55);
+}
+
+.suggestedBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 200, 50, 0.1);
+  border: 1px solid rgba(255, 200, 50, 0.3);
+  border-radius: 6px;
+  color: rgba(255, 215, 80, 0.9);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.suggestedBtn:hover {
+  background: rgba(255, 200, 50, 0.18);
+  color: rgba(255, 225, 100, 1);
+}
+
+.gridScroll {
+  overflow-x: auto;
+}
+
+.stickyHeader {
+  display: grid;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(14, 10, 30, 0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.22);
+}
+
+.leafHeatMastered {
+  background: rgba(50, 200, 120, 0.06);
+}
+
+.leafHeatPending {
+  background: rgba(255, 80, 80, 0.04);
+}
+
+.leafDimmed {
+  opacity: 0.3;
+}
+
+.leafHighlighted {
+  background: rgba(120, 80, 255, 0.08);
+  outline: 1px solid rgba(120, 80, 255, 0.25);
+  outline-offset: -1px;
+}
+
+.cellHeatMastered {
+  background: rgba(50, 200, 120, 0.12);
+}
+
+.cellHeatPending {
+  background: rgba(255, 80, 80, 0.06);
+}
+
+.progressRing {
+  flex-shrink: 0;
+}
+
+.ringTrack {
+  fill: none;
+  stroke: rgba(120, 80, 255, 0.15);
+  stroke-width: 2.5;
+}
+
+.ringFill {
+  fill: none;
+  stroke: rgba(120, 200, 120, 0.75);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.4s ease;
+}
+
+.ringText {
+  font-size: 7px;
+  font-weight: 700;
+  fill: rgba(180, 160, 255, 0.7);
+}
+
+.cmdOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+}
+
+.cmdPalette {
+  width: 100%;
+  max-width: 520px;
+  background: rgba(14, 10, 30, 0.97);
+  border: 1px solid rgba(120, 80, 255, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(120, 80, 255, 0.1);
+  overflow: hidden;
+}
+
+.cmdSearch {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid rgba(120, 80, 255, 0.18);
+}
+
+.cmdIcon {
+  color: rgba(160, 130, 255, 0.55);
+  flex-shrink: 0;
+}
+
+.cmdInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  color: rgba(225, 215, 255, 0.95);
+}
+
+.cmdInput::placeholder {
+  color: rgba(160, 130, 255, 0.35);
+}
+
+.cmdEsc {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(160, 130, 255, 0.4);
+  background: rgba(120, 80, 255, 0.1);
+  border: 1px solid rgba(120, 80, 255, 0.2);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.cmdList {
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem 0;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.cmdItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0.6rem 1.1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.cmdItem:hover {
+  background: rgba(120, 80, 255, 0.1);
+}
+
+.cmdItemPath {
+  font-size: 0.65rem;
+  color: rgba(160, 130, 255, 0.5);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cmdItemName {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(220, 210, 255, 0.9);
+}
+
+.cmdEmpty {
+  padding: 1.2rem 1.1rem;
+  font-size: 0.82rem;
+  color: rgba(160, 130, 255, 0.4);
+  font-style: italic;
+}
