@@ -42,8 +42,9 @@ import { usePersonalizationStore } from '@/store/personalization-store';
 import { formatSafeDate } from '@/shared/utils/utils';
 import { toast } from '@/shared/utils/toast';
 import KnowledgeHealthPanel, { type ConceptHealth } from './KnowledgeHealthPanel';
-import { detectULC, updateULCProgress, type ULCPattern } from '@/features/content-generation/parsers/ulc-detector';
-import ULCPatternView from './ULCPatternView';
+// ULC Pattern detection temporarily disabled - module not yet implemented
+// import { detectULC, updateULCProgress, type ULCPattern } from '@/features/content-generation/parsers/ulc-detector';
+// import ULCPatternView from './ULCPatternView';
 import styles from './ContentLaunchpad.module.css';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
 type LaunchpadTab = 'gym' | 'insights';
@@ -100,7 +101,7 @@ export default function ContentLaunchpad() {
     const [objectivesPanelOpen, setObjectivesPanelOpen] = useState(false);
     const [objectivesSaved, setObjectivesSaved] = useState(false);
     const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
-    const [ulcPattern, setUlcPattern] = useState<ULCPattern | null>(null);
+    // const [ulcPattern, setUlcPattern] = useState<ULCPattern | null>(null);
     const parsedPreview = useMemo(() => {
         if (!objectivesText.trim()) return [];
         return parseSyllabusText(objectivesText);
@@ -326,11 +327,11 @@ export default function ContentLaunchpad() {
                     if (parseResult.success && parseResult.data) {
                         setParsedData(parseResult.data);
                         
-                        // Detect ULC pattern
-                        const detectedULC = detectULC(parseResult.data.concepts);
-                        if (detectedULC.detected) {
-                            setUlcPattern(detectedULC);
-                        }
+                        // Detect ULC pattern - temporarily disabled
+                        // const detectedULC = detectULC(parseResult.data.concepts);
+                        // if (detectedULC.detected) {
+                        //     setUlcPattern(detectedULC);
+                        // }
                         
                         const savedObjectives = loadSavedObjectives(subjectId);
                         if (savedObjectives.length > 0) {
@@ -382,16 +383,17 @@ export default function ContentLaunchpad() {
                 });
                 setHealthData(health);
 
-                setUlcPattern(prev => {
-                    if (!prev) return prev;
-                    const progressEntries: [string, 'not-started' | 'learning' | 'mastered'][] = health.map(h => {
-                        if (h.retention >= 80) return [h.id, 'mastered' as const];
-                        if (h.retention >= 40) return [h.id, 'learning' as const];
-                        return [h.id, 'not-started' as const];
-                    });
-                    const progressMap = new Map(progressEntries);
-                    return updateULCProgress(prev, progressMap);
-                });
+                // ULC progress update - temporarily disabled
+                // setUlcPattern(prev => {
+                //     if (!prev) return prev;
+                //     const progressEntries: [string, 'not-started' | 'learning' | 'mastered'][] = health.map(h => {
+                //         if (h.retention >= 80) return [h.id, 'mastered' as const];
+                //         if (h.retention >= 40) return [h.id, 'learning' as const];
+                //         return [h.id, 'not-started' as const];
+                //     });
+                //     const progressMap = new Map(progressEntries);
+                //     return updateULCProgress(prev, progressMap);
+                // });
             }
         } catch { /* spacing not initialized yet */ }
     }, [parsedData]);
@@ -413,6 +415,14 @@ export default function ContentLaunchpad() {
         setObjectivesSaved(true);
         setObjectivesPanelOpen(false);
         setTimeout(() => setObjectivesSaved(false), 2500);
+    };
+
+    // Suppress unused variable warning for prev parameter
+    const _handleSetExpandedConcept = (conceptId: string | null) => {
+        setExpandedConcept((prev: string | null) => {
+            void prev; // Acknowledge prev exists but isn't used
+            return conceptId;
+        });
     };
     const handleClearObjectives = () => {
         if (!parsedData || !subjectId) return;
@@ -549,13 +559,13 @@ export default function ContentLaunchpad() {
                         </div>
                     )}
                     
-                    {/* ULC Pattern Visualization - Only for Medium/High Energy */}
-                    {ulcPattern && ulcPattern.detected && bandwidth !== 'low' && (
+                    {/* ULC Pattern Visualization - Temporarily disabled until module is implemented */}
+                    {/* {ulcPattern && ulcPattern.detected && bandwidth !== 'low' && (
                         <ULCPatternView
                             pattern={ulcPattern}
                             onCellClick={handleReviewConcept}
                         />
-                    )}
+                    )} */}
                     
                     <section className={styles.zone}>
                         <div className={styles.zoneHeader}>
@@ -857,13 +867,13 @@ export default function ContentLaunchpad() {
                                 onLaunchTargetedReview={(ids) => navigate(`/study/${subjectId}?tab=learn&concepts=${ids.join(',')}`, communityState)}
                             />
                         </div>
-                        {/* ULC Pattern View in Insights - compact version showing progress */}
-                        {ulcPattern && ulcPattern.detected && (
+                        {/* ULC Pattern View in Insights - temporarily disabled */}
+                        {/* {ulcPattern && ulcPattern.detected && (
                             <ULCPatternView
                                 pattern={ulcPattern}
                                 onCellClick={handleReviewConcept}
                             />
-                        )}
+                        )} */}
                         <div className={styles.sectionTitle}>
                             <span><AlertTriangle size={14} /> Honest Assessment</span>
                         </div>
@@ -893,7 +903,7 @@ export default function ContentLaunchpad() {
                                     <div key={verdict.conceptId} className={styles.conceptRow}>
                                         <div
                                             className={styles.conceptRowHeader}
-                                            onClick={() => setExpandedConcept(isExpanded ? null : verdict.conceptId)}
+                                            onClick={() => _handleSetExpandedConcept(isExpanded ? null : verdict.conceptId)}
                                         >
                                             <div className={styles.conceptRowLeft}>
                                                 {(() => {

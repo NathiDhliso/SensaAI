@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   CheckCircle,
@@ -10,13 +9,12 @@ import styles from './OverviewMapView.module.css';
 
 interface OverviewMapViewProps {
   concepts: LearningConcept[];
-  ulcPattern: null; // Deprecated - kept for compatibility
+  ulcPattern?: null; // Deprecated - kept for compatibility
   onComplete: () => void;
 }
 
 export default function OverviewMapView({
   concepts,
-  ulcPattern,
   onComplete,
 }: OverviewMapViewProps) {
   return (
@@ -56,11 +54,11 @@ export default function OverviewMapView({
                 <BookOpen size={20} />
               </div>
               <div className={styles.conceptInfo}>
-                <h3 className={styles.conceptTitle}>{concept.title}</h3>
-                {concept.description && (
+                <h3 className={styles.conceptTitle}>{concept.name}</h3>
+                {concept.hookSentence && (
                   <p className={styles.conceptDescription}>
-                    {concept.description.substring(0, 100)}
-                    {concept.description.length > 100 ? '...' : ''}
+                    {concept.hookSentence.substring(0, 100)}
+                    {concept.hookSentence.length > 100 ? '...' : ''}
                   </p>
                 )}
               </div>

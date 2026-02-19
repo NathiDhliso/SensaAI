@@ -24,13 +24,13 @@ export default function GlassMatrixTable({
 }: GlassMatrixTableProps) {
   // Flatten concepts into rows (including nested children)
   const flattenedRows = useMemo(() => {
-    const rows: Array<{ concept: AtomicConcept; depth: number; parent?: string }> = [];
+    const rows: Array<{ concept: AtomicConcept; depth: number }> = [];
     
-    const flatten = (concepts: AtomicConcept[], depth = 0, parent?: string) => {
+    const flatten = (concepts: AtomicConcept[], depth = 0) => {
       concepts.forEach(concept => {
-        rows.push({ concept, depth, parent });
+        rows.push({ concept, depth });
         if (concept.children) {
-          flatten(concept.children, depth + 1, concept.name);
+          flatten(concept.children, depth + 1);
         }
       });
     };
@@ -62,7 +62,7 @@ export default function GlassMatrixTable({
           </tr>
         </thead>
         <tbody>
-          {flattenedRows.map(({ concept, depth, parent }) => (
+          {flattenedRows.map(({ concept, depth }) => (
             <tr key={concept.id} className={styles.dataRow}>
               <td className={styles.conceptCell}>
                 <div

@@ -80,6 +80,9 @@ function analyzeConceptStructure(concepts: LearningConcept[]): ConceptStructure 
     .slice(0, 10)
     .map(([obj]) => obj);
 
+  // conceptMap is built but not used in return - keeping for future use
+  void conceptMap;
+
   return { verbs, objects, conceptMap };
 }
 
@@ -89,7 +92,7 @@ function analyzeConceptStructure(concepts: LearningConcept[]): ConceptStructure 
 function buildMatrix(
   verbs: string[],
   objects: string[],
-  conceptMap: Map<string, LearningConcept>,
+  _conceptMap: Map<string, LearningConcept>,
   concepts: LearningConcept[]
 ): ConceptMatrix {
   // Build atomic concepts with hierarchy
@@ -159,7 +162,7 @@ function buildAtomicConcepts(concepts: LearningConcept[]): AtomicConcept[] {
 /**
  * Match concept to universal action
  */
-function matchConceptToAction(concept: LearningConcept, verbs: string[]): UniversalAction | null {
+function matchConceptToAction(concept: LearningConcept, _verbs: string[]): UniversalAction | null {
   const nameLower = concept.name.toLowerCase();
   
   // Map verbs to universal actions
@@ -207,7 +210,7 @@ function matchConceptToObject(concept: LearningConcept, objects: string[]): stri
 /**
  * Build concept path for breadcrumb
  */
-function buildConceptPath(concept: LearningConcept, allConcepts: LearningConcept[]): string[] {
+function buildConceptPath(concept: LearningConcept, _allConcepts: LearningConcept[]): string[] {
   const path: string[] = [];
 
   if (concept.trunkDomain) path.push(concept.trunkDomain);
