@@ -14,7 +14,7 @@ import {
 import type { LearningConcept } from '@/shared/types/learning';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
 import { PeerReviewActivity } from '@/components/learning/activities/PeerReviewActivity';
-import MasteryChallenge from '@/components/learning/activities/MasteryChallenge';
+import MasteryChallenge from '@/components/learning/activities/MasteryChallenge'; // Legacy stub
 import PreMortemActivity from '@/components/learning/activities/PreMortemActivity';
 import styles from './GymActivityLauncher.module.css';
 

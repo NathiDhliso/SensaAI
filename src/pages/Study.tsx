@@ -16,7 +16,7 @@ import { useNavigate, useParams, useSearchParams, useLocation } from 'react-rout
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
-import type { StudyGoal } from '@/shared/types/learning';
+import type { StudyGoal, LearnerMood } from '@/shared/types/learning';
 import { storageManager } from '@/features/content-storage';
 import { conceptsApi } from '@/shared/api/concepts';
 import { buildDocumentFromConcepts } from '@/shared/utils/content-builder';
@@ -27,9 +27,8 @@ import CelebrationModal from '@/components/learning/feedback/CelebrationModal';
 import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
 import { SessionSummary } from '@/components/learning/session/SessionSummary';
 import { LearningErrorBoundary } from '@/components/error/LearningErrorBoundary';
-import { SessionScoutPreview } from '@/components/learning/session/SessionScoutPreview';
+import { SessionScoutPreview, SessionStartModal, MOOD_GOAL_MAP } from '@/components/learning/session';
 import { CoachMessage } from '@/features/ai-coach/components';
-import { SessionStartModal, MOOD_GOAL_MAP } from '@/components/learning/session';
 import { MetaphorToggle } from '@/features/personalization';
 import { useStruggleDetector } from '@/shared/hooks/useStruggleDetector';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
@@ -283,7 +282,7 @@ export default function Study() {
  const { lastSessionMood } = usePersonalizationStore.getState();
  if (lastSessionMood) {
  const mappedMood = MOOD_GOAL_MAP[lastSessionMood]?.storeMood || 'good';
- setMood(mappedMood);
+ setMood(mappedMood as LearnerMood);
  }
  // Close modal
  setShowSessionConfig(false);
