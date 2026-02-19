@@ -157,6 +157,7 @@ export function getAvailableComponents(): string[] {
 export const UNIFIED_FLOW_CONFIG = {
   enabled: import.meta.env.VITE_UNIFIED_FLOW_ENABLED === 'true',
   phases: {
+    PRIME: false,      // Not yet implemented - skip this phase
     ORIENT: true,
     STRUCTURE: true,
     ENCODE: true,
