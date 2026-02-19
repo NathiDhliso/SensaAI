@@ -42,8 +42,6 @@ import { usePersonalizationStore } from '@/store/personalization-store';
 import { formatSafeDate } from '@/shared/utils/utils';
 import { toast } from '@/shared/utils/toast';
 import KnowledgeHealthPanel, { type ConceptHealth } from './KnowledgeHealthPanel';
-import { FuturisticPrimingZone } from '@/features/priming-zone';
-import { detectULCPattern } from '@/features/priming-zone/detector';
 import BlueprintFormulaDashboard from '@/components/dashboard/BlueprintFormulaDashboard';
 import styles from './ContentLaunchpad.module.css';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';

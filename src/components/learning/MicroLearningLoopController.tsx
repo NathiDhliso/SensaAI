@@ -14,7 +14,6 @@ import {
 import { useLearningStore } from '@/store/learning-store';
 import type { LearningConcept } from '@/shared/types/learning';
 import type { SubjectType } from '@/shared/types/macro-workflow';
-import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
 import { synthesizeExample } from '@/shared/utils/example-synthesis';
 import { getRandomElaborationPrompt } from '@/features/ai-coach';
 import { usePersonalizationStore } from '@/store/personalization-store';
@@ -54,28 +53,6 @@ function calculateLoopDuration(
     const velocityAdjusted = baseTime / userVelocity;
     // Clamp to 60-180 second range
     return Math.max(60, Math.min(180, Math.round(velocityAdjusted)));
-}
-/**
- * Determine loop outcome based on test and verify phases
- * Uses robust score normalization and explicit boundary handling
- */
-function determineOutcome(
-    testResult: TestPhaseResult,
-    verifyResult: { correct: boolean; timeSpent: number }
-): LoopOutcome {
-    // Normalize all scores to [0, 1] range
-    const testScore = normalizeScore(
-        testResult.totalPoints > 0
-            ? testResult.recalledPoints / testResult.totalPoints
-            : 0
-    );
-    const confidenceScore = normalizeScore(testResult.confidence / 5);
-    // Calculate composite score (weighted average)
-    const compositeScore = (testScore * 0.7) + (confidenceScore * 0.3);
-    // Use utility function for status determination
-    const status = determineStatus(compositeScore, verifyResult.correct);
-    // Map status to outcome
-    return status as LoopOutcome;
 }
 // ============================================================================
 // PHASE COMPONENTS
