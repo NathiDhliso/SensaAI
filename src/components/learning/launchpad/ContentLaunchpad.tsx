@@ -488,8 +488,8 @@ export default function ContentLaunchpad() {
                     <button
                         className={styles.batteryIndicator}
                         style={{ borderColor: bwConfig.color }}
-                        onClick={handleStartLearning}
-                        title="Start a session to change your energy level"
+                        onClick={() => setShowEquationMonitor(true)}
+                        title="View your learning health equation"
                     >
                         {bwConfig.icon}
                         <span className={styles.batteryLabel}>{bwConfig.label}</span>
@@ -660,30 +660,6 @@ export default function ContentLaunchpad() {
                             </div>
                         </div>
                         <div className={styles.zoneCards}>
-                            <button
-                                className={styles.activityCard}
-                                onClick={() => setShowEquationMonitor(true)}
-                            >
-                                <div className={styles.activityIcon}>
-                                    <BarChart3 size={24} />
-                                </div>
-                                <div className={styles.activityInfo}>
-                                    <span className={styles.activityName}>Equation Monitor</span>
-                                    <span className={styles.activityDesc}>Track your learning health formula</span>
-                                </div>
-                            </button>
-                            <button
-                                className={styles.activityCard}
-                                onClick={() => handleGymActivity('concept-map')}
-                            >
-                                <div className={styles.activityIcon}>
-                                    <MapIcon size={24} />
-                                </div>
-                                <div className={styles.activityInfo}>
-                                    <span className={styles.activityName}>Concept Map</span>
-                                    <span className={styles.activityDesc}>Build connections between ideas</span>
-                                </div>
-                            </button>
                             <button
                                 className={styles.activityCard}
                                 onClick={() => handleGymActivity('peer-review')}
