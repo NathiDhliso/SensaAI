@@ -93,7 +93,7 @@ export default function ContentLaunchpad() {
     const [error, setError] = useState<string | null>(null);
     const [dueReviews, setDueReviews] = useState<ScheduledReview[]>([]);
     const [spacingMetrics, setSpacingMetrics] = useState<SpacingMetrics | null>(null);
-    const [knowledgeHealth, setKnowledgeHealth] = useState<number>(100);
+    const [knowledgeHealth, setKnowledgeHealth] = useState<number | null>(null);
     const [healthData, setHealthData] = useState<ConceptHealth[]>([]);
     const [expandedConcept, setExpandedConcept] = useState<string | null>(null);
     const [objectivesText, setObjectivesText] = useState('');
@@ -116,7 +116,7 @@ export default function ContentLaunchpad() {
         const concepts = parsedData.concepts || [];
         let trunk = concepts.filter(c => c.tier === 'trunk').length;
         const branch = concepts.filter(c => c.tier === 'branch').length;
-        const leaf = concepts.length - trunk - branch;
+        const leaf = concepts.filter(c => c.tier === 'leaf').length;
         if (trunk === 0) {
             const domains = new Set<string>();
             concepts.forEach(c => { if (c.trunkDomain) domains.add(c.trunkDomain); });
@@ -233,16 +233,6 @@ export default function ContentLaunchpad() {
                 lines.push('Memory Anchor:');
                 if (concept.mnemonic.anchor) lines.push(`  Anchor: ${concept.mnemonic.anchor}`);
                 if (concept.mnemonic.story) lines.push(`  Story: ${concept.mnemonic.story}`);
-                lines.push('');
-            }
-            if (concept.criticalDistinctions?.length) {
-                lines.push('Critical Distinctions:');
-                concept.criticalDistinctions.forEach((d) => lines.push(`  - ${d}`));
-                lines.push('');
-            }
-            if (concept.designBoundaries?.length) {
-                lines.push('Design Boundaries:');
-                concept.designBoundaries.forEach((b) => lines.push(`  - ${b}`));
                 lines.push('');
             }
             if (concept.commonPitfalls?.length) {
@@ -554,7 +544,7 @@ export default function ContentLaunchpad() {
                             </div>
                             <div className={styles.contextDivider} />
                             <div className={styles.contextStat}>
-                                <span className={styles.contextValue} style={{ color: knowledgeHealth >= 70 ? 'var(--color-success)' : knowledgeHealth >= 40 ? 'var(--color-warning)' : 'var(--color-error)' }}>{knowledgeHealth}%</span>
+                                <span className={styles.contextValue} style={{ color: knowledgeHealth === null ? 'var(--color-text-muted)' : knowledgeHealth >= 70 ? 'var(--color-success)' : knowledgeHealth >= 40 ? 'var(--color-warning)' : 'var(--color-error)' }}>{knowledgeHealth === null ? '—' : `${knowledgeHealth}%`}</span>
                                 <span className={styles.contextLabel}>Health</span>
                             </div>
                         </div>
@@ -1030,12 +1020,12 @@ export default function ContentLaunchpad() {
                 }, 'Q_k' as keyof LearnerQMetrics);
                 return (
                     <BlueprintFormulaDashboard
-                        h={knowledgeHealth / 100}
-                        I={knowledgeHealth / 100}
+                        h={(knowledgeHealth ?? 100) / 100}
+                        I={(knowledgeHealth ?? 100) / 100}
                         phase="study"
                         metrics={equationMetrics}
                         weakestVariable={{ variable: weakestKey as import('@/shared/constants/sensa-flow-constants').HealthVariable, value: equationMetrics[weakestKey] as number }}
-                        recommendation={knowledgeHealth < 50 ? 'Focus on spaced repetition — your retention is low.' : 'Keep reviewing due concepts to maintain health.'}
+                        recommendation={(knowledgeHealth ?? 100) < 50 ? 'Focus on spaced repetition — your retention is low.' : 'Keep reviewing due concepts to maintain health.'}
                         subjectType={undefined}
                         subjectName={result?.subject}
                         conceptsCompleted={Math.max(0, completedCount)}

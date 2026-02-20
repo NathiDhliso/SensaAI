@@ -400,16 +400,6 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
  const metaphorMatch = p1Text.match(/\*\*Micro-Metaphor\*\*:\s*([^\n]+)/i);
  const prereqMatch = p1Text.match(/(?:\*\*Prerequisite\*\*|Prerequisite):\s*([^\n]+)/i);
  const executionMatch = p1Text.match(/(?:\*\*Execution\*\*|Execution):\s*([^\n]+)/i);
- // --- EXTRACT PHASE 2 FIELDS ---
- const criticalDistinctions: string[] = [];
- const designBoundaries: string[] = [];
- const cdRegex = /\*\*\[Critical Distinction\]:\*\*\s*([^\n]+)/gi;
- const dbRegex = /\*\*\[Design Boundary\]:\*\*\s*([^\n]+)/gi;
- const pcRegex = /\*\*\[Prerequisite Check\]:\*\*\s*([^\n]+)/gi;
- let m;
- while ((m = cdRegex.exec(p2Text)) !== null) criticalDistinctions.push(m[1].trim());
- while ((m = dbRegex.exec(p2Text)) !== null) designBoundaries.push(m[1].trim());
- while ((m = pcRegex.exec(p2Text)) !== null) designBoundaries.push(m[1].trim());
  // --- EXTRACT SHAPE SECTIONS (V4 PROMPT) ---
  const shapeSimple = blockContent.match(/\*\*S - SIMPLE CORE\*\*\s*(?:\([^)]+\)\s*)?\n([^\n]+)/i);
  const shapeHighStakes = blockContent.match(/\*\*H - HIGH-STAKES EXAMPLE\*\*\s*(?:\([^)]+\)\s*)?\n([\s\S]*?)(?=\n\*\*A -|\n\*\*P -|$)/i);
@@ -432,8 +422,6 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
  },
  // Phase 2
  phase2: [], // Deprecated in V4, using specific arrays below
- criticalDistinctions,
- designBoundaries,
  // Phase 3
  phase3: {
  tool: p3Text.match(/Tool:\s*([^\n]+)/i)?.[1]?.trim() || '',
@@ -458,7 +446,7 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
  tier: determineTier(current.order, current.name),
  anchor: `${current.name}`,
  // Fallback story if JSON extraction fails (will be overwritten if JSON is found)
- story: criticalDistinctions[0] || designBoundaries[0] || ''
+ story: ''
  }
  };
  concepts.push(concept);
@@ -605,8 +593,6 @@ function createDefaultParsedConcept(order: number, name: string, content: string
  eliminationLogic: ''
  },
  mnemonic,
- criticalDistinctions: [],
- designBoundaries: []
  };
 }
 function extractConceptField(content: string, conceptName: string, fieldName: string): string {
@@ -807,28 +793,6 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  story: ''
  };
  }
- const flattenAnnotation = (arr: unknown[]): string[] =>
- arr.map(item => {
- if (typeof item === 'string') return item;
- if (item && typeof item === 'object') {
- const o = item as Record<string, unknown>;
- if ('correct' in o && 'incorrect' in o) return `${o.correct} vs ${o.incorrect}`;
- if ('boundary' in o && 'rationale' in o) return `${o.boundary}: ${o.rationale}`;
- if ('point' in o) return `${o.point}${o.weight ? ` (${o.weight})` : ''}`;
- if ('title' in o && 'content' in o) return `${o.title}: ${o.content}`;
- try { return JSON.stringify(item); } catch { return ''; }
- }
- return String(item);
- }).filter(Boolean);
- let criticalDistinctions: string[] = [];
- let designBoundaries: string[] = [];
- if (Array.isArray(c.criticalDistinctions)) criticalDistinctions = flattenAnnotation(c.criticalDistinctions);
- if (Array.isArray(c.designBoundaries)) designBoundaries = flattenAnnotation(c.designBoundaries);
- if (criticalDistinctions.length === 0 && c.annotations && typeof c.annotations === 'object') {
- const a = c.annotations as Record<string, unknown>;
- if (Array.isArray(a.criticalDistinctions)) criticalDistinctions = flattenAnnotation(a.criticalDistinctions);
- if (Array.isArray(a.designBoundaries)) designBoundaries = flattenAnnotation(a.designBoundaries);
- }
  // Merge phase1 carefully: extracted values take priority over raw spread
  // The spread was overwriting execution/hookSentence with raw JSON values
  const rawPhase1 = (c.phase1 && typeof c.phase1 === 'object') ? c.phase1 as Record<string, unknown> : {};
@@ -856,8 +820,6 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  },
  shape,
  mnemonic,
- criticalDistinctions,
- designBoundaries,
  whyYouNeed,
  technicalDetails,
  workedExample: workedExample ? {

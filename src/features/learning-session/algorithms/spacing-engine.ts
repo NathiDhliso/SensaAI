@@ -468,11 +468,11 @@ export class SpacingEngine {
     /**
      * Get knowledge health as a percentage.
      * Returns the % of all tracked concepts currently in 'fresh' state.
-     * Returns 100 if no concepts are tracked.
+     * Returns null if no concepts are tracked yet.
      */
-    getKnowledgeHealthPercent(): number {
+    getKnowledgeHealthPercent(): number | null {
         const all = Array.from(this.reviews.values());
-        if (all.length === 0) return 100;
+        if (all.length === 0) return null;
         const freshCount = all.filter(r => this.getDecayStatus(r.conceptId) === 'fresh').length;
         return Math.round((freshCount / all.length) * 100);
     }

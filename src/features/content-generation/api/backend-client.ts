@@ -354,8 +354,6 @@ export function buildDocumentFromConcepts(
             phase2: concept.phase2 || [],
             phase3: concept.phase3 || {},
             shape: concept.shape || {},
-            criticalDistinctions: concept.criticalDistinctions || [],
-            designBoundaries: concept.designBoundaries || []
         };
     });
     const lifecycle = (classification?.lifecycle as Record<string, string>) || {};
