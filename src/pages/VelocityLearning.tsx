@@ -61,6 +61,11 @@ export default function VelocityLearning() {
         }, 900);
     }, []);
 
+    const handleReturnToULC = useCallback(() => {
+        setFocusConcept(null);
+        setActiveTab('ulc');
+    }, []);
+
     const allComplete = useMemo(() => {
         if (!currentSession) return false;
         return currentSession.progress.completedConcepts.length >= currentSession.concepts.length;
@@ -122,7 +127,9 @@ export default function VelocityLearning() {
                     className={styles.toggleBtn}
                     onClick={() => setActiveTab(activeTab === 'ulc' ? 'map' : 'ulc')}
                 >
-                    {activeTab === 'ulc' ? <><Map size={14} />Build Map — Why</> : <><Layers size={14} />ULC — How</>}
+                    {activeTab === 'ulc'
+                        ? <><Map size={14} />Build Map — Why<span className={styles.tabBadge}>{currentSession.progress.completedConcepts.length}/{currentSession.concepts.length}</span></>
+                        : <><Layers size={14} />ULC — How</>}
                 </button>
             </div>
 
@@ -195,6 +202,7 @@ export default function VelocityLearning() {
                             mode="free"
                             subjectName={currentSession.subject}
                             focusConcept={focusConcept ?? undefined}
+                            onReturnToULC={handleReturnToULC}
                             onComplete={(data) => {
                                 if (studySession) {
                                     useLearningStore.getState().markSessionMapBuilt(data);

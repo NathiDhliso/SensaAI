@@ -104,6 +104,17 @@
  cursor: default;
  background: var(--color-surface-subtle);
 }
+.sidebarItem.sidebarFocus {
+ border-color: rgba(120, 80, 255, 0.7);
+ background: rgba(120, 80, 255, 0.08);
+ box-shadow: 0 0 0 2px rgba(120, 80, 255, 0.18);
+ animation: sidebarPulse 1.4s ease-out 2;
+}
+@keyframes sidebarPulse {
+ 0%   { box-shadow: 0 0 0 2px rgba(120, 80, 255, 0.18); }
+ 50%  { box-shadow: 0 0 0 5px rgba(120, 80, 255, 0.08); }
+ 100% { box-shadow: 0 0 0 2px rgba(120, 80, 255, 0.18); }
+}
 .canvasArea {
  flex: 1;
  position: relative;
@@ -628,6 +639,30 @@
 .toolButton.disabled:hover {
  background: transparent;
  color: var(--color-text-secondary);
+}
+.returnULCBtn {
+ display: flex;
+ align-items: center;
+ gap: 0.3rem;
+ padding: 0.35rem 0.6rem;
+ border: 1px solid rgba(120, 80, 255, 0.4);
+ background: rgba(120, 80, 255, 0.1);
+ color: rgba(190, 165, 255, 0.9);
+ border-radius: var(--radius-sm);
+ cursor: pointer;
+ font-size: 0.72rem;
+ font-weight: 600;
+ transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.returnULCBtn:hover {
+ background: rgba(120, 80, 255, 0.22);
+ border-color: rgba(160, 120, 255, 0.65);
+ color: rgba(220, 205, 255, 1);
+}
+.returnULCLabel {
+ font-size: 0.7rem;
+ font-weight: 700;
+ letter-spacing: 0.06em;
 }
 /* Node Delete Button */
 .deleteNodeButton {

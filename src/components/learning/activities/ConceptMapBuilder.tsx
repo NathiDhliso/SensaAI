@@ -86,14 +86,10 @@ interface ConceptMapBuilderProps {
  onComplete?: (data: ConceptMapData, validation?: ValidationResult) => void;
  initialData?: ConceptMapData | null;
  readOnly?: boolean;
- /** Optional callback to exit/go back */
  onBack?: () => void;
- // ========== SENSA v2.0 ==========
- /** Optional dependency graph from AI for validation */
+ onReturnToULC?: () => void;
  dependencyGraph?: DependencyGraph;
- /** User guesses from Step 2: Explore */
  userGuesses?: Map<string, string>;
- /** Current subject name for dynamic AI stopwords */
  subjectName?: string;
  mode?: 'guided' | 'free';
  focusConcept?: string;
@@ -125,6 +121,7 @@ export default function ConceptMapBuilder({
  initialData = null,
  readOnly = false,
  onBack,
+ onReturnToULC,
  dependencyGraph,
  userGuesses,
  subjectName,
@@ -209,6 +206,7 @@ export default function ConceptMapBuilder({
  const panOffsetStartRef = useRef({ x: 0, y: 0 });
  // Fullscreen State
  const [isFullscreen, setIsFullscreen] = useState(false);
+ const containerRef = useRef<HTMLDivElement>(null);
  // Node Info Popover State
  const [inspectedNodeId, setInspectedNodeId] = useState<string | null>(null);
  // Space-drag panning state
@@ -265,6 +263,14 @@ export default function ConceptMapBuilder({
   if (!concept || addedConceptIds.has(concept.id)) return;
   handleAddConcept(concept);
  }, [focusConcept]);
+
+ useEffect(() => {
+  if (!focusConcept) return;
+  const concept = concepts.find(c => c.name === focusConcept);
+  if (!concept) return;
+  const el = document.querySelector(`[data-concept-id="${concept.id}"]`) as HTMLElement | null;
+  el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+ }, [focusConcept, concepts]);
 
  // ========== AUTOSAVE: Persist draft on every meaningful change ==========
  useEffect(() => {
@@ -1371,7 +1377,7 @@ export default function ConceptMapBuilder({
  // MAIN RENDER
  // =========================================================================
  return (
- <div className={`${styles.container} ${isFullscreen ? styles.fullscreenMode : ''}`}>
+ <div ref={containerRef} className={`${styles.container} ${isFullscreen ? styles.fullscreenMode : ''}`}>
  {/* Phase Header */}
  {!isFullscreen && renderPhaseHeader()}
  {/* Map Builder Content (Sidebar + Canvas) */}
@@ -1419,7 +1425,8 @@ export default function ConceptMapBuilder({
  .map(c => (
  <div
  key={c.id}
- className={`${styles.sidebarItem} ${styles.rootItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+ className={`${styles.sidebarItem} ${styles.rootItem} ${addedConceptIds.has(c.id) ? styles.added : ''} ${focusConcept === c.name ? styles.sidebarFocus : ''}`}
+ data-concept-id={c.id}
  onClick={() => handleAddConcept(c)}
  >
  {c.name}
@@ -1442,7 +1449,8 @@ export default function ConceptMapBuilder({
  .map(c => (
  <div
  key={c.id}
- className={`${styles.sidebarItem} ${styles.trunkItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+ className={`${styles.sidebarItem} ${styles.trunkItem} ${addedConceptIds.has(c.id) ? styles.added : ''} ${focusConcept === c.name ? styles.sidebarFocus : ''}`}
+ data-concept-id={c.id}
  onClick={() => handleAddConcept(c)}
  >
  {c.name}
@@ -1471,7 +1479,8 @@ export default function ConceptMapBuilder({
  .map(c => (
  <div
  key={c.id}
- className={`${styles.sidebarItem} ${styles.leafItem} ${addedConceptIds.has(c.id) ? styles.added : ''}`}
+ className={`${styles.sidebarItem} ${styles.leafItem} ${addedConceptIds.has(c.id) ? styles.added : ''} ${focusConcept === c.name ? styles.sidebarFocus : ''}`}
+ data-concept-id={c.id}
  onClick={() => handleAddConcept(c)}
  >
  {c.name}
@@ -1666,7 +1675,17 @@ export default function ConceptMapBuilder({
  <ArrowLeft size={20} />
  </button>
  )}
- {onBack && <div className={styles.toolbarDivider} />}
+ {onReturnToULC && (
+ <button
+ className={`${styles.toolButton} ${styles.returnULCBtn}`}
+ onClick={onReturnToULC}
+ title="Return to ULC — How"
+ >
+ <ArrowLeft size={16} />
+ <span className={styles.returnULCLabel}>ULC</span>
+ </button>
+ )}
+ {(onBack || onReturnToULC) && <div className={styles.toolbarDivider} />}
  <button
  className={`${styles.toolButton} ${activeTool === 'select' ? styles.active : ''}`}
  onClick={() => setActiveTool('select')}
@@ -1716,7 +1735,15 @@ export default function ConceptMapBuilder({
  <div className={styles.toolbarDivider} />
  <button
  className={styles.toolButton}
- onClick={() => setIsFullscreen(f => !f)}
+ onClick={() => {
+  if (!document.fullscreenElement) {
+   containerRef.current?.requestFullscreen();
+   setIsFullscreen(true);
+  } else {
+   document.exitFullscreen();
+   setIsFullscreen(false);
+  }
+ }}
  title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
  >
  {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
