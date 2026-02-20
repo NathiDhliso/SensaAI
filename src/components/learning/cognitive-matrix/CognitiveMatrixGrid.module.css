@@ -465,6 +465,81 @@
   font-style: italic;
 }
 
+.perspectiveBlock {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.perspectiveHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: rgba(120, 80, 255, 0.08);
+  border-bottom: 1px solid rgba(120, 80, 255, 0.15);
+  flex-wrap: wrap;
+}
+
+.perspectiveTitle {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(180, 150, 255, 0.85);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.perspectiveSwitcher {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.perspectiveBtn {
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid rgba(120, 80, 255, 0.25);
+  background: rgba(120, 80, 255, 0.08);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(180, 155, 255, 0.65);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+.perspectiveBtn:hover {
+  background: rgba(120, 80, 255, 0.18);
+  color: rgba(210, 190, 255, 0.9);
+  border-color: rgba(160, 120, 255, 0.4);
+}
+
+.perspectiveBtnActive {
+  background: rgba(120, 80, 255, 0.28);
+  color: rgba(230, 215, 255, 1);
+  border-color: rgba(160, 120, 255, 0.65);
+}
+
+.perspectiveBlueprint {
+  font-size: 0.78rem;
+  color: rgba(200, 185, 255, 0.72);
+  line-height: 1.55;
+  margin: 0;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-style: italic;
+}
+
+.prereqRow {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(120, 80, 255, 0.04);
+}
+
 .drawerFooter {
   display: flex;
   justify-content: flex-end;

@@ -167,6 +167,7 @@ Generate concepts in a strict 3-level tree:
 - **Engagement**: phase1 (hookSentence, microMetaphor, prerequisite, selection, execution)
 - **Memory**: mnemonic (anchor + story)
 - **Understanding**: keyPoints, whyYouNeed, technicalDetails, shape
+- **Creator Blueprints**: perspectives (2-4 items per concept — see §3.6)
 - **Application**: phase2 (content), phase3 (tool, metrics)
 - **Relationship**: connections (see §3.4)
 - **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
@@ -199,6 +200,32 @@ FORBIDDEN types: "related-to", "extends", "depends-on". `enables` must not excee
 - Cross-branch leaf connections are FORBIDDEN.
 ### 3.5 COGNITIVE LEVELS (Bloom's):
 Trunk: `understand`. Branch: `understand`/`apply`. Leaf: prefer `apply`, `analyze`, `evaluate`, `create`.
+### 3.6 CREATOR'S BLUEPRINTS — `perspectives` field
+This is the most important field for learners. It exposes the **mental model the creator used** when designing the atomic steps for this concept. Each perspective is a different approach a practitioner might take — the student flicks between them to find the one that clicks.
+
+**Structure**: `perspectives` is an array of 2-4 objects:
+```json
+{{ "label": "Portal", "blueprint": "The creator's approach sentence for this method", "steps": ["Step 1", "Step 2", ...] }}
+```
+
+**Label guidance by subject type**:
+- **Procedural (cloud/infra — Azure, AWS, GCP)**: Use tool-specific labels: `"Portal"`, `"CLI"`, `"Terraform"`, `"ARM/Bicep"`, `"PowerShell"`. Each perspective has the actual commands/navigation path as steps.
+- **Procedural (coding/software)**: Use `"Imperative"`, `"Declarative"`, `"Functional"`, `"OOP"` — each shows a different coding paradigm approach.
+- **Procedural (medical/surgical)**: Use `"Assessment"`, `"Intervention"`, `"Verification"` — each maps to a clinical decision stage.
+- **Conceptual (law)**: Use `"Plaintiff's Argument"`, `"Defendant's Argument"`, `"Court's Reasoning"` — each shows the same issue from a different legal perspective.
+- **Conceptual (finance/economics)**: Use `"Micro View"`, `"Macro View"`, `"Risk Lens"` — each frames the concept differently.
+- **Conceptual (music theory)**: Use `"Harmonic"`, `"Melodic"`, `"Rhythmic"` — each shows how the concept manifests in a different musical dimension.
+- **Cyclic (design/research/agile)**: Use `"Diverge"`, `"Converge"`, `"Reflect"` — each maps to a phase of the cycle.
+- **Perceptual (diagnosis/chess/art)**: Use `"Pattern Recognition"`, `"Differential"`, `"Confirmation"` — each maps to a perceptual reasoning stage.
+
+**Blueprint sentence**: The creator's mental approach for THIS perspective — what they were thinking when they designed these steps. NOT a description of the concept. E.g.:
+- Portal: `"Navigate to the NSG blade, add inbound rule, set priority below 65000"`
+- CLI: `"az network nsg rule create with --priority, --access Allow, --direction Inbound"`
+- Terraform: `"Declare azurerm_network_security_rule resource, reference nsg_name, set direction and access attributes"`
+
+**Steps**: The actual atomic steps for this perspective (3-6 steps). For procedural/tool subjects, these are the REAL commands, navigation paths, or code snippets — not generic descriptions.
+
+**CRITICAL**: Every leaf concept MUST have `perspectives`. Trunk and branch concepts may omit it.
 ---
 ## 4. OUTPUT FORMAT
 Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
@@ -257,6 +284,23 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
    "tool": "Hill reaction assay — measure O₂ evolution with isolated chloroplasts and DCPIP electron acceptor",
    "metrics": ["O₂ evolution rate under different light wavelengths", "DCPIP reduction (blue → colorless) as electron transport proxy"]
  }},
+ "perspectives": [
+   {{
+     "label": "Mechanistic",
+     "blueprint": "Trace the physical movement of electrons and protons through each protein complex in sequence",
+     "steps": ["Photon strikes P680 at PSII → electron ejected to high energy state", "Photolysis splits H₂O → 2H⁺ + 2e⁻ + ½O₂ (replaces ejected electron)", "Electron flows: plastoquinone → cytochrome b6f → plastocyanin (proton gradient builds)", "Proton gradient drives ATP synthase → ATP produced (chemiosmosis)", "Photon strikes P700 at PSI → electron re-energized → ferredoxin → NADP⁺ reductase → NADPH"]
+   }},
+   {{
+     "label": "Isotope Tracing",
+     "blueprint": "Follow labeled atoms (¹⁸O, ¹⁴C) to determine which molecule each atom ends up in",
+     "steps": ["Label water with ¹⁸O → track where oxygen atoms go", "¹⁸O from H₂O → released as ¹⁸O₂ gas at PSII (photolysis)", "CO₂ provides carbon AND oxygen for glucose in Calvin cycle", "Conclusion: O₂ gas = from water, not CO₂; glucose oxygen = from CO₂"]
+   }},
+   {{
+     "label": "Inhibitor Analysis",
+     "blueprint": "Block specific steps with inhibitors and predict which products stop being made",
+     "steps": ["DCMU blocks PSII → plastoquinone electron flow stops", "Result: O₂ stops (no photolysis), non-cyclic ATP stops, NADPH stops", "Cyclic flow around PSI may still produce some ATP", "Antimycin A blocks cyclic flow → only non-cyclic remains active"]
+   }}
+ ],
  "shape": {{
    "simpleCore": "Light-dependent reactions capture solar energy to split water, releasing O₂ and producing ATP + NADPH — the energy carriers that fuel the Calvin cycle.",
    "highStakesExample": "Deepwater Horizon (2010) — crude oil blocked sunlight, reducing phytoplankton photosynthesis by 50%% in affected zones. Marine phytoplankton produce ~50%% of Earth's O₂ via light-dependent reactions, showing how disrupting photon availability cascades through the global oxygen budget.",

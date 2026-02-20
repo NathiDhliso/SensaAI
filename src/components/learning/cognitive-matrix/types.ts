@@ -11,12 +11,19 @@ export interface Phase3Data {
   metrics?: string[];
 }
 
+export interface CreatorPerspective {
+  label: string;
+  blueprint: string;
+  steps: string[];
+}
+
 export interface DrillDownAction {
   trick: string;
   chain: string[];
   steps: string[];
   shape?: ShapeLenses;
   phase3?: Phase3Data;
+  perspectives?: CreatorPerspective[];
 }
 
 export interface LeafRow {

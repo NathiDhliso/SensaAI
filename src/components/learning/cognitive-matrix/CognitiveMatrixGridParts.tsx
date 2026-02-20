@@ -74,6 +74,7 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
   onCloseDrawer: () => void; onExploreWhy?: (conceptName: string) => void; focusMode?: boolean;
 }) {
   const [activeShapeTab, setActiveShapeTab] = useState<ShapeTabKey>('analogicalModel');
+  const [activePerspective, setActivePerspective] = useState(0);
   const isDrawerOpen = expandedCell?.conceptId === leaf.conceptId;
   const isMasteredLeaf = Object.values(leaf.cellConceptIds).some(id => masteredIds.has(id));
   const labelClass = focusMode
@@ -116,6 +117,68 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
                 <span className={styles.drawerConcept}>{expandedCell.conceptName}</span>
               </div>
               <div className={styles.drawerBody}>
+                {expandedCell.action.perspectives && expandedCell.action.perspectives.length > 0 ? (
+                  <div className={styles.perspectiveBlock}>
+                    <div className={styles.perspectiveHeader}>
+                      <span className={styles.perspectiveTitle}>📐 CREATOR’S BLUEPRINT</span>
+                      <div className={styles.perspectiveSwitcher}>
+                        {expandedCell.action.perspectives.map((p, i) => (
+                          <button
+                            key={i}
+                            className={`${styles.perspectiveBtn} ${activePerspective === i ? styles.perspectiveBtnActive : ''}`}
+                            onClick={() => setActivePerspective(i)}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {expandedCell.action.perspectives[activePerspective] && (
+                      <>
+                        {expandedCell.action.perspectives[activePerspective].blueprint && (
+                          <p className={styles.perspectiveBlueprint}>
+                            {expandedCell.action.perspectives[activePerspective].blueprint}
+                          </p>
+                        )}
+                        {expandedCell.action.perspectives[activePerspective].steps.length > 0 && (
+                          <ol className={styles.checklist}>
+                            {expandedCell.action.perspectives[activePerspective].steps.map((step, i) => (
+                              <li key={i} className={styles.checklistItem}>
+                                <span className={styles.checklistNum}>{i + 1}</span>
+                                <span className={styles.checklistText}>{step}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </>
+                    )}
+                    {expandedCell.action.chain.length > 0 && (
+                      <div className={styles.prereqRow}>
+                        <span className={styles.prereqPill}>Needs: {expandedCell.action.chain.join(' → ')}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className={styles.checklistPanel}>
+                    <div className={styles.checklistHeader}>
+                      <span className={styles.checklistIcon}>⚡</span>
+                      <span className={styles.checklistTitle}>ATOMIC STEPS</span>
+                      {expandedCell.action.chain.length > 0 && (
+                        <span className={styles.prereqPill}>Needs: {expandedCell.action.chain.join(' → ')}</span>
+                      )}
+                    </div>
+                    {expandedCell.action.steps.length > 0 ? (
+                      <ol className={styles.checklist}>
+                        {expandedCell.action.steps.map((step, i) => (
+                          <li key={i} className={styles.checklistItem}>
+                            <span className={styles.checklistNum}>{i + 1}</span>
+                            <span className={styles.checklistText}>{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : <p className={styles.drawerEmpty}>No steps defined.</p>}
+                  </div>
+                )}
                 {expandedCell.action.shape && (
                   <div className={styles.shapeLenses}>
                     <div className={styles.shapeTabs}>
@@ -156,50 +219,6 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
                     </div>
                   </div>
                 )}
-                {!expandedCell.action.shape && (
-                  <div className={styles.trickBox}>
-                    <div className={styles.trickLabel}>
-                      <span className={styles.trickIcon}>🧠</span>
-                      <span>THE TRICK</span>
-                    </div>
-                    <p className={styles.trickText}>{expandedCell.action.trick}</p>
-                  </div>
-                )}
-                {expandedCell.action.phase3?.tool && (
-                  <div className={styles.phase3Box}>
-                    <div className={styles.phase3Header}>
-                      <span>🛠️</span>
-                      <span className={styles.phase3Label}>TOOL / METHOD</span>
-                    </div>
-                    <p className={styles.phase3Tool}>{expandedCell.action.phase3.tool}</p>
-                    {expandedCell.action.phase3.metrics && expandedCell.action.phase3.metrics.length > 0 && (
-                      <ul className={styles.phase3Metrics}>
-                        {expandedCell.action.phase3.metrics.map((m, i) => (
-                          <li key={i} className={styles.phase3Metric}>{m}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
-                <div className={styles.checklistPanel}>
-                  <div className={styles.checklistHeader}>
-                    <span className={styles.checklistIcon}>⚡</span>
-                    <span className={styles.checklistTitle}>EXECUTION CHECKLIST</span>
-                    {expandedCell.action.chain.length > 0 && (
-                      <span className={styles.prereqPill}>Needs: {expandedCell.action.chain.join(' → ')}</span>
-                    )}
-                  </div>
-                  {expandedCell.action.steps.length > 0 ? (
-                    <ol className={styles.checklist}>
-                      {expandedCell.action.steps.map((step, i) => (
-                        <li key={i} className={styles.checklistItem}>
-                          <span className={styles.checklistNum}>{i + 1}</span>
-                          <span className={styles.checklistText}>{step}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : <p className={styles.drawerEmpty}>No steps defined.</p>}
-                </div>
               </div>
               <div className={styles.drawerFooter}>
                 {onExploreWhy && (

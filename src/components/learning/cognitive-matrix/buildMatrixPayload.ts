@@ -1,5 +1,5 @@
 import type { LearningConcept } from '@/shared/types/learning';
-import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, DrillDownAction } from './types';
+import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, DrillDownAction, CreatorPerspective } from './types';
 
 function buildTrick(concept: LearningConcept): string {
   return (
@@ -43,6 +43,92 @@ function buildStepsForVerb(concept: LearningConcept, verbIndex: number): string[
     : [];
 }
 
+type RawPhase1 = {
+  hookSentence?: string;
+  microMetaphor?: string;
+  prerequisite?: string;
+  selection?: string[];
+  execution?: string;
+};
+
+type RawPerspective = {
+  label?: string;
+  blueprint?: string;
+  steps?: string[];
+};
+
+function buildPerspectives(concept: LearningConcept, verbIndex: number): CreatorPerspective[] | undefined {
+  const raw = concept as unknown as Record<string, unknown>;
+
+  const perspectivesRaw = raw['perspectives'] as RawPerspective[] | undefined;
+  if (Array.isArray(perspectivesRaw) && perspectivesRaw.length > 0) {
+    const verbPerspectives = perspectivesRaw.filter((p): p is RawPerspective =>
+      !!p && typeof p === 'object' && Array.isArray(p.steps) && p.steps.length > 0
+    );
+    if (verbPerspectives.length > 0) {
+      return verbPerspectives.map(p => ({
+        label: p.label || 'Approach',
+        blueprint: p.blueprint || '',
+        steps: p.steps || [],
+      }));
+    }
+  }
+
+  const phase1Raw = raw['phase1'] as RawPhase1 | undefined;
+  const phase2Raw = raw['phase2'] as Array<{ title?: string; content?: string }> | undefined;
+  const phase3Raw = concept.lifecycle?.phase3 as unknown as { tool?: string; metrics?: string[] } | undefined;
+
+  const perspectives: CreatorPerspective[] = [];
+
+  if (verbIndex === 0 && phase1Raw) {
+    const selectionSteps = Array.isArray(phase1Raw.selection) ? phase1Raw.selection : [];
+    const executionBlueprint = phase1Raw.execution || '';
+    if (executionSteps(executionBlueprint).length > 0 || selectionSteps.length > 0) {
+      perspectives.push({
+        label: 'Blueprint',
+        blueprint: executionBlueprint,
+        steps: executionSteps(executionBlueprint).length > 0
+          ? executionSteps(executionBlueprint)
+          : selectionSteps,
+      });
+    }
+    if (selectionSteps.length > 0 && executionSteps(executionBlueprint).length > 0) {
+      perspectives.push({
+        label: 'Decision Map',
+        blueprint: 'When to apply each approach and what it unlocks',
+        steps: selectionSteps,
+      });
+    }
+  }
+
+  if (verbIndex === 1 && Array.isArray(phase2Raw) && phase2Raw.length > 0) {
+    for (const p2 of phase2Raw) {
+      if (p2.title && p2.content) {
+        perspectives.push({
+          label: p2.title,
+          blueprint: p2.content,
+          steps: p2.content.split(/\.\s+/).filter(s => s.trim().length > 10).slice(0, 5),
+        });
+      }
+    }
+  }
+
+  if (verbIndex === 2 && phase3Raw?.tool) {
+    perspectives.push({
+      label: 'Tool / Method',
+      blueprint: phase3Raw.tool,
+      steps: Array.isArray(phase3Raw.metrics) ? phase3Raw.metrics : [],
+    });
+  }
+
+  return perspectives.length > 0 ? perspectives : undefined;
+}
+
+function executionSteps(execution: string): string[] {
+  if (!execution) return [];
+  return execution.split(/\s*→\s*/).map(s => s.trim()).filter(s => s.length > 3);
+}
+
 function buildAction(concept: LearningConcept, verbIndex: number): DrillDownAction {
   const phase3Raw = concept.lifecycle?.phase3 as unknown as { tool?: string; metrics?: string[] } | undefined;
   return {
@@ -60,6 +146,7 @@ function buildAction(concept: LearningConcept, verbIndex: number): DrillDownActi
       tool: phase3Raw?.tool,
       metrics: phase3Raw?.metrics,
     } : undefined,
+    perspectives: buildPerspectives(concept, verbIndex),
   };
 }
 
