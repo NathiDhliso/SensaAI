@@ -67,6 +67,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
 
   const handleCellTap = (cell: ExpandedCell) => {
     setExpandedCell(prev => prev?.conceptId === cell.conceptId && prev?.verb === cell.verb ? null : cell);
+    onCellClick({ conceptId: cell.conceptId, realConceptId: cell.realConceptId, conceptName: cell.conceptName, verb: cell.verb, action: cell.action, isMastered: false });
   };
 
   const toggleTrunk = (id: string) => setOpenTrunks(prev => {
