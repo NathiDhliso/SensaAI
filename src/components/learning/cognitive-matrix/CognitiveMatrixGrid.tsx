@@ -150,6 +150,22 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExplo
               Start Suggested
             </button>
           )}
+          {payload.matrix.length > 1 && (
+            <select
+              className={styles.domainSelect}
+              value={focusedTrunkId ?? ''}
+              onChange={e => {
+                const val = e.target.value;
+                setFocusedTrunkId(val || null);
+                setExpandedCell(null);
+              }}
+            >
+              <option value="">All Domains</option>
+              {payload.matrix.map(t => (
+                <option key={t.conceptId} value={t.conceptId}>{t.conceptName}</option>
+              ))}
+            </select>
+          )}
           <button className={styles.controlBtn} onClick={allExpanded ? collapseAll : expandAll}>
             {allExpanded ? <ChevronsDownUp size={13} /> : <ChevronsUpDown size={13} />}
             {allExpanded ? 'Collapse' : 'Expand'} All
