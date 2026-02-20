@@ -344,6 +344,13 @@ BANNED: "Think of X as..." — use "X is/are [metaphor] —" format only.
 - Conceptual (Finance): Use real market events with dates and figures.
 - Perceptual (Medicine/Chess): Use real diagnostic errors or match decisions.
 BANNED: Generic "Company X lost money because of poor Y" — must have real names, year, and specific technical detail.
+**FACTUAL ACCURACY — CRITICAL**: The connection between the event and the concept MUST be the documented, publicly known cause. DO NOT invent a technical mechanism linking a real disaster to the concept being taught.
+- FORBIDDEN: Claiming the Columbia disaster was caused by "linear approximations for atmospheric drag" (it was foam strike damage to thermal tiles).
+- FORBIDDEN: Claiming the Tacoma Narrows collapse was preventable by "algebraic modeling" (the aeroelastic flutter mechanism was not understood at the time).
+- FORBIDDEN: Claiming the Mars Climate Orbiter failed due to "rational function asymptotic analysis" (it was a metric/imperial unit mismatch).
+- FORBIDDEN: Inventing specific equations, coordinates, or calculations that were never documented (e.g., fabricated trajectory equations for the Titanic).
+- FORBIDDEN: Attributing a disaster to the concept being taught when the real cause was something else entirely.
+If you cannot find a real, documented connection between a well-known disaster and the concept, use a DIFFERENT, LESS FAMOUS event where the connection is genuine — or use a real business/scientific application instead of a disaster.
 
 **`patternRecognition`** — Scenario-based Q&A that forces the learner to apply the concept.
 - Procedural: "You are given [specific exam scenario with resource names/configs]. What happens / What should you do?"
@@ -364,7 +371,7 @@ This must be actionable decision logic, not a restatement of the concept.
 3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
 4. **NAME FIELD**: Human-readable names only.
 5. **ASSESSMENT CONTEXT**: Frame every concept for how it would be tested, not casual exploration.
-6. **REAL EXAMPLES**: `shape.highStakesExample` must reference a real event with specifics (names, dates, outcomes) from the subject domain.
+6. **REAL EXAMPLES**: `shape.highStakesExample` must reference a real event with specifics (names, dates, outcomes) from the subject domain. The causal link between the event and the concept must be the DOCUMENTED cause — never fabricate a technical mechanism to connect a famous disaster to the concept being taught. If unsure whether the connection is real, use a different example.
 7. **NO DUPLICATION**: Only generate for "{domain_name}".
 8. **UNIQUENESS**: Every `highStakesExample` uses a different case. Every `mnemonic.anchor` is a unique physical object. Every `patternRecognition.question` is a unique scenario.
 9. **CRITICAL DISTINCTIONS**: The `incorrect` side must be a plausible misconception, not an obvious strawman.
