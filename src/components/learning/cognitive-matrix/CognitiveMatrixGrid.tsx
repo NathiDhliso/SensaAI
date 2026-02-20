@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, ChevronsUpDown, ChevronsDownUp, Zap } from 'lucide-react';
-import type { MatrixPayload, BranchRow, SelectedCell } from './types';
+import type { MatrixPayload, BranchRow } from './types';
 import { TrunkRowGroup, BranchRowGroup, LeafRowComponent, ProgressRing } from './CognitiveMatrixGridParts';
 import type { ExpandedCell } from './CognitiveMatrixGridParts';
 import styles from './CognitiveMatrixGrid.module.css';
@@ -10,11 +10,10 @@ interface CognitiveMatrixGridProps {
   payload: MatrixPayload;
   masteredIds: Set<string>;
   suggestedId: string | null;
-  onCellClick: (cell: SelectedCell) => void;
   onExploreWhy?: (conceptName: string) => void;
 }
 
-export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellClick, onExploreWhy }: CognitiveMatrixGridProps) {
+export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExploreWhy }: CognitiveMatrixGridProps) {
   const colCount = payload.verbs.length;
   const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
   const [openTrunks, setOpenTrunks] = useState<Set<string>>(() => new Set());
@@ -68,7 +67,6 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
 
   const handleCellTap = (cell: ExpandedCell) => {
     setExpandedCell(prev => prev?.conceptId === cell.conceptId && prev?.verb === cell.verb ? null : cell);
-    onCellClick({ conceptId: cell.conceptId, realConceptId: cell.realConceptId, conceptName: cell.conceptName, verb: cell.verb, action: cell.action, isMastered: false });
   };
 
   const toggleTrunk = (id: string) => setOpenTrunks(prev => {
