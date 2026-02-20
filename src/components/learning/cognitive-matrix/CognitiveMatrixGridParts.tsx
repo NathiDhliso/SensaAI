@@ -260,7 +260,8 @@ export function BranchRowGroup({ branch, verbs, masteredIds, suggestedId, expand
       <AnimatePresence>
         {isOpen && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 38 }}>
+            exit={{ opacity: 0, height: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 38 }}
+            style={{ minWidth: 'max-content' }}>
             {branch.children.map(leaf => (
               <LeafRowComponent key={leaf.conceptId} leaf={leaf} verbs={verbs} masteredIds={masteredIds}
                 suggestedId={suggestedId} expandedCell={expandedCell} colCount={colCount} colTemplate={colTemplate}
