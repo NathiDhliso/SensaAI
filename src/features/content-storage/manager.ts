@@ -159,7 +159,13 @@ export class StorageManager {
  return [];
  }
  const response = await conceptsApi.listJobs(user.id);
- return response.jobs.map(job => ({
+ const seen = new Set<string>();
+ const uniqueJobs = response.jobs.filter(job => {
+ if (seen.has(job.jobId)) return false;
+ seen.add(job.jobId);
+ return true;
+ });
+ return uniqueJobs.map(job => ({
  id: job.jobId,
  subject: job.subject,
  generatedAt: job.createdAt ? new Date(job.createdAt * 1000).toISOString() : new Date().toISOString(),
