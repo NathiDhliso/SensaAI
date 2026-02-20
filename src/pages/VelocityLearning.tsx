@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Brain, Home, Map, Layers } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/shared/hooks/useLearningFlow';
-import { useSensaFlow } from '@/shared/hooks/useSensaFlow';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { toast } from '@/shared/utils/toast';
 import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
@@ -20,15 +19,12 @@ export default function VelocityLearning() {
     const {
         currentSession,
         studySession,
-        completeConcept,
         clearSession,
-        updateSessionEquation,
         startStudySession,
         updateSession,
     } = useLearningStore();
 
     const { currentPhase } = useLearningFlow();
-    const sensaFlow = useSensaFlow();
     const [activeTab, setActiveTab] = useState<ActiveTab>('ulc');
     const [isInitializing, setIsInitializing] = useState(true);
     const [portalConcept, setPortalConcept] = useState<string | null>(null);
@@ -44,78 +40,6 @@ export default function VelocityLearning() {
             startStudySession('learn-new', 30);
         }
     }, [currentSession?.id, studySession, startStudySession]);
-
-    const { initializeSubjectType, initializeH } = sensaFlow;
-    useEffect(() => {
-        if (currentSession?.subjectType) initializeSubjectType(currentSession.subjectType);
-        if (studySession?.mood) initializeH(studySession.mood);
-    }, [currentSession?.subjectType, studySession?.mood, initializeSubjectType, initializeH]);
-
-    const syncingFromStoreRef = useRef(false);
-    useEffect(() => {
-        if (studySession) {
-            syncingFromStoreRef.current = true;
-            sensaFlow.syncFromStore(studySession);
-            requestAnimationFrame(() => { syncingFromStoreRef.current = false; });
-        }
-    }, [studySession]);
-
-    useEffect(() => {
-        if (!studySession) return;
-        if (syncingFromStoreRef.current) return;
-        if (sensaFlow.Q_k === 0 && sensaFlow.Q_r === 0 && sensaFlow.Q_c === 0 && sensaFlow.Q_f === 0 && sensaFlow.Q_p === 0) return;
-        const current = studySession.equation;
-        if (
-            current &&
-            current.h === sensaFlow.h &&
-            current.Q_k === sensaFlow.Q_k &&
-            current.Q_r === sensaFlow.Q_r &&
-            current.Q_c === sensaFlow.Q_c &&
-            current.Q_f === sensaFlow.Q_f &&
-            current.Q_p === sensaFlow.Q_p &&
-            current.I === sensaFlow.I
-        ) return;
-        updateSessionEquation({
-            h: sensaFlow.h, Q_k: sensaFlow.Q_k, Q_r: sensaFlow.Q_r,
-            Q_c: sensaFlow.Q_c, Q_f: sensaFlow.Q_f, Q_p: sensaFlow.Q_p, I: sensaFlow.I,
-        });
-    }, [sensaFlow.h, sensaFlow.Q_k, sensaFlow.Q_r, sensaFlow.Q_c, sensaFlow.Q_f, sensaFlow.Q_p, sensaFlow.I, studySession, updateSessionEquation]);
-
-    const handleCellComplete = (
-        conceptId: string,
-        outcome: 'mastered' | 'needs-learning' | 'needs-review',
-        cellMetrics: Partial<{ quizAccuracy: number; blankSheetScore: number; timeSpentMs: number; avgResponseTimeMs: number; mapNodeCount: number; mapConnectionCount: number }>
-    ) => {
-        const score = outcome === 'mastered' ? 1.0 : outcome === 'needs-review' ? 0.6 : 0.3;
-        completeConcept(conceptId, score, outcome);
-        setTimeout(() => {
-            const { lastSpacingUpdate } = useLearningStore.getState();
-            if (lastSpacingUpdate) {
-                const qualityLabels: Record<number, string> = { 5: 'Perfect', 4: 'Good', 3: 'Okay', 2: 'Weak', 1: 'Missed', 0: 'Blank' };
-                const label = qualityLabels[lastSpacingUpdate.quality] || 'Recorded';
-                toast.info(`${label} recall — next review in ${lastSpacingUpdate.intervalDays}d`, { duration: 3500 });
-            }
-        }, 500);
-        if (currentSession?.subjectType) {
-            const progress = currentSession.progress;
-            const metrics = currentSession.cognitiveMetrics;
-            sensaFlow.updateLearnerMetrics({
-                completedConcepts: progress.completedConcepts.length + 1,
-                totalConcepts: currentSession.concepts.length,
-                consecutiveCorrect: metrics.consecutiveCorrect,
-                consecutiveErrors: metrics.consecutiveErrors,
-                timeSpentMs: cellMetrics.timeSpentMs ?? (progress.sessionStartTime ? Date.now() - progress.sessionStartTime : 0),
-                targetDurationMs: (studySession?.targetDuration ?? 30) * 60000,
-                cycleCompletions: progress.completedConcepts.length,
-                blankSheetScore: cellMetrics.blankSheetScore ?? score,
-                quizAccuracy: cellMetrics.quizAccuracy ?? score,
-                mapNodeCount: cellMetrics.mapNodeCount ?? studySession?.conceptMap?.nodes?.length ?? 0,
-                mapConnectionCount: cellMetrics.mapConnectionCount ?? studySession?.conceptMap?.connections?.length ?? 0,
-                guessCount: Object.keys(studySession?.predictions ?? {}).length,
-                avgResponseTimeMs: cellMetrics.avgResponseTimeMs ?? metrics.avgResponseTimeMs,
-            });
-        }
-    };
 
     const handleMapComplete = () => {
         if (!studySession) return;
@@ -176,10 +100,7 @@ export default function VelocityLearning() {
                     completedConcepts={currentSession.progress.completedConcepts}
                     subjectName={currentSession.subject}
                     sessionStartTime={currentSession.progress.sessionStartTime || Date.now()}
-                    equation={{
-                        h: sensaFlow.h, Q_k: sensaFlow.Q_k, Q_r: sensaFlow.Q_r,
-                        Q_c: sensaFlow.Q_c, Q_f: sensaFlow.Q_f, Q_p: sensaFlow.Q_p, I: sensaFlow.I,
-                    }}
+                    equation={studySession?.equation ?? undefined}
                     streakCount={0}
                     onReturnHome={handleReturnToDashboard}
                     onReviewConcepts={() => {
