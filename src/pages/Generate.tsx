@@ -91,6 +91,22 @@ export default function Generate() {
  subjectType,
  setError: _setError
  } = useGenerationStore();
+ const displayProgress = (() => {
+ if (!isGenerating && passes[4] === 'complete') return 100;
+ const passFloors: Record<number, number> = { 1: 10, 2: 35, 3: 60, 4: 88 };
+ const passMax: Record<number, number> = { 1: 34, 2: 59, 3: 87, 4: 99 };
+ for (let p = 4; p >= 1; p--) {
+ if (passes[p] === 'complete') {
+ return passMax[p];
+ }
+ if (passes[p] === 'in-progress') {
+ const floor = passFloors[p];
+ const max = passMax[p];
+ return Math.max(floor, Math.min(progress, max));
+ }
+ }
+ return Math.min(progress, 9);
+ })();
  const { isScholarly } = useVisualTheme();
  // Refs
  const hasStartedRef = useRef(false);
@@ -308,10 +324,10 @@ export default function Generate() {
  }}
  >
  <span className={styles.hudLabel}>Construct Integrity</span>
- <span className={styles.hudLabel}>{Math.round(progress)}%</span>
+ <span className={styles.hudLabel}>{Math.round(displayProgress)}%</span>
  </div>
  <div className={styles.progressLine}>
- <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
+ <div className={styles.progressFill} style={{ width: `${displayProgress}%` }}></div>
  </div>
  </div>
  {/* Right: Output Stats */}
