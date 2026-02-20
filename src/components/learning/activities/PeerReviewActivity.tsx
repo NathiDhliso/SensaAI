@@ -49,7 +49,12 @@ interface ChatMessage {
  text: string;
  icon?: 'check' | 'x' | 'shield';
 }
-function generateMisconception(concept: LearningConcept, allConcepts?: LearningConcept[]): { statement: string; correctionKeywords: string[] } {
+function applyPersonality(text: string, personality: AIReviewer['personality']): string {
+ if (personality === 'critical') return text.replace("That's correct, right?", "That's correct, isn't it? I'm pretty confident.").replace("aren't they?", "aren't they? I've seen this everywhere.");
+ if (personality === 'curious') return text.replace("That's correct, right?", "That's correct, right? I'm genuinely trying to understand.").replace("aren't they?", "aren't they? I keep seeing conflicting info.");
+ return text;
+}
+function generateMisconception(concept: LearningConcept, allConcepts?: LearningConcept[], personality: AIReviewer['personality'] = 'supportive'): { statement: string; correctionKeywords: string[] } {
  const pitfalls = concept.commonPitfalls ?? [];
  const keyPoints = concept.keyPoints ?? [];
  const howToUse = concept.howToUse ?? [];
@@ -58,10 +63,10 @@ function generateMisconception(concept: LearningConcept, allConcepts?: LearningC
  ...(concept.shape?.simpleCore?.toLowerCase().split(/\s+/).filter(w => w.length > 4) ?? [])
  ];
  const keywords = baseKeywords.length > 0 ? [...new Set(baseKeywords)] : [concept.name.toLowerCase()];
- if (pitfalls.length > 0) {
+  if (pitfalls.length > 0) {
  const pitfall = pitfalls[Math.floor(Math.random() * pitfalls.length)];
  return {
- statement: `I was reading about ${concept.name} and I think ${pitfall.charAt(0).toLowerCase() + pitfall.slice(1)}. That's correct, right?`,
+ statement: applyPersonality(`I was reading about ${concept.name} and I think ${pitfall.charAt(0).toLowerCase() + pitfall.slice(1)}. That's correct, right?`, personality),
  correctionKeywords: keywords
  };
  }
@@ -69,7 +74,7 @@ function generateMisconception(concept: LearningConcept, allConcepts?: LearningC
  if (requires.length > 0) {
  const dep = requires[Math.floor(Math.random() * requires.length)];
  return {
- statement: `I'm pretty sure you can learn ${concept.name} without knowing ${dep.target} first. The dependency is just a suggestion, right?`,
+ statement: applyPersonality(`I'm pretty sure you can learn ${concept.name} without knowing ${dep.target} first. The dependency is just a suggestion, right?`, personality),
  correctionKeywords: [...keywords, dep.target.toLowerCase()]
  };
  }
@@ -78,12 +83,12 @@ function generateMisconception(concept: LearningConcept, allConcepts?: LearningC
  const confused = sameTier[Math.floor(Math.random() * sameTier.length)];
  const extra = howToUse.slice(0, 2).flatMap(s => s.toLowerCase().split(/\s+/).filter(w => w.length > 4));
  return {
- statement: `I keep mixing up ${concept.name} and ${confused.name}. They're basically the same thing, aren't they? You use them interchangeably.`,
+ statement: applyPersonality(`I keep mixing up ${concept.name} and ${confused.name}. They're basically the same thing, aren't they? You use them interchangeably.`, personality),
  correctionKeywords: [...new Set([concept.name.toLowerCase(), ...extra, ...keywords])]
  };
  }
  return {
- statement: `I think ${concept.name} is only used in very specific edge cases and most people never need to understand it deeply. The details don't really matter.`,
+ statement: applyPersonality(`I think ${concept.name} is only used in very specific edge cases and most people never need to understand it deeply. The details don't really matter.`, personality),
  correctionKeywords: keywords
  };
 }
@@ -118,11 +123,10 @@ function pickPushbackChallenge(concept: LearningConcept): string {
 }
 function scoreCorrection(response: string, keywords: string[]): { score: number; matched: string[]; missed: string[] } {
  const lower = response.toLowerCase();
- const words = lower.split(/\s+/);
  const matched: string[] = [];
  const missed: string[] = [];
  for (const kw of keywords) {
- if (lower.includes(kw) || words.some(w => w.includes(kw) || kw.includes(w))) {
+ if (lower.includes(kw)) {
  matched.push(kw);
  } else {
  missed.push(kw);
@@ -132,11 +136,14 @@ function scoreCorrection(response: string, keywords: string[]): { score: number;
  const keywordScore = keywords.length > 0 ? matched.length / keywords.length : 0;
  return { score: Math.min(1, keywordScore * 0.8 + lengthBonus), matched, missed };
 }
-function scoreDefense(response: string, concept: LearningConcept): number {
+function scoreDefense(response: string, concept: LearningConcept, pushbackText?: string): number {
  const lower = response.toLowerCase();
  const nameParts = concept.name.toLowerCase().split(/\s+/).filter(w => w.length > 3);
  const pitfallWords = (concept.commonPitfalls ?? []).flatMap(p => p.toLowerCase().split(/\s+/).filter(w => w.length > 4));
- const allTargets = [...new Set([...nameParts, ...pitfallWords])];
+ const pushbackWords = pushbackText
+ ? pushbackText.toLowerCase().split(/\s+/).filter(w => w.length > 5).slice(0, 8)
+ : [];
+ const allTargets = [...new Set([...nameParts, ...pitfallWords, ...pushbackWords])];
  let hits = 0;
  for (const t of allTargets) {
  if (lower.includes(t)) hits++;
@@ -155,9 +162,10 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  const [showInput, setShowInput] = useState(true);
  const [aiLoading, setAiLoading] = useState(false);
  const chatEndRef = useRef<HTMLDivElement>(null);
- const fallbackMisconception = useMemo(() => generateMisconception(concept, allConcepts), [concept, allConcepts]);
+ const fallbackMisconception = useMemo(() => generateMisconception(concept, allConcepts, selectedPeer.personality), [concept, allConcepts, selectedPeer.personality]);
  const fallbackPushback = useMemo(() => pickPushbackChallenge(concept), [concept]);
  const misconception = fallbackMisconception;
+ const pushbackTextRef = useRef<string | undefined>(undefined);
 
  useEffect(() => {
  chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -184,6 +192,7 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  const aiPush = await generateAIPushback(concept, userText);
  setAiLoading(false);
  const pushText = aiPush?.challenge || fallbackPushback;
+ pushbackTextRef.current = pushText;
  setTimeout(() => {
  setMessages(prev => [...prev, { sender: 'peer', text: pushText, icon: 'shield' }]);
  setStage('defense');
@@ -192,10 +201,13 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  } else {
  const failFeedback = aiScore?.feedback
  || `Hmm, I'm still not sure I understand. Could you be more specific about how ${concept.name} actually works?`;
+ setShowInput(false);
  setMessages(prev => [...prev, { sender: 'peer', text: failFeedback, icon: 'x' }]);
  setStage('resolution');
+ setTimeout(() => {
  setFinalResult({ passed: false, feedback: failFeedback });
  setTimeout(() => onComplete(false), 2500);
+ }, 600);
  }
  }, [concept, misconception.statement, misconception.correctionKeywords, fallbackPushback, onComplete]);
 
@@ -203,9 +215,9 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  setMessages(prev => [...prev, { sender: 'user', text: userText }]);
  setShowInput(false);
  setAiLoading(true);
- const pushbackQuestion = messages.find(m => m.sender === 'peer' && m.icon === 'shield')?.text;
+ const pushbackQuestion = pushbackTextRef.current;
  const aiScore = await scoreWithAI(concept, userText, 'defense', pushbackQuestion);
- const fallbackDefense = scoreDefense(userText, concept);
+ const fallbackDefense = scoreDefense(userText, concept, pushbackQuestion);
  const score = aiScore ? aiScore.score : fallbackDefense;
  const defensePassed = score >= 0.3;
  setAiLoading(false);
@@ -219,7 +231,7 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  setStage('resolution');
  setTimeout(() => onComplete(defensePassed), 2500);
  }, 800);
- }, [concept, messages, onComplete]);
+ }, [concept, onComplete]);
 
  const handleSubmit = () => {
  if (inputText.length < 20) return;
