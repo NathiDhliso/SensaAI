@@ -1,29 +1,54 @@
 import type { LearningConcept } from '@/shared/types/learning';
 import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, DrillDownAction } from './types';
 
-function buildAction(concept: LearningConcept): DrillDownAction {
-  const trick =
+function buildTrick(concept: LearningConcept): string {
+  return (
     concept.shape?.analogicalModel ||
     concept.shape?.simpleCore ||
     concept.hookSentence ||
-    concept.name;
+    concept.name
+  );
+}
 
-  const chain: string[] = concept.prerequisites?.length
+function buildChain(concept: LearningConcept): string[] {
+  return concept.prerequisites?.length
     ? concept.prerequisites
     : concept.mnemonic?.story
       ? [concept.mnemonic.story]
       : [];
+}
 
-  const steps: string[] =
-    concept.workedExample?.steps?.length
-      ? concept.workedExample.steps
-      : concept.lifecycle?.phase1?.steps?.length
-        ? concept.lifecycle.phase1.steps
-        : concept.keyPoints?.length
-          ? concept.keyPoints
-          : [];
+function buildStepsForVerb(concept: LearningConcept, verbIndex: number): string[] {
+  const phase1Steps = concept.lifecycle?.phase1?.steps ?? [];
+  const phase2Steps = concept.lifecycle?.phase2?.steps ?? [];
+  const phase3Steps = concept.lifecycle?.phase3?.steps ?? [];
+  const workedSteps = concept.workedExample?.steps ?? [];
+  const keyPoints = concept.keyPoints ?? [];
 
-  return { trick, chain, steps };
+  if (verbIndex === 0) {
+    return phase1Steps.length ? phase1Steps
+      : keyPoints.length ? keyPoints
+      : workedSteps.length ? workedSteps
+      : [];
+  }
+  if (verbIndex === 1) {
+    return phase2Steps.length ? phase2Steps
+      : workedSteps.length ? workedSteps
+      : keyPoints.length ? keyPoints
+      : [];
+  }
+  return phase3Steps.length ? phase3Steps
+    : workedSteps.length ? workedSteps
+    : keyPoints.length ? keyPoints
+    : [];
+}
+
+function buildAction(concept: LearningConcept, verbIndex: number): DrillDownAction {
+  return {
+    trick: buildTrick(concept),
+    chain: buildChain(concept),
+    steps: buildStepsForVerb(concept, verbIndex),
+  };
 }
 
 export function buildMatrixPayload(
@@ -58,12 +83,11 @@ export function buildMatrixPayload(
   }
 
   function buildLeafRow(leaf: LearningConcept): LeafRow {
-    const action = buildAction(leaf);
     const actions: Record<string, DrillDownAction> = {};
     const cellConceptIds: Record<string, string> = {};
-    for (const verb of verbs) {
-      actions[verb] = action;
-      cellConceptIds[verb] = leaf.id;
+    for (let i = 0; i < verbs.length; i++) {
+      actions[verbs[i]] = buildAction(leaf, i);
+      cellConceptIds[verbs[i]] = leaf.id;
     }
     return { conceptId: leaf.id, conceptName: leaf.name, actions, cellConceptIds };
   }

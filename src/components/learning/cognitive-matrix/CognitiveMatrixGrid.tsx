@@ -69,12 +69,6 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
     setExpandedCell(prev => prev?.conceptId === cell.conceptId && prev?.verb === cell.verb ? null : cell);
   };
 
-  const handleStartDrill = () => {
-    if (!expandedCell) return;
-    onCellClick({ conceptId: expandedCell.conceptId, realConceptId: expandedCell.realConceptId, conceptName: expandedCell.conceptName, verb: expandedCell.verb, action: expandedCell.action, isMastered: false });
-    setExpandedCell(null);
-  };
-
   const toggleTrunk = (id: string) => setOpenTrunks(prev => {
     const n = new Set(prev);
     if (n.has(id)) { n.delete(id); setExpandedCell(null); } else n.add(id);
@@ -201,7 +195,6 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                   onToggleBranch={toggleBranch}
                   onFocus={() => { setFocusedTrunkId(trunk.conceptId); setExpandedCell(null); }}
                   onCellTap={handleCellTap}
-                  onStartDrill={handleStartDrill}
                   onCloseDrawer={() => setExpandedCell(null)}
                 />
               );
@@ -252,7 +245,6 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                     matchingLeafIds={null}
                     onToggle={() => toggleBranch(branch.conceptId)}
                     onCellTap={handleCellTap}
-                    onStartDrill={handleStartDrill}
                     onCloseDrawer={() => setExpandedCell(null)}
                     focusMode
                   />
@@ -271,7 +263,6 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                     heatmap={heatmap}
                     isMatch={null}
                     onCellTap={handleCellTap}
-                    onStartDrill={handleStartDrill}
                     onCloseDrawer={() => setExpandedCell(null)}
                     focusMode
                   />
