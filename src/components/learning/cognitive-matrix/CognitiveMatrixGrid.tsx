@@ -114,7 +114,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExplo
 
   const focusedTrunk = focusedTrunkId ? payload.matrix.find(t => t.conceptId === focusedTrunkId) ?? null : null;
   const colTemplate = `minmax(220px, auto) repeat(${colCount}, minmax(110px, 1fr))`;
-  const focusColTemplate = `minmax(280px, auto) repeat(${colCount}, minmax(160px, 1fr))`;
+  const focusColTemplate = `minmax(300px, 340px) repeat(${colCount}, minmax(180px, 1fr))`;
   const allExpanded = openTrunks.size >= payload.matrix.length;
   const cmdResults = (cmdQuery.trim()
     ? allLeafEntries.filter(e => e.leaf.conceptName.toLowerCase().includes(cmdQuery.trim().toLowerCase()))

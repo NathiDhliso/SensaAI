@@ -717,6 +717,7 @@
 .focusBody {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
   padding: 1.5rem 2rem;
 }
 
@@ -725,7 +726,7 @@
   border-radius: 12px;
   border: 1px solid rgba(120, 80, 255, 0.22);
   background: rgba(255, 255, 255, 0.02);
-  overflow: hidden;
+  min-width: max-content;
 }
 
 .focusCorner {
