@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SensaAI Real Interactive Screenshots</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .screenshot-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .screenshot-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+        
+        .screenshot-card img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            object-position: top;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .screenshot-info {
+            padding: 1.5rem;
+            color: #1e293b;
+        }
+        
+        .screenshot-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        
+        .screenshot-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+        
+        .screenshot-desc {
+            font-size: 0.95rem;
+            color: #64748b;
+            line-height: 1.6;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            padding: 2rem;
+            overflow: auto;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            max-width: 95%;
+            max-height: 95%;
+            position: relative;
+        }
+        
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-close {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 SensaAI Real Interactive Screenshots</h1>
+        <p class="subtitle">Actual user flows captured from AZ-104 learning session</p>
+        
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">Screenshots</span>
+                <span class="stat-value">10</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Subject</span>
+                <span class="stat-value">AZ-104</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Flow Type</span>
+                <span class="stat-value">Interactive</span>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="screenshot-card" onclick="openModal('real-01-library.png')">
+                <img src="real-01-library.png" alt="Library">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 1</span>
+                    <div class="screenshot-title">Library Page</div>
+                    <div class="screenshot-desc">Your saved learning systems. Shows all generated content including AZ-104.</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-02-launchpad.png')">
+                <img src="real-02-launchpad.png" alt="Launchpad">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 2</span>
+                    <div class="screenshot-title">Content Launchpad</div>
+                    <div class="screenshot-desc">Analytics and readiness dashboard. Accessed by clicking "View" on a subject.</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-03-study-overview.png')">
+                <img src="real-03-study-overview.png" alt="Study Overview">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 3</span>
+                    <div class="screenshot-title">Study Page - Overview Tab</div>
+                    <div class="screenshot-desc">Subject overview showing concepts, progress, and learning metrics.</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-04-learn-tab-before-session.png')">
+                <img src="real-04-learn-tab-before-session.png" alt="Learn Tab">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 4</span>
+                    <div class="screenshot-title">Learn Tab (Before Session)</div>
+                    <div class="screenshot-desc">The learning interface before starting a session. Shows "Start Session" button.</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-05-session-config-modal.png')">
+                <img src="real-05-session-config-modal.png" alt="Session Config">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 5</span>
+                    <div class="screenshot-title">Session Configuration Modal</div>
+                    <div class="screenshot-desc">Goal selection (Learn New/Review/Explore) and duration settings.</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-06-ulc-matrix-active.png')">
+                <img src="real-06-ulc-matrix-active.png" alt="ULC Matrix">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 6</span>
+                    <div class="screenshot-title">Active Session - ULC Matrix</div>
+                    <div class="screenshot-desc">The actual learning matrix with concepts × verbs (PREPARE/MODEL/DELIVER). This is where learning happens!</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-07-blueprint-drawer.png')">
+                <img src="real-07-blueprint-drawer.png" alt="Blueprint Drawer">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 7</span>
+                    <div class="screenshot-title">Concept Cell Clicked - Blueprint Drawer</div>
+                    <div class="screenshot-desc">What appears when you click a concept cell. Shows the Creator's Blueprint with perspectives and shape lenses.</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-08-concept-map.png')">
+                <img src="real-08-concept-map.png" alt="Concept Map">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 8</span>
+                    <div class="screenshot-title">Concept Map (Structure Tab)</div>
+                    <div class="screenshot-desc">Interactive node-link diagram showing relationships between concepts.</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-09-home.png')">
+                <img src="real-09-home.png" alt="Home">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 9</span>
+                    <div class="screenshot-title">Home Page</div>
+                    <div class="screenshot-desc">Landing page with search and "Generate Learning System" functionality.</div>
+                </div>
+            </div>
+            
+            <div class="screenshot-card" onclick="openModal('real-10-login.png')">
+                <img src="real-10-login.png" alt="Login">
+                <div class="screenshot-info">
+                    <span class="screenshot-number">STEP 10</span>
+                    <div class="screenshot-title">Login Page</div>
+                    <div class="screenshot-desc">Authentication page for user access.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="modal" onclick="closeModal()">
+        <button class="modal-close" onclick="closeModal()">✕ Close (ESC)</button>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="modal-img" src="" alt="Screenshot">
+        </div>
+    </div>
+    
+    <script>
+        function openModal(imageSrc) {
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modal-img');
+            modalImg.src = imageSrc;
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('active');
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

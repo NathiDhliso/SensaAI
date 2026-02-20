@@ -1,64 +1,26 @@
 import { test as setup, expect } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const adminAuthFile = 'playwright/.auth/admin.json';
-const legacyAuthFile = 'playwright/.auth/user.json';
+const authFile = 'playwright/.auth/learner.json';
 
-function loadTestEnv() {
-  const envPath = path.resolve(__dirname, '..', '.env.playwright');
-  if (!fs.existsSync(envPath)) {
-    throw new Error(
-      '.env.playwright file not found. Create it with ADMIN_EMAIL and ADMIN_PASSWORD.'
-    );
-  }
-  const content = fs.readFileSync(envPath, 'utf-8');
-  const vars: Record<string, string> = {};
-  for (const line of content.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const [key, ...rest] = trimmed.split('=');
-    vars[key.trim()] = rest.join('=').trim();
-  }
-  return vars;
-}
-
-async function authenticateViaUI(page: import('@playwright/test').Page, email: string, password: string) {
+setup('authenticate as learner', async ({ page }) => {
+  // Go to login page
   await page.goto('/login');
-  await page.waitForLoadState('networkidle');
-
-  const emailInput = page.getByLabel('Email');
-  const passwordInput = page.getByLabel('Password');
-
-  await emailInput.fill(email);
-  await passwordInput.fill(password);
-
-  await page.waitForTimeout(300);
-
-  const signInBtn = page.getByRole('button', { name: /sign in/i });
-  await expect(signInBtn).toBeEnabled({ timeout: 5000 });
-  await signInBtn.click();
-
-  await page.waitForURL('/', { timeout: 30000 });
-  await expect(page.getByPlaceholder('Search certifications or enter any subject...')).toBeVisible({ timeout: 15000 });
-}
-
-setup('authenticate admin', async ({ page }) => {
-  setup.setTimeout(60000);
-
-  const env = loadTestEnv();
-  const email = env.ADMIN_EMAIL;
-  const password = env.ADMIN_PASSWORD;
-
-  if (!email || !password) {
-    throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env.playwright');
-  }
-
-  await authenticateViaUI(page, email, password);
-
-  await page.context().storageState({ path: adminAuthFile });
-  await page.context().storageState({ path: legacyAuthFile });
+  
+  // Fill in credentials
+  await page.getByLabel(/email/i).fill('nkosinathi.dhliso@gmail.com');
+  await page.getByLabel(/password/i).fill('Magnox271991!');
+  
+  // Click sign in
+  await page.getByRole('button', { name: /sign in/i }).click();
+  
+  // Wait for navigation to complete
+  await page.waitForURL(/\/(home|dashboard|study|launchpad|$)/, { timeout: 15000 });
+  
+  // Wait a bit for auth to settle
+  await page.waitForTimeout(2000);
+  
+  // Save signed-in state
+  await page.context().storageState({ path: authFile });
+  
+  console.log('✓ Authentication successful');
 });

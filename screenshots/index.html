@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SensaAI Frontend Screenshots</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            padding: 1.5rem;
+            background: #1e293b;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .section {
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #f1f5f9;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+        
+        .screenshot-card {
+            background: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #334155;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .screenshot-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: #667eea;
+        }
+        
+        .screenshot-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            object-position: top;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .screenshot-info {
+            padding: 1rem;
+        }
+        
+        .screenshot-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #f1f5f9;
+        }
+        
+        .screenshot-desc {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .badge-success {
+            background: #10b98120;
+            color: #10b981;
+        }
+        
+        .badge-warning {
+            background: #f59e0b20;
+            color: #f59e0b;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+            overflow: auto;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+        
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .modal-close {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #1e293b;
+            color: #f1f5f9;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SensaAI Frontend Screenshots</h1>
+        <p class="subtitle">Captured on February 20, 2026 with authenticated user session</p>
+        
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">Total Screenshots</span>
+                <span class="stat-value">25</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Core Features</span>
+                <span class="stat-value">17</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Pages Captured</span>
+                <span class="stat-value">All Major</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">🎯 Core Learning Path</h2>
+            <div class="grid">
+                <div class="screenshot-card" onclick="openModal('01-study-page-ulc-controller.png')">
+                    <img src="01-study-page-ulc-controller.png" alt="Study Page">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">01 - Study Page (ULC Practice Controller)</div>
+                        <div class="screenshot-desc">Main study interface with cognitive matrix grid</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('02-velocity-learning.png')">
+                    <img src="02-velocity-learning.png" alt="VelocityLearning">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">02 - VelocityLearning Page</div>
+                        <div class="screenshot-desc">Streamlined velocity learning interface</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('03-ulc-matrix-grid.png')">
+                    <img src="03-ulc-matrix-grid.png" alt="ULC Matrix">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">03 - ULC Matrix Grid View</div>
+                        <div class="screenshot-desc">Close-up of the ULC matrix with interactive concept cells</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('04-micro-learning-loop.png')">
+                    <img src="04-micro-learning-loop.png" alt="Micro Learning Loop">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">04 - Micro Learning Loop</div>
+                        <div class="screenshot-desc">3-phase loop: Worked Example → Encode → Verify</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('05-concept-map-builder.png')">
+                    <img src="05-concept-map-builder.png" alt="Concept Map">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">05 - Concept Map Builder</div>
+                        <div class="screenshot-desc">Interactive node-link diagram with drag/drop</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">🏋️ Gym Activities</h2>
+            <div class="grid">
+                <div class="screenshot-card" onclick="openModal('06-gym-activity-launcher.png')">
+                    <img src="06-gym-activity-launcher.png" alt="Gym Launcher">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">06 - Gym Activity Launcher</div>
+                        <div class="screenshot-desc">Main launchpad with all gym activities</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('07-peer-review-activity-not-found.png')">
+                    <img src="07-peer-review-activity-not-found.png" alt="Peer Review">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">07 - Peer Review Activity</div>
+                        <div class="screenshot-desc">Simulated peer challenge interface</div>
+                        <span class="badge badge-warning">⚠ Not Accessible</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('08-pre-mortem-activity-not-found.png')">
+                    <img src="08-pre-mortem-activity-not-found.png" alt="Pre-Mortem">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">08 - Pre-Mortem Activity</div>
+                        <div class="screenshot-desc">Failure mode identification interface</div>
+                        <span class="badge badge-warning">⚠ Not Accessible</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('09-blank-sheet-test-not-found.png')">
+                    <img src="09-blank-sheet-test-not-found.png" alt="Blank Sheet">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">09 - Blank Sheet Test</div>
+                        <div class="screenshot-desc">Free-recall test interface</div>
+                        <span class="badge badge-warning">⚠ Not Accessible</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('10-creative-transfer-activity-not-found.png')">
+                    <img src="10-creative-transfer-activity-not-found.png" alt="Creative Transfer">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">10 - Creative Transfer Activity</div>
+                        <div class="screenshot-desc">Novel context application interface</div>
+                        <span class="badge badge-warning">⚠ Not Accessible</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">📊 Dashboards & Feedback</h2>
+            <div class="grid">
+                <div class="screenshot-card" onclick="openModal('11-mastery-dashboard.png')">
+                    <img src="11-mastery-dashboard.png" alt="Mastery Dashboard">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">11 - Mastery Dashboard</div>
+                        <div class="screenshot-desc">End-of-session summary with metrics</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('12-blueprint-formula-dashboard.png')">
+                    <img src="12-blueprint-formula-dashboard.png" alt="Blueprint Formula">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">12 - Blueprint Formula Dashboard</div>
+                        <div class="screenshot-desc">Equation Monitor with learning health metrics</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('13-cognitive-gauge.png')">
+                    <img src="13-cognitive-gauge.png" alt="Cognitive Gauge">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">13 - Cognitive Gauge</div>
+                        <div class="screenshot-desc">Header widget showing cognitive load</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('14-celebration-modal-state.png')">
+                    <img src="14-celebration-modal-state.png" alt="Celebration">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">14 - Celebration Modal</div>
+                        <div class="screenshot-desc">Milestone celebration on concept mastery</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('15-neural-reset-banner.png')">
+                    <img src="15-neural-reset-banner.png" alt="Neural Reset">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">15 - Neural Reset Banner</div>
+                        <div class="screenshot-desc">Break suggestion on struggle detection</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">🤖 AI & Personalization</h2>
+            <div class="grid">
+                <div class="screenshot-card" onclick="openModal('16-ai-coach-message.png')">
+                    <img src="16-ai-coach-message.png" alt="AI Coach">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">16 - AI Coach Message</div>
+                        <div class="screenshot-desc">Mood-adjusted coach messages</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('17-metaphor-toggle.png')">
+                    <img src="17-metaphor-toggle.png" alt="Metaphor Toggle">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">17 - Metaphor Toggle</div>
+                        <div class="screenshot-desc">Scholarly vs metaphor-rich language switcher</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('18-session-configuration.png')">
+                    <img src="18-session-configuration.png" alt="Session Config">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">18 - Session Configuration</div>
+                        <div class="screenshot-desc">Goal selection and duration settings</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">🚀 Content Launchpad</h2>
+            <div class="grid">
+                <div class="screenshot-card" onclick="openModal('19-content-launchpad-overview.png')">
+                    <img src="19-content-launchpad-overview.png" alt="Launchpad">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">19 - Content Launchpad Overview</div>
+                        <div class="screenshot-desc">Subject hub with score card and gym activities</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('20-launchpad-score-card.png')">
+                    <img src="20-launchpad-score-card.png" alt="Score Card">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">20 - Launchpad Score Card</div>
+                        <div class="screenshot-desc">Overall progress and mastery metrics</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">🌐 Additional Pages</h2>
+            <div class="grid">
+                <div class="screenshot-card" onclick="openModal('21-home-page.png')">
+                    <img src="21-home-page.png" alt="Home">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">21 - Home Page</div>
+                        <div class="screenshot-desc">Landing page with search and generation</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('22-login-page.png')">
+                    <img src="22-login-page.png" alt="Login">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">22 - Login Page</div>
+                        <div class="screenshot-desc">Authentication page</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('23-signup-page.png')">
+                    <img src="23-signup-page.png" alt="Signup">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">23 - Signup Page</div>
+                        <div class="screenshot-desc">Registration page</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">🌙 Dark Mode</h2>
+            <div class="grid">
+                <div class="screenshot-card" onclick="openModal('24-study-page-dark-mode.png')">
+                    <img src="24-study-page-dark-mode.png" alt="Study Dark">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">24 - Study Page (Dark Mode)</div>
+                        <div class="screenshot-desc">Study interface with dark theme</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+                
+                <div class="screenshot-card" onclick="openModal('25-launchpad-dark-mode.png')">
+                    <img src="25-launchpad-dark-mode.png" alt="Launchpad Dark">
+                    <div class="screenshot-info">
+                        <div class="screenshot-title">25 - Launchpad (Dark Mode)</div>
+                        <div class="screenshot-desc">Launchpad with dark theme</div>
+                        <span class="badge badge-success">✓ Captured</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="modal" onclick="closeModal()">
+        <button class="modal-close" onclick="closeModal()">Close (ESC)</button>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="modal-img" src="" alt="Screenshot">
+        </div>
+    </div>
+    
+    <script>
+        function openModal(imageSrc) {
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modal-img');
+            modalImg.src = imageSrc;
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('active');
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
