@@ -27,7 +27,7 @@ export function extractDependencyEdges(concepts: ParsedConcept[]): DependencyEdg
  id: `edge-${concept.id}-${targetId}`,
  source: concept.id,
  target: targetId,
- relationship: conn.type,
+ relationship: conn.type as 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains',
  weight: 1.0
  });
  addedEdges.add(edgeKey);

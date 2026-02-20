@@ -99,7 +99,7 @@ function extractKeyPoints(concept: ParsedConcept): string[] {
  }
  }
  });
- keyPoints.push(...concept.criticalDistinctions.map(d => safeStr(d)));
+ keyPoints.push(...(concept.criticalDistinctions ?? []).map(d => safeStr(d)));
  if (concept.shape) {
  if (concept.shape.simpleCore) {
  keyPoints.push(concept.shape.simpleCore);
@@ -128,7 +128,7 @@ function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion
  });
  }
  // Generate from critical distinctions (true/false)
- concept.criticalDistinctions.forEach((distinction, index) => {
+ (concept.criticalDistinctions ?? []).forEach((distinction, index) => {
  if (index < 2) {
  const text = safeStr(distinction);
  if (text.length > 5) {
@@ -220,11 +220,11 @@ function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, Confusio
  // Find key differences
  const keyDifferences: string[] = [];
  // Compare critical distinctions
- const uniqueToA = conceptA.criticalDistinctions.filter(d =>
- !conceptB.criticalDistinctions.some(bd => safeStr(bd).toLowerCase().includes(safeStr(d).toLowerCase()))
+ const uniqueToA = (conceptA.criticalDistinctions ?? []).filter(d =>
+ !(conceptB.criticalDistinctions ?? []).some(bd => safeStr(bd).toLowerCase().includes(safeStr(d).toLowerCase()))
  );
- const uniqueToB = conceptB.criticalDistinctions.filter(d =>
- !conceptA.criticalDistinctions.some(ad => safeStr(ad).toLowerCase().includes(safeStr(d).toLowerCase()))
+ const uniqueToB = (conceptB.criticalDistinctions ?? []).filter(d =>
+ !(conceptA.criticalDistinctions ?? []).some(ad => safeStr(ad).toLowerCase().includes(safeStr(d).toLowerCase()))
  );
  keyDifferences.push(...uniqueToA.map(d => `${conceptA.name}: ${safeStr(d)}`));
  keyDifferences.push(...uniqueToB.map(d => `${conceptB.name}: ${safeStr(d)}`));
@@ -316,7 +316,7 @@ function calculateComplexityScore(concept: ParsedConcept): number {
  // Factor in number of selection criteria
  complexity += Math.min(2, concept.phase1.selection.length / 3); // Max 2 points
  // Factor in critical distinctions (indicates complexity)
- complexity += Math.min(2, concept.criticalDistinctions.length / 2); // Max 2 points
+ complexity += Math.min(2, (concept.criticalDistinctions ?? []).length / 2); // Max 2 points
  // Factor in SHAPE sections (indicates comprehensive coverage)
  if (concept.shape) {
  const shapeCount = [
@@ -441,7 +441,7 @@ function extractSemanticConnections(
  if (conn.target && validateTarget(conn.target) && !addedTargets.has(conn.target.toLowerCase())) {
  connections.push({
  target: conn.target,
- type: conn.type || 'requires'
+ type: (conn.type || 'requires') as 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains'
  });
  addedTargets.add(conn.target.toLowerCase());
  }
@@ -641,8 +641,8 @@ export function transformToLearningConcepts(
  howToUse.push(parsedConcept.phase1.execution);
  }
  const technicalDetails = [
- ...parsedConcept.criticalDistinctions.map(d => safeStr(d)),
- ...parsedConcept.designBoundaries.map(d => safeStr(d))
+ ...(parsedConcept.criticalDistinctions ?? []).map(d => safeStr(d)),
+ ...(parsedConcept.designBoundaries ?? []).map(d => safeStr(d))
  ].join(' ');
  const phase1Steps: string[] = [];
  if (parsedConcept.phase1.prerequisite) {
@@ -819,7 +819,7 @@ function validateDependencies(concepts: ParsedConcept[]): void {
  const allNames = new Set(concepts.map(c => c.name));
  concepts.forEach(concept => {
  if (concept.dependsOn && concept.dependsOn.length > 0) {
- concept.dependsOn = concept.dependsOn.filter(dep => {
+ concept.dependsOn = concept.dependsOn.filter((dep: string) => {
  if (!allNames.has(dep)) {
  console.warn(` "${concept.name}" depends on non-existent "${dep}". Removing.`);
  return false;

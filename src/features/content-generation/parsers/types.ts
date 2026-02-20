@@ -56,10 +56,11 @@ export interface ParsedConcept {
   patternRecognition?: { question: string; answer: string };
   eliminationLogic?: string;
  };
- strictConnections?: Array<{ target: string; type: string }>;
- connections?: Array<{ target: string; type: string }>;
- criticalDistinctions?: string[];
- designBoundaries?: string[];
+ strictConnections?: Array<{ target: string; type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }>;
+ connections?: Array<{ target: string; type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }>;
+ criticalDistinctions: string[];
+ designBoundaries: string[];
+ dependsOn?: string[];
 }
 export interface ParsedStage {
  id: string;
