@@ -28,6 +28,10 @@
  flex-shrink: 0;
  position: relative;
 }
+
+.headerHidden {
+ display: none;
+}
 .header::after {
  content: '';
  position: absolute;

@@ -102,7 +102,7 @@ export function StudyLayout({
  return (
  <div className={styles.container}>
  {/* Header */}
- <header className={styles.header}>
+ <header className={`${styles.header} ${activeTab === 'learn' ? styles.headerHidden : ''}`}>
  <div className={styles.headerLeft}>
  <button onClick={() => navigate('/')} className={styles.homeButton} aria-label="Go home">
  <Home size={18} />
