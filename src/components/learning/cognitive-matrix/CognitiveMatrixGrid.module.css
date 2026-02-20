@@ -716,16 +716,30 @@
 
 .focusBody {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: auto;
-  padding: 1.5rem 2rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.focusGrid {
-  display: grid;
-  border-radius: 12px;
+.focusScrollArea {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
   border: 1px solid rgba(120, 80, 255, 0.22);
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
+  margin: 1.5rem 2rem;
+}
+
+.focusColHeader {
+  display: grid;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-width: max-content;
+}
+
+.focusRows {
   min-width: max-content;
 }
 

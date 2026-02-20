@@ -242,50 +242,54 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExplo
               </div>
             </div>
             <div className={styles.focusBody}>
-              <div className={styles.focusGrid} style={{ gridTemplateColumns: focusColTemplate }}>
-                <div className={styles.focusCorner}>RESOURCE</div>
-                {payload.verbs.map(verb => (
-                  <div key={verb} className={styles.focusVerbHeader}>{verb.toUpperCase()}</div>
-                ))}
-                {focusedTrunk.branches.map(branch => (
-                  <BranchRowGroup
-                    key={branch.conceptId}
-                    branch={branch}
-                    verbs={payload.verbs}
-                    masteredIds={masteredIds}
-                    suggestedId={suggestedId}
-                    expandedCell={expandedCell}
-                    isOpen={openBranches.has(branch.conceptId)}
-                    colCount={colCount}
-                    colTemplate={focusColTemplate}
-                    heatmap={heatmap}
-                    matchingLeafIds={null}
-                    onToggle={() => toggleBranch(branch.conceptId)}
-                    onCellTap={handleCellTap}
-                    onCloseDrawer={() => setExpandedCell(null)}
-                    onExploreWhy={onExploreWhy}
-                    focusMode
-                  />
-                ))}
-                {focusedTrunk.children.map(leaf => (
-                  <LeafRowComponent
-                    key={leaf.conceptId}
-                    leaf={leaf}
-                    verbs={payload.verbs}
-                    masteredIds={masteredIds}
-                    suggestedId={suggestedId}
-                    expandedCell={expandedCell}
-                    colCount={colCount}
-                    colTemplate={focusColTemplate}
-                    depth={1}
-                    heatmap={heatmap}
-                    isMatch={null}
-                    onCellTap={handleCellTap}
-                    onCloseDrawer={() => setExpandedCell(null)}
-                    onExploreWhy={onExploreWhy}
-                    focusMode
-                  />
-                ))}
+              <div className={styles.focusScrollArea}>
+                <div className={styles.focusColHeader} style={{ gridTemplateColumns: focusColTemplate }}>
+                  <div className={styles.focusCorner}>RESOURCE</div>
+                  {payload.verbs.map(verb => (
+                    <div key={verb} className={styles.focusVerbHeader}>{verb.toUpperCase()}</div>
+                  ))}
+                </div>
+                <div className={styles.focusRows}>
+                  {focusedTrunk.branches.map(branch => (
+                    <BranchRowGroup
+                      key={branch.conceptId}
+                      branch={branch}
+                      verbs={payload.verbs}
+                      masteredIds={masteredIds}
+                      suggestedId={suggestedId}
+                      expandedCell={expandedCell}
+                      isOpen={openBranches.has(branch.conceptId)}
+                      colCount={colCount}
+                      colTemplate={focusColTemplate}
+                      heatmap={heatmap}
+                      matchingLeafIds={null}
+                      onToggle={() => toggleBranch(branch.conceptId)}
+                      onCellTap={handleCellTap}
+                      onCloseDrawer={() => setExpandedCell(null)}
+                      onExploreWhy={onExploreWhy}
+                      focusMode
+                    />
+                  ))}
+                  {focusedTrunk.children.map(leaf => (
+                    <LeafRowComponent
+                      key={leaf.conceptId}
+                      leaf={leaf}
+                      verbs={payload.verbs}
+                      masteredIds={masteredIds}
+                      suggestedId={suggestedId}
+                      expandedCell={expandedCell}
+                      colCount={colCount}
+                      colTemplate={focusColTemplate}
+                      depth={1}
+                      heatmap={heatmap}
+                      isMatch={null}
+                      onCellTap={handleCellTap}
+                      onCloseDrawer={() => setExpandedCell(null)}
+                      onExploreWhy={onExploreWhy}
+                      focusMode
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </motion.div>
