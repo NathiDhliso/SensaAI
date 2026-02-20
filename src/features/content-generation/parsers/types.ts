@@ -58,8 +58,6 @@ export interface ParsedConcept {
  };
  strictConnections?: Array<{ target: string; type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }>;
  connections?: Array<{ target: string; type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }>;
- criticalDistinctions: string[];
- designBoundaries: string[];
  dependsOn?: string[];
 }
 export interface ParsedStage {

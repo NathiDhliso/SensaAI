@@ -99,7 +99,6 @@ function extractKeyPoints(concept: ParsedConcept): string[] {
  }
  }
  });
- keyPoints.push(...(concept.criticalDistinctions ?? []).map(d => safeStr(d)));
  if (concept.shape) {
  if (concept.shape.simpleCore) {
  keyPoints.push(concept.shape.simpleCore);
@@ -128,7 +127,7 @@ function generateDiagnosticQuestions(concept: ParsedConcept): DiagnosticQuestion
  });
  }
  // Generate from critical distinctions (true/false)
- (concept.criticalDistinctions ?? []).forEach((distinction, index) => {
+ (concept.commonPitfalls ?? []).slice(0, 2).forEach((distinction, index) => {
  if (index < 2) {
  const text = safeStr(distinction);
  if (text.length > 5) {
@@ -220,11 +219,11 @@ function identifyConfusionPairs(concepts: ParsedConcept[]): Map<string, Confusio
  // Find key differences
  const keyDifferences: string[] = [];
  // Compare critical distinctions
- const uniqueToA = (conceptA.criticalDistinctions ?? []).filter(d =>
- !(conceptB.criticalDistinctions ?? []).some(bd => safeStr(bd).toLowerCase().includes(safeStr(d).toLowerCase()))
+ const uniqueToA = (conceptA.commonPitfalls ?? []).filter(d =>
+ !(conceptB.commonPitfalls ?? []).some(bd => safeStr(bd).toLowerCase().includes(safeStr(d).toLowerCase()))
  );
- const uniqueToB = (conceptB.criticalDistinctions ?? []).filter(d =>
- !(conceptA.criticalDistinctions ?? []).some(ad => safeStr(ad).toLowerCase().includes(safeStr(d).toLowerCase()))
+ const uniqueToB = (conceptB.commonPitfalls ?? []).filter(d =>
+ !(conceptA.commonPitfalls ?? []).some(ad => safeStr(ad).toLowerCase().includes(safeStr(d).toLowerCase()))
  );
  keyDifferences.push(...uniqueToA.map(d => `${conceptA.name}: ${safeStr(d)}`));
  keyDifferences.push(...uniqueToB.map(d => `${conceptB.name}: ${safeStr(d)}`));
@@ -316,7 +315,7 @@ function calculateComplexityScore(concept: ParsedConcept): number {
  // Factor in number of selection criteria
  complexity += Math.min(2, concept.phase1.selection.length / 3); // Max 2 points
  // Factor in critical distinctions (indicates complexity)
- complexity += Math.min(2, (concept.criticalDistinctions ?? []).length / 2); // Max 2 points
+ complexity += Math.min(2, (concept.commonPitfalls ?? []).length / 2); // Max 2 points
  // Factor in SHAPE sections (indicates comprehensive coverage)
  if (concept.shape) {
  const shapeCount = [
@@ -640,10 +639,7 @@ export function transformToLearningConcepts(
  if (howToUse.length === 0 && parsedConcept.phase1.execution) {
  howToUse.push(parsedConcept.phase1.execution);
  }
- const technicalDetails = [
- ...(parsedConcept.criticalDistinctions ?? []).map(d => safeStr(d)),
- ...(parsedConcept.designBoundaries ?? []).map(d => safeStr(d))
- ].join(' ');
+ const technicalDetails = parsedConcept.technicalDetails || '';
  const phase1Steps: string[] = [];
  if (parsedConcept.phase1.prerequisite) {
  phase1Steps.push(`Prerequisite: ${parsedConcept.phase1.prerequisite}`);

@@ -168,7 +168,7 @@ Generate concepts in a strict 3-level tree:
 - **Memory**: mnemonic (anchor + story)
 - **Understanding**: keyPoints, whyYouNeed, technicalDetails, shape
 - **Creator Blueprints**: perspectives (2-4 items per concept — see §3.6)
-- **Application**: phase2 (content), phase3 (tool, metrics)
+- **Application**: phase2 (array of plain strings), phase3 (tool, metrics)
 - **Relationship**: connections (see §3.4)
 - **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
 ### 3.2 TREE-LEVEL CONTENT RULES:
@@ -276,9 +276,9 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
    "execution": "Identify photon absorption at PSII → Trace electron flow through ETC → Explain proton gradient → Connect to ATP synthase → Follow PSI to NADPH → Verify with isotope tracing"
  }},
  "phase2": [
-   {{ "title": "Non-cyclic electron flow", "content": "Primary pathway: H₂O → PSII → plastoquinone → cytochrome b6f → plastocyanin → PSI → ferredoxin → NADP⁺ reductase → NADPH. Produces both ATP and NADPH. O₂ released from water splitting." }},
-   {{ "title": "Cyclic electron flow", "content": "When Calvin cycle needs more ATP than NADPH, PSI electrons cycle back through cytochrome b6f. Generates ATP without NADPH or O₂. Fine-tunes the ATP:NADPH ratio." }},
-   {{ "title": "Photophosphorylation vs. oxidative phosphorylation", "content": "Both use proton gradient + ATP synthase. Photophosphorylation uses light energy across thylakoid membrane; oxidative phosphorylation uses NADH/FADH₂ energy across inner mitochondrial membrane." }}
+   "Non-cyclic electron flow: H₂O → PSII → plastoquinone → cytochrome b6f → plastocyanin → PSI → ferredoxin → NADP⁺ reductase → NADPH. Produces both ATP and NADPH. O₂ released from water splitting.",
+   "Cyclic electron flow: When Calvin cycle needs more ATP than NADPH, PSI electrons cycle back through cytochrome b6f. Generates ATP without NADPH or O₂.",
+   "Photophosphorylation vs. oxidative phosphorylation: Both use proton gradient + ATP synthase. Photophosphorylation uses light energy across thylakoid membrane; oxidative phosphorylation uses NADH/FADH₂ energy."
  ],
  "phase3": {{
    "tool": "Hill reaction assay — measure O₂ evolution with isolated chloroplasts and DCPIP electron acceptor",
@@ -313,13 +313,6 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
  }},
  "keyPoints": ["Thylakoid membranes in chloroplasts", "Photolysis at PSII releases O₂", "ETC creates proton gradient for ATP synthase", "PSI reduces NADP⁺ to NADPH", "Cyclic flow produces only ATP"],
  "scoring": {{ "keywords": ["light-dependent", "thylakoid", "photolysis", "photosystem", "chemiosmosis"], "aliases": ["light reactions", "thylakoid reactions"] }},
- "criticalDistinctions": [
-   {{ "correct": "O₂ from splitting H₂O at PSII (photolysis)", "incorrect": "O₂ produced in Calvin cycle during carbon fixation" }},
-   {{ "correct": "Non-cyclic produces ATP + NADPH; cyclic produces only ATP", "incorrect": "Cyclic flow produces both ATP and NADPH" }}
- ],
- "designBoundaries": [
-   {{ "boundary": "Light-dependent reactions produce energy carriers (ATP, NADPH) but do NOT fix carbon", "rationale": "Carbon fixation is Calvin cycle in stroma — confusing locations is the #1 exam error" }}
- ],
  "connections": [
    {{ "target": "Photosynthesis Mechanisms", "type": "is-part-of" }},
    {{ "target": "Chloroplast Structure", "type": "requires" }},

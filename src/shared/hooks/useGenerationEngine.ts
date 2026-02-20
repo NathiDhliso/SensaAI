@@ -170,9 +170,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  execution: ''
  },
  phase2: [],
- phase3: { tool: '', metrics: [], thresholds: '' },
- criticalDistinctions: [],
- designBoundaries: []
+ phase3: { tool: '', metrics: [], thresholds: '' }
  });
  }
  }
