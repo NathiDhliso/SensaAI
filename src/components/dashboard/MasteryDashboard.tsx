@@ -31,7 +31,7 @@ interface MasteryDashboardProps {
     completedConcepts: string[];
     subjectName: string;
     sessionStartTime: number;
-    equation: LearningHealthEquation;
+    equation?: LearningHealthEquation;
     streakCount: number;
     onReturnHome: () => void;
     onReviewConcepts: () => void;
@@ -176,7 +176,7 @@ export function MasteryDashboard({
             }).length
         };
 
-        const efficiencyScore = Math.round(equation.I * 100);
+        const efficiencyScore = Math.round((equation?.I ?? 0) * 100);
 
         return {
             totalConcepts,
@@ -187,7 +187,7 @@ export function MasteryDashboard({
             tierBreakdown,
             efficiencyScore
         };
-    }, [concepts, completedConcepts, sessionStartTime, equation]);
+    }, [concepts, completedConcepts, sessionStartTime, equation?.I]);
 
     const grade = useMemo(() => {
         if (stats.efficiencyScore >= 80) return { label: 'S', color: getCSSVariable('--color-grade-s') || '#10b981', message: 'Exceptional mastery!' };
@@ -320,12 +320,12 @@ export function MasteryDashboard({
                     Learning Health Breakdown
                 </h3>
                 <div className={styles.equationBars}>
-                    <EquationBar label="Cognitive Bandwidth (h)" value={equation.h} color={EQUATION_COLORS.h} />
-                    <EquationBar label="Prior Knowledge (Qₖ)" value={equation.Q_k} color={EQUATION_COLORS.Q_k} />
-                    <EquationBar label="Recall Quality (Qᵣ)" value={equation.Q_r} color={EQUATION_COLORS.Q_r} />
-                    <EquationBar label="Connection Quality (Q꜀)" value={equation.Q_c} color={EQUATION_COLORS.Q_c} />
-                    <EquationBar label="Spacing Quality (Q_f)" value={equation.Q_f} color={EQUATION_COLORS.Q_f} />
-                    <EquationBar label="Process Quality (Qₚ)" value={equation.Q_p} color={EQUATION_COLORS.Q_p} />
+                    <EquationBar label="Cognitive Bandwidth (h)" value={equation?.h ?? 0} color={EQUATION_COLORS.h} />
+                    <EquationBar label="Prior Knowledge (Qₖ)" value={equation?.Q_k ?? 0} color={EQUATION_COLORS.Q_k} />
+                    <EquationBar label="Recall Quality (Qᵣ)" value={equation?.Q_r ?? 0} color={EQUATION_COLORS.Q_r} />
+                    <EquationBar label="Connection Quality (Q꜀)" value={equation?.Q_c ?? 0} color={EQUATION_COLORS.Q_c} />
+                    <EquationBar label="Spacing Quality (Q_f)" value={equation?.Q_f ?? 0} color={EQUATION_COLORS.Q_f} />
+                    <EquationBar label="Process Quality (Qₚ)" value={equation?.Q_p ?? 0} color={EQUATION_COLORS.Q_p} />
                 </div>
             </motion.div>
 
