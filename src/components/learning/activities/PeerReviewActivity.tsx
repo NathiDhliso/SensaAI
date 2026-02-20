@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { MessageCircle, Send, User, CheckCircle, XCircle, Shield, Loader2 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 interface AIReviewer {
@@ -154,11 +154,15 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  const [finalResult, setFinalResult] = useState<{ passed: boolean; feedback: string } | null>(null);
  const [showInput, setShowInput] = useState(true);
  const [aiLoading, setAiLoading] = useState(false);
+ const chatEndRef = useRef<HTMLDivElement>(null);
  const fallbackMisconception = useMemo(() => generateMisconception(concept, allConcepts), [concept, allConcepts]);
  const fallbackPushback = useMemo(() => pickPushbackChallenge(concept), [concept]);
-
- // Use fallback questions directly - they're already well-formed from syllabus generation
  const misconception = fallbackMisconception;
+
+ useEffect(() => {
+ chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+ }, [messages, aiLoading]);
+
  const stageLabel: Record<ConversationStage, string> = {
  diagnosis: 'Diagnose the error',
  pushback: 'Peer pushes back...',
@@ -175,6 +179,7 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  const diagnosisPassed = score >= 0.35;
  setAiLoading(false);
  if (diagnosisPassed) {
+ setStage('pushback');
  setAiLoading(true);
  const aiPush = await generateAIPushback(concept, userText);
  setAiLoading(false);
@@ -187,17 +192,19 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  } else {
  const failFeedback = aiScore?.feedback
  || `Hmm, I'm still not sure I understand. Could you be more specific about how ${concept.name} actually works?`;
- setFinalResult({ passed: false, feedback: failFeedback });
  setMessages(prev => [...prev, { sender: 'peer', text: failFeedback, icon: 'x' }]);
  setStage('resolution');
+ setFinalResult({ passed: false, feedback: failFeedback });
  setTimeout(() => onComplete(false), 2500);
  }
- }, [concept, misconception.correctionKeywords, fallbackPushback, onComplete]);
+ }, [concept, misconception.statement, misconception.correctionKeywords, fallbackPushback, onComplete]);
+
  const handleDefenseSubmit = useCallback(async (userText: string) => {
  setMessages(prev => [...prev, { sender: 'user', text: userText }]);
  setShowInput(false);
  setAiLoading(true);
- const aiScore = await scoreWithAI(concept, userText, 'defense', messages.find(m => m.sender === 'peer' && m.icon === 'shield')?.text);
+ const pushbackQuestion = messages.find(m => m.sender === 'peer' && m.icon === 'shield')?.text;
+ const aiScore = await scoreWithAI(concept, userText, 'defense', pushbackQuestion);
  const fallbackDefense = scoreDefense(userText, concept);
  const score = aiScore ? aiScore.score : fallbackDefense;
  const defensePassed = score >= 0.3;
@@ -207,12 +214,13 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  ? `That actually makes a lot of sense now. I can see why my original thinking was off. Thanks for walking me through it!`
  : `I appreciate the effort, but I'm still not fully convinced. I think there's more nuance here that we're missing.`);
  setTimeout(() => {
- setFinalResult({ passed: defensePassed, feedback });
  setMessages(prev => [...prev, { sender: 'peer', text: feedback, icon: defensePassed ? 'check' : 'x' }]);
+ setFinalResult({ passed: defensePassed, feedback });
  setStage('resolution');
  setTimeout(() => onComplete(defensePassed), 2500);
  }, 800);
- }, [concept, onComplete]);
+ }, [concept, messages, onComplete]);
+
  const handleSubmit = () => {
  if (inputText.length < 20) return;
  const userText = inputText;
@@ -252,15 +260,17 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  <div className={styles.bubble}>
  <div className={styles.peerName}>{selectedPeer.name} ({selectedPeer.role})</div>
  <p>{misconception.statement}</p>
- {analogicalModel && (
+ {analogicalModel && analogicalModel.trim().length > 0 && (
  <p className={styles.analogyContext}>{analogicalModel}</p>
  )}
  </div>
  </div>
  {messages.map((msg, i) => (
  msg.sender === 'user' ? (
- <div key={i} className={`${styles.userMessage} ${styles.response}`}>
+ <div key={i} className={styles.userMessage}>
+ <div className={styles.bubble}>
  <p>{msg.text}</p>
+ </div>
  </div>
  ) : (
  <div key={i} className={styles.peerMessage}>
@@ -274,11 +284,18 @@ export function PeerReviewActivity({ concept, allConcepts, onComplete }: PeerRev
  </div>
  )
  ))}
+ <div ref={chatEndRef} />
  </div>
  {aiLoading && (
- <div className={styles.inputArea} style={{ justifyContent: 'center', opacity: 0.6 }}>
- <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
- <span style={{ fontSize: '0.8125rem' }}>Thinking...</span>
+ <div className={styles.thinkingRow}>
+ <Loader2 size={16} className={styles.spinner} />
+ <span>Thinking...</span>
+ </div>
+ )}
+ {finalResult && stage === 'resolution' && (
+ <div className={finalResult.passed ? styles.resultSuccess : styles.resultFail}>
+ {finalResult.passed ? <CheckCircle size={16} /> : <XCircle size={16} />}
+ <span>{finalResult.passed ? 'Well reasoned.' : 'Not quite there.'}</span>
  </div>
  )}
  {showInput && !finalResult && !aiLoading && (
