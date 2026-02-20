@@ -4,24 +4,17 @@
     height: 100%;
     min-height: 0;
     background: var(--color-bg-primary);
-    position: relative;
 }
 
 .floatingBar {
-    position: absolute;
-    top: 0.75rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 50;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.4rem;
-    background: rgba(14, 10, 30, 0.82);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(120, 80, 255, 0.22);
-    border-radius: 999px;
-    padding: 0.3rem 0.4rem;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    padding: 0.4rem 1rem;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(120, 80, 255, 0.12);
+    background: rgba(10, 7, 22, 0.6);
 }
 
 .homeBtn {
