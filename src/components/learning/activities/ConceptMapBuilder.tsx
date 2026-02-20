@@ -96,6 +96,7 @@ interface ConceptMapBuilderProps {
  /** Current subject name for dynamic AI stopwords */
  subjectName?: string;
  mode?: 'guided' | 'free';
+ focusConcept?: string;
 }
 interface MapNode {
  id: string;
@@ -127,7 +128,8 @@ export default function ConceptMapBuilder({
  dependencyGraph,
  userGuesses,
  subjectName,
- mode: initialMode = 'guided'
+ mode: initialMode = 'guided',
+ focusConcept,
 }: ConceptMapBuilderProps) {
  // ========== SENSA v2.0 Phase State ==========
  const { isScholarly } = useVisualTheme();
@@ -256,6 +258,13 @@ export default function ConceptMapBuilder({
  }, [history, historyIndex]);
  const canUndo = historyIndex >= 0;
  const canRedo = historyIndex < history.length - 1;
+
+ useEffect(() => {
+  if (!focusConcept) return;
+  const concept = concepts.find(c => c.name === focusConcept);
+  if (!concept || addedConceptIds.has(concept.id)) return;
+  handleAddConcept(concept);
+ }, [focusConcept]);
 
  // ========== AUTOSAVE: Persist draft on every meaningful change ==========
  useEffect(() => {
@@ -1572,7 +1581,7 @@ export default function ConceptMapBuilder({
  return (
  <div
  key={node.id}
- className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''} ${isGroupTarget ? styles.groupDragging : ''}`}
+ className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''} ${isGroupTarget ? styles.groupDragging : ''} ${focusConcept && node.conceptName === focusConcept ? styles.focusEntry : ''}`}
  style={{ left: node.x, top: node.y }}
  onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
  onDoubleClick={(e) => handleNodeDoubleClick(e, node.id)}

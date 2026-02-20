@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Brain, Home, Map, Layers } from 'lucide-react';
@@ -31,6 +31,8 @@ export default function VelocityLearning() {
     const sensaFlow = useSensaFlow();
     const [activeTab, setActiveTab] = useState<ActiveTab>('ulc');
     const [isInitializing, setIsInitializing] = useState(true);
+    const [portalConcept, setPortalConcept] = useState<string | null>(null);
+    const [focusConcept, setFocusConcept] = useState<string | null>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => setIsInitializing(false), UI_TIMINGS.DELAY_SHORT);
@@ -126,6 +128,15 @@ export default function VelocityLearning() {
 
     const handleReturnToDashboard = () => { clearSession(); navigate('/'); };
 
+    const handleExploreWhy = useCallback((conceptName: string) => {
+        setPortalConcept(conceptName);
+        setTimeout(() => {
+            setFocusConcept(conceptName);
+            setActiveTab('map');
+            setPortalConcept(null);
+        }, 900);
+    }, []);
+
     const allComplete = useMemo(() => {
         if (!currentSession) return false;
         return currentSession.progress.completedConcepts.length >= currentSession.concepts.length;
@@ -194,6 +205,43 @@ export default function VelocityLearning() {
                 </button>
             </div>
 
+            <AnimatePresence>
+                {portalConcept && (
+                    <motion.div
+                        key="portal"
+                        className={styles.portalOverlay}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <motion.div
+                            className={styles.portalRing}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 260, damping: 22, delay: 0.05 }}
+                        />
+                        <motion.span
+                            className={styles.portalLabel}
+                            initial={{ scale: 0.4, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 1.6, opacity: 0, y: -30 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 24, delay: 0.1 }}
+                        >
+                            {portalConcept}
+                        </motion.span>
+                        <motion.p
+                            className={styles.portalSub}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.25 }}
+                        >
+                            Building relationships...
+                        </motion.p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <AnimatePresence mode="wait">
                 {activeTab === 'ulc' && (
                     <motion.div
@@ -210,6 +258,7 @@ export default function VelocityLearning() {
                             subjectType={currentSession.subjectType}
                             onCellComplete={handleCellComplete}
                             onAllComplete={handleReturnToDashboard}
+                            onExploreWhy={handleExploreWhy}
                         />
                     </motion.div>
                 )}
@@ -227,6 +276,7 @@ export default function VelocityLearning() {
                             concepts={currentSession.concepts}
                             mode="free"
                             subjectName={currentSession.subject}
+                            focusConcept={focusConcept ?? undefined}
                             onComplete={(data) => {
                                 if (studySession) {
                                     useLearningStore.getState().markSessionMapBuilt(data);

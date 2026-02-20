@@ -312,6 +312,16 @@
  box-shadow: 0 0 0 3px var(--overlay-primary-10);
  opacity: 0.9;
 }
+.node.focusEntry {
+ border-color: rgba(120, 80, 255, 0.9);
+ box-shadow: 0 0 0 3px rgba(120, 80, 255, 0.25), 0 0 24px rgba(120, 80, 255, 0.4);
+ animation: focusPulse 1.6s ease-out 3;
+}
+@keyframes focusPulse {
+ 0%   { box-shadow: 0 0 0 3px rgba(120, 80, 255, 0.25), 0 0 24px rgba(120, 80, 255, 0.4); }
+ 50%  { box-shadow: 0 0 0 7px rgba(120, 80, 255, 0.12), 0 0 40px rgba(120, 80, 255, 0.6); }
+ 100% { box-shadow: 0 0 0 3px rgba(120, 80, 255, 0.25), 0 0 24px rgba(120, 80, 255, 0.4); }
+}
 .nodeInfoPopover {
  position: absolute;
  z-index: 50;

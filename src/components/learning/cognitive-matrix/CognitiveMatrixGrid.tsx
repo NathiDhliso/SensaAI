@@ -11,9 +11,10 @@ interface CognitiveMatrixGridProps {
   masteredIds: Set<string>;
   suggestedId: string | null;
   onCellClick: (cell: SelectedCell) => void;
+  onExploreWhy?: (conceptName: string) => void;
 }
 
-export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellClick }: CognitiveMatrixGridProps) {
+export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellClick, onExploreWhy }: CognitiveMatrixGridProps) {
   const colCount = payload.verbs.length;
   const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
   const [openTrunks, setOpenTrunks] = useState<Set<string>>(() => new Set());
@@ -197,6 +198,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                   onFocus={() => { setFocusedTrunkId(trunk.conceptId); setExpandedCell(null); }}
                   onCellTap={handleCellTap}
                   onCloseDrawer={() => setExpandedCell(null)}
+                  onExploreWhy={onExploreWhy}
                 />
               );
             })}
@@ -247,6 +249,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                     onToggle={() => toggleBranch(branch.conceptId)}
                     onCellTap={handleCellTap}
                     onCloseDrawer={() => setExpandedCell(null)}
+                    onExploreWhy={onExploreWhy}
                     focusMode
                   />
                 ))}
@@ -265,6 +268,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onCellC
                     isMatch={null}
                     onCellTap={handleCellTap}
                     onCloseDrawer={() => setExpandedCell(null)}
+                    onExploreWhy={onExploreWhy}
                     focusMode
                   />
                 ))}

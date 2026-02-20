@@ -20,6 +20,7 @@ interface ULCPracticeControllerProps {
     metrics: Partial<QMetricInputs>
   ) => void;
   onAllComplete: () => void;
+  onExploreWhy?: (conceptName: string) => void;
 }
 
 export function ULCPracticeController({
@@ -28,6 +29,7 @@ export function ULCPracticeController({
   subjectType,
   onCellComplete,
   onAllComplete,
+  onExploreWhy,
 }: ULCPracticeControllerProps) {
   const { studySession, currentSession } = useLearningStore();
   const lifecycleVerbs = useGenerationStore(state => state.pass1Data?.lifecycle);
@@ -157,6 +159,7 @@ export function ULCPracticeController({
         masteredIds={masteredIds}
         suggestedId={suggestedId}
         onCellClick={handleCellClick}
+        onExploreWhy={onExploreWhy}
       />
 
     </div>

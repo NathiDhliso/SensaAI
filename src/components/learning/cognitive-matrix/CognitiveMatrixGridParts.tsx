@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, ChevronRight, Maximize2 } from 'lucide-react';
+import { CheckCircle, ChevronRight, Maximize2, Network } from 'lucide-react';
 import type { MatrixConcept, BranchRow, LeafRow, DrillDownAction } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
 
@@ -57,11 +57,11 @@ export function GridCell({ conceptId, realConceptId, conceptName, verb, action, 
   );
 }
 
-export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expandedCell, colCount, colTemplate, depth, heatmap, isMatch, onCellTap, onCloseDrawer, focusMode }: {
+export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expandedCell, colCount, colTemplate, depth, heatmap, isMatch, onCellTap, onCloseDrawer, onExploreWhy, focusMode }: {
   leaf: LeafRow; verbs: string[]; masteredIds: Set<string>; suggestedId: string | null;
   expandedCell: ExpandedCell | null; colCount: number; colTemplate: string; depth: 1 | 2;
   heatmap: boolean; isMatch: boolean | null; onCellTap: (cell: ExpandedCell) => void;
-  onCloseDrawer: () => void; focusMode?: boolean;
+  onCloseDrawer: () => void; onExploreWhy?: (conceptName: string) => void; focusMode?: boolean;
 }) {
   const isDrawerOpen = expandedCell?.conceptId === leaf.conceptId;
   const isMasteredLeaf = Object.values(leaf.cellConceptIds).some(id => masteredIds.has(id));
@@ -134,6 +134,12 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
                 </div>
               </div>
               <div className={styles.drawerFooter}>
+                {onExploreWhy && (
+                  <button className={styles.exploreWhyBtn} onClick={() => onExploreWhy(leaf.conceptName)}>
+                    <Network size={13} />
+                    Explore Why
+                  </button>
+                )}
                 <button className={styles.drawerClose} onClick={onCloseDrawer}>Dismiss</button>
               </div>
             </div>
@@ -144,11 +150,11 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
   );
 }
 
-export function BranchRowGroup({ branch, verbs, masteredIds, suggestedId, expandedCell, isOpen, colCount, colTemplate, heatmap, matchingLeafIds, onToggle, onCellTap, onCloseDrawer, focusMode }: {
+export function BranchRowGroup({ branch, verbs, masteredIds, suggestedId, expandedCell, isOpen, colCount, colTemplate, heatmap, matchingLeafIds, onToggle, onCellTap, onCloseDrawer, onExploreWhy, focusMode }: {
   branch: BranchRow; verbs: string[]; masteredIds: Set<string>; suggestedId: string | null;
   expandedCell: ExpandedCell | null; isOpen: boolean; colCount: number; colTemplate: string;
   heatmap: boolean; matchingLeafIds: Set<string> | null; onToggle: () => void;
-  onCellTap: (cell: ExpandedCell) => void; onCloseDrawer: () => void; focusMode?: boolean;
+  onCellTap: (cell: ExpandedCell) => void; onCloseDrawer: () => void; onExploreWhy?: (conceptName: string) => void; focusMode?: boolean;
 }) {
   const masteredInBranch = branch.children.filter(l => Object.values(l.cellConceptIds).some(id => masteredIds.has(id))).length;
   return (
@@ -172,7 +178,7 @@ export function BranchRowGroup({ branch, verbs, masteredIds, suggestedId, expand
               <LeafRowComponent key={leaf.conceptId} leaf={leaf} verbs={verbs} masteredIds={masteredIds}
                 suggestedId={suggestedId} expandedCell={expandedCell} colCount={colCount} colTemplate={colTemplate}
                 depth={2} heatmap={heatmap} isMatch={matchingLeafIds ? matchingLeafIds.has(leaf.conceptId) : null}
-                onCellTap={onCellTap} onCloseDrawer={onCloseDrawer} focusMode={focusMode} />
+                onCellTap={onCellTap} onCloseDrawer={onCloseDrawer} onExploreWhy={onExploreWhy} focusMode={focusMode} />
             ))}
           </motion.div>
         )}
@@ -181,12 +187,12 @@ export function BranchRowGroup({ branch, verbs, masteredIds, suggestedId, expand
   );
 }
 
-export function TrunkRowGroup({ trunk, verbs, masteredIds, suggestedId, expandedCell, isTrunkOpen, openBranches, colCount, colTemplate, heatmap, matchingLeafIds, onToggleTrunk, onToggleBranch, onFocus, onCellTap, onCloseDrawer }: {
+export function TrunkRowGroup({ trunk, verbs, masteredIds, suggestedId, expandedCell, isTrunkOpen, openBranches, colCount, colTemplate, heatmap, matchingLeafIds, onToggleTrunk, onToggleBranch, onFocus, onCellTap, onCloseDrawer, onExploreWhy }: {
   trunk: MatrixConcept; verbs: string[]; masteredIds: Set<string>; suggestedId: string | null;
   expandedCell: ExpandedCell | null; isTrunkOpen: boolean; openBranches: Set<string>;
   colCount: number; colTemplate: string; heatmap: boolean; matchingLeafIds: Set<string> | null;
   onToggleTrunk: () => void; onToggleBranch: (id: string) => void; onFocus: () => void;
-  onCellTap: (cell: ExpandedCell) => void; onCloseDrawer: () => void;
+  onCellTap: (cell: ExpandedCell) => void; onCloseDrawer: () => void; onExploreWhy?: (conceptName: string) => void;
 }) {
   const allLeaves = [...trunk.branches.flatMap(b => b.children), ...trunk.children];
   const totalLeaves = allLeaves.length;
@@ -217,13 +223,13 @@ export function TrunkRowGroup({ trunk, verbs, masteredIds, suggestedId, expanded
                 suggestedId={suggestedId} expandedCell={expandedCell} isOpen={openBranches.has(branch.conceptId)}
                 colCount={colCount} colTemplate={colTemplate} heatmap={heatmap} matchingLeafIds={matchingLeafIds}
                 onToggle={() => onToggleBranch(branch.conceptId)} onCellTap={onCellTap}
-                onCloseDrawer={onCloseDrawer} />
+                onCloseDrawer={onCloseDrawer} onExploreWhy={onExploreWhy} />
             ))}
             {trunk.children.map(leaf => (
               <LeafRowComponent key={leaf.conceptId} leaf={leaf} verbs={verbs} masteredIds={masteredIds}
                 suggestedId={suggestedId} expandedCell={expandedCell} colCount={colCount} colTemplate={colTemplate}
                 depth={1} heatmap={heatmap} isMatch={matchingLeafIds ? matchingLeafIds.has(leaf.conceptId) : null}
-                onCellTap={onCellTap} onCloseDrawer={onCloseDrawer} />
+                onCellTap={onCellTap} onCloseDrawer={onCloseDrawer} onExploreWhy={onExploreWhy} />
             ))}
           </motion.div>
         )}
