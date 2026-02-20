@@ -1,6 +1,6 @@
 # Generation Pipeline
 
-**Last Updated:** February 16, 2026
+**Last Updated:** February 20, 2026
 **Status:** MANDATORY — Understand this before modifying generation or parsing code.
 
 ---
@@ -30,17 +30,17 @@ User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Ge
 ```
 
 ### Process
-1. If `trunks` provided (≥2): Use them as domain names. If `context` is also provided, `_enrich_domains_from_context()` parses `[Domain Name - Weight%] Task` lines to populate subtopics and real weights per domain. Classification still runs in parallel for metadata.
+1. If `trunks` provided (≥2): Use them as domain names. If `context` is also provided, `_enrich_domains_from_context()` parses `[Domain Name - Weight%] Task` lines to populate subtopics and real weights per domain.
 2. If no trunks: Classify the subject into one of 4 types (procedural/conceptual/cyclic/perceptual), then extract domains from classification.
 
 ### Output
 ```typescript
 {
   subjectType: SubjectType;           // 'procedural' | 'conceptual' | 'cyclic' | 'perceptual'
-  classification: object;             // Full classification metadata
-  macroStructure: MacroStructure;     // Domain weights and ordering
-  connectiveTissue: object;           // Cross-domain relationships
-  domains: Array<{ name, weight }>;   // The trunk domains to generate
+  classification: object;
+  macroStructure: MacroStructure;
+  connectiveTissue: object;
+  domains: Array<{ name, weight }>;
 }
 ```
 
@@ -52,41 +52,52 @@ User Input → Backend Lambda → Phase 1 (Domain Analysis) → Phase 2 (Tree Ge
 **Runs once per domain (trunk)**
 
 ### Prompt Caching (Cost Optimization)
-The system prompt (rules, TRACES framework, worked example, field style guide) is sent as a structured content block with `cache_control: {"type": "ephemeral"}` via `_build_cached_system()`. This enables Bedrock prompt caching:
+The system prompt is sent as a structured content block with `cache_control: {"type": "ephemeral"}` via `_build_cached_system()`:
 - **First domain call**: cache write at 1.25× base input token price
-- **Subsequent domain calls** (4+ per generation): cache read at 0.1× base input token price (90% discount)
-- Cache TTL: 5 minutes (sufficient for parallel domain calls within a single generation)
-- Minimum: 1,024 tokens per checkpoint (system prompt is ~12K tokens, well above minimum)
-- Cache metrics logged per call via `_log_cache_metrics()`: input/output tokens, cache_read, cache_write
+- **Subsequent domain calls**: cache read at 0.1× base input token price (90% discount)
+- Cache TTL: 5 minutes
+- Cache metrics logged per call via `_log_cache_metrics()`
 
-### Process
-For each domain, the LLM generates a tree of concepts:
-- 1 trunk concept (the domain itself)
-- Multiple branch concepts (sub-topics)
-- Multiple leaf concepts (granular testable items)
+### What the LLM Generates Per Concept
 
-Each concept includes: `treeLevel`, `parentName`, `cognitiveLevel`, `connections[]`, `phase1`, `phase2`, `phase3`, `shape`, `workedExample`, `commonPitfalls`, `mnemonic`, `keyPoints`, `scoring`, `criticalDistinctions`, `designBoundaries`, etc.
+Every concept includes these fields (see [Desirable Results](./DESIRABLE_RESULTS.md) for quality examples):
 
-### Output
-Raw JSON array of concepts per domain, merged into a single flat array.
+| Field | Type | Notes |
+|-------|------|-------|
+| `name` | string | Human-readable, learnable in 5-10 min |
+| `treeLevel` | trunk/branch/leaf | Declares tier |
+| `parentName` | string | Direct parent concept name |
+| `trunkDomain` | string | Top-level domain |
+| `cognitiveLevel` | Bloom's level | Leaf: prefer apply/analyze/evaluate/create |
+| `order` | number | Sequence within domain |
+| `commonPitfalls` | string[] | Critical misconceptions — rendered in UI |
+| `phase1` | object | hookSentence, microMetaphor, prerequisite, selection[], execution |
+| `phase2` | string[] | **Plain strings** — NOT `{title, content}` objects |
+| `phase3` | object | tool, metrics[], thresholds |
+| `mnemonic` | object | anchor (concrete object), story |
+| `keyPoints` | string[] | Summary bullets |
+| `whyYouNeed` | string | Motivation for learning |
+| `technicalDetails` | string | Deep technical explanation |
+| `workedExample` | object | problem, solution, steps[] |
+| `shape` | object | simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic |
+| `perspectives` | array | Creator's Blueprint — 2-4 items, each with label/blueprint/steps |
+| `connections` | array | target + type (requires/enables/is-part-of/is-type-of/causes/constrains) |
+| `scoring` | object | keywords[], aliases[] — backend use only, not rendered in UI |
+
+**REMOVED fields** (deleted — do NOT re-add to prompt or parser):
+- `criticalDistinctions` — was never parsed or rendered
+- `designBoundaries` — was never parsed or rendered
 
 ### Quality Gate: Concept Validation (`_validate_concept`)
-Every concept is validated before inclusion. Concepts are **rejected and discarded** (not flagged) if they fail any check:
+Concepts are **rejected and discarded** if they fail any check:
 - Missing `name`, `simpleCore`, `cognitiveLevel`, or `connections`
 - Mnemonic anchor is just the concept name, or story is template/short (<50 chars)
 - `hookSentence`, `microMetaphor`, `whyYouNeed`, `simpleCore` match any of 32+ template regex patterns (e.g. "Without proper X...", "Think of X as...", "X is crucial/critical/essential...")
 - `whyYouNeed` < 60 chars
 - `patternRecognition` has empty question or answer, or either < 30 chars
 - `workedExample.problem` or `.solution` < 20 chars (branch/leaf only)
-- Template content detected in `phase1.execution`, `phase1.selection`, `phase2` items, `phase3.tool`, `phase3.metrics`, `criticalDistinctions`, or `designBoundaries`
 
-### Prompt Quality Enforcement (`_split_prompt`)
-Every generation prompt has automatic rejection patterns appended:
-- hookSentence: Never "Without proper X...", "Improperly configured X..."
-- microMetaphor: Never "Think of X as..."
-- whyYouNeed: Never "X is crucial/critical/essential..."
-
-### JSON Repair Pipeline (`_repair_json` + `_parse_concepts_from_response`)
+### JSON Repair Pipeline
 LLM responses go through a 7-stage repair pipeline before parsing:
 1. BOM removal
 2. Markdown code fence stripping
@@ -106,22 +117,16 @@ Parsing then attempts 4 stages: regex array extraction → direct parse → wrap
 **Runs automatically after Phase 2 when domains have structured objectives**
 
 ### Double-Post Pipeline
-After the initial per-domain generation and deduplication:
-1. **Scope-creep check (pass 1):** `_detect_scope_creep()` tests each branch/leaf concept against ALL objectives. Concepts with <40% keyword match to their best-matching objective are removed. Trunks are exempt.
-2. **Coverage analysis:** `_analyze_coverage_gaps()` extracts keywords from each objective and checks if ≥60% of keywords appear in any **individual** concept's content (per-concept matching, not bag-of-words across all concepts).
-3. **Gap-fill generation:** `_generate_gap_fill()` makes parallel Bedrock calls per domain with gaps, using `GAP_FILL_PROMPT` with existing concept/branch names to avoid duplication.
-4. New concepts are validated, deduped by name against existing concepts, then merged.
-5. **Scope-creep check (pass 2):** `_detect_scope_creep()` runs again on the combined set to catch any gap-fill concepts that drifted out of scope.
-6. Full post-processing (`_post_process_concepts`) runs on the final set.
+1. **Scope-creep check (pass 1):** `_detect_scope_creep()` — concepts with <40% keyword match to their best-matching objective are removed. Trunks exempt.
+2. **Coverage analysis:** `_analyze_coverage_gaps()` — checks if ≥60% of objective keywords appear in any individual concept's content.
+3. **Gap-fill generation:** `_generate_gap_fill()` — parallel Bedrock calls per domain with gaps.
+4. New concepts validated, deduped by name, merged.
+5. **Scope-creep check (pass 2):** Runs again on combined set.
+6. Full post-processing runs on final set.
 
 ### When It Activates
 - Only when domains have `subtopics` (structured objectives from exam catalogs or context enrichment)
-- Only when the initial generation produced at least 1 concept
-- Skipped for free-form subjects with no structured objectives
-- **Gap-fill gating**: Gap-fill is skipped when total uncovered objectives across all domains is ≤2 (too few to justify extra Bedrock calls). Saves 1-3 Bedrock calls on clean generations.
-
-### Output
-Merged flat array of original + gap-fill concepts, scope-checked and fully post-processed.
+- Skipped when total uncovered objectives ≤2 (saves 1-3 Bedrock calls on clean generations)
 
 ---
 
@@ -129,13 +134,21 @@ Merged flat array of original + gap-fill concepts, scope-checked and fully post-
 
 ### Parser Chain
 ```
-Raw JSON → concept-schema.ts (Zod validation) → transformer.ts (normalization) → LearningConcept[]
+Raw JSON → json-parser.ts (field extraction) → transformer.ts (normalization) → LearningConcept[]
 ```
 
 **Files:**
-- **Schema:** `src/shared/types/concept-schema.ts` — Zod schema with `trunk/branch/leaf` validation
-- **Transformer:** `src/features/content-generation/parsers/transformer.ts` — Normalizes raw data into `LearningConcept` interface
-- **Types:** `src/features/content-generation/parsers/types.ts` — `ParsedConcept`, `ParsedGeneratedContent`
+- `src/features/content-generation/parsers/json-parser.ts` — Extracts all fields from raw LLM JSON into `ParsedConcept`
+- `src/features/content-generation/parsers/transformer.ts` — Normalizes `ParsedConcept` into `LearningConcept`
+- `src/features/content-generation/parsers/types.ts` — `ParsedConcept`, `ParsedGeneratedContent` interfaces
+
+### Key Parser Behaviors
+
+**`phase2` parsing:** The LLM now generates `phase2` as plain strings. The parser handles both plain strings and legacy `{title, content}` objects (extracts `.content` from the latter). Result is always `string[]`.
+
+**`perspectives` parsing:** Extracted from `c.perspectives` array. Each item validated for `label` (string) and `steps` (array). Empty/invalid items filtered out. Passed through as `ParsedConcept.perspectives`.
+
+**`technicalDetails`:** Read directly from `parsedConcept.technicalDetails`. No longer synthesized from `criticalDistinctions`/`designBoundaries` (those fields are deleted).
 
 ### Transformer Responsibilities
 1. Assign `tier` from `treeLevel` field
@@ -145,34 +158,39 @@ Raw JSON → concept-schema.ts (Zod validation) → transformer.ts (normalizatio
 5. Map `cognitiveLevel` to Bloom's taxonomy
 6. Structure `lifecycle` into `phase1/phase2/phase3` — uses only AI-generated steps, empty arrays when absent
 7. Build `shape` content (simpleCore, highStakesExample, patternRecognition, etc.)
-8. Generate `dependencies[]` ID array from relationship data
-9. Set `lifecyclePhase` (PREPARE/MODEL/DELIVER) from stage mapping
+8. Pass `perspectives` directly from `parsedConcept.perspectives`
+9. Generate `dependencies[]` ID array from relationship data
+10. Set `lifecyclePhase` (PREPARE/MODEL/DELIVER) from stage mapping
 
-### Strict No-Fallback Policy (Transformer)
+### Strict No-Fallback Policy
 - No skeleton concept injection — only explicitly generated concepts are used
 - No synthetic lifecycle steps — empty arrays when AI data is absent
 - No prerequisite-text inference for connections — only `strictConnections` and `mnemonic.dependsOn`
 - No synthetic concept names — empty string returned for unnamed concepts (filtered by dedup)
-- No `fallbackConcepts` parameter — removed from all transformer functions
 
-### Trunk Inference (Frontend)
-Legacy content may lack explicit `tier: 'trunk'` concepts. Both `SessionScoutPreview` and `ContentLaunchpad` apply the same fallback logic:
-1. If no concepts have `tier === 'trunk'`, collect unique `trunkDomain` values from all concepts
-2. If still empty, collect `parentName` (or `mnemonic.parentName`) values that don't match any existing concept name — these are implicit trunk domains
-3. Synthesize virtual trunk entries (in `SessionScoutPreview`) or count inferred trunks (in `ContentLaunchpad` stats bar)
+---
 
-`buildDocumentFromConcepts` in `backend-client.ts` preserves `parentName` and `trunkDomain` in the reconstructed JSON so these fields survive the DynamoDB → API → parse round-trip.
+## Creator's Blueprint Data Flow
 
-### Validation
-**File:** `src/features/content-generation/validators/`
-- `content-quality.ts` — `isRealContent()` checks for placeholder/filler content
-- `tier-progression.ts` — Validates tier distribution and dependency integrity
-
-### Dependency Graph Strict Mode
-**File:** `src/features/content-generation/generators/dependency-parser.ts`
-- Dependency edges are now built from explicit relationship data only (`strictConnections`, `mnemonic.dependsOn`, `parentName`, `parentId`)
-- No inferred prerequisite-text edges are synthesized
-- No sequential chain fallback edges are auto-generated
+```
+LLM generates perspectives[] per concept
+  ↓
+json-parser.ts: extracts label/blueprint/steps from c.perspectives
+  ↓
+ParsedConcept.perspectives: Array<{label, blueprint, steps}>
+  ↓
+transformer.ts: passes perspectives: parsedConcept.perspectives
+  ↓
+LearningConcept.perspectives: CreatorPerspective[]
+  ↓
+buildMatrixPayload.ts buildPerspectives():
+  - Returns concept.perspectives directly if present
+  - Falls back to synthesizing from lifecycle.phase1/2/3.steps
+  ↓
+DrillDownAction.perspectives: CreatorPerspective[]
+  ↓
+CognitiveMatrixGridParts.tsx: pill switcher + steps display
+```
 
 ---
 
@@ -184,21 +202,10 @@ LearningConcept[] → content-storage feature → DynamoDB (via API Gateway + La
                    → Also saved to localStorage as backup
 ```
 
-**Files:**
-- `src/features/content-storage/` — Save/load/delete operations
-- `src/shared/api/concepts.ts` — API endpoint definitions
-
 ### Load
 ```
 DynamoDB → API → ParsedGeneratedContent → transformer.ts → LearningConcept[] → Zustand stores
 ```
-
-Stored as `SavedResult` which includes:
-- Raw generated content
-- Parsed concepts
-- Subject metadata
-- Generation timestamp
-- User objectives (if provided)
 
 ---
 
@@ -226,22 +233,22 @@ Stored as `SavedResult` which includes:
 |-------|------|---------|
 | `generation-store` | `src/store/generation-store.ts` | Generation progress, subjectType, macroWorkflow |
 | `learning-store` | `src/store/learning-store.ts` | User progress, completed concepts, scores |
-| `personalization-store` | `src/store/personalization-store.ts` | Persona, mood, metaphor toggle, practice mode |
+| `personalization-store` | `src/store/personalization-store.ts` | Persona, mood, practice mode |
 | `theme-store` | `src/store/theme-store.ts` | Visual theme (playful/scholarly), dark mode |
 
 ---
 
 ## Post-Processing Pipeline (`_post_process_concepts`)
 
-After all concepts are collected (including gap-fill and scope-creep filtering), the pipeline runs in this exact order:
+Runs in this exact order after all concepts are collected:
 1. **ID Assignment** — `generate_id()` for any concept missing an `id`
 2. **Stage Default** — `stageId` defaults to `PREPARE`
 3. **Mnemonic Default** — Empty `{}` if missing
-4. **Scoring Validation** — If `scoring.keywords` is missing/invalid, auto-generates from concept name words
-5. **Tree Structure Validation** — `_validate_tree_structure()`: normalizes `treeLevel`, validates parent references, sets `tier = treeLevel`, logs distribution
-6. **Bloom's Distribution** — `_enforce_blooms_distribution()`: ensures ≥30% higher-order levels (apply/analyze/evaluate/create), upgrades candidates using 50+ keyword heuristics
-7. **TRACES Connection Diversity + Graph Topology** — `_enforce_connection_diversity()`: canonicalizes connection targets to real concept names, drops invalid/self/non-resolvable links, forces structural semantics (`child -> parent` as `is-part-of`), normalizes legacy/invalid types. Enforces strict graph topology: trunk=0 connections, branch max 2, leaf max 3. Removes cross-branch leaf connections (same-branch locality). Fixes backward `requires` (must point to lower-order concepts). Caps `enables` at 20% using keyword-based upgrades
-8. **Content Uniqueness** — `_enforce_unique_content()`: deduplicates mnemonic anchors (renames duplicates), flags duplicate `highStakesExample` company references
+4. **Scoring Validation** — Auto-generates keywords from concept name if `scoring.keywords` missing
+5. **Tree Structure Validation** — `_validate_tree_structure()`: normalizes `treeLevel`, validates parent references, logs distribution
+6. **Bloom's Distribution** — `_enforce_blooms_distribution()`: ensures ≥30% higher-order levels, upgrades candidates using 50+ keyword heuristics
+7. **TRACES Connection Diversity + Graph Topology** — `_enforce_connection_diversity()`: canonicalizes targets, drops invalid links, enforces trunk=0/branch≤2/leaf≤3 topology, removes cross-branch leaf connections, fixes backward `requires`, caps `enables` at 20%
+8. **Content Uniqueness** — `_enforce_unique_content()`: deduplicates mnemonic anchors, flags duplicate `highStakesExample` company references
 
 ---
 
@@ -250,7 +257,6 @@ After all concepts are collected (including gap-fill and scope-creep filtering),
 **File:** `src/features/content-audit/audit-engine.ts`
 **Used by:** ContentLaunchpad, Home.tsx
 
-Audits generated content against user-provided objectives:
 - **Objective alignment:** How well concepts cover stated objectives
 - **Content health:** Checks for placeholder/filler content
 - **Tier distribution:** Validates trunk/branch/leaf ratios
@@ -296,26 +302,12 @@ The frontend polls `conceptsApi.getJobStatus(jobId)` until status is `completed`
 
 ### Lambda Actions
 
-The `handler.py` routes on the `action` field:
-
 | Action | Handler | Description |
 |--------|---------|-------------|
 | `generate` (default) | `_handle_generate_async()` → `_handle_generate()` | Full concept generation pipeline |
-| `suggest_structure` | `_handle_suggest_structure()` | Classifies subject, returns suggested domains with weights and tasks |
-| `repair` | `_handle_repair()` | Surgically fixes a single concept using `SURGICAL_FIX_PROMPT` |
-| `_async_generate` | `_handle_generate()` | Internal — self-invoked async generation (not callable externally) |
-
-### Access Control
-
-Generation is restricted to an allowlist of approved email addresses:
-- **Backend:** `shared/utils.py` → `ALLOWED_GENERATOR_EMAILS` set, `is_generation_allowed(event)` extracts email from Cognito claims (`email` with `username`/`cognito:username` fallback for access tokens)
-- **Frontend:** `src/shared/constants/generator-allowlist.ts` → `isGenerationAllowed()` checks `useAuthStore` email
-- Non-allowlisted users receive 403 on generate attempts
-- Repair and suggest_structure actions are NOT gated by the allowlist
-
-When a request is blocked with 403, diagnostics are emitted at both layers:
-- **Frontend console:** `useGenerationEngine.ts` logs API target host, auth/token claim presence, and request metadata as `[Generation] Failure diagnostics`
-- **Lambda logs:** `generate_concepts/handler.py` logs `[Handler] ACCESS_DIAGNOSTICS` with host/origin, claim keys, masked email source, and allowlist verdict
+| `suggest_structure` | `_handle_suggest_structure()` | Classifies subject, returns suggested domains |
+| `repair` | `_handle_repair()` | Surgically fixes a single concept |
+| `_async_generate` | `_handle_generate()` | Internal — self-invoked async generation |
 
 ### Lambda Functions (`backend/lambda/`)
 ```
@@ -340,21 +332,11 @@ backend/lambda/
 **Concepts Table** (`sensapbl-concepts-dev` / `sensapbl-concepts-prod`)
 - **PK:** `USER#{userId}#SESSION#{sessionId}`
 - **SK:** `TIER#{tier}#CONCEPT#{conceptId}` or `SUBJECT#{sessionId}`
-- **GSI1:** For tier-based queries
 - **TTL:** 168 hours (7 days)
 
 **Jobs Table** (`sensapbl-jobs-dev` / `sensapbl-jobs-prod`)
 - Tracks generation job status, progress, classification data
 - TTL: 24 hours
-
-### Local Storage
-
-| Store | Purpose | TTL |
-|-------|---------|-----|
-| IndexedDB | Full generated documents (offline access) | None |
-| localStorage | Session progress recovery | 24 hours |
-| localStorage (drafts) | Activity in-progress state (concept maps, blank sheet responses) | 24 hours (auto-cleanup) |
-| Zustand (memory + persist) | Active session state, equation values, concept maps | Page lifetime (persisted subset survives refresh) |
 
 ---
 
@@ -364,7 +346,7 @@ backend/lambda/
 ```powershell
 powershell -ExecutionPolicy Bypass -File "infra\scripts\package_lambda.ps1"
 ```
-Then deploy via Terraform (packages layer.zip and lambda_code.zip automatically).
+Then deploy via Terraform.
 
 ### Infrastructure Changes (Terraform)
 ```powershell
@@ -378,15 +360,8 @@ terraform apply "tfplan"
 Auto-deploys via AWS Amplify on push to `main` branch.
 - **Build command:** `npm ci && npm run build` (runs `tsc -b && vite build`)
 - **Build artifacts:** `dist/`
-- **Environment variables:** Set in Amplify console (`VITE_API_URL`, `VITE_COGNITO_*`, `VITE_AWS_*`)
 
 `tsc -b` runs in strict mode during Amplify builds — all TypeScript errors must be resolved before pushing.
-
-### Error Resilience
-- 3-retry exponential backoff at both Lambda (Bedrock calls) and frontend (API calls via `resilience.ts`)
-- Offline queue re-sends failed requests on reconnect
-- Study page hydration retries 3× with backoff
-- `LearningErrorBoundary` catches render crashes with recover/abandon paths
 
 ---
 
@@ -401,8 +376,10 @@ const title = "The Architecture"; // WRONG if lifecycle.phase1.title is availabl
 
 // NEVER compute tiers from graph — tiers are LLM-declared
 const tier = computeTierFromDependencies(concept); // FORBIDDEN
-// Correct: concept.tier (already set by LLM via treeLevel)
 
 // NEVER use 'root' as a tier
 if (concept.tier === 'root') // FORBIDDEN — tier is trunk/branch/leaf only
+
+// NEVER generate phase2 as {title, content} objects in the prompt
+// phase2 must be plain strings: ["Step 1 content", "Step 2 content"]
 ```

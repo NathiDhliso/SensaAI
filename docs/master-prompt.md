@@ -1,6 +1,6 @@
 # SensaAI — Master Context Document
 
-**Last Updated:** February 16, 2026
+**Last Updated:** February 20, 2026
 **Status:** MANDATORY — Read this before touching any code.
 
 ---
@@ -49,7 +49,7 @@ Step 3: STUDY (the 3-phase micro-loop per concept)
 Step 4: APPLY (mastery challenge)
 ```
 
-See: [Learning Science](./learning-science.md)
+See: [Feature Success Criteria](./FEATURE_SUCCESS_CRITERIA.md)
 
 ### 4. AI-Generated Data Must Be Used, Not Ignored
 
@@ -65,6 +65,8 @@ Every field on `LearningConcept` exists because it was generated with purpose. I
 - `trunkDomain` + `parentName` → Breadcrumb hierarchy in UI
 - `cognitiveLevel` → Bloom's badge + difficulty scoring
 - `outdegree` → Concept ordering priority
+- `perspectives` → Creator's Blueprint switcher in DrillDownCard
+
 See: [Type System](./type-system.md)
 
 ### 5. The Folder Structure Is Law
@@ -94,13 +96,11 @@ See: `.cursorrules` for full decision tree.
 |----------|-------|
 | [Styling Specifications](./styling-specifications.md) | CSS variable catalog, theme system, forbidden patterns |
 | [Type System](./type-system.md) | Core interfaces, LearningConcept contract, tier/lifecycle/connection types |
-| [Learning Science](./learning-science.md) | 3-phase loop, activities, algorithms, scoring, Bloom's taxonomy |
 | [Generation Pipeline](./generation-pipeline.md) | Prompt → Lambda → parser → store → UI, backend architecture, deployment |
 | [Implementation Guide](./implementation-guide.md) | Code patterns, anti-patterns, operational pitfalls, checklists |
 | [Authentication](./authentication.md) | Cognito OAuth PKCE, auth store, session management, security model |
 | [Content Storage](./content-storage.md) | StorageManager, DynamoDB schema, IndexedDB, sync engine |
 | [Visual Theme System](./VISUAL_THEME_SYSTEM.md) | Playful vs Scholarly theme modes (4 combinations) |
-| [Metaphor System](./metaphor-system.md) | Metaphor feature architecture, useMetaphorContent hook, data flow |
 
 ---
 
@@ -117,9 +117,7 @@ Generation is restricted to an allowlist of approved email addresses. Both front
 
 **Directory:** `src/shared/constants/exam-catalogs/`
 
-42 certification exams across 7 providers (AWS, Microsoft, CompTIA, Google Cloud, Cisco, PMI, ISC2). Each entry has typed domains with tasks and weights. Home.tsx unified search searches `ALL_CERTS` by name/code/provider. Selected cert domains become trunks, tasks become context objectives for generation.
-
-See: [Content Storage](./content-storage.md) for full catalog breakdown.
+41 certification exams across 7 providers (AWS, Microsoft, CompTIA, Google Cloud, Cisco, PMI, ISC2). Each entry has typed domains with tasks and weights. Home.tsx unified search searches `ALL_CERTS` by name/code/provider. Selected cert domains become trunks, tasks become context objectives for generation.
 
 ---
 
@@ -194,7 +192,7 @@ Global overlays always mounted in `App.tsx`: `SettingsPanel` (slide-out), `Backg
 |-------|------|---------|
 | `useUIStore` | `ui-store.ts` | Settings panel open/close |
 | `useThemeStore` | `theme-store.ts` | Light/dark/system + visual theme (playful/scholarly) |
-| `usePersonalizationStore` | `personalization-store.ts` | Persona, coach intensity, practice mode, stress-free mode, metaphor settings, semester date |
+| `usePersonalizationStore` | `personalization-store.ts` | Persona, coach intensity, practice mode, stress-free mode, semester date |
 | `useGenerationStore` | `generation-store.ts` | Generation jobs, progress, subjectType, macroWorkflow |
 | `useLearningStore` | `learning-store.ts` | Composed from 7 slices: session, navigation, study, cognitive, diagnostic, focus, UI. Study slice persists equation values via `updateSessionEquation()`. |
 | `useAuthStore` | `auth-store.ts` | Authentication state |
@@ -240,20 +238,20 @@ Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `Set
 |------|---------------|
 | `src/App.tsx` | All routes. Mounts global overlays. |
 | `src/components/settings/SettingsPanel.tsx` | Consolidated settings UI |
-| `src/components/learning/session/SessionStartModal.tsx` | Mood-based session curation. Exports `MOOD_GOAL_MAP` (single source of truth). |
+| `src/components/learning/session/SessionStartModal.tsx` | Mood-based session curation. Exports `MOOD_GOAL_MAP`. |
 | `src/components/learning/MicroLearningLoopController.tsx` | Core learning loop orchestrator |
+| `src/components/learning/cognitive-matrix/CognitiveMatrixGridParts.tsx` | DrillDownCard — renders Creator's Blueprint (perspectives switcher) + shape lenses |
+| `src/components/learning/cognitive-matrix/buildMatrixPayload.ts` | Builds `DrillDownAction` payload including `perspectives` |
 | `src/pages/VelocityLearning.tsx` | SENSA v2.0 learning engine |
 | `src/features/content-audit/audit-engine.ts` | Content health + objective alignment scoring |
-| `src/features/content-audit/syllabus-parser.ts` | Smart syllabus/exam paper parser |
-| `src/features/learning-session/activities/gym-ai-service.ts` | AI gym service (Haiku, fallback-first) |
 | `src/shared/constants/theme-colors.ts` | All color constants, mood colors, graph colors |
 | `src/index.css` | Design system single source of truth |
 | `backend/lambda/shared/system_prompt.py` | Generation prompts (classification + tree generation + gap-fill + scope-creep rules) |
 | `backend/lambda/generate_concepts/services/bedrock_service.py` | LLM calls, tree validation, post-processing |
 | `backend/lambda/shared/utils.py` | CORS, API helpers, DynamoDB keys, generator allowlist |
 | `src/shared/constants/generator-allowlist.ts` | Frontend generation access control |
-| `src/shared/constants/exam-catalogs/index.ts` | 42 certification exam catalog (ALL_CERTS) |
-| `src/shared/api/concepts.ts` | Full concepts API surface (11 methods including streaming) |
+| `src/shared/constants/exam-catalogs/index.ts` | 41 certification exam catalog (ALL_CERTS) |
+| `src/shared/api/concepts.ts` | Full concepts API surface |
 
 ---
 
