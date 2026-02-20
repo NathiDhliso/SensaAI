@@ -182,22 +182,17 @@ export default function VelocityLearning() {
 
     return (
         <div className={styles.container}>
-            <nav className={styles.tabBar}>
-                <button
-                    className={`${styles.tab} ${activeTab === 'ulc' ? styles.tabActive : ''}`}
-                    onClick={() => setActiveTab('ulc')}
-                >
-                    <Layers size={16} />
-                    ULC — How
+            <div className={styles.floatingBar}>
+                <button className={styles.homeBtn} onClick={handleReturnToDashboard} title="Return home">
+                    <Home size={15} />
                 </button>
                 <button
-                    className={`${styles.tab} ${activeTab === 'map' ? styles.tabActive : ''}`}
-                    onClick={() => setActiveTab('map')}
+                    className={styles.toggleBtn}
+                    onClick={() => setActiveTab(activeTab === 'ulc' ? 'map' : 'ulc')}
                 >
-                    <Map size={16} />
-                    Build Map — Why
+                    {activeTab === 'ulc' ? <><Map size={14} />Build Map — Why</> : <><Layers size={14} />ULC — How</>}
                 </button>
-            </nav>
+            </div>
 
             <AnimatePresence mode="wait">
                 {activeTab === 'ulc' && (
