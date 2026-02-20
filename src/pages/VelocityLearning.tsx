@@ -255,9 +255,6 @@ export default function VelocityLearning() {
                         <ULCPracticeController
                             concepts={currentSession.concepts}
                             completedConceptIds={currentSession.progress.completedConcepts}
-                            subjectType={currentSession.subjectType}
-                            onCellComplete={handleCellComplete}
-                            onAllComplete={handleReturnToDashboard}
                             onExploreWhy={handleExploreWhy}
                         />
                     </motion.div>
