@@ -44,10 +44,22 @@ function buildStepsForVerb(concept: LearningConcept, verbIndex: number): string[
 }
 
 function buildAction(concept: LearningConcept, verbIndex: number): DrillDownAction {
+  const phase3Raw = concept.lifecycle?.phase3 as unknown as { tool?: string; metrics?: string[] } | undefined;
   return {
     trick: buildTrick(concept),
     chain: buildChain(concept),
     steps: buildStepsForVerb(concept, verbIndex),
+    shape: concept.shape ? {
+      simpleCore: concept.shape.simpleCore,
+      highStakesExample: concept.shape.highStakesExample,
+      analogicalModel: concept.shape.analogicalModel,
+      patternRecognition: concept.shape.patternRecognition,
+      eliminationLogic: concept.shape.eliminationLogic,
+    } : undefined,
+    phase3: (phase3Raw?.tool || phase3Raw?.metrics?.length) ? {
+      tool: phase3Raw?.tool,
+      metrics: phase3Raw?.metrics,
+    } : undefined,
   };
 }
 

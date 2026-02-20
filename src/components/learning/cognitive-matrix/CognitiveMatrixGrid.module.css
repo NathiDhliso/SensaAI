@@ -1008,3 +1008,138 @@
   color: rgba(160, 130, 255, 0.4);
   font-style: italic;
 }
+
+.shapeLenses {
+  border-bottom: 1px solid rgba(120, 80, 255, 0.12);
+  background: rgba(120, 80, 255, 0.04);
+}
+
+.shapeTabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(120, 80, 255, 0.14);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.shapeTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.shapeTab {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(160, 130, 255, 0.55);
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.shapeTab:hover {
+  color: rgba(200, 175, 255, 0.85);
+}
+
+.shapeTabActive {
+  color: rgba(210, 190, 255, 0.98);
+  border-bottom-color: rgba(160, 120, 255, 0.75);
+}
+
+.shapeLensBody {
+  padding: 0.85rem 1rem;
+  min-height: 60px;
+}
+
+.lensText {
+  font-size: 0.82rem;
+  color: rgba(225, 215, 255, 0.88);
+  line-height: 1.65;
+  margin: 0;
+  font-style: italic;
+}
+
+.patternBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.patternQ {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255, 215, 100, 0.9);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.patternA {
+  font-size: 0.8rem;
+  color: rgba(180, 230, 180, 0.88);
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 0.75rem;
+  border-left: 2px solid rgba(100, 200, 120, 0.35);
+}
+
+.phase3Box {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(80, 220, 180, 0.1);
+  background: rgba(80, 220, 180, 0.03);
+  border-left: 3px solid rgba(80, 220, 180, 0.35);
+}
+
+.phase3Header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+}
+
+.phase3Label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(100, 230, 200, 0.8);
+  text-transform: uppercase;
+}
+
+.phase3Tool {
+  font-size: 0.8rem;
+  color: rgba(200, 245, 235, 0.88);
+  line-height: 1.55;
+  margin: 0 0 0.5rem 0;
+  font-style: italic;
+}
+
+.phase3Metrics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.phase3Metric {
+  font-size: 0.76rem;
+  color: rgba(160, 230, 210, 0.8);
+  padding-left: 0.9rem;
+  position: relative;
+  line-height: 1.45;
+}
+
+.phase3Metric::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: rgba(80, 220, 180, 0.55);
+  font-weight: 700;
+}

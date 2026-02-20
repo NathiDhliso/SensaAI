@@ -285,6 +285,42 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
 ```
 **CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must match this depth and specificity **for your subject domain**. Adapt terminology, examples, and scenarios to the actual subject. If a field could apply to any concept by swapping the name, it is too generic and will be rejected.
 ---
+## 4.2 SHAPE LENS RULES (subject-type-specific)
+The `shape` object has 5 lenses. Each must be tailored to the subject type:
+
+**`simpleCore`** — One sentence, zero jargon. The irreducible idea.
+- Procedural: "What this resource/action does in one sentence."
+- Conceptual: "The core principle in plain language."
+- Cyclic/Perceptual: "The key insight that changes how you see this."
+
+**`analogicalModel`** — "[Concept] is/are [concrete system] — [precise mapping of parts]."
+- Procedural (Azure/AWS/GCP): Map to a physical infrastructure analogy (e.g., "An NSG is a building security desk — rules are the visitor policy, inbound = arrivals, outbound = departures").
+- Procedural (CLI/Terraform/Portal): Explicitly name the tool context: "In Terraform, this resource block is like a blueprint — `azurerm_virtual_network` declares the floor plan before any walls are built."
+- Conceptual (Law/Music/Finance): Map to a familiar social/physical system.
+- Perceptual: Map to a sensory or spatial experience.
+BANNED: "Think of X as..." — use "X is/are [metaphor] —" format only.
+
+**`highStakesExample`** — REAL event: Company/Person + Year + specific outcome.
+- Procedural (cloud/infra): Use real outages, breaches, or misconfigurations (e.g., "Capital One (2019) — misconfigured WAF allowed SSRF, exposing 100M records stored in S3").
+- Procedural (DevOps/IaC): Use real deployment failures or rollback incidents.
+- Conceptual (Law): Use real court cases with citation and ruling.
+- Conceptual (Finance): Use real market events with dates and figures.
+- Perceptual (Medicine/Chess): Use real diagnostic errors or match decisions.
+BANNED: Generic "Company X lost money because of poor Y" — must have real names, year, and specific technical detail.
+
+**`patternRecognition`** — Scenario-based Q&A that forces the learner to apply the concept.
+- Procedural: "You are given [specific exam scenario with resource names/configs]. What happens / What should you do?"
+- Conceptual: "A client presents [specific fact pattern]. Which doctrine applies and why?"
+- Cyclic: "The team is at [specific phase]. What signal tells you to iterate vs. proceed?"
+- Perceptual: "You observe [specific symptom/pattern]. What is the most likely cause?"
+The `answer` must explain the reasoning chain, not just state the answer.
+
+**`eliminationLogic`** — How to eliminate wrong answers on an exam.
+- Procedural: "If the question mentions [X] → eliminate [Y] because [reason]. If [A] and [B] are both present → choose [A] because [distinction]."
+- Conceptual: "Distinguish [concept] from [similar concept]: [concept] requires [element], [similar] does not."
+- Perceptual: "When you see [signal] → rule out [condition] first because [reason]."
+This must be actionable decision logic, not a restatement of the concept.
+---
 ## 5. CRITICAL RULES
 1. **TREE INTEGRITY**: Every branch `parentName` = trunk name. Every leaf `parentName` = a branch name. Trunk `parentName` = null.
 2. **QUANTITY**: ~{count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).

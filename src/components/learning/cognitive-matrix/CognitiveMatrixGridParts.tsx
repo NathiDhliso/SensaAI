@@ -1,7 +1,17 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, ChevronRight, Maximize2, Network } from 'lucide-react';
 import type { MatrixConcept, BranchRow, LeafRow, DrillDownAction } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
+
+const SHAPE_TABS = [
+  { key: 'analogicalModel',    icon: '🧠', label: 'Analogy' },
+  { key: 'simpleCore',         icon: '💡', label: 'Core' },
+  { key: 'highStakesExample',  icon: '🔥', label: 'Real Case' },
+  { key: 'patternRecognition', icon: '🎯', label: 'Pattern' },
+  { key: 'eliminationLogic',   icon: '✂️', label: 'Eliminate' },
+] as const;
+type ShapeTabKey = typeof SHAPE_TABS[number]['key'];
 
 export interface ExpandedCell {
   conceptId: string;
@@ -63,6 +73,7 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
   heatmap: boolean; isMatch: boolean | null; onCellTap: (cell: ExpandedCell) => void;
   onCloseDrawer: () => void; onExploreWhy?: (conceptName: string) => void; focusMode?: boolean;
 }) {
+  const [activeShapeTab, setActiveShapeTab] = useState<ShapeTabKey>('analogicalModel');
   const isDrawerOpen = expandedCell?.conceptId === leaf.conceptId;
   const isMasteredLeaf = Object.values(leaf.cellConceptIds).some(id => masteredIds.has(id));
   const labelClass = focusMode
@@ -105,14 +116,71 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
                 <span className={styles.drawerConcept}>{expandedCell.conceptName}</span>
               </div>
               <div className={styles.drawerBody}>
-                <div className={styles.trickBox}>
-                  <div className={styles.trickLabel}>
-                    <span className={styles.trickIcon}>🧠</span>
-                    <span>THE TRICK</span>
-                    <span className={styles.trickTag}>Mental Shortcut</span>
+                {expandedCell.action.shape && (
+                  <div className={styles.shapeLenses}>
+                    <div className={styles.shapeTabs}>
+                      {SHAPE_TABS.filter(t => {
+                        const s = expandedCell.action.shape!;
+                        if (t.key === 'patternRecognition') return !!s.patternRecognition;
+                        return !!(s as Record<string, unknown>)[t.key];
+                      }).map(t => (
+                        <button
+                          key={t.key}
+                          className={`${styles.shapeTab} ${activeShapeTab === t.key ? styles.shapeTabActive : ''}`}
+                          onClick={() => setActiveShapeTab(t.key)}
+                        >
+                          <span>{t.icon}</span>
+                          <span>{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.shapeLensBody}>
+                      {activeShapeTab === 'analogicalModel' && expandedCell.action.shape.analogicalModel && (
+                        <p className={styles.lensText}>{expandedCell.action.shape.analogicalModel}</p>
+                      )}
+                      {activeShapeTab === 'simpleCore' && expandedCell.action.shape.simpleCore && (
+                        <p className={styles.lensText}>{expandedCell.action.shape.simpleCore}</p>
+                      )}
+                      {activeShapeTab === 'highStakesExample' && expandedCell.action.shape.highStakesExample && (
+                        <p className={styles.lensText}>{expandedCell.action.shape.highStakesExample}</p>
+                      )}
+                      {activeShapeTab === 'patternRecognition' && expandedCell.action.shape.patternRecognition && (
+                        <div className={styles.patternBlock}>
+                          <p className={styles.patternQ}>{expandedCell.action.shape.patternRecognition.question}</p>
+                          <p className={styles.patternA}>{expandedCell.action.shape.patternRecognition.answer}</p>
+                        </div>
+                      )}
+                      {activeShapeTab === 'eliminationLogic' && expandedCell.action.shape.eliminationLogic && (
+                        <p className={styles.lensText}>{expandedCell.action.shape.eliminationLogic}</p>
+                      )}
+                    </div>
                   </div>
-                  <p className={styles.trickText}>{expandedCell.action.trick}</p>
-                </div>
+                )}
+                {!expandedCell.action.shape && (
+                  <div className={styles.trickBox}>
+                    <div className={styles.trickLabel}>
+                      <span className={styles.trickIcon}>🧠</span>
+                      <span>THE TRICK</span>
+                    </div>
+                    <p className={styles.trickText}>{expandedCell.action.trick}</p>
+                  </div>
+                )}
+                {expandedCell.action.phase3?.tool && (
+                  <div className={styles.phase3Box}>
+                    <div className={styles.phase3Header}>
+                      <span>🛠️</span>
+                      <span className={styles.phase3Label}>TOOL / METHOD</span>
+                    </div>
+                    <p className={styles.phase3Tool}>{expandedCell.action.phase3.tool}</p>
+                    {expandedCell.action.phase3.metrics && expandedCell.action.phase3.metrics.length > 0 && (
+                      <ul className={styles.phase3Metrics}>
+                        {expandedCell.action.phase3.metrics.map((m, i) => (
+                          <li key={i} className={styles.phase3Metric}>{m}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
                 <div className={styles.checklistPanel}>
                   <div className={styles.checklistHeader}>
                     <span className={styles.checklistIcon}>⚡</span>
