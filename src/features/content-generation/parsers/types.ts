@@ -30,6 +30,11 @@ export interface ParsedConcept {
  steps: string[];
  };
  keyPoints?: string[]; // Key points for recall
+ perspectives?: Array<{
+  label: string;
+  blueprint: string;
+  steps: string[];
+ }>;
  phase1: {
  hookSentence: string;
  microMetaphor: string;
@@ -43,24 +48,18 @@ export interface ParsedConcept {
  metrics: string[];
  thresholds: string;
  };
- // SHAPE micro-learning sections (normalized field names)
- shape?: {
- simpleCore?: string;
- highStakesExample?: string;
- analogicalModel?: string;
- patternRecognition?: { question: string; answer: string };
- eliminationLogic?: string;
- };
- // Memory Palace mnemonic context
  mnemonic?: ParsedMnemonic;
- criticalDistinctions: string[];
- designBoundaries: string[];
- // NEW: Explicit dependency declaration (Sensa v2.0)
- dependsOn?: string[];
- strictConnections?: {
- target: string;
- type: 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains';
- }[];
+ shape?: {
+  simpleCore?: string;
+  highStakesExample?: string;
+  analogicalModel?: string;
+  patternRecognition?: { question: string; answer: string };
+  eliminationLogic?: string;
+ };
+ strictConnections?: Array<{ target: string; type: string }>;
+ connections?: Array<{ target: string; type: string }>;
+ criticalDistinctions?: string[];
+ designBoundaries?: string[];
 }
 export interface ParsedStage {
  id: string;

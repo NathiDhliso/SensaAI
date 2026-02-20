@@ -707,6 +707,7 @@ export function transformToLearningConcepts(
  technicalDetails: parsedConcept.technicalDetails || technicalDetails || '',
  workedExample: parsedConcept.workedExample,
  keyPoints: parsedConcept.keyPoints,
+ perspectives: parsedConcept.perspectives,
  prerequisites: extractPrerequisites(parsedConcept, parsed.concepts),
  visualElement: slugify(parsedConcept.name),
  actionButtonText: `Master ${parsedConcept.name}`,

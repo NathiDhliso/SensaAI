@@ -747,6 +747,18 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  metrics = Array.isArray(p3.metrics) ? p3.metrics as string[] : [];
  thresholds = typeof p3.thresholds === 'string' ? p3.thresholds : '';
  }
+ // Extract perspectives (Creator's Blueprint)
+ let perspectives: ParsedConcept['perspectives'];
+ if (Array.isArray(c.perspectives) && c.perspectives.length > 0) {
+  perspectives = (c.perspectives as Array<Record<string, unknown>>)
+   .filter(p => p && typeof p === 'object' && typeof p.label === 'string' && Array.isArray(p.steps))
+   .map(p => ({
+    label: p.label as string,
+    blueprint: typeof p.blueprint === 'string' ? p.blueprint : '',
+    steps: (p.steps as unknown[]).filter((s): s is string => typeof s === 'string'),
+   }));
+  if (perspectives.length === 0) perspectives = undefined;
+ }
  // Extract SHAPE data
  let shape: ParsedConcept['shape'];
  if (c.shape && typeof c.shape === 'object') {
@@ -856,11 +868,10 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
  : []
  } : undefined,
  keyPoints,
+ perspectives,
  // Phase 2 Cognitive Model
  cognitiveLevel,
  commonPitfalls,
- // NEW: Extract dependsOn from root level (Sensa v2.0 compliance)
- dependsOn: Array.isArray(c.dependsOn) ? c.dependsOn as string[] : [],
  // SILVER BULLET: Extract semantic connections from AI output
  // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
  strictConnections: extractStrictConnections(c),

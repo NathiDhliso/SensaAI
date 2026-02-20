@@ -134,6 +134,11 @@ export interface WorkedExample {
 // ============================================================================
 // Learning Concept Types
 // ============================================================================
+export interface CreatorPerspective {
+    label: string;
+    blueprint: string;
+    steps: string[];
+}
 export interface ShapeContent {
     simpleCore?: string;
     highStakesExample?: string;
@@ -207,6 +212,7 @@ export interface LearningConcept {
     shape?: ShapeContent;
     prerequisites?: string[];
     keyPoints?: string[];
+    perspectives?: CreatorPerspective[];
 }
 // ============================================================================
 // Learning Stage Types

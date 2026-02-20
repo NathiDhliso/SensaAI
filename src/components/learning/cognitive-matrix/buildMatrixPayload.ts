@@ -43,56 +43,30 @@ function buildStepsForVerb(concept: LearningConcept, verbIndex: number): string[
     : [];
 }
 
-type RawPhase1 = {
-  hookSentence?: string;
-  microMetaphor?: string;
-  prerequisite?: string;
-  selection?: string[];
-  execution?: string;
-};
-
-type RawPerspective = {
-  label?: string;
-  blueprint?: string;
-  steps?: string[];
-};
-
 function buildPerspectives(concept: LearningConcept, verbIndex: number): CreatorPerspective[] | undefined {
-  const raw = concept as unknown as Record<string, unknown>;
-
-  const perspectivesRaw = raw['perspectives'] as RawPerspective[] | undefined;
-  if (Array.isArray(perspectivesRaw) && perspectivesRaw.length > 0) {
-    const verbPerspectives = perspectivesRaw.filter((p): p is RawPerspective =>
-      !!p && typeof p === 'object' && Array.isArray(p.steps) && p.steps.length > 0
-    );
-    if (verbPerspectives.length > 0) {
-      return verbPerspectives.map(p => ({
-        label: p.label || 'Approach',
-        blueprint: p.blueprint || '',
-        steps: p.steps || [],
-      }));
-    }
+  if (concept.perspectives && concept.perspectives.length > 0) {
+    return concept.perspectives;
   }
 
-  const phase1Raw = raw['phase1'] as RawPhase1 | undefined;
-  const phase2Raw = raw['phase2'] as Array<{ title?: string; content?: string }> | undefined;
-  const phase3Raw = concept.lifecycle?.phase3 as unknown as { tool?: string; metrics?: string[] } | undefined;
-
   const perspectives: CreatorPerspective[] = [];
+  const phase1Steps = concept.lifecycle?.phase1?.steps ?? [];
+  const phase2Steps = concept.lifecycle?.phase2?.steps ?? [];
+  const phase3Steps = concept.lifecycle?.phase3?.steps ?? [];
 
-  if (verbIndex === 0 && phase1Raw) {
-    const selectionSteps = Array.isArray(phase1Raw.selection) ? phase1Raw.selection : [];
-    const executionBlueprint = phase1Raw.execution || '';
-    if (executionSteps(executionBlueprint).length > 0 || selectionSteps.length > 0) {
+  if (verbIndex === 0 && phase1Steps.length > 0) {
+    const executionLine = phase1Steps.find(s => s.includes('→'));
+    const steps = executionLine
+      ? executionLine.split(/\s*→\s*/).map(s => s.trim()).filter(s => s.length > 3)
+      : phase1Steps;
+    const selectionSteps = phase1Steps.filter(s => s.startsWith('When ') || s.includes('→ Unlocks'));
+    if (steps.length > 0) {
       perspectives.push({
         label: 'Blueprint',
-        blueprint: executionBlueprint,
-        steps: executionSteps(executionBlueprint).length > 0
-          ? executionSteps(executionBlueprint)
-          : selectionSteps,
+        blueprint: executionLine || phase1Steps[0] || '',
+        steps,
       });
     }
-    if (selectionSteps.length > 0 && executionSteps(executionBlueprint).length > 0) {
+    if (selectionSteps.length > 0) {
       perspectives.push({
         label: 'Decision Map',
         blueprint: 'When to apply each approach and what it unlocks',
@@ -101,32 +75,25 @@ function buildPerspectives(concept: LearningConcept, verbIndex: number): Creator
     }
   }
 
-  if (verbIndex === 1 && Array.isArray(phase2Raw) && phase2Raw.length > 0) {
-    for (const p2 of phase2Raw) {
-      if (p2.title && p2.content) {
-        perspectives.push({
-          label: p2.title,
-          blueprint: p2.content,
-          steps: p2.content.split(/\.\s+/).filter(s => s.trim().length > 10).slice(0, 5),
-        });
-      }
-    }
+  if (verbIndex === 1 && phase2Steps.length > 0) {
+    perspectives.push({
+      label: 'Application',
+      blueprint: phase2Steps[0] || '',
+      steps: phase2Steps,
+    });
   }
 
-  if (verbIndex === 2 && phase3Raw?.tool) {
+  if (verbIndex === 2 && phase3Steps.length > 0) {
+    const toolLine = phase3Steps.find(s => s.startsWith('Tool:'));
+    const metricLines = phase3Steps.filter(s => s.startsWith('Metrics:') || s.startsWith('Thresholds:'));
     perspectives.push({
       label: 'Tool / Method',
-      blueprint: phase3Raw.tool,
-      steps: Array.isArray(phase3Raw.metrics) ? phase3Raw.metrics : [],
+      blueprint: toolLine || phase3Steps[0] || '',
+      steps: metricLines.length > 0 ? metricLines : phase3Steps,
     });
   }
 
   return perspectives.length > 0 ? perspectives : undefined;
-}
-
-function executionSteps(execution: string): string[] {
-  if (!execution) return [];
-  return execution.split(/\s*→\s*/).map(s => s.trim()).filter(s => s.length > 3);
 }
 
 function buildAction(concept: LearningConcept, verbIndex: number): DrillDownAction {
