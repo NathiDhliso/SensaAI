@@ -17,12 +17,13 @@ import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import type { StudyGoal, LearnerMood } from '@/shared/types/learning';
+import type { StudyTab } from '@/components/layout';
 import { storageManager } from '@/features/content-storage';
 import { conceptsApi } from '@/shared/api/concepts';
 import { buildDocumentFromConcepts } from '@/shared/utils/content-builder';
 import { parseAndLoadContent } from '@/shared/utils/content-loader';
 import { getTimeUntilExpiry } from '@/features/learning-session/progress/session-tracker';
-import { StudyLayout, type StudyTab } from '@/components/layout';
+import { StudyLayout } from '@/components/layout';
 import CelebrationModal from '@/components/learning/feedback/CelebrationModal';
 import CognitiveGauge from '@/components/learning/ui/CognitiveGauge';
 import { SessionSummary } from '@/components/learning/session/SessionSummary';
@@ -48,8 +49,8 @@ export default function Study() {
  const { subjectId } = useParams<{ subjectId: string }>();
  const [searchParams] = useSearchParams();
  // Initialize tab from URL query param or default to overview
- const initialTab = (searchParams.get('tab') as StudyTab) || 'overview';
- const [activeTab, setActiveTab] = useState<StudyTab>(initialTab);
+ const initialTab = (searchParams.get('tab') as StudyTab) || 'learn';
+ const [activeTab, setActiveTab] = useState<StudyTab>(initialTab === 'overview' as unknown as StudyTab ? 'learn' : initialTab);
  const [isHydrating, setIsHydrating] = useState(false);
  // Session configuration state
  const [showHelpModal, setShowHelpModal] = useState(false);
@@ -285,40 +286,16 @@ export default function Study() {
  const handleTabChange = useCallback((tab: StudyTab) => {
  const { studySession } = useLearningStore.getState();
  const hasGymActivity = searchParams.get('activity');
- if (tab === 'learn') {
- if (!studySession && concepts.length === 0) {
- toast.warning('Please complete the overview first to understand the concepts');
- return;
- }
- if (!studySession && !hasGymActivity) {
+ if (tab === 'learn' && !studySession && !hasGymActivity) {
  handleSessionStart('learn-new', 30);
  }
- }
  setActiveTab(tab);
- }, [concepts, searchParams]);
+ }, [searchParams]);
  useEffect(() => {
  const urlTab = searchParams.get('tab') as StudyTab;
  if (!urlTab) return;
- if (urlTab === 'learn') {
- const { studySession } = useLearningStore.getState();
- const hasGymActivity = searchParams.get('activity');
- if (hasGymActivity && concepts.length > 0) {
- setActiveTab('learn');
- return;
- }
- if (!studySession) {
- if (concepts.length > 0) {
- setActiveTab('overview');
- } else {
- setActiveTab('overview');
- navigate(`/study/${subjectId}?tab=overview`, { replace: true });
- toast.info('Loading content — please start a session first');
- }
- } else {
- setActiveTab('learn');
- }
- }
- }, [searchParams, concepts, subjectId, navigate]);
+ setActiveTab(urlTab === 'overview' as unknown as StudyTab ? 'learn' : urlTab);
+ }, [searchParams]);
  // Handle celebration modal
  const handleCelebrationContinue = useCallback(() => {
  dismissCelebration();
@@ -430,41 +407,6 @@ export default function Study() {
  );
  }
  switch (activeTab) {
- case 'overview':
- return (
- <div className={styles.overviewPanel}>
- <div className={styles.overviewCard}>
- <div className={styles.overviewMeta}>
- <span className={styles.overviewLabel}>Subject</span>
- <h1 className={styles.overviewTitle}>{currentSession?.subject || subjectName}</h1>
- </div>
- <div className={styles.overviewStats}>
- <div className={styles.overviewStat}>
- <span className={styles.overviewStatValue}>{concepts.length}</span>
- <span className={styles.overviewStatLabel}>Concepts</span>
- </div>
- <div className={styles.overviewStat}>
- <span className={styles.overviewStatValue}>{session?.progress?.completedConcepts?.length || 0}</span>
- <span className={styles.overviewStatLabel}>Mastered</span>
- </div>
- <div className={styles.overviewStat}>
- <span className={styles.overviewStatValue}>{Math.max(0, concepts.length - (session?.progress?.completedConcepts?.length || 0))}</span>
- <span className={styles.overviewStatLabel}>Remaining</span>
- </div>
- </div>
- <button
- className={styles.overviewStartBtn}
- onClick={() => {
- const lastGoal = localStorage.getItem('lastSessionGoal') as StudyGoal || 'learn-new';
- const lastDuration = parseInt(localStorage.getItem('lastSessionDuration') || '30');
- handleSessionStart(lastGoal, lastDuration);
- }}
- >
- Start Learning
- </button>
- </div>
- </div>
- );
  case 'learn': {
  const activityParam = searchParams.get('activity') as GymActivity | null;
  const validActivities: GymActivity[] = ['concept-map', 'peer-review', 'pre-mortem'];

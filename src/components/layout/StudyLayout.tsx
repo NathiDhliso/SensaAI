@@ -12,7 +12,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
  BookOpen,
- LayoutDashboard,
  Zap,
  ChevronDown,
  Settings,
@@ -23,7 +22,7 @@ import { useLearningStore } from '@/store/learning-store';
 import { useUIStore } from '@/store/ui-store';
 import { useTreeNarrative } from '@/shared/hooks/useTreeNarrative';
 import styles from './StudyLayout.module.css';
-export type StudyTab = 'overview' | 'learn' | 'reference';
+export type StudyTab = 'learn' | 'reference';
 interface StudyLayoutProps {
  /** Current active tab */
  activeTab: StudyTab;
@@ -44,13 +43,6 @@ interface TabConfig {
  color: string;
 }
 const TABS: TabConfig[] = [
- {
- id: 'overview',
- label: 'Overview',
- icon: LayoutDashboard,
- description: 'Structure & Progress',
- color: 'var(--color-phase-explore)'
- },
  {
  id: 'learn',
  label: 'Velocity',
