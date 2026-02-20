@@ -38,6 +38,7 @@ import { auditContent, parseSyllabusText, type ContentAuditResult, type ConceptV
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
 import type { ScheduledReview, SpacingMetrics } from '@/features/learning-session/algorithms/spacing-engine';
 import { moodToBandwidth, type CognitiveBandwidth } from '@/features/ai-coach';
+import { calculateLearnerMetrics, type LearnerQMetrics } from '@/shared/services/blueprint-formula';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { formatSafeDate } from '@/shared/utils/utils';
 import { toast } from '@/shared/utils/toast';
@@ -1004,22 +1005,46 @@ export default function ContentLaunchpad() {
             
 
             {/* Equation Monitor Modal */}
-            {showEquationMonitor && (
-                <BlueprintFormulaDashboard
-                    h={knowledgeHealth / 100}
-                    I={knowledgeHealth / 100}
-                    phase="study"
-                    metrics={null}
-                    weakestVariable={{ variable: 'Q_r', value: spacingMetrics ? spacingMetrics.adherencePercent / 100 : 0.5 }}
-                    recommendation={knowledgeHealth < 50 ? 'Focus on spaced repetition — your retention is low.' : 'Keep reviewing due concepts to maintain health.'}
-                    subjectType={undefined}
-                    subjectName={result?.subject}
-                    conceptsCompleted={dueReviews.length}
-                    conceptsTotal={tierCounts.total}
-                    feedbackSignal={null}
-                    onClose={() => setShowEquationMonitor(false)}
-                />
-            )}
+            {showEquationMonitor && (() => {
+                const adherence = spacingMetrics ? spacingMetrics.adherencePercent / 100 : 0.5;
+                const completedCount = tierCounts.total - dueReviews.length;
+                const equationMetrics: LearnerQMetrics = calculateLearnerMetrics(undefined, {
+                    completedConcepts: Math.max(0, completedCount),
+                    totalConcepts: Math.max(1, tierCounts.total),
+                    consecutiveCorrect: 0,
+                    consecutiveErrors: 0,
+                    timeSpentMs: 0,
+                    targetDurationMs: 30 * 60000,
+                    cycleCompletions: Math.max(0, completedCount),
+                    blankSheetScore: adherence,
+                    quizAccuracy: adherence,
+                    mapNodeCount: 0,
+                    mapConnectionCount: 0,
+                    guessCount: 0,
+                    avgResponseTimeMs: 0,
+                });
+                const weakestKey = (Object.keys(equationMetrics) as (keyof LearnerQMetrics)[]).filter(k => k !== 'labels').reduce((a, b) => {
+                    const av = equationMetrics[a] as number;
+                    const bv = equationMetrics[b] as number;
+                    return av < bv ? a : b;
+                }, 'Q_k' as keyof LearnerQMetrics);
+                return (
+                    <BlueprintFormulaDashboard
+                        h={knowledgeHealth / 100}
+                        I={knowledgeHealth / 100}
+                        phase="study"
+                        metrics={equationMetrics}
+                        weakestVariable={{ variable: weakestKey as import('@/shared/constants/sensa-flow-constants').HealthVariable, value: equationMetrics[weakestKey] as number }}
+                        recommendation={knowledgeHealth < 50 ? 'Focus on spaced repetition — your retention is low.' : 'Keep reviewing due concepts to maintain health.'}
+                        subjectType={undefined}
+                        subjectName={result?.subject}
+                        conceptsCompleted={Math.max(0, completedCount)}
+                        conceptsTotal={tierCounts.total}
+                        feedbackSignal={null}
+                        onClose={() => setShowEquationMonitor(false)}
+                    />
+                );
+            })()}
         </div>
     );
 }
