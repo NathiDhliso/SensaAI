@@ -1,0 +1,8 @@
+SUBJECT#0f4937b4-27c4-47e8-bc91-9de44cebeb4c | Microsoft Azure Administrator (AZ-104) | created=1771248312
+SUBJECT#2ad2bf98-ebf5-4ff7-8ba2-723add70dbb9 | Microsoft Power BI Data Analyst (PL-300) | created=1771087356
+SUBJECT#87f22c02-409c-4474-83cf-141bd8e4aa92 | Microsoft Power BI Data Analyst (PL-300) | created=1771085997
+SUBJECT#8af5c748-fb48-4404-b938-af2eb247c82c | Microsoft Azure Administrator (AZ-104) | created=1771517939
+SUBJECT#ba689dcd-b3d8-48a4-9425-10abe8dc9c03 | Microsoft Power BI Data Analyst (PL-300) | created=1771688915
+SUBJECT#ca55877f-bbf4-425a-9fbd-4fd144194e0e | Microsoft Azure Administrator (AZ-104) | created=1771682977
+SUBJECT#eed1074e-cc3e-47a6-beb6-baa1d907aca3 | Microsoft Azure Administrator (AZ-104) | created=1771416185
+SUBJECT#0111a744-7f97-4701-817d-7edd128c726b | Terraform | created=1771189861

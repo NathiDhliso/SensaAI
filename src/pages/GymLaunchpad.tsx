@@ -42,9 +42,9 @@ import { calculateLearnerMetrics, type LearnerQMetrics } from '@/shared/services
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { formatSafeDate } from '@/shared/utils/utils';
 import { toast } from '@/shared/utils/toast';
-import KnowledgeHealthPanel, { type ConceptHealth } from './KnowledgeHealthPanel';
+import KnowledgeHealthPanel, { type ConceptHealth } from '@/components/learning/launchpad/KnowledgeHealthPanel';
 import BlueprintFormulaDashboard from '@/components/dashboard/BlueprintFormulaDashboard';
-import styles from './ContentLaunchpad.module.css';
+import styles from './GymLaunchpad.module.css';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
 type LaunchpadTab = 'gym' | 'insights';
 function loadSavedObjectives(subjectId: string): string[] {
@@ -78,7 +78,7 @@ const BANDWIDTH_CONFIG: Record<CognitiveBandwidth, { icon: React.ReactNode; labe
     medium: { icon: <Battery size={16} />, label: 'Steady', color: 'var(--color-warning)' },
     low: { icon: <BatteryLow size={16} />, label: 'Low Battery', color: 'var(--color-text-muted)' }
 };
-export default function ContentLaunchpad() {
+export default function GymLaunchpad() {
     const { subjectId } = useParams<{ subjectId: string }>();
     const navigate = useNavigate();
     const location = useLocation();
@@ -109,8 +109,8 @@ export default function ContentLaunchpad() {
         return lastSessionMood ? moodToBandwidth(lastSessionMood) : 'medium';
     }, [lastSessionMood]);
     const bwConfig = BANDWIDTH_CONFIG[bandwidth];
-    
-    
+
+
     const tierCounts = useMemo(() => {
         if (!parsedData) return { trunk: 0, branch: 0, leaf: 0, total: 0 };
         const concepts = parsedData.concepts || [];
@@ -317,13 +317,13 @@ export default function ContentLaunchpad() {
                     const parseResult = parseGeneratedContent(data.fullDocument);
                     if (parseResult.success && parseResult.data) {
                         setParsedData(parseResult.data);
-                        
+
                         // Detect ULC pattern - temporarily disabled
                         // const detectedULC = detectULC(parseResult.data.concepts);
                         // if (detectedULC.detected) {
                         //     setUlcPattern(detectedULC);
                         // }
-                        
+
                         const savedObjectives = loadSavedObjectives(subjectId);
                         if (savedObjectives.length > 0) {
                             setObjectivesText(savedObjectives.join('\n'));
@@ -549,8 +549,8 @@ export default function ContentLaunchpad() {
                             </div>
                         </div>
                     )}
-                    
-                    
+
+
                     <section className={styles.zone}>
                         <div className={styles.zoneHeader}>
                             <div className={styles.zoneTitle}>
@@ -992,7 +992,7 @@ export default function ContentLaunchpad() {
                     )}
                 </div>
             </footer>
-            
+
 
             {/* Equation Monitor Modal */}
             {showEquationMonitor && (() => {

@@ -9,12 +9,12 @@ import { useAuthStore } from './store/auth-store';
 import { useLearningStore } from './store/learning-store';
 
 const Home = lazy(() => import('./pages/Home'));
-const Generate = lazy(() => import('./pages/Generate'));
-const SavedResults = lazy(() => import('./pages/SavedResults'));
+const ContentGenerator = lazy(() => import('./pages/ContentGenerator'));
+const MasteryDashboard = lazy(() => import('./pages/MasteryDashboard'));
 const CommunityLibrary = lazy(() => import('./pages/CommunityLibrary'));
 
-const Study = lazy(() => import('./pages/Study'));
-const ContentLaunchpad = lazy(() => import('./components/learning/launchpad/ContentLaunchpad'));
+const UnifiedStudyRoom = lazy(() => import('./pages/UnifiedStudyRoom'));
+const GymLaunchpad = lazy(() => import('./pages/GymLaunchpad'));
 
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const SignUp = lazy(() => import('./pages/SignUp').then(m => ({ default: m.SignUp })));
@@ -23,6 +23,7 @@ const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ defa
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
 const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const DevSandbox = lazy(() => import('./pages/DevSandbox'));
 
 function LoadingFallback() {
     return (
@@ -74,6 +75,7 @@ function App() {
                         {/* ═══════════════════════════════════════════════════════════════
  PUBLIC ROUTES
  ═══════════════════════════════════════════════════════════════ */}
+                        <Route path="/dev" element={<DevSandbox />} />
                         <Route path="/" element={<Home />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<SignUp />} />
@@ -87,7 +89,7 @@ function App() {
  GENERATION FLOW
  ═══════════════════════════════════════════════════════════════ */}
                         <Route path="/generate/:subject" element={
-                            <ProtectedRoute><Generate /></ProtectedRoute>
+                            <ProtectedRoute><ContentGenerator /></ProtectedRoute>
                         } />
 
                         {/* ═══════════════════════════════════════════════════════════════
@@ -99,10 +101,10 @@ function App() {
  * Combines Overview and Learning modes into tabbed interface
  * Phase 2.1 of Silver Bullet Architecture
  * 
- * VelocityLearning is embedded in the Learn tab, not a standalone route
+ * ActiveLearningEngine is embedded in the Learn tab, not a standalone route
  */}
                         <Route path="/study/:subjectId" element={
-                            <ProtectedRoute><Study /></ProtectedRoute>
+                            <ProtectedRoute><UnifiedStudyRoom /></ProtectedRoute>
                         } />
 
                         {/* 
@@ -110,14 +112,14 @@ function App() {
  * The entry point for all saved content "View" actions
  */}
                         <Route path="/launchpad/:subjectId" element={
-                            <ProtectedRoute><ContentLaunchpad /></ProtectedRoute>
+                            <ProtectedRoute><GymLaunchpad /></ProtectedRoute>
                         } />
 
                         {/* ═══════════════════════════════════════════════════════════════
  LIBRARY
  ═══════════════════════════════════════════════════════════════ */}
                         <Route path="/library" element={
-                            <ProtectedRoute><SavedResults /></ProtectedRoute>
+                            <ProtectedRoute><MasteryDashboard /></ProtectedRoute>
                         } />
                         <Route path="/community" element={
                             <ProtectedRoute><CommunityLibrary /></ProtectedRoute>

@@ -1,0 +1,24 @@
+[BedrockService] Classification response: 1725 chars
+
+[BedrockService] Classification response: 1833 chars
+
+[Handler] Classification: procedural
+
+[BedrockService] Classification attempt 1 error: An error occurred (ValidationException) when calling the InvokeModel operation: Invocation of model ID anthropic.claude-sonnet-4-20250514-v1:0 with on-demand throughput isnÆt supported. Retry your request with the ID or ARN of an inference profile that contains this model.
+
+[BedrockService] Classification attempt 2 error: An error occurred (ValidationException) when calling the InvokeModel operation: Invocation of model ID anthropic.claude-sonnet-4-20250514-v1:0 with on-demand throughput isnÆt supported. Retry your request with the ID or ARN of an inference profile that contains this model.
+
+[BedrockService] Classification attempt 3 error: An error occurred (ValidationException) when calling the InvokeModel operation: Invocation of model ID anthropic.claude-sonnet-4-20250514-v1:0 with on-demand throughput isnÆt supported. Retry your request with the ID or ARN of an inference profile that contains this model.
+
+[BedrockService] Classification failed, using default (conceptual)
+
+[BedrockService] Classification attempt 1 error: An error occurred (ValidationException) when calling the InvokeModel operation: Invocation of model ID anthropic.claude-sonnet-4-20250514-v1:0 with on-demand throughput isnÆt supported. Retry your request with the ID or ARN of an inference profile that contains this model.
+
+[BedrockService] Classification attempt 2 error: An error occurred (ValidationException) when calling the InvokeModel operation: Invocation of model ID anthropic.claude-sonnet-4-20250514-v1:0 with on-demand throughput isnÆt supported. Retry your request with the ID or ARN of an inference profile that contains this model.
+
+[BedrockService] Classification attempt 3 error: An error occurred (ValidationException) when calling the InvokeModel operation: Invocation of model ID anthropic.claude-sonnet-4-20250514-v1:0 with on-demand throughput isnÆt supported. Retry your request with the ID or ARN of an inference profile that contains this model.
+
+[BedrockService] Classification failed, using default (conceptual)
+
+[BedrockService] Classification response: 3280 chars
+

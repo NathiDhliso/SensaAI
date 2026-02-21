@@ -9,7 +9,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Lightbulb, Sparkles, Zap, Network, Scale, Map, Filter } from 'lucide-react';
 import type { DeepStructure, DeepStructureArchetype, LifecycleBlueprint } from '@/shared/types/generation';
-import styles from './MasterBlueprintReveal.module.css';
+import styles from './DeepStructureDetails.module.css';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ARCHETYPE CONFIG
@@ -59,7 +59,7 @@ const ARCHETYPE_META: Record<DeepStructureArchetype, {
 // ═══════════════════════════════════════════════════════════════════════════
 // PROPS
 // ═══════════════════════════════════════════════════════════════════════════
-interface MasterBlueprintRevealProps {
+interface DeepStructureDetailsProps {
     deepStructure: DeepStructure;
     lifecycleBlueprints: {
         phase1: LifecycleBlueprint;
@@ -71,10 +71,10 @@ interface MasterBlueprintRevealProps {
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
-export function MasterBlueprintReveal({
+export function DeepStructureDetails({
     deepStructure,
     lifecycleBlueprints,
-}: MasterBlueprintRevealProps) {
+}: DeepStructureDetailsProps) {
     const archetype = ARCHETYPE_META[deepStructure.primaryArchetype];
     const secondaryArchetype = deepStructure.secondaryArchetype
         ? ARCHETYPE_META[deepStructure.secondaryArchetype]

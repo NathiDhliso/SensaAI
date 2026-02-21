@@ -1,0 +1,40 @@
+{
+    "Item": {
+        "subject": {
+            "S": "Microsoft Azure Administrator (AZ-104)"
+        },
+        "conceptCount": {
+            "N": "63"
+        },
+        "createdAt": {
+            "N": "1771248312"
+        },
+        "GSI1SK": {
+            "S": "SUBJECT#0f4937b4-27c4-47e8-bc91-9de44cebeb4c"
+        },
+        "GSI1PK": {
+            "S": "USER#54885448-f091-703b-2406-acd3bd74e748"
+        },
+        "sessionId": {
+            "S": "0f4937b4-27c4-47e8-bc91-9de44cebeb4c"
+        },
+        "expiresAt": {
+            "N": "1771853112"
+        },
+        "userId": {
+            "S": "54885448-f091-703b-2406-acd3bd74e748"
+        },
+        "updatedAt": {
+            "N": "1771248312"
+        },
+        "PK": {
+            "S": "USER#54885448-f091-703b-2406-acd3bd74e748"
+        },
+        "type": {
+            "S": "SUBJECT_METADATA"
+        },
+        "SK": {
+            "S": "SUBJECT#0f4937b4-27c4-47e8-bc91-9de44cebeb4c"
+        }
+    }
+}

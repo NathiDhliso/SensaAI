@@ -1,8 +1,8 @@
 /**
- * SessionScoutPreview Component
+ * DeepStructureDiscovery Component
  *
  * The FIRST screen a learner sees when entering a learning session.
- * Wraps MasterBlueprintReveal to present the "Deep Structure" of the subject
+ * Wraps DeepStructureDetails to present the "Deep Structure" of the subject
  * before progressing to the Concept Tree and Nomenclature Sprint.
  *
  * For legacy payloads (pre-Deep Structure), renders a fallback UI instead
@@ -11,29 +11,32 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, AlertCircle } from 'lucide-react';
 import type { SubjectClassification } from '@/shared/types/macro-workflow';
-import { MasterBlueprintReveal } from './MasterBlueprintReveal';
-import styles from './SessionScoutPreview.module.css';
+import { DeepStructureDetails } from './DeepStructureDetails';
+import styles from './DeepStructureDiscovery.module.css';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PROPS
 // ═══════════════════════════════════════════════════════════════════════════
-interface SessionScoutPreviewProps {
+interface DeepStructureDiscoveryProps {
     /** The full classification data from the generation engine */
     classification?: SubjectClassification | null;
     /** Subject name for display */
     subjectName: string;
     /** Callback when the user is ready to proceed to the Concept Tree */
     onContinue: () => void;
+    /** Optional override for the continue button text */
+    continueText?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
-export function SessionScoutPreview({
+export function DeepStructureDiscovery({
     classification,
     subjectName,
     onContinue,
-}: SessionScoutPreviewProps) {
+    continueText,
+}: DeepStructureDiscoveryProps) {
     const deepStructure = classification?.deepStructure;
     const lifecycleBlueprints = classification?.lifecycleBlueprints;
     const examDomains = classification?.examDomains;
@@ -77,7 +80,7 @@ export function SessionScoutPreview({
                     transition={{ delay: 0.45, duration: 0.35 }}
                 >
                     <button className={styles.continueButton} onClick={onContinue}>
-                        Skip to Concept Tree
+                        {continueText || 'Skip to Concept Tree'}
                         <ArrowRight size={18} />
                     </button>
                 </motion.div>
@@ -104,7 +107,7 @@ export function SessionScoutPreview({
             </motion.div>
 
             {/* Master Blueprint Reveal */}
-            <MasterBlueprintReveal
+            <DeepStructureDetails
                 deepStructure={deepStructure}
                 lifecycleBlueprints={lifecycleBlueprints}
             />
@@ -139,7 +142,7 @@ export function SessionScoutPreview({
                 transition={{ delay: 0.9, duration: 0.35 }}
             >
                 <button className={styles.continueButton} onClick={onContinue}>
-                    Continue to Concept Tree
+                    {continueText || 'Continue to Concept Tree'}
                     <ArrowRight size={18} />
                 </button>
             </motion.div>

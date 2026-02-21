@@ -71,6 +71,36 @@
     color: rgba(230, 215, 255, 1);
 }
 
+.actionBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(120, 80, 255, 0.25);
+    background: transparent;
+    color: rgba(210, 190, 255, 0.8);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+}
+
+.actionBtn:hover {
+    background: rgba(120, 80, 255, 0.12);
+    color: rgba(230, 215, 255, 1);
+    border-color: rgba(120, 80, 255, 0.4);
+}
+
+.scoutOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--color-bg-primary);
+    overflow-y: auto;
+}
+
 .tabContent {
     flex: 1;
     min-height: 0;

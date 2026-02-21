@@ -298,7 +298,30 @@ Lambda (async, self-invoked)
   4. Mark job completed/failed
 ```
 
-The frontend polls `conceptsApi.getJobStatus(jobId)` until status is `completed` or `failed`.
+The frontend polls via `_pollUntilComplete()` in `backend-client.ts` until status is `completed` or `failed`.
+
+### Frontend Progress Mapping (Construct Integrity Bar)
+
+Progress is driven by elapsed time mapped to known Lambda pipeline stages, with real concept data from `getJobProgress` overlaid when available:
+
+| Elapsed (s) | Progress % | Stage Label |
+|-------------|-----------|-------------|
+| 0–3         | 3–12%     | Dispatching / establishing channel (pre-poll) |
+| 0–20        | 22%       | Classifying subject domain |
+| 20–40       | 28%       | Extracting exam structure |
+| 40–70       | 34%       | Generating trunk domains in parallel |
+| 70–110      | 40%       | Synthesising branch concepts |
+| 110–160     | 46%       | Building leaf-level knowledge |
+| 160–200     | 50%       | Running gap-fill analysis |
+| 200–240     | 53%       | Enforcing TRACES connection rules |
+| 240–280     | 56%       | Applying Bloom's distribution |
+| 280–320     | 58%       | Deduplicating content |
+| 320+        | 59%       | Persisting concept graph |
+| complete    | 60%       | AI generation complete |
+| fetch       | 62–89%    | Loading trunk/branch/leaf from DynamoDB |
+| build       | 90–100%   | Assembling final document |
+
+When `getJobProgress` returns `conceptCount > 0`, the message switches to show the actual concept name being generated (e.g. `Generating: NSG Rule Evaluation`), giving real-time feedback from the Lambda pipeline.
 
 ### Lambda Actions
 

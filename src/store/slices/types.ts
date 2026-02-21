@@ -15,7 +15,7 @@ import type {
     ConceptMapData,
     LearningHealthEquation
 } from '@/shared/types/learning';
-import type { SubjectType, MacroWorkflowResult } from '@/shared/types/macro-workflow';
+import type { SubjectType, MacroWorkflowResult, SubjectClassification } from '@/shared/types/macro-workflow';
 // ============================================================================
 // SHARED TYPES
 // ============================================================================
@@ -33,6 +33,8 @@ export type ContentMetadata = {
     fullDocument?: string;
     subjectType?: SubjectType;
     macroWorkflow?: MacroWorkflowResult;
+    /** Full classification including deepStructure and lifecycleBlueprints */
+    fullClassification?: SubjectClassification;
 };
 /**
  * Cognitive load tracking for adaptive learning.

@@ -42,18 +42,16 @@ export async function generateWithBackend(
     // Get active job tracking functions
     const { setActiveJob, updateActiveJobStatus, clearActiveJob } = useGenerationStore.getState();
     const enhancedContext = context || '';
-    // Pass 1: Start serverless generation
+    const startTime = Date.now();
     onProgress(1, 'in-progress', {
-        message: 'Initiating serverless generation...',
-        progress: 5
+        message: 'Dispatching to AI engine...',
+        progress: 3
     });
-    // Start simulated progress during the blocking API call to give user feedback
-    let simProgress = 5;
+    let simProgress = 3;
     const simInterval = setInterval(() => {
-        simProgress += 1; // Slow increment
-        if (simProgress > 90) simProgress = 90; // Cap at 90%
+        simProgress = Math.min(simProgress + 0.5, 12);
         onProgress(1, 'in-progress', {
-            message: `Connecting to AI engine... (${Math.round(simProgress)}%)`,
+            message: 'Establishing secure channel...',
             progress: simProgress
         });
     }, UI_TIMINGS.ONE_SECOND);
@@ -76,14 +74,13 @@ export async function generateWithBackend(
         clearInterval(simInterval);
         if (generateResponse.status === 'failed') {
             console.error('[Backend Generator] Generation failed:', generateResponse.error);
-            clearActiveJob(); // Clear failed job
+            clearActiveJob();
             toast.error(`Generation failed: ${generateResponse.error || 'Please try again'}`);
             throw new Error(generateResponse.error || 'Generation failed');
         }
-        // Ensure we jump to 100% completion for this phase
-        onProgress(2, 'complete', {
-            message: 'AI generation complete!',
-            progress: 100
+        onProgress(1, 'complete', {
+            message: 'Job dispatched — AI pipeline active',
+            progress: 15
         });
         const { jobId, sessionId } = generateResponse;
         // Track the active job in persistent storage for background recovery
@@ -97,86 +94,27 @@ export async function generateWithBackend(
             status: 'processing'
         });
         let jobClassification: Record<string, unknown> | undefined;
-        // [BLOCK: Polling Loop]
-        // Skip polling if already completed (which it should be for sync lambda)
         if (generateResponse.status !== 'completed') {
             updateActiveJobStatus('processing');
-            let progressValue = 10;
-            let pollInterval = 2000; // Start at 2s
-            const maxPollInterval = 10000; // Max 10s
-            const startTime = Date.now();
-            while (true) {
-                // NOTE: We intentionally DO NOT use abort signals here
-                // Generation is unstoppable once started - it runs on the backend
-                if (Date.now() - startTime > maxPollDurationMs) {
-                    console.error('[Backend Generator] TIMEOUT! Exceeded max poll time');
-                    // Don't throw - job may still complete on backend
-                    // Mark as timed out but allow recovery
-                    updateActiveJobStatus('failed');
-                    throw new Error('Generation timed out - but job may still complete. Check back later.');
-                }
-                try {
-                    const status = await conceptsApi.getJobStatus(jobId, userId);
-                    if (status.status === 'completed') {
-                        if (status.classification) {
-                            jobClassification = status.classification as unknown as Record<string, unknown>;
-                        }
-                        onProgress(2, 'complete', { message: 'AI generation complete!', progress: 60 });
-                        break;
-                    }
-                    if (status.status === 'failed') {
-                        console.error('[Backend Generator] Job failed:', status.error);
-                        throw new Error(status.error || 'Generation failed on server');
-                    }
-                    // Reset interval on successful status check
-                    pollInterval = 2000;
-                } catch (err) {
-                    if (isAuthError(err)) {
-                        console.error('[Backend Generator] Authentication failed during polling');
-                        clearActiveJob();
-                        throw new Error('Session expired. Please log in again.');
-                    }
-                    // Check if we've been backing off too long (> 30 seconds of errors)
-                    if (pollInterval >= 8000) {
-                        console.error('[Backend Generator] Polling failing repeatedly, giving up');
-                        clearActiveJob();
-                        throw new Error(getErrorMessage(err, 'Unable to connect to server. Please check your connection and try again.'));
-                    }
-                    // Exponential backoff on error (including 429)
-                    console.warn('[Backend Generator] Polling error, backing off:', { pollInterval, error: err });
-                    pollInterval = Math.min(maxPollInterval, pollInterval * 1.5);
-                }
-                progressValue = Math.min(95, progressValue + (Math.random() > 0.4 ? 2 : 1));
-                const pollingMessages = [
-                    'AI is generating content...',
-                    'AI is finalizing content...',
-                    'Still working — this can take a minute...',
-                    'Processing your subject material...',
-                    'Building concept hierarchy...',
-                ];
-                const msgIndex = Math.min(Math.floor(progressValue / 20), pollingMessages.length - 1);
-                onProgress(2, 'in-progress', { message: pollingMessages[msgIndex], progress: progressValue });
-                await new Promise(resolve => setTimeout(resolve, pollInterval));
-            }
-        } else {
-            // Already completed
+            jobClassification = await _pollUntilComplete(
+                jobId,
+                userId,
+                onProgress,
+                startTime,
+                maxPollDurationMs,
+                updateActiveJobStatus,
+                clearActiveJob,
+            );
         }
-        // =====================================================================
-        // Pass 3: LOAD GENERATED CONCEPTS
-        // =====================================================================
-        // Parallel generation happens server-side. Once complete, we fetch
-        // all concepts from DynamoDB organized by tier.
         onProgress(3, 'in-progress', {
-            message: 'Loading generated concepts...',
-            progress: 60
+            message: 'Retrieving concept graph...',
+            progress: 62
         });
-        // Progress tracking: 60% = start loading, 90% = end loading
         let allConcepts: ParsedConcept[] = [];
-        // Fetch concepts from all tiers in parallel
         try {
             onProgress(3, 'in-progress', {
-                message: 'Fetching foundation concepts...',
-                progress: 65
+                message: 'Loading trunk domains...',
+                progress: 67
             });
             console.log('[Backend Generator] Fetching concepts with:', { userId, sessionId });
             const [trunkConcepts, branchConcepts, leafConcepts] = await Promise.all([
@@ -313,6 +251,95 @@ export async function generateWithBackend(
     }
 }
 /**
+ * Poll job status until completion, emitting stage-aware progress updates
+ * that map to the actual Lambda pipeline phases:
+ *   15-25%  → Subject classification
+ *   25-45%  → Parallel domain generation (Bedrock calls)
+ *   45-52%  → Gap-fill analysis & targeted generation
+ *   52-58%  → Post-processing (TRACES, Bloom's, dedup)
+ *   58-60%  → DynamoDB batch write
+ */
+async function _pollUntilComplete(
+    jobId: string,
+    userId: string,
+    onProgress: ProgressCallback,
+    startTime: number,
+    maxPollDurationMs: number,
+    updateActiveJobStatus: (status: 'pending' | 'processing' | 'completed' | 'failed') => void,
+    clearActiveJob: () => void,
+): Promise<Record<string, unknown> | undefined> {
+    const POLL_INTERVAL_MS = 3000;
+    const MAX_POLL_INTERVAL_MS = 12000;
+    let pollInterval = POLL_INTERVAL_MS;
+    let consecutiveErrors = 0;
+    const MAX_CONSECUTIVE_ERRORS = 5;
+
+    const PIPELINE_STAGES: Array<{ maxElapsedSec: number; progress: number; message: string }> = [
+        { maxElapsedSec: 20, progress: 22, message: 'Classifying subject domain...' },
+        { maxElapsedSec: 40, progress: 28, message: 'Extracting exam structure...' },
+        { maxElapsedSec: 70, progress: 34, message: 'Generating trunk domains in parallel...' },
+        { maxElapsedSec: 110, progress: 40, message: 'Synthesising branch concepts...' },
+        { maxElapsedSec: 160, progress: 46, message: 'Building leaf-level knowledge...' },
+        { maxElapsedSec: 200, progress: 50, message: 'Running gap-fill analysis...' },
+        { maxElapsedSec: 240, progress: 53, message: 'Enforcing TRACES connection rules...' },
+        { maxElapsedSec: 280, progress: 56, message: 'Applying Bloom\'s distribution...' },
+        { maxElapsedSec: 320, progress: 58, message: 'Deduplicating content...' },
+        { maxElapsedSec: Infinity, progress: 59, message: 'Persisting concept graph...' },
+    ];
+
+    while (true) {
+        const elapsedMs = Date.now() - startTime;
+        if (elapsedMs > maxPollDurationMs) {
+            updateActiveJobStatus('failed');
+            throw new Error('Generation timed out — job may still complete. Check back later.');
+        }
+
+        try {
+            const [status, progress] = await Promise.all([
+                conceptsApi.getJobStatus(jobId, userId),
+                conceptsApi.getJobProgress(userId, jobId).catch(() => null),
+            ]);
+
+            consecutiveErrors = 0;
+
+            if (status.status === 'completed') {
+                onProgress(2, 'complete', { message: 'AI generation complete!', progress: 60 });
+                return status.classification as unknown as Record<string, unknown> | undefined;
+            }
+
+            if (status.status === 'failed') {
+                throw new Error(status.error || 'Generation failed on server');
+            }
+
+            const elapsedSec = elapsedMs / 1000;
+            const stage = PIPELINE_STAGES.find(s => elapsedSec <= s.maxElapsedSec) ?? PIPELINE_STAGES[PIPELINE_STAGES.length - 1];
+
+            let message = stage.message;
+            if (progress?.conceptCount && progress.conceptCount > 0) {
+                message = progress.latestConcept
+                    ? `Generating: ${progress.latestConcept}`
+                    : `${progress.conceptCount} concepts synthesised...`;
+            }
+
+            onProgress(2, 'in-progress', { message, progress: stage.progress });
+            pollInterval = POLL_INTERVAL_MS;
+        } catch (err) {
+            if (isAuthError(err)) {
+                clearActiveJob();
+                throw new Error('Session expired. Please log in again.');
+            }
+            consecutiveErrors++;
+            if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+                clearActiveJob();
+                throw new Error(getErrorMessage(err, 'Unable to connect to server. Please check your connection and try again.'));
+            }
+            pollInterval = Math.min(MAX_POLL_INTERVAL_MS, pollInterval * 1.5);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+}
+/**
  * Build a full document from concepts in the format expected by the content parser.
  * This creates the JSON structure that parseGeneratedContent expects.
  */
@@ -361,6 +388,9 @@ export function buildDocumentFromConcepts(
         domain: subject,
         subjectType: classification?.subjectType,
         classification: classification?.classification,
+        deepStructure: classification?.deepStructure,
+        lifecycleBlueprints: classification?.lifecycleBlueprints,
+        examDomains: classification?.examDomains,
         macroStructure: classification?.macroStructure,
         connectiveTissue: classification?.connectiveTissue,
         lifecycle: {

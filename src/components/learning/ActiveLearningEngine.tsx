@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Brain, Home, Map, Layers } from 'lucide-react';
+import { AlertCircle, Brain, Home, Map, Layers, BookOpen } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/shared/hooks/useLearningFlow';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
@@ -9,12 +9,12 @@ import { toast } from '@/shared/utils/toast';
 import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
 import { ULCPracticeController } from '@/components/learning/ULCPracticeController';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
-import { SessionScoutPreview } from '@/components/learning/discovery/SessionScoutPreview';
-import styles from './VelocityLearning.module.css';
+import { DeepStructureDiscovery } from '@/components/learning/discovery/DeepStructureDiscovery';
+import styles from './ActiveLearningEngine.module.css';
 
 type ActiveTab = 'map' | 'ulc';
 
-export default function VelocityLearning() {
+export default function ActiveLearningEngine() {
     const navigate = useNavigate();
 
     const {
@@ -28,6 +28,7 @@ export default function VelocityLearning() {
     const { currentPhase } = useLearningFlow();
     const [activeTab, setActiveTab] = useState<ActiveTab>('ulc');
     const [isInitializing, setIsInitializing] = useState(true);
+    const [showStructurePanel, setShowStructurePanel] = useState(false);
     const [portalConcept, setPortalConcept] = useState<string | null>(null);
     const [focusConcept, setFocusConcept] = useState<string | null>(null);
 
@@ -72,7 +73,10 @@ export default function VelocityLearning() {
         return currentSession.progress.completedConcepts.length >= currentSession.concepts.length;
     }, [currentSession]);
 
-    const classification = currentSession?.metadata?.macroWorkflow?.classification
+    // Prefer fullClassification (includes deepStructure, lifecycleBlueprints).
+    // Fall back to macroWorkflow.classification for legacy data.
+    const classification = currentSession?.metadata?.fullClassification
+        || currentSession?.metadata?.macroWorkflow?.classification
         || currentSession?.macroWorkflow?.classification;
 
     useEffect(() => {
@@ -89,7 +93,7 @@ export default function VelocityLearning() {
     if (currentPhase === 'SCOUT' && currentSession) {
         return (
             <div className={styles.container}>
-                <SessionScoutPreview
+                <DeepStructureDiscovery
                     classification={classification}
                     subjectName={currentSession.subject}
                     onContinue={handleScoutComplete}
@@ -157,6 +161,13 @@ export default function VelocityLearning() {
                     {activeTab === 'ulc'
                         ? <><Map size={14} />Build Map — Why<span className={styles.tabBadge}>{currentSession.progress.completedConcepts.length}/{currentSession.concepts.length}</span></>
                         : <><Layers size={14} />ULC — How</>}
+                </button>
+                <button
+                    className={styles.actionBtn}
+                    onClick={() => setShowStructurePanel(true)}
+                    title="View Master Blueprint"
+                >
+                    <BookOpen size={14} /> Deep Structure
                 </button>
             </div>
 
@@ -240,6 +251,26 @@ export default function VelocityLearning() {
                     </motion.div>
                 )}
 
+            </AnimatePresence>
+
+            {/* Deep Structure Discovery Modal */}
+            <AnimatePresence>
+                {showStructurePanel && (
+                    <motion.div
+                        className={styles.scoutOverlay}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <DeepStructureDiscovery
+                            classification={classification}
+                            subjectName={currentSession.subject}
+                            onContinue={() => setShowStructurePanel(false)}
+                            continueText="Return to Session"
+                        />
+                    </motion.div>
+                )}
             </AnimatePresence>
         </div>
     );
