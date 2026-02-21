@@ -4093,5 +4093,439 @@
     "message": "REPORT RequestId: 7f57a031-8e87-4ce8-bdc8-f6406d5b2bd0\tDuration: 755453.60 ms\tBilled Duration: 755454 ms\tMemory Size: 3008 MB\tMax Memory Used: 102 MB\t\n",
     "ingestionTime": 1771691456314,
     "eventId": "39510039542250732593971319405567735291498080511378587704"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303284,
+    "message": "INIT_START Runtime Version: python:3.12.mainlinev2.v3\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:27990c3d0965bea97240f3380b8d623b692705303bbde4c31fb02fa7daa05453\n",
+    "ingestionTime": 1771694303450,
+    "eventId": "39510103227224720629423338694765322247024185469807624192"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303367,
+    "message": "[WARNING]\t2026-02-21T17:18:23.367Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694303450,
+    "eventId": "39510103229075682480901380415512786863653999474803998721"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303367,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694303450,
+    "eventId": "39510103229075682480901380415512786863653999474803998722"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303421,
+    "message": "INIT_REPORT Init Duration: 136.74 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694303496,
+    "eventId": "39510103230279922721622034065211673940814729131475140608"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303479,
+    "message": "[WARNING]\t2026-02-21T17:18:23.479Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694303496,
+    "eventId": "39510103231573365943136810207420745600628334098822004737"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303479,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694303496,
+    "eventId": "39510103231573365943136810207420745600628334098822004738"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303521,
+    "message": "INIT_REPORT Init Duration: 88.88 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694312539,
+    "eventId": "39510103232509997241475096390297388985351545978320125952"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303521,
+    "message": "START RequestId: 5b4d5e7d-1310-4504-96c2-cc353e4399af Version: $LATEST\n",
+    "ingestionTime": 1771694312539,
+    "eventId": "39510103232509997241475096390297388985351545978320125953"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303526,
+    "message": "END RequestId: 5b4d5e7d-1310-4504-96c2-cc353e4399af\n",
+    "ingestionTime": 1771694312539,
+    "eventId": "39510103232621500967467749506005067576714787785850028034"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694303526,
+    "message": "REPORT RequestId: 5b4d5e7d-1310-4504-96c2-cc353e4399af\tDuration: 98.49 ms\tBilled Duration: 99 ms\tMemory Size: 3008 MB\tMax Memory Used: 46 MB\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694312539,
+    "eventId": "39510103232621500967467749506005067576714787785850028035"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694322273,
+    "message": "[WARNING]\t2026-02-21T17:18:42.273Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694322320,
+    "eventId": "39510103650693571204321341552199861139565563224144805888"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694322273,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694322320,
+    "eventId": "39510103650693571204321341552199861139565563224144805889"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694322315,
+    "message": "INIT_REPORT Init Duration: 94.37 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694322334,
+    "eventId": "39510103651630202502659627724160901341537824669279846400"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694322315,
+    "message": "START RequestId: 5f268567-e54b-4b7e-b3e5-731f11b694f5 Version: $LATEST\n",
+    "ingestionTime": 1771694322334,
+    "eventId": "39510103651630202502659627724160901341537824669279846401"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694322319,
+    "message": "END RequestId: 5f268567-e54b-4b7e-b3e5-731f11b694f5\n",
+    "ingestionTime": 1771694322334,
+    "eventId": "39510103651719405483453750216727044214628418115303768066"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]c3fe800f9903420b803c7a98b4e2ad87",
+    "timestamp": 1771694322319,
+    "message": "REPORT RequestId: 5f268567-e54b-4b7e-b3e5-731f11b694f5\tDuration: 106.90 ms\tBilled Duration: 107 ms\tMemory Size: 3008 MB\tMax Memory Used: 46 MB\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694322334,
+    "eventId": "39510103651719405483453750216727044214628418115303768067"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387167,
+    "message": "INIT_START Runtime Version: python:3.12.mainlinev2.v3\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:27990c3d0965bea97240f3380b8d623b692705303bbde4c31fb02fa7daa05453\n",
+    "ingestionTime": 1771694387352,
+    "eventId": "39510105097878130117767599777637213274128664959538495488"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387254,
+    "message": "[WARNING]\t2026-02-21T17:19:47.254Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694387352,
+    "eventId": "39510105099818294950039763990950820763849072410558791681"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387254,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694387352,
+    "eventId": "39510105099818294950039763990950820763849072410558791682"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387312,
+    "message": "INIT_REPORT Init Duration: 145.55 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694387379,
+    "eventId": "39510105101111738171554540133192878519371060256492027904"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387386,
+    "message": "[WARNING]\t2026-02-21T17:19:47.386Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694387392,
+    "eventId": "39510105102761993316245806245682176646622387509455880192"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387386,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694387392,
+    "eventId": "39510105102761993316245806245682176646622387509455880193"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387429,
+    "message": "INIT_REPORT Init Duration: 102.01 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694387432,
+    "eventId": "39510105103720925359782623040816203719702407805086531584"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387429,
+    "message": "START RequestId: 56a659d7-84e4-43b1-b8f4-ed1cba46c000 Version: $LATEST\n",
+    "ingestionTime": 1771694387432,
+    "eventId": "39510105103720925359782623040816203719702407805086531585"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387434,
+    "message": "END RequestId: 56a659d7-84e4-43b1-b8f4-ed1cba46c000\n",
+    "ingestionTime": 1771694387446,
+    "eventId": "39510105103832429085775276156541207251686772422984073216"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]8a2b67f7879640c58f04b041ca20fe59",
+    "timestamp": 1771694387434,
+    "message": "REPORT RequestId: 56a659d7-84e4-43b1-b8f4-ed1cba46c000\tDuration: 114.21 ms\tBilled Duration: 115 ms\tMemory Size: 3008 MB\tMax Memory Used: 46 MB\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694387446,
+    "eventId": "39510105103832429085775276156541207251686772422984073217"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453615,
+    "message": "INIT_START Runtime Version: python:3.12.mainlinev2.v3\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:27990c3d0965bea97240f3380b8d623b692705303bbde4c31fb02fa7daa05453\n",
+    "ingestionTime": 1771694453896,
+    "eventId": "39510106579718047069730446366849531066366848106667048960"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453717,
+    "message": "[WARNING]\t2026-02-21T17:20:53.717Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694453896,
+    "eventId": "39510106581992723079980569927286174330176980980277051393"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453717,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694453896,
+    "eventId": "39510106581992723079980569927286174330176980980277051394"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453780,
+    "message": "INIT_REPORT Init Duration: 165.54 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694453935,
+    "eventId": "39510106583397670027487999185250232756538062989909622784"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453841,
+    "message": "[WARNING]\t2026-02-21T17:20:53.841Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694453935,
+    "eventId": "39510106584758015484598367196883911571169613041774428161"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453841,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694453935,
+    "eventId": "39510106584758015484598367196883911571169613041774428162"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453883,
+    "message": "INIT_REPORT Init Duration: 88.76 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694453935,
+    "eventId": "39510106585694646782936653368828411738620844225025605635"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453883,
+    "message": "START RequestId: 08221668-3605-4aa4-a5a2-177043c5d3b6 Version: $LATEST\n",
+    "ingestionTime": 1771694453935,
+    "eventId": "39510106585694646782936653368828411738620844225025605636"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453888,
+    "message": "END RequestId: 08221668-3605-4aa4-a5a2-177043c5d3b6\n",
+    "ingestionTime": 1771694453935,
+    "eventId": "39510106585806150508929306484536090329984086032555507717"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694453888,
+    "message": "REPORT RequestId: 08221668-3605-4aa4-a5a2-177043c5d3b6\tDuration: 99.86 ms\tBilled Duration: 100 ms\tMemory Size: 3008 MB\tMax Memory Used: 46 MB\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694453935,
+    "eventId": "39510106585806150508929306484536090329984086032555507718"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694498431,
+    "message": "[WARNING]\t2026-02-21T17:21:38.431Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694498478,
+    "eventId": "39510107579148243887078853131810357420165916980805632000"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694498431,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694498478,
+    "eventId": "39510107579148243887078853131810357420165916980805632001"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694498473,
+    "message": "INIT_REPORT Init Duration: 92.44 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694498497,
+    "eventId": "39510107580084875185417139303778175161624343705935151104"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694498473,
+    "message": "START RequestId: ee22ac85-895f-497f-ba43-446b532b7a33 Version: $LATEST\n",
+    "ingestionTime": 1771694498497,
+    "eventId": "39510107580084875185417139303778175161624343705935151105"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694498478,
+    "message": "END RequestId: ee22ac85-895f-497f-ba43-446b532b7a33\n",
+    "ingestionTime": 1771694498497,
+    "eventId": "39510107580196378911409792419485853752987585513465053186"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]2c7e2725d2f349489715d5157ba3924e",
+    "timestamp": 1771694498478,
+    "message": "REPORT RequestId: ee22ac85-895f-497f-ba43-446b532b7a33\tDuration: 105.08 ms\tBilled Duration: 106 ms\tMemory Size: 3008 MB\tMax Memory Used: 46 MB\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694498497,
+    "eventId": "39510107580196378911409792419485853752987585513465053187"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532146,
+    "message": "INIT_START Runtime Version: python:3.12.mainlinev2.v3\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:27990c3d0965bea97240f3380b8d623b692705303bbde4c31fb02fa7daa05453\n",
+    "ingestionTime": 1771694532366,
+    "eventId": "39510108331017868255538812389655529744580756259101802496"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532247,
+    "message": "[WARNING]\t2026-02-21T17:22:12.247Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694532366,
+    "eventId": "39510108333270243520590405326950637290118240771205824513"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532247,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694532366,
+    "eventId": "39510108333270243520590405326950637290118240771205824514"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532318,
+    "message": "INIT_REPORT Init Duration: 171.64 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694532392,
+    "eventId": "39510108334853596429686079570030955996049389312038666240"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532394,
+    "message": "[WARNING]\t2026-02-21T17:22:12.394Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694532405,
+    "eventId": "39510108336548453064774406928803434934966120706441805824"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532394,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694532405,
+    "eventId": "39510108336548453064774406928803434934966120706441805825"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532437,
+    "message": "INIT_REPORT Init Duration: 94.52 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694541456,
+    "eventId": "39510108337507385108311223734831308343328671000439357440"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532437,
+    "message": "START RequestId: a77a8c9f-e0d8-4a79-90e9-d93e19c1e808 Version: $LATEST\n",
+    "ingestionTime": 1771694541456,
+    "eventId": "39510108337507385108311223734831308343328671000439357441"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532442,
+    "message": "END RequestId: a77a8c9f-e0d8-4a79-90e9-d93e19c1e808\n",
+    "ingestionTime": 1771694541456,
+    "eventId": "39510108337618888834303876850538986934691912807969259522"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]4c30437cfa86445b99d8bf9351d42e1b",
+    "timestamp": 1771694532442,
+    "message": "REPORT RequestId: a77a8c9f-e0d8-4a79-90e9-d93e19c1e808\tDuration: 106.93 ms\tBilled Duration: 107 ms\tMemory Size: 3008 MB\tMax Memory Used: 46 MB\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694541456,
+    "eventId": "39510108337618888834303876850538986934691912807969259523"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589478,
+    "message": "INIT_START Runtime Version: python:3.12.mainlinev2.v3\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:27990c3d0965bea97240f3380b8d623b692705303bbde4c31fb02fa7daa05453\n",
+    "ingestionTime": 1771694589662,
+    "eventId": "39510109609564191977696498409448066698356737809030709248"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589570,
+    "message": "[WARNING]\t2026-02-21T17:23:09.570Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694589662,
+    "eventId": "39510109611615860535961315738469352779440387067580907521"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589570,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694589662,
+    "eventId": "39510109611615860535961315738469352779440387067580907522"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589628,
+    "message": "INIT_REPORT Init Duration: 149.95 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694589686,
+    "eventId": "39510109612909303757476091880707373504762597527715119104"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589694,
+    "message": "[WARNING]\t2026-02-21T17:23:09.694Z\t\tLAMBDA_WARNING: Unhandled exception. The most likely cause is an issue in the function code. However, in rare cases, a Lambda runtime update can cause unexpected function behavior. For functions using managed runtimes, runtime updates can be triggered by a function change, or can be applied automatically. To determine if the runtime has been updated, check the runtime version in the INIT_START log entry. If this error correlates with a change in the runtime version, you may be able to mitigate this error by temporarily rolling back to the previous runtime version. For more information, see https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html\r\n",
+    "ingestionTime": 1771694589702,
+    "eventId": "39510109614381152940579113008067796301454981070596866048"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589694,
+    "message": "[ERROR] Runtime.ImportModuleError: Unable to import module 'generate_concepts.handler': No module named 'generate_concepts'\nTraceback (most recent call last):",
+    "ingestionTime": 1771694589702,
+    "eventId": "39510109614381152940579113008067796301454981070596866049"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589737,
+    "message": "INIT_REPORT Init Duration: 95.39 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694598755,
+    "eventId": "39510109615340084984115929814098389754679963613461676032"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589737,
+    "message": "START RequestId: 5775811f-2ff5-4758-8b51-05de8b7fb65d Version: $LATEST\n",
+    "ingestionTime": 1771694598755,
+    "eventId": "39510109615340084984115929814098389754679963613461676033"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589741,
+    "message": "END RequestId: 5775811f-2ff5-4758-8b51-05de8b7fb65d\n",
+    "ingestionTime": 1771694598755,
+    "eventId": "39510109615429287964910052306664532627770557059485597698"
+  },
+  {
+    "logStreamName": "2026/02/21/[$LATEST]6acabb46bf034be194badf3d8dfc44a8",
+    "timestamp": 1771694589741,
+    "message": "REPORT RequestId: 5775811f-2ff5-4758-8b51-05de8b7fb65d\tDuration: 105.61 ms\tBilled Duration: 106 ms\tMemory Size: 3008 MB\tMax Memory Used: 46 MB\tStatus: error\tError Type: Runtime.ImportModuleError\n",
+    "ingestionTime": 1771694598755,
+    "eventId": "39510109615429287964910052306664532627770557059485597699"
   }
 ]
