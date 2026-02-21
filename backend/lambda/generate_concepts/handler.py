@@ -112,7 +112,8 @@ def _parse_request(event: Dict[str, Any]) -> Dict[str, Any]:
     Normalized request dictionary with defaults
     """
     import json
-    body = json.loads(event.get("body", "{}"))
+    raw_body = event.get("body") or "{}"
+    body = json.loads(raw_body)
     return {
         "subject": body.get("subject"),
         "userId": body.get("userId", "anonymous"),
