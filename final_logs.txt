@@ -1,0 +1,40 @@
+[BedrockService] DUPLICATE EXAMPLE: 'gitlab' used by 'Resource Locks and Protection' (first: 'Azure Policy and Resource Governance')
+[BedrockService] DUPLICATE EXAMPLE: 'gitlab' used by 'Implement and Manage Storage' (first: 'Azure Policy and Resource Governance')
+[BedrockService] DUPLICATE EXAMPLE: 'british airways' used by 'Storage Account Configuration' (first: 'Self-Service Password Reset Configuration')
+[BedrockService] DUPLICATE EXAMPLE: 'capital one' used by 'Storage Security and Access Control' (first: 'Manage Azure Identities and Governance')
+[BedrockService] DUPLICATE EXAMPLE: 'gitlab' used by 'Blob Storage Management' (first: 'Azure Policy and Resource Governance')
+[BedrockService] DUPLICATE EXAMPLE: 'equifax' used by 'File Storage and Data Transfer' (first: 'Microsoft Entra ID User Creation and Properties')
+[BedrockService] DUPLICATE EXAMPLE: 'uber' used by 'Shared Access Signatures and Access Policies' (first: 'Built-in Azure RBAC Roles')
+[BedrockService] DUPLICATE EXAMPLE: 'zoom' used by 'Blob Lifecycle Management' (first: 'Storage Account Creation and Configuration')
+[BedrockService] DUPLICATE EXAMPLE: 'maersk' used by 'Azure Files Configuration' (first: 'Dynamic Group Membership Rules')
+[BedrockService] DUPLICATE EXAMPLE: 'equifax' used by 'AzCopy and Data Migration' (first: 'Microsoft Entra ID User Creation and Properties')
+[BedrockService] DUPLICATE EXAMPLE: 'equifax' used by 'Infrastructure as Code Deployment' (first: 'Microsoft Entra ID User Creation and Properties')
+[BedrockService] DUPLICATE EXAMPLE: 'maersk' used by 'Virtual Machine Lifecycle Management' (first: 'Dynamic Group Membership Rules')
+[BedrockService] DUPLICATE EXAMPLE: 'equifax' used by 'Container Services and Registry' (first: 'Microsoft Entra ID User Creation and Properties')
+[BedrockService] DUPLICATE EXAMPLE: 'gitlab.com' used by 'App Service Platform Management' (first: 'Deploy and Manage Azure Compute Resources')
+[BedrockService] DUPLICATE EXAMPLE: 'british airways' used by 'High Availability and Scaling' (first: 'Self-Service Password Reset Configuration')
+[BedrockService] ANCHOR FIX: 'Bank Vault Security System 🏦' duped by 'Azure Disk Encryption Implementation' (first: 'Storage Redundancy and Encryption') → renamed to 'Bank Vault Security System 🏦 (Azure)'
+[BedrockService] DUPLICATE EXAMPLE: 'equifax' used by 'Azure Disk Encryption Implementation' (first: 'Microsoft Entra ID User Creation and Properties')
+[BedrockService] DUPLICATE EXAMPLE: 'equifax' used by 'Container Registry Management' (first: 'Microsoft Entra ID User Creation and Properties')
+[BedrockService] DUPLICATE EXAMPLE: 'capital one' used by 'Container Instance Deployment' (first: 'Manage Azure Identities and Governance')
+[BedrockService] DUPLICATE EXAMPLE: 'gitlab.com' used by 'Deployment Slot Management' (first: 'Deploy and Manage Azure Compute Resources')
+[BedrockService] DUPLICATE EXAMPLE: 'pokemon go' used by 'VM Scale Set Configuration' (first: 'App Service Plan Configuration')
+[BedrockService] DUPLICATE EXAMPLE: 'gitlab.com' used by 'Implement and Manage Virtual Networking' (first: 'Deploy and Manage Azure Compute Resources')
+[BedrockService] DUPLICATE EXAMPLE: 'gitlab.com' used by 'VNet Peering Configuration' (first: 'Deploy and Manage Azure Compute Resources')
+[BedrockService] DUPLICATE EXAMPLE: 'gitlab' used by 'Monitor and Maintain Azure Resources' (first: 'Azure Policy and Resource Governance')
+[BedrockService] DUPLICATE EXAMPLE: 'target' used by 'Azure Monitor Configuration and Analysis' (first: 'Security Groups vs Microsoft 365 Groups')
+[BedrockService] DUPLICATE EXAMPLE: 'knight capital' used by 'Alert Rules and Action Groups' (first: 'Resource Group Organization')
+[BedrockService] ANCHOR FIX: 'Bank Vault Security System 🏦' duped by 'Azure Backup and Recovery Services' (first: 'Storage Redundancy and Encryption') → renamed to 'Bank Vault Security System 🏦 (Azure)'
+[BedrockService] DUPLICATE EXAMPLE: 'code spaces' used by 'Azure Backup and Recovery Services' (first: 'Azure Role-Based Access Control (RBAC)')
+[BedrockService] DUPLICATE EXAMPLE: 'british airways' used by 'Azure Site Recovery and Network Monitoring' (first: 'Self-Service Password Reset Configuration')
+[BedrockService] Content uniqueness: fixed 2 duplicate anchors across 66 concepts
+[BedrockService] Parallel classification resolved: procedural
+[Handler] Generation complete: 66 concepts
+[Handler] Classification: procedural
+[Handler] Storing concepts...
+[DynamoService] Stored 66 concepts for session a7afe7b9-916d-4f64-b061-d7859ed12746
+[Handler] Marking job completed...
+[DynamoService] Updated job 1522f842-255a-4938-a457-7561d2c63cf5 to status=completed
+[Handler] UNHANDLED ERROR: Float types are not supported. Use Decimal types instead.
+END RequestId: 7f57a031-8e87-4ce8-bdc8-f6406d5b2bd0
+REPORT RequestId: 7f57a031-8e87-4ce8-bdc8-f6406d5b2bd0	Duration: 755453.60 ms	Billed Duration: 755454 ms	Memory Size: 3008 MB	Max Memory Used: 102 MB

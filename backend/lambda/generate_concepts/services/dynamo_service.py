@@ -145,11 +145,15 @@ class DynamoService:
     ) -> None:
         self.update_job_status(job_id, user_id, "completed", concept_count=concept_count)
         if classification:
+            import json
+            from decimal import Decimal
+            # Convert any floats to Decimal as required by boto3 DynamoDB client
+            classification_clean = json.loads(json.dumps(classification), parse_float=Decimal)
             try:
                 self.jobs_table.update_item(
                     Key={"jobId": job_id, "userId": user_id},
                     UpdateExpression="SET classification = :cls",
-                    ExpressionAttributeValues={":cls": classification},
+                    ExpressionAttributeValues={":cls": classification_clean},
                 )
                 print(f"[DynamoService] Stored classification for job {job_id}")
             except ClientError as e:
