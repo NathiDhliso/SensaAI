@@ -5,16 +5,12 @@
  * Wraps DeepStructureDetails to present the "Deep Structure" of the subject
  * before progressing to the Concept Tree and Nomenclature Sprint.
  *
- * For legacy payloads (pre-Deep Structure), renders a fallback UI with a
- * "Generate Master Blueprint" button that runs classification only (~10s).
+ * For legacy payloads (pre-Deep Structure), renders a fallback UI without generating inline.
  */
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowRight, BookOpen, AlertCircle, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { SubjectClassification } from '@/shared/types/macro-workflow';
-import { conceptsApi } from '@/shared/api/concepts';
-import { useAuthStore } from '@/store/auth-store';
-import { useLearningStore } from '@/store/learning-store';
 import { DeepStructureDetails } from './DeepStructureDetails';
 import styles from './DeepStructureDiscovery.module.css';
 
@@ -30,62 +26,24 @@ interface DeepStructureDiscoveryProps {
     onContinue: () => void;
     /** Optional override for the continue button text */
     continueText?: string;
-    /** Optional jobId for patching classification into existing record */
-    jobId?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 export function DeepStructureDiscovery({
-    classification: initialClassification,
+    classification,
     subjectName,
     onContinue,
     continueText,
-    jobId,
 }: DeepStructureDiscoveryProps) {
-    const [generatedClassification, setGeneratedClassification] = useState<SubjectClassification | null>(null);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
-    // Use freshly generated classification if available, otherwise use the prop
-    const classification = generatedClassification || initialClassification;
     const deepStructure = classification?.deepStructure;
     const lifecycleBlueprints = classification?.lifecycleBlueprints;
     const examDomains = classification?.examDomains;
 
-    const handleGenerateBlueprint = async () => {
-        setIsGenerating(true);
-        setError(null);
-        try {
-            const userId = useAuthStore.getState().user?.id || 'anonymous';
-            const result = await conceptsApi.classifyOnly({
-                subject: subjectName,
-                userId,
-                jobId: jobId || 'none',
-            });
-            if (result && result.deepStructure) {
-                setGeneratedClassification(result);
-                // Also patch into the current session store so it persists
-                const store = useLearningStore.getState();
-                if (store.currentSession) {
-                    store.updateSession({
-                        metadata: {
-                            ...(store.currentSession.metadata || {}),
-                            fullClassification: result,
-                        },
-                    } as any);
-                }
-            } else {
-                setError('No deep structure data returned. Please try again.');
-            }
-        } catch (err) {
-            console.error('[DeepStructureDiscovery] classify failed:', err);
-            setError(err instanceof Error ? err.message : 'Classification failed. Please try again.');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
+
 
     // ─── Legacy Fallback ─────────────────────────────────────────────────
     // Older generation payloads lack deepStructure / lifecycleBlueprints, or even classification.
@@ -141,15 +99,9 @@ export function DeepStructureDiscovery({
                         Master Blueprint Not Found
                     </div>
                     <p style={{ color: 'var(--color-text-secondary, #94a3b8)', lineHeight: 1.6, maxWidth: '34rem', margin: '0 auto 1.5rem' }}>
-                        This subject was generated before the Deep Structure feature was available.
-                        You can generate the Master Blueprint now — it only takes about 10 seconds.
+                        This subject was generated with an older version of the engine.
+                        To unlock the Master Blueprint, you'll need to regenerate the subject.
                     </p>
-
-                    {error && (
-                        <p style={{ color: 'var(--color-error, #ef4444)', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                            {error}
-                        </p>
-                    )}
                 </motion.div>
 
                 <motion.div
@@ -161,20 +113,10 @@ export function DeepStructureDiscovery({
                 >
                     <button
                         className={styles.generateButton}
-                        onClick={handleGenerateBlueprint}
-                        disabled={isGenerating}
+                        onClick={() => navigate('/')}
                     >
-                        {isGenerating ? (
-                            <>
-                                <Loader2 size={18} className={styles.spinIcon} />
-                                Generating Blueprint…
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles size={18} />
-                                Generate Master Blueprint
-                            </>
-                        )}
+                        <Sparkles size={18} />
+                        Go to Generation Dashboard
                     </button>
                     <button className={styles.skipButton} onClick={onContinue}>
                         {continueText || 'Skip to Concept Tree'}
@@ -219,7 +161,7 @@ export function DeepStructureDiscovery({
                 >
                     <div className={styles.domainsLabel}>Exam Domains</div>
                     <div className={styles.domainsList}>
-                        {examDomains.map((domain) => (
+                        {examDomains.map((domain: any) => (
                             <div key={domain.name} className={styles.domainChip}>
                                 {domain.name}
                                 <span className={styles.domainWeight}>

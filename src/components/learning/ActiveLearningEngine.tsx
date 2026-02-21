@@ -98,7 +98,6 @@ export default function ActiveLearningEngine() {
                     classification={classification}
                     subjectName={currentSession.subject}
                     onContinue={handleScoutComplete}
-                    jobId={currentSession.subjectId}
                 />
             </div>
         );
@@ -273,7 +272,6 @@ export default function ActiveLearningEngine() {
                                 subjectName={currentSession.subject}
                                 onContinue={() => setShowStructurePanel(false)}
                                 continueText="Return to Session"
-                                jobId={currentSession.subjectId}
                             />
                         </motion.div>
                     )}
