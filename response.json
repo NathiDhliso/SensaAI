@@ -1,0 +1,1 @@
+{"statusCode": 400, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "https://main.dckqci84h8ffk.amplifyapp.com", "Access-Control-Allow-Headers": "Content-Type,Authorization,Cookie", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Credentials": "true"}, "body": "{\"error\": \"Subject is required\"}"}

@@ -1,0 +1,122 @@
+{
+    "Items": [
+        {
+            "ApiEndpoint": "https://ldppp79nj5.execute-api.us-east-1.amazonaws.com",
+            "ApiId": "ldppp79nj5",
+            "ApiKeySelectionExpression": "$request.header.x-api-key",
+            "CorsConfiguration": {
+                "AllowCredentials": true,
+                "AllowHeaders": [
+                    "content-type",
+                    "x-api-key",
+                    "x-amz-date",
+                    "authorization"
+                ],
+                "AllowMethods": [
+                    "PUT",
+                    "POST",
+                    "GET",
+                    "OPTIONS",
+                    "DELETE"
+                ],
+                "AllowOrigins": [
+                    "http://localhost:5173",
+                    "https://www.sensaai.co.za",
+                    "http://localhost:5175",
+                    "http://localhost:5174",
+                    "https://main.dckqci84h8ffk.amplifyapp.com",
+                    "https://sensaai.co.za"
+                ],
+                "ExposeHeaders": [
+                    "content-type"
+                ],
+                "MaxAge": 300
+            },
+            "CreatedDate": "2026-02-13T20:36:50+00:00",
+            "Description": "SensaAI Learning API",
+            "DisableExecuteApiEndpoint": false,
+            "IpAddressType": "ipv4",
+            "Name": "sensapbl-api-dev",
+            "ProtocolType": "HTTP",
+            "RouteSelectionExpression": "$request.method $request.path",
+            "Tags": {
+                "Project": "SensaAI",
+                "Environment": "dev",
+                "ManagedBy": "Terraform",
+                "Component": "API",
+                "Name": "sensapbl-api-dev"
+            }
+        },
+        {
+            "ApiEndpoint": "https://v44xa62zee.execute-api.us-east-1.amazonaws.com",
+            "ApiId": "v44xa62zee",
+            "ApiKeySelectionExpression": "$request.header.x-api-key",
+            "CorsConfiguration": {
+                "AllowCredentials": true,
+                "AllowHeaders": [
+                    "content-type",
+                    "x-api-key",
+                    "x-amz-date",
+                    "authorization"
+                ],
+                "AllowMethods": [
+                    "PUT",
+                    "POST",
+                    "GET",
+                    "OPTIONS",
+                    "DELETE"
+                ],
+                "AllowOrigins": [
+                    "https://www.sensaai.co.za",
+                    "https://sensaai.co.za"
+                ],
+                "ExposeHeaders": [
+                    "content-type"
+                ],
+                "MaxAge": 300
+            },
+            "CreatedDate": "2026-02-13T06:15:19+00:00",
+            "Description": "SensaAI Learning API",
+            "DisableExecuteApiEndpoint": false,
+            "IpAddressType": "ipv4",
+            "Name": "sensapbl-api-prod",
+            "ProtocolType": "HTTP",
+            "RouteSelectionExpression": "$request.method $request.path",
+            "Tags": {
+                "Project": "SensaAI",
+                "Environment": "prod",
+                "ManagedBy": "Terraform",
+                "Component": "API",
+                "Name": "sensapbl-api-prod"
+            }
+        },
+        {
+            "ApiEndpoint": "https://x2yklfyv11.execute-api.us-east-1.amazonaws.com",
+            "ApiId": "x2yklfyv11",
+            "ApiKeySelectionExpression": "$request.header.x-api-key",
+            "CorsConfiguration": {
+                "AllowCredentials": false,
+                "AllowHeaders": [
+                    "content-type"
+                ],
+                "AllowMethods": [
+                    "POST",
+                    "OPTIONS"
+                ],
+                "AllowOrigins": [
+                    "https://main.d26tsnxgkiv9n9.amplifyapp.com"
+                ],
+                "MaxAge": 300
+            },
+            "CreatedDate": "2025-11-27T08:55:27+00:00",
+            "DisableExecuteApiEndpoint": false,
+            "IpAddressType": "ipv4",
+            "Name": "lipgloss-autospa-api",
+            "ProtocolType": "HTTP",
+            "RouteSelectionExpression": "$request.method $request.path",
+            "Tags": {
+                "Project": "lipgloss-autospa"
+            }
+        }
+    ]
+}
