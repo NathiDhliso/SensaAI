@@ -830,6 +830,18 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
               selection: selection.length > 0 ? selection : (Array.isArray(rawPhase1.selection) ? rawPhase1.selection as string[] : []),
               execution: execution || (typeof rawPhase1.execution === 'string' ? rawPhase1.execution : ''),
        };
+       let blueprintSteps: ParsedConcept['blueprintSteps'];
+       if (Array.isArray(c.blueprintSteps) && c.blueprintSteps.length > 0) {
+              blueprintSteps = (c.blueprintSteps as Array<Record<string, unknown>>)
+                     .filter(bs => bs && typeof bs === 'object' && typeof bs.verb === 'string' && typeof bs.atomicStep === 'string' && typeof bs.instantiation === 'string')
+                     .map(bs => ({
+                            verb: bs.verb as string,
+                            atomicStep: bs.atomicStep as string,
+                            instantiation: bs.instantiation as string,
+                     }));
+              if (blueprintSteps.length === 0) blueprintSteps = undefined;
+       }
+
        return {
               id: `concept-${order}`,
               name,
@@ -855,11 +867,9 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
               } : undefined,
               keyPoints,
               perspectives,
-              // Phase 2 Cognitive Model
+              blueprintSteps,
               cognitiveLevel,
               commonPitfalls,
-              // SILVER BULLET: Extract semantic connections from AI output
-              // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
               strictConnections: extractStrictConnections(c),
               tier: tier,
               parentName: parentName,

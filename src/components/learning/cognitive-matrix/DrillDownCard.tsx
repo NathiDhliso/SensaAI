@@ -65,9 +65,21 @@ export function DrillDownCard({ cell, onClose, onStartDrill }: DrillDownCardProp
               <div className={styles.sectionHeader}>
                 <span className={styles.sectionIcon}>⚡</span>
                 <span className={styles.sectionLabel}>ATOMIC STEPS</span>
-                <span className={styles.sectionTag}>Execution</span>
+                <span className={styles.sectionTag}>{cell.action.blueprintSteps ? 'Blueprint Scaffold' : 'Execution'}</span>
               </div>
-              {cell.action.steps.length > 0 ? (
+              {cell.action.blueprintSteps && cell.action.blueprintSteps.length > 0 ? (
+                <ol className={styles.stepsList}>
+                  {cell.action.blueprintSteps.map((bs, i) => (
+                    <li key={i} className={styles.stepItem}>
+                      <span className={styles.stepNumber}>{i + 1}</span>
+                      <div className={styles.blueprintStep}>
+                        <span className={styles.atomicLabel}>{bs.atomicStep}</span>
+                        <span className={styles.instantiation}>{bs.instantiation}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : cell.action.steps.length > 0 ? (
                 <ol className={styles.stepsList}>
                   {cell.action.steps.map((step, i) => (
                     <li key={i} className={styles.stepItem}>

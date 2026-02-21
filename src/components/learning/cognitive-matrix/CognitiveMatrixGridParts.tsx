@@ -1,17 +1,8 @@
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, ChevronRight, Maximize2, Network } from 'lucide-react';
 import type { MatrixConcept, BranchRow, LeafRow, DrillDownAction } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
 
-const SHAPE_TABS = [
-  { key: 'analogicalModel',    icon: '🧠', label: 'Analogy' },
-  { key: 'simpleCore',         icon: '💡', label: 'Core' },
-  { key: 'highStakesExample',  icon: '🔥', label: 'Real Case' },
-  { key: 'patternRecognition', icon: '🎯', label: 'Pattern' },
-  { key: 'eliminationLogic',   icon: '✂️', label: 'Eliminate' },
-] as const;
-type ShapeTabKey = typeof SHAPE_TABS[number]['key'];
 
 export interface ExpandedCell {
   conceptId: string;
@@ -73,8 +64,6 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
   heatmap: boolean; isMatch: boolean | null; onCellTap: (cell: ExpandedCell) => void;
   onCloseDrawer: () => void; onExploreWhy?: (conceptName: string) => void; focusMode?: boolean;
 }) {
-  const [activeShapeTab, setActiveShapeTab] = useState<ShapeTabKey>('analogicalModel');
-  const [activePerspective, setActivePerspective] = useState(0);
   const isDrawerOpen = expandedCell?.conceptId === leaf.conceptId;
   const isMasteredLeaf = Object.values(leaf.cellConceptIds).some(id => masteredIds.has(id));
   const labelClass = focusMode
@@ -117,106 +106,43 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
                 <span className={styles.drawerConcept}>{expandedCell.conceptName}</span>
               </div>
               <div className={styles.drawerBody}>
-                {expandedCell.action.perspectives && expandedCell.action.perspectives.length > 0 ? (
-                  <div className={styles.perspectiveBlock}>
-                    <div className={styles.perspectiveHeader}>
-                      <span className={styles.perspectiveTitle}>📐 CREATOR’S BLUEPRINT</span>
-                      <div className={styles.perspectiveSwitcher}>
-                        {expandedCell.action.perspectives.map((p, i) => (
-                          <button
-                            key={i}
-                            className={`${styles.perspectiveBtn} ${activePerspective === i ? styles.perspectiveBtnActive : ''}`}
-                            onClick={() => setActivePerspective(i)}
-                          >
-                            {p.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {expandedCell.action.perspectives[activePerspective] && (
-                      <>
-                        {expandedCell.action.perspectives[activePerspective].blueprint && (
-                          <p className={styles.perspectiveBlueprint}>
-                            {expandedCell.action.perspectives[activePerspective].blueprint}
-                          </p>
-                        )}
-                        {expandedCell.action.perspectives[activePerspective].steps.length > 0 && (
-                          <ol className={styles.checklist}>
-                            {expandedCell.action.perspectives[activePerspective].steps.map((step, i) => (
-                              <li key={i} className={styles.checklistItem}>
-                                <span className={styles.checklistNum}>{i + 1}</span>
-                                <span className={styles.checklistText}>{step}</span>
-                              </li>
-                            ))}
-                          </ol>
-                        )}
-                      </>
-                    )}
+                <div className={styles.checklistPanel}>
+                  <div className={styles.checklistHeader}>
+                    <span className={styles.checklistIcon}>⚡</span>
+                    <span className={styles.checklistTitle}>
+                      {expandedCell.action.blueprintSteps ? 'BLUEPRINT SCAFFOLD' : 'ATOMIC STEPS'}
+                    </span>
                     {expandedCell.action.chain.length > 0 && (
-                      <div className={styles.prereqRow}>
-                        <span className={styles.prereqPill}>Needs: {expandedCell.action.chain.join(' → ')}</span>
-                      </div>
+                      <span className={styles.prereqPill}>Needs: {expandedCell.action.chain.join(' → ')}</span>
                     )}
                   </div>
-                ) : (
-                  <div className={styles.checklistPanel}>
-                    <div className={styles.checklistHeader}>
-                      <span className={styles.checklistIcon}>⚡</span>
-                      <span className={styles.checklistTitle}>ATOMIC STEPS</span>
-                      {expandedCell.action.chain.length > 0 && (
-                        <span className={styles.prereqPill}>Needs: {expandedCell.action.chain.join(' → ')}</span>
-                      )}
-                    </div>
-                    {expandedCell.action.steps.length > 0 ? (
-                      <ol className={styles.checklist}>
-                        {expandedCell.action.steps.map((step, i) => (
-                          <li key={i} className={styles.checklistItem}>
-                            <span className={styles.checklistNum}>{i + 1}</span>
-                            <span className={styles.checklistText}>{step}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    ) : <p className={styles.drawerEmpty}>No steps defined.</p>}
-                  </div>
-                )}
-                {expandedCell.action.shape && (
-                  <div className={styles.shapeLenses}>
-                    <div className={styles.shapeTabs}>
-                      {SHAPE_TABS.filter(t => {
-                        const s = expandedCell.action.shape!;
-                        if (t.key === 'patternRecognition') return !!s.patternRecognition;
-                        return !!(s as Record<string, unknown>)[t.key];
-                      }).map(t => (
-                        <button
-                          key={t.key}
-                          className={`${styles.shapeTab} ${activeShapeTab === t.key ? styles.shapeTabActive : ''}`}
-                          onClick={() => setActiveShapeTab(t.key)}
-                        >
-                          <span>{t.icon}</span>
-                          <span>{t.label}</span>
-                        </button>
+                  {expandedCell.action.blueprintSteps && expandedCell.action.blueprintSteps.length > 0 ? (
+                    <ol className={styles.checklist}>
+                      {expandedCell.action.blueprintSteps.map((bs, i) => (
+                        <li key={i} className={styles.checklistItem}>
+                          <span className={styles.checklistNum}>{i + 1}</span>
+                          <div className={styles.blueprintStepCell}>
+                            <span className={styles.atomicLabel}>{bs.atomicStep}</span>
+                            <span className={styles.checklistText}>{bs.instantiation}</span>
+                          </div>
+                        </li>
                       ))}
-                    </div>
-                    <div className={styles.shapeLensBody}>
-                      {activeShapeTab === 'analogicalModel' && expandedCell.action.shape.analogicalModel && (
-                        <p className={styles.lensText}>{expandedCell.action.shape.analogicalModel}</p>
-                      )}
-                      {activeShapeTab === 'simpleCore' && expandedCell.action.shape.simpleCore && (
-                        <p className={styles.lensText}>{expandedCell.action.shape.simpleCore}</p>
-                      )}
-                      {activeShapeTab === 'highStakesExample' && expandedCell.action.shape.highStakesExample && (
-                        <p className={styles.lensText}>{expandedCell.action.shape.highStakesExample}</p>
-                      )}
-                      {activeShapeTab === 'patternRecognition' && expandedCell.action.shape.patternRecognition && (
-                        <div className={styles.patternBlock}>
-                          <p className={styles.patternQ}>{expandedCell.action.shape.patternRecognition.question}</p>
-                          <p className={styles.patternA}>{expandedCell.action.shape.patternRecognition.answer}</p>
-                        </div>
-                      )}
-                      {activeShapeTab === 'eliminationLogic' && expandedCell.action.shape.eliminationLogic && (
-                        <p className={styles.lensText}>{expandedCell.action.shape.eliminationLogic}</p>
-                      )}
-                    </div>
+                    </ol>
+                  ) : expandedCell.action.steps.length > 0 ? (
+                    <ol className={styles.checklist}>
+                      {expandedCell.action.steps.map((step, i) => (
+                        <li key={i} className={styles.checklistItem}>
+                          <span className={styles.checklistNum}>{i + 1}</span>
+                          <span className={styles.checklistText}>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : <p className={styles.drawerEmpty}>No steps defined.</p>}
+                </div>
+                {expandedCell.action.trick && (
+                  <div className={styles.trickRow}>
+                    <span className={styles.trickIcon}>🧠</span>
+                    <span className={styles.trickText}>{expandedCell.action.trick}</span>
                   </div>
                 )}
               </div>

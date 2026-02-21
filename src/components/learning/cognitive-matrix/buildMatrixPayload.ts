@@ -1,5 +1,5 @@
 import type { LearningConcept } from '@/shared/types/learning';
-import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, DrillDownAction, CreatorPerspective } from './types';
+import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, DrillDownAction, BlueprintAlignedStep } from './types';
 
 function buildTrick(concept: LearningConcept): string {
   return (
@@ -11,11 +11,7 @@ function buildTrick(concept: LearningConcept): string {
 }
 
 function buildChain(concept: LearningConcept): string[] {
-  return concept.prerequisites?.length
-    ? concept.prerequisites
-    : concept.mnemonic?.story
-      ? [concept.mnemonic.story]
-      : [];
+  return concept.prerequisites?.length ? concept.prerequisites : [];
 }
 
 function buildStepsForVerb(concept: LearningConcept, verbIndex: number): string[] {
@@ -43,77 +39,36 @@ function buildStepsForVerb(concept: LearningConcept, verbIndex: number): string[
     : [];
 }
 
-function buildPerspectives(concept: LearningConcept, verbIndex: number): CreatorPerspective[] | undefined {
-  if (concept.perspectives && concept.perspectives.length > 0) {
-    return concept.perspectives;
-  }
-
-  const perspectives: CreatorPerspective[] = [];
-  const phase1Steps = concept.lifecycle?.phase1?.steps ?? [];
-  const phase2Steps = concept.lifecycle?.phase2?.steps ?? [];
-  const phase3Steps = concept.lifecycle?.phase3?.steps ?? [];
-
-  if (verbIndex === 0 && phase1Steps.length > 0) {
-    const executionLine = phase1Steps.find(s => s.includes('→'));
-    const steps = executionLine
-      ? executionLine.split(/\s*→\s*/).map(s => s.trim()).filter(s => s.length > 3)
-      : phase1Steps;
-    const selectionSteps = phase1Steps.filter(s => s.startsWith('When ') || s.includes('→ Unlocks'));
-    if (steps.length > 0) {
-      perspectives.push({
-        label: 'Blueprint',
-        blueprint: executionLine || phase1Steps[0] || '',
-        steps,
-      });
-    }
-    if (selectionSteps.length > 0) {
-      perspectives.push({
-        label: 'Decision Map',
-        blueprint: 'When to apply each approach and what it unlocks',
-        steps: selectionSteps,
-      });
+function buildBlueprintSteps(concept: LearningConcept, verb: string): BlueprintAlignedStep[] | undefined {
+  if (!concept.blueprintSteps || concept.blueprintSteps.length === 0) return undefined;
+  const verbUpper = verb.toUpperCase();
+  const matched = concept.blueprintSteps.filter(
+    bs => bs.verb.toUpperCase() === verbUpper
+  );
+  if (matched.length > 0) return matched;
+  const phaseMap: Record<number, string[]> = {
+    0: ['PREPARE', 'PHASE1', 'PHASE 1'],
+    1: ['MODEL', 'PHASE2', 'PHASE 2'],
+    2: ['DELIVER', 'PHASE3', 'PHASE 3'],
+  };
+  for (const [, aliases] of Object.entries(phaseMap)) {
+    if (aliases.includes(verbUpper)) {
+      return concept.blueprintSteps.filter(bs => aliases.includes(bs.verb.toUpperCase()));
     }
   }
-
-  if (verbIndex === 1 && phase2Steps.length > 0) {
-    perspectives.push({
-      label: 'Application',
-      blueprint: phase2Steps[0] || '',
-      steps: phase2Steps,
-    });
-  }
-
-  if (verbIndex === 2 && phase3Steps.length > 0) {
-    const toolLine = phase3Steps.find(s => s.startsWith('Tool:'));
-    const metricLines = phase3Steps.filter(s => s.startsWith('Metrics:') || s.startsWith('Thresholds:'));
-    perspectives.push({
-      label: 'Tool / Method',
-      blueprint: toolLine || phase3Steps[0] || '',
-      steps: metricLines.length > 0 ? metricLines : phase3Steps,
-    });
-  }
-
-  return perspectives.length > 0 ? perspectives : undefined;
+  return undefined;
 }
 
-function buildAction(concept: LearningConcept, verbIndex: number): DrillDownAction {
-  const phase3Raw = concept.lifecycle?.phase3 as unknown as { tool?: string; metrics?: string[] } | undefined;
+function buildAction(concept: LearningConcept, verbIndex: number, verb: string): DrillDownAction {
+  const bpSteps = buildBlueprintSteps(concept, verb);
+  const steps = bpSteps && bpSteps.length > 0
+    ? bpSteps.map(bs => bs.instantiation)
+    : buildStepsForVerb(concept, verbIndex);
   return {
     trick: buildTrick(concept),
     chain: buildChain(concept),
-    steps: buildStepsForVerb(concept, verbIndex),
-    shape: concept.shape ? {
-      simpleCore: concept.shape.simpleCore,
-      highStakesExample: concept.shape.highStakesExample,
-      analogicalModel: concept.shape.analogicalModel,
-      patternRecognition: concept.shape.patternRecognition,
-      eliminationLogic: concept.shape.eliminationLogic,
-    } : undefined,
-    phase3: (phase3Raw?.tool || phase3Raw?.metrics?.length) ? {
-      tool: phase3Raw?.tool,
-      metrics: phase3Raw?.metrics,
-    } : undefined,
-    perspectives: buildPerspectives(concept, verbIndex),
+    steps,
+    blueprintSteps: bpSteps,
   };
 }
 
@@ -152,7 +107,7 @@ export function buildMatrixPayload(
     const actions: Record<string, DrillDownAction> = {};
     const cellConceptIds: Record<string, string> = {};
     for (let i = 0; i < verbs.length; i++) {
-      actions[verbs[i]] = buildAction(leaf, i);
+      actions[verbs[i]] = buildAction(leaf, i, verbs[i]);
       cellConceptIds[verbs[i]] = leaf.id;
     }
     return { conceptId: leaf.id, conceptName: leaf.name, actions, cellConceptIds };

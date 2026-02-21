@@ -731,7 +731,8 @@ export function transformToLearningConcepts(
  ).length,
  // SILVER BULLET: Map AI-generated semantic connections to LearningConcept.connections
  // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
- connections: extractSemanticConnections(parsedConcept, parsed.concepts)
+ connections: extractSemanticConnections(parsedConcept, parsed.concepts),
+ blueprintSteps: parsedConcept.blueprintSteps
  });
  // Log the final concept name
  const finalConcept = concepts[concepts.length - 1];
@@ -994,51 +995,5 @@ export function transformToSensaAIContent(parsed: ParsedGeneratedContent, subjec
  diagnosticReady,
  metadataCompleteness
  }
- };
-}
-/**
- * Validate that content has sufficient metadata for Learning Velocity Engine
- */
-export function validateSensaAIMetadata(concepts: SensaAILearningConcept[]): {
- isValid: boolean;
- issues: string[];
- recommendations: string[];
-} {
- const issues: string[] = [];
- const recommendations: string[] = [];
- // Check foundation concepts for diagnostics
- const trunkCount = concepts.filter(c => c.trunkLevel).length;
- if (trunkCount < 5) {
- issues.push(`Only ${trunkCount} trunk concepts found, need at least 5 for diagnostics`);
- recommendations.push('Ensure concepts have minimal prerequisites and concrete examples');
- }
- // Check key points coverage
- const conceptsWithoutKeyPoints = concepts.filter(c => c.keyPoints.length < 3).length;
- if (conceptsWithoutKeyPoints > 0) {
- issues.push(`${conceptsWithoutKeyPoints} concepts have insufficient key points`);
- recommendations.push('Ensure concepts have hook sentences, micro-metaphors, and critical distinctions');
- }
- // Check diagnostic questions
- const conceptsWithoutQuestions = concepts.filter(c => c.diagnosticQuestions.length === 0).length;
- if (conceptsWithoutQuestions > 0) {
- issues.push(`${conceptsWithoutQuestions} concepts lack diagnostic questions`);
- recommendations.push('Add critical distinctions and pattern recognition questions to concepts');
- }
- // Check tier distribution
- const tierCounts = {
- Trunk: concepts.filter(c => c.tier === 'trunk').length,
- Branch: concepts.filter(c => c.tier === 'branch').length,
- Leaf: concepts.filter(c => c.tier === 'leaf').length
- };
- const total = concepts.length;
- const trunkPercent = (tierCounts.Trunk / total) * 100;
- if (trunkPercent < 5 || trunkPercent > 30) {
- issues.push(`Trunk concepts: ${trunkPercent.toFixed(1)}% (target: ~10-20%)`);
- recommendations.push('Adjust concept tree structure to achieve better tier balance');
- }
- return {
- isValid: issues.length === 0,
- issues,
- recommendations
  };
 }

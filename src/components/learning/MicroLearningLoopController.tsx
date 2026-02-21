@@ -512,6 +512,25 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                         <p className={styles.highStakesText}>{concept.shape.highStakesExample}</p>
                     </div>
                 )}
+                {concept.blueprintSteps && concept.blueprintSteps.length > 0 && (
+                    <div className={styles.learningSection}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionNumber}>&#9670;</span>
+                            <div>
+                                <h5 className={styles.sectionTitle}>Blueprint Scaffold</h5>
+                                <span className={styles.sectionSubtitle}>Deep Structure Pattern</span>
+                            </div>
+                        </div>
+                        <ol className={styles.executionList}>
+                            {concept.blueprintSteps.map((bs, idx) => (
+                                <li key={idx}>
+                                    <strong className={styles.blueprintLabel}>{bs.atomicStep}</strong>
+                                    <span> — {bs.instantiation}</span>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                )}
                 <div className={styles.elaborationSection}>
                     <div className={styles.elaborationHeader}>
                         <Lightbulb size={18} />

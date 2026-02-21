@@ -1,3 +1,5 @@
+import type { BlueprintStep } from '@/shared/types/learning';
+
 /**
  * Parsed mnemonic context for Memory Palace
  */
@@ -56,10 +58,12 @@ export interface ParsedConcept {
         patternRecognition?: { question: string; answer: string };
         eliminationLogic?: string;
     };
+    blueprintSteps?: BlueprintStep[];
     strictConnections?: Array<{ target: string; type: 'solid' | 'dashed' | 'arrow' | 'double-arrow' | 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }>;
     connections?: Array<{ target: string; type: 'solid' | 'dashed' | 'arrow' | 'double-arrow' | 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }>;
     dependsOn?: string[];
 }
+export type { BlueprintStep };
 export interface ParsedStage {
     id: string;
     order: number;

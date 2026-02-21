@@ -243,3 +243,23 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 22px rgba(120, 80, 255, 0.55);
 }
+
+.blueprintStep {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.atomicLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(80, 220, 180, 0.7);
+}
+
+.instantiation {
+  font-size: 0.82rem;
+  color: rgba(220, 215, 255, 0.85);
+  line-height: 1.5;
+}

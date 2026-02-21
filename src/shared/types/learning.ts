@@ -52,6 +52,11 @@ export interface SubjectGraph {
 // ============================================================================
 // Lifecycle Types 
 // ============================================================================
+export interface BlueprintStep {
+    verb: string;
+    atomicStep: string;
+    instantiation: string;
+}
 export interface ConceptLifecyclePhase {
     title: string;
     steps: string[];
@@ -213,6 +218,7 @@ export interface LearningConcept {
     prerequisites?: string[];
     keyPoints?: string[];
     perspectives?: CreatorPerspective[];
+    blueprintSteps?: BlueprintStep[];
 }
 // ============================================================================
 // Learning Stage Types

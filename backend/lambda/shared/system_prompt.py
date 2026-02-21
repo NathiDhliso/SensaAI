@@ -1,5 +1,7 @@
+import json
+
 # SENSA System Prompt for Lambda
-# Prompt Version: v7.0 (Exam-Context Tree Structure)
+# Prompt Version: v8.0 (Blueprint-Aligned Deep Structure)
 #
 # Tree Hierarchy:
 #   Trunk  = Main exam domain/objective
@@ -151,6 +153,7 @@ Generate concepts in a strict 3-level tree:
 - **Memory**: mnemonic (anchor + story)
 - **Understanding**: keyPoints, whyYouNeed, technicalDetails, shape
 - **Creator Blueprints**: perspectives (2-4 items per concept — see §3.6)
+- **Deep Structure**: blueprintSteps (leaf concepts only — see §3.7)
 - **Application**: phase2 (array of plain strings), phase3 (tool, metrics)
 - **Relationship**: connections (see §3.4)
 - **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
@@ -190,31 +193,44 @@ If you can't finish the sentence, the connection shouldn't exist yet. FORBIDDEN 
 ### 3.5 COGNITIVE LEVELS (Bloom's):
 Trunk: `understand`. Branch: `understand`/`apply`. Leaf: prefer `apply`, `analyze`, `evaluate`, `create`.
 ### 3.6 CREATOR'S BLUEPRINTS — `perspectives` field
-This is the most important field for learners. It exposes the **mental model the creator used** when designing the atomic steps for this concept. Each perspective is a different approach a practitioner might take — the student flicks between them to find the one that clicks.
+This is the most important field for learners. Each perspective is a different tool/approach a practitioner might take. The student flicks between them to find the one that clicks.
 
 **Structure**: `perspectives` is an array of 2-4 objects:
 ```json
-{{ "label": "Portal", "blueprint": "The creator's approach sentence for this method", "steps": ["Step 1", "Step 2", ...] }}
+{{ "label": "Portal", "blueprint": "The creator's approach sentence", "steps": ["Step 1", "Step 2", ...] }}
 ```
 
 **Label guidance by subject type**:
-- **Procedural (cloud/infra — Azure, AWS, GCP)**: Use tool-specific labels: `"Portal"`, `"CLI"`, `"Terraform"`, `"ARM/Bicep"`, `"PowerShell"`. Each perspective has the actual commands/navigation path as steps.
-- **Procedural (coding/software)**: Use `"Imperative"`, `"Declarative"`, `"Functional"`, `"OOP"` — each shows a different coding paradigm approach.
-- **Procedural (medical/surgical)**: Use `"Assessment"`, `"Intervention"`, `"Verification"` — each maps to a clinical decision stage.
-- **Conceptual (law)**: Use `"Plaintiff's Argument"`, `"Defendant's Argument"`, `"Court's Reasoning"` — each shows the same issue from a different legal perspective.
-- **Conceptual (finance/economics)**: Use `"Micro View"`, `"Macro View"`, `"Risk Lens"` — each frames the concept differently.
-- **Conceptual (music theory)**: Use `"Harmonic"`, `"Melodic"`, `"Rhythmic"` — each shows how the concept manifests in a different musical dimension.
-- **Cyclic (design/research/agile)**: Use `"Diverge"`, `"Converge"`, `"Reflect"` — each maps to a phase of the cycle.
-- **Perceptual (diagnosis/chess/art)**: Use `"Pattern Recognition"`, `"Differential"`, `"Confirmation"` — each maps to a perceptual reasoning stage.
+- **Procedural (cloud/infra)**: `"Portal"`, `"CLI"`, `"Terraform"`, `"PowerShell"`
+- **Procedural (coding)**: `"Imperative"`, `"Declarative"`, `"Functional"`, `"OOP"`
+- **Conceptual (law)**: `"Plaintiff"`, `"Defendant"`, `"Court"`
+- **Conceptual (finance)**: `"Micro View"`, `"Macro View"`, `"Risk Lens"`
+- **Cyclic**: `"Diverge"`, `"Converge"`, `"Reflect"`
+- **Perceptual**: `"Pattern Recognition"`, `"Differential"`, `"Confirmation"`
 
-**Blueprint sentence**: The creator's mental approach for THIS perspective — what they were thinking when they designed these steps. NOT a description of the concept. E.g.:
-- Portal: `"Navigate to the NSG blade, add inbound rule, set priority below 65000"`
-- CLI: `"az network nsg rule create with --priority, --access Allow, --direction Inbound"`
-- Terraform: `"Declare azurerm_network_security_rule resource, reference nsg_name, set direction and access attributes"`
-
-**Steps**: The actual atomic steps for this perspective (3-6 steps). For procedural/tool subjects, these are the REAL commands, navigation paths, or code snippets — not generic descriptions.
+**Steps**: Real commands, navigation paths, or reasoning chains — not generic descriptions.
 
 **CRITICAL**: Every leaf concept MUST have `perspectives`. Trunk and branch concepts may omit it.
+{blueprint_scaffold}
+### 3.7 BLUEPRINT-ALIGNED LIFECYCLE — `blueprintSteps` field
+This field connects each concept to the subject's deep structure, creating a repeating mnemonic scaffold.
+
+**Structure**: `blueprintSteps` is an array of objects, one per lifecycle phase that exists:
+```json
+{{ "verb": "PREPARE", "atomicStep": "Identify scope", "instantiation": "Determine which Azure resources need RBAC role assignment" }}
+```
+
+- `verb`: The lifecycle verb from the blueprint (e.g., PREPARE, MODEL, DELIVER)
+- `atomicStep`: The exact atomic step from the blueprint sequence (copy verbatim)
+- `instantiation`: How THIS concept instantiates that atomic step — the specific domain action
+
+**Rules**:
+1. Every leaf concept MUST have `blueprintSteps` for each lifecycle phase provided
+2. The `atomicStep` value MUST be copied verbatim from the blueprint sequence — do NOT rephrase
+3. The `instantiation` must be concrete and specific to THIS concept — not a generic restatement
+4. The pattern should feel like the same skeleton with different flesh: a learner who sees 3-4 concepts will internalize the scaffold
+
+**CRITICAL**: Every leaf concept MUST have `blueprintSteps`. Trunk and branch concepts may omit it.
 ---
 ## 4. OUTPUT FORMAT
 Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
@@ -306,6 +322,11 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
    {{ "target": "Photosynthesis Mechanisms", "type": "is-part-of" }},
    {{ "target": "Chloroplast Structure", "type": "requires" }},
    {{ "target": "Chemiosmosis and ATP Synthase", "type": "causes" }}
+ ],
+ "blueprintSteps": [
+   {{ "verb": "IDENTIFY", "atomicStep": "Locate the reaction site", "instantiation": "Thylakoid membrane in the chloroplast — specifically PSII and PSI complexes embedded in the lipid bilayer" }},
+   {{ "verb": "TRACE", "atomicStep": "Follow the energy pathway", "instantiation": "Photon → P680 excitation → electron ejection → ETC (plastoquinone → cyt b6f → plastocyanin) → P700 → ferredoxin → NADP⁺ reductase → NADPH" }},
+   {{ "verb": "VERIFY", "atomicStep": "Confirm products and byproducts", "instantiation": "Products: ATP (chemiosmosis), NADPH (terminal acceptor). Byproduct: O₂ (from photolysis of H₂O at PSII). Verify: O₂ comes from water, NOT CO₂." }}
  ]
 }}
 ```
@@ -603,11 +624,34 @@ def get_tree_generation_prompt(
 - The object should be a clear, specific resource/entity (2-3 words max)
 - Avoid generic names like "Storage Overview" — use "{phase1_verb.capitalize()} Storage Accounts" instead
 
-**Why This Matters**: Systematic verb-object naming enables learners to see the Universal Life Cycle pattern — the same actions applied across different resources. This makes the subject structure immediately visible and supports systematic practice.
-
 **Branch Concepts**: Can use broader names (e.g., "Storage Management", "Networking Fundamentals")
 **Trunk Concept**: Use the domain name as-is (e.g., "{domain_name}")
 """
+    # Blueprint scaffold injection
+    blueprint_scaffold = ""
+    blueprints = cls.get("lifecycleBlueprints", {})
+    if blueprints:
+        scaffold_lines = []
+        scaffold_lines.append("### DEEP STRUCTURE BLUEPRINT (Mnemonic Scaffold)")
+        scaffold_lines.append("The classification phase identified the following lifecycle blueprint for this subject.")
+        scaffold_lines.append("Every leaf concept MUST instantiate each phase's atomic steps for its specific domain content.")
+        scaffold_lines.append("")
+        for phase_key in ["phase1", "phase2", "phase3"]:
+            bp = blueprints.get(phase_key)
+            if bp and isinstance(bp, dict) and bp.get("verb"):
+                verb = bp["verb"]
+                bp_name = bp.get("blueprintName", "")
+                sequence = bp.get("sequence", [])
+                if sequence:
+                    steps_str = " → ".join(sequence)
+                    scaffold_lines.append(f"**{verb}** ({bp_name}): {steps_str}")
+                    scaffold_lines.append(f"  Atomic steps: {json.dumps(sequence)}")
+        if len(scaffold_lines) > 3:
+            scaffold_lines.append("")
+            scaffold_lines.append('For each leaf concept, generate `blueprintSteps` that maps each atomic step to this concept\'s specific content (see §3.7).')
+            blueprint_scaffold = "\n".join(scaffold_lines)
+        else:
+            blueprint_scaffold = ""
     
     return TREE_GENERATION_PROMPT.format(
         subject=subject,
@@ -620,6 +664,7 @@ def get_tree_generation_prompt(
         threshold_concept=tissue.get("thresholdConcept", "Fundamental insight"),
         signature_move=tissue.get("signatureMove", "Expert-level application"),
         ulc_naming_guidance=ulc_naming_guidance,
+        blueprint_scaffold=blueprint_scaffold,
         context=context_block,
         branch_count=branch_count,
         branch_list=branch_list,
@@ -669,6 +714,9 @@ Return ONLY the raw JSON object for this concept.
  "scoring": {{ "keywords": ["..."], "aliases": ["..."] }},
  "connections": [
  {{ "target": "Related Concept", "type": "requires|enables|is-part-of|is-type-of|causes|constrains" }}
+ ],
+ "blueprintSteps": [
+ {{ "verb": "VERB", "atomicStep": "Exact atomic step from blueprint", "instantiation": "How this concept instantiates that step" }}
  ]
 }}
 ```
@@ -728,7 +776,7 @@ TASK: Generate supplementary leaf concepts to fill coverage gaps in domain "{dom
 7. TRACES connections: Leaf max 3 (1 is-part-of → branch + 1-2 same-branch). Branch max 2 (1 is-part-of → trunk + 0-1 requires → sibling branch). Cross-branch leaf connections FORBIDDEN. `requires` must point to lower-order concepts only.
 8. `workedExample`: problem (minimum 20 words), solution (minimum 20 words), steps (3-6 items) — REQUIRED
 9. `mnemonic`: unique concrete anchor + spatial story — NO duplicates with existing concepts
-10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, criticalDistinctions, designBoundaries
+10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, blueprintSteps (array of verb/atomicStep/instantiation objects — leaf concepts only)
 11. **OBJECTIVE-BOUND**: Generate ONLY for the uncovered objectives listed above. Do NOT add concepts for topics not in the list. If it is not listed, it is out of scope.
 
 ## FIELD QUALITY (automatic rejection if violated):

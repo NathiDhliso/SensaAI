@@ -632,6 +632,14 @@
     margin: 0;
 }
 
+.blueprintLabel {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-accent);
+}
+
 /* Elaboration Prompt (Metacognition) */
 .elaborationSection {
     background: linear-gradient(135deg, var(--overlay-primary-5) 0%, var(--overlay-sage-5) 100%);

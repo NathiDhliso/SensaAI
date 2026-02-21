@@ -1,29 +1,14 @@
-export interface ShapeLenses {
-  simpleCore?: string;
-  highStakesExample?: string;
-  analogicalModel?: string;
-  patternRecognition?: { question: string; answer: string };
-  eliminationLogic?: string;
-}
-
-export interface Phase3Data {
-  tool?: string;
-  metrics?: string[];
-}
-
-export interface CreatorPerspective {
-  label: string;
-  blueprint: string;
-  steps: string[];
+export interface BlueprintAlignedStep {
+  verb: string;
+  atomicStep: string;
+  instantiation: string;
 }
 
 export interface DrillDownAction {
   trick: string;
   chain: string[];
   steps: string[];
-  shape?: ShapeLenses;
-  phase3?: Phase3Data;
-  perspectives?: CreatorPerspective[];
+  blueprintSteps?: BlueprintAlignedStep[];
 }
 
 export interface LeafRow {
