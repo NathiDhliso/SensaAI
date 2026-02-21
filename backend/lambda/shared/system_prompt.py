@@ -10,107 +10,89 @@
 # =============================================================================
 # CLASSIFICATION PROMPT
 # =============================================================================
-CLASSIFICATION_PROMPT = """You are an expert curriculum architect. Classify the following subject and extract its exam structure.
+CLASSIFICATION_PROMPT = """You are an expert cognitive scientist and curriculum architect.
+OBJECTIVE: Analyze the subject "{subject}" and extract its "Master Blueprint" (The Trick).
+Goal: Move the learner from surface-level memorization to deep structural understanding.
 
-Subject: {subject}
 {context}
 
 ═══════════════════════════════════════════════════════════════════════════
-STEP 1: CLASSIFY THE SUBJECT
+PART A: DEEP STRUCTURE EXTRACTION
+(Rule: Do NOT think about exams or testable metadata during Part A. Focus ONLY on how the subject physically or logically operates.)
 ═══════════════════════════════════════════════════════════════════════════
 
-Ask: "What is this subject teaching?" Then classify:
+STEP 1: IDENTIFY THE ARCHETYPES
+Which of these 4 structural archetypes best fits this subject?
+1. "sequential-flow" (Pipeline): A strict chronological order (e.g., CI/CD pipelines, Machine Learning lifecycle, Data flow).
+2. "see-saw" (Balance): An equation/equality that must be maintained (e.g., CAP Theorem, Resource scaling constraints).
+3. "spatial-map" (Geography): Information lives in a specific container/location (e.g., Network Topologies, Cloud Resource Hierarchies).
+4. "heuristic" (Rule of Thumb): A decision filter to bypass paralysis (e.g., Security triage, Debugging logic).
 
-TYPE A — PROCEDURAL MASTERY ("procedural")
- Goal: Execute a repeatable process on defined objects
- Examples: Surgery, coding, Azure administration, calculus, welding
+Select the `primaryArchetype`. If the subject is a hybrid, you may optionally select a `secondaryArchetype` (e.g., Cloud Architecture is primarily a "spatial-map" but uses "sequential-flow" for provisioning). Set `isHybrid` to true if using two archetypes.
 
-TYPE B — CONCEPTUAL FLUENCY ("conceptual")
- Goal: Deploy the right concept at the right time in novel situations
- Examples: Law, philosophy, music theory, economics, literary analysis
+STEP 2: EXTRACT THE INVARIANT (THE GOLDEN RULE)
+What is the ONE law that never changes? The rule that, if followed, prevents 80%% of errors?
+Format: "If you remember nothing else: [Rule]."
 
-TYPE C — ADAPTIVE INTEGRATION ("cyclic")
- Goal: Navigate iterative cycles with increasing sophistication
- Examples: Design thinking, scientific research, jazz improvisation, agile
+STEP 3: DEFINE THE UNIVERSAL LIFE CYCLE (ULC) BLUEPRINTS
+Identify the 1 to 3 core "verbs" (Lifecycle Phases) a practitioner actually performs. 
+Do NOT invent 3 phases if the domain only has 1 or 2 core actions. Return null for unused phases.
+For EACH verb, define the "Atomic Sequence" — the immutable checklist or mental flow.
 
-TYPE D — EMBODIED JUDGMENT ("perceptual")
- Goal: Perceive what novices miss and act on subtle cues
- Examples: Medical diagnosis, chess, wine tasting, art critique, debugging
-
-═══════════════════════════════════════════════════════════════════════════
-STEP 2: EXTRACT EXAM DOMAINS (TRUNKS)
-═══════════════════════════════════════════════════════════════════════════
-
-Identify the **main exam objectives/domains** (trunks) for this subject.
-These are the top-level categories that the exam tests.
-**EVERY subject is treated as exam preparation.** There is no non-exam path.
-
-For each domain:
-- Estimate its exam weight if known (decimal, e.g. 0.20 for 20%) — if provided, weights should sum to 1.0. If unknown, omit weight and the system will distribute equally.
-- List 3-6 key sub-topics (these become branches)
-
-**PRIORITY ORDER for extracting domains:**
-1. If the user provided exam objectives/syllabus in context → extract domains directly from those (highest fidelity)
-   - If the context is a FLAT LIST of objectives without domain headers, GROUP them into 4-6 logical exam domains by topic similarity
-   - Each objective becomes a subtopic under the domain it belongs to
-2. If the subject names a known certification/exam (e.g. AZ-104, PL-300, CPA, NCLEX) → use the official exam blueprint from your training data
-3. For any other subject → structure it AS IF it were a formal exam: identify 4-6 testable domains with realistic weights, sub-topics, and assessable outcomes
-
-**CRITICAL**: Even for subjects like "guitar" or "cooking", frame domains as exam objectives:
-- Guitar → "Technique & Mechanics (0.25)", "Music Theory & Notation (0.20)", "Repertoire & Performance (0.30)", "Ear Training & Aural Skills (0.25)"
-- The domains must be assessable, weighted, and structured for testing
-
-Examples:
-- AZ-104: Identity & Governance (0.22), Storage (0.17), Networking (0.22), Compute (0.22), Monitoring (0.17)
-- PL-300: Prepare Data (0.27), Model Data (0.27), Visualize & Analyze (0.30), Deploy & Maintain (0.16)
-- Music Theory: Rhythm & Meter (0.20), Scales & Intervals (0.25), Harmony & Chord Progressions (0.25), Form & Analysis (0.15), Ear Training & Dictation (0.15)
-- Constitutional Law: Judicial Review & Structure (0.20), Individual Rights (0.25), Federalism & Separation of Powers (0.20), Equal Protection & Due Process (0.20), First Amendment (0.15)
-- Marathon Training: Physiology & Energy Systems (0.20), Training Periodization (0.25), Nutrition & Hydration (0.20), Injury Prevention (0.15), Race Strategy (0.20)
+STEP 4: SYNTHESIS & REVEAL SCRIPT
+First, write a `synthesisRationale` (Chain of Thought) explaining how the archetype and invariant prove that the student doesn't need to memorize a massive list of facts.
+Then, write the `revealScript`: A punchy, 2-3 sentence speech from an expert coach "revealing the trick" to the student right before they study. 
 
 ═══════════════════════════════════════════════════════════════════════════
-STEP 3: EXTRACT CONNECTIVE TISSUE
+PART B: EXAM SYLLABUS MAPPING
+(Rule: Shift personas. Now act as a strict Exam Administrator mapping out the testable domain weightings.)
 ═══════════════════════════════════════════════════════════════════════════
 
-Extract:
-- Connective Tissue: gateway skill, threshold concept, signature move
-- Lifecycle: 3 action verbs in CAPS representing learning phases
+Group the provided context into 4-6 testable exam domains. Estimate realistic exam weights (must sum to 1.0).
 
 ═══════════════════════════════════════════════════════════════════════════
 OUTPUT FORMAT (JSON ONLY)
 ═══════════════════════════════════════════════════════════════════════════
-
-Return ONLY valid JSON. No markdown. No text before or after.
+Return ONLY valid JSON. No markdown fences. No text before or after.
 
 {{
- "subjectType": "procedural" | "conceptual" | "cyclic" | "perceptual",
- "classification": {{
- "type": "procedural" | "conceptual" | "cyclic" | "perceptual",
- "label": "Procedural Mastery" | "Conceptual Fluency" | "Adaptive Integration" | "Embodied Judgment",
- "goal": "One sentence describing the learning goal",
- "confidence": 0.0-1.0,
- "justification": "Why this type was chosen",
- "hybridElements": []
- }},
- "examDomains": [
- {{
- "name": "Domain Name",
- "weight": 0.20 | null,
- "subtopics": ["Sub-topic 1", "Sub-topic 2", "Sub-topic 3"]
- }}
- ],
- "connectiveTissue": {{
- "gatewaySkill": "The one skill that unlocks everything else",
- "thresholdConcept": "The concept that changes how you see the domain",
- "signatureMove": "What experts do that novices cannot"
- }},
- "lifecycle": {{
- "phase1": "VERB1",
- "phase2": "VERB2",
- "phase3": "VERB3"
- }}
+  "subjectType": "procedural" | "conceptual" | "cyclic" | "perceptual",
+  "classification": {{
+    "type": "procedural" | "conceptual" | "cyclic" | "perceptual",
+    "label": "Procedural Mastery" | "Conceptual Fluency" | "Adaptive Integration" | "Embodied Judgment",
+    "goal": "One sentence describing the high-level learning goal"
+  }},
+  "deepStructure": {{
+    "primaryArchetype": "sequential-flow" | "see-saw" | "spatial-map" | "heuristic",
+    "secondaryArchetype": "sequential-flow" | "see-saw" | "spatial-map" | "heuristic" | null,
+    "isHybrid": true | false,
+    "invariantRule": "If you remember nothing else...",
+    "synthesisRationale": "Chain of Thought: Explain why this specific archetype fits, and how the invariant rule reduces the student's cognitive load...",
+    "revealScript": "The expert coach speech revealing the trick to the student..."
+  }},
+  "lifecycleBlueprints": {{
+    "phase1": {{
+      "verb": "VERB1",
+      "blueprintName": "Name of the trick",
+      "sequence": ["Step 1", "Step 2", "Step 3"]
+    }},
+    "phase2": {{
+      "verb": "VERB2",
+      "blueprintName": "Name of the trick",
+      "sequence": ["Step A", "Step B"]
+    }},
+    "phase3": null
+  }},
+  "examDomains": [
+    {{
+      "name": "Domain Name",
+      "weight": 0.20,
+      "subtopics": ["Sub-topic 1", "Sub-topic 2"]
+    }}
+  ]
 }}
 
-Classify the subject now."""
+Analyze the subject now."""
 
 def get_classification_prompt(subject: str, context: str = "") -> str:
     context_block = ""
