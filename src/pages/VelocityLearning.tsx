@@ -9,6 +9,7 @@ import { toast } from '@/shared/utils/toast';
 import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
 import { ULCPracticeController } from '@/components/learning/ULCPracticeController';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
+import { SessionScoutPreview } from '@/components/learning/discovery/SessionScoutPreview';
 import styles from './VelocityLearning.module.css';
 
 type ActiveTab = 'map' | 'ulc';
@@ -70,6 +71,35 @@ export default function VelocityLearning() {
         if (!currentSession) return false;
         return currentSession.progress.completedConcepts.length >= currentSession.concepts.length;
     }, [currentSession]);
+
+    const classification = currentSession?.metadata?.macroWorkflow?.classification
+        || currentSession?.macroWorkflow?.classification;
+
+    useEffect(() => {
+        // If somehow we hit SCOUT without classification data, or PREVIEW, auto-advance
+        if (currentPhase === 'SCOUT' && !classification) {
+            updateSession({ scouted: true, previewed: true });
+        }
+        if (currentPhase === 'PREVIEW') {
+            updateSession({ previewed: true });
+        }
+    }, [currentPhase, classification, updateSession]);
+
+    const handleScoutComplete = useCallback(() => {
+        updateSession({ scouted: true, previewed: true });
+    }, [updateSession]);
+
+    if (currentPhase === 'SCOUT' && classification) {
+        return (
+            <div className={styles.container}>
+                <SessionScoutPreview
+                    classification={classification}
+                    subjectName={currentSession.subject}
+                    onContinue={handleScoutComplete}
+                />
+            </div>
+        );
+    }
 
     if (currentPhase === 'IDLE' || !currentSession) {
         if (isInitializing) {
