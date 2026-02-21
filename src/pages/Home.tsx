@@ -294,15 +294,12 @@ export default function Home() {
     const handleGenerate = () => {
         if (!canGenerate || !subject.trim() || (validTrunks.length < 2 && parsedObjectives.length === 0)) return;
         setShowSuggestions(false);
-        const params = new URLSearchParams();
-        if (parsedObjectives.length > 0) {
-            params.set('context', parsedObjectives.join('\n'));
-        }
-        if (validTrunks.length >= 2) {
-            params.set('trunks', JSON.stringify(validTrunks));
-        }
-        const query = params.toString();
-        navigate(`/generate/${encodeURIComponent(subject)}${query ? `?${query}` : ''}`);
+        navigate(`/generate/${encodeURIComponent(subject)}`, {
+            state: {
+                context: parsedObjectives.length > 0 ? parsedObjectives.join('\n') : undefined,
+                trunks: validTrunks.length >= 2 ? validTrunks : undefined,
+            },
+        });
     };
     const renderGenerateForm = () => (
         <>

@@ -74,10 +74,9 @@ export default function ContentGenerator() {
     const { subject } = useParams<{ subject: string }>();
     const navigate = useNavigate();
     const location = useLocation();
-    const searchParams = new URLSearchParams(location.search);
-    const context = searchParams.get('context');
-    const trunksParam = searchParams.get('trunks');
-    const trunks = trunksParam ? (() => { try { return JSON.parse(trunksParam) as string[]; } catch { return undefined; } })() : undefined;
+    const locationState = location.state as { context?: string; trunks?: string[] } | null;
+    const context = locationState?.context ?? null;
+    const trunks = locationState?.trunks;
     // Generation store state
     const {
         passes,
