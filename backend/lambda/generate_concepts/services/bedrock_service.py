@@ -80,6 +80,7 @@ class BedrockService:
                     result = json.loads(json_match.group(0))
                     valid_types = {"procedural", "conceptual", "cyclic", "perceptual"}
                     if result.get("subjectType") in valid_types:
+                        self._normalize_deep_structure(result)
                         print(f"[BedrockService] Classified as: {result['subjectType']} (confidence: {result.get('classification', {}).get('confidence', 'N/A')})")
                         return result
                 print(f"[BedrockService] Classification attempt {attempt + 1} returned invalid data")
@@ -89,6 +90,51 @@ class BedrockService:
                     time.sleep(self.RETRY_BACKOFF_BASE ** (attempt + 1))
         print("[BedrockService] Classification failed, using default (conceptual)")
         return None
+
+    @staticmethod
+    def _normalize_deep_structure(result: Dict[str, Any]) -> None:
+        ARCHETYPE_ALIASES = {
+            "sequential-flow": "sequential-flow", "sequential": "sequential-flow",
+            "sequential_flow": "sequential-flow", "process-flow": "sequential-flow",
+            "pipeline": "sequential-flow", "workflow": "sequential-flow",
+            "linear": "sequential-flow", "procedural": "sequential-flow",
+            "see-saw": "see-saw", "seesaw": "see-saw", "see_saw": "see-saw",
+            "balance": "see-saw", "tension": "see-saw", "trade-off": "see-saw",
+            "tradeoff": "see-saw", "equilibrium": "see-saw",
+            "spatial-map": "spatial-map", "spatial_map": "spatial-map",
+            "spatial": "spatial-map", "map": "spatial-map",
+            "geography": "spatial-map", "topology": "spatial-map",
+            "network": "spatial-map", "hierarchy": "spatial-map",
+            "heuristic": "heuristic", "decision": "heuristic",
+            "judgment": "heuristic", "rule-based": "heuristic",
+            "rule_based": "heuristic", "decision-tree": "heuristic",
+            "conditional": "heuristic",
+        }
+
+        def resolve(raw: str) -> str:
+            key = raw.lower().strip()
+            if key in ARCHETYPE_ALIASES:
+                return ARCHETYPE_ALIASES[key]
+            for alias, canonical in ARCHETYPE_ALIASES.items():
+                if alias in key or key in alias:
+                    return canonical
+            return "sequential-flow"
+
+        ds = result.get("deepStructure")
+        if isinstance(ds, dict):
+            raw_primary = ds.get("primaryArchetype", "")
+            ds["primaryArchetype"] = resolve(raw_primary) if raw_primary else "sequential-flow"
+            raw_secondary = ds.get("secondaryArchetype")
+            if raw_secondary and isinstance(raw_secondary, str):
+                ds["secondaryArchetype"] = resolve(raw_secondary)
+            if not ds.get("invariantRule"):
+                ds["invariantRule"] = ""
+            if not ds.get("revealScript"):
+                ds["revealScript"] = ""
+            if not ds.get("synthesisRationale"):
+                ds["synthesisRationale"] = ""
+            print(f"[BedrockService] Deep structure normalized: {raw_primary} -> {ds['primaryArchetype']}")
+
     def _enrich_domains_from_context(self, domains: List[Dict[str, Any]], context: str) -> None:
         CONTEXT_LINE_PATTERN = re.compile(r'^\[([^\]]+?)\s*-\s*(\d+)%?\]\s*(.+)$')
         domain_lookup = {}

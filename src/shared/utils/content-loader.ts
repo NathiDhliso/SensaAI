@@ -117,8 +117,18 @@ export function useParseAndLoadContent() {
                 concepts: transformed.concepts,
                 metadata: {
                     ...transformed.metadata,
-                    fullDocument: rawContent
-                }
+                    fullDocument: rawContent,
+                    subjectType: parseResult.data.domainAnalysis.subjectType,
+                    fullClassification: parseResult.data.domainAnalysis.classification,
+                    macroWorkflow: parseResult.data.domainAnalysis.classification
+                        ? {
+                            classification: parseResult.data.domainAnalysis.classification,
+                            macroStructure: parseResult.data.domainAnalysis.macroStructure!,
+                            connectiveTissue: parseResult.data.domainAnalysis.connectiveTissue!
+                        }
+                        : undefined
+                },
+                subjectType: parseResult.data.domainAnalysis.subjectType
             });
             return { success: true };
         } catch (error) {

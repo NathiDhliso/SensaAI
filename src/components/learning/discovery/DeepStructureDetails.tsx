@@ -71,13 +71,68 @@ interface DeepStructureDetailsProps {
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
+const FALLBACK_ARCHETYPE = {
+    label: 'Learning Blueprint',
+    icon: <Lightbulb size={24} />,
+    color: '#64748b',
+    colorEnd: '#94a3b8',
+    accent: '#cbd5e1',
+    glow: 'rgba(100, 116, 139, 0.1)',
+};
+
+const ARCHETYPE_ALIASES: Record<string, DeepStructureArchetype> = {
+    'sequential-flow': 'sequential-flow',
+    'sequential': 'sequential-flow',
+    'sequential_flow': 'sequential-flow',
+    'process-flow': 'sequential-flow',
+    'pipeline': 'sequential-flow',
+    'workflow': 'sequential-flow',
+    'linear': 'sequential-flow',
+    'procedural': 'sequential-flow',
+    'see-saw': 'see-saw',
+    'seesaw': 'see-saw',
+    'see_saw': 'see-saw',
+    'balance': 'see-saw',
+    'tension': 'see-saw',
+    'trade-off': 'see-saw',
+    'tradeoff': 'see-saw',
+    'equilibrium': 'see-saw',
+    'spatial-map': 'spatial-map',
+    'spatial_map': 'spatial-map',
+    'spatial': 'spatial-map',
+    'map': 'spatial-map',
+    'geography': 'spatial-map',
+    'topology': 'spatial-map',
+    'network': 'spatial-map',
+    'hierarchy': 'spatial-map',
+    'heuristic': 'heuristic',
+    'decision': 'heuristic',
+    'judgment': 'heuristic',
+    'rule-based': 'heuristic',
+    'rule_based': 'heuristic',
+    'decision-tree': 'heuristic',
+    'conditional': 'heuristic',
+};
+
+function normalizeArchetype(raw?: string): DeepStructureArchetype | null {
+    if (!raw) return null;
+    const key = raw.toLowerCase().trim();
+    if (ARCHETYPE_ALIASES[key]) return ARCHETYPE_ALIASES[key];
+    for (const [alias, canonical] of Object.entries(ARCHETYPE_ALIASES)) {
+        if (key.includes(alias) || alias.includes(key)) return canonical;
+    }
+    return null;
+}
+
 export function DeepStructureDetails({
     deepStructure,
     lifecycleBlueprints,
 }: DeepStructureDetailsProps) {
-    const archetype = ARCHETYPE_META[deepStructure.primaryArchetype];
-    const secondaryArchetype = deepStructure.secondaryArchetype
-        ? ARCHETYPE_META[deepStructure.secondaryArchetype]
+    const resolvedPrimary = normalizeArchetype(deepStructure?.primaryArchetype);
+    const archetype = (resolvedPrimary ? ARCHETYPE_META[resolvedPrimary] : null) || FALLBACK_ARCHETYPE;
+    const resolvedSecondary = normalizeArchetype(deepStructure?.secondaryArchetype ?? undefined);
+    const secondaryArchetype = resolvedSecondary
+        ? (ARCHETYPE_META[resolvedSecondary] || null)
         : null;
 
     // Collect non-null phases for the timeline
@@ -183,14 +238,16 @@ export function DeepStructureDetails({
                                     <div className={styles.phaseNumber}>{index}</div>
                                     <div className={styles.phaseVerb}>{phase.verb}</div>
                                     <div className={styles.phaseName}>{phase.blueprintName}</div>
-                                    <ul className={styles.phaseSequence}>
-                                        {phase.sequence.map((step, si) => (
-                                            <li key={si} className={styles.sequenceStep}>
-                                                <span className={styles.stepDot} />
-                                                {step}
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    {Array.isArray(phase.sequence) && phase.sequence.length > 0 && (
+                                        <ul className={styles.phaseSequence}>
+                                            {phase.sequence.map((step, si) => (
+                                                <li key={si} className={styles.sequenceStep}>
+                                                    <span className={styles.stepDot} />
+                                                    {step}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </motion.div>
                             </React.Fragment>
                         ))}

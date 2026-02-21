@@ -80,6 +80,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         if action == "suggest_structure":
             return _handle_suggest_structure(request, event)
+        elif action == "classify_only":
+            return _handle_classify_only(request, event)
         elif action == "_async_generate":
             print("[Handler] Running async generation (self-invoked)")
             return _handle_generate(request)
@@ -250,6 +252,41 @@ def _handle_generate_async(request: Dict[str, Any], event: Dict[str, Any]) -> Di
         "status": "in_progress",
         "conceptCount": 0,
     }, event)
+
+
+def _handle_classify_only(request: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Run classification only (no concept generation) and patch the result
+    into an existing job record. Returns the full classification JSON
+    including deepStructure & lifecycleBlueprints.
+    """
+    subject = request["subject"]
+    context = request.get("context", "")
+    job_id = request.get("jobId")
+    user_id = request.get("userId", "anonymous")
+    print(f"[Handler] Classify-only: subject={subject}, jobId={job_id}")
+    try:
+        classification = bedrock_service.classify_subject(subject, context)
+        if not classification:
+            return api_response(500, {"error": "Failed to classify subject"}, event)
+        # Patch the classification into the existing job record if jobId provided
+        if job_id and job_id != "none":
+            import json as _json
+            from decimal import Decimal
+            classification_clean = _json.loads(_json.dumps(classification), parse_float=Decimal)
+            try:
+                dynamo_service.jobs_table.update_item(
+                    Key={"jobId": job_id, "userId": user_id},
+                    UpdateExpression="SET classification = :cls",
+                    ExpressionAttributeValues={":cls": classification_clean},
+                )
+                print(f"[Handler] Patched classification into job {job_id}")
+            except Exception as patch_err:
+                print(f"[Handler] Warning: Failed to patch classification: {patch_err}")
+        return api_response(200, classification, event)
+    except Exception as e:
+        print(f"[Handler] ERROR: Classify-only failed: {str(e)}")
+        return api_response(500, {"error": f"Classification failed: {str(e)}"}, event)
 
 
 def _handle_suggest_structure(request: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:

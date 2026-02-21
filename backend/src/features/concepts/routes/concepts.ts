@@ -124,63 +124,24 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
 conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.sub || 'anonymous';
-        const { subject, context, trunks } = req.body;
+        const { subject, context, trunks, action, jobId: reqJobId } = req.body;
+
         // Always ensure sessionId exists - generate one if not provided
         const sessionId = req.body.sessionId || uuidv4();
-        console.log('[Backend /generate] Request received:', { subject, userId, sessionId, hasContext: !!context });
+
+        console.log(`[Backend /generate] Request received [action=${action || 'generate'}]:`, { subject, userId, sessionId });
+
         if (!subject) {
             console.log('[Backend /generate] ERROR: Subject is required');
             res.status(400).json({ error: 'Subject is required' });
             return;
         }
-        const jobId = uuidv4();
-        console.log('[Backend /generate] Created jobId:', jobId);
-        // Fix race condition: Write initial job status BEFORE invoking Lambda
-        // This ensures the client doesn't get a 404 when polling immediately
-        console.log('[Backend /generate] Writing initial job to DynamoDB...');
-        await docClient.send(new PutCommand({
-            TableName: JOBS_TABLE,
-            Item: {
-                jobId,
-                userId,
-                sessionId,
-                subject,
-                status: 'in_progress',
-                message: 'Generation queued',
-                createdAt: Math.floor(Date.now() / 1000),
-                expiresAt: Math.floor(Date.now() / 1000) + 86400, // 24h TTL
-            }
-        }));
-        console.log('[Backend /generate] Job written to DynamoDB');
-        const payload = JSON.stringify({
-            body: JSON.stringify({
-                subject,
-                userId,
-                sessionId,
-                jobId,
-                context,
-                ...(trunks && { trunks }),
-            })
-        });
-        const invokeCommand = new InvokeCommand({
-            FunctionName: GENERATE_FUNCTION,
-            InvocationType: 'Event', // Async: don't wait for Lambda to finish
-            Payload: Buffer.from(payload)
-        });
-        console.log('[Backend /generate] Invoking Lambda:', GENERATE_FUNCTION);
-        try {
-            const invokeResponse = await lambdaClient.send(invokeCommand);
-            console.log('[Backend /generate] Lambda invoke response:', {
-                StatusCode: invokeResponse.StatusCode,
-                FunctionError: invokeResponse.FunctionError
-            });
-            if (invokeResponse.FunctionError) {
-                console.error('[Backend /generate] Lambda returned error:', invokeResponse.FunctionError);
-                throw new Error(`Lambda invocation failed: ${invokeResponse.FunctionError}`);
-            }
-        } catch (lambdaError: any) {
-            console.error('[Backend /generate] Lambda invocation error:', lambdaError);
-            // Mark job as failed
+
+        const jobId = reqJobId || uuidv4();
+        const isSyncAction = action === 'classify_only' || action === 'suggest_structure';
+
+        if (!isSyncAction) {
+            console.log('[Backend /generate] Creating async job record...', jobId);
             await docClient.send(new PutCommand({
                 TableName: JOBS_TABLE,
                 Item: {
@@ -188,15 +149,82 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
                     userId,
                     sessionId,
                     subject,
-                    status: 'failed',
-                    error: `Lambda invocation failed: ${lambdaError.message}`,
+                    status: 'in_progress',
+                    message: 'Generation queued',
                     createdAt: Math.floor(Date.now() / 1000),
-                    expiresAt: Math.floor(Date.now() / 1000) + 86400
+                    expiresAt: Math.floor(Date.now() / 1000) + 86400, // 24h TTL
                 }
             }));
+        }
+
+        const payload = JSON.stringify({
+            body: JSON.stringify({
+                subject,
+                userId,
+                sessionId,
+                jobId,
+                context,
+                action: action || 'generate',
+                ...(trunks && { trunks }),
+            })
+        });
+
+        const invokeCommand = new InvokeCommand({
+            FunctionName: GENERATE_FUNCTION,
+            InvocationType: isSyncAction ? 'RequestResponse' : 'Event',
+            Payload: Buffer.from(payload)
+        });
+
+        console.log(`[Backend /generate] Invoking Lambda (${isSyncAction ? 'Sync' : 'Async'}):`, GENERATE_FUNCTION);
+
+        try {
+            const invokeResponse = await lambdaClient.send(invokeCommand);
+
+            if (isSyncAction) {
+                // Synchronous response handling
+                const responsePayload = invokeResponse.Payload ?
+                    JSON.parse(Buffer.from(invokeResponse.Payload).toString()) : null;
+
+                if (!responsePayload || responsePayload.statusCode >= 400) {
+                    console.error('[Backend /generate] Lambda sync error:', responsePayload);
+                    res.status(responsePayload?.statusCode || 500).json(
+                        JSON.parse(responsePayload?.body || '{"error": "Synchronous action failed"}')
+                    );
+                    return;
+                }
+
+                const lambdaBody = JSON.parse(responsePayload.body);
+                res.json(lambdaBody);
+                return;
+            }
+
+            // Async/Event response handling
+            if (invokeResponse.FunctionError) {
+                console.error('[Backend /generate] Lambda returned error:', invokeResponse.FunctionError);
+                throw new Error(`Lambda invocation failed: ${invokeResponse.FunctionError}`);
+            }
+        } catch (lambdaError: any) {
+            console.error('[Backend /generate] Lambda invocation error:', lambdaError);
+            if (!isSyncAction) {
+                // Mark job as failed for async actions
+                await docClient.send(new PutCommand({
+                    TableName: JOBS_TABLE,
+                    Item: {
+                        jobId,
+                        userId,
+                        sessionId,
+                        subject,
+                        status: 'failed',
+                        error: `Lambda invocation failed: ${lambdaError.message}`,
+                        createdAt: Math.floor(Date.now() / 1000),
+                        expiresAt: Math.floor(Date.now() / 1000) + 86400
+                    }
+                }));
+            }
             throw lambdaError;
         }
-        console.log(`[Backend /generate] Lambda invoked asynchronously for jobId: ${jobId}, sessionId: ${sessionId}`);
+
+        console.log(`[Backend /generate] Lambda invoked asynchronously for jobId: ${jobId}`);
         res.json({
             jobId,
             sessionId,

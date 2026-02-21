@@ -5,12 +5,16 @@
  * Wraps DeepStructureDetails to present the "Deep Structure" of the subject
  * before progressing to the Concept Tree and Nomenclature Sprint.
  *
- * For legacy payloads (pre-Deep Structure), renders a fallback UI instead
- * of silently skipping.
+ * For legacy payloads (pre-Deep Structure), renders a fallback UI with a
+ * "Generate Master Blueprint" button that runs classification only (~10s).
  */
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, AlertCircle } from 'lucide-react';
+import { ArrowRight, BookOpen, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 import type { SubjectClassification } from '@/shared/types/macro-workflow';
+import { conceptsApi } from '@/shared/api/concepts';
+import { useAuthStore } from '@/store/auth-store';
+import { useLearningStore } from '@/store/learning-store';
 import { DeepStructureDetails } from './DeepStructureDetails';
 import styles from './DeepStructureDiscovery.module.css';
 
@@ -26,25 +30,94 @@ interface DeepStructureDiscoveryProps {
     onContinue: () => void;
     /** Optional override for the continue button text */
     continueText?: string;
+    /** Optional jobId for patching classification into existing record */
+    jobId?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 export function DeepStructureDiscovery({
-    classification,
+    classification: initialClassification,
     subjectName,
     onContinue,
     continueText,
+    jobId,
 }: DeepStructureDiscoveryProps) {
+    const [generatedClassification, setGeneratedClassification] = useState<SubjectClassification | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Use freshly generated classification if available, otherwise use the prop
+    const classification = generatedClassification || initialClassification;
     const deepStructure = classification?.deepStructure;
     const lifecycleBlueprints = classification?.lifecycleBlueprints;
     const examDomains = classification?.examDomains;
 
+    const handleGenerateBlueprint = async () => {
+        setIsGenerating(true);
+        setError(null);
+        try {
+            const userId = useAuthStore.getState().user?.id || 'anonymous';
+            const result = await conceptsApi.classifyOnly({
+                subject: subjectName,
+                userId,
+                jobId: jobId || 'none',
+            });
+            if (result && result.deepStructure) {
+                setGeneratedClassification(result);
+                // Also patch into the current session store so it persists
+                const store = useLearningStore.getState();
+                if (store.currentSession) {
+                    store.updateSession({
+                        metadata: {
+                            ...(store.currentSession.metadata || {}),
+                            fullClassification: result,
+                        },
+                    } as any);
+                }
+            } else {
+                setError('No deep structure data returned. Please try again.');
+            }
+        } catch (err) {
+            console.error('[DeepStructureDiscovery] classify failed:', err);
+            setError(err instanceof Error ? err.message : 'Classification failed. Please try again.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     // ─── Legacy Fallback ─────────────────────────────────────────────────
     // Older generation payloads lack deepStructure / lifecycleBlueprints, or even classification.
-    // Instead of silently skipping, show a clear informational screen.
-    if (!classification || !deepStructure || !lifecycleBlueprints) {
+    // Show a "Generate Master Blueprint" button to run classification only.
+
+    const hasValidDeepStructure = Boolean(
+        deepStructure &&
+        Object.keys(deepStructure).length > 0 &&
+        deepStructure.invariantRule
+    );
+
+    const hasValidLifecycle = Boolean(
+        lifecycleBlueprints &&
+        Object.keys(lifecycleBlueprints).length > 0 &&
+        (lifecycleBlueprints.phase1 || lifecycleBlueprints.phase2)
+    );
+
+    if (import.meta.env.DEV) {
+        console.log('[DeepStructureDiscovery] classification:', JSON.stringify({
+            hasClassification: !!classification,
+            hasValidDeepStructure,
+            hasValidLifecycle,
+            primaryArchetype: deepStructure?.primaryArchetype,
+            invariantRule: deepStructure?.invariantRule?.substring(0, 80),
+            revealScript: deepStructure?.revealScript?.substring(0, 80),
+            phase1Verb: lifecycleBlueprints?.phase1?.verb,
+            phase2Verb: lifecycleBlueprints?.phase2?.verb,
+            examDomainCount: examDomains?.length,
+        }, null, 2));
+    }
+
+    if (!classification || !hasValidDeepStructure || !hasValidLifecycle) {
         return (
             <div className={styles.container}>
                 <motion.div
@@ -65,12 +138,18 @@ export function DeepStructureDiscovery({
                 >
                     <AlertCircle size={40} style={{ color: 'var(--color-warning, #f59e0b)', marginBottom: '1rem' }} />
                     <div className={styles.domainsLabel} style={{ fontSize: '1.15rem', marginBottom: '0.5rem' }}>
-                        Legacy Generation Detected
+                        Master Blueprint Not Found
                     </div>
                     <p style={{ color: 'var(--color-text-secondary, #94a3b8)', lineHeight: 1.6, maxWidth: '34rem', margin: '0 auto 1.5rem' }}>
-                        This subject was generated before the Master Blueprint feature was introduced.
-                        To unlock the Deep Structure discovery, generate this subject again as a new topic.
+                        This subject was generated before the Deep Structure feature was available.
+                        You can generate the Master Blueprint now — it only takes about 10 seconds.
                     </p>
+
+                    {error && (
+                        <p style={{ color: 'var(--color-error, #ef4444)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                            {error}
+                        </p>
+                    )}
                 </motion.div>
 
                 <motion.div
@@ -78,10 +157,28 @@ export function DeepStructureDiscovery({
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45, duration: 0.35 }}
+                    style={{ flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
                 >
-                    <button className={styles.continueButton} onClick={onContinue}>
+                    <button
+                        className={styles.generateButton}
+                        onClick={handleGenerateBlueprint}
+                        disabled={isGenerating}
+                    >
+                        {isGenerating ? (
+                            <>
+                                <Loader2 size={18} className={styles.spinIcon} />
+                                Generating Blueprint…
+                            </>
+                        ) : (
+                            <>
+                                <Sparkles size={18} />
+                                Generate Master Blueprint
+                            </>
+                        )}
+                    </button>
+                    <button className={styles.skipButton} onClick={onContinue}>
                         {continueText || 'Skip to Concept Tree'}
-                        <ArrowRight size={18} />
+                        <ArrowRight size={16} />
                     </button>
                 </motion.div>
             </div>
@@ -108,8 +205,8 @@ export function DeepStructureDiscovery({
 
             {/* Master Blueprint Reveal */}
             <DeepStructureDetails
-                deepStructure={deepStructure}
-                lifecycleBlueprints={lifecycleBlueprints}
+                deepStructure={deepStructure!}
+                lifecycleBlueprints={lifecycleBlueprints!}
             />
 
             {/* Exam Domains Preview */}

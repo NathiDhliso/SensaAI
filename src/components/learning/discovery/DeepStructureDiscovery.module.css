@@ -124,3 +124,69 @@
     padding: 0.1rem 0.35rem;
     border-radius: 4px;
 }
+
+/* Generate Master Blueprint Button */
+.generateButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 2.25rem;
+    border-radius: 12px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+}
+
+.generateButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(245, 158, 11, 0.5);
+}
+
+.generateButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.generateButton:disabled {
+    opacity: 0.85;
+    cursor: wait;
+}
+
+.spinIcon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Skip / Secondary Button */
+.skipButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    background: transparent;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skipButton:hover {
+    background: rgba(148, 163, 184, 0.08);
+    color: #cbd5e1;
+}

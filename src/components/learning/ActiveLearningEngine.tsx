@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Brain, Home, Map, Layers, BookOpen } from 'lucide-react';
@@ -97,6 +98,7 @@ export default function ActiveLearningEngine() {
                     classification={classification}
                     subjectName={currentSession.subject}
                     onContinue={handleScoutComplete}
+                    jobId={currentSession.subjectId}
                 />
             </div>
         );
@@ -171,42 +173,45 @@ export default function ActiveLearningEngine() {
                 </button>
             </div>
 
-            <AnimatePresence>
-                {portalConcept && (
-                    <motion.div
-                        key="portal"
-                        className={styles.portalOverlay}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                    >
+            {createPortal(
+                <AnimatePresence>
+                    {portalConcept && (
                         <motion.div
-                            className={styles.portalRing}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ type: 'spring', stiffness: 260, damping: 22, delay: 0.05 }}
-                        />
-                        <motion.span
-                            className={styles.portalLabel}
-                            initial={{ scale: 0.4, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 1.6, opacity: 0, y: -30 }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 24, delay: 0.1 }}
+                            key="portal"
+                            className={styles.portalOverlay}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            {portalConcept}
-                        </motion.span>
-                        <motion.p
-                            className={styles.portalSub}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.25 }}
-                        >
-                            Building relationships...
-                        </motion.p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            <motion.div
+                                className={styles.portalRing}
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ type: 'spring', stiffness: 260, damping: 22, delay: 0.05 }}
+                            />
+                            <motion.span
+                                className={styles.portalLabel}
+                                initial={{ scale: 0.4, opacity: 0, y: 20 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 1.6, opacity: 0, y: -30 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 24, delay: 0.1 }}
+                            >
+                                {portalConcept}
+                            </motion.span>
+                            <motion.p
+                                className={styles.portalSub}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3, duration: 0.25 }}
+                            >
+                                Building relationships...
+                            </motion.p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
 
             <AnimatePresence mode="wait">
                 {activeTab === 'ulc' && (
@@ -253,25 +258,28 @@ export default function ActiveLearningEngine() {
 
             </AnimatePresence>
 
-            {/* Deep Structure Discovery Modal */}
-            <AnimatePresence>
-                {showStructurePanel && (
-                    <motion.div
-                        className={styles.scoutOverlay}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <DeepStructureDiscovery
-                            classification={classification}
-                            subjectName={currentSession.subject}
-                            onContinue={() => setShowStructurePanel(false)}
-                            continueText="Return to Session"
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {createPortal(
+                <AnimatePresence>
+                    {showStructurePanel && (
+                        <motion.div
+                            className={styles.scoutOverlay}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <DeepStructureDiscovery
+                                classification={classification}
+                                subjectName={currentSession.subject}
+                                onContinue={() => setShowStructurePanel(false)}
+                                continueText="Return to Session"
+                                jobId={currentSession.subjectId}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 }
