@@ -1,0 +1,318 @@
+Acquiring state lock. This may take a few moments...
+[0m[1mmodule.sensapbl.module.cognito.data.archive_file.custom_message: Reading...[0m[0m
+[0m[1mmodule.sensapbl.module.cognito.data.archive_file.custom_message: Read complete after 0s [id=3dbf75bc2fa464cc38ff6b2d13d0337029fc6eb1][0m
+[0m[1mmodule.sensapbl.module.cognito.data.aws_region.current: Reading...[0m[0m
+[0m[1mmodule.sensapbl.module.s3.data.aws_caller_identity.current: Reading...[0m[0m
+[0m[1mmodule.sensapbl.module.cognito.aws_iam_role.custom_message: Refreshing state... [id=sensapbl-dev-custom-message-lambda][0m
+[0m[1mmodule.sensapbl.module.cognito.data.aws_region.current: Read complete after 0s [id=us-east-1][0m
+[0m[1mmodule.sensapbl.module.dynamodb.aws_dynamodb_table.generation_jobs: Refreshing state... [id=sensapbl-jobs-dev][0m
+[0m[1mmodule.sensapbl.module.dynamodb.aws_dynamodb_table.concepts: Refreshing state... [id=sensapbl-concepts-dev][0m
+[0m[1mmodule.sensapbl.module.s3.data.aws_caller_identity.current: Read complete after 0s [id=311964231104][0m
+[0m[1mmodule.sensapbl.module.s3.aws_s3_bucket.content: Refreshing state... [id=sensapbl-dev-content-311964231104][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_iam_role_policy.custom_message_logs: Refreshing state... [id=sensapbl-dev-custom-message-lambda:sensapbl-dev-custom-message-logs][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_lambda_function.custom_message: Refreshing state... [id=sensapbl-dev-custom-message][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_lambda_layer_version.python_deps[0]: Refreshing state... [id=arn:aws:lambda:us-east-1:311964231104:layer:sensapbl-python-deps-dev:4][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_iam_role.lambda_execution: Refreshing state... [id=sensapbl-lambda-dev][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_cloudwatch_log_group.custom_message: Refreshing state... [id=/aws/lambda/sensapbl-dev-custom-message][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_cognito_user_pool.main: Refreshing state... [id=us-east-1_xNWax9wkH][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_lambda_function.query_concepts: Refreshing state... [id=sensapbl-query-concepts-dev][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_lambda_function.gym_ai: Refreshing state... [id=sensapbl-gym-ai-dev][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_lambda_function.generate_concepts: Refreshing state... [id=sensapbl-generate-concepts-dev][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_cloudwatch_log_group.gym_ai: Refreshing state... [id=/aws/lambda/sensapbl-gym-ai-dev][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_iam_role_policy.lambda_policy: Refreshing state... [id=sensapbl-lambda-dev:sensapbl-lambda-policy-dev][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_cloudwatch_log_group.generate_concepts: Refreshing state... [id=/aws/lambda/sensapbl-generate-concepts-dev][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_lambda_permission.cognito_custom_message: Refreshing state... [id=AllowCognitoInvoke][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_cognito_user_pool_domain.main: Refreshing state... [id=sensapbl-dev][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_cognito_user_pool_client.main: Refreshing state... [id=rb03h90erbokpl8jvj1tvofe2][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_cloudwatch_log_group.query_concepts: Refreshing state... [id=/aws/lambda/sensapbl-query-concepts-dev][0m
+[0m[1mmodule.sensapbl.module.s3.aws_s3_bucket_server_side_encryption_configuration.content: Refreshing state... [id=sensapbl-dev-content-311964231104][0m
+[0m[1mmodule.sensapbl.module.s3.aws_s3_bucket_versioning.content: Refreshing state... [id=sensapbl-dev-content-311964231104][0m
+[0m[1mmodule.sensapbl.module.s3.aws_s3_bucket_cors_configuration.content: Refreshing state... [id=sensapbl-dev-content-311964231104][0m
+[0m[1mmodule.sensapbl.module.s3.aws_s3_bucket_public_access_block.content: Refreshing state... [id=sensapbl-dev-content-311964231104][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_cognito_identity_pool.main: Refreshing state... [id=us-east-1:f30c5127-d9d0-4e0b-84af-1201d9b1c84f][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_lambda_function.auth: Refreshing state... [id=sensapbl-auth-dev][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_iam_role.unauthenticated: Refreshing state... [id=sensapbl-dev-cognito-unauthenticated][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_iam_role.authenticated: Refreshing state... [id=sensapbl-dev-cognito-authenticated][0m
+[0m[1mmodule.sensapbl.module.lambda.aws_cloudwatch_log_group.auth: Refreshing state... [id=/aws/lambda/sensapbl-auth-dev][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_cloudwatch_log_group.api_logs: Refreshing state... [id=/aws/apigateway/sensapbl-dev][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_api.main: Refreshing state... [id=ldppp79nj5][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_iam_role_policy.unauthenticated_policy: Refreshing state... [id=sensapbl-dev-cognito-unauthenticated:sensapbl-dev-unauthenticated-policy][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_lambda_permission.auth: Refreshing state... [id=AllowAPIGatewayInvoke][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_lambda_permission.gym_ai: Refreshing state... [id=AllowAPIGatewayInvoke][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_integration.query_concepts: Refreshing state... [id=5iu4ux6][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_lambda_permission.query_concepts: Refreshing state... [id=AllowAPIGatewayInvoke][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_integration.generate_concepts: Refreshing state... [id=1059v6i][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_stage.default: Refreshing state... [id=$default][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_lambda_permission.generate_concepts: Refreshing state... [id=AllowAPIGatewayInvoke][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_integration.gym_ai: Refreshing state... [id=f39ianq][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_integration.auth: Refreshing state... [id=wc0i6rc][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_iam_role_policy.authenticated_policy: Refreshing state... [id=sensapbl-dev-cognito-authenticated:sensapbl-dev-authenticated-policy][0m
+[0m[1mmodule.sensapbl.module.cognito.aws_cognito_identity_pool_roles_attachment.main: Refreshing state... [id=us-east-1:f30c5127-d9d0-4e0b-84af-1201d9b1c84f][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.job_status: Refreshing state... [id=eglwmi8][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.generate_concepts: Refreshing state... [id=7u44yth][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.concepts_repair: Refreshing state... [id=i5u2r59][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.query_concepts_by_params: Refreshing state... [id=ni2j3u8][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.concepts_job_status: Refreshing state... [id=w84ioma][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.query_concepts: Refreshing state... [id=psfmbeq][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.delete_subject: Refreshing state... [id=9fk5jc0][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.query_concepts_by_tier: Refreshing state... [id=0lubab8][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.concepts_jobs: Refreshing state... [id=sqzg721][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.gym_ai: Refreshing state... [id=61aby6e][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.auth_update_profile: Refreshing state... [id=4icvkj9][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.auth_validate: Refreshing state... [id=ylsu877][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.auth_login: Refreshing state... [id=symrju4][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.auth_exchange: Refreshing state... [id=8qdfof4][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.auth_refresh: Refreshing state... [id=916gtys][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.auth_get_profile: Refreshing state... [id=1yw6ekn][0m
+[0m[1mmodule.sensapbl.module.api_gateway.aws_apigatewayv2_route.auth_logout: Refreshing state... [id=r066fri][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+  [33m~[0m update in-place[0m
+ [36m<=[0m read (data resources)[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.sensapbl.module.api_gateway.aws_apigatewayv2_route.userdata_batch[0m will be created
+[0m  [32m+[0m[0m resource "aws_apigatewayv2_route" "userdata_batch" {
+      [32m+[0m[0m api_id             = "ldppp79nj5"
+      [32m+[0m[0m api_key_required   = false
+      [32m+[0m[0m authorization_type = "NONE"
+      [32m+[0m[0m id                 = (known after apply)
+      [32m+[0m[0m route_key          = "POST /concepts/userdata/batch"
+      [32m+[0m[0m target             = "integrations/5iu4ux6"
+    }
+
+[1m  # module.sensapbl.module.api_gateway.aws_apigatewayv2_route.userdata_get[0m will be created
+[0m  [32m+[0m[0m resource "aws_apigatewayv2_route" "userdata_get" {
+      [32m+[0m[0m api_id             = "ldppp79nj5"
+      [32m+[0m[0m api_key_required   = false
+      [32m+[0m[0m authorization_type = "NONE"
+      [32m+[0m[0m id                 = (known after apply)
+      [32m+[0m[0m route_key          = "GET /concepts/userdata"
+      [32m+[0m[0m target             = "integrations/5iu4ux6"
+    }
+
+[1m  # module.sensapbl.module.api_gateway.aws_apigatewayv2_route.userdata_put[0m will be created
+[0m  [32m+[0m[0m resource "aws_apigatewayv2_route" "userdata_put" {
+      [32m+[0m[0m api_id             = "ldppp79nj5"
+      [32m+[0m[0m api_key_required   = false
+      [32m+[0m[0m authorization_type = "NONE"
+      [32m+[0m[0m id                 = (known after apply)
+      [32m+[0m[0m route_key          = "PUT /concepts/userdata"
+      [32m+[0m[0m target             = "integrations/5iu4ux6"
+    }
+
+[1m  # module.sensapbl.module.dynamodb.aws_dynamodb_table.userdata[0m will be created
+[0m  [32m+[0m[0m resource "aws_dynamodb_table" "userdata" {
+      [32m+[0m[0m arn              = (known after apply)
+      [32m+[0m[0m billing_mode     = "PAY_PER_REQUEST"
+      [32m+[0m[0m hash_key         = "userId"
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m name             = "sensapbl-userdata-dev"
+      [32m+[0m[0m range_key        = "dataKey"
+      [32m+[0m[0m read_capacity    = (known after apply)
+      [32m+[0m[0m stream_arn       = (known after apply)
+      [32m+[0m[0m stream_label     = (known after apply)
+      [32m+[0m[0m stream_view_type = (known after apply)
+      [32m+[0m[0m tags             = {
+          [32m+[0m[0m "Component"   = "DataStorage"
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "Name"        = "sensapbl-userdata-dev"
+        }
+      [32m+[0m[0m tags_all         = {
+          [32m+[0m[0m "Component"   = "DataStorage"
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "sensapbl-userdata-dev"
+          [32m+[0m[0m "Project"     = "SensaAI"
+        }
+      [32m+[0m[0m write_capacity   = (known after apply)
+
+      [32m+[0m[0m attribute {
+          [32m+[0m[0m name = "dataKey"
+          [32m+[0m[0m type = "S"
+        }
+      [32m+[0m[0m attribute {
+          [32m+[0m[0m name = "userId"
+          [32m+[0m[0m type = "S"
+        }
+
+      [32m+[0m[0m point_in_time_recovery {
+          [32m+[0m[0m enabled                 = false
+          [32m+[0m[0m recovery_period_in_days = (known after apply)
+        }
+
+      [32m+[0m[0m server_side_encryption (known after apply)
+
+      [32m+[0m[0m ttl (known after apply)
+    }
+
+[1m  # module.sensapbl.module.lambda.data.archive_file.lambda_code[0m will be read during apply
+  # (depends on a resource or a module with changes pending)
+[0m [36m<=[0m[0m data "archive_file" "lambda_code" {
+      [32m+[0m[0m excludes            = [
+          [32m+[0m[0m "*.pyc",
+          [32m+[0m[0m ".git",
+          [32m+[0m[0m ".pytest_cache",
+          [32m+[0m[0m ".venv",
+          [32m+[0m[0m "__pycache__",
+          [32m+[0m[0m "requirements.txt",
+          [32m+[0m[0m "tests",
+          [32m+[0m[0m "venv",
+        ]
+      [32m+[0m[0m id                  = (known after apply)
+      [32m+[0m[0m output_base64sha256 = (known after apply)
+      [32m+[0m[0m output_base64sha512 = (known after apply)
+      [32m+[0m[0m output_md5          = (known after apply)
+      [32m+[0m[0m output_path         = "../../modules/lambda/lambda_code.zip"
+      [32m+[0m[0m output_sha          = (known after apply)
+      [32m+[0m[0m output_sha256       = (known after apply)
+      [32m+[0m[0m output_sha512       = (known after apply)
+      [32m+[0m[0m output_size         = (known after apply)
+      [32m+[0m[0m source_dir          = "../../../../backend/lambda"
+      [32m+[0m[0m type                = "zip"
+    }
+
+[1m  # module.sensapbl.module.lambda.aws_iam_role_policy.lambda_policy[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_iam_role_policy" "lambda_policy" {
+        id          = "sensapbl-lambda-dev:sensapbl-lambda-policy-dev"
+        name        = "sensapbl-lambda-policy-dev"
+      [33m~[0m[0m policy      = jsonencode(
+            {
+              [31m-[0m[0m Statement = [
+                  [31m-[0m[0m {
+                      [31m-[0m[0m Action   = [
+                          [31m-[0m[0m "logs:CreateLogGroup",
+                          [31m-[0m[0m "logs:CreateLogStream",
+                          [31m-[0m[0m "logs:PutLogEvents",
+                        ]
+                      [31m-[0m[0m Effect   = "Allow"
+                      [31m-[0m[0m Resource = "arn:aws:logs:*:*:*"
+                    },
+                  [31m-[0m[0m {
+                      [31m-[0m[0m Action   = [
+                          [31m-[0m[0m "dynamodb:PutItem",
+                          [31m-[0m[0m "dynamodb:GetItem",
+                          [31m-[0m[0m "dynamodb:Query",
+                          [31m-[0m[0m "dynamodb:UpdateItem",
+                          [31m-[0m[0m "dynamodb:DeleteItem",
+                          [31m-[0m[0m "dynamodb:BatchWriteItem",
+                          [31m-[0m[0m "dynamodb:Scan",
+                        ]
+                      [31m-[0m[0m Effect   = "Allow"
+                      [31m-[0m[0m Resource = [
+                          [31m-[0m[0m "arn:aws:dynamodb:us-east-1:311964231104:table/sensapbl-concepts-dev",
+                          [31m-[0m[0m "arn:aws:dynamodb:us-east-1:311964231104:table/sensapbl-concepts-dev/index/*",
+                          [31m-[0m[0m "arn:aws:dynamodb:us-east-1:311964231104:table/sensapbl-jobs-dev",
+                        ]
+                    },
+                  [31m-[0m[0m {
+                      [31m-[0m[0m Action   = [
+                          [31m-[0m[0m "bedrock:InvokeModel",
+                          [31m-[0m[0m "bedrock:InvokeModelWithResponseStream",
+                        ]
+                      [31m-[0m[0m Effect   = "Allow"
+                      [31m-[0m[0m Resource = "*"
+                    },
+                  [31m-[0m[0m {
+                      [31m-[0m[0m Action   = [
+                          [31m-[0m[0m "cognito-idp:InitiateAuth",
+                          [31m-[0m[0m "cognito-idp:GlobalSignOut",
+                          [31m-[0m[0m "cognito-idp:AdminGetUser",
+                        ]
+                      [31m-[0m[0m Effect   = "Allow"
+                      [31m-[0m[0m Resource = "arn:aws:cognito-idp:*:*:userpool/*"
+                    },
+                  [31m-[0m[0m {
+                      [31m-[0m[0m Action   = [
+                          [31m-[0m[0m "lambda:InvokeFunction",
+                        ]
+                      [31m-[0m[0m Effect   = "Allow"
+                      [31m-[0m[0m Resource = "arn:aws:lambda:us-east-1:311964231104:function:sensapbl-generate-concepts-dev"
+                    },
+                ]
+              [31m-[0m[0m Version   = "2012-10-17"
+            }
+        ) -> (known after apply)
+        [90m# (2 unchanged attributes hidden)[0m[0m
+    }
+
+[1m  # module.sensapbl.module.lambda.aws_lambda_function.auth[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_lambda_function" "auth" {
+        id                             = "sensapbl-auth-dev"
+      [33m~[0m[0m last_modified                  = "2026-02-16T19:52:10.000+0000" -> (known after apply)
+      [33m~[0m[0m source_code_hash               = "sTihpHBdHGHbZSI3QeeyBREuFWd5lDuCXIOrPqUnkiU=" -> (known after apply)
+        tags                           = {
+            "Component" = "Compute"
+            "Function"  = "auth"
+        }
+        [90m# (27 unchanged attributes hidden)[0m[0m
+
+        [90m# (4 unchanged blocks hidden)[0m[0m
+    }
+
+[1m  # module.sensapbl.module.lambda.aws_lambda_function.generate_concepts[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_lambda_function" "generate_concepts" {
+        id                             = "sensapbl-generate-concepts-dev"
+      [33m~[0m[0m last_modified                  = "2026-02-19T15:50:47.000+0000" -> (known after apply)
+      [33m~[0m[0m source_code_hash               = "sTihpHBdHGHbZSI3QeeyBREuFWd5lDuCXIOrPqUnkiU=" -> (known after apply)
+        tags                           = {
+            "Component" = "Compute"
+            "Function"  = "generate-concepts"
+        }
+        [90m# (27 unchanged attributes hidden)[0m[0m
+
+        [90m# (4 unchanged blocks hidden)[0m[0m
+    }
+
+[1m  # module.sensapbl.module.lambda.aws_lambda_function.gym_ai[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_lambda_function" "gym_ai" {
+        id                             = "sensapbl-gym-ai-dev"
+      [33m~[0m[0m last_modified                  = "2026-02-16T19:51:56.000+0000" -> (known after apply)
+      [33m~[0m[0m source_code_hash               = "sTihpHBdHGHbZSI3QeeyBREuFWd5lDuCXIOrPqUnkiU=" -> (known after apply)
+        tags                           = {
+            "Component" = "Compute"
+            "Function"  = "gym-ai"
+        }
+        [90m# (27 unchanged attributes hidden)[0m[0m
+
+        [90m# (4 unchanged blocks hidden)[0m[0m
+    }
+
+[1m  # module.sensapbl.module.lambda.aws_lambda_function.query_concepts[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_lambda_function" "query_concepts" {
+        id                             = "sensapbl-query-concepts-dev"
+      [33m~[0m[0m last_modified                  = "2026-02-19T15:35:39.000+0000" -> (known after apply)
+      [33m~[0m[0m qualified_arn                  = "arn:aws:lambda:us-east-1:311964231104:function:sensapbl-query-concepts-dev:14" -> (known after apply)
+      [33m~[0m[0m qualified_invoke_arn           = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:311964231104:function:sensapbl-query-concepts-dev:14/invocations" -> (known after apply)
+      [33m~[0m[0m source_code_hash               = "sTihpHBdHGHbZSI3QeeyBREuFWd5lDuCXIOrPqUnkiU=" -> (known after apply)
+        tags                           = {
+            "Component" = "Compute"
+            "Function"  = "query-concepts"
+        }
+      [33m~[0m[0m version                        = "14" -> (known after apply)
+        [90m# (24 unchanged attributes hidden)[0m[0m
+
+      [33m~[0m[0m environment {
+          [33m~[0m[0m variables = {
+              [32m+[0m[0m "USERDATA_TABLE" = "sensapbl-userdata-dev"
+                [90m# (4 unchanged elements hidden)[0m[0m
+            }
+        }
+
+        [90m# (3 unchanged blocks hidden)[0m[0m
+    }
+
+[1mPlan:[0m 4 to add, 5 to change, 0 to destroy.
+[0m[0m[1mmodule.sensapbl.module.dynamodb.aws_dynamodb_table.userdata: Creating...[0m[0m
+Γò╖
+Γöé Error: creating AWS DynamoDB Table (sensapbl-userdata-dev): operation error DynamoDB: CreateTable, https response error StatusCode: 400, RequestID: ULCJHM7HTALRQMRTSNHQBAFNDBVV4KQNSO5AEMVJF66Q9ASUAAJG, ResourceInUseException: Table already exists: sensapbl-userdata-dev
+Γöé 
+Γöé   with module.sensapbl.module.dynamodb.aws_dynamodb_table.userdata,
+Γöé   on ..\..\modules\dynamodb\main.tf line 90, in resource "aws_dynamodb_table" "userdata":
+Γöé   90: resource "aws_dynamodb_table" "userdata" {
+Γöé 
+Γò╡
+Releasing state lock. This may take a few moments...

@@ -167,18 +167,24 @@ Generate concepts in a strict 3-level tree:
 ### 3.3 MNEMONIC RULES:
 - `anchor`: Concrete physical object (e.g., "3-Story Building"), NOT abstract
 - `story`: Map concepts to physical parts with spatial language
-### 3.4 TRACES CONNECTION TYPES
-Use the FIRST match when deciding a connection type:
-1. Must you understand B before A? → `requires`
-2. Is A a component of B? → `is-part-of`
-3. Is A a variant of B? → `is-type-of`
-4. Does A trigger or produce B? → `causes`
-5. Does A limit or govern B? → `constrains`
-6. ONLY if none above → `enables`
-FORBIDDEN types: "related-to", "extends", "depends-on". `enables` must not exceed 20% of connections.
+### 3.4 THE RATE FRAMEWORK FOR MINDMAP CONNECTIONS
+The silver bullet goal: every line must instantly communicate the nature of the relationship without needing to read the label.
+4 Line Types (Use these for the connection `type`):
+1. `solid` → Is / Has / Belongs to (A direct, factual relationship. Parent-child, category-member, whole-part. "This thing IS or HAS that thing.")
+2. `dashed` → Influences / Relates to (An indirect or associative relationship. Cross-branch connections, cause-effect, correlation. "This thing AFFECTS or CONNECTS to that thing.")
+3. `arrow` → Leads to / Produces / Requires (A directional relationship. Sequence, dependency, output. "This thing CREATES or NEEDS that thing.")
+4. `double-arrow` → Exchanges with / Depends mutually (Bidirectional dependency or feedback loop. "These things FEED each other.")
+
+**The One Rule**: Before making a connection, finish this sentence: "A [source node] _______ a [target node]." Then map the verb to the line type:
+- is / has / contains → `solid`
+- influences / relates / connects → `dashed`
+- leads to / requires / produces → `arrow`
+- mutually depends / reinforces → `double-arrow`
+If you can't finish the sentence, the connection shouldn't exist yet. FORBIDDEN types: "requires", "is-part-of", "enables". ONLY use the 4 types above.
+
 **GRAPH TOPOLOGY RULES**:
-- Trunk = 0 outgoing connections. Branch = max 2 (1 `is-part-of` → trunk + 0-1 `requires` → sibling branch). Leaf = max 3 (1 `is-part-of` → branch + 1-2 same-branch connections).
-- `requires` MUST point to a LOWER `order` number. No cycles.
+- Trunk = 0 outgoing connections. Branch = max 2 (1 `solid` → trunk + 0-1 `arrow` → sibling branch). Leaf = max 3 (1 `solid` → branch + 1-2 same-branch connections).
+- `arrow` MUST point to a LOWER `order` number if used for sequence. No cycles.
 - Cross-branch leaf connections are FORBIDDEN.
 ### 3.5 COGNITIVE LEVELS (Bloom's):
 Trunk: `understand`. Branch: `understand`/`apply`. Leaf: prefer `apply`, `analyze`, `evaluate`, `create`.
@@ -665,26 +671,32 @@ Return ONLY the raw JSON object for this concept.
  ]
 }}
 ```
-## TRACES CONNECTION TYPES (Typed Relational Architecture — use decision algorithm):
-For each connection, ask IN ORDER and use the FIRST match:
-1. Must you understand B before A? → **requires**
-2. Is A a component of B? → **is-part-of**
-3. Is A a specific variant of B? → **is-type-of**
-4. Does A directly trigger or produce B? → **causes**
-5. Does A set rules/limits on B? → **constrains**
-6. ONLY if none above apply → **enables**
+## THE RATE FRAMEWORK FOR MINDMAP CONNECTIONS:
+The silver bullet goal: every line must instantly communicate the nature of the relationship.
+4 Line Types (Use these for the connection `type`):
+1. `solid` → Is / Has / Belongs to (A direct, factual relationship. Parent-child, category-member, whole-part.)
+2. `dashed` → Influences / Relates to (An indirect or associative relationship. Cross-branch connections, cause-effect, correlation.)
+3. `arrow` → Leads to / Produces / Requires (A directional relationship. Sequence, dependency, output.)
+4. `double-arrow` → Exchanges with / Depends mutually (Bidirectional dependency or feedback loop.)
+
+**The One Rule**: Finish the sentence: "A [source node] _______ a [target node]." Map the verb:
+- is / has / contains → `solid`
+- influences / relates / connects → `dashed`
+- leads to / requires / produces → `arrow`
+- mutually depends / reinforces → `double-arrow`
+
 ## GRAPH TOPOLOGY RULES:
-- Trunk concepts: 0 outgoing connections (they receive is-part-of from branches).
-- Branch concepts: Max 2 connections (1 is-part-of → trunk + 0-1 requires → sibling branch).
-- Leaf concepts: Max 3 connections (1 is-part-of → branch + 1-2 same-branch connections). Cross-branch leaf connections are FORBIDDEN.
-- `requires` must point to concepts with LOWER order numbers (prerequisite = earlier in sequence).
+- Trunk concepts: 0 outgoing connections.
+- Branch concepts: Max 2 connections (1 `solid` → trunk + 0-1 `arrow` → sibling branch).
+- Leaf concepts: Max 3 connections (1 `solid` → branch + 1-2 same-branch connections). Cross-branch leaf connections are FORBIDDEN.
+- `arrow` must point to concepts with LOWER order numbers (if sequence).
 ## CRITICAL RULES:
 1. Fix the identified issue completely.
 2. Ensure `shape.highStakesExample` is a REAL historical case study with Company + Year.
 3. Ensure `mnemonic.story` is bizarre, memorable, and uses the anchor.
 4. Use strictly positive framing.
 5. Return ONLY valid JSON for the single concept object. NO markdown.
-6. Every connection MUST use one of the 6 types above. Do NOT use "related-to", "extends", or "contains".
+6. Every connection MUST use one of the 4 RATE types (`solid`, `dashed`, `arrow`, `double-arrow`). Do NOT use old types like "requires" or "is-part-of".
 7. Respect the MAX connection caps above. Do NOT exceed them.
 """
 def get_surgical_fix_prompt(subject: str, concept_name: str, issue: str) -> str:

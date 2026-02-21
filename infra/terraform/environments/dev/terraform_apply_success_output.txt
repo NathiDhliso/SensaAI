@@ -1,0 +1,12 @@
+Acquiring state lock. This may take a few moments...
+[0m[1mmodule.sensapbl.module.cognito.data.archive_file.custom_message: Reading...[0m[0m
+[0m[1mmodule.sensapbl.module.cognito.data.archive_file.custom_message: Read complete after 0s [id=3dbf75bc2fa464cc38ff6b2d13d0337029fc6eb1][0m
+[0m[1mmodule.sensapbl.module.s3.data.aws_caller_identity.current: Reading...[0m[0m
+[0m[1mmodule.sensapbl.module.cognito.data.aws_region.current: Reading...[0m[0m
+[0m[1mmodule.sensapbl.module.cognito.aws_iam_role.custom_message: Refreshing state... [id=sensapbl-dev-custom-message-lambda][0m
+[0m[1mmodule.sensapbl.module.cognito.data.aws_region.current: Read complete after 0s [id=us-east-1][0m
+[0m[1mmodule.sensapbl.module.dynamodb.aws_dynamodb_table.userdata: Refreshing state... [id=sensapbl-userdata-dev][0m
+[0m[1mmodule.sensapbl.module.dynamodb.aws_dynamodb_table.generation_jobs: Refreshing state... [id=sensapbl-jobs-dev][0m
+[0m[1mmodule.sensapbl.module.dynamodb.aws_dynamodb_table.concepts: Refreshing state... [id=sensapbl-concepts-dev][0m
+[0m[1mmodule.sensapbl.module.s3.data.aws_caller_identity.current: Read complete after 1s [id=311964231104][0m
+[0m[1mmodule.sensapbl.module.s3.aws_s3_bucket.content: Refreshing state... [id=sensapbl-dev-content-311964231104][0m

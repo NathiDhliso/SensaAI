@@ -10,107 +10,89 @@
 # =============================================================================
 # CLASSIFICATION PROMPT
 # =============================================================================
-CLASSIFICATION_PROMPT = """You are an expert curriculum architect. Classify the following subject and extract its exam structure.
+CLASSIFICATION_PROMPT = """You are an expert cognitive scientist and curriculum architect.
+OBJECTIVE: Analyze the subject "{subject}" and extract its "Master Blueprint" (The Trick).
+Goal: Move the learner from surface-level memorization to deep structural understanding.
 
-Subject: {subject}
 {context}
 
 ═══════════════════════════════════════════════════════════════════════════
-STEP 1: CLASSIFY THE SUBJECT
+PART A: DEEP STRUCTURE EXTRACTION
+(Rule: Do NOT think about exams or testable metadata during Part A. Focus ONLY on how the subject physically or logically operates.)
 ═══════════════════════════════════════════════════════════════════════════
 
-Ask: "What is this subject teaching?" Then classify:
+STEP 1: IDENTIFY THE ARCHETYPES
+Which of these 4 structural archetypes best fits this subject?
+1. "sequential-flow" (Pipeline): A strict chronological order (e.g., CI/CD pipelines, Machine Learning lifecycle, Data flow).
+2. "see-saw" (Balance): An equation/equality that must be maintained (e.g., CAP Theorem, Resource scaling constraints).
+3. "spatial-map" (Geography): Information lives in a specific container/location (e.g., Network Topologies, Cloud Resource Hierarchies).
+4. "heuristic" (Rule of Thumb): A decision filter to bypass paralysis (e.g., Security triage, Debugging logic).
 
-TYPE A — PROCEDURAL MASTERY ("procedural")
- Goal: Execute a repeatable process on defined objects
- Examples: Surgery, coding, Azure administration, calculus, welding
+Select the `primaryArchetype`. If the subject is a hybrid, you may optionally select a `secondaryArchetype` (e.g., Cloud Architecture is primarily a "spatial-map" but uses "sequential-flow" for provisioning). Set `isHybrid` to true if using two archetypes.
 
-TYPE B — CONCEPTUAL FLUENCY ("conceptual")
- Goal: Deploy the right concept at the right time in novel situations
- Examples: Law, philosophy, music theory, economics, literary analysis
+STEP 2: EXTRACT THE INVARIANT (THE GOLDEN RULE)
+What is the ONE law that never changes? The rule that, if followed, prevents 80%% of errors?
+Format: "If you remember nothing else: [Rule]."
 
-TYPE C — ADAPTIVE INTEGRATION ("cyclic")
- Goal: Navigate iterative cycles with increasing sophistication
- Examples: Design thinking, scientific research, jazz improvisation, agile
+STEP 3: DEFINE THE UNIVERSAL LIFE CYCLE (ULC) BLUEPRINTS
+Identify the 1 to 3 core "verbs" (Lifecycle Phases) a practitioner actually performs. 
+Do NOT invent 3 phases if the domain only has 1 or 2 core actions. Return null for unused phases.
+For EACH verb, define the "Atomic Sequence" — the immutable checklist or mental flow.
 
-TYPE D — EMBODIED JUDGMENT ("perceptual")
- Goal: Perceive what novices miss and act on subtle cues
- Examples: Medical diagnosis, chess, wine tasting, art critique, debugging
-
-═══════════════════════════════════════════════════════════════════════════
-STEP 2: EXTRACT EXAM DOMAINS (TRUNKS)
-═══════════════════════════════════════════════════════════════════════════
-
-Identify the **main exam objectives/domains** (trunks) for this subject.
-These are the top-level categories that the exam tests.
-**EVERY subject is treated as exam preparation.** There is no non-exam path.
-
-For each domain:
-- Estimate its exam weight if known (decimal, e.g. 0.20 for 20%) — if provided, weights should sum to 1.0. If unknown, omit weight and the system will distribute equally.
-- List 3-6 key sub-topics (these become branches)
-
-**PRIORITY ORDER for extracting domains:**
-1. If the user provided exam objectives/syllabus in context → extract domains directly from those (highest fidelity)
-   - If the context is a FLAT LIST of objectives without domain headers, GROUP them into 4-6 logical exam domains by topic similarity
-   - Each objective becomes a subtopic under the domain it belongs to
-2. If the subject names a known certification/exam (e.g. AZ-104, PL-300, CPA, NCLEX) → use the official exam blueprint from your training data
-3. For any other subject → structure it AS IF it were a formal exam: identify 4-6 testable domains with realistic weights, sub-topics, and assessable outcomes
-
-**CRITICAL**: Even for subjects like "guitar" or "cooking", frame domains as exam objectives:
-- Guitar → "Technique & Mechanics (0.25)", "Music Theory & Notation (0.20)", "Repertoire & Performance (0.30)", "Ear Training & Aural Skills (0.25)"
-- The domains must be assessable, weighted, and structured for testing
-
-Examples:
-- AZ-104: Identity & Governance (0.22), Storage (0.17), Networking (0.22), Compute (0.22), Monitoring (0.17)
-- PL-300: Prepare Data (0.27), Model Data (0.27), Visualize & Analyze (0.30), Deploy & Maintain (0.16)
-- Music Theory: Rhythm & Meter (0.20), Scales & Intervals (0.25), Harmony & Chord Progressions (0.25), Form & Analysis (0.15), Ear Training & Dictation (0.15)
-- Constitutional Law: Judicial Review & Structure (0.20), Individual Rights (0.25), Federalism & Separation of Powers (0.20), Equal Protection & Due Process (0.20), First Amendment (0.15)
-- Marathon Training: Physiology & Energy Systems (0.20), Training Periodization (0.25), Nutrition & Hydration (0.20), Injury Prevention (0.15), Race Strategy (0.20)
+STEP 4: SYNTHESIS & REVEAL SCRIPT
+First, write a `synthesisRationale` (Chain of Thought) explaining how the archetype and invariant prove that the student doesn't need to memorize a massive list of facts.
+Then, write the `revealScript`: A punchy, 2-3 sentence speech from an expert coach "revealing the trick" to the student right before they study. 
 
 ═══════════════════════════════════════════════════════════════════════════
-STEP 3: EXTRACT CONNECTIVE TISSUE
+PART B: EXAM SYLLABUS MAPPING
+(Rule: Shift personas. Now act as a strict Exam Administrator mapping out the testable domain weightings.)
 ═══════════════════════════════════════════════════════════════════════════
 
-Extract:
-- Connective Tissue: gateway skill, threshold concept, signature move
-- Lifecycle: 3 action verbs in CAPS representing learning phases
+Group the provided context into 4-6 testable exam domains. Estimate realistic exam weights (must sum to 1.0).
 
 ═══════════════════════════════════════════════════════════════════════════
 OUTPUT FORMAT (JSON ONLY)
 ═══════════════════════════════════════════════════════════════════════════
-
-Return ONLY valid JSON. No markdown. No text before or after.
+Return ONLY valid JSON. No markdown fences. No text before or after.
 
 {{
- "subjectType": "procedural" | "conceptual" | "cyclic" | "perceptual",
- "classification": {{
- "type": "procedural" | "conceptual" | "cyclic" | "perceptual",
- "label": "Procedural Mastery" | "Conceptual Fluency" | "Adaptive Integration" | "Embodied Judgment",
- "goal": "One sentence describing the learning goal",
- "confidence": 0.0-1.0,
- "justification": "Why this type was chosen",
- "hybridElements": []
- }},
- "examDomains": [
- {{
- "name": "Domain Name",
- "weight": 0.20 | null,
- "subtopics": ["Sub-topic 1", "Sub-topic 2", "Sub-topic 3"]
- }}
- ],
- "connectiveTissue": {{
- "gatewaySkill": "The one skill that unlocks everything else",
- "thresholdConcept": "The concept that changes how you see the domain",
- "signatureMove": "What experts do that novices cannot"
- }},
- "lifecycle": {{
- "phase1": "VERB1",
- "phase2": "VERB2",
- "phase3": "VERB3"
- }}
+  "subjectType": "procedural" | "conceptual" | "cyclic" | "perceptual",
+  "classification": {{
+    "type": "procedural" | "conceptual" | "cyclic" | "perceptual",
+    "label": "Procedural Mastery" | "Conceptual Fluency" | "Adaptive Integration" | "Embodied Judgment",
+    "goal": "One sentence describing the high-level learning goal"
+  }},
+  "deepStructure": {{
+    "primaryArchetype": "sequential-flow" | "see-saw" | "spatial-map" | "heuristic",
+    "secondaryArchetype": "sequential-flow" | "see-saw" | "spatial-map" | "heuristic" | null,
+    "isHybrid": true | false,
+    "invariantRule": "If you remember nothing else...",
+    "synthesisRationale": "Chain of Thought: Explain why this specific archetype fits, and how the invariant rule reduces the student's cognitive load...",
+    "revealScript": "The expert coach speech revealing the trick to the student..."
+  }},
+  "lifecycleBlueprints": {{
+    "phase1": {{
+      "verb": "VERB1",
+      "blueprintName": "Name of the trick",
+      "sequence": ["Step 1", "Step 2", "Step 3"]
+    }},
+    "phase2": {{
+      "verb": "VERB2",
+      "blueprintName": "Name of the trick",
+      "sequence": ["Step A", "Step B"]
+    }},
+    "phase3": null
+  }},
+  "examDomains": [
+    {{
+      "name": "Domain Name",
+      "weight": 0.20,
+      "subtopics": ["Sub-topic 1", "Sub-topic 2"]
+    }}
+  ]
 }}
 
-Classify the subject now."""
+Analyze the subject now."""
 
 def get_classification_prompt(subject: str, context: str = "") -> str:
     context_block = ""
@@ -167,64 +149,75 @@ Generate concepts in a strict 3-level tree:
 - **Engagement**: phase1 (hookSentence, microMetaphor, prerequisite, selection, execution)
 - **Memory**: mnemonic (anchor + story)
 - **Understanding**: keyPoints, whyYouNeed, technicalDetails, shape
-- **Application**: phase2 (content), phase3 (tool, metrics)
+- **Creator Blueprints**: perspectives (2-4 items per concept — see §3.6)
+- **Application**: phase2 (array of plain strings), phase3 (tool, metrics)
 - **Relationship**: connections (see §3.4)
 - **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
 ### 3.2 TREE-LEVEL CONTENT RULES:
 **TRUNK** (domain overview):
 - Broader, general content about the domain
-- `connections`: mix of "enables" and "causes" to branches (NOT all "enables")
+- `connections`: NONE outgoing. Trunks are roots — they receive `is-part-of` from branches. Do NOT add connections on trunk concepts.
 **BRANCH** (sub-topic):
 - Medium granularity, grouping related knowledge
-- `connections`: "is-part-of" to trunk, plus "requires"/"enables"/"constrains" to sibling branches where applicable
+- `connections`: Exactly 1 `is-part-of` → its trunk (mandatory). Then 0-1 `requires` → a sibling branch that must be learned first. Max 2 connections total.
 **LEAF** (testable detail):
 - Maximum exam-relevant granularity
 - At least 60% of leaves MUST be `apply` or higher cognitive level
-- `connections`: "is-part-of" to its branch, PLUS at least 1 cross-branch connection using "requires", "is-type-of", "causes", or "constrains" (NOT "enables" unless no other type fits)
+- `connections`: Exactly 1 `is-part-of` → its branch (mandatory). Then 1-2 additional connections to OTHER leaves within the SAME branch using `requires`, `causes`, or `constrains`. Max 3 connections total. Cross-branch leaf connections are FORBIDDEN — they create unreadable graphs.
 ### 3.3 MNEMONIC RULES:
 - `anchor`: Concrete physical object (e.g., "3-Story Building"), NOT abstract
 - `story`: Map concepts to physical parts with spatial language
-### 3.4 TRACES — Typed Relational Architecture for Cognitive Encoding Specificity
-Neuroscience shows that the TYPE of relationship between concepts determines retrieval strength (Tulving, 1973), spreading activation paths (Anderson, 1983), and expert-vs-novice knowledge organization (Chi et al., 1981). Vague links ("enables") produce shallow encoding. Specific links ("requires", "constrains") create precision retrieval cues.
-**THE 6 TRACES TYPES** (each activates a distinct cognitive retrieval pathway):
-| Type | Cognitive Operation | The learner asks... |
-|---|---|---|
-| **requires** | Prerequisite sequencing | "What must I know BEFORE this?" |
-| **enables** | Capability chaining | "What can I do AFTER learning this?" |
-| **is-part-of** | Compositional decomposition | "What is this a PIECE of?" |
-| **is-type-of** | Taxonomic classification | "What CATEGORY does this belong to?" |
-| **causes** | Causal reasoning | "What HAPPENS because of this?" |
-| **constrains** | Boundary recognition | "What LIMITS or governs this?" |
-**TRACES DECISION ALGORITHM** — For each connection, ask these questions IN ORDER. Use the FIRST match:
-1. Must you understand B before A makes sense? → `requires`
-2. Is A a component or sub-part of B? → `is-part-of`
-3. Is A a specific instance or variant of B? → `is-type-of`
-4. Does A directly produce, trigger, or result in B? → `causes`
-5. Does A set rules, limits, policies, or boundaries on B? → `constrains`
-6. ONLY IF none of the above apply: Does learning A make B accessible? → `enables`
-**DISTRIBUTION CONSTRAINT**: `enables` must NOT exceed 30% of all connections across the tree. If you find yourself defaulting to "enables", re-run the decision algorithm — most "enables" are actually "requires", "causes", or "constrains" in disguise.
-**FORBIDDEN**: "related-to", "relates", "extends", "depends-on", or any vague association.
-**MINIMUM**: Every concept MUST have at least 2 connections.
-**CROSS-DOMAIN**: Leaves may reference concepts in OTHER domains (use exact names).
-### 3.5 SELECTION FIELD PATTERN:
-Each item: "When [Scenario] Choose [Option] Unlocks [Capability]"
-### 3.6 COGNITIVE LEVELS (Bloom's):
-Assign one: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create`
-Trunk concepts: always `understand`
-Branch concepts: `understand` or `apply`
-Leaf concepts: prefer `apply`, `analyze`, `evaluate`, `create`
-### 3.7 POSITIVE FRAMING:
-| Avoid | Use |
-|---|---|
-| "Cannot change after creation" | "Selection made at creation time" |
-| "Will fail if X" | "Verify X before proceeding" |
+### 3.4 THE RATE FRAMEWORK FOR MINDMAP CONNECTIONS
+The silver bullet goal: every line must instantly communicate the nature of the relationship without needing to read the label.
+4 Line Types (Use these for the connection `type`):
+1. `solid` → Is / Has / Belongs to (A direct, factual relationship. Parent-child, category-member, whole-part. "This thing IS or HAS that thing.")
+2. `dashed` → Influences / Relates to (An indirect or associative relationship. Cross-branch connections, cause-effect, correlation. "This thing AFFECTS or CONNECTS to that thing.")
+3. `arrow` → Leads to / Produces / Requires (A directional relationship. Sequence, dependency, output. "This thing CREATES or NEEDS that thing.")
+4. `double-arrow` → Exchanges with / Depends mutually (Bidirectional dependency or feedback loop. "These things FEED each other.")
+
+**The One Rule**: Before making a connection, finish this sentence: "A [source node] _______ a [target node]." Then map the verb to the line type:
+- is / has / contains → `solid`
+- influences / relates / connects → `dashed`
+- leads to / requires / produces → `arrow`
+- mutually depends / reinforces → `double-arrow`
+If you can't finish the sentence, the connection shouldn't exist yet. FORBIDDEN types: "requires", "is-part-of", "enables". ONLY use the 4 types above.
+
+**GRAPH TOPOLOGY RULES**:
+- Trunk = 0 outgoing connections. Branch = max 2 (1 `solid` → trunk + 0-1 `arrow` → sibling branch). Leaf = max 3 (1 `solid` → branch + 1-2 same-branch connections).
+- `arrow` MUST point to a LOWER `order` number if used for sequence. No cycles.
+- Cross-branch leaf connections are FORBIDDEN.
+### 3.5 COGNITIVE LEVELS (Bloom's):
+Trunk: `understand`. Branch: `understand`/`apply`. Leaf: prefer `apply`, `analyze`, `evaluate`, `create`.
+### 3.6 CREATOR'S BLUEPRINTS — `perspectives` field
+This is the most important field for learners. It exposes the **mental model the creator used** when designing the atomic steps for this concept. Each perspective is a different approach a practitioner might take — the student flicks between them to find the one that clicks.
+
+**Structure**: `perspectives` is an array of 2-4 objects:
+```json
+{{ "label": "Portal", "blueprint": "The creator's approach sentence for this method", "steps": ["Step 1", "Step 2", ...] }}
+```
+
+**Label guidance by subject type**:
+- **Procedural (cloud/infra — Azure, AWS, GCP)**: Use tool-specific labels: `"Portal"`, `"CLI"`, `"Terraform"`, `"ARM/Bicep"`, `"PowerShell"`. Each perspective has the actual commands/navigation path as steps.
+- **Procedural (coding/software)**: Use `"Imperative"`, `"Declarative"`, `"Functional"`, `"OOP"` — each shows a different coding paradigm approach.
+- **Procedural (medical/surgical)**: Use `"Assessment"`, `"Intervention"`, `"Verification"` — each maps to a clinical decision stage.
+- **Conceptual (law)**: Use `"Plaintiff's Argument"`, `"Defendant's Argument"`, `"Court's Reasoning"` — each shows the same issue from a different legal perspective.
+- **Conceptual (finance/economics)**: Use `"Micro View"`, `"Macro View"`, `"Risk Lens"` — each frames the concept differently.
+- **Conceptual (music theory)**: Use `"Harmonic"`, `"Melodic"`, `"Rhythmic"` — each shows how the concept manifests in a different musical dimension.
+- **Cyclic (design/research/agile)**: Use `"Diverge"`, `"Converge"`, `"Reflect"` — each maps to a phase of the cycle.
+- **Perceptual (diagnosis/chess/art)**: Use `"Pattern Recognition"`, `"Differential"`, `"Confirmation"` — each maps to a perceptual reasoning stage.
+
+**Blueprint sentence**: The creator's mental approach for THIS perspective — what they were thinking when they designed these steps. NOT a description of the concept. E.g.:
+- Portal: `"Navigate to the NSG blade, add inbound rule, set priority below 65000"`
+- CLI: `"az network nsg rule create with --priority, --access Allow, --direction Inbound"`
+- Terraform: `"Declare azurerm_network_security_rule resource, reference nsg_name, set direction and access attributes"`
+
+**Steps**: The actual atomic steps for this perspective (3-6 steps). For procedural/tool subjects, these are the REAL commands, navigation paths, or code snippets — not generic descriptions.
+
+**CRITICAL**: Every leaf concept MUST have `perspectives`. Trunk and branch concepts may omit it.
 ---
 ## 4. OUTPUT FORMAT
 Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
-### 4.1 DOMAIN-ADAPTIVE CONTENT:
-**phase2**: Procedural=execution steps, Conceptual=critical inquiry, Cyclic=iteration protocol, Perceptual=observation protocol
-**workedExample**: Procedural=config walkthrough, Conceptual=case study, Cyclic=iteration log, Perceptual=diagnostic walkthrough
-### 4.2 QUALITY STANDARD — CONCRETE EXAMPLE
+### 4.1 QUALITY STANDARD — CONCRETE EXAMPLE
 Below is ONE fully-worked leaf concept. **Every concept you generate must match this depth and specificity.** Do NOT use placeholder text like "Detailed explanation of..." or "Why X matters" — write real technical content.
 ### FIELD STYLE GUIDE (violating these causes automatic rejection):
 **hookSentence** — Lead with a surprising fact, a specific failure scenario, or a concrete exam trap from the subject domain. BANNED: "Without proper X...", "Without X...", "Improperly configured X...". GOOD examples:
@@ -245,112 +238,134 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
  "trunkDomain": "Energy & Metabolism",
  "cognitiveLevel": "apply",
  "commonPitfalls": [
-   "Confusing the light-dependent reactions (thylakoid membranes, produce ATP + NADPH) with the Calvin cycle (stroma, uses ATP + NADPH to fix CO₂)",
-   "Assuming oxygen is produced in the Calvin cycle — O₂ is released during photolysis of water in Photosystem II, not during carbon fixation"
+   "Confusing light-dependent reactions (thylakoid, produce ATP + NADPH) with Calvin cycle (stroma, uses ATP + NADPH to fix CO₂)",
+   "Assuming O₂ comes from the Calvin cycle — it is released during photolysis of water at PSII"
  ],
  "order": 15,
- "whyYouNeed": "Exam questions present diagrams of the chloroplast and ask where specific molecules are produced. Students who cannot trace the electron flow from H₂O through PSII → cytochrome b6f → PSI → NADP⁺ reductase consistently misidentify the source of ATP vs. NADPH and lose marks on transport chain questions.",
- "technicalDetails": "Light-dependent reactions occur on the thylakoid membrane. Photosystem II (P680) absorbs photons and splits water (photolysis: 2H₂O → 4H⁺ + 4e⁻ + O₂). Excited electrons pass through the electron transport chain (plastoquinone → cytochrome b6f → plastocyanin), creating a proton gradient that drives ATP synthase (chemiosmosis). Photosystem I (P700) re-energizes electrons, which reduce NADP⁺ to NADPH via ferredoxin and NADP⁺ reductase.",
+ "whyYouNeed": "Exam questions show chloroplast diagrams and ask where molecules are produced. Students who cannot trace electron flow from H₂O → PSII → ETC → PSI → NADP⁺ reductase misidentify ATP vs. NADPH sources and lose marks on transport chain questions.",
+ "technicalDetails": "Occurs on the thylakoid membrane. PSII (P680) splits water (2H₂O → 4H⁺ + 4e⁻ + O₂). Electrons pass through the ETC (plastoquinone → cytochrome b6f → plastocyanin), creating a proton gradient that drives ATP synthase (chemiosmosis). PSI (P700) re-energizes electrons to reduce NADP⁺ to NADPH via ferredoxin.",
  "workedExample": {{
-   "problem": "A plant is given water labeled with ¹⁸O (heavy oxygen isotope). Where will the ¹⁸O atoms appear — in the glucose produced or in the oxygen gas released?",
-   "solution": "The ¹⁸O will appear in the O₂ gas released, not in glucose. Oxygen gas comes from photolysis of water in PSII. The oxygen in glucose comes from CO₂ fixed in the Calvin cycle.",
-   "steps": [
-     "Identify that water is split in the light-dependent reactions at Photosystem II",
-     "Recall the photolysis equation: 2H₂O → 4H⁺ + 4e⁻ + O₂ — the O₂ comes directly from H₂O",
-     "Recognize that CO₂ (not H₂O) provides the oxygen atoms incorporated into G3P and glucose during the Calvin cycle",
-     "Conclude: ¹⁸O from labeled water → released as ¹⁸O₂ gas"
-   ]
+   "problem": "A plant is given water labeled with ¹⁸O. Where will the ¹⁸O atoms appear — in glucose or in O₂ gas released?",
+   "solution": "The ¹⁸O appears in O₂ gas, not glucose. O₂ comes from photolysis of water at PSII. The oxygen in glucose comes from CO₂ fixed in the Calvin cycle.",
+   "steps": ["Water is split at PSII in the light-dependent reactions", "Photolysis: 2H₂O → 4H⁺ + 4e⁻ + O₂ — O₂ comes directly from H₂O", "CO₂ (not H₂O) provides oxygen atoms in glucose via the Calvin cycle", "Conclusion: ¹⁸O from labeled water → released as ¹⁸O₂ gas"]
  }},
  "mnemonic": {{
    "anchor": "Solar Panel Factory ☀️",
-   "story": "Picture a rooftop solar panel (thylakoid membrane) with two relay stations (PSII and PSI). Sunlight hits the first panel, which cracks open water bottles (photolysis) releasing bubbles (O₂). The electrical current flows through wires (electron transport chain) to a battery charger (ATP synthase) that fills batteries (ATP). The second panel boosts the remaining current to power a special generator (NADP⁺ reductase) that produces fuel cells (NADPH)."
+   "story": "A rooftop solar panel (thylakoid) with two relay stations (PSII, PSI). First panel cracks water bottles (photolysis) releasing bubbles (O₂). Current flows through wires (ETC) to a battery charger (ATP synthase) filling batteries (ATP). Second panel boosts current to a generator (NADP⁺ reductase) producing fuel cells (NADPH)."
  }},
  "phase1": {{
-   "hookSentence": "Plants absorb only 1-2%% of the sunlight hitting their leaves — yet this narrow band of captured photon energy drives the production of ATP and NADPH that powers virtually all life on Earth.",
-   "microMetaphor": "The thylakoid membrane is a hydroelectric dam — photolysis floods protons into the thylakoid space, and ATP synthase is the turbine that converts that proton gradient into usable energy.",
-   "prerequisite": "Understanding of basic cell organelles (chloroplast structure) and the concept of oxidation-reduction reactions",
+   "hookSentence": "Plants absorb only 1-2%% of sunlight hitting their leaves — yet this narrow band powers the ATP and NADPH production that sustains virtually all life on Earth.",
+   "microMetaphor": "The thylakoid membrane is a hydroelectric dam — photolysis floods protons into the thylakoid space, and ATP synthase is the turbine converting that gradient into usable energy.",
+   "prerequisite": "Basic cell organelles (chloroplast structure) and oxidation-reduction reactions",
    "selection": [
-     "When tracing energy conversion → Follow the electron path from H₂O through PSII → ETC → PSI → NADPH → Unlocks ability to predict where inhibitors block the chain",
-     "When explaining ATP production → Focus on the proton gradient across the thylakoid membrane and chemiosmosis → Unlocks connection to cellular respiration's oxidative phosphorylation"
+     "When tracing energy conversion → Follow electron path H₂O → PSII → ETC → PSI → NADPH → Unlocks predicting where inhibitors block the chain",
+     "When explaining ATP production → Focus on proton gradient and chemiosmosis → Unlocks connection to oxidative phosphorylation"
    ],
-   "execution": "Identify photon absorption at PSII → Trace electron flow through ETC → Explain proton gradient formation → Connect to ATP synthase → Follow PSI to NADPH production → Verify with isotope tracing experiments"
+   "execution": "Identify photon absorption at PSII → Trace electron flow through ETC → Explain proton gradient → Connect to ATP synthase → Follow PSI to NADPH → Verify with isotope tracing"
  }},
  "phase2": [
-   {{
-     "title": "Non-cyclic electron flow",
-     "content": "The primary pathway: electrons flow from H₂O → PSII → plastoquinone → cytochrome b6f → plastocyanin → PSI → ferredoxin → NADP⁺ reductase → NADPH. This produces both ATP (via the proton gradient) and NADPH. Oxygen is released as a byproduct of water splitting."
-   }},
-   {{
-     "title": "Cyclic electron flow",
-     "content": "When the Calvin cycle demands more ATP than NADPH, electrons from PSI cycle back through cytochrome b6f instead of reducing NADP⁺. This generates additional ATP without producing NADPH or O₂. It fine-tunes the ATP:NADPH ratio."
-   }},
-   {{
-     "title": "Photophosphorylation vs. oxidative phosphorylation",
-     "content": "Both use a proton gradient + ATP synthase, but photophosphorylation uses light energy to drive electron flow across the thylakoid membrane, while oxidative phosphorylation uses chemical energy from NADH/FADH₂ across the inner mitochondrial membrane."
-   }}
+   "Non-cyclic electron flow: H₂O → PSII → plastoquinone → cytochrome b6f → plastocyanin → PSI → ferredoxin → NADP⁺ reductase → NADPH. Produces both ATP and NADPH. O₂ released from water splitting.",
+   "Cyclic electron flow: When Calvin cycle needs more ATP than NADPH, PSI electrons cycle back through cytochrome b6f. Generates ATP without NADPH or O₂.",
+   "Photophosphorylation vs. oxidative phosphorylation: Both use proton gradient + ATP synthase. Photophosphorylation uses light energy across thylakoid membrane; oxidative phosphorylation uses NADH/FADH₂ energy."
  ],
  "phase3": {{
-   "tool": "Hill reaction assay — measure O₂ evolution rate with isolated chloroplasts and an electron acceptor (DCPIP)",
-   "metrics": ["Rate of O₂ evolution under different light wavelengths", "DCPIP reduction (color change from blue to colorless) as proxy for electron transport activity"]
+   "tool": "Hill reaction assay — measure O₂ evolution with isolated chloroplasts and DCPIP electron acceptor",
+   "metrics": ["O₂ evolution rate under different light wavelengths", "DCPIP reduction (blue → colorless) as electron transport proxy"]
  }},
- "shape": {{
-   "simpleCore": "The light-dependent reactions capture solar energy to split water, releasing O₂ and converting ADP + Pi to ATP and NADP⁺ to NADPH — the energy carriers that fuel the Calvin cycle.",
-   "highStakesExample": "Deepwater Horizon Oil Spill (2010) — the massive crude oil layer on the Gulf of Mexico surface blocked sunlight penetration, reducing phytoplankton photosynthesis by up to 50%% in affected zones. Since marine phytoplankton produce ~50%% of Earth's oxygen via light-dependent reactions, the spill demonstrated how disrupting photon availability cascades through the entire global oxygen budget.",
-   "analogicalModel": "Like a two-stage rocket: Stage 1 (PSII) provides the initial thrust by cracking fuel (water), releasing exhaust (O₂) and pushing electrons forward. Stage 2 (PSI) reignites the electrons with a second photon boost to reach escape velocity (NADPH). The transfer tunnel between stages (ETC) harvests momentum to spin a generator (ATP synthase).",
-   "patternRecognition": {{
-     "question": "A researcher adds DCMU (a herbicide that blocks electron flow from PSII to plastoquinone) to isolated chloroplasts. What happens to O₂ production, ATP synthesis, and NADPH production?",
-     "answer": "O₂ production stops (water splitting still occurs but electrons cannot leave PSII). Non-cyclic ATP synthesis stops (no electron flow through cytochrome b6f). NADPH production stops (no electrons reach PSI). However, cyclic photophosphorylation around PSI may still produce some ATP if PSI is independently activated."
+ "perspectives": [
+   {{
+     "label": "Mechanistic",
+     "blueprint": "Trace the physical movement of electrons and protons through each protein complex in sequence",
+     "steps": ["Photon strikes P680 at PSII → electron ejected to high energy state", "Photolysis splits H₂O → 2H⁺ + 2e⁻ + ½O₂ (replaces ejected electron)", "Electron flows: plastoquinone → cytochrome b6f → plastocyanin (proton gradient builds)", "Proton gradient drives ATP synthase → ATP produced (chemiosmosis)", "Photon strikes P700 at PSI → electron re-energized → ferredoxin → NADP⁺ reductase → NADPH"]
    }},
-   "eliminationLogic": "Light-dependent reactions = thylakoid membrane, need light, produce ATP + NADPH + O₂; Calvin cycle = stroma, do not directly need light, consume ATP + NADPH, produce G3P. If a question mentions O₂ release → light-dependent. If it mentions carbon fixation → Calvin cycle."
+   {{
+     "label": "Isotope Tracing",
+     "blueprint": "Follow labeled atoms (¹⁸O, ¹⁴C) to determine which molecule each atom ends up in",
+     "steps": ["Label water with ¹⁸O → track where oxygen atoms go", "¹⁸O from H₂O → released as ¹⁸O₂ gas at PSII (photolysis)", "CO₂ provides carbon AND oxygen for glucose in Calvin cycle", "Conclusion: O₂ gas = from water, not CO₂; glucose oxygen = from CO₂"]
+   }},
+   {{
+     "label": "Inhibitor Analysis",
+     "blueprint": "Block specific steps with inhibitors and predict which products stop being made",
+     "steps": ["DCMU blocks PSII → plastoquinone electron flow stops", "Result: O₂ stops (no photolysis), non-cyclic ATP stops, NADPH stops", "Cyclic flow around PSI may still produce some ATP", "Antimycin A blocks cyclic flow → only non-cyclic remains active"]
+   }}
+ ],
+ "shape": {{
+   "simpleCore": "Light-dependent reactions capture solar energy to split water, releasing O₂ and producing ATP + NADPH — the energy carriers that fuel the Calvin cycle.",
+   "highStakesExample": "Deepwater Horizon (2010) — crude oil blocked sunlight, reducing phytoplankton photosynthesis by 50%% in affected zones. Marine phytoplankton produce ~50%% of Earth's O₂ via light-dependent reactions, showing how disrupting photon availability cascades through the global oxygen budget.",
+   "analogicalModel": "Two-stage rocket: Stage 1 (PSII) cracks fuel (water), releasing exhaust (O₂). Stage 2 (PSI) reignites electrons to reach escape velocity (NADPH). The transfer tunnel (ETC) spins a generator (ATP synthase).",
+   "patternRecognition": {{
+     "question": "DCMU (herbicide blocking PSII → plastoquinone electron flow) is added to chloroplasts. What happens to O₂, ATP, and NADPH production?",
+     "answer": "O₂ stops (electrons cannot leave PSII). Non-cyclic ATP stops (no ETC flow). NADPH stops (no electrons reach PSI). Cyclic photophosphorylation around PSI may still produce some ATP."
+   }},
+   "eliminationLogic": "Light-dependent = thylakoid, needs light, produces ATP + NADPH + O₂. Calvin cycle = stroma, consumes ATP + NADPH, produces G3P. O₂ question → light-dependent. Carbon fixation → Calvin cycle."
  }},
- "keyPoints": [
-   "Occurs on thylakoid membranes inside chloroplasts",
-   "Photolysis of water at PSII releases O₂ and provides electrons",
-   "Electron transport chain creates proton gradient for ATP synthase (chemiosmosis)",
-   "PSI reduces NADP⁺ to NADPH via ferredoxin",
-   "Cyclic electron flow produces only ATP (no NADPH or O₂)"
- ],
- "scoring": {{
-   "keywords": ["light-dependent", "thylakoid", "photolysis", "photosystem", "chemiosmosis", "ATP synthase"],
-   "aliases": ["light reactions", "photo-dependent reactions", "thylakoid reactions"]
- }},
- "criticalDistinctions": [
-   {{ "correct": "O₂ is released from the splitting of H₂O at Photosystem II (photolysis)", "incorrect": "O₂ is produced during the Calvin cycle when CO₂ is fixed into glucose" }},
-   {{ "correct": "Non-cyclic flow produces both ATP and NADPH; cyclic flow produces only ATP", "incorrect": "Cyclic electron flow produces both ATP and NADPH but skips water splitting" }}
- ],
- "designBoundaries": [
-   {{ "boundary": "Light-dependent reactions produce energy carriers (ATP, NADPH) but do NOT fix carbon", "rationale": "Carbon fixation occurs in the Calvin cycle in the stroma — confusing these locations is the #1 exam error" }}
- ],
+ "keyPoints": ["Thylakoid membranes in chloroplasts", "Photolysis at PSII releases O₂", "ETC creates proton gradient for ATP synthase", "PSI reduces NADP⁺ to NADPH", "Cyclic flow produces only ATP"],
+ "scoring": {{ "keywords": ["light-dependent", "thylakoid", "photolysis", "photosystem", "chemiosmosis"], "aliases": ["light reactions", "thylakoid reactions"] }},
  "connections": [
    {{ "target": "Photosynthesis Mechanisms", "type": "is-part-of" }},
    {{ "target": "Chloroplast Structure", "type": "requires" }},
-   {{ "target": "Cyclic Photophosphorylation", "type": "is-type-of" }},
-   {{ "target": "Calvin Cycle", "type": "enables" }},
-   {{ "target": "ATP Synthase", "type": "causes" }}
+   {{ "target": "Chemiosmosis and ATP Synthase", "type": "causes" }}
  ]
 }}
 ```
-**CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must match this level of depth and specificity **for your subject domain**. Adapt all terminology, examples, and scenarios to the actual subject being generated. If a field could apply to any concept by just swapping the name, the content is too generic and will be rejected.
+**CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must match this depth and specificity **for your subject domain**. Adapt terminology, examples, and scenarios to the actual subject. If a field could apply to any concept by swapping the name, it is too generic and will be rejected.
+---
+## 4.2 SHAPE LENS RULES (subject-type-specific)
+The `shape` object has 5 lenses. Each must be tailored to the subject type:
+
+**`simpleCore`** — One sentence, zero jargon. The irreducible idea.
+- Procedural: "What this resource/action does in one sentence."
+- Conceptual: "The core principle in plain language."
+- Cyclic/Perceptual: "The key insight that changes how you see this."
+
+**`analogicalModel`** — "[Concept] is/are [concrete system] — [precise mapping of parts]."
+- Procedural (Azure/AWS/GCP): Map to a physical infrastructure analogy (e.g., "An NSG is a building security desk — rules are the visitor policy, inbound = arrivals, outbound = departures").
+- Procedural (CLI/Terraform/Portal): Explicitly name the tool context: "In Terraform, this resource block is like a blueprint — `azurerm_virtual_network` declares the floor plan before any walls are built."
+- Conceptual (Law/Music/Finance): Map to a familiar social/physical system.
+- Perceptual: Map to a sensory or spatial experience.
+BANNED: "Think of X as..." — use "X is/are [metaphor] —" format only.
+
+**`highStakesExample`** — REAL event: Company/Person + Year + specific outcome.
+- Procedural (cloud/infra): Use real outages, breaches, or misconfigurations (e.g., "Capital One (2019) — misconfigured WAF allowed SSRF, exposing 100M records stored in S3").
+- Procedural (DevOps/IaC): Use real deployment failures or rollback incidents.
+- Conceptual (Law): Use real court cases with citation and ruling.
+- Conceptual (Finance): Use real market events with dates and figures.
+- Perceptual (Medicine/Chess): Use real diagnostic errors or match decisions.
+BANNED: Generic "Company X lost money because of poor Y" — must have real names, year, and specific technical detail.
+**FACTUAL ACCURACY — CRITICAL**: The connection between the event and the concept MUST be the documented, publicly known cause. DO NOT invent a technical mechanism linking a real disaster to the concept being taught.
+- FORBIDDEN: Claiming the Columbia disaster was caused by "linear approximations for atmospheric drag" (it was foam strike damage to thermal tiles).
+- FORBIDDEN: Claiming the Tacoma Narrows collapse was preventable by "algebraic modeling" (the aeroelastic flutter mechanism was not understood at the time).
+- FORBIDDEN: Claiming the Mars Climate Orbiter failed due to "rational function asymptotic analysis" (it was a metric/imperial unit mismatch).
+- FORBIDDEN: Inventing specific equations, coordinates, or calculations that were never documented (e.g., fabricated trajectory equations for the Titanic).
+- FORBIDDEN: Attributing a disaster to the concept being taught when the real cause was something else entirely.
+If you cannot find a real, documented connection between a well-known disaster and the concept, use a DIFFERENT, LESS FAMOUS event where the connection is genuine — or use a real business/scientific application instead of a disaster.
+
+**`patternRecognition`** — Scenario-based Q&A that forces the learner to apply the concept.
+- Procedural: "You are given [specific exam scenario with resource names/configs]. What happens / What should you do?"
+- Conceptual: "A client presents [specific fact pattern]. Which doctrine applies and why?"
+- Cyclic: "The team is at [specific phase]. What signal tells you to iterate vs. proceed?"
+- Perceptual: "You observe [specific symptom/pattern]. What is the most likely cause?"
+The `answer` must explain the reasoning chain, not just state the answer.
+
+**`eliminationLogic`** — How to eliminate wrong answers on an exam.
+- Procedural: "If the question mentions [X] → eliminate [Y] because [reason]. If [A] and [B] are both present → choose [A] because [distinction]."
+- Conceptual: "Distinguish [concept] from [similar concept]: [concept] requires [element], [similar] does not."
+- Perceptual: "When you see [signal] → rule out [condition] first because [reason]."
+This must be actionable decision logic, not a restatement of the concept.
 ---
 ## 5. CRITICAL RULES
 1. **TREE INTEGRITY**: Every branch `parentName` = trunk name. Every leaf `parentName` = a branch name. Trunk `parentName` = null.
-2. **QUANTITY**: Generate approximately {count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).
+2. **QUANTITY**: ~{count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).
 3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
-4. **NAME FIELD**: Human-readable names only. Never use "concept-P1-001".
-5. **ASSESSMENT CONTEXT**: Every concept framed for how it would be tested or assessed, not casual exploration.
-6. **REAL EXAMPLES**: `shape.highStakesExample` must reference a real event, case study, or documented scenario with specifics (names, dates, outcomes). **SUBJECT-SPECIFIC**: Use examples from the actual subject domain — technology subjects use tech incidents, law subjects use landmark cases, science subjects use documented experiments or events, etc.
-7. **NO DUPLICATION**: Only generate for "{domain_name}". Other domains are separate.
-8. **UNIQUE EXAMPLES**: Every concept MUST use a DIFFERENT company/incident for `highStakesExample`. Never repeat the same case study across concepts. Every `mnemonic.anchor` must be a unique physical object — no two concepts may share the same anchor. Every `shape.patternRecognition.question` must present a unique scenario.
-9. **CRITICAL DISTINCTIONS QUALITY**: The `incorrect` side must be a **plausible misconception** that a real student would hold — NOT an obviously wrong strawman. Bad: "IaaS and PaaS are the same thing". Good: "PaaS handles OS patching automatically" vs "PaaS still requires you to manage OS updates like IaaS".
-10. **NO GENERIC FILLER**: Every field must contain domain-specific technical content. The following patterns cause **automatic rejection**:
-   - "Why X matters", "Think of X as...", "Detailed explanation of Y", "Proper use of X vs Common misunderstanding"
-   - "Without proper X, your/you...", "Improperly configured X...", "Without X security/access/controls..."
-   - "X is a crucial/critical/essential component/part/aspect", "X provides a secure way to", "X are essential/crucial for"
-11. **COMPLETE WORKED EXAMPLES**: Every branch and leaf concept MUST include a `workedExample` with ALL three fields populated:
-   - `problem`: A specific, realistic scenario or exam-style question (minimum 20 words)
-   - `solution`: The complete, correct answer with reasoning (minimum 20 words)
-   - `steps`: Array of 3-6 numbered solution steps showing the reasoning process
-   Empty or placeholder workedExamples cause **automatic rejection**.
+4. **NAME FIELD**: Human-readable names only.
+5. **ASSESSMENT CONTEXT**: Frame every concept for how it would be tested, not casual exploration.
+6. **REAL EXAMPLES**: `shape.highStakesExample` must reference a real event with specifics (names, dates, outcomes) from the subject domain. The causal link between the event and the concept must be the DOCUMENTED cause — never fabricate a technical mechanism to connect a famous disaster to the concept being taught. If unsure whether the connection is real, use a different example.
+7. **NO DUPLICATION**: Only generate for "{domain_name}".
+8. **UNIQUENESS**: Every `highStakesExample` uses a different case. Every `mnemonic.anchor` is a unique physical object. Every `patternRecognition.question` is a unique scenario.
+9. **CRITICAL DISTINCTIONS**: The `incorrect` side must be a plausible misconception, not an obvious strawman.
+10. **NO GENERIC FILLER** — BANNED patterns: "Why X matters", "Think of X as...", "Without proper X...", "X is crucial/essential...", "Detailed explanation of..."
+11. **COMPLETE WORKED EXAMPLES**: `problem` (20+ words), `solution` (20+ words), `steps` (3-6 items). All three required.
+12. **OBJECTIVE-BOUND**: If exam objectives are listed, every leaf MUST map to a listed objective. Do NOT invent topics beyond the provided objectives.
 Generate the concept tree for "{domain_name}" now:"""
 def _parse_exam_tree(context: str) -> list:
     import re as _re
@@ -536,12 +551,12 @@ def get_tree_generation_prompt(
                 for obj in objectives:
                     objective_lines.append(f"  - {obj}")
         if objective_lines:
-            context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above."
+            context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above. Do NOT generate concepts for topics not in this list — unlisted topics are out of scope and will be rejected."
         else:
             context_block = ""
     elif has_string_subtopics:
         objective_lines = [f"  - {st}" for st in subtopics]
-        context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above. Group related objectives under {branch_count} branch concepts."
+        context_block = f"### EXAM OBJECTIVES FOR THIS DOMAIN:\n{nl.join(objective_lines)}\n**CRITICAL**: Generate leaf concepts that cover EACH objective listed above. Group related objectives under {branch_count} branch concepts. Do NOT generate concepts for topics not in this list — unlisted topics are out of scope and will be rejected."
     elif context:
         context_block = f"### USER-PROVIDED CONTEXT:\n{context}\n**INSTRUCTION**: Map concepts for domain \"{domain_name}\" to relevant objectives above."
     else:
@@ -656,21 +671,33 @@ Return ONLY the raw JSON object for this concept.
  ]
 }}
 ```
-## TRACES CONNECTION TYPES (Typed Relational Architecture — use decision algorithm):
-For each connection, ask IN ORDER and use the FIRST match:
-1. Must you understand B before A? → **requires**
-2. Is A a component of B? → **is-part-of**
-3. Is A a specific variant of B? → **is-type-of**
-4. Does A directly trigger or produce B? → **causes**
-5. Does A set rules/limits on B? → **constrains**
-6. ONLY if none above apply → **enables**
+## THE RATE FRAMEWORK FOR MINDMAP CONNECTIONS:
+The silver bullet goal: every line must instantly communicate the nature of the relationship.
+4 Line Types (Use these for the connection `type`):
+1. `solid` → Is / Has / Belongs to (A direct, factual relationship. Parent-child, category-member, whole-part.)
+2. `dashed` → Influences / Relates to (An indirect or associative relationship. Cross-branch connections, cause-effect, correlation.)
+3. `arrow` → Leads to / Produces / Requires (A directional relationship. Sequence, dependency, output.)
+4. `double-arrow` → Exchanges with / Depends mutually (Bidirectional dependency or feedback loop.)
+
+**The One Rule**: Finish the sentence: "A [source node] _______ a [target node]." Map the verb:
+- is / has / contains → `solid`
+- influences / relates / connects → `dashed`
+- leads to / requires / produces → `arrow`
+- mutually depends / reinforces → `double-arrow`
+
+## GRAPH TOPOLOGY RULES:
+- Trunk concepts: 0 outgoing connections.
+- Branch concepts: Max 2 connections (1 `solid` → trunk + 0-1 `arrow` → sibling branch).
+- Leaf concepts: Max 3 connections (1 `solid` → branch + 1-2 same-branch connections). Cross-branch leaf connections are FORBIDDEN.
+- `arrow` must point to concepts with LOWER order numbers (if sequence).
 ## CRITICAL RULES:
 1. Fix the identified issue completely.
 2. Ensure `shape.highStakesExample` is a REAL historical case study with Company + Year.
 3. Ensure `mnemonic.story` is bizarre, memorable, and uses the anchor.
 4. Use strictly positive framing.
 5. Return ONLY valid JSON for the single concept object. NO markdown.
-6. Every connection MUST use one of the 6 types above. Do NOT use "related-to", "extends", or "contains".
+6. Every connection MUST use one of the 4 RATE types (`solid`, `dashed`, `arrow`, `double-arrow`). Do NOT use old types like "requires" or "is-part-of".
+7. Respect the MAX connection caps above. Do NOT exceed them.
 """
 def get_surgical_fix_prompt(subject: str, concept_name: str, issue: str) -> str:
     return SURGICAL_FIX_PROMPT.format(
@@ -697,10 +724,11 @@ TASK: Generate supplementary leaf concepts to fill coverage gaps in domain "{dom
 4. `trunkDomain`: "{domain_name}"
 5. `treeLevel`: "leaf" (or "branch" only if creating a new grouping)
 6. Cognitive level: prefer "apply", "analyze", or higher for leaves
-7. TRACES connections: use requires/enables/is-part-of/is-type-of/causes/constrains (min 2 per concept)
+7. TRACES connections: Leaf max 3 (1 is-part-of → branch + 1-2 same-branch). Branch max 2 (1 is-part-of → trunk + 0-1 requires → sibling branch). Cross-branch leaf connections FORBIDDEN. `requires` must point to lower-order concepts only.
 8. `workedExample`: problem (minimum 20 words), solution (minimum 20 words), steps (3-6 items) — REQUIRED
 9. `mnemonic`: unique concrete anchor + spatial story — NO duplicates with existing concepts
 10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, criticalDistinctions, designBoundaries
+11. **OBJECTIVE-BOUND**: Generate ONLY for the uncovered objectives listed above. Do NOT add concepts for topics not in the list. If it is not listed, it is out of scope.
 
 ## FIELD QUALITY (automatic rejection if violated):
 - hookSentence: Lead with surprising fact or specific failure. BANNED: "Without proper X..."
