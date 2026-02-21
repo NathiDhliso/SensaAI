@@ -4,7 +4,7 @@ import { SettingsPanel } from './components/settings';
 import { ProtectedRoute } from './components/auth';
 import { AppErrorBoundary } from './components/error/AppErrorBoundary';
 import BackgroundJobToast from './components/ui/BackgroundJobToast';
-import { SensaAnimLogo } from './components/ui';
+import { GlobalNav, NavSpacer } from './components/layout';
 import { useAuthStore } from './store/auth-store';
 import { useLearningStore } from './store/learning-store';
 
@@ -24,17 +24,6 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ 
 const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const DevSandbox = lazy(() => import('./pages/DevSandbox'));
-
-function LoadingFallback() {
-    return (
-        <div className="loading-container">
-            <div style={{ width: 48, height: 48, margin: '0 auto 1rem' }}>
-                <SensaAnimLogo size="2xl" />
-            </div>
-            <p>Loading...</p>
-        </div>
-    );
-}
 
 function useMigration() {
     const hasRun = useRef(false);
@@ -70,7 +59,8 @@ function App() {
     return (
         <AppErrorBoundary>
             <BrowserRouter>
-                <Suspense fallback={<LoadingFallback />}>
+                <Suspense fallback={null}>
+                    <NavSpacer />
                     <Routes>
                         {/* ═══════════════════════════════════════════════════════════════
  PUBLIC ROUTES
@@ -124,12 +114,12 @@ function App() {
                         <Route path="/community" element={
                             <ProtectedRoute><CommunityLibrary /></ProtectedRoute>
                         } />
-
                         {/* Catch-all 404 */}
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                     <SettingsPanel />
                     <BackgroundJobToast />
+                    <GlobalNav />
                 </Suspense>
             </BrowserRouter>
         </AppErrorBoundary>

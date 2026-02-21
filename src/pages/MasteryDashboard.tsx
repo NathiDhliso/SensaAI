@@ -5,7 +5,6 @@ import {
     Search,
     BookOpen,
     Upload,
-    ArrowLeft,
     Eye,
     Cloud,
     Sparkles,
@@ -16,7 +15,7 @@ import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import { conceptsApi } from '@/shared/api/concepts';
 import { useAuthStore } from '@/store/auth-store';
 import type { SavedResult } from '@/features/content-storage/types';
-// import type { SavedResult } from '@/features/content-storage'; // Assuming types are exported from index or specifically
+import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { toast } from '@/shared/utils/toast';
 import styles from './MasteryDashboard.module.css';
@@ -180,10 +179,6 @@ export default function MasteryDashboard() {
     return (
         <div className={styles.container}>
             <div className={styles.wrapper}>
-                <button onClick={() => navigate('/')} className={styles.backButton}>
-                    <ArrowLeft className={styles.backIcon} />
-                    Back to Home
-                </button>
                 <div className={styles.header}>
                     <div>
                         <h1 className={styles.title}>Saved Results</h1>
@@ -192,13 +187,6 @@ export default function MasteryDashboard() {
                         </p>
                     </div>
                     <div className={styles.headerActions}>
-                        <button
-                            onClick={() => navigate('/community')}
-                            className={styles.communityLink}
-                        >
-                            <Globe size={16} />
-                            Community
-                        </button>
                         {isAdmin && (
                             <>
                                 <button
@@ -303,6 +291,30 @@ export default function MasteryDashboard() {
                                     </div>
                                 </div>
                                 <div className={styles.cardContent}>
+                                    {(() => {
+                                        const spacing = getSpacingEngine();
+                                        const cids = result.pass1Data?.concepts ?? [];
+                                        const freshCount = cids.filter(cid => spacing.getDecayStatus(cid) === 'fresh').length;
+                                        const healthPct = cids.length > 0 ? Math.round((freshCount / cids.length) * 100) : 100;
+                                        const dueCount = cids.filter(cid => {
+                                            const r = spacing.getReview(cid);
+                                            return r && new Date(r.dueDate) <= new Date();
+                                        }).length;
+                                        const healthColor = healthPct >= 70 ? 'var(--color-success)' : healthPct >= 40 ? 'var(--color-warning)' : 'var(--color-error)';
+                                        return (
+                                            <>
+                                                <div className={styles.cardHealthRow}>
+                                                    <div className={styles.cardHealthBar}>
+                                                        <div className={styles.cardHealthFill} style={{ width: `${healthPct}%`, background: healthColor }} />
+                                                    </div>
+                                                    <span className={styles.cardHealthLabel} style={{ color: healthColor }}>{healthPct}%</span>
+                                                    {dueCount > 0 && (
+                                                        <span className={styles.cardDueBadge}>{dueCount} due</span>
+                                                    )}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                     <div className={styles.metaInfo}>
                                         <div className={styles.metaItem}>
                                             <span className={styles.metaLabel}>Domain</span>

@@ -1,6 +1,6 @@
 # SensaAI — Master Context Document
 
-**Last Updated:** February 20, 2026
+**Last Updated:** February 21, 2026
 **Status:** MANDATORY — Read this before touching any code.
 
 ---
@@ -182,7 +182,14 @@ The architecture uses exactly **two environments**: `dev` and `prod`. No other e
 | `/community` | CommunityLibrary | Protected |
 | `/view/:id` | DocumentView | Protected |
 
-Global overlays always mounted in `App.tsx`: `SettingsPanel` (slide-out), `BackgroundJobToast`.
+Global overlays always mounted in `App.tsx`: `SettingsPanel` (slide-out), `BackgroundJobToast`, `GlobalNav` (persistent bottom nav on authenticated pages, hidden on `/generate`, `/study`, `/login`, `/signup`).
+
+**Navigation Flow:**
+- `GlobalNav` provides persistent bottom navigation (Home, Library, Community, Settings) with due-review badge on Library icon
+- Home page shows a **DashboardHome** when authenticated with saved results: greeting, cross-subject stats (subjects, concepts, due reviews, health %), due review list with decay indicators, subject cards with health bars and action buttons
+- Home page falls back to the generation form for unauthenticated users or users with no saved results
+- Post-generation navigates to `/launchpad/:id` (analytical overview) instead of `/study/:id`
+- Library cards show knowledge health bars and due count badges per subject
 
 ---
 
@@ -236,7 +243,8 @@ Settings toggles wire to `usePersonalizationStore` and `useThemeStore`. The `Set
 
 | File | Why It Matters |
 |------|---------------|
-| `src/App.tsx` | All routes. Mounts global overlays. |
+| `src/App.tsx` | All routes. Mounts global overlays + GlobalNav. |
+| `src/components/layout/GlobalNav.tsx` | Persistent bottom navigation bar for authenticated pages |
 | `src/components/settings/SettingsPanel.tsx` | Consolidated settings UI |
 | `src/components/learning/session/SessionStartModal.tsx` | Mood-based session curation. Exports `MOOD_GOAL_MAP`. |
 | `src/components/learning/MicroLearningLoopController.tsx` | Core learning loop orchestrator |

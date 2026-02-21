@@ -7,7 +7,7 @@
  */
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Lightbulb, Sparkles, Zap, Network, Scale, Map, Filter } from 'lucide-react';
+import { ArrowRight, Lightbulb, Zap, Network, Scale, Map, Filter } from 'lucide-react';
 import type { DeepStructure, DeepStructureArchetype, LifecycleBlueprint } from '@/shared/types/generation';
 import styles from './DeepStructureDetails.module.css';
 
@@ -178,38 +178,24 @@ export function DeepStructureDetails({
                 </div>
             </motion.div>
 
-            {/* ── Invariant Rule — The Golden Rule ── */}
+            {/* ── Deep Structure Insight ── */}
             <motion.div
-                className={styles.invariantCard}
+                className={styles.insightCard}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
             >
-                <div className={styles.invariantLabel}>
+                <div className={styles.insightLabel}>
                     <Lightbulb size={13} />
-                    The Golden Rule
+                    &nbsp;Core Principle
                 </div>
-                <p className={styles.invariantText}>{deepStructure.invariantRule}</p>
-            </motion.div>
-
-            {/* ── Coach Reveal Script ── */}
-            <motion.div
-                className={styles.revealCard}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45, duration: 0.4 }}
-            >
-                <div className={styles.revealQuote}>
-                    <div className={styles.revealLabel}>
-                        <Sparkles size={13} />
-                        &nbsp;Your Coach Says
-                    </div>
-                    <p className={styles.revealText}>{deepStructure.revealScript}</p>
-                    <div className={styles.revealAttribution}>
-                        <Sparkles size={11} />
-                        Expert Blueprint Insight
-                    </div>
-                </div>
+                <p className={styles.invariantText}>
+                    {deepStructure.invariantRule.replace(/^(?:If you remember nothing else:\s*)/i, '').replace(/^"|"$/g, '')}
+                </p>
+                <div className={styles.divider} />
+                <p className={styles.revealText}>
+                    {deepStructure.revealScript.replace(/^"|"$/g, '')}
+                </p>
             </motion.div>
 
             {/* ── Lifecycle Timeline ── */}

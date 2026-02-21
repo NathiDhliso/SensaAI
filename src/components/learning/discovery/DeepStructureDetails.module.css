@@ -90,93 +90,50 @@
     flex-shrink: 0;
 }
 
-/* Invariant Rule — The Golden Rule callout */
-.invariantCard {
-    position: relative;
-    z-index: 1;
-    border-radius: 14px;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.75rem;
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(245, 158, 11, 0.04));
-    border: 1px solid rgba(251, 191, 36, 0.18);
-    border-left: 3px solid #fbbf24;
-}
-
-.invariantLabel {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #fbbf24;
-    margin-bottom: 0.5rem;
-}
-
-.invariantText {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #fef3c7;
-    line-height: 1.55;
-    margin: 0;
-    font-style: italic;
-}
-
-/* Coach Reveal Script */
-.revealCard {
+/* Deep Structure Insight Card */
+.insightCard {
     position: relative;
     z-index: 1;
     border-radius: 14px;
     padding: 1.5rem;
     margin-bottom: 1.75rem;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.04));
-    border: 1px solid rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    border-left: 3px solid var(--archetype-accent, #818cf8);
 }
 
-.revealQuote {
-    position: relative;
-    padding-left: 1.25rem;
-}
-
-.revealQuote::before {
-    content: '"';
-    position: absolute;
-    left: -0.15rem;
-    top: -0.35rem;
-    font-size: 3rem;
-    font-weight: 800;
-    color: var(--archetype-accent, #818cf8);
-    opacity: 0.4;
-    line-height: 1;
-    font-family: Georgia, 'Times New Roman', serif;
-}
-
-.revealLabel {
+.insightLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: var(--archetype-accent, #a5b4fc);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.invariantText {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #f1f5f9;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.divider {
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent);
+    margin: 1.25rem 0;
 }
 
 .revealText {
     font-size: 0.95rem;
     font-weight: 400;
-    color: #e2e8f0;
+    color: #cbd5e1;
     line-height: 1.65;
     margin: 0;
-}
-
-.revealAttribution {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: rgba(148, 163, 184, 0.7);
 }
 
 /* Lifecycle Timeline */

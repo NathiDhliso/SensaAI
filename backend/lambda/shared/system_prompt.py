@@ -30,9 +30,9 @@ Which of these 4 structural archetypes best fits this subject?
 
 Select the `primaryArchetype`. If the subject is a hybrid, you may optionally select a `secondaryArchetype` (e.g., Cloud Architecture is primarily a "spatial-map" but uses "sequential-flow" for provisioning). Set `isHybrid` to true if using two archetypes.
 
-STEP 2: EXTRACT THE INVARIANT (THE GOLDEN RULE)
-What is the ONE law that never changes? The rule that, if followed, prevents 80%% of errors?
-Format: "If you remember nothing else: [Rule]."
+STEP 2: EXTRACT THE INVARIANT (THE CORE PRINCIPLE)
+What is the ONE structural law that governs this subject? The rule that, if followed, makes the subject's behavior predictable?
+State the principle directly. Do NOT use prefixes like "If you remember nothing else:". CRITICAL: Use strictly POSITIVE framing. Tell the learner what *to* do or how the system works. Do NOT use negative framing (e.g., "Don't do X").
 
 STEP 3: DEFINE THE UNIVERSAL LIFE CYCLE (ULC) BLUEPRINTS
 Identify the 1 to 3 core "verbs" (Lifecycle Phases) a practitioner actually performs. 
@@ -40,8 +40,9 @@ Do NOT invent 3 phases if the domain only has 1 or 2 core actions. Return null f
 For EACH verb, define the "Atomic Sequence" — the immutable checklist or mental flow.
 
 STEP 4: SYNTHESIS & REVEAL SCRIPT
-First, write a `synthesisRationale` (Chain of Thought) explaining how the archetype and invariant prove that the student doesn't need to memorize a massive list of facts.
-Then, write the `revealScript`: A punchy, 2-3 sentence speech from an expert coach "revealing the trick" to the student right before they study. 
+First, write a `synthesisRationale` (Chain of Thought) explaining how the archetype and invariant simplify the subject.
+Then, write the `revealScript`: A focused, 2-3 sentence insight illuminating the deep structure of the subject.
+CRITICAL: Use strictly POSITIVE, scholarly framing. Do NOT use negative framing, colloquialisms, or talk down to the learner (e.g., NEVER use phrases like "Stop trying to memorize..." or "The trick is..."). Focus purely on the structural elegance of the subject.
 
 ═══════════════════════════════════════════════════════════════════════════
 PART B: EXAM SYLLABUS MAPPING
@@ -66,9 +67,9 @@ Return ONLY valid JSON. No markdown fences. No text before or after.
     "primaryArchetype": "sequential-flow" | "see-saw" | "spatial-map" | "heuristic",
     "secondaryArchetype": "sequential-flow" | "see-saw" | "spatial-map" | "heuristic" | null,
     "isHybrid": true | false,
-    "invariantRule": "If you remember nothing else...",
-    "synthesisRationale": "Chain of Thought: Explain why this specific archetype fits, and how the invariant rule reduces the student's cognitive load...",
-    "revealScript": "The expert coach speech revealing the trick to the student..."
+    "invariantRule": "The core principle stated directly without prefixes...",
+    "synthesisRationale": "Chain of Thought: Explain why this specific archetype fits...",
+    "revealScript": "The expert insight illuminating the deep structure..."
   }},
   "lifecycleBlueprints": {{
     "phase1": {{

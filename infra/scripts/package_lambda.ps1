@@ -19,10 +19,15 @@ Write-Host "Lambda source: $LambdaDir"
 Write-Host "Output: $TfLambdaDir"
 Write-Host ""
 
-# Clean build directory
+# Clean build directory and temporary files
 if (Test-Path $BuildDir) {
     Remove-Item -Recurse -Force $BuildDir
 }
+
+Write-Host "Cleaning up __pycache__ and temp files from Lambda source..." -ForegroundColor Yellow
+Get-ChildItem -Path $LambdaDir -Directory -Filter "__pycache__" -Recurse | Remove-Item -Force -Recurse
+Get-ChildItem -Path $LambdaDir -Directory -Filter ".pytest_cache" -Recurse | Remove-Item -Force -Recurse
+Get-ChildItem -Path $LambdaDir -Filter "*.zip" -File | Remove-Item -Force
 New-Item -ItemType Directory -Path "$BuildDir\layer\python" -Force | Out-Null
 
 # Install dependencies for layer

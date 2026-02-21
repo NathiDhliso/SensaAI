@@ -379,3 +379,177 @@
  margin-top: 0.5rem;
  font-style: italic;
 }
+
+.conceptPickerTrigger {
+ display: inline-flex;
+ align-items: center;
+ gap: 0.5rem;
+ padding: 0.4rem 0.875rem;
+ border-radius: var(--radius-full);
+ border: 1px solid var(--color-border);
+ background: var(--color-surface-subtle);
+ color: var(--color-text-secondary);
+ font-size: 0.8125rem;
+ font-weight: 500;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ max-width: 220px;
+}
+
+.conceptPickerTrigger:hover {
+ border-color: var(--color-accent);
+ color: var(--color-accent);
+ background: color-mix(in srgb, var(--color-accent), transparent 94%);
+}
+
+.conceptPickerTriggerName {
+ white-space: nowrap;
+ overflow: hidden;
+ text-overflow: ellipsis;
+ max-width: 160px;
+}
+
+.conceptPickerOverlay {
+ position: fixed;
+ inset: 0;
+ z-index: var(--z-modal);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ padding: 1rem;
+ background: var(--overlay-black-40);
+ backdrop-filter: blur(12px);
+ -webkit-backdrop-filter: blur(12px);
+}
+
+.conceptPickerModal {
+ width: min(480px, 100%);
+ max-height: 80vh;
+ display: flex;
+ flex-direction: column;
+ background: var(--color-surface);
+ border: 1px solid var(--color-border);
+ border-radius: var(--radius-2xl);
+ box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--overlay-white-4);
+ overflow: hidden;
+}
+
+.conceptPickerHeader {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ padding: 1.25rem 1.5rem 1rem;
+ border-bottom: 1px solid var(--color-border-light);
+ flex-shrink: 0;
+}
+
+.conceptPickerTitle {
+ font-size: 1rem;
+ font-weight: 600;
+ color: var(--color-text-primary);
+ margin: 0;
+}
+
+.conceptPickerSubtitle {
+ font-size: 0.75rem;
+ color: var(--color-text-muted);
+ margin: 0.125rem 0 0;
+}
+
+.conceptPickerClose {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 2rem;
+ height: 2rem;
+ border-radius: 50%;
+ border: none;
+ background: var(--color-surface-subtle);
+ color: var(--color-text-muted);
+ cursor: pointer;
+ transition: all 0.15s ease;
+ flex-shrink: 0;
+}
+
+.conceptPickerClose:hover {
+ background: var(--color-border);
+ color: var(--color-text-primary);
+}
+
+.conceptPickerList {
+ flex: 1;
+ overflow-y: auto;
+ padding: 0.75rem;
+ display: flex;
+ flex-direction: column;
+ gap: 0.25rem;
+ overscroll-behavior: contain;
+}
+
+.conceptPickerTierLabel {
+ font-size: 0.6875rem;
+ font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: 0.07em;
+ color: var(--color-text-muted);
+ padding: 0.5rem 0.5rem 0.25rem;
+}
+
+.conceptPickerItem {
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+ padding: 0.75rem 1rem;
+ border-radius: var(--radius-lg);
+ border: 1px solid transparent;
+ background: transparent;
+ cursor: pointer;
+ transition: all 0.15s ease;
+ text-align: left;
+ width: 100%;
+}
+
+.conceptPickerItem:hover {
+ background: var(--color-surface-subtle);
+ border-color: var(--color-border-light);
+}
+
+.conceptPickerItemActive {
+ background: color-mix(in srgb, var(--color-accent), transparent 90%);
+ border-color: color-mix(in srgb, var(--color-accent), transparent 60%);
+}
+
+.conceptPickerItemActive:hover {
+ background: color-mix(in srgb, var(--color-accent), transparent 85%);
+}
+
+.conceptPickerDot {
+ width: 8px;
+ height: 8px;
+ border-radius: 50%;
+ flex-shrink: 0;
+}
+
+.conceptPickerItemName {
+ flex: 1;
+ font-size: 0.875rem;
+ font-weight: 500;
+ color: var(--color-text-primary);
+ line-height: 1.3;
+}
+
+.conceptPickerItemTier {
+ font-size: 0.6875rem;
+ font-weight: 600;
+ padding: 0.15rem 0.5rem;
+ border-radius: var(--radius-full);
+ background: var(--color-surface-subtle);
+ border: 1px solid var(--color-border-light);
+ color: var(--color-text-muted);
+ white-space: nowrap;
+}
+
+.conceptPickerCheck {
+ color: var(--color-accent);
+ flex-shrink: 0;
+}

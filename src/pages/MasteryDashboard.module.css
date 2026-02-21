@@ -867,3 +867,42 @@
  font-family: monospace;
  color: var(--color-accent);
 }
+
+.cardHealthRow {
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+}
+
+.cardHealthBar {
+ flex: 1;
+ height: 4px;
+ border-radius: 2px;
+ background: var(--color-border-light);
+ overflow: hidden;
+}
+
+.cardHealthFill {
+ height: 100%;
+ border-radius: 2px;
+ transition: width 0.3s ease;
+}
+
+.cardHealthLabel {
+ font-size: 0.7rem;
+ font-weight: 600;
+ white-space: nowrap;
+}
+
+.cardDueBadge {
+ display: inline-flex;
+ align-items: center;
+ gap: 0.25rem;
+ font-size: 0.65rem;
+ font-weight: 700;
+ padding: 0.15rem 0.5rem;
+ border-radius: 1rem;
+ background: color-mix(in srgb, var(--color-error), transparent 88%);
+ color: var(--color-error);
+ white-space: nowrap;
+}

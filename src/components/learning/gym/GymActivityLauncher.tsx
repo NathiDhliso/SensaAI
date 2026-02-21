@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
  ArrowLeft,
  ArrowRight,
@@ -9,6 +11,8 @@ import {
  CheckCircle,
  RefreshCw,
  Lightbulb,
+ ChevronDown,
+ X,
 } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
@@ -49,6 +53,12 @@ const ACTIVITY_META: Record<GymActivity, { label: string; icon: React.ReactNode;
  }
 };
 
+const TIER_COLORS: Record<string, string> = {
+ trunk: 'var(--color-trunk)',
+ branch: 'var(--color-branch)',
+ leaf: 'var(--color-leaf)',
+};
+
 type LauncherPhase = 'active' | 'result';
 
 export default function GymActivityLauncher({
@@ -76,6 +86,7 @@ export default function GymActivityLauncher({
  const [phase, setPhase] = useState<LauncherPhase>('active');
  const [selectedConceptId, setSelectedConceptId] = useState<string | null>(getInitialConceptId);
  const [result, setResult] = useState<{ passed: boolean } | null>(null);
+ const [showConceptPicker, setShowConceptPicker] = useState(false);
 
  const handleBackToGym = useCallback(() => {
  if (subjectId) {
@@ -227,6 +238,11 @@ export default function GymActivityLauncher({
  );
  };
 
+ const tierGroups = (['trunk', 'branch', 'leaf'] as const).map(tier => ({
+ tier,
+ items: concepts.filter(c => c.tier === tier),
+ })).filter(g => g.items.length > 0);
+
  return (
  <div className={styles.container}>
  <div className={styles.header}>
@@ -238,23 +254,23 @@ export default function GymActivityLauncher({
  <span className={styles.activityTitle}>
  {meta.icon}
  {meta.label}
- {selectedConcept && meta.needsConcept && (
- <span className={styles.conceptBadge}>{selectedConcept.name}</span>
- )}
  </span>
  </div>
  <div className={styles.headerRight}>
- {/* Quick concept switcher for concept-based activities */}
  {meta.needsConcept && phase === 'active' && concepts.length > 1 && (
- <select
- className={styles.conceptSwitcher}
- value={selectedConceptId || ''}
- onChange={(e) => setSelectedConceptId(e.target.value)}
+ <button
+ className={styles.conceptPickerTrigger}
+ onClick={() => setShowConceptPicker(true)}
  >
- {concepts.map(c => (
- <option key={c.id} value={c.id}>{c.name}</option>
- ))}
- </select>
+ <span
+ className={styles.conceptPickerDot}
+ style={{ background: TIER_COLORS[selectedConcept?.tier ?? 'leaf'] }}
+ />
+ <span className={styles.conceptPickerTriggerName}>
+ {selectedConcept?.name ?? 'Select concept'}
+ </span>
+ <ChevronDown size={12} />
+ </button>
  )}
  </div>
  </div>
@@ -263,6 +279,72 @@ export default function GymActivityLauncher({
  {phase === 'active' && renderActivity()}
  {phase === 'result' && renderResult()}
  </div>
+
+ {createPortal(
+ <AnimatePresence>
+ {showConceptPicker && (
+ <motion.div
+ className={styles.conceptPickerOverlay}
+ initial={{ opacity: 0 }}
+ animate={{ opacity: 1 }}
+ exit={{ opacity: 0 }}
+ transition={{ duration: 0.18 }}
+ onClick={(e) => { if (e.target === e.currentTarget) setShowConceptPicker(false); }}
+ >
+ <motion.div
+ className={styles.conceptPickerModal}
+ initial={{ opacity: 0, scale: 0.95, y: 12 }}
+ animate={{ opacity: 1, scale: 1, y: 0 }}
+ exit={{ opacity: 0, scale: 0.95, y: 12 }}
+ transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+ >
+ <div className={styles.conceptPickerHeader}>
+ <div>
+ <p className={styles.conceptPickerTitle}>Choose a Concept</p>
+ <p className={styles.conceptPickerSubtitle}>{concepts.length} concepts available</p>
+ </div>
+ <button
+ className={styles.conceptPickerClose}
+ onClick={() => setShowConceptPicker(false)}
+ >
+ <X size={14} />
+ </button>
+ </div>
+ <div className={styles.conceptPickerList}>
+ {tierGroups.map(({ tier, items }) => (
+ <div key={tier}>
+ <p className={styles.conceptPickerTierLabel}>{tier}</p>
+ {items.map(c => (
+ <button
+ key={c.id}
+ className={`${styles.conceptPickerItem} ${
+ c.id === selectedConceptId ? styles.conceptPickerItemActive : ''
+ }`}
+ onClick={() => {
+ setSelectedConceptId(c.id);
+ setShowConceptPicker(false);
+ }}
+ >
+ <span
+ className={styles.conceptPickerDot}
+ style={{ background: TIER_COLORS[tier] }}
+ />
+ <span className={styles.conceptPickerItemName}>{c.name}</span>
+ <span className={styles.conceptPickerItemTier}>{tier}</span>
+ {c.id === selectedConceptId && (
+ <CheckCircle size={14} className={styles.conceptPickerCheck} />
+ )}
+ </button>
+ ))}
+ </div>
+ ))}
+ </div>
+ </motion.div>
+ </motion.div>
+ )}
+ </AnimatePresence>,
+ document.body
+ )}
  </div>
  );
 }

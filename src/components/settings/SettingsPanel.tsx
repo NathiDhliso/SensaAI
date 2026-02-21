@@ -13,12 +13,6 @@ import {
  Zap,
  Shuffle,
  Calendar,
- FileJson,
- Download,
- Trash2,
- AlertTriangle,
- ChevronDown,
- ChevronUp,
  LogOut,
  User,
  Save,
@@ -29,15 +23,12 @@ import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
 import { useUIStore } from '@/store/ui-store';
 import { useThemeStore, type Theme, type VisualTheme } from '@/store/theme-store';
 import { usePersonalizationStore, type PracticeMode } from '@/store/personalization-store';
-import { useLearningStore } from '@/store/learning-store';
 import { useAuthStore } from '@/store/auth-store';
-import { useGenerationStore } from '@/store/generation-store';
 import { getAllPersonas } from '@/features/ai-coach';
 import { MetaphorToggle } from '@/features/personalization';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { toast } from '@/shared/utils/toast';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
-import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import { authSessionApi } from '@/shared/api/client';
 import styles from './SettingsPanel.module.css';
 
@@ -68,12 +59,9 @@ function toProfileForm(user?: {
 export default function SettingsPanel() {
  const panelRef = useRef<HTMLDivElement>(null);
  const triggerRef = useRef<HTMLElement | null>(null);
- const isAdmin = isGenerationAllowed();
  const { user, isAuthenticated, logout } = useAuthStore();
  const [isExiting, setIsExiting] = useState(false);
  const [showPersonas, setShowPersonas] = useState(false);
- const [showDangerZone, setShowDangerZone] = useState(false);
- const [confirmClear, setConfirmClear] = useState<string | null>(null);
  const [profileForm, setProfileForm] = useState<ProfileFormState>(() => toProfileForm(user));
  const [isProfileLoading, setIsProfileLoading] = useState(false);
  const [isProfileSaving, setIsProfileSaving] = useState(false);
@@ -92,12 +80,6 @@ export default function SettingsPanel() {
  practiceMode,
  setPracticeMode
  } = usePersonalizationStore();
- const {
- resetProgress,
- clearSession,
- currentSession
- } = useLearningStore();
- const progress = currentSession?.progress;
  const personas = getAllPersonas();
  const activePersona = personas.find(p => p.id === selectedPersona) || personas[0];
  useEffect(() => {
@@ -144,28 +126,7 @@ export default function SettingsPanel() {
  firstFocusable?.focus();
  }
  }, [isSettingsPanelOpen]);
- const handleClearData = (type: string) => {
- if (confirmClear === type) {
- switch (type) {
- case 'progress':
- resetProgress();
- toast.success('Progress cleared');
- break;
- case 'all':
- resetProgress();
- clearSession();
- useGenerationStore.setState({ results: [] });
- toast.success('All data reset');
- break;
- }
- setConfirmClear(null);
- } else {
- setConfirmClear(type);
- setTimeout(() => setConfirmClear(null), UI_TIMINGS.TOAST_MEDIUM);
- }
- };
-
- const handleProfileChange = (field: keyof ProfileFormState, value: string) => {
+  const handleProfileChange = (field: keyof ProfileFormState, value: string) => {
  setProfileForm((prev) => ({ ...prev, [field]: value }));
  };
 
@@ -189,27 +150,6 @@ export default function SettingsPanel() {
  } finally {
  setIsProfileSaving(false);
  }
- };
- const handleExportData = () => {
- const data = {
- theme,
- personalization: usePersonalizationStore.getState(),
- learning: {
- progress
- },
- generation: {
- results: useGenerationStore.getState().results
- },
- exportedAt: new Date().toISOString()
- };
- const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
- const url = URL.createObjectURL(blob);
- const a = document.createElement('a');
- a.href = url;
- a.download = `sensa-backup-${new Date().toISOString().split('T')[0]}.json`;
- a.click();
- URL.revokeObjectURL(url);
- toast.success('Data exported');
  };
  const themeOptions: { value: Theme; icon: typeof Sun; label: string }[] = [
  { value: 'light', icon: Sun, label: 'Light' },
@@ -498,52 +438,6 @@ export default function SettingsPanel() {
  onChange={(e) => setSemesterStartDate(e.target.value || null)}
  />
  </div>
- </section>
- <section className={styles.section}>
- <div className={styles.sectionHeader}>
- <FileJson className={styles.sectionIcon} />
- <h3 className={styles.sectionTitle}>Data</h3>
- </div>
- <div className={styles.dataRow}>
- <span className={styles.settingDesc}>
- {progress?.completedConcepts.length ?? 0} concepts &bull; {progress?.totalTimeSpentMinutes ?? 0}m studied
- </span>
- <button onClick={handleExportData} className={styles.linkButton} title="Export Data">
- <Download size={14} /> Export
- </button>
- </div>
- {isAdmin && (
- <>
- <button
- className={styles.dangerToggle}
- onClick={() => setShowDangerZone(!showDangerZone)}
- >
- <div className={styles.dangerToggleLeft}>
- <AlertTriangle size={14} />
- <span>Danger Zone</span>
- </div>
- {showDangerZone ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
- </button>
- {showDangerZone && (
- <div className={styles.dangerActions}>
- <button
- onClick={() => handleClearData('progress')}
- className={`${styles.dangerButton} ${confirmClear === 'progress' ? styles.dangerConfirm : ''}`}
- >
- <Trash2 size={14} />
- {confirmClear === 'progress' ? 'Confirm Clear' : 'Clear Progress'}
- </button>
- <button
- onClick={() => handleClearData('all')}
- className={`${styles.dangerButton} ${confirmClear === 'all' ? styles.dangerConfirm : ''}`}
- >
- <Trash2 size={14} />
- {confirmClear === 'all' ? 'Confirm Reset' : 'Reset App Data'}
- </button>
- </div>
- )}
- </>
- )}
  </section>
  </div>
  </div>

@@ -213,9 +213,9 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  const loadResult = parseAndLoadContent(result.fullDocument, resultId);
  if (loadResult.success) {
  // Navigate immediately - no artificial delay needed
- navigate(`/study/${resultId}`, {
+ navigate(`/launchpad/${resultId}`, {
  replace: true,
- state: { freshGeneration: true } // Signal that content is already loaded
+ state: { freshGeneration: true }
  });
  } else {
  // FIX: Don't navigate if loading failed. Report error.
@@ -228,7 +228,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  // Still try to load into memory if storage failed but we have data
  const loadResult = parseAndLoadContent(result.fullDocument, resultId);
  if (loadResult.success) {
- navigate(`/study/${resultId}`, {
+ navigate(`/launchpad/${resultId}`, {
  replace: true,
  state: { freshGeneration: true }
  });
@@ -240,7 +240,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  } else {
  // Fallback: use backend jobId if available, otherwise timestamp
  const fallbackId = result.jobId || `${Date.now()}`;
- navigate(`/study/${fallbackId}`, {
+ navigate(`/launchpad/${fallbackId}`, {
  replace: true,
  state: { freshGeneration: true }
  });

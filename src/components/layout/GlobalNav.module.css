@@ -1,0 +1,133 @@
+.navBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 60px;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    padding: 0 0.5rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.navItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: 8px;
+    transition: color 0.15s, background 0.15s;
+    position: relative;
+    min-width: 56px;
+}
+
+.navItem:hover {
+    color: var(--color-text-primary);
+    background: var(--color-surface-hover);
+}
+
+.navItemActive {
+    color: var(--color-accent);
+}
+
+.navItemActive::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: var(--color-accent);
+    border-radius: 0 0 2px 2px;
+}
+
+.navLabel {
+    line-height: 1;
+}
+
+.navBadge {
+    position: absolute;
+    top: 2px;
+    right: 8px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: var(--color-error);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.navSpacer {
+    height: 60px;
+    flex-shrink: 0;
+}
+
+.navSpacerInternal {
+    height: 60px;
+    flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+    .navBar {
+        top: 0;
+        bottom: auto;
+        height: 48px;
+        padding: 0 1rem;
+        justify-content: center;
+        gap: 0.25rem;
+        border-top: none;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .navItem {
+        flex-direction: row;
+        gap: 6px;
+        padding: 6px 14px;
+        font-size: 0.78rem;
+    }
+
+    .navItemActive::after {
+        top: auto;
+        bottom: -1px;
+        border-radius: 2px 2px 0 0;
+    }
+
+    .navSpacer {
+        height: 48px;
+    }
+
+    .navSpacerInternal {
+        display: none;
+    }
+}
+
+:global([data-visual-theme="scholarly"]) .navBar {
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 768px) {
+    :global([data-visual-theme="scholarly"]) .navBar {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+}
