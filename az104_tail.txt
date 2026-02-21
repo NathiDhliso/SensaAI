@@ -1,0 +1,6 @@
+2026-02-21T16:18:11 [Handler] Async dispatch: subject=Microsoft Azure Administrator (AZ-104), userId=54885448-f091-703b-2406-acd3bd74e748, jobId=1522f842-255a-4938-a457-7561d2c63cf5
+2026-02-21T16:18:12 [Handler] Generate: subject=Microsoft Azure Administrator (AZ-104), userId=54885448-f091-703b-2406-acd3bd74e748, jobId=1522f842-255a-4938-a457-7561d2c63cf5
+2026-02-21T16:18:12 [Handler] Starting parallel generation for: Microsoft Azure Administrator (AZ-104)
+2026-02-21T16:18:12 [BedrockService] Classifying subject: Microsoft Azure Administrator (AZ-104)[BedrockService] Tree generation: 5 domains (trunks)
+2026-02-21T16:30:47 [BedrockService] DUPLICATE EXAMPLE: 'equifax' used by 'Azure Disk Encryption Implementation' (first: 'Microsoft Entra ID User Creation and Properties')
+2026-02-21T16:30:47 [BedrockService] DUPLICATE EXAMPLE: 'target' used by 'Azure Monitor Configuration and Analysis' (first: 'Security Groups vs Microsoft 365 Groups')

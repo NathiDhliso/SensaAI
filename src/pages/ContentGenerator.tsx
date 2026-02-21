@@ -234,24 +234,19 @@ export default function ContentGenerator() {
                 </button>
                 {/* Center Stage: The Entity */}
                 <div className={styles.centerStage}>
-                    <div className={styles.agentWrapper}>
-                        <AgentCore
-                            state={agentState}
-                            intensity={intensity}
-                            glitch={intensity === 100}
-                        />
-                    </div>
-                    {/* The Inner Monologue */}
-                    <div className={styles.cognitiveStreamContainer}>
-                        <CognitiveStream
-                            pass={currentPass}
-                            intensity={intensity}
-                            isGenerating={isGenerating}
-                            isInitializing={isCheckingCollision && !isGenerating && !error}
-                            subject={subject ? decodeURIComponent(subject) : undefined}
-                            subjectType={subjectType}
-                        />
-                    </div>
+                    <AgentCore
+                        state={agentState}
+                        intensity={intensity}
+                        glitch={intensity === 100}
+                    />
+                    <CognitiveStream
+                        pass={currentPass}
+                        intensity={intensity}
+                        isGenerating={isGenerating}
+                        isInitializing={isCheckingCollision && !isGenerating && !error}
+                        subject={subject ? decodeURIComponent(subject) : undefined}
+                        subjectType={subjectType}
+                    />
                 </div>
                 {/* HUD: Data & Stats */}
                 <div className={styles.hudContainer}>

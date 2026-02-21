@@ -1,43 +1,54 @@
-@keyframes ambientDrift {
-  0%, 100% { opacity: 0.5; transform: scale(1) translateY(0); }
-  50% { opacity: 0.8; transform: scale(1.04) translateY(-8px); }
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.06); opacity: 1; }
 }
-@keyframes orbitalSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 40px rgba(99,102,241,0.25),
+      0 0 80px rgba(99,102,241,0.12),
+      0 0 120px rgba(139,92,246,0.06),
+      inset 0 0 30px rgba(99,102,241,0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 60px rgba(99,102,241,0.4),
+      0 0 120px rgba(99,102,241,0.2),
+      0 0 180px rgba(139,92,246,0.12),
+      inset 0 0 40px rgba(99,102,241,0.14);
+  }
 }
-@keyframes orbitalSpinReverse {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
-}
-@keyframes corePulseRing {
-  0% { transform: scale(1); opacity: 0.6; }
-  70% { transform: scale(1.6); opacity: 0; }
+@keyframes ripple {
+  0% { transform: scale(0.85); opacity: 0.5; }
   100% { transform: scale(1.6); opacity: 0; }
 }
 @keyframes progressShimmer {
   0% { transform: translateX(-100%); }
-  100% { transform: translateX(350%); }
-}
-@keyframes progressGlow {
-  0%, 100% { box-shadow: 0 0 6px rgba(99,102,241,0.6), 0 0 18px rgba(99,102,241,0.3); }
-  50% { box-shadow: 0 0 12px rgba(99,102,241,0.9), 0 0 32px rgba(139,92,246,0.5), 0 0 48px rgba(99,102,241,0.2); }
+  100% { transform: translateX(400%); }
 }
 @keyframes conceptReveal {
   from { opacity: 0; transform: translateY(10px) scale(0.96); filter: blur(4px); }
   to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 @keyframes hudSlideUp {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes waveBar {
-  0%, 100% { transform: scaleY(0.15); opacity: 0.25; }
-  50% { transform: scaleY(1); opacity: 0.9; }
+  0%, 100% { transform: scaleY(0.15); opacity: 0.2; }
+  50% { transform: scaleY(1); opacity: 0.85; }
 }
 @keyframes dotBlink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
+  50% { opacity: 0.25; }
+}
+@keyframes ambientDrift {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+@keyframes segmentFill {
+  from { opacity: 0; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
 }
 
 .container {
@@ -56,27 +67,12 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 90% 70% at 50% 35%, rgba(99,102,241,0.07) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 45% at 15% 85%, rgba(139,92,246,0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 45% 55% at 85% 15%, rgba(59,130,246,0.04) 0%, transparent 60%);
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(99,102,241,0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(139,92,246,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 50% at 80% 15%, rgba(59,130,246,0.03) 0%, transparent 60%);
   z-index: 0;
   pointer-events: none;
-  animation: ambientDrift 10s ease-in-out infinite;
-}
-
-.container::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(255,255,255,0.006) 2px,
-    rgba(255,255,255,0.006) 3px
-  );
-  z-index: 0;
-  pointer-events: none;
+  animation: ambientDrift 12s ease-in-out infinite;
 }
 
 .cockpit {
@@ -98,8 +94,8 @@
   align-items: center;
   gap: 0.5rem;
   background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(148,163,184,0.8);
+  border: 1px solid rgba(255,255,255,0.09);
+  color: rgba(148,163,184,0.7);
   padding: 0.5rem 1rem;
   border-radius: 8px;
   cursor: pointer;
@@ -113,9 +109,9 @@
 }
 
 .abortButton:hover {
-  border-color: rgba(239,68,68,0.5);
+  border-color: rgba(239,68,68,0.45);
   color: #ef4444;
-  background: rgba(239,68,68,0.08);
+  background: rgba(239,68,68,0.07);
   transform: translateY(-1px);
 }
 
@@ -124,8 +120,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2.5rem;
-  transform: translateY(-48px);
+  gap: 3rem;
+  transform: translateY(-44px);
 }
 
 .agentWrapper {
@@ -134,35 +130,36 @@
 
 .agentContainer {
   position: relative;
-  width: 240px;
-  height: 240px;
+  width: 200px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.orbitalRingOuter {
+.orbGlow {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.08) 40%, transparent 70%);
+  animation: breathe 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ripple {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1px dashed rgba(99,102,241,0.18);
-  animation: orbitalSpin 22s linear infinite;
+  border: 1px solid rgba(99,102,241,0.3);
+  animation: ripple 3s ease-out infinite;
 }
 
-.orbitalRingMid {
+.ripple2 {
   position: absolute;
-  inset: 22px;
+  inset: 0;
   border-radius: 50%;
-  border: 1px solid rgba(139,92,246,0.22);
-  animation: orbitalSpinReverse 14s linear infinite;
-}
-
-.orbitalRingInner {
-  position: absolute;
-  inset: 48px;
-  border-radius: 50%;
-  border: 1px dashed rgba(99,102,241,0.3);
-  animation: orbitalSpin 8s linear infinite;
+  border: 1px solid rgba(139,92,246,0.2);
+  animation: ripple 3s ease-out 1.5s infinite;
 }
 
 .agentCoreWrapper {
@@ -174,99 +171,76 @@
 }
 
 .agentCore {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.02) 100%);
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255,255,255,0.11);
   position: relative;
   z-index: 20;
-  backdrop-filter: blur(24px);
-  box-shadow:
-    0 0 0 1px rgba(99,102,241,0.15),
-    0 8px 32px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-}
-
-.agentPulse {
-  position: absolute;
-  inset: -16px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(99,102,241,0.5);
-  opacity: 0;
-  z-index: 5;
-  animation: corePulseRing 2.4s ease-out infinite;
-}
-
-.agentPulse2 {
-  position: absolute;
-  inset: -16px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(99,102,241,0.3);
-  opacity: 0;
-  z-index: 5;
-  animation: corePulseRing 2.4s ease-out 1.2s infinite;
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.12) 0%, rgba(99,102,241,0.06) 50%, rgba(0,0,0,0.2) 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  animation: breathe 4s ease-in-out infinite, glowPulse 4s ease-in-out infinite;
 }
 
 .coreIcon {
-  width: 2.6rem;
-  height: 2.6rem;
+  width: 2.8rem;
+  height: 2.8rem;
 }
 
 .coreIconLarge {
-  width: 3.2rem;
-  height: 3.2rem;
+  width: 3.4rem;
+  height: 3.4rem;
 }
 
-.iconIdle     { color: rgba(148,163,184,0.75); }
-.iconScanning { color: #60a5fa; filter: drop-shadow(0 0 6px rgba(96,165,250,0.5)); }
-.iconThinking { color: #818cf8; filter: drop-shadow(0 0 8px rgba(129,140,248,0.6)); }
-.iconWriting  { color: #f59e0b; filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
-.iconVerifying{ color: #34d399; filter: drop-shadow(0 0 8px rgba(52,211,153,0.5)); }
-.iconComplete { color: #34d399; filter: drop-shadow(0 0 12px rgba(52,211,153,0.7)); }
+.iconIdle     { color: rgba(148,163,184,0.6); }
+.iconScanning { color: #93c5fd; filter: drop-shadow(0 0 8px rgba(147,197,253,0.5)); }
+.iconThinking { color: #a5b4fc; filter: drop-shadow(0 0 10px rgba(165,180,252,0.6)); }
+.iconWriting  { color: #fcd34d; filter: drop-shadow(0 0 10px rgba(252,211,77,0.5)); }
+.iconVerifying{ color: #6ee7b7; filter: drop-shadow(0 0 10px rgba(110,231,183,0.5)); }
+.iconComplete { color: #6ee7b7; filter: drop-shadow(0 0 14px rgba(110,231,183,0.7)); }
 
 .cognitiveStreamContainer {
-  height: 76px;
+  height: 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .thoughtText {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 400;
-  color: rgba(255,255,255,0.82);
+  color: rgba(255,255,255,0.65);
   text-align: center;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  max-width: 680px;
-  text-shadow: 0 0 24px rgba(99,102,241,0.45);
+  letter-spacing: 0.16em;
+  max-width: 640px;
+  text-shadow: 0 0 20px rgba(99,102,241,0.3);
 }
 
 .streamDecoration {
   display: flex;
   gap: 2px;
-  height: 18px;
+  height: 16px;
   align-items: center;
 }
 
 .streamBit {
-  width: 3px;
-  height: 18px;
-  background: rgba(99,102,241,0.55);
+  width: 2px;
+  height: 16px;
+  background: rgba(99,102,241,0.4);
   border-radius: 2px;
   transform-origin: center;
-  animation: waveBar 1.1s ease-in-out infinite;
+  animation: waveBar 1.2s ease-in-out infinite;
 }
 
 .streamBitHigh {
-  background: rgba(239,68,68,0.65);
+  background: rgba(239,68,68,0.55);
 }
 
 .hudContainer {
@@ -275,30 +249,30 @@
   left: 0;
   right: 0;
   display: grid;
-  grid-template-columns: 260px 1fr 260px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(28px);
-  animation: hudSlideUp 0.6s ease forwards;
+  grid-template-columns: 240px 1fr 240px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(32px);
+  animation: hudSlideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
   z-index: 20;
 }
 
 .sourcePanel {
-  padding: 1.25rem 1.5rem;
-  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 1.2rem 1.4rem;
+  border-right: 1px solid rgba(255,255,255,0.05);
 }
 
 .progressPanel {
-  padding: 1.1rem 2rem;
+  padding: 1rem 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.55rem;
-  border-right: 1px solid rgba(255,255,255,0.06);
+  gap: 0.6rem;
+  border-right: 1px solid rgba(255,255,255,0.05);
 }
 
 .outputPanel {
-  padding: 1.25rem 1.5rem;
+  padding: 1.2rem 1.4rem;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -306,24 +280,24 @@
 
 .hudLabel {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
-  color: rgba(148,163,184,0.55);
+  font-size: 0.56rem;
+  color: rgba(148,163,184,0.45);
   text-transform: uppercase;
-  letter-spacing: 0.13em;
-  margin-bottom: 0.35rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.3rem;
   display: block;
 }
 
 .sourceTitle {
   font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.4rem;
 }
 
 .sourceBadge {
@@ -331,61 +305,61 @@
   align-items: center;
   gap: 0.4rem;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(148,163,184,0.6);
+  letter-spacing: 0.09em;
+  color: rgba(148,163,184,0.5);
 }
 
 .sourceDot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .sourceDotActive {
   background: #34d399;
-  box-shadow: 0 0 6px #34d399;
-  animation: dotBlink 2s ease-in-out infinite;
+  box-shadow: 0 0 5px #34d399;
+  animation: dotBlink 2.5s ease-in-out infinite;
 }
 
 .sourceDotInactive {
   background: #f59e0b;
-  box-shadow: 0 0 6px #f59e0b;
+  box-shadow: 0 0 5px #f59e0b;
 }
 
 .subjectTypeBadge {
-  margin-top: 0.6rem;
-  padding: 0.35rem 0.65rem;
+  margin-top: 0.55rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 6px;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .subjectTypeContent {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.08rem;
 }
 
 .subjectTypeIcon {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   flex-shrink: 0;
 }
 
 .subjectTypeLabel {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 600;
 }
 
 .subjectTypeDesc {
-  font-size: 0.56rem;
-  color: rgba(148,163,184,0.65);
+  font-size: 0.54rem;
+  color: rgba(148,163,184,0.6);
 }
 
 .progressHeader {
@@ -396,27 +370,28 @@
 
 .progressTitle {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
-  color: rgba(148,163,184,0.55);
+  font-size: 0.56rem;
+  color: rgba(148,163,184,0.45);
   text-transform: uppercase;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.14em;
 }
 
 .progressPercent {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255,255,255,0.92);
   letter-spacing: -0.02em;
 }
 
 .progressTrack {
   width: 100%;
-  height: 6px;
-  background: rgba(255,255,255,0.06);
+  height: 8px;
+  background: rgba(255,255,255,0.05);
   border-radius: 999px;
   position: relative;
   overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
 }
 
 .progressFill {
@@ -424,10 +399,10 @@
   top: 0;
   left: 0;
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6, #60a5fa);
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 50%, #6366f1 100%);
   border-radius: 999px;
-  transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: progressGlow 2.5s ease-in-out infinite;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(99,102,241,0.5), 0 0 24px rgba(99,102,241,0.25);
 }
 
 .progressFill::after {
@@ -435,19 +410,19 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 35%;
+  width: 30%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
-  animation: progressShimmer 2.2s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: progressShimmer 2.5s ease-in-out infinite;
   border-radius: 999px;
 }
 
 .progressActivity {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
-  color: rgba(99,102,241,0.8);
+  font-size: 0.56rem;
+  color: rgba(129,140,248,0.75);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -455,7 +430,7 @@
 
 .nodeCounter {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1.7rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: rgba(255,255,255,0.9);
   line-height: 1;
@@ -465,14 +440,14 @@
 .nodeCounterSub {
   font-size: 0.9rem;
   font-weight: 400;
-  color: rgba(148,163,184,0.55);
+  color: rgba(148,163,184,0.45);
   margin-left: 0.2rem;
 }
 
 .nodeLabel {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.56rem;
-  color: rgba(148,163,184,0.45);
+  font-size: 0.54rem;
+  color: rgba(148,163,184,0.38);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-top: 0.3rem;
@@ -480,21 +455,21 @@
 
 .latestConcept {
   position: absolute;
-  bottom: 88px;
+  bottom: 92px;
   right: 1.75rem;
-  background: rgba(99,102,241,0.1);
-  border: 1px solid rgba(99,102,241,0.28);
-  padding: 0.55rem 1.1rem;
+  background: rgba(79,70,229,0.1);
+  border: 1px solid rgba(99,102,241,0.22);
+  padding: 0.5rem 1.1rem;
   border-radius: 999px;
-  color: rgba(255,255,255,0.88);
+  color: rgba(255,255,255,0.85);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
   backdrop-filter: blur(16px);
-  box-shadow: 0 0 18px rgba(99,102,241,0.18), 0 4px 16px rgba(0,0,0,0.3);
-  animation: conceptReveal 0.35s ease forwards;
+  box-shadow: 0 0 16px rgba(99,102,241,0.15), 0 4px 16px rgba(0,0,0,0.3);
+  animation: conceptReveal 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
   max-width: 300px;
   white-space: nowrap;
   overflow: hidden;
@@ -502,15 +477,15 @@
 }
 
 .conceptEmoji {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
 }
 
 .confirmOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.72);
-  backdrop-filter: blur(16px);
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(20px);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -518,14 +493,14 @@
 }
 
 .confirmDialog {
-  background: rgba(12,12,20,0.96);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(10,10,18,0.97);
+  border: 1px solid rgba(255,255,255,0.08);
   padding: 2.5rem;
   border-radius: 16px;
   max-width: 420px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
 }
 
 .confirmDialog h3 {
@@ -536,10 +511,10 @@
 }
 
 .confirmDialog p {
-  color: rgba(148,163,184,0.8);
+  color: rgba(148,163,184,0.75);
   margin-bottom: 2rem;
-  font-size: 0.9rem;
-  line-height: 1.6;
+  font-size: 0.875rem;
+  line-height: 1.65;
 }
 
 .confirmActions {
@@ -555,15 +530,15 @@
   font-weight: 500;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
   color: #fff;
   border: none;
-  box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+  box-shadow: 0 4px 14px rgba(79,70,229,0.4);
 }
 
 .primaryButton:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+  box-shadow: 0 6px 20px rgba(79,70,229,0.55);
 }
 
 .secondaryButton {
@@ -574,12 +549,12 @@
   font-size: 0.875rem;
   transition: all 0.2s ease;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.65);
 }
 
 .secondaryButton:hover {
-  border-color: rgba(255,255,255,0.25);
+  border-color: rgba(255,255,255,0.22);
   color: rgba(255,255,255,0.9);
 }
 
@@ -590,20 +565,20 @@
   font-weight: 500;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  background: rgba(239,68,68,0.15);
-  border: 1px solid rgba(239,68,68,0.3);
-  color: #ef4444;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.28);
+  color: #f87171;
 }
 
 .cancelConfirmButton:hover {
-  background: rgba(239,68,68,0.25);
+  background: rgba(239,68,68,0.22);
 }
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.72);
-  backdrop-filter: blur(16px);
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(20px);
   z-index: 200;
   display: flex;
   align-items: center;
@@ -611,13 +586,13 @@
 }
 
 .modalContent {
-  background: rgba(12,12,20,0.96);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(10,10,18,0.97);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
   padding: 2rem;
   max-width: 440px;
   width: 90%;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7);
 }
 
 .modalHeader {
@@ -639,9 +614,9 @@
 }
 
 .modalBody p {
-  color: rgba(148,163,184,0.8);
+  color: rgba(148,163,184,0.75);
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.65;
   margin-bottom: 0.75rem;
 }
 
@@ -663,12 +638,12 @@
   font-weight: 500;
   transition: all 0.2s ease;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.65);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
 }
 
 .cancelButton:hover {
-  border-color: rgba(255,255,255,0.25);
+  border-color: rgba(255,255,255,0.22);
   color: rgba(255,255,255,0.9);
 }
 

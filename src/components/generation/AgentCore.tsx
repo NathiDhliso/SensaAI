@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Brain, Cpu, CheckCircle, Zap } from 'lucide-react';
 import styles from '@/pages/ContentGenerator.module.css';
 type AgentState = 'idle' | 'scanning' | 'thinking' | 'writing' | 'verifying' | 'complete';
@@ -8,60 +8,63 @@ interface AgentCoreProps {
     intensity?: number;
     glitch?: boolean;
 }
+const STATE_ICONS: Record<AgentState, React.ReactNode> = {
+    idle:      <Brain       />,
+    scanning:  <Cpu         />,
+    thinking:  <Zap         />,
+    writing:   <Sparkles    />,
+    verifying: <CheckCircle />,
+    complete:  <CheckCircle />,
+};
+const STATE_ICON_CLASS: Record<AgentState, string> = {
+    idle:      'iconIdle',
+    scanning:  'iconScanning',
+    thinking:  'iconThinking',
+    writing:   'iconWriting',
+    verifying: 'iconVerifying',
+    complete:  'iconComplete',
+};
 export const AgentCore: React.FC<AgentCoreProps> = ({ state, intensity = 0, glitch = false }) => {
-    const pulseDuration = Math.max(0.5, 2.4 - (intensity / 60));
-    const scaleRange: [number, number] = [1, 1 + (intensity / 160)];
+    const breatheDuration = Math.max(2.5, 5 - (intensity / 40));
+    const rippleDuration  = Math.max(1.8, 4 - (intensity / 35));
     const glitchVariants = {
-        normal: { x: 0, opacity: 1, filter: 'hue-rotate(0deg) saturate(1)' },
+        normal: { x: 0, filter: 'hue-rotate(0deg) saturate(1)' },
         glitch: {
-            x: [-3, 3, -1, 2, 0],
-            opacity: [1, 0.75, 1, 0.85, 1],
+            x: [-2, 2, -1, 1, 0],
             filter: [
                 'hue-rotate(0deg) saturate(1)',
-                'hue-rotate(90deg) saturate(2)',
-                'hue-rotate(-45deg) saturate(1.5)',
-                'hue-rotate(0deg) saturate(1)'
-            ]
-        }
+                'hue-rotate(80deg) saturate(2)',
+                'hue-rotate(-30deg) saturate(1.5)',
+                'hue-rotate(0deg) saturate(1)',
+            ],
+        },
     };
-    const outerRingDuration = Math.max(4, 22 - (intensity / 5));
-    const midRingDuration = Math.max(3, 14 - (intensity / 8));
-    const innerRingDuration = Math.max(1.5, 8 - (intensity / 12));
     return (
         <div className={styles.agentContainer}>
-            <div className={styles.orbitalRingOuter} style={{ animationDuration: `${outerRingDuration}s` }} />
-            <div className={styles.orbitalRingMid} style={{ animationDuration: `${midRingDuration}s` }} />
-            <div className={styles.orbitalRingInner} style={{ animationDuration: `${innerRingDuration}s` }} />
+            <div className={styles.orbGlow} style={{ animationDuration: `${breatheDuration}s` }} />
+            <div className={styles.ripple}  style={{ animationDuration: `${rippleDuration}s` }} />
+            <div className={styles.ripple2} style={{ animationDuration: `${rippleDuration}s` }} />
             <div className={styles.agentCoreWrapper}>
-                {(state !== 'idle') && (
-                    <>
-                        <div className={styles.agentPulse} style={{ animationDuration: `${pulseDuration}s` }} />
-                        <div className={styles.agentPulse2} style={{ animationDuration: `${pulseDuration}s` }} />
-                    </>
-                )}
                 <motion.div
                     className={styles.agentCore}
-                    animate={
-                        glitch ? 'glitch' :
-                        state === 'scanning' ? { rotate: [0, 360] } :
-                        state === 'thinking' ? { scale: scaleRange } :
-                        state === 'writing'  ? { scale: [1, 1.04, 1] } :
-                        state === 'complete' ? { scale: [1, 1.08, 1] } :
-                        { scale: 1 }
-                    }
+                    animate={glitch ? 'glitch' : { scale: 1 }}
                     variants={glitch ? glitchVariants : undefined}
-                    transition={{
-                        duration: glitch ? 0.15 : pulseDuration,
-                        repeat: Infinity,
-                        ease: glitch ? 'linear' : 'easeInOut'
-                    }}
+                    transition={{ duration: glitch ? 0.12 : breatheDuration, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{ animationDuration: `${breatheDuration}s` }}
                 >
-                    {state === 'idle'      && <Brain       className={`${styles.coreIcon} ${styles.iconIdle}`} />}
-                    {state === 'scanning'  && <Cpu         className={`${styles.coreIcon} ${styles.iconScanning}`} />}
-                    {state === 'thinking'  && <Zap         className={`${styles.coreIcon} ${styles.iconThinking}`} />}
-                    {state === 'writing'   && <Sparkles    className={`${styles.coreIcon} ${styles.iconWriting}`} />}
-                    {state === 'verifying' && <CheckCircle className={`${styles.coreIcon} ${styles.iconVerifying}`} />}
-                    {state === 'complete'  && <CheckCircle className={`${styles.coreIcon} ${styles.coreIconLarge} ${styles.iconComplete}`} />}
+                    <AnimatePresence mode="wait">
+                        <motion.span
+                            key={state}
+                            initial={{ opacity: 0, scale: 0.7, filter: 'blur(6px)' }}
+                            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                            exit={{ opacity: 0, scale: 0.7, filter: 'blur(6px)' }}
+                            transition={{ duration: 0.4, ease: 'easeOut' }}
+                            className={`${state === 'complete' ? styles.coreIconLarge : styles.coreIcon} ${styles[STATE_ICON_CLASS[state]]}`}
+                            style={{ display: 'flex' }}
+                        >
+                            {STATE_ICONS[state]}
+                        </motion.span>
+                    </AnimatePresence>
                 </motion.div>
             </div>
         </div>
