@@ -19,7 +19,7 @@ import styles from './SessionScoutPreview.module.css';
 // ═══════════════════════════════════════════════════════════════════════════
 interface SessionScoutPreviewProps {
     /** The full classification data from the generation engine */
-    classification: SubjectClassification;
+    classification?: SubjectClassification | null;
     /** Subject name for display */
     subjectName: string;
     /** Callback when the user is ready to proceed to the Concept Tree */
@@ -34,12 +34,14 @@ export function SessionScoutPreview({
     subjectName,
     onContinue,
 }: SessionScoutPreviewProps) {
-    const { deepStructure, lifecycleBlueprints, examDomains } = classification;
+    const deepStructure = classification?.deepStructure;
+    const lifecycleBlueprints = classification?.lifecycleBlueprints;
+    const examDomains = classification?.examDomains;
 
     // ─── Legacy Fallback ─────────────────────────────────────────────────
-    // Older generation payloads lack deepStructure / lifecycleBlueprints.
+    // Older generation payloads lack deepStructure / lifecycleBlueprints, or even classification.
     // Instead of silently skipping, show a clear informational screen.
-    if (!deepStructure || !lifecycleBlueprints) {
+    if (!classification || !deepStructure || !lifecycleBlueprints) {
         return (
             <div className={styles.container}>
                 <motion.div

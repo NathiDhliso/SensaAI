@@ -76,20 +76,17 @@ export default function VelocityLearning() {
         || currentSession?.macroWorkflow?.classification;
 
     useEffect(() => {
-        // If somehow we hit SCOUT without classification data, or PREVIEW, auto-advance
-        if (currentPhase === 'SCOUT' && !classification) {
-            updateSession({ scouted: true, previewed: true });
-        }
+        // If we hit PREVIEW, auto-advance
         if (currentPhase === 'PREVIEW') {
             updateSession({ previewed: true });
         }
-    }, [currentPhase, classification, updateSession]);
+    }, [currentPhase, updateSession]);
 
     const handleScoutComplete = useCallback(() => {
         updateSession({ scouted: true, previewed: true });
     }, [updateSession]);
 
-    if (currentPhase === 'SCOUT' && classification) {
+    if (currentPhase === 'SCOUT' && currentSession) {
         return (
             <div className={styles.container}>
                 <SessionScoutPreview
