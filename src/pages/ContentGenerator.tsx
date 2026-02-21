@@ -14,7 +14,6 @@
  * @module pages/ContentGenerator
  */
 import { useEffect, useRef } from 'react';
-import { COLORS } from '@/shared/constants/theme-colors';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, AlertCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -88,6 +87,7 @@ export default function ContentGenerator() {
         expectedConceptCount,
         pendingFile,
         progress,
+        currentActivity,
         subjectType,
         setError: _setError
     } = useGenerationStore();
@@ -261,18 +261,9 @@ export default function ContentGenerator() {
                         <span className={styles.sourceTitle}>
                             {pendingFile ? pendingFile.name : context ? 'Pasted Exam Objectives' : 'Standard Parametric Knowledge'}
                         </span>
-                        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', opacity: 0.6 }}>
-                            <div
-                                style={{
-                                    width: '8px',
-                                    height: '8px',
-                                    background: (pendingFile || context) ? COLORS.success : COLORS.warning,
-                                    borderRadius: '50%'
-                                }}
-                            />
-                            <span style={{ fontSize: '0.7rem' }}>
-                                {(pendingFile || context) ? 'OBJECTIVES_LOCKED' : 'UNGROUNDED_MODE'}
-                            </span>
+                        <div className={styles.sourceBadge}>
+                            <div className={`${styles.sourceDot} ${(pendingFile || context) ? styles.sourceDotActive : styles.sourceDotInactive}`} />
+                            {(pendingFile || context) ? 'OBJECTIVES_LOCKED' : 'UNGROUNDED_MODE'}
                         </div>
                         <AnimatePresence>
                             {subjectType && (
@@ -280,32 +271,18 @@ export default function ContentGenerator() {
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
                                     exit={{ opacity: 0, height: 0 }}
+                                    className={styles.subjectTypeBadge}
                                     style={{
-                                        marginTop: '0.75rem',
-                                        padding: '0.5rem 0.75rem',
-                                        background: `${SUBJECT_TYPE_META[subjectType].color}15`,
-                                        border: `1px solid ${SUBJECT_TYPE_META[subjectType].color}40`,
-                                        borderRadius: '4px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem'
+                                        background: `${SUBJECT_TYPE_META[subjectType].color}12`,
+                                        border: `1px solid ${SUBJECT_TYPE_META[subjectType].color}35`,
                                     }}
                                 >
-                                    <span style={{ fontSize: '1rem' }}>{SUBJECT_TYPE_META[subjectType].icon}</span>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                                        <span style={{
-                                            fontFamily: "'JetBrains Mono', monospace",
-                                            fontSize: '0.65rem',
-                                            color: SUBJECT_TYPE_META[subjectType].color,
-                                            textTransform: 'uppercase',
-                                            fontWeight: 600
-                                        }}>
+                                    <span className={styles.subjectTypeIcon}>{SUBJECT_TYPE_META[subjectType].icon}</span>
+                                    <div className={styles.subjectTypeContent}>
+                                        <span className={styles.subjectTypeLabel} style={{ color: SUBJECT_TYPE_META[subjectType].color }}>
                                             {SUBJECT_TYPE_META[subjectType].label}
                                         </span>
-                                        <span style={{
-                                            fontSize: '0.6rem',
-                                            color: 'var(--color-text-muted)'
-                                        }}>
+                                        <span className={styles.subjectTypeDesc}>
                                             {SUBJECT_TYPE_META[subjectType].description}
                                         </span>
                                     </div>
@@ -315,34 +292,27 @@ export default function ContentGenerator() {
                     </div>
                     {/* Center: System Progress */}
                     <div className={styles.progressPanel}>
-                        <div
-                            style={{
-                                width: '100%',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                marginBottom: '0.2rem'
-                            }}
-                        >
-                            <span className={styles.hudLabel}>Construct Integrity</span>
-                            <span className={styles.hudLabel}>{Math.round(displayProgress)}%</span>
+                        <div className={styles.progressHeader}>
+                            <span className={styles.progressTitle}>Construct Integrity</span>
+                            <span className={styles.progressPercent}>{Math.round(displayProgress)}%</span>
                         </div>
-                        <div className={styles.progressLine}>
-                            <div className={styles.progressFill} style={{ width: `${displayProgress}%` }}></div>
+                        <div className={styles.progressTrack}>
+                            <div className={styles.progressFill} style={{ width: `${displayProgress}%` }} />
                         </div>
+                        <span className={styles.progressActivity}>{currentActivity}</span>
                     </div>
                     {/* Right: Output Stats */}
                     <div className={styles.outputPanel}>
                         <span className={styles.hudLabel}>Nodes Synthesized</span>
                         <div className={styles.nodeCounter}>
-                            {streamedConcepts.length}{' '}
-                            <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>
-                                /{' '}
-                                {expectedConceptCount || (
+                            {streamedConcepts.length}
+                            <span className={styles.nodeCounterSub}>
+                                {' '}/ {expectedConceptCount || (
                                     <motion.span
                                         animate={{ opacity: [0.4, 1, 0.4] }}
                                         transition={{ duration: 1.5, repeat: Infinity }}
                                     >
-                                        CALCULATING...
+                                        —
                                     </motion.span>
                                 )}
                             </span>
@@ -375,9 +345,9 @@ export default function ContentGenerator() {
             {/* Error Overlay */}
             {error && (
                 <div className={styles.confirmOverlay}>
-                    <div className={styles.confirmDialog} style={{ border: `1px solid ${COLORS.error}` }}>
-                        <AlertCircle size={32} style={{ color: COLORS.error, marginBottom: '0.5rem' }} />
-                        <h3 style={{ color: COLORS.error }}>Generation Failed</h3>
+                    <div className={styles.confirmDialog} style={{ borderColor: 'var(--color-error)' }}>
+                        <AlertCircle size={32} style={{ color: 'var(--color-error)', marginBottom: '0.5rem' }} />
+                        <h3 style={{ color: 'var(--color-error)' }}>Generation Failed</h3>
                         <p>{error}</p>
                         <div className={styles.confirmActions}>
                             <button onClick={() => navigate('/')} className={styles.secondaryButton}>

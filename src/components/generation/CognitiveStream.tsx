@@ -121,39 +121,30 @@ export const CognitiveStream: React.FC<CognitiveStreamProps> = ({ pass, intensit
     const intervalId = setInterval(pickNextThought, intervalTime);
     return () => clearInterval(intervalId);
   }, [pass, intensity, isGenerating, isInitializing, subjectType]);
+  const BAR_COUNT = 36;
+  const isHigh = intensity > 80;
   return (
     <div className={styles.cognitiveStreamContainer}>
       <AnimatePresence mode="wait">
         <motion.div
           key={thought}
-          initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
+          initial={{ opacity: 0, y: 8, filter: 'blur(8px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
-          transition={{ duration: 0.4 }}
+          exit={{ opacity: 0, y: -8, filter: 'blur(8px)' }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
           className={styles.thoughtText}
         >
           {thought}
         </motion.div>
       </AnimatePresence>
       <div className={styles.streamDecoration}>
-        {Array.from({ length: 48 }).map((_, i) => (
-          <motion.div
+        {Array.from({ length: BAR_COUNT }).map((_, i) => (
+          <div
             key={i}
-            className={`${styles.streamBit} ${intensity > 80 ? styles.streamBitHigh : ''}`}
-            animate={{
-              height: [2, 12, 2],
-              opacity: [0.3, 1, 0.3]
-            }}
-            transition={{
-              duration: 0.8,
-              repeat: Infinity,
-              delay: i * 0.05,
-              ease: "easeInOut"
-            }}
+            className={`${styles.streamBit} ${isHigh ? styles.streamBitHigh : ''}`}
             style={{
-              height: '2px',
-              width: '4px',
-              borderRadius: '2px'
+              animationDelay: `${(i * (1.1 / BAR_COUNT)).toFixed(3)}s`,
+              animationDuration: `${0.8 + Math.sin(i * 0.4) * 0.3}s`,
             }}
           />
         ))}
