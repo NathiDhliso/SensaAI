@@ -68,7 +68,7 @@ class BedrockService:
                 ),
             )
         self.model_id = os.environ.get(
-            "BEDROCK_MODEL_ID", "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+            "BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
         )
     def classify_subject(self, subject: str, context: str = "") -> Optional[Dict[str, Any]]:
         from shared.system_prompt import get_classification_prompt
