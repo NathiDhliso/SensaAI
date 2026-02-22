@@ -1,0 +1,329 @@
+/* Generation Health Monitor Styles */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--foreground, #ffffff);
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  color: var(--muted-foreground, #888);
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: var(--muted-foreground, #888);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border, #222);
+  border-top-color: var(--primary, #3b82f6);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Overview Section */
+.overviewSection {
+  margin-bottom: 2rem;
+}
+
+.overviewCard {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--card-background, #111);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.overviewText {
+  flex: 1;
+}
+
+.overviewTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground, #fff);
+  margin: 0 0 0.25rem;
+}
+
+.overviewAlerts {
+  color: var(--muted-foreground, #888);
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.subjectScores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.subjectScoreItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--card-background, #111);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.subjectName {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--foreground, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subjectStatus {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Score Ring */
+.scoreRing {
+  flex-shrink: 0;
+}
+
+/* Reports Section */
+.reportsSection {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground, #fff);
+  margin: 0 0 1rem;
+}
+
+.reportsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reportCard {
+  background: var(--card-background, #111);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.reportHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.reportHeader:hover {
+  background: var(--accent, #1a1a1a);
+}
+
+.reportInfo {
+  flex: 1;
+}
+
+.reportSubject {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground, #fff);
+  margin: 0 0 0.25rem;
+}
+
+.reportTime {
+  font-size: 0.75rem;
+  color: var(--muted-foreground, #888);
+}
+
+.reportScore {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statusLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.expandIcon {
+  color: var(--muted-foreground, #888);
+  font-size: 0.75rem;
+}
+
+/* Report Details */
+.reportDetails {
+  padding: 0 1.25rem 1.25rem;
+  border-top: 1px solid var(--border, #222);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.metricTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--background, #0a0a0a);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.metricTileLabel {
+  font-size: 0.7rem;
+  color: var(--muted-foreground, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metricTileValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.metricTileBaseline {
+  font-size: 0.7rem;
+  color: var(--muted-foreground, #888);
+}
+
+/* Diagnostics */
+.diagnostics {
+  margin-top: 1rem;
+}
+
+.diagnosticsTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground, #fff);
+  margin: 0 0 0.75rem;
+}
+
+.diagnosticItem {
+  background: var(--background, #0a0a0a);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.diagnosticItem.severityError {
+  border-left: 3px solid var(--color-error, #ef4444);
+}
+
+.diagnosticItem.severityWarning {
+  border-left: 3px solid var(--color-warning, #f59e0b);
+}
+
+.diagnosticItem.severityInfo {
+  border-left: 3px solid var(--primary, #3b82f6);
+}
+
+.diagnosticHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.diagnosticBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--primary, #3b82f6);
+}
+
+.diagnosticBadge.severityError {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--color-error, #ef4444);
+}
+
+.diagnosticBadge.severityWarning {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-warning, #f59e0b);
+}
+
+.diagnosticSeverity {
+  font-size: 0.7rem;
+  color: var(--muted-foreground, #888);
+  text-transform: uppercase;
+}
+
+.diagnosticMessage {
+  font-size: 0.8125rem;
+  color: var(--foreground, #fff);
+  margin: 0 0 0.5rem;
+  line-height: 1.4;
+}
+
+.diagnosticAction {
+  font-size: 0.75rem;
+  color: var(--muted-foreground, #888);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--muted-foreground, #888);
+  padding: 2rem;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .overviewCard {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

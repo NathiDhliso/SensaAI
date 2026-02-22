@@ -1,0 +1,114 @@
+/* Smart Regeneration Recommender Styles */
+
+.container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+.header { margin-bottom: 1.5rem; }
+.title { font-size: 1.75rem; font-weight: 700; color: var(--foreground, #fff); margin: 0 0 0.5rem; }
+.subtitle { color: var(--muted-foreground, #888); margin: 0; font-size: 0.875rem; }
+
+.loading { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 3rem; color: var(--muted-foreground, #888); }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border, #222); border-top-color: var(--primary, #3b82f6); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.controls { margin-bottom: 1.5rem; }
+.subjectInput { width: 100%; max-width: 400px; padding: 0.625rem 1rem; background: var(--card-background, #111); border: 1px solid var(--border, #222); border-radius: 0.5rem; color: var(--foreground, #fff); font-size: 0.875rem; }
+.subjectInput:focus { outline: none; border-color: var(--primary, #3b82f6); }
+
+/* Job Status Banner */
+.jobStatusBanner { background: var(--card-background, #111); border: 1px solid var(--primary, #3b82f6); border-radius: 0.75rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.jobStatusHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.jobStatusLabel { font-size: 0.875rem; font-weight: 600; color: var(--primary, #3b82f6); }
+.jobStatusState { font-size: 0.75rem; color: var(--muted-foreground, #888); text-transform: uppercase; }
+.progressBar { height: 6px; background: var(--border, #222); border-radius: 3px; overflow: hidden; }
+.progressFill { height: 100%; background: var(--primary, #3b82f6); border-radius: 3px; transition: width 0.3s; }
+.jobStatusMessage { font-size: 0.75rem; color: var(--muted-foreground, #888); margin: 0.5rem 0 0; }
+
+/* Main Recommendation */
+.mainRec { background: var(--card-background, #111); border: 1px solid var(--border, #222); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.5rem; }
+.mainRecHeader { display: flex; align-items: flex-start; gap: 1rem; }
+.mainRecIcon { font-size: 2rem; flex-shrink: 0; }
+.mainRecTitle { font-size: 1.125rem; font-weight: 600; color: var(--foreground, #fff); margin: 0 0 0.25rem; }
+.mainRecReasoning { font-size: 0.8125rem; color: var(--muted-foreground, #888); margin: 0; line-height: 1.5; }
+.mainRecConfidence { font-size: 0.75rem; color: var(--primary, #3b82f6); font-weight: 600; white-space: nowrap; margin-left: auto; }
+
+/* Strategy Cards */
+.strategiesSection { margin-bottom: 2rem; }
+.sectionTitle { font-size: 1.125rem; font-weight: 600; color: var(--foreground, #fff); margin: 0 0 1rem; }
+.strategiesGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+
+.strategyCard {
+  background: var(--card-background, #111);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.strategyCard.recommended { border-color: var(--primary, #3b82f6); }
+.recommendedBadge { position: absolute; top: -0.5rem; right: 1rem; background: var(--primary, #3b82f6); color: #fff; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 0.25rem; }
+
+.strategyHeader { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.strategyIcon { font-size: 1.5rem; }
+.strategyName { font-size: 1rem; font-weight: 600; margin: 0; }
+.strategyDesc { font-size: 0.8125rem; color: var(--muted-foreground, #888); margin: 0 0 1rem; line-height: 1.4; }
+
+.estimatesGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+.estimate { display: flex; flex-direction: column; align-items: center; gap: 0.125rem; background: var(--background, #0a0a0a); border-radius: 0.375rem; padding: 0.5rem; }
+.estimateLabel { font-size: 0.625rem; text-transform: uppercase; color: var(--muted-foreground, #888); }
+.estimateValue { font-size: 0.875rem; font-weight: 600; color: var(--foreground, #fff); }
+.riskLow { color: var(--color-success, #22c55e) !important; }
+.riskMedium { color: var(--color-warning, #f59e0b) !important; }
+.riskHigh { color: var(--color-error, #ef4444) !important; }
+
+.confidenceBar { margin-bottom: 1rem; }
+.confidenceTrack { height: 4px; background: var(--border, #222); border-radius: 2px; overflow: hidden; margin-bottom: 0.25rem; }
+.confidenceFill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.confidenceLabel { font-size: 0.7rem; color: var(--muted-foreground, #888); }
+
+.prosConsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+.prosTitle { font-size: 0.75rem; font-weight: 600; color: var(--color-success, #22c55e); margin: 0 0 0.375rem; }
+.consTitle { font-size: 0.75rem; font-weight: 600; color: var(--color-error, #ef4444); margin: 0 0 0.375rem; }
+.prosList, .consList { margin: 0; padding: 0 0 0 1rem; font-size: 0.75rem; line-height: 1.6; }
+.proItem { color: var(--foreground, #fff); }
+.conItem { color: var(--muted-foreground, #888); }
+
+.strategyFooter { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border, #222); padding-top: 0.75rem; }
+.affectedCount { font-size: 0.75rem; color: var(--muted-foreground, #888); }
+.executeButton { padding: 0.5rem 1rem; background: var(--accent, #1a1a1a); border: 1px solid var(--border, #222); border-radius: 0.375rem; color: var(--foreground, #fff); font-size: 0.75rem; cursor: pointer; transition: background 0.15s; }
+.executeButton:hover { background: var(--border, #222); }
+.executeButton:disabled { opacity: 0.5; cursor: not-allowed; }
+.executePrimary { background: var(--primary, #3b82f6); border-color: var(--primary, #3b82f6); }
+.executePrimary:hover { background: #2563eb; }
+
+/* Domain Analysis */
+.domainSection { margin-bottom: 2rem; }
+.domainList { display: flex; flex-direction: column; gap: 0.5rem; }
+.domainRow { display: flex; align-items: center; gap: 1rem; background: var(--card-background, #111); border: 1px solid var(--border, #222); border-radius: 0.5rem; padding: 0.75rem 1rem; }
+.domainInfo { flex: 1; min-width: 0; }
+.domainName { font-size: 0.875rem; font-weight: 600; color: var(--foreground, #fff); display: block; }
+.domainConcepts { font-size: 0.7rem; color: var(--muted-foreground, #888); }
+.domainMetrics { display: flex; gap: 1.5rem; }
+.domainMetric { display: flex; align-items: center; gap: 0.375rem; }
+.domainMetricLabel { font-size: 0.65rem; text-transform: uppercase; color: var(--muted-foreground, #888); min-width: 50px; }
+.miniBar { width: 60px; height: 4px; background: var(--border, #222); border-radius: 2px; overflow: hidden; }
+.miniBarFill { height: 100%; border-radius: 2px; }
+.domainMetricValue { font-size: 0.7rem; font-weight: 600; color: var(--foreground, #fff); min-width: 28px; }
+.domainStatus { font-size: 0.7rem; font-weight: 600; padding: 0.125rem 0.5rem; border-radius: 0.25rem; white-space: nowrap; }
+.needsRegen { background: rgba(239, 68, 68, 0.2); color: var(--color-error, #ef4444); }
+.okStatus { background: rgba(34, 197, 94, 0.2); color: var(--color-success, #22c55e); }
+
+/* Impact Section */
+.impactSection { margin-bottom: 2rem; }
+.impactGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+.impactItem { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; background: var(--card-background, #111); border: 1px solid var(--border, #222); border-radius: 0.5rem; padding: 1rem; text-align: center; }
+.impactValue { font-size: 1.5rem; font-weight: 700; color: var(--foreground, #fff); }
+.impactLabel { font-size: 0.7rem; text-transform: uppercase; color: var(--muted-foreground, #888); }
+
+.emptyState { text-align: center; color: var(--muted-foreground, #888); padding: 2rem; font-size: 0.875rem; }
+
+@media (max-width: 768px) {
+  .container { padding: 1rem; }
+  .strategiesGrid { grid-template-columns: 1fr; }
+  .estimatesGrid { grid-template-columns: repeat(2, 1fr); }
+  .domainRow { flex-direction: column; align-items: flex-start; }
+  .impactGrid { grid-template-columns: repeat(2, 1fr); }
+}

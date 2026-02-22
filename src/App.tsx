@@ -36,6 +36,16 @@ const CuratorLibraryView = lazy(() => import('./features/clm/pages/CuratorLibrar
 const CuratorPreview = lazy(() => import('./features/clm/pages/CuratorPreview'));
 const ContentEditor = lazy(() => import('./features/clm/pages/ContentEditor'));
 
+// CLM Enhancement Components
+const GenerationHealthMonitor = lazy(() => import('./features/clm/components/GenerationHealthMonitor').then(m => ({ default: m.GenerationHealthMonitor })));
+const ComparativeAnalysisAuditor = lazy(() => import('./features/clm/components/ComparativeAnalysisAuditor').then(m => ({ default: m.ComparativeAnalysisAuditor })));
+const SmartRegenerationRecommender = lazy(() => import('./features/clm/components/SmartRegenerationRecommender').then(m => ({ default: m.SmartRegenerationRecommender })));
+const LearnerFeedbackPanel = lazy(() => import('./features/clm/components/LearnerFeedbackPanel').then(m => ({ default: m.LearnerFeedbackPanel })));
+const ABTestingDashboard = lazy(() => import('./features/clm/components/ABTestingDashboard').then(m => ({ default: m.ABTestingDashboard })));
+const CostOptimizationAnalyzer = lazy(() => import('./features/clm/components/CostOptimizationAnalyzer').then(m => ({ default: m.CostOptimizationAnalyzer })));
+const DependencyImpactAnalyzer = lazy(() => import('./features/clm/components/DependencyImpactAnalyzer').then(m => ({ default: m.DependencyImpactAnalyzer })));
+const AIJsonGuardian = lazy(() => import('./features/clm/components/AIJsonGuardian').then(m => ({ default: m.AIJsonGuardian })));
+
 function useMigration() {
     const hasRun = useRef(false);
     const studySession = useLearningStore(state => state.studySession);
@@ -137,6 +147,15 @@ function App() {
                             <Route path="edit/:subjectId" element={<ContentEditor />} />
                             <Route path="generate" element={<GenerateLanding />} />
                             <Route path="generate/:subject" element={<ContentGenerator />} />
+                            {/* CLM Enhancement Routes */}
+                            <Route path="health" element={<GenerationHealthMonitor />} />
+                            <Route path="compare" element={<ComparativeAnalysisAuditor />} />
+                            <Route path="regeneration" element={<SmartRegenerationRecommender />} />
+                            <Route path="feedback" element={<LearnerFeedbackPanel />} />
+                            <Route path="ab-tests" element={<ABTestingDashboard />} />
+                            <Route path="costs" element={<CostOptimizationAnalyzer />} />
+                            <Route path="dependencies" element={<DependencyImpactAnalyzer />} />
+                            <Route path="guardian" element={<AIJsonGuardian />} />
                         </Route>
 
                         {/* ═══════════════════════════════════════════════════════════════

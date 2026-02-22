@@ -1,0 +1,585 @@
+/* AIJsonGuardian.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground, #fff);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--muted, #888);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border, #222);
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted, #888);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--foreground, #fff);
+}
+
+.tabActive {
+  color: var(--primary, #3b82f6);
+  border-bottom-color: var(--primary, #3b82f6);
+}
+
+/* Validate Panel */
+.validatePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inputRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.editorRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.inputLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.textInput {
+  padding: 0.5rem 0.75rem;
+  background: var(--card-background, #111);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.5rem;
+  color: var(--foreground, #fff);
+  font-size: 0.875rem;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--primary, #3b82f6);
+}
+
+.jsonEditor {
+  padding: 0.75rem;
+  background: var(--card-background, #111);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.5rem;
+  color: var(--foreground, #fff);
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  resize: vertical;
+  tab-size: 2;
+}
+
+.jsonEditor:focus {
+  outline: none;
+  border-color: var(--primary, #3b82f6);
+}
+
+.jsonError {
+  border-color: var(--color-error, #ef4444) !important;
+}
+
+.jsonParseError {
+  font-size: 0.75rem;
+  color: var(--color-error, #ef4444);
+}
+
+.validateButton {
+  align-self: flex-start;
+  padding: 0.5rem 1.25rem;
+  background: var(--primary, #3b82f6);
+  border: none;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.validateButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.validateButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Results */
+.resultsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border, #222);
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.resultTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground, #fff);
+  margin: 0;
+}
+
+.riskBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid;
+  border-radius: 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+/* Verdict */
+.verdictCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--card-background, #111);
+  border: 1px solid;
+  border-radius: 0.5rem;
+}
+
+.verdictStatus {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.verdictExplanation {
+  font-size: 0.875rem;
+  color: var(--muted, #888);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.verdictMeta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--muted, #888);
+}
+
+/* Issues */
+.issuesSection,
+.fixesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground, #fff);
+  margin: 0;
+}
+
+.issueCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: var(--card-background, #111);
+  border-left: 3px solid;
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.issueHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.issuePath {
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  color: var(--foreground, #fff);
+}
+
+.issueSeverity {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.issueMessage {
+  font-size: 0.8125rem;
+  color: var(--muted, #888);
+  margin: 0;
+}
+
+.issueSuggestion {
+  font-size: 0.75rem;
+  color: var(--primary, #3b82f6);
+  margin: 0;
+}
+
+.issueSuggestion span {
+  font-weight: 600;
+}
+
+.issueType {
+  font-size: 0.6875rem;
+  color: var(--muted, #888);
+  text-transform: capitalize;
+  padding: 0.125rem 0.375rem;
+  background: var(--background, #0a0a0a);
+  border-radius: 0.25rem;
+  align-self: flex-start;
+}
+
+.suggestionMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.suggestionReasoning {
+  color: var(--muted, #888);
+}
+
+.suggestionConfidence {
+  color: var(--primary, #3b82f6);
+}
+
+.validationRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: var(--card-background, #111);
+  border-radius: 0.375rem;
+}
+
+.validationIcon {
+  font-size: 0.875rem;
+  font-weight: 700;
+  width: 1.25rem;
+  text-align: center;
+}
+
+.validationRule {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground, #fff);
+  min-width: 120px;
+}
+
+.validationMessage {
+  font-size: 0.75rem;
+  color: var(--muted, #888);
+  flex: 1;
+}
+
+.autoFixTag {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--primary, #3b82f6);
+  text-transform: uppercase;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--primary, #3b82f6);
+  border-radius: 0.25rem;
+}
+
+.configValue {
+  font-size: 0.8125rem;
+  color: var(--muted, #888);
+}
+
+/* Diff cards */
+.diffCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--card-background, #111);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.5rem;
+}
+
+.diffHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.diffPath {
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  color: var(--foreground, #fff);
+}
+
+.diffExplanation {
+  font-size: 0.75rem;
+  color: var(--muted, #888);
+}
+
+.diffBody {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.diffBefore,
+.diffAfter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.diffLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.diffBefore .diffLabel {
+  color: var(--color-error, #ef4444);
+}
+
+.diffAfter .diffLabel {
+  color: var(--color-success, #22c55e);
+}
+
+.diffPre {
+  margin: 0;
+  padding: 0.5rem;
+  background: var(--background, #0a0a0a);
+  border-radius: 0.25rem;
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  color: var(--foreground, #fff);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+/* Actions */
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.overrideButton {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--color-warning, #f59e0b);
+  border-radius: 0.5rem;
+  color: var(--color-warning, #f59e0b);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.overrideButton:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.overrideButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.overrideWarning {
+  font-size: 0.75rem;
+  color: var(--muted, #888);
+  font-style: italic;
+}
+
+/* History */
+.historyPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.historyHeader {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px 100px;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border, #222);
+}
+
+.historyCol {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px 100px;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border, #222);
+}
+
+.historyRow:last-child {
+  border-bottom: none;
+}
+
+.historyConceptName {
+  font-size: 0.8125rem;
+  color: var(--foreground, #fff);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyEditor {
+  font-size: 0.75rem;
+  color: var(--muted, #888);
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+}
+
+.historyStatus {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.historyDate {
+  font-size: 0.75rem;
+  color: var(--muted, #888);
+}
+
+/* Config */
+.configPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--card-background, #111);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.5rem;
+}
+
+.configRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border, #222);
+}
+
+.configRow:last-child {
+  border-bottom: none;
+}
+
+.configLabel {
+  font-size: 0.875rem;
+  color: var(--foreground, #fff);
+}
+
+.toggle {
+  padding: 0.25rem 0.75rem;
+  background: var(--background, #0a0a0a);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.375rem;
+  color: var(--muted, #888);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 50px;
+}
+
+.toggleOn {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--primary, #3b82f6);
+  color: var(--primary, #3b82f6);
+}
+
+.configSelect {
+  padding: 0.375rem 0.5rem;
+  background: var(--background, #0a0a0a);
+  border: 1px solid var(--border, #222);
+  border-radius: 0.375rem;
+  color: var(--foreground, #fff);
+  font-size: 0.8125rem;
+}
+
+/* Empty */
+.emptyState {
+  text-align: center;
+  color: var(--muted, #888);
+  padding: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .diffBody {
+    flex-direction: column;
+  }
+
+  .inputRow,
+  .editorRow {
+    grid-template-columns: 1fr;
+  }
+
+  .historyHeader,
+  .historyRow {
+    grid-template-columns: 1fr 80px 80px 80px;
+  }
+}
