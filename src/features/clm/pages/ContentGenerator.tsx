@@ -93,7 +93,7 @@ export default function ContentGenerator() {
     const displayProgress = (() => {
         if (!isGenerating && passes[4] === 'complete') return 100;
         const passFloors: Record<number, number> = { 1: 3, 2: 15, 3: 60, 4: 90 };
-        const passMax: Record<number, number>    = { 1: 14, 2: 59, 3: 89, 4: 99 };
+        const passMax: Record<number, number> = { 1: 14, 2: 59, 3: 89, 4: 99 };
         for (let p = 4; p >= 1; p--) {
             if (passes[p] === 'complete') {
                 return passMax[p];
@@ -133,7 +133,8 @@ export default function ContentGenerator() {
             startGenerationProcess(decodedSubject, context, trunks);
         },
         onExistingFound: (resultId) => {
-            navigate(`/study/${resultId}`);
+            const isCuratorMode = window.location.pathname.startsWith('/curator');
+            navigate(isCuratorMode ? `/curator/preview/${resultId}` : `/study/${resultId}`);
         }
     });
     // ============================================================================
@@ -148,7 +149,8 @@ export default function ContentGenerator() {
             return;
         }
         if (!isGenerationAllowed()) {
-            navigate('/');
+            const isCuratorMode = window.location.pathname.startsWith('/curator');
+            navigate(isCuratorMode ? '/curator' : '/');
             return;
         }
         // If generation is already in progress, don't show dialogs - just display progress
@@ -228,7 +230,7 @@ export default function ContentGenerator() {
             {/* Cinematic Cockpit */}
             <div className={styles.cockpit}>
                 {/* Top Left: Navigate Home (generation continues in background) */}
-                <button onClick={() => navigate('/')} className={styles.abortButton}>
+                <button onClick={() => navigate(window.location.pathname.startsWith('/curator') ? '/curator' : '/')} className={styles.abortButton}>
                     <ArrowLeft size={14} /> Hide Generation
                 </button>
                 {/* Center Stage: The Entity */}
@@ -344,7 +346,7 @@ export default function ContentGenerator() {
                         <h3 style={{ color: 'var(--color-error)' }}>Generation Failed</h3>
                         <p>{error}</p>
                         <div className={styles.confirmActions}>
-                            <button onClick={() => navigate('/')} className={styles.secondaryButton}>
+                            <button onClick={() => navigate(window.location.pathname.startsWith('/curator') ? '/curator' : '/')} className={styles.secondaryButton}>
                                 Back to Home
                             </button>
                             <button

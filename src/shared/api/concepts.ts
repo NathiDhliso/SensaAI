@@ -90,6 +90,20 @@ export interface LatestConceptsResponse {
   totalCount: number;
   status: 'generating' | 'completed' | 'failed' | 'unknown';
 }
+
+export interface ActiveJobResponse {
+  activeJob: {
+    jobId: string;
+    sessionId: string;
+    subject: string;
+    status: 'in_progress' | 'completed' | 'failed';
+    conceptCount: number;
+    latestConcept?: string;
+    createdAt: number;
+    updatedAt?: number;
+    error?: string;
+  } | null;
+}
 export const conceptsApi = {
   /**
   * Query concepts with pagination and optional tier filtering
@@ -178,6 +192,15 @@ export const conceptsApi = {
     const query = userId ? `?userId=${encodeURIComponent(userId)}` : '';
     const response = await apiClient.get<JobStatus>(`/concepts/jobs/${jobId}${query}`);
     return response;
+  },
+
+  /**
+  * Get the most recent active (in_progress) job for the authenticated user.
+  * Returns null if no active job exists. The backend auto-marks stale jobs
+  * as failed, so the frontend never polls forever.
+  */
+  async getActiveJob(): Promise<ActiveJobResponse> {
+    return apiClient.get<ActiveJobResponse>('/concepts/jobs/active');
   },
   /**
   * Get all concepts for a tier (convenience method)

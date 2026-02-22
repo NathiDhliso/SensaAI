@@ -45,10 +45,79 @@ function parseCursor(cursor?: string): Record<string, unknown> | undefined {
         return undefined;
     }
 }
-// Query concepts with pagination
+// Query concepts with pagination (also dispatches action-based queries)
 conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.sub;
+        const action = req.query.action as string | undefined;
+
+        // --- Action dispatch: get_job_progress ---
+        if (action === 'get_job_progress') {
+            const jobId = req.query.jobId as string;
+            if (!userId || !jobId) {
+                res.status(400).json({ error: 'userId and jobId are required' });
+                return;
+            }
+            const jobResult = await docClient.send(new GetCommand({
+                TableName: JOBS_TABLE,
+                Key: { jobId, userId }
+            }));
+            const item = jobResult.Item;
+            if (!item) {
+                res.status(404).json({ error: 'Job not found' });
+                return;
+            }
+            res.json({
+                jobId,
+                sessionId: item.sessionId,
+                subject: item.subject,
+                status: item.status || 'unknown',
+                conceptCount: Number(item.conceptCount || 0),
+                latestConcept: item.latestConcept || '',
+                updatedAt: Number(item.updatedAt || 0),
+                error: item.error,
+            });
+            return;
+        }
+
+        // --- Action dispatch: get_latest_concepts ---
+        if (action === 'get_latest_concepts') {
+            const sessionId = req.query.sessionId as string;
+            const afterOrder = parseInt(req.query.afterOrder as string) || 0;
+            const latestLimit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+            if (!userId || !sessionId) {
+                res.status(400).json({ error: 'userId and sessionId are required' });
+                return;
+            }
+            const pk = `USER#${userId}#SESSION#${sessionId}`;
+            const latestResult = await docClient.send(new QueryCommand({
+                TableName: CONCEPTS_TABLE,
+                KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+                FilterExpression: 'displayOrder > :afterOrder',
+                ExpressionAttributeValues: {
+                    ':pk': pk,
+                    ':skPrefix': 'TIER#',
+                    ':afterOrder': afterOrder
+                },
+                Limit: latestLimit,
+                ScanIndexForward: true
+            }));
+            const latestConcepts = (latestResult.Items || []).map(item => ({
+                id: item.conceptId,
+                name: item.name,
+                tier: remapTier(item.tier),
+                description: item.description,
+                displayOrder: item.displayOrder || 0,
+            }));
+            res.json({
+                concepts: latestConcepts,
+                count: latestConcepts.length,
+                hasMore: !!latestResult.LastEvaluatedKey,
+            });
+            return;
+        }
+
+        // --- Default: query concepts with pagination ---
         const sessionId = req.query.sessionId as string;
         const tier = req.query.tier as string | undefined;
         const limit = Math.min(parseInt(req.query.limit as string) || 25, 100);
@@ -273,6 +342,92 @@ conceptsRouter.get('/jobs', async (req: AuthenticatedRequest, res: Response) => 
         res.status(500).json({ error: 'Failed to list jobs' });
     }
 });
+
+// Maximum time a job can stay in_progress before being considered stale.
+// Lambda has a 15-min hard timeout; add buffer for cold starts + DynamoDB writes.
+const MAX_JOB_AGE_SECONDS = 20 * 60; // 20 minutes
+
+// Get the most recent active (in_progress) job for this user.
+// Used by the frontend recovery hook to resume polling after browser refresh/close.
+// Also auto-marks stale jobs as failed so the frontend doesn't poll forever.
+conceptsRouter.get('/jobs/active', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.sub;
+        if (!userId) {
+            res.status(401).json({ error: 'Authentication required' });
+            return;
+        }
+        // Scan for in_progress jobs belonging to this user
+        const result = await docClient.send(new ScanCommand({
+            TableName: JOBS_TABLE,
+            FilterExpression: 'userId = :userId AND #s = :status',
+            ExpressionAttributeNames: { '#s': 'status' },
+            ExpressionAttributeValues: {
+                ':userId': userId,
+                ':status': 'in_progress'
+            }
+        }));
+        const activeJobs = result.Items || [];
+
+        if (activeJobs.length === 0) {
+            res.json({ activeJob: null });
+            return;
+        }
+
+        // Sort by createdAt desc — most recent first
+        activeJobs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        const newest = activeJobs[0];
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        const jobAgeSeconds = nowSeconds - (newest.createdAt || nowSeconds);
+
+        // If the job has been in_progress longer than the Lambda timeout,
+        // it almost certainly crashed without updating DynamoDB. Mark it failed.
+        if (jobAgeSeconds > MAX_JOB_AGE_SECONDS) {
+            logger.warn('[Backend /jobs/active] Marking stale job as failed:', {
+                jobId: newest.jobId,
+                ageMinutes: Math.floor(jobAgeSeconds / 60)
+            });
+            await docClient.send(new PutCommand({
+                TableName: JOBS_TABLE,
+                Item: {
+                    ...newest,
+                    status: 'failed',
+                    error: 'Job timed out — the generation process did not complete within the expected window. Please try again.',
+                    updatedAt: nowSeconds
+                }
+            }));
+            res.json({
+                activeJob: {
+                    jobId: newest.jobId,
+                    sessionId: newest.sessionId,
+                    subject: newest.subject,
+                    status: 'failed',
+                    error: 'Job timed out — the generation process did not complete within the expected window. Please try again.',
+                    conceptCount: Number(newest.conceptCount || 0),
+                    createdAt: newest.createdAt
+                }
+            });
+            return;
+        }
+
+        res.json({
+            activeJob: {
+                jobId: newest.jobId,
+                sessionId: newest.sessionId,
+                subject: newest.subject,
+                status: newest.status,
+                conceptCount: Number(newest.conceptCount || 0),
+                latestConcept: newest.latestConcept || '',
+                createdAt: newest.createdAt,
+                updatedAt: newest.updatedAt
+            }
+        });
+    } catch (error) {
+        logger.error('[Backend /jobs/active] ERROR:', error);
+        res.status(500).json({ error: 'Failed to check active jobs' });
+    }
+});
+
 // Get job status
 conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Response) => {
     try {

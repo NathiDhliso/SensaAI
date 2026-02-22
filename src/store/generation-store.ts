@@ -254,10 +254,9 @@ export const useGenerationStore = create<GenerationState & GenerationActions>()(
  hasActiveJob: () => {
  const { activeJob } = get();
  if (!activeJob) return false;
- // Jobs older than 30 minutes are considered stale
- const maxAge = 30 * 60 * 1000;
- const age = Date.now() - activeJob.startedAt;
- return age < maxAge && (activeJob.status === 'pending' || activeJob.status === 'processing');
+ // Don't impose a client-side age limit — the backend is authoritative.
+ // The recovery hook will verify the actual job status via the API.
+ return activeJob.status === 'pending' || activeJob.status === 'processing';
  },
  getActiveJob: () => get().activeJob,
  clearActiveJob: () => set({ activeJob: null })
