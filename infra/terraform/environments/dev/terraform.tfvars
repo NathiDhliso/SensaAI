@@ -4,6 +4,10 @@
 environment = "dev"
 aws_region  = "us-east-1"
 
+# Cognito domain prefix — must match the existing hosted UI domain in AWS
+# Existing domain: sensapbl-dev-v2-dev  (prefix = sensapbl-dev-v2 + -dev)
+cognito_domain_prefix = "sensapbl-dev-v2"
+
 # Cognito OAuth URLs
 cognito_callback_urls = [
   "http://localhost:5173/callback",

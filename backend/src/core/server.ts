@@ -1,51 +1,9 @@
 import 'dotenv/config';
-import express from 'express';
 import { logger } from '../shared/utils/logger.js';
-import cors from 'cors';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
-import { contentRouter } from '../features/content/routes/content.js';
-import { healthRouter } from './routes/health.js';
-import { authRouter } from '../features/auth/routes/auth.js';
-import { conceptsRouter } from '../features/concepts/routes/concepts.js';
-import { proxyRouter } from '../features/proxy/routes/proxy.js';
-import { gymAiRouter } from '../features/gym/routes/gym-ai.js';
-import { curatorRouter } from '../features/clm/routes/curator.js';
-import { authMiddleware } from '../shared/middleware/auth.js';
-import { errorHandler } from '../shared/middleware/error-handler.js';
-import { rateLimiter } from '../shared/middleware/rate-limit.js';
-const app = express();
-const PORT = process.env.PORT || 3000;
-// Security middleware
-app.use(helmet());
-app.use(cors({
-    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:5173'],
-    credentials: true
-}));
-app.use(express.json({ limit: '10mb' }));
-app.use(cookieParser()); // Parse cookies for HttpOnly token storage
-// Rate limiting
-app.use(rateLimiter);
-// Health check (no auth required)
-app.use('/health', healthRouter);
-app.use('/ready', healthRouter);
-// Proxy routes (no auth required for public resources)
-app.use('/api/v1/proxy', proxyRouter);
-// Protected routes
-app.use('/api/v1/content', authMiddleware, contentRouter);
-app.use('/api/v1/concepts', authMiddleware, conceptsRouter);
-app.use('/api/v1/gym-ai', authMiddleware, gymAiRouter);
-app.use('/api/v1/curator', authMiddleware, curatorRouter); // CLM curator dashboard
+import { createApp } from './app.js';
 
-// Alias: frontend calls POST /generate directly (matches API Gateway route pattern)
-app.post('/api/v1/generate', authMiddleware, (req, res, next) => {
-    // Forward to concepts router's /generate handler
-    req.url = '/generate';
-    conceptsRouter(req, res, next);
-});
-app.use('/api/v1/auth', authRouter);
-// Error handling
-app.use(errorHandler);
+const app = createApp();
+const PORT = process.env.PORT || 3000;
 // Start server
 app.listen(PORT, () => {
     logger.info(` SensaAI Backend running on port ${PORT}`);

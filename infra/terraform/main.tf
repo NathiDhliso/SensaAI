@@ -169,8 +169,99 @@ module "api_gateway" {
 }
 
 # ==============================================================================
-# WAF - Web Application Firewall
+# API SERVER LAMBDA — Express app (serverless-http wrapper)
+# Handles: ALL /api/v1/* routes (CLM curator, content, concepts proxy layer)
+# Cost: ~$0/month on free tier (1M requests free), ~$0.20/M after
 # ==============================================================================
+
+data "archive_file" "api_server" {
+  type        = "zip"
+  source_file = "${path.module}/../../backend/dist/lambda_bundle.js"
+  output_path = "${path.module}/api_server_lambda.zip"
+}
+
+resource "aws_lambda_function" "api_server" {
+  function_name    = "sensapbl-api-server-${var.environment}"
+  role             = module.lambda.lambda_execution_role_arn
+  handler          = "lambda_bundle.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 30
+  memory_size      = 512
+
+  filename         = data.archive_file.api_server.output_path
+  source_code_hash = data.archive_file.api_server.output_base64sha256
+
+  environment {
+    variables = {
+      NODE_ENV                    = var.environment == "prod" ? "production" : "development"
+      ENVIRONMENT                 = var.environment
+      AWS_REGION_NAME             = var.aws_region
+      CORS_ORIGINS                = join(",", var.cors_allowed_origins)
+      # DynamoDB tables
+      CONCEPTS_TABLE              = module.dynamodb.concepts_table_name
+      JOBS_TABLE                  = module.dynamodb.jobs_table_name
+      USERDATA_TABLE              = module.dynamodb.userdata_table_name
+      CLM_AUDITS_TABLE            = module.dynamodb.clm_audits_table_name
+      CLM_VERSIONS_TABLE          = module.dynamodb.clm_versions_table_name
+      CLM_CHANGELOG_TABLE         = module.dynamodb.clm_changelog_table_name
+      # Cognito
+      COGNITO_USER_POOL_ID        = module.cognito.user_pool_id
+      COGNITO_CLIENT_ID           = module.cognito.client_id
+      COGNITO_REGION              = var.aws_region
+      # Python Lambda names (Express backend invokes them for generation)
+      GENERATE_LAMBDA_NAME        = module.lambda.generate_concepts_function_name
+      QUERY_LAMBDA_NAME           = module.lambda.query_concepts_function_name
+      GYM_AI_LAMBDA_NAME          = module.lambda.gym_ai_function_name
+    }
+  }
+
+  tags = {
+    Component = "APIServer"
+    Project   = "SensaAI"
+  }
+
+  depends_on = [module.lambda, module.dynamodb, module.cognito]
+}
+
+# API Gateway integration — all Express routes go through one Lambda
+resource "aws_apigatewayv2_integration" "api_server" {
+  api_id                 = module.api_gateway.api_id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.api_server.invoke_arn
+  integration_method     = "POST"
+  payload_format_version = "2.0"
+  timeout_milliseconds   = 30000
+}
+
+# Catch-all route: ANY /api/v1/{proxy+}
+resource "aws_apigatewayv2_route" "api_server_proxy" {
+  api_id    = module.api_gateway.api_id
+  route_key = "ANY /api/v1/{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.api_server.id}"
+}
+
+# Health check route
+resource "aws_apigatewayv2_route" "api_server_health" {
+  api_id    = module.api_gateway.api_id
+  route_key = "GET /health"
+  target    = "integrations/${aws_apigatewayv2_integration.api_server.id}"
+}
+
+# Grant API Gateway permission to invoke the Express Lambda
+resource "aws_lambda_permission" "api_server" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.api_server.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${module.api_gateway.api_execution_arn}/*/*"
+}
+
+output "api_server_function_name" {
+  description = "Express API Server Lambda function name"
+  value       = aws_lambda_function.api_server.function_name
+}
+
+
 
 module "waf" {
   source = "./modules/waf"
