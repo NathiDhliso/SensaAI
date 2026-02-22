@@ -37,6 +37,8 @@
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.5rem 1rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .navLink {
@@ -65,6 +67,30 @@
 .icon {
   width: 20px;
   height: 20px;
+}
+
+.navDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.navDivider span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground, #888888);
+  white-space: nowrap;
+}
+
+.navDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border, #222222);
 }
 
 .main {

@@ -339,6 +339,220 @@
   margin: 0;
 }
 
+/* ==================== AI Guardian Panel ==================== */
+
+.guardianPanel {
+  margin: 0;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.guardian_approve {
+  border-color: var(--color-leaf);
+  background: color-mix(in srgb, var(--color-leaf) 8%, transparent);
+}
+
+.guardian_warn {
+  border-color: #f59e0b;
+  background: color-mix(in srgb, #f59e0b 8%, transparent);
+}
+
+.guardian_block,
+.guardian_suggest-fix {
+  border-color: #ef4444;
+  background: color-mix(in srgb, #ef4444 8%, transparent);
+}
+
+.guardianHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.guardianHeader:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.guardianStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guardianTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.guardianConfidence {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-left: 8px;
+}
+
+.guardianBody {
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guardianReasoning {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.guardianSubtitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 6px;
+}
+
+.guardianRisks,
+.guardianSuggestions,
+.guardianValidations {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guardianRisk,
+.guardianValidation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.riskSeverity {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.risk_info .riskSeverity {
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  color: var(--color-primary);
+}
+
+.risk_warning .riskSeverity {
+  background: color-mix(in srgb, #f59e0b 25%, transparent);
+  color: #f59e0b;
+}
+
+.risk_error .riskSeverity {
+  background: color-mix(in srgb, #ef4444 25%, transparent);
+  color: #ef4444;
+}
+
+.risk_critical .riskSeverity {
+  background: color-mix(in srgb, #dc2626 30%, transparent);
+  color: #fca5a5;
+}
+
+.riskType {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.riskDesc {
+  color: var(--color-text-secondary);
+}
+
+.guardianSuggestion {
+  font-size: 0.8rem;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.guardianSuggestion p {
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.guardianSuggestion small {
+  color: var(--color-text-muted);
+}
+
+.guardianOverride {
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.overrideInput {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 0.8rem;
+  resize: vertical;
+  margin-top: 6px;
+}
+
+.overrideInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.guardianActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.overrideButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.overrideButton:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.overrideButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .editorLayout {

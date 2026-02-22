@@ -1,16 +1,37 @@
 /**
  * Curator Preview - Content Preview with Management Tools
  * Shows content as learners see it, plus curator-specific actions
+ * and integrated CLM enhancement panels
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Eye, Edit, Trash2, AlertTriangle, CheckCircle, ExternalLink, ArrowLeft } from 'lucide-react';
+import { Eye, Edit, Trash2, AlertTriangle, CheckCircle, ExternalLink, ArrowLeft,
+  Heart, GitCompare, RefreshCw, MessageSquare, Link2, DollarSign, Shield } from 'lucide-react';
 import { conceptsApi } from '@/shared/api/concepts';
 import { useAuthStore } from '@/store/auth-store';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
 import styles from './CuratorPreview.module.css';
 import { logger } from '@/shared/utils/logger';
+
+// Lazy-load enhancement panels (only loaded when tab is active)
+const GenerationHealthMonitor = lazy(() => import('../components/GenerationHealthMonitor').then(m => ({ default: m.GenerationHealthMonitor })));
+const ComparativeAnalysisAuditor = lazy(() => import('../components/ComparativeAnalysisAuditor').then(m => ({ default: m.ComparativeAnalysisAuditor })));
+const SmartRegenerationRecommender = lazy(() => import('../components/SmartRegenerationRecommender').then(m => ({ default: m.SmartRegenerationRecommender })));
+const LearnerFeedbackPanel = lazy(() => import('../components/LearnerFeedbackPanel').then(m => ({ default: m.LearnerFeedbackPanel })));
+const DependencyImpactAnalyzer = lazy(() => import('../components/DependencyImpactAnalyzer').then(m => ({ default: m.DependencyImpactAnalyzer })));
+const CostOptimizationAnalyzer = lazy(() => import('../components/CostOptimizationAnalyzer').then(m => ({ default: m.CostOptimizationAnalyzer })));
+
+const ENHANCEMENT_TABS = [
+  { id: 'health', label: 'Health', icon: Heart },
+  { id: 'compare', label: 'Compare', icon: GitCompare },
+  { id: 'regeneration', label: 'Regen', icon: RefreshCw },
+  { id: 'feedback', label: 'Feedback', icon: MessageSquare },
+  { id: 'dependencies', label: 'Dependencies', icon: Link2 },
+  { id: 'costs', label: 'Costs', icon: DollarSign },
+] as const;
+
+type EnhancementTab = typeof ENHANCEMENT_TABS[number]['id'];
 
 export default function CuratorPreview() {
   const { subjectId } = useParams<{ subjectId: string }>();
@@ -22,6 +43,7 @@ export default function CuratorPreview() {
   const [concepts, setConcepts] = useState<ParsedConcept[]>([]);
   const [conceptCount, setConceptCount] = useState(0);
   const [showActions, setShowActions] = useState(true);
+  const [activeEnhancement, setActiveEnhancement] = useState<EnhancementTab | null>(null);
 
   useEffect(() => {
     if (subjectId) {
@@ -162,6 +184,34 @@ export default function CuratorPreview() {
               </div>
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Enhancement Tabs */}
+      <div className={styles.enhancementBar}>
+        {ENHANCEMENT_TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            className={`${styles.enhancementTab} ${activeEnhancement === id ? styles.enhancementTabActive : ''}`}
+            onClick={() => setActiveEnhancement(activeEnhancement === id ? null : id)}
+          >
+            <Icon size={14} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Enhancement Panel */}
+      {activeEnhancement && (
+        <div className={styles.enhancementPanel}>
+          <Suspense fallback={<div className={styles.enhancementLoading}>Loading...</div>}>
+            {activeEnhancement === 'health' && <GenerationHealthMonitor />}
+            {activeEnhancement === 'compare' && <ComparativeAnalysisAuditor />}
+            {activeEnhancement === 'regeneration' && <SmartRegenerationRecommender />}
+            {activeEnhancement === 'feedback' && <LearnerFeedbackPanel />}
+            {activeEnhancement === 'dependencies' && <DependencyImpactAnalyzer />}
+            {activeEnhancement === 'costs' && <CostOptimizationAnalyzer />}
+          </Suspense>
         </div>
       )}
 

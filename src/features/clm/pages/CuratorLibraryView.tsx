@@ -4,7 +4,10 @@ import {
     Search,
     BookOpen,
     Cloud,
-    Globe
+    Globe,
+    Activity,
+    GitBranch,
+    RefreshCw
 } from 'lucide-react';
 import { storageManager } from '@/features/content-storage';
 import { conceptsApi } from '@/shared/api/concepts';
@@ -88,6 +91,20 @@ export default function CuratorLibraryView() {
         return styles.qualityPoor;
     };
 
+    /** Compute a composite health label from validation metrics */
+    const getHealthLabel = (result: SavedResult): { label: string; color: string } => {
+        const score = Math.round(
+            (result.validation.completeness * 0.3 +
+                result.validation.lifecycleConsistency * 0.3 +
+                result.validation.formatConsistency * 0.2 +
+                result.validation.positiveFraming * 0.2)
+        );
+        if (score >= 90) return { label: 'Healthy', color: 'var(--color-leaf)' };
+        if (score >= 75) return { label: 'Good', color: 'var(--color-branch)' };
+        if (score >= 60) return { label: 'Needs Review', color: '#f59e0b' };
+        return { label: 'At Risk', color: '#ef4444' };
+    };
+
     return (
         <div className={styles.container}>
             <div className={styles.wrapper}>
@@ -146,7 +163,9 @@ export default function CuratorLibraryView() {
                     </div>
                 ) : (
                     <div className={styles.resultsGrid}>
-                        {filteredResults.map((result) => (
+                        {filteredResults.map((result) => {
+                            const health = getHealthLabel(result);
+                            return (
                             <div key={result.id} className={styles.resultCard}>
                                 <div className={styles.cardHeader}>
                                     <div>
@@ -160,6 +179,22 @@ export default function CuratorLibraryView() {
                                         </h3>
                                         <p className={styles.cardDate}>{formatDate(result.generatedAt)}</p>
                                     </div>
+                                    <span
+                                        title="Content health status"
+                                        style={{
+                                            fontSize: '0.7rem',
+                                            fontWeight: 600,
+                                            padding: '2px 8px',
+                                            borderRadius: '10px',
+                                            background: `color-mix(in srgb, ${health.color} 18%, transparent)`,
+                                            color: health.color,
+                                            border: `1px solid color-mix(in srgb, ${health.color} 30%, transparent)`,
+                                            whiteSpace: 'nowrap',
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        {health.label}
+                                    </span>
                                 </div>
                                 <div className={styles.cardContent}>
                                     <div className={styles.metaInfo}>
@@ -231,9 +266,33 @@ export default function CuratorLibraryView() {
                                         <Globe size={16} />
                                         {result.isPublic ? 'Shared' : 'Share'}
                                     </button>
+                                    <button
+                                        onClick={() => navigate(`/curator/health?subject=${encodeURIComponent(result.subject)}`)}
+                                        className={styles.viewButton}
+                                        title="View content health details"
+                                    >
+                                        <Activity size={16} />
+                                        Health
+                                    </button>
+                                    <button
+                                        onClick={() => navigate(`/curator/dependencies?subject=${encodeURIComponent(result.subject)}`)}
+                                        className={styles.viewButton}
+                                        title="View dependency impact analysis"
+                                    >
+                                        <GitBranch size={16} />
+                                        Deps
+                                    </button>
+                                    <button
+                                        onClick={() => navigate(`/curator/regeneration?subject=${encodeURIComponent(result.subject)}`)}
+                                        className={styles.viewButton}
+                                        title="View regeneration recommendations"
+                                    >
+                                        <RefreshCw size={16} />
+                                        Regen
+                                    </button>
                                 </div>
                             </div>
-                        ))}
+                        );})}
                     </div>
                 )}
             </div>
