@@ -7,7 +7,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Eye, Edit, Trash2, AlertTriangle, CheckCircle, ExternalLink, ArrowLeft,
-  Heart, GitCompare, RefreshCw, MessageSquare, Link2, DollarSign, Shield } from 'lucide-react';
+  Heart, GitCompare, RefreshCw, MessageSquare, Link2, DollarSign } from 'lucide-react';
 import { conceptsApi } from '@/shared/api/concepts';
 import { useAuthStore } from '@/store/auth-store';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
