@@ -1,13 +1,14 @@
 import { useAuthStore } from '@/store/auth-store';
 
-const ALLOWED_GENERATOR_EMAILS: ReadonlySet<string> = new Set([
-  'nkosimano@gmail.com',
-  'immanueldhliso@gmail.com',
-  'nkosinathi.dhliso@gmail.com',
-]);
-
+/**
+ * Check if the current user is allowed to generate content
+ * Content generation is now restricted to curators and admins only
+ */
 export function isGenerationAllowed(): boolean {
-  const email = useAuthStore.getState().user?.email?.toLowerCase();
-  if (!email) return false;
-  return ALLOWED_GENERATOR_EMAILS.has(email);
+  const user = useAuthStore.getState().user;
+  if (!user) return false;
+  
+  // Only curators and admins can generate content
+  const role = user.role || 'learner';
+  return role === 'curator' || role === 'admin';
 }
