@@ -242,7 +242,7 @@ class BedrockService:
                         accept="application/json",
                         body=json.dumps({
                             "anthropic_version": "bedrock-2023-05-31",
-                            "max_tokens": 8192,
+                            "max_tokens": 32768,
                             "temperature": 0.3,
                             "system": self._build_cached_system(system_msg),
                             "messages": [{"role": "user", "content": user_msg}],

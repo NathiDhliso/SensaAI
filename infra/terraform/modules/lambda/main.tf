@@ -134,7 +134,24 @@ resource "aws_lambda_layer_version" "python_deps" {
 # GENERATE CONCEPTS LAMBDA
 # ==============================================================================
 
+# Clean __pycache__ before archiving — the archive_file excludes pattern only
+# matches top-level entries, not nested __pycache__ dirs in subpackages.
+resource "null_resource" "clean_pycache" {
+  triggers = {
+    # Re-run whenever source files change
+    source_hash = sha256(join("", [
+      for f in fileset(var.source_dir, "**/*.py") :
+      filesha256("${var.source_dir}/${f}")
+    ]))
+  }
+  provisioner "local-exec" {
+    command     = "Get-ChildItem -Path '${replace(var.source_dir, "/", "\\")}' -Directory -Filter '__pycache__' -Recurse | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue; Get-ChildItem -Path '${replace(var.source_dir, "/", "\\")}' -Filter '*.pyc' -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue"
+    interpreter = ["pwsh", "-NoProfile", "-Command"]
+  }
+}
+
 data "archive_file" "lambda_code" {
+  depends_on  = [null_resource.clean_pycache]
   type        = "zip"
   source_dir  = var.source_dir
   output_path = "${path.module}/lambda_code.zip"

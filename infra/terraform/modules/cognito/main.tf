@@ -54,9 +54,8 @@ resource "aws_cognito_user_pool" "main" {
 
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [schema]
   }
-
-  depends_on = [aws_lambda_function.custom_message]
 }
 
 # =============================================================================

@@ -21,6 +21,8 @@ interface ApiRequestOptions {
   signal?: AbortSignal;
   /** Request timeout in milliseconds. Defaults to DEFAULT_REQUEST_TIMEOUT_MS. Set 0 to disable. */
   timeout?: number;
+  /** Use access token instead of id token (needed for some auth operations) */
+  useAccessToken?: boolean;
 }
 
 /** Default timeout for API requests (30 seconds). Prevents fetch from hanging indefinitely. */
@@ -135,11 +137,14 @@ export function getErrorMessage(error: unknown, fallback: string = 'An unexpecte
 // ============================================================================
 // TOKEN ACCESSOR (reads from zustand persist storage to avoid circular imports)
 // ============================================================================
-function getAuthToken(): string | null {
+function getAuthToken(preferAccessToken = false): string | null {
   try {
     const stored = localStorage.getItem('sensaai-auth');
     if (stored) {
       const parsed = JSON.parse(stored);
+      if (preferAccessToken) {
+        return parsed?.state?.tokens?.access_token || parsed?.state?.tokens?.id_token || null;
+      }
       return parsed?.state?.tokens?.id_token || parsed?.state?.tokens?.access_token || null;
     }
   } catch {
@@ -158,7 +163,7 @@ class ApiClient {
     };
 
     if (!options?.skipAuth) {
-      const token = getAuthToken();
+      const token = getAuthToken(options?.useAccessToken);
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -497,10 +502,10 @@ export const authSessionApi = {
   },
 
   async getProfile(): Promise<{ user: AuthUser }> {
-    return apiClient.get('/auth/profile');
+    return apiClient.get('/auth/profile', { useAccessToken: true });
   },
 
   async updateProfile(payload: UpdateProfileRequest): Promise<{ user: AuthUser }> {
-    return apiClient.put('/auth/profile', payload);
+    return apiClient.put('/auth/profile', payload, { useAccessToken: true });
   }
 };
