@@ -93,3 +93,31 @@
     padding: 1rem;
   }
 }
+
+.modeSwitcher {
+  margin-top: auto;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border, #222222);
+}
+
+.switchModeButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border, #222222);
+  border-radius: 0.5rem;
+  color: var(--muted-foreground, #888888);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.switchModeButton:hover {
+  background: var(--accent, #1a1a1a);
+  color: var(--foreground, #ffffff);
+  border-color: var(--primary, #3b82f6);
+}

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Archive, Globe, Settings } from 'lucide-react';
+import { Home, Archive, Globe, Settings, ArrowLeftRight } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { useUIStore } from '@/store/ui-store';
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
@@ -13,7 +13,7 @@ function shouldHideNav(pathname: string): boolean {
 }
 
 export function GlobalNav() {
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, user } = useAuthStore();
     const { openSettingsPanel } = useUIStore();
     const navigate = useNavigate();
     const location = useLocation();
@@ -29,6 +29,7 @@ export function GlobalNav() {
     if (!isAuthenticated || shouldHideNav(location.pathname)) return null;
 
     const isActive = (path: string) => location.pathname === path;
+    const isAdmin = user?.role === 'admin';
 
     return (
         <>
@@ -57,6 +58,16 @@ export function GlobalNav() {
                     <Globe size={20} />
                     <span className={styles.navLabel}>Community</span>
                 </button>
+                {isAdmin && (
+                    <button
+                        className={styles.navItem}
+                        onClick={() => navigate('/curator')}
+                        title="Switch to Curator Mode"
+                    >
+                        <ArrowLeftRight size={20} />
+                        <span className={styles.navLabel}>Curator</span>
+                    </button>
+                )}
                 <button
                     className={styles.navItem}
                     onClick={openSettingsPanel}

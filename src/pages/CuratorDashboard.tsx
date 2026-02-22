@@ -3,11 +3,16 @@
  * Main dashboard for Content Lifecycle Management
  */
 
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth-store';
+import { ArrowLeft } from 'lucide-react';
 import styles from './CuratorDashboard.module.css';
 
 export default function CuratorDashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className={styles.container}>
@@ -68,6 +73,18 @@ export default function CuratorDashboard() {
             Library
           </NavLink>
         </nav>
+
+        {isAdmin && (
+          <div className={styles.modeSwitcher}>
+            <button
+              className={styles.switchModeButton}
+              onClick={() => navigate('/library')}
+            >
+              <ArrowLeft size={16} />
+              Switch to Learner Mode
+            </button>
+          </div>
+        )}
       </aside>
 
       <main className={styles.main}>

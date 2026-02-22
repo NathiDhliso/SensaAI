@@ -26,3 +26,71 @@
   color: var(--color-text-secondary);
   font-size: 1rem;
 }
+
+/* Admin Choice Screen */
+.choiceContainer {
+  max-width: 600px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.choiceTitle {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.choiceSubtitle {
+  font-size: 1.125rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 2rem;
+}
+
+.choiceButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.choiceButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1.5rem;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.choiceButton:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.choiceButton svg {
+  color: var(--color-primary);
+}
+
+.choiceButtonTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.choiceButtonDesc {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .choiceButtons {
+    grid-template-columns: 1fr;
+  }
+}
