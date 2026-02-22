@@ -34,8 +34,8 @@ export function GlobalNav() {
         <>
             <nav className={styles.navBar}>
                 <button
-                    className={`${styles.navItem} ${isActive('/') ? styles.navItemActive : ''}`}
-                    onClick={() => navigate('/')}
+                    className={`${styles.navItem} ${isActive('/home') ? styles.navItemActive : ''}`}
+                    onClick={() => navigate('/home')}
                 >
                     <Home size={20} />
                     <span className={styles.navLabel}>Home</span>
