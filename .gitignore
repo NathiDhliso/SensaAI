@@ -38,6 +38,15 @@ terraform.tfstate.backup
 tfplan
 *.tfplan
 *.tfstate.*
+lambda_temp/
+lambda_package/
+infra/terraform/modules/lambda/lambda_code.zip
+infra/terraform/modules/lambda/layer.zip
+
+# Terraform secrets - NEVER commit credentials
+**/terraform.tfvars.secret
+**/secrets.tfvars
+**/.terraform.lock.hcl
 
 # Backend compiled JS (build output, not source)
 backend/src/**/*.js

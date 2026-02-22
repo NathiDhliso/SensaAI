@@ -1,2 +1,0 @@
- |  | Microsoft Power BI Data Analyst (PL-300) | status=completed
- |  | Microsoft Azure Administrator (AZ-104) | status=completed

@@ -40,6 +40,7 @@ function mapCognitoAttributes(
   familyName?: string;
   phoneNumber?: string;
   preferredUsername?: string;
+  role?: 'learner' | 'curator' | 'admin';
 } {
   const attributeMap = attributes.reduce<Record<string, string>>((acc, item) => {
     if (item.Name && typeof item.Value === 'string') {
@@ -48,6 +49,10 @@ function mapCognitoAttributes(
     return acc;
   }, {});
 
+  // Map role from custom attribute
+  const roleValue = attributeMap['custom:role'] || 'learner';
+  const role = (['learner', 'curator', 'admin'].includes(roleValue) ? roleValue : 'learner') as 'learner' | 'curator' | 'admin';
+
   return {
     id: attributeMap.sub || '',
     email: attributeMap.email || '',
@@ -55,7 +60,8 @@ function mapCognitoAttributes(
     givenName: attributeMap.given_name,
     familyName: attributeMap.family_name,
     phoneNumber: attributeMap.phone_number,
-    preferredUsername: attributeMap.preferred_username
+    preferredUsername: attributeMap.preferred_username,
+    role
   };
 }
 
@@ -121,9 +127,15 @@ function extractUserFromIdToken(idToken: string): {
   familyName?: string;
   phoneNumber?: string;
   preferredUsername?: string;
+  role?: 'learner' | 'curator' | 'admin';
 } {
  try {
  const payload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString());
+ 
+ // Extract role from custom attribute
+ const roleValue = payload['custom:role'] || 'learner';
+ const role = (['learner', 'curator', 'admin'].includes(roleValue) ? roleValue : 'learner') as 'learner' | 'curator' | 'admin';
+ 
  return {
  id: payload.sub,
  email: payload.email,
@@ -131,7 +143,8 @@ function extractUserFromIdToken(idToken: string): {
  givenName: payload.given_name,
  familyName: payload.family_name,
  phoneNumber: payload.phone_number,
- preferredUsername: payload.preferred_username
+ preferredUsername: payload.preferred_username,
+ role
  };
  } catch (error) {
  console.error('[Auth] Failed to extract user from ID token:', error);

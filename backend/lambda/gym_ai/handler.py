@@ -1,12 +1,24 @@
 import json
 import boto3
+import os
 from typing import Any, Dict
 
 from shared.utils import api_response
 
-HAIKU_MODEL_ID = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+cross_account_ak = os.environ.get("CROSS_ACCOUNT_ACCESS_KEY_ID")
+cross_account_sk = os.environ.get("CROSS_ACCOUNT_SECRET_ACCESS_KEY")
+
+if cross_account_ak and cross_account_sk:
+    bedrock = boto3.client(
+        "bedrock-runtime",
+        region_name="us-east-1",
+        aws_access_key_id=cross_account_ak,
+        aws_secret_access_key=cross_account_sk
+    )
+else:
+    bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 ACTIONS = {
     "misconception",
@@ -17,7 +29,7 @@ ACTIONS = {
     "broken_config",
 }
 
-def _invoke_haiku(system: str, user: str, max_tokens: int = 400) -> str:
+def _invoke_model(system: str, user: str, max_tokens: int = 400) -> str:
     payload = {
         "anthropic_version": "bedrock-2023-05-31",
         "max_tokens": max_tokens,
@@ -25,7 +37,7 @@ def _invoke_haiku(system: str, user: str, max_tokens: int = 400) -> str:
         "messages": [{"role": "user", "content": user}],
     }
     response = bedrock.invoke_model(
-        modelId=HAIKU_MODEL_ID,
+        modelId=MODEL_ID,
         contentType="application/json",
         accept="application/json",
         body=json.dumps(payload),
@@ -68,7 +80,7 @@ def _handle_misconception(data: Dict[str, Any]) -> Dict[str, Any]:
 Format: {{"statement":"Your question ending with ?","correctionHints":["hint1","hint2"]}}
 
 Example: {{"statement":"If you allow inbound traffic on port 443 at the subnet NSG level, but the VM's NIC-level NSG blocks port 443, will HTTPS work? Why or why not?","correctionHints":["Traffic must pass BOTH NSGs","The NIC-level NSG will block it"]}}"""
-    raw = _invoke_haiku(system, user, 300)
+    raw = _invoke_model(system, user, 300)
     result = _extract_json(raw)
     if not result.get("statement") or not isinstance(result.get("correctionHints"), list):
         return {"error": "Invalid AI response"}
@@ -80,7 +92,7 @@ def _handle_pushback(data: Dict[str, Any]) -> Dict[str, Any]:
     system = "You are a skeptical peer reviewer. Output JSON only."
     user = f"""Concept:\n{_compress_concept(concept)}\n\nStudent's diagnosis: "{diagnosis}"\n\nGenerate a follow-up challenge question. Return JSON:
 {{"challenge":"Your follow-up question challenging their explanation"}}"""
-    raw = _invoke_haiku(system, user, 150)
+    raw = _invoke_model(system, user, 150)
     result = _extract_json(raw)
     if not result.get("challenge"):
         return {"error": "Invalid AI response"}
@@ -115,7 +127,7 @@ Only fail a student (score <0.35) when:
     question_context = f'\nPeer question/statement the student is responding to: "{question}"\n' if question else ""
     user = f"""Concept:\n{_compress_concept(concept)}\n{question_context}\nStage: {stage}\nStudent response ({word_count} words): "{response_text}"\n\nEvaluate ONLY whether the student adequately addressed the specific question above. Return JSON:
 {{"score":0.0,"feedback":"2-3 sentences explaining the score","strengths":["s1"],"gaps":["g1"]}}"""
-    raw = _invoke_haiku(system, user, 300)
+    raw = _invoke_model(system, user, 300)
     result = _extract_json(raw)
     if not isinstance(result.get("score"), (int, float)):
         return {"error": "Invalid AI response"}
@@ -128,7 +140,7 @@ def _handle_mastery_scenario(data: Dict[str, Any]) -> Dict[str, Any]:
     system = "You create realistic professional scenarios requiring synthesis of multiple concepts. Output JSON only."
     user = f"""Concepts:\n{compressed}\n\nCreate a scenario requiring all concepts. Return JSON:
 {{"scenario":"The scenario description","requirements":["req1","req2","req3"],"conceptFocus":["concept1","concept2"]}}"""
-    raw = _invoke_haiku(system, user, 350)
+    raw = _invoke_model(system, user, 350)
     result = _extract_json(raw)
     if not result.get("scenario"):
         return {"error": "Invalid AI response"}
@@ -174,7 +186,7 @@ Evaluate this response for MASTERY (not just competence). Return JSON:
  "depthAnalysis": "One sentence on whether response shows surface knowledge or deep understanding"
 }}"""
 
-    raw = _invoke_haiku(system, user, 400)
+    raw = _invoke_model(system, user, 400)
     result = _extract_json(raw)
 
     if not isinstance(result.get("score"), (int, float)):
@@ -197,7 +209,7 @@ def _handle_broken_config(data: Dict[str, Any]) -> Dict[str, Any]:
     system = "You create broken system configurations for pre-mortem exercises. Output JSON only."
     user = f"""Concept:\n{_compress_concept(concept)}\n\nCreate a 5-7 step process where ONE step has a subtle error. Return JSON:
 {{"steps":["step1","step2","step3 (broken)","step4","step5"],"alteredIndex":2,"originalStep":"The correct version","alteredStep":"The broken version","explanation":"Why it fails"}}"""
-    raw = _invoke_haiku(system, user, 400)
+    raw = _invoke_model(system, user, 400)
     result = _extract_json(raw)
     if not isinstance(result.get("steps"), list) or not isinstance(result.get("alteredIndex"), int):
         return {"error": "Invalid AI response"}

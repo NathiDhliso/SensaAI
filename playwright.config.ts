@@ -1,82 +1,78 @@
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * Playwright Configuration for CLM E2E Tests
+ */
 export default defineConfig({
-  testDir: './tests',
+  testDir: './tests/e2e',
+  
+  // Maximum time one test can run
+  timeout: 30 * 1000,
+  
+  // Test execution settings
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
+  
+  // Reporter configuration
   reporter: [
-    ['html', { open: 'never' }],
-    ['list']
+    ['html', { outputFolder: 'playwright-report' }],
+    ['list'],
+    ['json', { outputFile: 'playwright-results.json' }],
   ],
+  
+  // Shared settings for all tests
   use: {
-    baseURL: 'http://localhost:5173',
-    trace: 'retain-on-failure',
-    screenshot: 'on',
+    // Base URL for tests
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
+    
+    // Collect trace on failure
+    trace: 'on-first-retry',
+    
+    // Screenshot on failure
+    screenshot: 'only-on-failure',
+    
+    // Video on failure
     video: 'retain-on-failure',
-    actionTimeout: 15000,
+    
+    // Timeout for each action
+    actionTimeout: 10000,
+    
+    // Timeout for navigation
+    navigationTimeout: 10000,
   },
+
+  // Configure projects for different browsers
   projects: [
     {
-      name: 'setup-admin',
-      testMatch: /auth\.setup\.ts/,
-      use: {
-        ...devices['Desktop Chrome'],
-      },
-    },
-    {
-      name: 'setup-learner',
-      testMatch: /auth-learner\.setup\.ts/,
-      use: {
-        ...devices['Desktop Chrome'],
-      },
-    },
-    {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: { cookies: [], origins: [] },
-      },
-      testIgnore: /\.setup\.ts|learner-experience\.spec\.ts|smoke-admin\.spec\.ts|smoke-learner\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
     },
     {
-      name: 'authenticated',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/user.json',
-      },
-      testMatch: /learner-experience\.spec\.ts/,
-      dependencies: ['setup-admin'],
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
     },
     {
-      name: 'admin-smoke',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/admin.json',
-      },
-      testMatch: /smoke-admin\.spec\.ts/,
-      dependencies: ['setup-admin'],
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
+    // Mobile viewports
     {
-      name: 'learner-smoke',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/learner.json',
-      },
-      testMatch: /smoke-learner\.spec\.ts/,
-      dependencies: ['setup-learner'],
-    },
-    {
-      name: 'mobile',
+      name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
-      testIgnore: /\.setup\.ts|learner-experience\.spec\.ts|smoke-admin\.spec\.ts|smoke-learner\.spec\.ts/,
+    },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
     },
   ],
+
+  // Run local dev server before tests
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 30000,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
 });

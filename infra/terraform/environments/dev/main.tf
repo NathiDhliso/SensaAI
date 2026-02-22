@@ -28,6 +28,10 @@ module "sensapbl" {
 
   # API Gateway CORS
   cors_allowed_origins = var.cors_allowed_origins
+
+  # Cross account
+  cross_account_access_key_id     = var.cross_account_access_key_id
+  cross_account_secret_access_key = var.cross_account_secret_access_key
 }
 
 # ==============================================================================

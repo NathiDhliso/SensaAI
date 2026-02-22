@@ -164,11 +164,13 @@ resource "aws_lambda_function" "generate_concepts" {
 
   environment {
     variables = {
-      ENVIRONMENT      = var.environment
-      CONCEPTS_TABLE   = var.concepts_table_name
-      JOBS_TABLE       = var.jobs_table_name
-      LOG_LEVEL        = var.environment == "prod" ? "INFO" : "DEBUG"
-      BEDROCK_MODEL_ID = var.bedrock_model_id
+      ENVIRONMENT                     = var.environment
+      CONCEPTS_TABLE                  = var.concepts_table_name
+      JOBS_TABLE                      = var.jobs_table_name
+      LOG_LEVEL                       = var.environment == "prod" ? "INFO" : "DEBUG"
+      BEDROCK_MODEL_ID                = var.bedrock_model_id
+      CROSS_ACCOUNT_ACCESS_KEY_ID     = var.cross_account_access_key_id
+      CROSS_ACCOUNT_SECRET_ACCESS_KEY = var.cross_account_secret_access_key
     }
   }
 
@@ -237,8 +239,11 @@ resource "aws_lambda_function" "gym_ai" {
 
   environment {
     variables = {
-      ENVIRONMENT = var.environment
-      LOG_LEVEL   = var.environment == "prod" ? "INFO" : "DEBUG"
+      ENVIRONMENT                     = var.environment
+      LOG_LEVEL                       = var.environment == "prod" ? "INFO" : "DEBUG"
+      # gym_ai uses Haiku 4.5 (default in code) for ultra-low latency
+      CROSS_ACCOUNT_ACCESS_KEY_ID     = var.cross_account_access_key_id
+      CROSS_ACCOUNT_SECRET_ACCESS_KEY = var.cross_account_secret_access_key
     }
   }
 

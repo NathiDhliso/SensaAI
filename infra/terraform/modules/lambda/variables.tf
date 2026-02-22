@@ -147,7 +147,7 @@ variable "aws_region" {
 variable "bedrock_model_id" {
   description = "Bedrock model ID for concept generation"
   type        = string
-  default     = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+  default     = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 }
 
 # Tags
@@ -155,4 +155,16 @@ variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)
   default     = {}
+}
+
+variable "cross_account_access_key_id" {
+  description = "Cross account access key ID for Bedrock"
+  type        = string
+  default     = ""
+}
+
+variable "cross_account_secret_access_key" {
+  description = "Cross account secret access key for Bedrock"
+  type        = string
+  default     = ""
 }

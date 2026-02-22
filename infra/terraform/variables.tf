@@ -43,3 +43,15 @@ variable "cors_allowed_origins" {
     "http://localhost:5175"
   ]
 }
+
+variable "cross_account_access_key_id" {
+  description = "Cross account access key ID for Bedrock"
+  type        = string
+  default     = ""
+}
+
+variable "cross_account_secret_access_key" {
+  description = "Cross account secret access key for Bedrock"
+  type        = string
+  default     = ""
+}

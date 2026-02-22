@@ -439,6 +439,7 @@ export interface AuthUser {
   familyName?: string;
   phoneNumber?: string;
   preferredUsername?: string;
+  role?: 'learner' | 'curator' | 'admin';
 }
 
 export interface UpdateProfileRequest {

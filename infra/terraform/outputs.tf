@@ -90,3 +90,22 @@ output "api_jobs_url" {
   description = "Base URL for GET /jobs/{jobId} endpoint"
   value       = module.api_gateway.jobs_endpoint
 }
+
+# ==============================================================================
+# CLM OUTPUTS
+# ==============================================================================
+
+output "clm_audits_table_name" {
+  description = "Name of the CLM audits table"
+  value       = module.dynamodb.clm_audits_table_name
+}
+
+output "clm_versions_table_name" {
+  description = "Name of the CLM versions table"
+  value       = module.dynamodb.clm_versions_table_name
+}
+
+output "clm_changelog_table_name" {
+  description = "Name of the CLM changelog table"
+  value       = module.dynamodb.clm_changelog_table_name
+}

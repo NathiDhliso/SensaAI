@@ -44,16 +44,31 @@ class BedrockService:
         Args:
             region: AWS region for Bedrock endpoint
         """
-        self.client = boto3.client(
-            "bedrock-runtime",
-            region_name=region,
-            config=Config(
-                retries={"max_attempts": 3, "mode": "adaptive"},
-                read_timeout=900,
-            ),
-        )
+        cross_account_ak = os.environ.get("CROSS_ACCOUNT_ACCESS_KEY_ID")
+        cross_account_sk = os.environ.get("CROSS_ACCOUNT_SECRET_ACCESS_KEY")
+
+        if cross_account_ak and cross_account_sk:
+            self.client = boto3.client(
+                "bedrock-runtime",
+                region_name=region,
+                aws_access_key_id=cross_account_ak,
+                aws_secret_access_key=cross_account_sk,
+                config=Config(
+                    retries={"max_attempts": 3, "mode": "adaptive"},
+                    read_timeout=900,
+                ),
+            )
+        else:
+            self.client = boto3.client(
+                "bedrock-runtime",
+                region_name=region,
+                config=Config(
+                    retries={"max_attempts": 3, "mode": "adaptive"},
+                    read_timeout=900,
+                ),
+            )
         self.model_id = os.environ.get(
-            "BEDROCK_MODEL_ID", "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+            "BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
         )
     def classify_subject(self, subject: str, context: str = "") -> Optional[Dict[str, Any]]:
         from shared.system_prompt import get_classification_prompt
@@ -220,7 +235,7 @@ class BedrockService:
                         accept="application/json",
                         body=json.dumps({
                             "anthropic_version": "bedrock-2023-05-31",
-                            "max_tokens": 51200,
+                            "max_tokens": 8192,
                             "temperature": 0.3,
                             "system": self._build_cached_system(system_msg),
                             "messages": [{"role": "user", "content": user_msg}],
@@ -382,7 +397,6 @@ class BedrockService:
             {
                 "type": "text",
                 "text": system_text,
-                "cache_control": {"type": "ephemeral"},
             }
         ]
 

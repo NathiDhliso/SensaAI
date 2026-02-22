@@ -112,7 +112,11 @@ module "lambda" {
   aws_region           = var.aws_region
 
   # Bedrock model for concept generation
-  bedrock_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+  bedrock_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+  
+  # Cross account
+  cross_account_access_key_id     = var.cross_account_access_key_id
+  cross_account_secret_access_key = var.cross_account_secret_access_key
 
   # Provisioned concurrency (production only)
   enable_provisioned_concurrency    = var.environment == "prod"

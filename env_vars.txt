@@ -1,5 +1,0 @@
-JOBS_TABLE = sensapbl-jobs-dev
-ENVIRONMENT = dev
-CONCEPTS_TABLE = sensapbl-concepts-dev
-BEDROCK_MODEL_ID = us.anthropic.claude-sonnet-4-20250514-v1:0
-LOG_LEVEL = DEBUG

@@ -1,15 +1,15 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { SettingsPanel } from './components/settings';
-import { ProtectedRoute } from './components/auth';
+import { ProtectedRoute, RoleGuard } from './components/auth';
 import { AppErrorBoundary } from './components/error/AppErrorBoundary';
 import BackgroundJobToast from './components/ui/BackgroundJobToast';
 import { GlobalNav, NavSpacer } from './components/layout';
 import { useAuthStore } from './store/auth-store';
 import { useLearningStore } from './store/learning-store';
 
+const Landing = lazy(() => import('./pages/Landing'));
 const Home = lazy(() => import('./pages/Home'));
-const ContentGenerator = lazy(() => import('./pages/ContentGenerator'));
 const MasteryDashboard = lazy(() => import('./pages/MasteryDashboard'));
 const CommunityLibrary = lazy(() => import('./pages/CommunityLibrary'));
 
@@ -24,6 +24,12 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ 
 const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const DevSandbox = lazy(() => import('./pages/DevSandbox'));
+const CuratorDashboard = lazy(() => import('./pages/CuratorDashboard'));
+
+// CLM Components
+import { AuditQueueView, AuditDetailView, AnalyticsDashboard } from './features/clm';
+const ContentGenerator = lazy(() => import('./features/clm/pages/ContentGenerator'));
+const GenerateLanding = lazy(() => import('./features/clm/pages/GenerateLanding'));
 
 function useMigration() {
     const hasRun = useRef(false);
@@ -65,8 +71,9 @@ function App() {
                         {/* ═══════════════════════════════════════════════════════════════
  PUBLIC ROUTES
  ═══════════════════════════════════════════════════════════════ */}
+                        <Route path="/" element={<Landing />} />
                         <Route path="/dev" element={<DevSandbox />} />
-                        <Route path="/" element={<Home />} />
+                        <Route path="/home" element={<Home />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<SignUp />} />
                         <Route path="/confirm-signup" element={<ConfirmSignUp />} />
@@ -74,13 +81,6 @@ function App() {
                         <Route path="/reset-password" element={<ResetPassword />} />
                         <Route path="/auth/callback" element={<AuthCallback />} />
                         <Route path="/callback" element={<AuthCallback />} />
-
-                        {/* ═══════════════════════════════════════════════════════════════
- GENERATION FLOW
- ═══════════════════════════════════════════════════════════════ */}
-                        <Route path="/generate/:subject" element={
-                            <ProtectedRoute><ContentGenerator /></ProtectedRoute>
-                        } />
 
                         {/* ═══════════════════════════════════════════════════════════════
  LEARNING FLOW - Unified Study Command Center
@@ -114,6 +114,25 @@ function App() {
                         <Route path="/community" element={
                             <ProtectedRoute><CommunityLibrary /></ProtectedRoute>
                         } />
+
+                        {/* ═══════════════════════════════════════════════════════════════
+ CURATOR DASHBOARD - Content Lifecycle Management (Admin/Curator Only)
+ ═══════════════════════════════════════════════════════════════ */}
+                        <Route path="/curator" element={
+                            <ProtectedRoute>
+                                <RoleGuard allowedRoles={['curator', 'admin']}>
+                                    <CuratorDashboard />
+                                </RoleGuard>
+                            </ProtectedRoute>
+                        }>
+                            <Route index element={<AuditQueueView />} />
+                            <Route path="generate" element={<GenerateLanding />} />
+                            <Route path="generate/:subject" element={<ContentGenerator />} />
+                            <Route path="audits" element={<AuditQueueView />} />
+                            <Route path="audits/:auditId" element={<AuditDetailView />} />
+                            <Route path="analytics" element={<AnalyticsDashboard />} />
+                        </Route>
+
                         {/* Catch-all 404 */}
                         <Route path="*" element={<NotFound />} />
                     </Routes>
