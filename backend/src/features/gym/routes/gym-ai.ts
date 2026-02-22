@@ -1,4 +1,6 @@
 import { Router, Request, Response } from 'express';
+import { logger } from '../../../shared/utils/logger.js';
+import { validate, GymAiSchema } from '../../../shared/validation/schemas.js';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 const router = Router();
 const HAIKU_MODEL_ID = 'us.anthropic.claude-3-5-haiku-20241022-v1:0';
@@ -193,7 +195,7 @@ const HANDLERS: Record<string, (data: any) => Promise<Record<string, unknown>>> 
  mastery_score: handleMasteryScore,
  broken_config: handleBrokenConfig
 };
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', validate(GymAiSchema), async (req: Request, res: Response) => {
  try {
  const { action, ...data } = req.body;
  if (!action || !ACTIONS.has(action)) {
@@ -208,7 +210,7 @@ router.post('/', async (req: Request, res: Response) => {
  const result = await handler(data);
  return res.json(result);
  } catch (error) {
- console.error('Gym AI error:', error);
+ logger.error('Gym AI error:', error);
  return res.status(500).json({
  error: `AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
  });

@@ -29,6 +29,7 @@ import type {
  SubjectType
 } from '@/shared/types/generation';
 import type { MacroWorkflowResult } from '@/shared/types/macro-workflow';
+import { logger } from '@/shared/utils/logger';
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -219,12 +220,12 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  });
  } else {
  // FIX: Don't navigate if loading failed. Report error.
- console.error('[Generate] Content load failed:', loadResult.error);
+ logger.error('[Generate] Content load failed:', loadResult.error);
  setError(loadResult.error || 'Failed to load generated content.');
  setIsGenerating(false);
  }
  } catch (storageError) {
- console.error('[Generate] Storage save failed:', storageError);
+ logger.error('[Generate] Storage save failed:', storageError);
  // Still try to load into memory if storage failed but we have data
  const loadResult = parseAndLoadContent(result.fullDocument, resultId);
  if (loadResult.success) {
@@ -280,7 +281,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  responseBody: err.body,
  }
  : null;
- console.error('[Generation] Failure diagnostics', {
+ logger.error('[Generation] Failure diagnostics', {
  apiBase,
  requestHost: (() => {
  try {
@@ -330,7 +331,7 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
  // AUTH GUARD: Check if user is logged in before attempting generation
  const { user } = useAuthStore.getState();
  if (!user?.id) {
- console.error('[Generation] No authenticated user - redirecting to login');
+ logger.error('[Generation] No authenticated user - redirecting to login');
  setError('Please log in to generate content');
  setTimeout(() => navigate('/login'), 1000);
  return;

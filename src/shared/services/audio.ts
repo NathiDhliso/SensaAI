@@ -7,6 +7,7 @@
  * - Preloading for smooth playback
  * - User preference respect (mute, volume)
  */
+import { logger } from '@/shared/utils/logger';
 // Primer audio files path
 const PRIMER_AUDIO_BASE = '/Audio/Primer';
 // Audio file definitions
@@ -113,7 +114,7 @@ class AudioManager {
  resolve(audio);
  }, { once: true });
  audio.addEventListener('error', () => {
- console.warn(`Failed to preload audio: ${src}`);
+ logger.warn(`Failed to preload audio: ${src}`);
  reject(new Error(`Failed to load ${src}`));
  }, { once: true });
  // Start loading
@@ -138,7 +139,7 @@ class AudioManager {
  this.backgroundMusic.volume = this.musicVolume;
  await this.backgroundMusic.play();
  } catch (error) {
- console.warn('Failed to play background music:', error);
+ logger.warn('Failed to play background music:', error);
  }
  }
  /**
@@ -209,7 +210,7 @@ class AudioManager {
  }, { once: true });
  });
  } catch (error) {
- console.warn('Failed to play narration:', error);
+ logger.warn('Failed to play narration:', error);
  }
  }
  /**
@@ -280,7 +281,7 @@ class AudioManager {
  audio.volume = this.narrationVolume;
  return audio.play().catch((error) => {
  if (error.name !== 'NotAllowedError') {
- console.error('[AudioManager] Playback error:', error);
+ logger.error('[AudioManager] Playback error:', error);
  }
  });
  }
@@ -328,7 +329,7 @@ class AudioManager {
  } catch (error: unknown) {
  const err = error as { name?: string };
  if (err.name !== 'NotAllowedError') {
- console.error('[AudioManager] Priority playback error:', error);
+ logger.error('[AudioManager] Priority playback error:', error);
  }
  this.activeEffect = null;
  this.currentPriority = 'background';

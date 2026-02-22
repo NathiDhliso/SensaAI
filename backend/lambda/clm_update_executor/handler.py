@@ -44,14 +44,25 @@ def get_approved_findings(audit_id: str, finding_ids: List[str]) -> List[Dict[st
 
 
 def get_concept(concept_id: str) -> Optional[Dict[str, Any]]:
-    """Fetch concept from main concepts table"""
-    # TODO: Implement based on your concept storage structure
-    # This is a placeholder
+    """
+    Fetch concept from main concepts table.
+    Concepts use composite keys: PK=USER#<userId>#SESSION#<sessionId>, SK=TIER#<tier>#<conceptId>
+    Since we only have conceptId, we scan all items with a matching conceptId attribute.
+    """
     table = dynamodb.Table(CONCEPTS_TABLE)
-    
+
     try:
-        response = table.get_item(Key={'id': concept_id})
-        return response.get('Item')
+        # Scan for the concept by conceptId attribute (not the key)
+        result = table.scan(
+            FilterExpression='conceptId = :cid',
+            ExpressionAttributeValues={':cid': concept_id},
+            Limit=1,
+        )
+        items = result.get('Items', [])
+        if items:
+            return items[0]
+        print(f"Concept not found: {concept_id}")
+        return None
     except Exception as e:
         print(f"Error fetching concept {concept_id}: {str(e)}")
         return None

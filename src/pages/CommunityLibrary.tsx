@@ -4,6 +4,7 @@ import { Search, BookOpen, Users, Layers, Globe, Clock, SortAsc } from 'lucide-r
 import { conceptsApi } from '@/shared/api/concepts';
 import type { PublicJobSummary } from '@/features/content-storage/types';
 import styles from './CommunityLibrary.module.css';
+import { logger } from '@/shared/utils/logger';
 
 type SortKey = 'date' | 'subject' | 'concepts';
 
@@ -30,7 +31,7 @@ export default function CommunityLibrary() {
       const response = await conceptsApi.listPublic();
       setJobs(response.jobs);
     } catch (error) {
-      console.error('Failed to load community content:', error);
+      logger.error('Failed to load community content:', error);
     } finally {
       setLoading(false);
     }

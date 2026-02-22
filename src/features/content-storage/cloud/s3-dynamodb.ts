@@ -22,6 +22,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { SyncEngine } from '@/features/content-storage/sync/sync-engine';
 import type { SavedResult, StorageProvider } from '../types';
 import type { UserProgress, QuizScores } from '@/features/content-storage/sync/sync-engine';
+import { logger } from '@/shared/utils/logger';
 export class CloudStorage implements StorageProvider {
  private s3Client: S3Client | null = null;
  private ddbClient: DynamoDBDocumentClient | null = null;
@@ -79,7 +80,7 @@ export class CloudStorage implements StorageProvider {
  isConfigured(): boolean {
  const configured = !!(this.s3Client && this.ddbClient && this.bucketName && this.tableName);
  if (!configured) {
- console.warn('[CloudStorage] Not configured. Check:', {
+ logger.warn('[CloudStorage] Not configured. Check:', {
  hasS3Client: !!this.s3Client,
  hasDdbClient: !!this.ddbClient,
  bucketName: this.bucketName || 'MISSING',
@@ -118,7 +119,7 @@ export class CloudStorage implements StorageProvider {
  path: `s3://${this.bucketName}/${s3Key}`
  };
  } catch (error) {
- console.error('Cloud save failed:', error);
+ logger.error('Cloud save failed:', error);
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Unknown cloud error'
@@ -148,7 +149,7 @@ export class CloudStorage implements StorageProvider {
  savedToCloud: true,
  };
  } catch (error) {
- console.error('Cloud load failed:', error);
+ logger.error('Cloud load failed:', error);
  return null;
  }
  }
@@ -168,7 +169,7 @@ export class CloudStorage implements StorageProvider {
  }));
  return true;
  } catch (error) {
- console.error('Cloud delete failed:', error);
+ logger.error('Cloud delete failed:', error);
  return false;
  }
  }
@@ -197,7 +198,7 @@ export class CloudStorage implements StorageProvider {
  const newest = results[0];
  return await this.loadResult(newest.id);
  } catch (error) {
- console.error('Cloud search failed:', error);
+ logger.error('Cloud search failed:', error);
  return null;
  }
  }
@@ -214,7 +215,7 @@ export class CloudStorage implements StorageProvider {
  // Note: These won't have 'fullDocument' until loaded individually
  return result.Items as SavedResult[];
  } catch (error) {
- console.error('Cloud list failed:', error);
+ logger.error('Cloud list failed:', error);
  return [];
  }
  }
@@ -236,7 +237,7 @@ export class CloudStorage implements StorageProvider {
  localProgress: UserProgress | null
  ): Promise<UserProgress | null> {
  if (!this.isConfigured()) {
- console.warn('[CloudStorage] Cannot sync - not configured');
+ logger.warn('[CloudStorage] Cannot sync - not configured');
  return localProgress;
  }
  try {
@@ -255,13 +256,13 @@ export class CloudStorage implements StorageProvider {
  const { merged, conflicts } = SyncEngine.mergeUserData(localProgress, cloudProgress);
  // Log conflicts for debugging
  if (conflicts.length > 0) {
- console.log('[CloudStorage] Sync conflicts resolved:', conflicts);
+ logger.debug('[CloudStorage] Sync conflicts resolved:', conflicts);
  }
  // 5. Save merged data back to cloud
  await this.saveUserProgress(userId, subjectId, merged);
  return merged;
  } catch (error) {
- console.error('[CloudStorage] Sync failed:', error);
+ logger.error('[CloudStorage] Sync failed:', error);
  // Return local data as fallback
  return localProgress;
  }
@@ -284,7 +285,7 @@ export class CloudStorage implements StorageProvider {
  }));
  return result.Item as UserProgress | null;
  } catch (error) {
- console.error('[CloudStorage] Load progress failed:', error);
+ logger.error('[CloudStorage] Load progress failed:', error);
  return null;
  }
  }
@@ -308,7 +309,7 @@ export class CloudStorage implements StorageProvider {
  }
  }));
  } catch (error) {
- console.error('[CloudStorage] Save progress failed:', error);
+ logger.error('[CloudStorage] Save progress failed:', error);
  }
  }
  /**
@@ -333,7 +334,7 @@ export class CloudStorage implements StorageProvider {
  await this.saveQuizScores(userId, subjectId, merged);
  return merged;
  } catch (error) {
- console.error('[CloudStorage] Score sync failed:', error);
+ logger.error('[CloudStorage] Score sync failed:', error);
  return localScores;
  }
  }
@@ -352,7 +353,7 @@ export class CloudStorage implements StorageProvider {
  }));
  return result.Item as QuizScores | null;
  } catch (error) {
- console.error('[CloudStorage] Load scores failed:', error);
+ logger.error('[CloudStorage] Load scores failed:', error);
  return null;
  }
  }
@@ -373,7 +374,7 @@ export class CloudStorage implements StorageProvider {
  }
  }));
  } catch (error) {
- console.error('[CloudStorage] Save scores failed:', error);
+ logger.error('[CloudStorage] Save scores failed:', error);
  }
  }
 }

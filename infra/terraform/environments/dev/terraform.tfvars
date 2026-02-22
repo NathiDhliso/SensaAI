@@ -37,7 +37,6 @@ cors_allowed_origins = [
   "https://www.sensaai.co.za"
 ]
 
-# Cross-account credentials should be set via environment variables:
-# export TF_VAR_cross_account_access_key_id="your-key-id"
-# export TF_VAR_cross_account_secret_access_key="your-secret-key"
+# Cross-account IAM role for Bedrock should be set via environment variables:
+# export TF_VAR_cross_account_role_arn="arn:aws:iam::BEDROCK_ACCOUNT_ID:role/YOUR_ROLE"
 # Or use AWS SSM Parameter Store / Secrets Manager

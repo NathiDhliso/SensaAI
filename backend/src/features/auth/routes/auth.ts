@@ -16,6 +16,8 @@ import {
   InitiateAuthCommand,
   UpdateUserAttributesCommand
 } from "@aws-sdk/client-cognito-identity-provider";
+import { logger } from '../../../shared/utils/logger.js';
+import { validate, SessionExchangeSchema } from '../../../shared/validation/schemas.js';
 export const authRouter = Router();
 const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 // ============================================================================
@@ -147,7 +149,7 @@ function extractUserFromIdToken(idToken: string): {
  role
  };
  } catch (error) {
- console.error('[Auth] Failed to extract user from ID token:', error);
+ logger.error('[Auth] Failed to extract user from ID token:', error);
  throw new Error('Invalid ID token');
  }
 }
@@ -198,7 +200,7 @@ interface CognitoTokenResponse {
  * POST /auth/session/exchange
  * Exchange OAuth authorization code for session (sets HttpOnly cookies)
  */
-authRouter.post('/session/exchange', async (req: Request, res: Response) => {
+authRouter.post('/session/exchange', validate(SessionExchangeSchema), async (req: Request, res: Response) => {
  try {
  const { code, redirect_uri, code_verifier } = req.body;
  if (!code || !redirect_uri) {
@@ -214,7 +216,7 @@ authRouter.post('/session/exchange', async (req: Request, res: Response) => {
  params.append('code_verifier', code_verifier);
  }
  const tokenEndpoint = getTokenEndpoint();
- console.log('[Auth] Exchanging code at:', tokenEndpoint);
+ logger.debug('[Auth] Exchanging code at:', tokenEndpoint);
  const response = await fetch(tokenEndpoint, {
  method: 'POST',
  headers: getTokenRequestHeaders(),
@@ -222,7 +224,7 @@ authRouter.post('/session/exchange', async (req: Request, res: Response) => {
  });
  if (!response.ok) {
  const errorText = await response.text();
- console.error('[Auth] Token exchange failed:', response.status, errorText);
+ logger.error('[Auth] Token exchange failed:', response.status, errorText);
  res.status(response.status).json({ error: 'Failed to exchange code' });
  return;
  }
@@ -233,7 +235,7 @@ authRouter.post('/session/exchange', async (req: Request, res: Response) => {
  // Return only user info (tokens are in cookies)
  res.json({ user });
  } catch (error) {
- console.error('[Auth] Session exchange error:', error);
+ logger.error('[Auth] Session exchange error:', error);
  res.status(500).json({ error: 'Internal server error' });
  }
 });
@@ -290,7 +292,7 @@ authRouter.post('/session/login', async (req: Request, res: Response) => {
  // Return only user info
  res.json({ user });
  } catch (error: unknown) {
- console.error('[Auth] Login error:', error);
+ logger.error('[Auth] Login error:', error);
  // Map Cognito errors to user-friendly messages
  const errorName = (error as { name?: string })?.name;
  if (errorName === 'NotAuthorizedException') {
@@ -335,7 +337,7 @@ authRouter.post('/session/refresh', async (req: Request, res: Response) => {
  });
  res.json({ success: true });
  } catch (error: unknown) {
- console.error('[Auth] Refresh error:', error);
+ logger.error('[Auth] Refresh error:', error);
  const errorName = (error as { name?: string })?.name;
  if (errorName === 'NotAuthorizedException') {
  clearAuthCookies(res);
@@ -368,49 +370,16 @@ authRouter.get('/session/validate', async (req: Request, res: Response) => {
  });
  return;
  }
- // Decode the token to extract user info (we don't verify signature here,
- // that happens when the token is used for API calls)
- // For a more secure validation, you could call Cognito's GetUser API
- // Validate JWT structure before parsing (must have 3 parts: header.payload.signature)
- const tokenParts = accessToken.split('.');
- if (tokenParts.length !== 3 || !tokenParts[1]) {
- console.warn('[Auth] Invalid JWT structure');
- res.json({ valid: false });
- return;
- }
+ // Verify the token by calling Cognito GetUser (validates signature server-side)
  try {
- // Attempt to decode the payload
- const base64Payload = tokenParts[1];
- // Handle URL-safe base64 encoding
- const normalizedPayload = base64Payload
- .replace(/-/g, '+')
- .replace(/_/g, '/');
- const decodedPayload = Buffer.from(normalizedPayload, 'base64').toString('utf8');
- const payload = JSON.parse(decodedPayload);
- // Check if token has required fields
- if (!payload || typeof payload !== 'object' || !payload.exp || !payload.sub) {
- console.warn('[Auth] JWT missing required fields');
- res.json({ valid: false });
- return;
- }
- // Check if token is expired
- const exp = payload.exp * 1000; // Convert to milliseconds
- if (Date.now() >= exp) {
- res.json({ valid: false });
- return;
- }
- const user = {
- id: payload.sub,
- email: payload.email || payload.username,
- name: payload.name
- };
+ const response = await cognitoClient.send(new GetUserCommand({ AccessToken: accessToken }));
+ const user = mapCognitoAttributes(response.UserAttributes);
  res.json({ valid: true, user });
- } catch (decodeError) {
- console.warn('[Auth] Failed to decode JWT payload:', decodeError);
+ } catch {
  res.json({ valid: false });
  }
  } catch (error) {
- console.error('[Auth] Validation error:', error);
+ logger.error('[Auth] Validation error:', error);
  res.json({ valid: false });
  }
 });
@@ -428,13 +397,13 @@ authRouter.post('/session/clear', async (req: Request, res: Response) => {
  });
  await cognitoClient.send(command);
  } catch (error) {
- console.warn('[Auth] Global sign out failed:', error);
+ logger.warn('[Auth] Global sign out failed:', error);
  }
  }
  clearAuthCookies(res);
  res.json({ success: true });
  } catch (error) {
- console.error('[Auth] Clear session error:', error);
+ logger.error('[Auth] Clear session error:', error);
  clearAuthCookies(res);
  res.json({ success: true });
  }
@@ -456,7 +425,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
  expires_in: 3600
  };
  setAuthCookies(res, tokens.access_token, tokens.refresh_token, tokens.expires_in);
- res.json({ user, tokens });
+ res.json({ user });
  return;
  }
  const command = new InitiateAuthCommand({
@@ -477,9 +446,9 @@ authRouter.post('/login', async (req: Request, res: Response) => {
  expires_in: authResult.ExpiresIn || 3600
  };
  setAuthCookies(res, tokens.access_token, tokens.refresh_token, tokens.expires_in);
- res.json({ user, tokens });
+ res.json({ user });
  } catch (error: unknown) {
- console.error('[Auth] Login error:', error);
+ logger.error('[Auth] Login error:', error);
  const errorName = (error as { name?: string })?.name;
  if (errorName === 'NotAuthorizedException') {
  res.status(401).json({ error: 'Invalid email or password' });
@@ -516,7 +485,7 @@ authRouter.post('/exchange', async (req: Request, res: Response) => {
  });
  if (!response.ok) {
  const errorText = await response.text();
- console.error('[Auth] Token exchange failed:', response.status, errorText);
+ logger.error('[Auth] Token exchange failed:', response.status, errorText);
  res.status(response.status).json({ error: 'Failed to exchange code' });
  return;
  }
@@ -529,9 +498,10 @@ authRouter.post('/exchange', async (req: Request, res: Response) => {
  expires_in: data.expires_in
  };
  setAuthCookies(res, tokens.access_token, tokens.refresh_token, tokens.expires_in);
- res.json({ user, tokens });
+ // Return only user info (tokens are in HttpOnly cookies)
+ res.json({ user });
  } catch (error) {
- console.error('[Auth] Exchange error:', error);
+ logger.error('[Auth] Exchange error:', error);
  res.status(500).json({ error: 'Internal server error' });
  }
 });
@@ -563,7 +533,7 @@ authRouter.post('/refresh', async (req: Request, res: Response) => {
  expires_in: authResult.ExpiresIn || 3600
  });
  } catch (error: unknown) {
- console.error('[Auth] Refresh error:', error);
+ logger.error('[Auth] Refresh error:', error);
  const errorName = (error as { name?: string })?.name;
  if (errorName === 'NotAuthorizedException') {
  clearAuthCookies(res);
@@ -589,31 +559,16 @@ authRouter.get('/validate', async (req: Request, res: Response) => {
  });
  return;
  }
- const tokenParts = accessToken.split('.');
- if (tokenParts.length !== 3 || !tokenParts[1]) {
- res.json({ valid: false });
- return;
- }
+ // Verify the token by calling Cognito GetUser (validates signature server-side)
  try {
- const normalizedPayload = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
- const payload = JSON.parse(Buffer.from(normalizedPayload, 'base64').toString('utf8'));
- if (!payload || typeof payload !== 'object' || !payload.exp || !payload.sub) {
- res.json({ valid: false });
- return;
- }
- if (Date.now() >= payload.exp * 1000) {
- res.json({ valid: false });
- return;
- }
- res.json({
- valid: true,
- user: { id: payload.sub, email: payload.email || payload.username, name: payload.name }
- });
+ const response = await cognitoClient.send(new GetUserCommand({ AccessToken: accessToken }));
+ const user = mapCognitoAttributes(response.UserAttributes);
+ res.json({ valid: true, user });
  } catch {
  res.json({ valid: false });
  }
  } catch (error) {
- console.error('[Auth] Validation error:', error);
+ logger.error('[Auth] Validation error:', error);
  res.json({ valid: false });
  }
 });
@@ -651,7 +606,7 @@ authRouter.get('/profile', async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    console.error('[Auth] Get profile error:', error);
+    logger.error('[Auth] Get profile error:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
@@ -697,7 +652,7 @@ authRouter.put('/profile', async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    console.error('[Auth] Update profile error:', error);
+    logger.error('[Auth] Update profile error:', error);
     res.status(500).json({ error: 'Failed to update profile' });
   }
 });
@@ -709,13 +664,13 @@ authRouter.post('/logout', async (req: Request, res: Response) => {
  try {
  await cognitoClient.send(new GlobalSignOutCommand({ AccessToken: accessToken }));
  } catch (error) {
- console.warn('[Auth] Global sign out failed:', error);
+ logger.warn('[Auth] Global sign out failed:', error);
  }
  }
  clearAuthCookies(res);
  res.json({ success: true });
  } catch (error) {
- console.error('[Auth] Logout error:', error);
+ logger.error('[Auth] Logout error:', error);
  clearAuthCookies(res);
  res.json({ success: true });
  }

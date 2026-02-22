@@ -41,6 +41,7 @@ import HelpModal from '@/components/ui/HelpModal';
 import NeuralResetBanner from '@/components/learning/feedback/NeuralResetModal';
 import GymActivityLauncher, { type GymActivity } from '@/components/learning/gym/GymActivityLauncher';
 import styles from './UnifiedStudyRoom.module.css';
+import { logger } from '@/shared/utils/logger';
 // Lazy load heavy components
 const ActiveLearningEngine = lazy(() => import('../components/learning/ActiveLearningEngine'));
 export default function UnifiedStudyRoom() {
@@ -144,19 +145,19 @@ export default function UnifiedStudyRoom() {
                     if (hasActiveJob()) {
                         const activeJob = getActiveJob();
                         if (activeJob?.sessionId === subjectId || activeJob?.jobId === subjectId) {
-                            console.log('[Study] Found active generation job, waiting...');
+                            logger.debug('[Study] Found active generation job, waiting...');
                             setHydrationError('GENERATION_IN_PROGRESS');
                             return;
                         }
                     }
                 }
                 if (!result) {
-                    console.error('[Study] Failed to load result from storage - result is null');
+                    logger.error('[Study] Failed to load result from storage - result is null');
                     setHydrationError('SESSION_NOT_FOUND');
                     return;
                 }
                 if (!result.fullDocument) {
-                    console.error('[Study] Failed to load result from storage - no fullDocument');
+                    logger.error('[Study] Failed to load result from storage - no fullDocument');
                     setHydrationError('EMPTY_CONTENT');
                     return;
                 }
@@ -164,22 +165,22 @@ export default function UnifiedStudyRoom() {
                 try {
                     const parsed = JSON.parse(result.fullDocument);
                     if (!parsed.concepts || !Array.isArray(parsed.concepts)) {
-                        console.error('[Study] Invalid content structure - no concepts array');
+                        logger.error('[Study] Invalid content structure - no concepts array');
                         setHydrationError('INVALID_CONTENT');
                         return;
                     }
                 } catch (parseError) {
-                    console.error('[Study] Content is not valid JSON:', parseError);
+                    logger.error('[Study] Content is not valid JSON:', parseError);
                     setHydrationError('CORRUPTED_CONTENT');
                     return;
                 }
                 const loadResult = parseAndLoadContent(result.fullDocument, subjectId);
                 if (!loadResult.success) {
-                    console.error('[Study] Failed to hydrate session:', loadResult.error);
+                    logger.error('[Study] Failed to hydrate session:', loadResult.error);
                     setHydrationError(`PARSE_ERROR: ${loadResult.error}`);
                     // Retry logic for transient errors
                     if (retryCount < MAX_RETRIES) {
-                        console.log(`[Study] Retrying hydration (${retryCount + 1}/${MAX_RETRIES})...`);
+                        logger.debug(`[Study] Retrying hydration (${retryCount + 1}/${MAX_RETRIES})...`);
                         setTimeout(() => {
                             setRetryCount(prev => prev + 1);
                             setIsHydrating(false);
@@ -191,10 +192,10 @@ export default function UnifiedStudyRoom() {
                     setRetryCount(0);
                 }
             } catch (error) {
-                console.error('[Study] Failed to load from storage:', error);
+                logger.error('[Study] Failed to load from storage:', error);
                 // Retry logic for network/storage errors
                 if (retryCount < MAX_RETRIES) {
-                    console.log(`[Study] Retrying after error (${retryCount + 1}/${MAX_RETRIES})...`);
+                    logger.debug(`[Study] Retrying after error (${retryCount + 1}/${MAX_RETRIES})...`);
                     setTimeout(() => {
                         setRetryCount(prev => prev + 1);
                         setIsHydrating(false);
@@ -261,7 +262,7 @@ export default function UnifiedStudyRoom() {
                 targetConcepts = zpdConcepts.map(r => r.concept.id);
             }
         } catch (err) {
-            console.warn('Algorithm selection failed, falling back to sequential:', err);
+            logger.warn('Algorithm selection failed, falling back to sequential:', err);
             const completedIds = new Set(session?.progress?.completedConcepts || []);
             targetConcepts = concepts
                 .filter(c => !completedIds.has(c.id))

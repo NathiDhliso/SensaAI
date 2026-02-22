@@ -19,6 +19,7 @@
  *   });
  */
 import { useCallback, useEffect, useRef } from 'react';
+import { logger } from '@/shared/utils/logger';
 
 const STORAGE_PREFIX = 'sensa-activity-draft';
 const DEFAULT_THROTTLE_MS = 2000;
@@ -82,7 +83,7 @@ export function useActivityAutosave<T>(
         localStorage.setItem(fullKey, JSON.stringify(envelope));
         lastSaveTimeRef.current = Date.now();
       } catch (err) {
-        console.warn('[ActivityAutosave] Failed to save draft:', err);
+        logger.warn('[ActivityAutosave] Failed to save draft:', err);
       }
     },
     [fullKey]
@@ -238,7 +239,7 @@ export function cleanupExpiredActivityDrafts(): void {
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
     if (keysToRemove.length > 0) {
-      console.log(`[ActivityAutosave] Cleaned up ${keysToRemove.length} expired draft(s)`);
+      logger.debug(`[ActivityAutosave] Cleaned up ${keysToRemove.length} expired draft(s)`);
     }
   } catch {
     /* non-critical */

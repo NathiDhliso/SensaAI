@@ -21,6 +21,7 @@
  */
 import type { SavedResult, StorageProvider } from '../types';
 import type { ParsedConcept } from '@/shared/utils/content-builder';
+import { logger } from '@/shared/utils/logger';
 const DB_NAME = 'sensa-storage';
 const DB_VERSION = 2; // Upgraded for concepts store
 const RESULTS_STORE = 'saved-results';
@@ -43,7 +44,7 @@ class IndexedDBStorage implements StorageProvider {
  this.initPromise = new Promise((resolve, reject) => {
  const request = indexedDB.open(DB_NAME, DB_VERSION);
  request.onerror = () => {
- console.error('IndexedDB error:', request.error);
+ logger.error('IndexedDB error:', request.error);
  reject(request.error);
  };
  request.onsuccess = () => {
@@ -84,7 +85,7 @@ class IndexedDBStorage implements StorageProvider {
  });
  };
  request.onerror = () => {
- console.error('Failed to save to IndexedDB:', request.error);
+ logger.error('Failed to save to IndexedDB:', request.error);
  resolve({
  success: false,
  error: request.error?.message || 'Failed to save result'
@@ -109,7 +110,7 @@ class IndexedDBStorage implements StorageProvider {
  resolve(request.result || null);
  };
  request.onerror = () => {
- console.error('Failed to load from IndexedDB:', request.error);
+ logger.error('Failed to load from IndexedDB:', request.error);
  resolve(null);
  };
  });
@@ -128,7 +129,7 @@ class IndexedDBStorage implements StorageProvider {
  resolve(true);
  };
  request.onerror = () => {
- console.error('Failed to delete from IndexedDB:', request.error);
+ logger.error('Failed to delete from IndexedDB:', request.error);
  resolve(false);
  };
  });
@@ -155,7 +156,7 @@ class IndexedDBStorage implements StorageProvider {
  resolve(results);
  };
  request.onerror = () => {
- console.error('Failed to list from IndexedDB:', request.error);
+ logger.error('Failed to list from IndexedDB:', request.error);
  resolve([]);
  };
  });
@@ -206,12 +207,12 @@ class IndexedDBStorage implements StorageProvider {
  resolve();
  };
  transaction.onerror = () => {
- console.error('[IndexedDB] Failed to cache concepts:', transaction.error);
+ logger.error('[IndexedDB] Failed to cache concepts:', transaction.error);
  reject(transaction.error);
  };
  });
  } catch (error) {
- console.error('[IndexedDB] Failed to save concepts:', error);
+ logger.error('[IndexedDB] Failed to save concepts:', error);
  }
  }
  /**
@@ -233,7 +234,7 @@ class IndexedDBStorage implements StorageProvider {
  resolve(concepts);
  };
  request.onerror = () => {
- console.error('[IndexedDB] Failed to load concepts by tier:', request.error);
+ logger.error('[IndexedDB] Failed to load concepts by tier:', request.error);
  resolve([]);
  };
  });
@@ -328,7 +329,7 @@ class IndexedDBStorage implements StorageProvider {
  try {
  // Check if Storage API is available
  if (!navigator.storage || !navigator.storage.estimate) {
- console.warn('[IndexedDB] Storage estimation API not supported');
+ logger.warn('[IndexedDB] Storage estimation API not supported');
  return null;
  }
  const estimate = await navigator.storage.estimate();
@@ -343,7 +344,7 @@ class IndexedDBStorage implements StorageProvider {
  }
  // Log warning if approaching limit
  if (isNearLimit) {
- console.warn(
+ logger.warn(
  `[IndexedDB] Storage quota warning: ${usagePercent.toFixed(1)}% used ` +
  `(${this.formatBytes(usage)} / ${this.formatBytes(quota)})`
  );
@@ -356,7 +357,7 @@ class IndexedDBStorage implements StorageProvider {
  isPersisted
  };
  } catch (error) {
- console.error('[IndexedDB] Failed to check storage quota:', error);
+ logger.error('[IndexedDB] Failed to check storage quota:', error);
  return null;
  }
  }
@@ -369,18 +370,18 @@ class IndexedDBStorage implements StorageProvider {
  async requestPersistentStorage(): Promise<boolean> {
  try {
  if (!navigator.storage || !navigator.storage.persist) {
- console.warn('[IndexedDB] Persistent storage API not supported');
+ logger.warn('[IndexedDB] Persistent storage API not supported');
  return false;
  }
  const isPersisted = await navigator.storage.persist();
  if (isPersisted) {
- console.log('[IndexedDB] Storage is now persistent');
+ logger.debug('[IndexedDB] Storage is now persistent');
  } else {
- console.log('[IndexedDB] Persistent storage request denied by browser');
+ logger.debug('[IndexedDB] Persistent storage request denied by browser');
  }
  return isPersisted;
  } catch (error) {
- console.error('[IndexedDB] Failed to request persistent storage:', error);
+ logger.error('[IndexedDB] Failed to request persistent storage:', error);
  return false;
  }
  }
@@ -401,7 +402,7 @@ class IndexedDBStorage implements StorageProvider {
  if (!quotaInfo || quotaInfo.usagePercent <= targetUsagePercent) {
  return 0; // No eviction needed
  }
- console.log(`[IndexedDB] Running eviction policy. Current: ${quotaInfo.usagePercent.toFixed(1)}%, Target: ${targetUsagePercent}%`);
+ logger.debug(`[IndexedDB] Running eviction policy. Current: ${quotaInfo.usagePercent.toFixed(1)}%, Target: ${targetUsagePercent}%`);
  let evictedCount = 0;
  const now = Date.now();
  const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
@@ -440,15 +441,15 @@ class IndexedDBStorage implements StorageProvider {
  }
  }
  }
- console.log(`[IndexedDB] Eviction complete. ${evictedCount} items removed.`);
+ logger.debug(`[IndexedDB] Eviction complete. ${evictedCount} items removed.`);
  // Log final state
  const finalQuota = await this.checkStorageQuota();
  if (finalQuota) {
- console.log(`[IndexedDB] Final usage: ${finalQuota.usagePercent.toFixed(1)}%`);
+ logger.debug(`[IndexedDB] Final usage: ${finalQuota.usagePercent.toFixed(1)}%`);
  }
  return evictedCount;
  } catch (error) {
- console.error('[IndexedDB] Eviction failed:', error);
+ logger.error('[IndexedDB] Eviction failed:', error);
  return evictedCount;
  }
  }

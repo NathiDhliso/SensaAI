@@ -41,18 +41,25 @@ class BedrockService:
     def __init__(self, region: str = "us-east-1"):
         """
         Initialize the Bedrock service with AWS client.
+        Uses cross-account IAM role assumption if CROSS_ACCOUNT_ROLE_ARN is set.
         Args:
             region: AWS region for Bedrock endpoint
         """
-        cross_account_ak = os.environ.get("CROSS_ACCOUNT_ACCESS_KEY_ID")
-        cross_account_sk = os.environ.get("CROSS_ACCOUNT_SECRET_ACCESS_KEY")
+        cross_account_role_arn = os.environ.get("CROSS_ACCOUNT_ROLE_ARN")
 
-        if cross_account_ak and cross_account_sk:
+        if cross_account_role_arn:
+            sts = boto3.client("sts", region_name=region)
+            creds = sts.assume_role(
+                RoleArn=cross_account_role_arn,
+                RoleSessionName="sensapbl-bedrock-generate",
+                DurationSeconds=3600,
+            )["Credentials"]
             self.client = boto3.client(
                 "bedrock-runtime",
                 region_name=region,
-                aws_access_key_id=cross_account_ak,
-                aws_secret_access_key=cross_account_sk,
+                aws_access_key_id=creds["AccessKeyId"],
+                aws_secret_access_key=creds["SecretAccessKey"],
+                aws_session_token=creds["SessionToken"],
                 config=Config(
                     retries={"max_attempts": 3, "mode": "adaptive"},
                     read_timeout=900,

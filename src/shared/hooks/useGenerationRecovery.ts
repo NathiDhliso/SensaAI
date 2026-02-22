@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '@/shared/utils/logger';
 import { useGenerationStore } from '@/store/generation-store';
 import { conceptsApi } from '@/shared/api';
 import { getErrorMessage, isAuthError } from '@/shared/api/client';
@@ -27,7 +28,7 @@ export function useGenerationRecovery() {
  (window as any).clearStuckJob = () => {
  const { clearActiveJob } = useGenerationStore.getState();
  clearActiveJob();
- console.log('[Recovery] Manually cleared stuck job');
+ logger.debug('[Recovery] Manually cleared stuck job');
  window.location.href = '/';
  };
  }
@@ -52,14 +53,14 @@ export function useGenerationRecovery() {
  const jobAge = Date.now() - activeJob.startedAt;
  const maxJobAge = 30 * 60 * 1000; // 30 minutes
  if (jobAge > maxJobAge) {
- console.warn('[Recovery] Job is too old, clearing stale job:', { 
+ logger.warn('[Recovery] Job is too old, clearing stale job:', { 
  jobId: activeJob.jobId, 
  ageMinutes: Math.floor(jobAge / 60000) 
  });
  clearActiveJob();
  return;
  }
- console.log('[Recovery] Found active job, resuming polling:', activeJob);
+ logger.debug('[Recovery] Found active job, resuming polling:', activeJob);
  // Set initial state to show we're recovering
  updateGenerationProgress({
  pass: 2,
@@ -67,7 +68,7 @@ export function useGenerationRecovery() {
  activity: 'Reconnecting to generation in progress...',
  progress: 10
  });
- console.log('[Recovery] Starting polling function...');
+ logger.debug('[Recovery] Starting polling function...');
  // Start polling the backend
  const pollForCompletion = async () => {
  let pollInterval = 2000;
@@ -78,19 +79,19 @@ export function useGenerationRecovery() {
  while (true) {
  // Check if we've exceeded max poll time
  if (Date.now() - startTime > maxRecoveryPollDurationMs) {
- console.error('[Recovery] Polling timeout exceeded');
+ logger.error('[Recovery] Polling timeout exceeded');
  setError('Unable to reconnect to generation. It may still be running on the server.');
  clearActiveJob();
  return;
  }
  try {
- console.log('[Recovery] Polling job status...', { jobId: activeJob.jobId, userId: activeJob.userId });
+ logger.debug('[Recovery] Polling job status...', { jobId: activeJob.jobId, userId: activeJob.userId });
  const status = await conceptsApi.getJobStatus(activeJob.jobId, activeJob.userId);
- console.log('[Recovery] Job status received:', status);
+ logger.debug('[Recovery] Job status received:', status);
  // Reset error counter on successful poll
  consecutiveErrors = 0;
  if (status.status === 'completed') {
- console.log('[Recovery] Job completed, loading results');
+ logger.debug('[Recovery] Job completed, loading results');
  updateGenerationProgress({
  pass: 3,
  status: 'in-progress',
@@ -151,7 +152,7 @@ export function useGenerationRecovery() {
  return;
  }
  if (status.status === 'failed') {
- console.error('[Recovery] Job failed:', status.error);
+ logger.error('[Recovery] Job failed:', status.error);
  setError(status.error || 'Generation failed');
  clearActiveJob();
  return;
@@ -167,7 +168,7 @@ export function useGenerationRecovery() {
  pollInterval = 2000;
  } catch (err) {
  consecutiveErrors++;
- console.error('[Recovery] Polling error:', { 
+ logger.error('[Recovery] Polling error:', { 
  error: err, 
  consecutiveErrors, 
  maxConsecutiveErrors 
@@ -175,7 +176,7 @@ export function useGenerationRecovery() {
  const errorMessage = getErrorMessage(err, 'Generation recovery failed');
  // Check for auth errors
  if (isAuthError(err)) {
- console.error('[Recovery] Auth failed during recovery');
+ logger.error('[Recovery] Auth failed during recovery');
  setError('Session expired. Please log in again.');
  clearActiveJob();
  setTimeout(() => navigate('/login'), 1000);
@@ -183,7 +184,7 @@ export function useGenerationRecovery() {
  }
  // Check for job not found (404) - job never existed
  if (errorMessage.toLowerCase().includes('404') || errorMessage.toLowerCase().includes('not found')) {
- console.error('[Recovery] Job not found on backend - likely never started');
+ logger.error('[Recovery] Job not found on backend - likely never started');
  setError('Generation job not found. The previous session may have failed to start.');
  clearActiveJob();
  setTimeout(() => navigate('/'), 2000);
@@ -191,14 +192,14 @@ export function useGenerationRecovery() {
  }
  // If too many consecutive errors, give up
  if (consecutiveErrors >= maxConsecutiveErrors) {
- console.error('[Recovery] Too many consecutive errors, giving up');
+ logger.error('[Recovery] Too many consecutive errors, giving up');
  setError('Unable to connect to generation job. Please try starting a new generation.');
  clearActiveJob();
  setTimeout(() => navigate('/'), 2000);
  return;
  }
  // Exponential backoff
- console.warn('[Recovery] Polling error, backing off:', { pollInterval, error: err });
+ logger.warn('[Recovery] Polling error, backing off:', { pollInterval, error: err });
  pollInterval = Math.min(maxPollInterval, pollInterval * 1.5);
  }
  await new Promise(resolve => setTimeout(resolve, pollInterval));
@@ -206,7 +207,7 @@ export function useGenerationRecovery() {
  };
  // Start polling (don't await - let it run in background)
  pollForCompletion().catch(err => {
- console.error('[Recovery] Fatal error during recovery:', err);
+ logger.error('[Recovery] Fatal error during recovery:', err);
  setError('Failed to recover generation. Please try again.');
  clearActiveJob();
  });

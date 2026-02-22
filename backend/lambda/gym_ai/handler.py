@@ -7,15 +7,21 @@ from shared.utils import api_response
 
 MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
-cross_account_ak = os.environ.get("CROSS_ACCOUNT_ACCESS_KEY_ID")
-cross_account_sk = os.environ.get("CROSS_ACCOUNT_SECRET_ACCESS_KEY")
+cross_account_role_arn = os.environ.get("CROSS_ACCOUNT_ROLE_ARN")
 
-if cross_account_ak and cross_account_sk:
+if cross_account_role_arn:
+    _sts = boto3.client("sts", region_name="us-east-1")
+    _creds = _sts.assume_role(
+        RoleArn=cross_account_role_arn,
+        RoleSessionName="sensapbl-bedrock-gym",
+        DurationSeconds=3600,
+    )["Credentials"]
     bedrock = boto3.client(
         "bedrock-runtime",
         region_name="us-east-1",
-        aws_access_key_id=cross_account_ak,
-        aws_secret_access_key=cross_account_sk
+        aws_access_key_id=_creds["AccessKeyId"],
+        aws_secret_access_key=_creds["SecretAccessKey"],
+        aws_session_token=_creds["SessionToken"],
     )
 else:
     bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")

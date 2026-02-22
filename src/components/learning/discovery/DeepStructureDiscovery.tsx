@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import type { SubjectClassification } from '@/shared/types/macro-workflow';
 import { DeepStructureDetails } from './DeepStructureDetails';
 import styles from './DeepStructureDiscovery.module.css';
+import { logger } from '@/shared/utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PROPS
@@ -62,7 +63,7 @@ export function DeepStructureDiscovery({
     );
 
     if (import.meta.env.DEV) {
-        console.log('[DeepStructureDiscovery] classification:', JSON.stringify({
+        logger.debug('[DeepStructureDiscovery] classification:', JSON.stringify({
             hasClassification: !!classification,
             hasValidDeepStructure,
             hasValidLifecycle,

@@ -45,6 +45,7 @@ import { toast } from '@/shared/utils/toast';
 import KnowledgeHealthPanel, { type ConceptHealth } from '@/components/learning/launchpad/KnowledgeHealthPanel';
 import BlueprintFormulaDashboard from '@/components/dashboard/BlueprintFormulaDashboard';
 import styles from './GymLaunchpad.module.css';
+import { logger } from '@/shared/utils/logger';
 const OBJECTIVES_KEY_PREFIX = 'sensa:objectives:';
 type LaunchpadTab = 'gym' | 'insights';
 function loadSavedObjectives(subjectId: string): string[] {
@@ -337,7 +338,7 @@ export default function GymLaunchpad() {
                 }
             } catch (err) {
                 setError('Failed to load content');
-                console.error(err);
+                logger.error(err);
             } finally {
                 setLoading(false);
             }

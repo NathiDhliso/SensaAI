@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useApproveFindings, useRejectFindings } from '../hooks/useFindings';
 import type { AuditFindingRecord } from '../types';
 import styles from './FindingCard.module.css';
+import { logger } from '@/shared/utils/logger';
 
 interface FindingCardProps {
   finding: AuditFindingRecord;
@@ -27,7 +28,7 @@ export function FindingCard({ finding, auditId, selected, onSelect }: FindingCar
         findingIds: [finding.findingId],
       });
     } catch (err) {
-      console.error('Failed to approve finding:', err);
+      logger.error('Failed to approve finding:', err);
     }
   };
 
@@ -42,7 +43,7 @@ export function FindingCard({ finding, auditId, selected, onSelect }: FindingCar
         reason,
       });
     } catch (err) {
-      console.error('Failed to reject finding:', err);
+      logger.error('Failed to reject finding:', err);
     }
   };
 
@@ -68,7 +69,7 @@ export function FindingCard({ finding, auditId, selected, onSelect }: FindingCar
 
         <div className={styles.headerInfo}>
           <h3 className={styles.conceptName}>{finding.conceptName}</h3>
-          <p className={styles.issueType}>{finding.issueType.replace(/-/g, ' ')}</p>
+          <p className={styles.issueType}>{finding.issueType?.replace(/-/g, ' ') || 'Unknown Issue'}</p>
         </div>
 
         <div className={styles.badges}>
@@ -87,8 +88,8 @@ export function FindingCard({ finding, auditId, selected, onSelect }: FindingCar
       <div className={styles.body}>
         <div className={styles.operation}>
           <span className={styles.operationLabel}>Operation:</span>
-          <span className={`${styles.operationValue} ${styles[finding.operation.toLowerCase()]}`}>
-            {finding.operation}
+          <span className={`${styles.operationValue} ${finding.operation ? styles[finding.operation.toLowerCase()] : ''}`}>
+            {finding.operation || 'Unknown'}
           </span>
           {finding.fieldPath && (
             <span className={styles.fieldPath}>→ {finding.fieldPath}</span>

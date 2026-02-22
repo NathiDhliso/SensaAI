@@ -1,11 +1,15 @@
 import { Router, Request, Response } from 'express';
+import { logger } from '../../../shared/utils/logger.js';
+import { validate, GenerateSchema, RepairSchema, ConceptUpdateSchema, UserdataUpsertSchema, UserdataBatchSchema } from '../../../shared/validation/schemas.js';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, QueryCommandOutput, ScanCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, UpdateCommand, QueryCommandOutput, ScanCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
 export const conceptsRouter = Router();
 interface AuthenticatedRequest extends Request {
-    user?: { sub: string; email: string };
+    user?: { sub: string; email: string; role?: string };
 }
 // AWS clients - configured for us-east-1
 const dynamoClient = new DynamoDBClient({
@@ -44,7 +48,7 @@ function parseCursor(cursor?: string): Record<string, unknown> | undefined {
 // Query concepts with pagination
 conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.user?.sub || req.query.userId as string;
+        const userId = req.user?.sub;
         const sessionId = req.query.sessionId as string;
         const tier = req.query.tier as string | undefined;
         const limit = Math.min(parseInt(req.query.limit as string) || 25, 100);
@@ -54,7 +58,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             return;
         }
         const gsi1pk = `USER#${userId}#SESSION#${sessionId}`;
-        console.log(`[Backend /concepts] Querying PK: '${gsi1pk}' for Tier: '${tier || 'all'}'`);
+        logger.debug(`[Backend /concepts] Querying PK: '${gsi1pk}' for Tier: '${tier || 'all'}'`);
         const result: QueryCommandOutput = await docClient.send(new QueryCommand({
             TableName: CONCEPTS_TABLE,
             IndexName: 'tier-index',
@@ -68,7 +72,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             ExclusiveStartKey: parseCursor(cursor)
         }));
         if (result.Items?.length === 0 && !tier) {
-            console.log(`[Backend /concepts] GSI returned 0 items (unfiltered). Falling back to main table with PK='${gsi1pk}'`);
+            logger.debug(`[Backend /concepts] GSI returned 0 items (unfiltered). Falling back to main table with PK='${gsi1pk}'`);
             const mainTableResult = await docClient.send(new QueryCommand({
                 TableName: CONCEPTS_TABLE,
                 KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
@@ -80,14 +84,14 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
                 ConsistentRead: true
             }));
             if (mainTableResult.Items && mainTableResult.Items.length > 0) {
-                console.log(`[Backend /concepts] Main table found ${mainTableResult.Items.length} items`);
+                logger.debug(`[Backend /concepts] Main table found ${mainTableResult.Items.length} items`);
                 result.Items = mainTableResult.Items;
                 result.LastEvaluatedKey = mainTableResult.LastEvaluatedKey;
             } else {
-                console.log(`[Backend /concepts] Main table also returned 0 items`);
+                logger.debug(`[Backend /concepts] Main table also returned 0 items`);
             }
         } else {
-            console.log(`[Backend /concepts] Query returned ${result.Items?.length ?? 0} items for tier='${tier || 'all'}'`);
+            logger.debug(`[Backend /concepts] Query returned ${result.Items?.length ?? 0} items for tier='${tier || 'all'}'`);
         }
         const concepts = (result.Items || []).map(item => ({
             id: item.conceptId,
@@ -116,12 +120,12 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             count: concepts.length
         });
     } catch (error) {
-        console.error('Concepts query error:', error);
+        logger.error('Concepts query error:', error);
         res.status(500).json({ error: 'Failed to query concepts' });
     }
 });
 // Start async concept generation via Lambda
-conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response) => {
+conceptsRouter.post('/generate', validate(GenerateSchema), async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.sub || 'anonymous';
         const { subject, context, trunks, action, jobId: reqJobId } = req.body;
@@ -129,10 +133,10 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
         // Always ensure sessionId exists - generate one if not provided
         const sessionId = req.body.sessionId || uuidv4();
 
-        console.log(`[Backend /generate] Request received [action=${action || 'generate'}]:`, { subject, userId, sessionId });
+        logger.debug(`[Backend /generate] Request received [action=${action || 'generate'}]:`, { subject, userId, sessionId });
 
         if (!subject) {
-            console.log('[Backend /generate] ERROR: Subject is required');
+            logger.debug('[Backend /generate] Subject is required');
             res.status(400).json({ error: 'Subject is required' });
             return;
         }
@@ -141,7 +145,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
         const isSyncAction = action === 'classify_only' || action === 'suggest_structure';
 
         if (!isSyncAction) {
-            console.log('[Backend /generate] Creating async job record...', jobId);
+            logger.debug('[Backend /generate] Creating async job record...', jobId);
             await docClient.send(new PutCommand({
                 TableName: JOBS_TABLE,
                 Item: {
@@ -165,6 +169,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
                 jobId,
                 context,
                 action: action || 'generate',
+                role: (req as AuthenticatedRequest).user?.role,
                 ...(trunks && { trunks }),
             })
         });
@@ -175,7 +180,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
             Payload: Buffer.from(payload)
         });
 
-        console.log(`[Backend /generate] Invoking Lambda (${isSyncAction ? 'Sync' : 'Async'}):`, GENERATE_FUNCTION);
+        logger.debug(`[Backend /generate] Invoking Lambda (${isSyncAction ? 'Sync' : 'Async'}):`, GENERATE_FUNCTION);
 
         try {
             const invokeResponse = await lambdaClient.send(invokeCommand);
@@ -186,7 +191,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
                     JSON.parse(Buffer.from(invokeResponse.Payload).toString()) : null;
 
                 if (!responsePayload || responsePayload.statusCode >= 400) {
-                    console.error('[Backend /generate] Lambda sync error:', responsePayload);
+                    logger.error('[Backend /generate] Lambda sync error:', responsePayload);
                     res.status(responsePayload?.statusCode || 500).json(
                         JSON.parse(responsePayload?.body || '{"error": "Synchronous action failed"}')
                     );
@@ -200,11 +205,11 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
 
             // Async/Event response handling
             if (invokeResponse.FunctionError) {
-                console.error('[Backend /generate] Lambda returned error:', invokeResponse.FunctionError);
+                logger.error('[Backend /generate] Lambda returned error:', invokeResponse.FunctionError);
                 throw new Error(`Lambda invocation failed: ${invokeResponse.FunctionError}`);
             }
-        } catch (lambdaError: any) {
-            console.error('[Backend /generate] Lambda invocation error:', lambdaError);
+        } catch (lambdaError: unknown) {
+            logger.error('[Backend /generate] Lambda invocation error:', lambdaError);
             if (!isSyncAction) {
                 // Mark job as failed for async actions
                 await docClient.send(new PutCommand({
@@ -215,7 +220,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
                         sessionId,
                         subject,
                         status: 'failed',
-                        error: `Lambda invocation failed: ${lambdaError.message}`,
+                        error: `Lambda invocation failed: ${lambdaError instanceof Error ? lambdaError.message : String(lambdaError)}`,
                         createdAt: Math.floor(Date.now() / 1000),
                         expiresAt: Math.floor(Date.now() / 1000) + 86400
                     }
@@ -224,7 +229,7 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
             throw lambdaError;
         }
 
-        console.log(`[Backend /generate] Lambda invoked asynchronously for jobId: ${jobId}`);
+        logger.debug(`[Backend /generate] Lambda invoked asynchronously for jobId: ${jobId}`);
         res.json({
             jobId,
             sessionId,
@@ -232,19 +237,19 @@ conceptsRouter.post('/generate', async (req: AuthenticatedRequest, res: Response
             message: 'Generation started'
         });
     } catch (error) {
-        console.error('[Backend /generate] ERROR:', error);
+        logger.error('[Backend /generate] ERROR:', error);
         res.status(500).json({ error: 'Failed to start generation' });
     }
 });
 // List all jobs for a user
 conceptsRouter.get('/jobs', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.user?.sub || req.query.userId as string;
+        const userId = req.user?.sub;
         if (!userId) {
             res.status(400).json({ error: 'userId is required' });
             return;
         }
-        console.log('[Backend /jobs] Listing jobs for user:', userId);
+        logger.debug('[Backend /jobs] Listing jobs for user:', userId);
         const result = await docClient.send(new ScanCommand({
             TableName: JOBS_TABLE,
             FilterExpression: 'userId = :userId',
@@ -263,32 +268,30 @@ conceptsRouter.get('/jobs', async (req: AuthenticatedRequest, res: Response) => 
         // Sort by createdAt desc
         jobs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         res.json({ jobs });
-    } catch (error: any) {
-        console.error('[Backend /jobs] ERROR:', error);
-        // Debug logging
-        try {
-            const fs = await import('fs');
-            fs.appendFileSync('debug_jobs_error.txt', `[${new Date().toISOString()}] ${error.message}\nStack: ${error.stack}\n`);
-        } catch (e) { console.error('Failed to write debug log', e); }
-        res.status(500).json({ error: 'Failed to list jobs', details: error.message });
+    } catch (error: unknown) {
+        logger.error('[Backend /jobs] ERROR:', error);
+        res.status(500).json({ error: 'Failed to list jobs' });
     }
 });
 // Get job status
 conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { jobId } = req.params;
-        const userId = req.user?.sub || req.query.userId as string;
-        console.log('[Backend /jobs/:jobId] Checking status:', { jobId, userId });
+        const userId = req.user?.sub;
+        if (!userId) {
+            res.status(401).json({ error: 'Authentication required' });
+            return;
+        }
         const result = await docClient.send(new GetCommand({
             TableName: JOBS_TABLE,
             Key: { jobId, userId }
         }));
         if (!result.Item) {
-            console.log('[Backend /jobs/:jobId] Job not found:', { jobId, userId });
+            logger.debug('[Backend /jobs/:jobId] Job not found:', { jobId, userId });
             res.status(404).json({ error: 'Job not found' });
             return;
         }
-        console.log('[Backend /jobs/:jobId] Job found:', {
+        logger.debug('[Backend /jobs/:jobId] Job found:', {
             jobId: result.Item.jobId,
             status: result.Item.status,
             sessionId: result.Item.sessionId,
@@ -305,18 +308,18 @@ conceptsRouter.get('/jobs/:jobId', async (req: AuthenticatedRequest, res: Respon
             classification: result.Item.classification
         });
     } catch (error) {
-        console.error('[Backend /jobs/:jobId] ERROR:', error);
+        logger.error('[Backend /jobs/:jobId] ERROR:', error);
         res.status(500).json({ error: 'Failed to get job status' });
     }
 });
 // Repair a single concept via Lambda
-conceptsRouter.post('/repair', async (req: AuthenticatedRequest, res: Response) => {
+conceptsRouter.post('/repair', validate(RepairSchema), async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.sub || 'anonymous';
         const { subject, conceptName, issue } = req.body;
-        console.log('[Backend /repair] Request received:', { subject, conceptName, issue, userId });
+        logger.debug('[Backend /repair] Request received:', { subject, conceptName, issue, userId });
         if (!subject || !conceptName || !issue) {
-            console.log('[Backend /repair] ERROR: subject, conceptName, and issue are required');
+            logger.debug('[Backend /repair] subject, conceptName, and issue are required');
             res.status(400).json({ error: 'subject, conceptName, and issue are required' });
             return;
         }
@@ -334,45 +337,111 @@ conceptsRouter.post('/repair', async (req: AuthenticatedRequest, res: Response) 
             InvocationType: 'RequestResponse', // Synchronous: wait for Lambda to finish
             Payload: Buffer.from(payload)
         });
-        console.log('[Backend /repair] Invoking Lambda:', GENERATE_FUNCTION);
+        logger.debug('[Backend /repair] Invoking Lambda:', GENERATE_FUNCTION);
         try {
             const invokeResponse = await lambdaClient.send(invokeCommand);
-            console.log('[Backend /repair] Lambda invoke response:', {
+            logger.debug('[Backend /repair] Lambda invoke response:', {
                 StatusCode: invokeResponse.StatusCode,
                 FunctionError: invokeResponse.FunctionError
             });
             if (invokeResponse.FunctionError) {
-                console.error('[Backend /repair] Lambda returned error:', invokeResponse.FunctionError);
+                logger.error('[Backend /repair] Lambda returned error:', invokeResponse.FunctionError);
                 throw new Error(`Lambda repair failed: ${invokeResponse.FunctionError}`);
             }
             // Parse Lambda response
             const responsePayload = invokeResponse.Payload ?
                 JSON.parse(Buffer.from(invokeResponse.Payload).toString()) : null;
             if (!responsePayload || responsePayload.statusCode !== 200) {
-                console.error('[Backend /repair] Lambda returned non-200:', responsePayload);
+                logger.error('[Backend /repair] Lambda returned non-200:', responsePayload);
                 throw new Error(`Lambda repair failed with status: ${responsePayload?.statusCode}`);
             }
             const lambdaBody = JSON.parse(responsePayload.body);
-            console.log('[Backend /repair] Repair completed successfully');
+            logger.debug('[Backend /repair] Repair completed successfully');
             res.json(lambdaBody.concept);
-        } catch (lambdaError: any) {
-            console.error('[Backend /repair] Lambda invocation error:', lambdaError);
+        } catch (lambdaError: unknown) {
+            logger.error('[Backend /repair] Lambda invocation error:', lambdaError);
             throw lambdaError;
         }
     } catch (error) {
-        console.error('[Backend /repair] ERROR:', error);
+        logger.error('[Backend /repair] ERROR:', error);
         res.status(500).json({ error: 'Failed to repair concept' });
     }
 });
+// Update a single concept (curator editing)
+conceptsRouter.put('/:sessionId/concept/:conceptId', validate(ConceptUpdateSchema), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.sub;
+        const { sessionId, conceptId } = req.params;
+        const { tier, ...updates } = req.body;
+
+        if (!userId) {
+            res.status(401).json({ error: 'Authentication required' });
+            return;
+        }
+        if (!tier) {
+            res.status(400).json({ error: 'tier is required to locate the concept' });
+            return;
+        }
+
+        const pk = `USER#${userId}#SESSION#${sessionId}`;
+        const sk = `TIER#${tier}#${conceptId}`;
+
+        // Build dynamic UpdateExpression from provided fields
+        const expressionParts: string[] = ['#updatedAt = :now'];
+        const exprNames: Record<string, string> = { '#updatedAt': 'updatedAt' };
+        const exprValues: Record<string, unknown> = { ':now': Math.floor(Date.now() / 1000) };
+
+        const allowedFields = [
+            'name', 'description', 'keyPoints', 'phase1', 'phase2', 'phase3',
+            'mnemonic', 'shape', 'whyYouNeed', 'cognitiveLevel', 'commonPitfalls',
+            'technicalDetails', 'workedExample', 'perspectives',
+        ];
+
+        for (const field of allowedFields) {
+            if (updates[field] !== undefined) {
+                expressionParts.push(`#${field} = :${field}`);
+                exprNames[`#${field}`] = field;
+                exprValues[`:${field}`] = updates[field];
+            }
+        }
+
+        logger.debug('[Backend PUT concept] Updating:', { pk, sk, fields: Object.keys(updates) });
+
+        const result = await docClient.send(new UpdateCommand({
+            TableName: CONCEPTS_TABLE,
+            Key: { PK: pk, SK: sk },
+            UpdateExpression: 'SET ' + expressionParts.join(', '),
+            ExpressionAttributeNames: exprNames,
+            ExpressionAttributeValues: exprValues,
+            ConditionExpression: 'attribute_exists(PK)',
+            ReturnValues: 'ALL_NEW',
+        }));
+
+        if (!result.Attributes) {
+            res.status(404).json({ error: 'Concept not found' });
+            return;
+        }
+
+        logger.debug('[Backend PUT concept] Updated successfully:', conceptId);
+        res.json({ status: 'ok', concept: result.Attributes });
+    } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'ConditionalCheckFailedException') {
+            res.status(404).json({ error: 'Concept not found' });
+            return;
+        }
+        logger.error('[Backend PUT concept] ERROR:', error);
+        res.status(500).json({ error: 'Failed to update concept' });
+    }
+});
+
 conceptsRouter.delete('/:jobId', async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { jobId } = req.params;
-        const userId = req.user?.sub || req.query.userId as string;
+        const userId = req.user?.sub;
         if (!userId) {
-            res.status(400).json({ error: 'userId is required' });
+            res.status(401).json({ error: 'Authentication required' });
             return;
         }
-        console.log('[Backend DELETE /concepts/:jobId] Deleting:', { jobId, userId });
         let sessionId = jobId;
         const jobResult = await docClient.send(new GetCommand({
             TableName: JOBS_TABLE,
@@ -381,7 +450,7 @@ conceptsRouter.delete('/:jobId', async (req: AuthenticatedRequest, res: Response
         if (jobResult.Item?.sessionId) {
             sessionId = jobResult.Item.sessionId;
         }
-        console.log('[Backend DELETE] Resolved sessionId:', sessionId);
+        logger.debug('[Backend DELETE] Resolved sessionId:', sessionId);
         const conceptsPK = `USER#${userId}#SESSION#${sessionId}`;
         let conceptsDeleted = 0;
         let lastEvaluatedKey: Record<string, unknown> | undefined;
@@ -420,17 +489,83 @@ conceptsRouter.delete('/:jobId', async (req: AuthenticatedRequest, res: Response
                 Key: { PK: userPK, SK: subjectSK }
             }));
         } catch (metaErr) {
-            console.warn('[Backend DELETE] Metadata cleanup warning:', metaErr);
+            logger.warn('[Backend DELETE] Metadata cleanup warning:', metaErr);
         }
         await docClient.send(new DeleteCommand({
             TableName: JOBS_TABLE,
             Key: { jobId, userId }
         }));
-        console.log(`[Backend DELETE] Complete - job: ${jobId}, concepts: ${conceptsDeleted}`);
+        logger.debug(`[Backend DELETE] Complete - job: ${jobId}, concepts: ${conceptsDeleted}`);
         res.json({ success: true, deletedJobId: jobId, conceptsDeleted });
     } catch (error) {
-        console.error('[Backend DELETE /concepts/:jobId] ERROR:', error);
+        logger.error('[Backend DELETE /concepts/:jobId] ERROR:', error);
         res.status(500).json({ error: 'Failed to delete job' });
+    }
+});
+
+// ==============================================================================
+// S3 PRESIGNED UPLOAD URL
+// ==============================================================================
+
+const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
+const CONTENT_BUCKET = process.env.CONTENT_BUCKET || '';
+
+const ALLOWED_UPLOAD_TYPES = new Set([
+    'application/pdf',
+    'text/plain',
+    'text/csv',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'image/png',
+    'image/jpeg',
+]);
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50 MB
+
+// Get a presigned URL for uploading a file to S3
+conceptsRouter.post('/upload-url', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.sub;
+        if (!userId) {
+            res.status(401).json({ error: 'Authentication required' });
+            return;
+        }
+        if (!CONTENT_BUCKET) {
+            logger.error('[Backend /upload-url] CONTENT_BUCKET env var not set');
+            res.status(503).json({ error: 'Upload service not configured' });
+            return;
+        }
+
+        const { fileName, contentType, fileSize } = req.body;
+        if (!fileName || !contentType) {
+            res.status(400).json({ error: 'fileName and contentType are required' });
+            return;
+        }
+        if (!ALLOWED_UPLOAD_TYPES.has(contentType)) {
+            res.status(400).json({ error: `Content type '${contentType}' is not allowed` });
+            return;
+        }
+        if (fileSize && fileSize > MAX_UPLOAD_SIZE) {
+            res.status(400).json({ error: `File size exceeds maximum of ${MAX_UPLOAD_SIZE / 1024 / 1024}MB` });
+            return;
+        }
+
+        // Sanitize fileName to prevent path traversal
+        const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const key = `blueprints/${userId}/${Date.now()}_${safeName}`;
+
+        const command = new PutObjectCommand({
+            Bucket: CONTENT_BUCKET,
+            Key: key,
+            ContentType: contentType,
+        });
+
+        const url = await getSignedUrl(s3Client, command, { expiresIn: 300 }); // 5 min
+
+        logger.debug('[Backend /upload-url] Generated presigned URL for:', { key, contentType });
+        res.json({ url, key, bucket: CONTENT_BUCKET });
+    } catch (error) {
+        logger.error('[Backend /upload-url] ERROR:', error);
+        res.status(500).json({ error: 'Failed to generate upload URL' });
     }
 });
 
@@ -443,15 +578,14 @@ const USERDATA_TABLE = process.env.USERDATA_TABLE || 'sensapbl-userdata-dev';
 // Get user data items, optionally filtered by dataKey prefix
 conceptsRouter.get('/userdata', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.user?.sub || req.query.userId as string;
+        const userId = req.user?.sub;
         const prefix = req.query.prefix as string | undefined;
         if (!userId) {
-            res.status(400).json({ error: 'userId is required' });
+            res.status(401).json({ error: 'Authentication required' });
             return;
         }
-        console.log('[Backend /userdata] GET:', { userId, prefix });
 
-        const queryParams: Record<string, unknown> = {
+        const queryParams = {
             TableName: USERDATA_TABLE,
             KeyConditionExpression: prefix
                 ? 'userId = :uid AND begins_with(dataKey, :prefix)'
@@ -470,21 +604,20 @@ conceptsRouter.get('/userdata', async (req: AuthenticatedRequest, res: Response)
         }));
         res.json({ items, count: items.length });
     } catch (error) {
-        console.error('[Backend /userdata GET] ERROR:', error);
+        logger.error('[Backend /userdata GET] ERROR:', error);
         res.status(500).json({ error: 'Failed to get user data' });
     }
 });
 
 // Upsert a single user data item
-conceptsRouter.put('/userdata', async (req: AuthenticatedRequest, res: Response) => {
+conceptsRouter.put('/userdata', validate(UserdataUpsertSchema), async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.user?.sub || req.body.userId as string;
+        const userId = req.user?.sub;
         const { dataKey, data } = req.body;
         if (!userId || !dataKey || data === undefined) {
-            res.status(400).json({ error: 'userId, dataKey, and data are required' });
+            res.status(400).json({ error: 'Authentication and dataKey and data are required' });
             return;
         }
-        console.log('[Backend /userdata] PUT:', { userId, dataKey: dataKey.substring(0, 30) });
 
         await docClient.send(new PutCommand({
             TableName: USERDATA_TABLE,
@@ -497,21 +630,20 @@ conceptsRouter.put('/userdata', async (req: AuthenticatedRequest, res: Response)
         }));
         res.json({ status: 'ok', dataKey });
     } catch (error) {
-        console.error('[Backend /userdata PUT] ERROR:', error);
+        logger.error('[Backend /userdata PUT] ERROR:', error);
         res.status(500).json({ error: 'Failed to put user data' });
     }
 });
 
 // Batch upsert user data items
-conceptsRouter.post('/userdata/batch', async (req: AuthenticatedRequest, res: Response) => {
+conceptsRouter.post('/userdata/batch', validate(UserdataBatchSchema), async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.user?.sub || req.body.userId as string;
+        const userId = req.user?.sub;
         const items = req.body.items as { dataKey: string; data: unknown }[];
         if (!userId || !items || items.length === 0) {
-            res.status(400).json({ error: 'userId and items are required' });
+            res.status(400).json({ error: 'Authentication and items are required' });
             return;
         }
-        console.log('[Backend /userdata/batch] POST:', { userId, count: items.length });
 
         const now = Math.floor(Date.now() / 1000);
         // DynamoDB BatchWrite max is 25 items; chunk if needed
@@ -537,7 +669,7 @@ conceptsRouter.post('/userdata/batch', async (req: AuthenticatedRequest, res: Re
         }
         res.json({ status: 'ok', count: items.length });
     } catch (error) {
-        console.error('[Backend /userdata/batch POST] ERROR:', error);
+        logger.error('[Backend /userdata/batch POST] ERROR:', error);
         res.status(500).json({ error: 'Failed to batch put user data' });
     }
 });

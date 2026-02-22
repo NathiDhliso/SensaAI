@@ -26,10 +26,15 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const DevSandbox = lazy(() => import('./pages/DevSandbox'));
 const CuratorDashboard = lazy(() => import('./pages/CuratorDashboard'));
 
-// CLM Components
-import { AuditQueueView, AuditDetailView, AnalyticsDashboard } from './features/clm';
+// CLM Components (lazy-loaded to avoid bundling for learners)
+const AuditQueueView = lazy(() => import('./features/clm/components/AuditQueueView').then(m => ({ default: m.AuditQueueView })));
+const AuditDetailView = lazy(() => import('./features/clm/components/AuditDetailView').then(m => ({ default: m.AuditDetailView })));
+const AnalyticsDashboard = lazy(() => import('./features/clm/components/AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })));
 const ContentGenerator = lazy(() => import('./features/clm/pages/ContentGenerator'));
 const GenerateLanding = lazy(() => import('./features/clm/pages/GenerateLanding'));
+const CuratorLibraryView = lazy(() => import('./features/clm/pages/CuratorLibraryView'));
+const CuratorPreview = lazy(() => import('./features/clm/pages/CuratorPreview'));
+const ContentEditor = lazy(() => import('./features/clm/pages/ContentEditor'));
 
 function useMigration() {
     const hasRun = useRef(false);
@@ -69,11 +74,8 @@ function App() {
                     <NavSpacer />
                     <Routes>
                         {/* ═══════════════════════════════════════════════════════════════
- PUBLIC ROUTES
- ═══════════════════════════════════════════════════════════════ */}
-                        <Route path="/" element={<Landing />} />
-                        <Route path="/dev" element={<DevSandbox />} />
-                        <Route path="/home" element={<Home />} />
+                            AUTHENTICATION ROUTES
+                        ═══════════════════════════════════════════════════════════════ */}
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<SignUp />} />
                         <Route path="/confirm-signup" element={<ConfirmSignUp />} />
@@ -83,31 +85,16 @@ function App() {
                         <Route path="/callback" element={<AuthCallback />} />
 
                         {/* ═══════════════════════════════════════════════════════════════
- LEARNING FLOW - Unified Study Command Center
- ═══════════════════════════════════════════════════════════════ */}
-
-                        {/*
- * Unified Study Command Center
- * Combines Overview and Learning modes into tabbed interface
- * Phase 2.1 of Silver Bullet Architecture
- * 
- * ActiveLearningEngine is embedded in the Learn tab, not a standalone route
- */}
-                        <Route path="/study/:subjectId" element={
-                            <ProtectedRoute><UnifiedStudyRoom /></ProtectedRoute>
-                        } />
-
-                        {/* 
- * Content Launchpad - Analytics and Readiness Dashboard
- * The entry point for all saved content "View" actions
- */}
-                        <Route path="/launchpad/:subjectId" element={
-                            <ProtectedRoute><GymLaunchpad /></ProtectedRoute>
-                        } />
+                            LANDING & HOME
+                        ═══════════════════════════════════════════════════════════════ */}
+                        <Route path="/" element={<Landing />} />
+                        <Route path="/home" element={<Home />} />
 
                         {/* ═══════════════════════════════════════════════════════════════
- LIBRARY
- ═══════════════════════════════════════════════════════════════ */}
+                            LEARNER ROUTES (Protected)
+                        ═══════════════════════════════════════════════════════════════ */}
+                        
+                        {/* Library & Content Discovery */}
                         <Route path="/library" element={
                             <ProtectedRoute><MasteryDashboard /></ProtectedRoute>
                         } />
@@ -115,9 +102,25 @@ function App() {
                             <ProtectedRoute><CommunityLibrary /></ProtectedRoute>
                         } />
 
+                        {/* Content Launchpad - Entry point for saved content */}
+                        <Route path="/launchpad/:subjectId" element={
+                            <ProtectedRoute><GymLaunchpad /></ProtectedRoute>
+                        } />
+
+                        {/* Unified Study Room - Active learning interface */}
+                        <Route path="/study/:subjectId" element={
+                            <ProtectedRoute><UnifiedStudyRoom /></ProtectedRoute>
+                        } />
+
+                        {/* Content Generation - Learner-accessible generation flow */}
+                        <Route path="/generate/:subject" element={
+                            <ProtectedRoute><ContentGenerator /></ProtectedRoute>
+                        } />
+
                         {/* ═══════════════════════════════════════════════════════════════
- CURATOR DASHBOARD - Content Lifecycle Management (Admin/Curator Only)
- ═══════════════════════════════════════════════════════════════ */}
+                            CURATOR ROUTES (Admin/Curator Only)
+                            Content Lifecycle Management Dashboard
+                        ═══════════════════════════════════════════════════════════════ */}
                         <Route path="/curator" element={
                             <ProtectedRoute>
                                 <RoleGuard allowedRoles={['curator', 'admin']}>
@@ -126,14 +129,20 @@ function App() {
                             </ProtectedRoute>
                         }>
                             <Route index element={<AuditQueueView />} />
-                            <Route path="generate" element={<GenerateLanding />} />
-                            <Route path="generate/:subject" element={<ContentGenerator />} />
                             <Route path="audits" element={<AuditQueueView />} />
                             <Route path="audits/:auditId" element={<AuditDetailView />} />
                             <Route path="analytics" element={<AnalyticsDashboard />} />
+                            <Route path="library" element={<CuratorLibraryView />} />
+                            <Route path="preview/:subjectId" element={<CuratorPreview />} />
+                            <Route path="edit/:subjectId" element={<ContentEditor />} />
+                            <Route path="generate" element={<GenerateLanding />} />
+                            <Route path="generate/:subject" element={<ContentGenerator />} />
                         </Route>
 
-                        {/* Catch-all 404 */}
+                        {/* ═══════════════════════════════════════════════════════════════
+                            DEVELOPMENT & FALLBACK
+                        ═══════════════════════════════════════════════════════════════ */}
+                        <Route path="/dev" element={<DevSandbox />} />
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                     <SettingsPanel />

@@ -1,0 +1,42 @@
+{
+  "api_concepts_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://ldppp79nj5.execute-api.us-east-1.amazonaws.com/concepts"
+  },
+  "api_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://ldppp79nj5.execute-api.us-east-1.amazonaws.com"
+  },
+  "api_generate_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://ldppp79nj5.execute-api.us-east-1.amazonaws.com/generate"
+  },
+  "cognito_client_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "mif4j59jfd5armi6a254r55la"
+  },
+  "cognito_domain": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sensapbl-dev-v2-dev.auth.us-east-1.amazoncognito.com"
+  },
+  "cognito_user_pool_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "us-east-1_vNseSD26p"
+  },
+  "dynamodb_concepts_table": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sensapbl-concepts-dev"
+  },
+  "s3_content_bucket": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sensapbl-dev-content-311964231104"
+  }
+}

@@ -13,6 +13,10 @@ import type {
  LearningStage,
  LearningConcept
 } from './types';
+
+/** Stable reference to avoid re-renders from new [] allocations */
+const EMPTY_STAGES: LearningStage[] = [];
+const EMPTY_CONCEPTS: LearningConcept[] = [];
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -114,8 +118,8 @@ export const createSessionSlice: StateCreator<
  });
  },
  getSession: () => get().currentSession,
- getStages: () => get().currentSession?.stages || [],
- getConcepts: () => get().currentSession?.concepts || [],
+ getStages: () => get().currentSession?.stages || EMPTY_STAGES,
+ getConcepts: () => get().currentSession?.concepts || EMPTY_CONCEPTS,
  hasCustomContent: () => get().currentSession !== null,
  startSession: () => {
  const state = get();
@@ -175,4 +179,4 @@ export const createSessionSlice: StateCreator<
  }
 });
 // Export helper for use in other slices
-export { getInitialProgress, getDefaultCognitiveMetrics };
+export { getInitialProgress, getDefaultCognitiveMetrics };

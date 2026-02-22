@@ -11,6 +11,7 @@
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { logger } from '@/shared/utils/logger';
 import { authSessionApi, getErrorMessage, isApiError, isAuthError } from '@/shared/api/client';
 import type { AuthTokens, AuthUser } from '@/shared/api/client';
 
@@ -225,7 +226,7 @@ export const useAuthStore = create<AuthStore>()(
  // Redirect to Cognito
  window.location.href = `${COGNITO_DOMAIN}/oauth2/authorize?${params}`;
  } catch (error) {
- console.error('[Auth] Failed to initiate login:', error);
+ logger.error('[Auth] Failed to initiate login:', error);
  set({ error: 'Failed to start login process. Please try again.' });
  }
  },
@@ -243,7 +244,7 @@ export const useAuthStore = create<AuthStore>()(
  lastValidated: Date.now()
  });
  } catch (error) {
- console.error('[Auth] Login error:', error);
+ logger.error('[Auth] Login error:', error);
  const errorMessage = formatAuthError(error);
  set({
  error: errorMessage,
@@ -274,7 +275,7 @@ export const useAuthStore = create<AuthStore>()(
  await client.send(command);
  set({ isLoading: false, error: null });
  } catch (error) {
- console.error('[Auth] Sign up error:', error);
+ logger.error('[Auth] Sign up error:', error);
  const errorMessage = formatAuthError(error);
  set({ error: errorMessage, isLoading: false });
  throw new Error(errorMessage);
@@ -294,7 +295,7 @@ export const useAuthStore = create<AuthStore>()(
  await client.send(command);
  set({ isLoading: false, error: null });
  } catch (error) {
- console.error('[Auth] Confirm sign up error:', error);
+ logger.error('[Auth] Confirm sign up error:', error);
  const errorMessage = formatAuthError(error);
  set({ error: errorMessage, isLoading: false });
  throw new Error(errorMessage);
@@ -313,7 +314,7 @@ export const useAuthStore = create<AuthStore>()(
  await client.send(command);
  set({ isLoading: false, error: null });
  } catch (error) {
- console.error('[Auth] Resend code error:', error);
+ logger.error('[Auth] Resend code error:', error);
  const errorMessage = formatAuthError(error);
  set({ error: errorMessage, isLoading: false });
  throw new Error(errorMessage);
@@ -324,7 +325,7 @@ export const useAuthStore = create<AuthStore>()(
  try {
  await authSessionApi.clearSession();
  } catch (error) {
- console.warn('[Auth] Error during remote logout:', error);
+ logger.warn('[Auth] Error during remote logout:', error);
  }
  set({
  user: null,
@@ -343,7 +344,7 @@ export const useAuthStore = create<AuthStore>()(
  const codeVerifier = localStorage.getItem(CODE_VERIFIER_KEY);
  if (!codeVerifier) {
  const message = 'Authentication session expired. Please sign in again.';
- console.warn('[Auth] PKCE code verifier missing.');
+ logger.warn('[Auth] PKCE code verifier missing.');
  set({
  user: null,
  isAuthenticated: false,
@@ -369,7 +370,7 @@ export const useAuthStore = create<AuthStore>()(
  lastValidated: Date.now()
  });
  } catch (error) {
- console.error('[Auth] Callback error:', error);
+ logger.error('[Auth] Callback error:', error);
  const errorMessage = formatAuthError(error);
  localStorage.removeItem(CODE_VERIFIER_KEY);
  set({
@@ -415,7 +416,7 @@ export const useAuthStore = create<AuthStore>()(
  });
  return false;
  } catch (error) {
- console.warn('[Auth] Session validation failed:', error);
+ logger.warn('[Auth] Session validation failed:', error);
  set({
  user: null,
  isAuthenticated: false,
@@ -447,7 +448,7 @@ export const useAuthStore = create<AuthStore>()(
  }
  return false;
  } catch (error) {
- console.warn('[Auth] Session refresh failed:', error);
+ logger.warn('[Auth] Session refresh failed:', error);
  if (isAuthError(error)) {
  set({
  user: null,
@@ -482,7 +483,7 @@ export const useAuthStore = create<AuthStore>()(
 
  initializeAuthListeners: () => {
  const handleUnauthorized = async () => {
- console.warn('[Auth] Received unauthorized event, trying refresh...');
+ logger.warn('[Auth] Received unauthorized event, trying refresh...');
  const refreshed = await get().refreshSession();
  if (!refreshed) {
  set({
@@ -514,7 +515,7 @@ export const useAuthStore = create<AuthStore>()(
           setTimeout(async () => {
             const isValid = await useAuthStore.getState().validateSession();
             if (!isValid) {
-              console.warn('[Auth] Session invalid on hydration, clearing state');
+              logger.warn('[Auth] Session invalid on hydration, clearing state');
               useAuthStore.setState({
                 user: null,
                 isAuthenticated: false,

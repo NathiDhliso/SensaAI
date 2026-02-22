@@ -5,6 +5,7 @@
  * Provides the current authenticated userId lookup and
  * a fire-and-forget wrapper for non-critical cloud writes.
  */
+import { logger } from '@/shared/utils/logger';
 
 /**
  * Get the current authenticated user's ID from Zustand's persisted auth state.
@@ -28,6 +29,6 @@ export function getCurrentUserId(): string | null {
  */
 export function fireAndForget(fn: () => Promise<unknown>, label: string): void {
     fn().catch(err => {
-        console.warn(`[CloudSync:${label}] Fire-and-forget failed:`, err);
+        logger.warn(`[CloudSync:${label}] Fire-and-forget failed:`, err);
     });
 }

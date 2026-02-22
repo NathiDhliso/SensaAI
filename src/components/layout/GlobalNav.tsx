@@ -6,7 +6,7 @@ import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing
 import { useMemo } from 'react';
 import styles from './GlobalNav.module.css';
 
-const HIDDEN_PATHS = ['/login', '/signup', '/confirm-signup', '/forgot-password', '/reset-password', '/auth/callback', '/callback', '/generate', '/study', '/dev'];
+const HIDDEN_PATHS = ['/login', '/signup', '/confirm-signup', '/forgot-password', '/reset-password', '/auth/callback', '/callback', '/generate', '/study', '/dev', '/curator'];
 
 function shouldHideNav(pathname: string): boolean {
     return HIDDEN_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'));

@@ -3,6 +3,7 @@
  * This replaces the fragile regex-based parsing with type-safe validation.
  */
 import { z } from 'zod';
+import { logger } from '@/shared/utils/logger';
 // Mnemonic context for Memory Palace integration
 export const MnemonicSchema = z.object({
  tier: z.enum(['Trunk', 'Branch', 'Leaf', 'trunk', 'branch', 'leaf']).optional(),
@@ -85,7 +86,7 @@ export function validateBatchResponse(data: unknown): BatchResponse | null {
  if (result.success) {
  return result.data;
  }
- console.error('[concept-schema] Validation failed:', result.error.format());
+ logger.error('[concept-schema] Validation failed:', result.error.format());
  return null;
 }
 /**

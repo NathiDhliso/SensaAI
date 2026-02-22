@@ -10,6 +10,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { conceptsApi } from '@/shared/api/concepts';
 import { useAuthStore } from '@/store/auth-store';
+import { logger } from '@/shared/utils/logger';
 interface CollisionDetectionState {
  isCheckingCollision: boolean;
  collisionJobId: string | null;
@@ -107,7 +108,7 @@ export function useCollisionDetection(
  );
  return false;
  } catch (err) {
- console.error('Failed to check duplicates:', err);
+ logger.error('Failed to check duplicates:', err);
  setIsCheckingCollision(false);
  optionsRef.current.onNoDuplicate();
  return false;
@@ -143,7 +144,7 @@ export function useCollisionDetection(
  setIsCheckingCollision(false);
  optionsRef.current.onNoDuplicate();
  } catch (e) {
- console.warn('Failed to check shared intelligence:', e);
+ logger.warn('Failed to check shared intelligence:', e);
  setIsCheckingCollision(false);
  optionsRef.current.onNoDuplicate();
  }
@@ -159,7 +160,7 @@ export function useCollisionDetection(
  const userId = useAuthStore.getState().user?.id || '';
  await conceptsApi.deleteJob(collisionJobId, userId);
  } catch (_e) {
- console.warn('Failed to delete old job, continuing anyway');
+ logger.warn('Failed to delete old job, continuing anyway');
  }
  }
  setShowOverwriteModal(false);

@@ -10,8 +10,7 @@ AWS credentials should NEVER be stored in `.tfvars` files that are committed to 
 
 ```bash
 # Set environment variables before running terraform
-export TF_VAR_cross_account_access_key_id="your-access-key-id"
-export TF_VAR_cross_account_secret_access_key="your-secret-access-key"
+export TF_VAR_cross_account_role_arn="arn:aws:iam::BEDROCK_ACCOUNT_ID:role/YOUR_ROLE"
 
 # Then run terraform
 terraform apply -var-file="terraform.tfvars"

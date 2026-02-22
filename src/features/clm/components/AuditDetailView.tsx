@@ -9,6 +9,7 @@ import { useAuditDetail } from '../hooks/useAudits';
 import { useApproveFindings, useRejectFindings, useExecuteFindings } from '../hooks/useFindings';
 import { FindingCard } from './FindingCard';
 import styles from './AuditDetailView.module.css';
+import { logger } from '@/shared/utils/logger';
 
 export function AuditDetailView() {
   const { auditId } = useParams<{ auditId: string }>();
@@ -47,7 +48,7 @@ export function AuditDetailView() {
       });
       setSelectedFindings([]);
     } catch (err) {
-      console.error('Failed to approve findings:', err);
+      logger.error('Failed to approve findings:', err);
     }
   };
 
@@ -64,7 +65,7 @@ export function AuditDetailView() {
       });
       setSelectedFindings([]);
     } catch (err) {
-      console.error('Failed to reject findings:', err);
+      logger.error('Failed to reject findings:', err);
     }
   };
 
@@ -90,7 +91,7 @@ export function AuditDetailView() {
       });
       alert('Findings executed successfully!');
     } catch (err) {
-      console.error('Failed to execute findings:', err);
+      logger.error('Failed to execute findings:', err);
       alert('Failed to execute findings');
     }
   };

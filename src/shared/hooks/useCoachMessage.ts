@@ -21,6 +21,7 @@ import { useState, useCallback, useRef } from 'react';
 import { usePersonalizationStore } from '@/store/personalization-store';
 import { useLearningStore } from '@/store/learning-store';
 import { getPersonaResponse, type PhaseKey, type PhaseResponses } from '@/features/ai-coach';
+import { logger } from '@/shared/utils/logger';
 interface UseCoachMessageOptions {
  /** Auto-dismiss timeout in milliseconds (default: 8000) */
  autoDismissMs?: number;
@@ -86,7 +87,7 @@ export function useCoachMessage(
  const now = Date.now();
  // Enforce cooldown (except for struggle messages which are important)
  if (situation !== 'struggle' && now - lastMessageTimeRef.current < cooldownMs) {
- console.log('[Coach] Message suppressed - cooldown active');
+ logger.debug('[Coach] Message suppressed - cooldown active');
  return;
  }
  // Clear any existing timer
@@ -123,7 +124,7 @@ export function useCoachMessage(
  const now = Date.now();
  // Enforce cooldown for custom messages too
  if (now - lastMessageTimeRef.current < cooldownMs) {
- console.log('[Coach] Custom message suppressed - cooldown active');
+ logger.debug('[Coach] Custom message suppressed - cooldown active');
  return;
  }
  clearDismissTimer();

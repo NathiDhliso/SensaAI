@@ -19,6 +19,7 @@ import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { toast } from '@/shared/utils/toast';
 import styles from './MasteryDashboard.module.css';
+import { logger } from '@/shared/utils/logger';
 export default function MasteryDashboard() {
     const navigate = useNavigate();
     const isAdmin = isGenerationAllowed();
@@ -41,7 +42,7 @@ export default function MasteryDashboard() {
             const allResults = await storageManager.listResults();
             setResults(allResults);
         } catch (error) {
-            console.error('Failed to load results:', error);
+            logger.error('Failed to load results:', error);
         } finally {
             setLoading(false);
         }
@@ -58,7 +59,7 @@ export default function MasteryDashboard() {
                 toast.error('Failed to delete result. Please try again.');
             }
         } catch (error) {
-            console.error('Failed to delete result:', error);
+            logger.error('Failed to delete result:', error);
             toast.error('Failed to delete result. Please try again.');
         } finally {
             setDeletingId(null);
@@ -99,7 +100,7 @@ export default function MasteryDashboard() {
                 toast.info('Your library is already clean! No duplicates found.');
             }
         } catch (err) {
-            console.error('Cleanup failed:', err);
+            logger.error('Cleanup failed:', err);
             toast.error('Failed to clean up duplicates.');
         } finally {
             setLoading(false);

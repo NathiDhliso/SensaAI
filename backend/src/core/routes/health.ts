@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { DynamoDBClient, DescribeEndpointsCommand } from '@aws-sdk/client-dynamodb';
 export const healthRouter = Router();
 const startTime = Date.now();
 // Liveness probe
@@ -24,12 +25,18 @@ healthRouter.get('/ready', async (_req: Request, res: Response) => {
  });
 });
 async function checkDatabase(): Promise<{ healthy: boolean; latency?: number }> {
- // TODO: Implement actual database check
- return { healthy: true, latency: 5 };
+ const start = Date.now();
+ try {
+ const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+ await client.send(new DescribeEndpointsCommand({}));
+ return { healthy: true, latency: Date.now() - start };
+ } catch {
+ return { healthy: false, latency: Date.now() - start };
+ }
 }
 async function checkRedis(): Promise<{ healthy: boolean; latency?: number }> {
- // TODO: Implement actual Redis check
- return { healthy: true, latency: 2 };
+ // Redis is not currently used in this architecture — report as N/A
+ return { healthy: true, latency: 0 };
 }
 async function checkBedrock(): Promise<{ healthy: boolean }> {
  // Bedrock is accessed on-demand, just check credentials exist
@@ -38,4 +45,4 @@ async function checkBedrock(): Promise<{ healthy: boolean }> {
  process.env.AWS_ROLE_ARN
  );
  return { healthy: hasCredentials };
-}
+}

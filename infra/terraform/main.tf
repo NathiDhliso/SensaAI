@@ -114,9 +114,8 @@ module "lambda" {
   # Bedrock model for concept generation
   bedrock_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
   
-  # Cross account
-  cross_account_access_key_id     = var.cross_account_access_key_id
-  cross_account_secret_access_key = var.cross_account_secret_access_key
+  # Cross account (IAM role for Bedrock access)
+  cross_account_role_arn = var.cross_account_role_arn
 
   # Provisioned concurrency (production only)
   enable_provisioned_concurrency    = var.environment == "prod"
@@ -167,4 +166,27 @@ module "api_gateway" {
   }
 
   depends_on = [module.lambda]
+}
+
+# ==============================================================================
+# WAF - Web Application Firewall
+# ==============================================================================
+
+module "waf" {
+  source = "./modules/waf"
+
+  environment  = var.environment
+  project_name = "sensapbl"
+
+  # CLOUDFRONT scope — associate with a CloudFront distribution fronting the
+  # HTTP API. WAF cannot attach directly to API Gateway v2 HTTP APIs.
+  scope      = "CLOUDFRONT"
+  rate_limit = var.environment == "prod" ? 2000 : 5000
+
+  enable_logging     = var.environment == "prod"
+  log_retention_days = var.environment == "prod" ? 90 : 14
+
+  tags = {
+    Component = "Security"
+  }
 }

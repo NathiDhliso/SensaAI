@@ -5,6 +5,7 @@
  * to parse generated content and load it into the learning store.
  */
 import { parseGeneratedContent, transformGeneratedContent } from '@/features/content-generation/parsers';
+import { logger } from '@/shared/utils/logger';
 import { useLearningStore } from '@/store/learning-store';
 import { indexedDBStorage } from '@/features/content-storage/local/indexed-db';
 export interface ParseAndLoadResult {
@@ -22,32 +23,32 @@ export interface ParseAndLoadResult {
  * @returns Result object indicating success or containing error message
  */
 export function parseAndLoadContent(rawContent: string, subjectId?: string): ParseAndLoadResult {
-    console.log(`\n [ContentLoader] parseAndLoadContent called`);
-    console.log(` Subject ID: ${subjectId || 'NONE'}`);
-    console.log(` Raw content length: ${rawContent.length} chars`);
+    logger.debug(`\n [ContentLoader] parseAndLoadContent called`);
+    logger.debug(` Subject ID: ${subjectId || 'NONE'}`);
+    logger.debug(` Raw content length: ${rawContent.length} chars`);
     try {
         const parseResult = parseGeneratedContent(rawContent);
         if (!parseResult.success) {
-            console.error(` Parse failed: ${parseResult.error}`);
+            logger.error(` Parse failed: ${parseResult.error}`);
             return {
                 success: false,
                 error: parseResult.error || 'Failed to parse content'
             };
         }
-        console.log(` Parse successful, ${parseResult.data.concepts.length} concepts found`);
+        logger.debug(` Parse successful, ${parseResult.data.concepts.length} concepts found`);
         const transformed = transformGeneratedContent(parseResult.data, subjectId);
         // FIX: Validate that we actually have concepts to learn
         if (!transformed.concepts || transformed.concepts.length === 0) {
-            console.error(` No concepts after transformation`);
+            logger.error(` No concepts after transformation`);
             return {
                 success: false,
                 error: 'Generation incomplete: No learning concepts were created. Please try again.'
             };
         }
-        console.log(` Transformation successful, ${transformed.concepts.length} concepts created`);
-        console.log(` First 3 transformed concept names:`);
+        logger.debug(` Transformation successful, ${transformed.concepts.length} concepts created`);
+        logger.debug(` First 3 transformed concept names:`);
         transformed.concepts.slice(0, 3).forEach((c, i) => {
-            console.log(` ${i + 1}. "${c.name}"`);
+            logger.debug(` ${i + 1}. "${c.name}"`);
         });
         const effectiveSubjectId = subjectId || `subject-${Date.now()}`;
         // CRITICAL: Cache parsed concepts to IndexedDB for lazy loading

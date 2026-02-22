@@ -31,6 +31,7 @@ import { toast } from '@/shared/utils/toast';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { authSessionApi } from '@/shared/api/client';
 import styles from './SettingsPanel.module.css';
+import { logger } from '@/shared/utils/logger';
 
 interface ProfileFormState {
  name: string;
@@ -101,7 +102,7 @@ export default function SettingsPanel() {
  useAuthStore.setState({ user: response.user });
  })
  .catch((error) => {
- console.error('[Settings] Failed to load profile:', error);
+ logger.error('[Settings] Failed to load profile:', error);
  })
  .finally(() => {
  setIsProfileLoading(false);
@@ -145,7 +146,7 @@ export default function SettingsPanel() {
  useAuthStore.setState({ user: response.user });
  toast.success('Profile updated');
  } catch (error) {
- console.error('[Settings] Failed to update profile:', error);
+ logger.error('[Settings] Failed to update profile:', error);
  toast.error('Failed to update profile');
  } finally {
  setIsProfileSaving(false);

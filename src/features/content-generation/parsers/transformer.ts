@@ -1,6 +1,7 @@
 import type { ParsedGeneratedContent, ParsedConcept, ParsedMentalAnchor } from './types';
 import type { LearningStage, LearningConcept, ConceptLifecycle, SubjectGraph, MnemonicContext } from '@/shared/types/learning';
 import { buildSubjectGraph } from '@/features/content-generation/generators/dependency-parser';
+import { logger } from '@/shared/utils/logger';
 function safeStr(val: unknown): string {
  if (typeof val === 'string') return val;
  if (val == null) return '';
@@ -624,8 +625,8 @@ export function transformToLearningConcepts(
  parsed: ParsedGeneratedContent,
  stages: LearningStage[]
 ): LearningConcept[] {
- console.log(`\n [Transformer] transformToLearningConcepts called`);
- console.log(` Total parsed concepts: ${parsed.concepts.length}`);
+ logger.debug(`\n [Transformer] transformToLearningConcepts called`);
+ logger.debug(` Total parsed concepts: ${parsed.concepts.length}`);
  const concepts: LearningConcept[] = [];
  const lifecycleLabels = parsed.domainAnalysis.lifecycle;
  const conceptToStage = distributeConceptsToStages(parsed.concepts, stages);
@@ -736,7 +737,7 @@ export function transformToLearningConcepts(
  });
  // Log the final concept name
  const finalConcept = concepts[concepts.length - 1];
- console.log(` Created concept #${finalConcept.order}: "${finalConcept.name}"`);
+ logger.debug(` Created concept #${finalConcept.order}: "${finalConcept.name}"`);
  }
  return concepts;
 }
@@ -765,7 +766,7 @@ function balanceLifecycleDistribution(concepts: LearningConcept[]) {
  (counts.MODEL / total > 0.7);
  
  if (isSkewed) {
- console.log('ℹ️ Lifecycle Distribution Skewed. Force Balancing by Order.');
+ logger.debug('ℹ️ Lifecycle Distribution Skewed. Force Balancing by Order.');
  // Sort a copy to determine rank
  const sortedIds = [...concepts].sort((a, b) => (a.order || 0) - (b.order || 0)).map(c => c.id);
  const chunkSize = Math.ceil(total / 3);
@@ -793,7 +794,7 @@ function balanceLifecycleDistribution(concepts: LearningConcept[]) {
  (tierCounts.DELIVER / tierConcepts.length > 0.7);
  
  if (tierSkewed) {
- console.log(`ℹ️ Tier "${tierName}" distribution skewed. Rebalancing ${tierConcepts.length} concepts.`);
+ logger.debug(`ℹ️ Tier "${tierName}" distribution skewed. Rebalancing ${tierConcepts.length} concepts.`);
  // Redistribute this tier's concepts evenly across phases
  const sortedTier = [...tierConcepts].sort((a, b) => (a.order || 0) - (b.order || 0));
  const tierChunkSize = Math.ceil(tierConcepts.length / 3);
@@ -818,7 +819,7 @@ function validateDependencies(concepts: ParsedConcept[]): void {
  if (concept.dependsOn && concept.dependsOn.length > 0) {
  concept.dependsOn = concept.dependsOn.filter((dep: string) => {
  if (!allNames.has(dep)) {
- console.warn(` "${concept.name}" depends on non-existent "${dep}". Removing.`);
+ logger.warn(` "${concept.name}" depends on non-existent "${dep}". Removing.`);
  return false;
  }
  return true;

@@ -3,7 +3,7 @@
  * Restricts access to routes based on user role
  */
 
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth-store';
 

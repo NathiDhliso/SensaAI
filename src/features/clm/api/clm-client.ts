@@ -11,7 +11,6 @@ import type {
   ChangeLogRecord,
   AuditType,
   AuditStatus,
-  Severity,
 } from '../types';
 
 const BASE_PATH = '/curator';

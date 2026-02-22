@@ -1,6 +1,8 @@
 /**
  * Content Quality Validator - Rebuilt
  */
+import { logger } from '@/shared/utils/logger';
+
 export interface ContentGap {
  field: string;
  conceptId?: string;
@@ -91,7 +93,7 @@ export function auditConceptContent(concept: {
  gaps.push('shape.highStakesExample');
  }
  if (gaps.length > 0) {
- console.warn(
+ logger.warn(
  `[Content Gap] "${concept.name}" is missing: ${gaps.join(', ')}`,
  { conceptId: concept.id, gaps }
  );

@@ -13,6 +13,7 @@
  */
 import { userdataApi } from '@/shared/api/userdata';
 import { getCurrentUserId, fireAndForget } from '@/shared/api/cloud-sync';
+import { logger } from '@/shared/utils/logger';
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -122,7 +123,7 @@ export class SpacingEngine {
                 data.forEach(review => this.reviews.set(review.conceptId, review));
             }
         } catch (e) {
-            console.warn('[SpacingEngine] Failed to load from storage:', e);
+            logger.warn('[SpacingEngine] Failed to load from storage:', e);
         }
     }
     private saveToStorage(): void {
@@ -130,7 +131,7 @@ export class SpacingEngine {
             const data = Array.from(this.reviews.values());
             localStorage.setItem(this.storageKey, JSON.stringify(data));
         } catch (e) {
-            console.warn('[SpacingEngine] Failed to save to storage:', e);
+            logger.warn('[SpacingEngine] Failed to save to storage:', e);
         }
         // Fire-and-forget cloud sync for the changed review
         if (this.lastChangedConceptId) {
@@ -169,6 +170,15 @@ export class SpacingEngine {
             for (const item of response.items) {
                 const review = item.data as ScheduledReview;
                 if (!review?.conceptId) continue;
+                
+                // Convert string values back to numbers for DynamoDB compatibility
+                if (typeof review.easeFactor === 'string') {
+                    review.easeFactor = parseFloat(review.easeFactor);
+                }
+                if (typeof review.priority === 'string') {
+                    review.priority = parseFloat(review.priority);
+                }
+                
                 const local = this.reviews.get(review.conceptId);
                 const cloudTotal = (review.successCount || 0) + (review.failCount || 0);
                 const localTotal = local ? (local.successCount + local.failCount) : 0;
@@ -179,7 +189,7 @@ export class SpacingEngine {
                 }
             }
             if (merged > 0) {
-                console.log(`[SpacingEngine] Merged ${merged} reviews from cloud`);
+                logger.debug(`[SpacingEngine] Merged ${merged} reviews from cloud`);
                 // Save merged state back to localStorage
                 try {
                     const data = Array.from(this.reviews.values());
@@ -189,7 +199,7 @@ export class SpacingEngine {
             // Push any local-only reviews to cloud
             await this.syncAllToCloud();
         } catch (e) {
-            console.warn('[SpacingEngine] Cloud sync failed (non-blocking):', e);
+            logger.warn('[SpacingEngine] Cloud sync failed (non-blocking):', e);
         }
     }
 
@@ -199,16 +209,23 @@ export class SpacingEngine {
     async syncAllToCloud(): Promise<void> {
         const userId = getCurrentUserId();
         if (!userId) return;
+        
+        // Convert float values to strings for DynamoDB compatibility
         const items = Array.from(this.reviews.values()).map(review => ({
             dataKey: `REVIEW#${review.conceptId}`,
-            data: review as unknown,
+            data: {
+                ...review,
+                easeFactor: review.easeFactor.toString(),
+                priority: review.priority.toString(),
+            } as unknown,
         }));
+        
         if (items.length === 0) return;
         try {
             await userdataApi.batchPut(userId, items);
-            console.log(`[SpacingEngine] Synced ${items.length} reviews to cloud`);
+            logger.debug(`[SpacingEngine] Synced ${items.length} reviews to cloud`);
         } catch (e) {
-            console.warn('[SpacingEngine] Batch sync to cloud failed:', e);
+            logger.warn('[SpacingEngine] Batch sync to cloud failed:', e);
         }
     }
     // ─── SCHEDULING ───────────────────────────────────────────────────────────

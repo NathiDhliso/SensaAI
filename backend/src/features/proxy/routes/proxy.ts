@@ -3,6 +3,7 @@
  * @description Proxy routes for handling CORS-restricted external resources
  */
 import { Router, Request, Response } from 'express';
+import { logger } from '../../../shared/utils/logger.js';
 import https from 'https';
 import http from 'http';
 export const proxyRouter = Router();
@@ -31,17 +32,17 @@ proxyRouter.get('/exam-objectives', async (req: Request, res: Response) => {
  try {
  url = new URL(targetUrl);
  } catch (urlError) {
- console.error('[Proxy] Invalid URL:', targetUrl);
+ logger.error('[Proxy] Invalid URL:', targetUrl);
  res.status(400).json({ error: 'Invalid URL' });
  return;
  }
- const isAllowed = allowedDomains.some(domain => url.hostname.includes(domain));
+ const isAllowed = allowedDomains.some(domain =>
+ url.hostname === domain || url.hostname.endsWith('.' + domain)
+ );
  if (!isAllowed) {
- console.warn('[Proxy] Domain not allowed:', url.hostname);
  res.status(403).json({ error: 'Domain not allowed' });
  return;
  }
- console.log('[Proxy] Fetching exam objectives from:', targetUrl);
  // Use native https/http module for better compatibility
  const protocol = url.protocol === 'https:' ? https : http;
  return new Promise<void>((resolve, reject) => {
@@ -56,8 +57,22 @@ proxyRouter.get('/exam-objectives', async (req: Request, res: Response) => {
  if (proxyRes.statusCode === 301 || proxyRes.statusCode === 302 || proxyRes.statusCode === 307 || proxyRes.statusCode === 308) {
  const redirectUrl = proxyRes.headers.location;
  if (redirectUrl) {
- console.log('[Proxy] Following redirect to:', redirectUrl);
- // Recursively handle redirect by making a new request
+ // Validate redirect target is also on the allowlist
+ try {
+ const redirectParsed = new URL(redirectUrl);
+ const redirectAllowed = allowedDomains.some(domain =>
+ redirectParsed.hostname === domain || redirectParsed.hostname.endsWith('.' + domain)
+ );
+ if (!redirectAllowed) {
+ res.status(403).json({ error: 'Redirect target domain not allowed' });
+ resolve();
+ return;
+ }
+ } catch {
+ res.status(400).json({ error: 'Invalid redirect URL' });
+ resolve();
+ return;
+ }
  const redirectProtocol = redirectUrl.startsWith('https') ? https : http;
  const redirectReq = redirectProtocol.get(redirectUrl, {
  headers: {
@@ -67,7 +82,7 @@ proxyRouter.get('/exam-objectives', async (req: Request, res: Response) => {
  timeout: 30000
  }, (redirectRes) => {
  if (redirectRes.statusCode !== 200) {
- console.error('[Proxy] Redirect fetch failed:', redirectRes.statusCode);
+ logger.error('[Proxy] Redirect fetch failed:', redirectRes.statusCode);
  res.status(redirectRes.statusCode || 500).json({ 
  error: `Failed to fetch resource: ${redirectRes.statusMessage}` 
  });
@@ -82,18 +97,14 @@ proxyRouter.get('/exam-objectives', async (req: Request, res: Response) => {
  redirectRes.on('error', reject);
  });
  redirectReq.on('error', (err) => {
- console.error('[Proxy] Redirect request error:', err);
- res.status(500).json({ 
- error: 'Failed to proxy request',
- details: err.message
- });
+ logger.error('[Proxy] Redirect request error:', err);
+ res.status(500).json({ error: 'Failed to proxy request' });
  resolve();
  });
  return;
  }
  }
  if (proxyRes.statusCode !== 200) {
- console.error('[Proxy] Fetch failed:', proxyRes.statusCode, proxyRes.statusMessage);
  res.status(proxyRes.statusCode || 500).json({ 
  error: `Failed to fetch resource: ${proxyRes.statusMessage}` 
  });
@@ -110,26 +121,19 @@ proxyRouter.get('/exam-objectives', async (req: Request, res: Response) => {
  proxyRes.on('end', resolve);
  proxyRes.on('error', reject);
  });
- request.on('error', (err) => {
- console.error('[Proxy] Request error:', err);
- res.status(500).json({ 
- error: 'Failed to proxy request',
- details: err.message
- });
+ request.on('error', () => {
+ res.status(500).json({ error: 'Failed to proxy request' });
  resolve();
  });
  request.on('timeout', () => {
- console.error('[Proxy] Request timeout');
+ logger.error('[Proxy] Request timeout');
  request.destroy();
  res.status(504).json({ error: 'Request timeout' });
  resolve();
  });
  });
  } catch (error) {
- console.error('[Proxy] Error:', error);
- res.status(500).json({ 
- error: 'Failed to proxy request',
- details: error instanceof Error ? error.message : String(error)
- });
+ logger.error('[Proxy] Error:', error);
+ res.status(500).json({ error: 'Failed to proxy request' });
  }
-});
+});

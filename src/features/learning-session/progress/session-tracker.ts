@@ -7,6 +7,7 @@
  * Automatically expires progress after 24 hours to prevent stale data.
  */
 import type { UserProgress } from '@/shared/types/learning';
+import { logger } from '@/shared/utils/logger';
 const STORAGE_KEY = 'sensa-session-progress';
 const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 const EXPIRY_WARNING_MS = 1 * 60 * 60 * 1000; // Warn 1 hour before expiry
@@ -80,7 +81,7 @@ export function saveSessionProgress(data: Omit<SessionProgressData, 'timestamp' 
  }, SAVE_THROTTLE_MS - elapsed);
  }
  } catch (error) {
- console.error('[SessionProgress] Failed to save progress:', error);
+ logger.error('[SessionProgress] Failed to save progress:', error);
  }
 }
 export function flushSessionProgress(data: Omit<SessionProgressData, 'timestamp' | 'version'>): void {
@@ -101,13 +102,13 @@ export function loadSessionProgress(sessionId: string): SessionProgressData | nu
  // Check expiry
  const age = Date.now() - data.timestamp;
  if (age > EXPIRY_MS) {
- console.log('[SessionProgress] Progress expired (age:', Math.round(age / 1000 / 60), 'minutes)');
+ logger.debug('[SessionProgress] Progress expired (age:', Math.round(age / 1000 / 60), 'minutes)');
  deleteSessionProgress(sessionId);
  return null;
  }
  return data;
  } catch (error) {
- console.error('[SessionProgress] Failed to load progress:', error);
+ logger.error('[SessionProgress] Failed to load progress:', error);
  return null;
  }
 }
@@ -118,7 +119,7 @@ export function deleteSessionProgress(sessionId: string): void {
  try {
  localStorage.removeItem(`${STORAGE_KEY}:${sessionId}`);
  } catch (error) {
- console.error('[SessionProgress] Failed to delete progress:', error);
+ logger.error('[SessionProgress] Failed to delete progress:', error);
  }
 }
 /**
@@ -142,7 +143,7 @@ export function listAllSessionProgress(): SessionProgressData[] {
  }
  }
  } catch (error) {
- console.error('[SessionProgress] Failed to list sessions:', error);
+ logger.error('[SessionProgress] Failed to list sessions:', error);
  }
  return sessions;
 }
@@ -162,10 +163,10 @@ export function cleanupExpiredProgress(): number {
  }
  }
  if (cleaned > 0) {
- console.log('[SessionProgress] Cleaned up', cleaned, 'expired sessions');
+ logger.debug('[SessionProgress] Cleaned up', cleaned, 'expired sessions');
  }
  } catch (error) {
- console.error('[SessionProgress] Failed to cleanup:', error);
+ logger.error('[SessionProgress] Failed to cleanup:', error);
  }
  return cleaned;
 }

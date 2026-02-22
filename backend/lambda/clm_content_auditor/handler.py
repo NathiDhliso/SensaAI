@@ -17,7 +17,7 @@ bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
 
 # Environment variables
 AUDITS_TABLE = os.environ.get('CLM_AUDITS_TABLE', 'clm-audits')
-MODEL_ID = "us.anthropic.claude-opus-4-5-20251101-v1:0"  # Opus for deep analysis
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-opus-4-5-20251101-v1:0")
 
 # Placeholder patterns
 PLACEHOLDER_PATTERNS = [

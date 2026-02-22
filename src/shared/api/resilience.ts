@@ -4,6 +4,7 @@
  * Provides retry logic, exponential backoff, and offline detection
  * for robust API interactions.
  */
+import { logger } from '@/shared/utils/logger';
 interface RetryConfig {
  maxRetries?: number;
  initialDelayMs?: number;
@@ -51,7 +52,7 @@ export async function retryWithBackoff<T>(
  throw error;
  }
  const delay = calculateBackoff(attempt, fullConfig);
- console.warn(`[APIResilience] Retry attempt ${attempt + 1}/${fullConfig.maxRetries} after ${delay}ms`, error);
+ logger.warn(`[APIResilience] Retry attempt ${attempt + 1}/${fullConfig.maxRetries} after ${delay}ms`, error);
  await sleep(delay);
  }
  }
@@ -105,7 +106,7 @@ class OfflineQueueManager {
  // Remove oldest if queue is full
  if (this.queue.length >= this.MAX_QUEUE_SIZE) {
  this.queue.shift();
- console.warn('[OfflineQueue] Queue full, removing oldest item');
+ logger.warn('[OfflineQueue] Queue full, removing oldest item');
  }
  this.queue.push({
  id,
@@ -127,7 +128,7 @@ class OfflineQueueManager {
  try {
  await item.fn();
  } catch (error) {
- console.error(`[OfflineQueue] Failed to process ${item.id}`, error);
+ logger.error(`[OfflineQueue] Failed to process ${item.id}`, error);
  // Re-queue if still offline
  if (!isOnline()) {
  this.queue.unshift(item);
@@ -174,4 +175,4 @@ export async function optimisticUpdate<T>(
  }
  throw error;
  }
-}
+}

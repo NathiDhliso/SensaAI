@@ -10,6 +10,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGenerationStore } from '@/store/generation-store';
 import { conceptsApi } from '@/shared/api';
+import { logger } from '@/shared/utils/logger';
 interface BackgroundJobStatus {
  hasActiveJob: boolean;
  job: ReturnType<typeof useGenerationStore.getState>['activeJob'];
@@ -77,7 +78,7 @@ export function useBackgroundJobRecovery() {
  }));
  }
  } catch (err) {
- console.error('[BackgroundJobRecovery] Failed to check job status:', err);
+ logger.error('[BackgroundJobRecovery] Failed to check job status:', err);
  setStatus(prev => ({
  ...prev,
  isChecking: false,

@@ -13,6 +13,7 @@ import type {
        ParsedConfusionPair,
        ParsedMnemonic
 } from './types';
+import { logger } from '@/shared/utils/logger';
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -308,7 +309,7 @@ function parseConcepts(content: string): ParsedConcept[] {
                             }
                      }
               } catch (e) {
-                     console.warn(`[ContentParser] Failed to parse JSON block ${blockCount}`, e);
+                     logger.warn(`[ContentParser] Failed to parse JSON block ${blockCount}`, e);
                      // Continue to next block
               }
        }
@@ -531,7 +532,7 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
                      } catch (_e) { /* Parse failures expected for non-mnemonic blocks */ }
               }
        } catch (e) {
-              console.warn('Failed to merge mnemonic JSON', e);
+              logger.warn('Failed to merge mnemonic JSON', e);
        }
        return concepts;
 }
@@ -702,7 +703,7 @@ function normalizeConnectionType(type: string | undefined): 'requires' | 'enable
        if (t === 'is-type-of' || t === 'is_type_of' || t === 'type-of' || t === 'extends' || t === 'specializes' || t === 'enhances') return 'is-type-of';
        if (t === 'causes' || t === 'triggers' || t === 'produces' || t === 'leads-to') return 'causes';
        if (t === 'constrains' || t === 'limits' || t === 'governs' || t === 'restricts') return 'constrains';
-       console.warn(`[ConnectionParser] Unknown connection type "${type}" normalized to "requires"`);
+       logger.warn(`[ConnectionParser] Unknown connection type "${type}" normalized to "requires"`);
        return 'requires';
 }
 function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | null {
@@ -711,7 +712,7 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
        const order = typeof c.order === 'number' ? c.order : 1;
        const name = typeof c.name === 'string' ? c.name : 'Unknown Concept';
        // Simple logging - the prompt should now generate proper names
-       console.log(`[Parser] Processing concept #${order}: "${name}"`);
+       logger.debug(`[Parser] Processing concept #${order}: "${name}"`);
        // Extract lifecycle phases - check BOTH lifecycle.phase1 AND root-level phase1
        let hookSentence = '';
        let microMetaphor = '';

@@ -5,7 +5,7 @@
 
 import { CognitoIdentityProviderClient, AdminUpdateUserAttributesCommand, AdminGetUserCommand } from '@aws-sdk/client-cognito-identity-provider';
 
-const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || 'us-east-1_xNWax9wkH';
+const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || 'us-east-1_vNseSD26p';
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
 const USER_EMAIL = process.argv[2] || 'nkosinathi.dhliso@gmail.com';
 const ROLE = process.argv[3] || 'curator'; // curator or admin

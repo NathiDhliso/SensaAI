@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getRandomTerm, getDomainName } from '@/shared/utils/subject-domain-detector';
 import { GENERATION_NARRATIVE } from '@/shared/constants/tree-narrative';
 import type { SubjectType } from '@/shared/types/generation';
-import styles from '@/pages/ContentGenerator.module.css';
+import styles from '@/features/clm/pages/ContentGenerator.module.css';
 const TYPE_LABELS: Record<SubjectType, string> = {
   procedural: 'PROCEDURAL MASTERY',
   conceptual: 'CONCEPTUAL FLUENCY',

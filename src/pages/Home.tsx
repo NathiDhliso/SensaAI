@@ -16,6 +16,7 @@ import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { isGenerationAllowed } from '@/shared/constants/generator-allowlist';
 import { toast } from '@/shared/utils/toast';
 import styles from './Home.module.css';
+import { logger } from '@/shared/utils/logger';
 const SUBJECT_CATEGORIES = [
     {
         id: 'cloud',
@@ -215,7 +216,7 @@ export default function Home() {
                 }
             }
         } catch (err) {
-            console.error('[Home] Suggest structure failed:', err);
+            logger.error('[Home] Suggest structure failed:', err);
             toast.error('Unable to analyze subject structure. Please try again.');
         } finally {
             setSuggesting(false);

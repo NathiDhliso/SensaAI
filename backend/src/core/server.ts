@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import { logger } from '../shared/utils/logger.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -15,16 +16,11 @@ import { errorHandler } from '../shared/middleware/error-handler.js';
 import { rateLimiter } from '../shared/middleware/rate-limit.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
-console.log('Environment Debug:');
-console.log('AWS_REGION:', process.env.AWS_REGION);
-console.log('COGNITO_USER_POOL_ID:', process.env.COGNITO_USER_POOL_ID ? 'SET' : 'NOT SET');
-console.log('CONCEPTS_TABLE:', process.env.CONCEPTS_TABLE);
-console.log('CWD:', process.cwd());
 // Security middleware
 app.use(helmet());
 app.use(cors({
- origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:5173'],
- credentials: true
+    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:5173'],
+    credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser()); // Parse cookies for HttpOnly token storage
@@ -43,17 +39,17 @@ app.use('/api/v1/curator', authMiddleware, curatorRouter); // CLM curator dashbo
 
 // Alias: frontend calls POST /generate directly (matches API Gateway route pattern)
 app.post('/api/v1/generate', authMiddleware, (req, res, next) => {
- // Forward to concepts router's /generate handler
- req.url = '/generate';
- conceptsRouter(req, res, next);
+    // Forward to concepts router's /generate handler
+    req.url = '/generate';
+    conceptsRouter(req, res, next);
 });
 app.use('/api/v1/auth', authRouter);
 // Error handling
 app.use(errorHandler);
 // Start server
 app.listen(PORT, () => {
- console.log(` SensaAI Backend running on port ${PORT}`);
- console.log(` Health check: http://localhost:${PORT}/health`);
- // Server ready
+    logger.info(` SensaAI Backend running on port ${PORT}`);
+    logger.info(` Health check: http://localhost:${PORT}/health`);
+    // Server ready
 });
-export default app;
+export default app; // trigger reload

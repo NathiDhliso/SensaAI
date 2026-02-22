@@ -157,14 +157,8 @@ variable "tags" {
   default     = {}
 }
 
-variable "cross_account_access_key_id" {
-  description = "Cross account access key ID for Bedrock"
-  type        = string
-  default     = ""
-}
-
-variable "cross_account_secret_access_key" {
-  description = "Cross account secret access key for Bedrock"
+variable "cross_account_role_arn" {
+  description = "IAM role ARN in the Bedrock account for cross-account access"
   type        = string
   default     = ""
 }

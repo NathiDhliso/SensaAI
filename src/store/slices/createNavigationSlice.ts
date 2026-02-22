@@ -9,6 +9,7 @@ import { normalizeScore, determineStatus } from '@/shared/utils/score-utils';
 import { saveSessionProgress } from '@/features/learning-session/progress/session-tracker';
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
 import type { SM2Quality } from '@/features/learning-session/algorithms/spacing-engine';
+import { logger } from '@/shared/utils/logger';
 // ============================================================================
 // SLICE CREATOR
 // ============================================================================
@@ -39,7 +40,7 @@ export const createNavigationSlice: StateCreator<
  if (attempts >= maxAttempts) {
  // Max attempts reached - skip this concept
  status = 'skipped';
- console.warn(`[Navigation] Concept ${conceptId} skipped after ${attempts} attempts`);
+ logger.warn(`[Navigation] Concept ${conceptId} skipped after ${attempts} attempts`);
  } else if (outcome) {
  // Use provided outcome
  if (outcome === 'mastered') {
@@ -108,7 +109,7 @@ export const createNavigationSlice: StateCreator<
  activeConcept: nextConcept
  });
  } catch (error) {
- console.error('[Navigation] Failed to persist progress:', error);
+ logger.error('[Navigation] Failed to persist progress:', error);
  // Don't throw - progress saving is non-critical
  }
  if (shouldComplete) {
@@ -154,11 +155,11 @@ export const createNavigationSlice: StateCreator<
  }
  }
  } catch (e) {
- console.warn('[Navigation] SpacingEngine integration error:', e);
+ logger.warn('[Navigation] SpacingEngine integration error:', e);
  }
  }
  if (status === 'skipped') {
- console.log(`[Navigation] Intervention needed for concept ${conceptId} (score: ${normalizedScore.toFixed(2)})`);
+ logger.debug(`[Navigation] Intervention needed for concept ${conceptId} (score: ${normalizedScore.toFixed(2)})`);
  }
  // Trigger celebrations
  if (allStageConceptsComplete) {
@@ -265,7 +266,7 @@ export const createNavigationSlice: StateCreator<
  }
  // EXIT CONDITION: No more available concepts
  // All concepts are either completed or have reached max attempts
- console.log('[Navigation] No more available concepts - all completed or max attempts reached');
+ logger.debug('[Navigation] No more available concepts - all completed or max attempts reached');
  return null;
  },
  getPreviousConcept: () => {

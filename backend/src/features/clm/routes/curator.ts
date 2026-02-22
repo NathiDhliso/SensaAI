@@ -4,6 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { logger } from '../../../shared/utils/logger.js';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import {
   listAuditsBySubject,
@@ -14,7 +15,7 @@ import {
 } from '../data/audit-repository.js';
 import {
   getConceptVersionHistory,
-  getLatestVersion,
+
   rollbackConcept,
 } from '../services/version-control.js';
 import {
@@ -41,24 +42,28 @@ const lambdaClient = new LambdaClient({ region: process.env.AWS_REGION || 'us-ea
  * Get user ID from request (from auth middleware)
  */
 function getUserId(req: Request): string {
-  return (req as any).user?.id || 'unknown';
+  return (req as any).user?.id || (req as any).user?.sub || 'unknown';
 }
 
 /**
- * Check if user has curator role
+ * Check if user has curator role.
+ * Reads 'custom:role' from the JWT payload attached by authMiddleware.
  */
 function isCurator(req: Request): boolean {
-  // TODO: Implement role checking based on your auth system
-  // For now, assume all authenticated users are curators
-  return true;
+  const user = (req as any).user;
+  if (!user) return false;
+  const role: string | undefined = user.role || user['custom:role'];
+  return role === 'curator' || role === 'admin';
 }
 
 /**
  * Check if user has expert role
  */
 function isExpert(req: Request): boolean {
-  // TODO: Implement role checking
-  return false;
+  const user = (req as any).user;
+  if (!user) return false;
+  const role: string | undefined = user.role || user['custom:role'];
+  return role === 'admin';
 }
 
 // ============================================================================
@@ -110,7 +115,7 @@ curatorRouter.get('/audits', async (req: Request, res: Response) => {
       limit: limitNum,
     });
   } catch (error) {
-    console.error('[Curator] List audits error:', error);
+    logger.error('[Curator] List audits error:', error);
     res.status(500).json({ error: 'Failed to list audits' });
   }
 });
@@ -143,7 +148,7 @@ curatorRouter.get('/audits/:auditId', async (req: Request, res: Response) => {
       findings,
     });
   } catch (error) {
-    console.error('[Curator] Get audit error:', error);
+    logger.error('[Curator] Get audit error:', error);
     res.status(500).json({ error: 'Failed to get audit' });
   }
 });
@@ -206,7 +211,7 @@ curatorRouter.post('/audits/trigger', async (req: Request, res: Response) => {
       res.status(result.statusCode).json(JSON.parse(result.body));
     }
   } catch (error) {
-    console.error('[Curator] Trigger audit error:', error);
+    logger.error('[Curator] Trigger audit error:', error);
     res.status(500).json({ error: 'Failed to trigger audit' });
   }
 });
@@ -255,7 +260,7 @@ curatorRouter.post('/findings/approve', async (req: Request, res: Response) => {
       failed,
     });
   } catch (error) {
-    console.error('[Curator] Approve findings error:', error);
+    logger.error('[Curator] Approve findings error:', error);
     res.status(500).json({ error: 'Failed to approve findings' });
   }
 });
@@ -300,7 +305,7 @@ curatorRouter.post('/findings/reject', async (req: Request, res: Response) => {
       failed,
     });
   } catch (error) {
-    console.error('[Curator] Reject findings error:', error);
+    logger.error('[Curator] Reject findings error:', error);
     res.status(500).json({ error: 'Failed to reject findings' });
   }
 });
@@ -327,7 +332,7 @@ curatorRouter.post('/findings/execute', async (req: Request, res: Response) => {
 
     // Get findings to pass to executor
     const findings = await getFindingsForAudit(auditId);
-    const approvedFindings = findings.filter(f => 
+    const approvedFindings = findings.filter(f =>
       findingIds.includes(f.findingId) && f.status === 'approved'
     );
 
@@ -360,7 +365,7 @@ curatorRouter.post('/findings/execute', async (req: Request, res: Response) => {
       res.status(result.statusCode).json(JSON.parse(result.body));
     }
   } catch (error) {
-    console.error('[Curator] Execute findings error:', error);
+    logger.error('[Curator] Execute findings error:', error);
     res.status(500).json({ error: 'Failed to execute findings' });
   }
 });
@@ -385,7 +390,7 @@ curatorRouter.get('/findings/pending', async (req: Request, res: Response) => {
       total: findings.length,
     });
   } catch (error) {
-    console.error('[Curator] List pending findings error:', error);
+    logger.error('[Curator] List pending findings error:', error);
     res.status(500).json({ error: 'Failed to list pending findings' });
   }
 });
@@ -416,7 +421,7 @@ curatorRouter.get('/versions/:conceptId', async (req: Request, res: Response) =>
       total: versions.length,
     });
   } catch (error) {
-    console.error('[Curator] Get versions error:', error);
+    logger.error('[Curator] Get versions error:', error);
     res.status(500).json({ error: 'Failed to get versions' });
   }
 });
@@ -435,8 +440,8 @@ curatorRouter.post('/versions/rollback', async (req: Request, res: Response) => 
     const { conceptId, targetVersionTimestamp, reason, subject } = req.body;
 
     if (!conceptId || !targetVersionTimestamp || !reason || !subject) {
-      res.status(400).json({ 
-        error: 'conceptId, targetVersionTimestamp, reason, and subject required' 
+      res.status(400).json({
+        error: 'conceptId, targetVersionTimestamp, reason, and subject required'
       });
       return;
     }
@@ -453,7 +458,7 @@ curatorRouter.post('/versions/rollback', async (req: Request, res: Response) => 
 
     res.json(result);
   } catch (error) {
-    console.error('[Curator] Rollback error:', error);
+    logger.error('[Curator] Rollback error:', error);
     res.status(500).json({ error: 'Failed to rollback concept' });
   }
 });
@@ -484,7 +489,7 @@ curatorRouter.get('/analytics', async (req: Request, res: Response) => {
 
     res.json(analytics);
   } catch (error) {
-    console.error('[Curator] Get analytics error:', error);
+    logger.error('[Curator] Get analytics error:', error);
     res.status(500).json({ error: 'Failed to get analytics' });
   }
 });
@@ -509,7 +514,7 @@ curatorRouter.get('/analytics/recent', async (req: Request, res: Response) => {
       total: changes.length,
     });
   } catch (error) {
-    console.error('[Curator] Get recent changes error:', error);
+    logger.error('[Curator] Get recent changes error:', error);
     res.status(500).json({ error: 'Failed to get recent changes' });
   }
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Brain, Cpu, CheckCircle, Zap } from 'lucide-react';
-import styles from '@/pages/ContentGenerator.module.css';
+import styles from '@/features/clm/pages/ContentGenerator.module.css';
 type AgentState = 'idle' | 'scanning' | 'thinking' | 'writing' | 'verifying' | 'complete';
 interface AgentCoreProps {
     state: AgentState;

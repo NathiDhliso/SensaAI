@@ -14,6 +14,7 @@
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { logger } from '@/shared/utils/logger';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import { cleanupExpiredActivityDrafts } from '@/shared/hooks/useActivityAutosave';
 import { userdataApi } from '@/shared/api/userdata';
@@ -89,9 +90,9 @@ export const useLearningStore = create<LearningStore>()(
                         merged.totalFocusMinutes > (current.totalFocusMinutes || 0) ||
                         merged.totalConceptsMastered > (current.totalConceptsMastered || 0)) {
                         useLearningStore.setState(merged);
-                        console.log('[LearningStore] Merged focus stats from cloud');
+                        logger.debug('[LearningStore] Merged focus stats from cloud');
                     }
-                }).catch(e => console.warn('[LearningStore] Cloud stats sync failed:', e));
+                }).catch(e => logger.warn('[LearningStore] Cloud stats sync failed:', e));
             }
         }
     )
@@ -117,7 +118,7 @@ const initializeStaleStateGuard = () => {
         const now = Date.now();
         const age = now - sessionEndTime;
         if (age > STALE_SESSION_THRESHOLD_MS) {
-            console.warn('[StaleStateGuard] Clearing zombie session older than 24h:', {
+            logger.warn('[StaleStateGuard] Clearing zombie session older than 24h:', {
                 sessionId: studySession.id,
                 endedAt: studySession.endedAt,
                 ageHours: Math.round(age / (60 * 60 * 1000))
@@ -137,7 +138,7 @@ const initializeStaleStateGuard = () => {
                 currentSession.progress.completedConcepts.includes(c.id)
             );
         if (age > STALE_SESSION_THRESHOLD_MS && allConceptsComplete) {
-            console.warn('[StaleStateGuard] Clearing stale completed session:', {
+            logger.warn('[StaleStateGuard] Clearing stale completed session:', {
                 sessionId: currentSession.id,
                 createdAt: currentSession.createdAt,
                 ageHours: Math.round(age / (60 * 60 * 1000))

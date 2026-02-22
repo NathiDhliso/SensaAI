@@ -154,11 +154,38 @@ TIERS = ["trunk", "branch", "leaf"]
 STAGES = ["PREPARE", "MODEL", "DELIVER"]
 
 
-ALLOWED_GENERATOR_EMAILS = {
-    "nkosimano@gmail.com",
-    "immanueldhliso@gmail.com",
-    "nkosinathi.dhliso@gmail.com",
-}
+ALLOWED_GENERATOR_ROLES = {"admin", "curator", "generator"}
+
+
+def _extract_role_from_event(event: Dict[str, Any]) -> Optional[str]:
+    """Extract user role from JWT claims (API Gateway) or request body (Express proxy)."""
+    # Try JWT claims first (direct API Gateway invocation)
+    jwt_claims = (event.get("requestContext") or {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
+    role = jwt_claims.get("custom:role")
+    if role:
+        return role.lower()
+    # Check cognito:groups (may be a JSON-encoded list)
+    groups = jwt_claims.get("cognito:groups")
+    if groups:
+        if isinstance(groups, str):
+            try:
+                groups = json.loads(groups)
+            except (json.JSONDecodeError, TypeError):
+                groups = [groups]
+        if isinstance(groups, list) and groups:
+            return groups[0].lower()
+    # Fallback: role passed in body by Express backend
+    try:
+        body = event.get("body")
+        if isinstance(body, str):
+            body = json.loads(body)
+        if isinstance(body, dict):
+            body_role = body.get("role")
+            if body_role:
+                return str(body_role).lower()
+    except Exception:
+        pass
+    return None
 
 
 def _mask_email(email: Optional[str]) -> Optional[str]:
@@ -211,7 +238,8 @@ def get_generation_access_diagnostics(event: Dict[str, Any]) -> Dict[str, Any]:
         "bearerClaimKeys": sorted(bearer_payload.keys())[:25],
         "maskedEmail": _mask_email(effective_email),
         "emailSource": "jwt_claims" if jwt_email else ("bearer_payload" if bearer_email else "none"),
-        "isAllowlisted": effective_email in ALLOWED_GENERATOR_EMAILS if effective_email else False,
+        "role": _extract_role_from_event(event),
+        "isAllowed": _extract_role_from_event(event) in ALLOWED_GENERATOR_ROLES if _extract_role_from_event(event) else False,
     }
 
 
@@ -255,7 +283,13 @@ def extract_email_from_event(event: Dict[str, Any]) -> Optional[str]:
 
 
 def is_generation_allowed(event: Dict[str, Any]) -> bool:
+    role = _extract_role_from_event(event)
+    if role and role in ALLOWED_GENERATOR_ROLES:
+        return True
+    # Fallback: check email for backward-compatibility during migration
     email = extract_email_from_event(event)
     if not email:
         return False
-    return email in ALLOWED_GENERATOR_EMAILS
+    # Log a deprecation warning so we know to assign roles to these users
+    logger.warning(f"Generation allowed via email fallback (no role set): {_mask_email(email)}")
+    return False

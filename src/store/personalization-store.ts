@@ -4,6 +4,7 @@ import type { PersonaId } from '@/features/ai-coach';
 import type { Mood } from '@/features/ai-coach';
 import { userdataApi } from '@/shared/api/userdata';
 import { getCurrentUserId, fireAndForget } from '@/shared/api/cloud-sync';
+import { logger } from '@/shared/utils/logger';
 export type PracticeMode = 'blocked' | 'mixed' | 'progressive';
 export type BehavioralSignals = {
     avgTimePerConcept: number; // seconds
@@ -84,7 +85,7 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
             },
             trackMetaphorUsage: (action, value) => {
                 if (import.meta.env.DEV) {
-                    console.debug('[MetaphorAnalytics]', { action, value, timestamp: Date.now() });
+                    logger.debug('[MetaphorAnalytics]', { action, value, timestamp: Date.now() });
                 }
             },
             // Graduation Actions
@@ -118,8 +119,8 @@ export const usePersonalizationStore = create<PersonalizationState & Personaliza
                     const cloud = cloudItem.data as Partial<PersonalizationState>;
                     // If cloud has data, apply it (cloud wins for prefs)
                     usePersonalizationStore.setState(cloud);
-                    console.log('[PersonalizationStore] Restored prefs from cloud');
-                }).catch(e => console.warn('[PersonalizationStore] Cloud sync failed:', e));
+                    logger.debug('[PersonalizationStore] Restored prefs from cloud');
+                }).catch(e => logger.warn('[PersonalizationStore] Cloud sync failed:', e));
             }
         }
     )

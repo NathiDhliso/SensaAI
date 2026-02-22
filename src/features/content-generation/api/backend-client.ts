@@ -7,17 +7,29 @@ import type { ParsedConcept } from '@/features/content-generation/parsers/types'
 import type { SubjectType, MacroWorkflowResult } from '@/shared/types/macro-workflow';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { toast } from '@/shared/utils/toast';
+import { logger } from '@/shared/utils/logger';
 /**
  * Uploads the raw exam/blueprint file to the secure storage bucket.
- * Triggers the server-side ingestion pipeline (Lambda Parser -> Vector Index).
+ * Gets a presigned S3 URL from the backend and uploads directly.
  */
 export async function uploadExamBlueprint(file: File): Promise<string> {
-    // TODO: Replace with actual S3 presigned URL upload
-    // const response = await conceptsApi.getUploadUrl(file.name, file.type);
-    // await fetch(response.url, { method: 'PUT', body: file });
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, UI_TIMINGS.DELAY_MEDIUM));
-    return `s3://sensa-blueprints/${Date.now()}/${file.name}`;
+    const { url, key, bucket } = await conceptsApi.getUploadUrl(
+        file.name,
+        file.type || 'application/octet-stream',
+        file.size,
+    );
+
+    const uploadResponse = await fetch(url, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    });
+
+    if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+    }
+
+    return `s3://${bucket}/${key}`;
 }
 /**
  * Generate content using the serverless Lambda + DynamoDB pipeline.
@@ -73,7 +85,7 @@ export async function generateWithBackend(
         ]);
         clearInterval(simInterval);
         if (generateResponse.status === 'failed') {
-            console.error('[Backend Generator] Generation failed:', generateResponse.error);
+            logger.error('[Backend Generator] Generation failed:', generateResponse.error);
             clearActiveJob();
             toast.error(`Generation failed: ${generateResponse.error || 'Please try again'}`);
             throw new Error(generateResponse.error || 'Generation failed');
@@ -116,13 +128,13 @@ export async function generateWithBackend(
                 message: 'Loading trunk domains...',
                 progress: 67
             });
-            console.log('[Backend Generator] Fetching concepts with:', { userId, sessionId });
+            logger.debug('[Backend Generator] Fetching concepts with:', { userId, sessionId });
             const [trunkConcepts, branchConcepts, leafConcepts] = await Promise.all([
                 conceptsApi.getAllByTier(userId, sessionId, 'trunk'),
                 conceptsApi.getAllByTier(userId, sessionId, 'branch'),
                 conceptsApi.getAllByTier(userId, sessionId, 'leaf')
             ]);
-            console.log('[Backend Generator] Tier results:', {
+            logger.debug('[Backend Generator] Tier results:', {
                 trunk: trunkConcepts?.length ?? 0,
                 branch: branchConcepts?.length ?? 0,
                 leaf: leafConcepts?.length ?? 0
@@ -135,13 +147,13 @@ export async function generateWithBackend(
             // Sort by order if available
             allConcepts.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
             if (allConcepts.length === 0) {
-                console.warn('[Backend Generator] Tier-based fetch returned 0. Trying unfiltered fetch...');
+                logger.warn('[Backend Generator] Tier-based fetch returned 0. Trying unfiltered fetch...');
                 const unfilteredResponse = await conceptsApi.query({
                     userId,
                     sessionId,
                     limit: 100
                 });
-                console.log('[Backend Generator] Unfiltered fetch:', {
+                logger.debug('[Backend Generator] Unfiltered fetch:', {
                     count: unfilteredResponse.count,
                     hasMore: unfilteredResponse.hasMore,
                     firstConcept: unfilteredResponse.concepts[0]?.name,
@@ -149,9 +161,9 @@ export async function generateWithBackend(
                 });
                 if (unfilteredResponse.concepts.length > 0) {
                     allConcepts = unfilteredResponse.concepts;
-                    console.log(`[Backend Generator] Recovered ${allConcepts.length} concepts via unfiltered query`);
+                    logger.debug(`[Backend Generator] Recovered ${allConcepts.length} concepts via unfiltered query`);
                 } else {
-                    console.error('[Backend Generator] No concepts generated');
+                    logger.error('[Backend Generator] No concepts generated');
                     clearActiveJob();
                     toast.error('No concepts generated. Try a more specific subject or different content.');
                     throw new Error(
@@ -171,7 +183,7 @@ export async function generateWithBackend(
                 progress: 90
             });
         } catch (fetchError) {
-            console.error('[Backend Generator] Failed to fetch concepts:', fetchError);
+            logger.error('[Backend Generator] Failed to fetch concepts:', fetchError);
             throw new Error(getErrorMessage(fetchError, 'Failed to load generated concepts'));
         }
         // Pass 4: Build result document
@@ -425,7 +437,7 @@ export async function surgicallyRepairConcept(
         // Fallback if response structure differs (handling generic API wrapper returns)
         return response;
     } catch (error) {
-        console.error("Surgical repair failed:", error);
+        logger.error("Surgical repair failed:", error);
         throw new Error(getErrorMessage(error, 'Failed to repair concept. Please try again.'));
     }
 }

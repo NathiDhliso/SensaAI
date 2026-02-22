@@ -8,6 +8,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import styles from './LearningErrorBoundary.module.css';
+import { logger } from '@/shared/utils/logger';
 interface Props {
     children: ReactNode;
     onRecover?: () => void;
@@ -34,7 +35,7 @@ export class LearningErrorBoundary extends Component<Props, State> {
     }
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         // Log error to console for debugging
-        console.error('[LearningErrorBoundary] Caught error:', error, errorInfo);
+        logger.error('[LearningErrorBoundary] Caught error:', error, errorInfo);
         this.setState({
             error,
             errorInfo

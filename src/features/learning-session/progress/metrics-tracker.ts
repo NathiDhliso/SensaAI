@@ -10,6 +10,8 @@
  * 
  * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7
  */
+import { logger } from '@/shared/utils/logger';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -132,7 +134,7 @@ export class LearningMetricsTracker {
  };
  }
  } catch (e) {
- console.warn('[MetricsTracker] Failed to load from storage:', e);
+ logger.warn('[MetricsTracker] Failed to load from storage:', e);
  }
  }
  private saveToStorage(): void {
@@ -143,7 +145,7 @@ export class LearningMetricsTracker {
  };
  localStorage.setItem(this.storageKey, JSON.stringify(data));
  } catch (e) {
- console.warn('[MetricsTracker] Failed to save to storage:', e);
+ logger.warn('[MetricsTracker] Failed to save to storage:', e);
  }
  }
  // ─── SESSION MANAGEMENT ───────────────────────────────────────────────────
@@ -536,4 +538,4 @@ export function getMetricsTracker(userId?: string): LearningMetricsTracker {
  }
  return metricsTrackerInstance;
 }
-export default LearningMetricsTracker;
+export default LearningMetricsTracker;

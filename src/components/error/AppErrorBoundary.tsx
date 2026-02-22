@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import styles from './AppErrorBoundary.module.css';
+import { logger } from '@/shared/utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -23,7 +24,7 @@ export class AppErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[AppErrorBoundary] Uncaught error:', error, errorInfo);
+    logger.error('[AppErrorBoundary] Uncaught error:', error, errorInfo);
     this.setState({ error, errorInfo });
   }
 

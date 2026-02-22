@@ -18,6 +18,8 @@ sns = boto3.client('sns', region_name='us-east-1')
 
 # Environment variables
 AUDITS_TABLE = os.environ.get('CLM_AUDITS_TABLE', 'clm-audits')
+CONCEPTS_TABLE = os.environ.get('CONCEPTS_TABLE', 'sensaai-concepts-dev')
+JOBS_TABLE = os.environ.get('JOBS_TABLE', 'sensaai-jobs-dev')
 SCHEMA_AUDITOR_FUNCTION = os.environ.get('SCHEMA_AUDITOR_FUNCTION', 'clm-schema-auditor')
 CONTENT_AUDITOR_FUNCTION = os.environ.get('CONTENT_AUDITOR_FUNCTION', 'clm-content-auditor')
 COVERAGE_AUDITOR_FUNCTION = os.environ.get('COVERAGE_AUDITOR_FUNCTION', 'clm-coverage-auditor')
@@ -156,24 +158,107 @@ def invoke_auditor_lambda(
 
 def get_concepts_for_audit(subject: str, concept_ids: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     """
-    Fetch concepts from DynamoDB for auditing
-    This is a placeholder - implement based on your concept storage
+    Fetch concepts from DynamoDB for auditing.
+    Looks up the latest completed job for the subject, then queries concepts.
+    DynamoDB key schema: PK=USER#<userId>#SESSION#<sessionId>, SK=TIER#<tier>#<conceptId>
     """
-    # TODO: Implement concept fetching from your DynamoDB table
-    # For now, return empty list
-    print(f"Warning: Concept fetching not implemented. Subject: {subject}")
-    return []
+    jobs_table = dynamodb.Table(JOBS_TABLE)
+    concepts_table = dynamodb.Table(CONCEPTS_TABLE)
+
+    # Find the latest completed job for this subject by scanning jobs table
+    try:
+        scan_result = jobs_table.scan(
+            FilterExpression='subject = :subj AND #s = :status',
+            ExpressionAttributeNames={'#s': 'status'},
+            ExpressionAttributeValues={':subj': subject, ':status': 'completed'},
+        )
+        jobs = sorted(scan_result.get('Items', []), key=lambda j: j.get('createdAt', 0), reverse=True)
+    except Exception as e:
+        print(f"Error scanning jobs for subject '{subject}': {e}")
+        return []
+
+    if not jobs:
+        print(f"No completed jobs found for subject: {subject}")
+        return []
+
+    job = jobs[0]
+    user_id = job.get('userId', '')
+    session_id = job.get('sessionId', '')
+    pk = f"USER#{user_id}#SESSION#{session_id}"
+
+    # Query all concepts for this session
+    try:
+        all_concepts: List[Dict[str, Any]] = []
+        last_key = None
+        while True:
+            query_params: Dict[str, Any] = {
+                'KeyConditionExpression': 'PK = :pk AND begins_with(SK, :skPrefix)',
+                'ExpressionAttributeValues': {':pk': pk, ':skPrefix': 'TIER#'},
+            }
+            if last_key:
+                query_params['ExclusiveStartKey'] = last_key
+            result = concepts_table.query(**query_params)
+            all_concepts.extend(result.get('Items', []))
+            last_key = result.get('LastEvaluatedKey')
+            if not last_key:
+                break
+
+        # Filter by concept_ids if provided
+        if concept_ids:
+            id_set = set(concept_ids)
+            all_concepts = [c for c in all_concepts if c.get('conceptId') in id_set]
+
+        print(f"Fetched {len(all_concepts)} concepts for subject '{subject}' (session={session_id})")
+        return all_concepts
+
+    except Exception as e:
+        print(f"Error querying concepts for PK '{pk}': {e}")
+        return []
 
 
 def get_exam_objectives(subject: str) -> List[Dict[str, Any]]:
     """
-    Fetch exam objectives for the subject
-    This is a placeholder - implement based on your objective storage
+    Fetch exam objectives for the subject from the jobs table classification data.
+    Objectives are derived from the macro workflow / classification stored when
+    content was generated (e.g. AZ-104 exam domains with weights and tasks).
     """
-    # TODO: Implement objective fetching
-    # For now, return empty list
-    print(f"Warning: Exam objective fetching not implemented. Subject: {subject}")
-    return []
+    jobs_table = dynamodb.Table(JOBS_TABLE)
+
+    try:
+        scan_result = jobs_table.scan(
+            FilterExpression='subject = :subj AND #s = :status',
+            ExpressionAttributeNames={'#s': 'status'},
+            ExpressionAttributeValues={':subj': subject, ':status': 'completed'},
+        )
+        jobs = sorted(scan_result.get('Items', []), key=lambda j: j.get('createdAt', 0), reverse=True)
+    except Exception as e:
+        print(f"Error scanning jobs for objectives: {e}")
+        return []
+
+    if not jobs:
+        print(f"No completed jobs found for exam objectives: {subject}")
+        return []
+
+    classification = jobs[0].get('classification', {})
+    if not classification:
+        print(f"No classification data for subject: {subject}")
+        return []
+
+    # Extract domains/objectives from macro structure
+    macro = classification.get('macroStructure', {})
+    domains = macro.get('domains', [])
+
+    objectives: List[Dict[str, Any]] = []
+    for domain in domains:
+        objectives.append({
+            'name': domain.get('name', ''),
+            'weight': domain.get('weight', 0),
+            'tasks': domain.get('tasks', []),
+            'source': 'classification',
+        })
+
+    print(f"Extracted {len(objectives)} exam objectives for subject: {subject}")
+    return objectives
 
 
 def send_completion_notification(audit_id: str, summary: Dict[str, Any]):

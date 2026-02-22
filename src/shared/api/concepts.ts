@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import type { ParsedConcept } from '@/features/content-generation/parsers/types';
 import type { PublicJobSummary } from '@/features/content-storage/types';
+import { logger } from '@/shared/utils/logger';
 
 export interface ConceptsQueryParams {
   userId: string;
@@ -137,6 +138,22 @@ export const conceptsApi = {
   },
 
   /**
+  * Update a concept's fields (curator editing)
+  */
+  async updateConcept(
+    _userId: string,
+    sessionId: string,
+    conceptId: string,
+    tier: string,
+    updates: Partial<ParsedConcept>,
+  ): Promise<{ status: string; concept: ParsedConcept }> {
+    return apiClient.put<{ status: string; concept: ParsedConcept }>(
+      `/concepts/${encodeURIComponent(sessionId)}/concept/${encodeURIComponent(conceptId)}`,
+      { tier, ...updates },
+    );
+  },
+
+  /**
   * Delete a subject and all its concepts
   */
   async deleteJob(sessionId: string, userId: string): Promise<boolean> {
@@ -144,7 +161,7 @@ export const conceptsApi = {
       await apiClient.delete(`/concepts/${sessionId}?userId=${encodeURIComponent(userId)}`);
       return true;
     } catch (error) {
-      console.error('[ConceptsAPI] Failed to delete job:', error);
+      logger.error('[ConceptsAPI] Failed to delete job:', error);
       return false;
     }
   },
@@ -284,7 +301,7 @@ export const conceptsApi = {
         if (abortSignal?.aborted) {
           return { finalCount: totalSeen, status: 'cancelled' };
         }
-        console.warn('[ConceptsAPI] Polling error, retrying...', error);
+        logger.warn('[ConceptsAPI] Polling error, retrying...', error);
         await new Promise(resolve => setTimeout(resolve, pollIntervalMs * 2));
       }
     }
@@ -313,6 +330,17 @@ export const conceptsApi = {
       jobId,
     });
     return apiClient.get(`/concepts?${queryParams.toString()}`);
+  },
+
+  /**
+  * Get a presigned S3 URL for uploading a file
+  */
+  async getUploadUrl(fileName: string, contentType: string, fileSize?: number): Promise<{ url: string; key: string; bucket: string }> {
+    return apiClient.post<{ url: string; key: string; bucket: string }>('/concepts/upload-url', {
+      fileName,
+      contentType,
+      fileSize,
+    });
   },
 };
 export type { ParsedConcept };

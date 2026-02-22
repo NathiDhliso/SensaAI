@@ -4,6 +4,7 @@
  * Provides robust score normalization and validation to prevent
  * crashes and unpredictable behavior from invalid scores.
  */
+import { logger } from '@/shared/utils/logger';
 export type ScoreStatus = 'mastered' | 'needs-review' | 'needs-learning';
 /**
  * Normalize a score to a valid range [0, 1]
@@ -19,23 +20,23 @@ export function normalizeScore(
 ): number {
  // Handle null/undefined
  if (score === null || score === undefined) {
- console.warn('[ScoreUtils] Score is null/undefined, using default:', defaultValue);
+ logger.warn('[ScoreUtils] Score is null/undefined, using default:', defaultValue);
  return Math.max(0, Math.min(1, defaultValue));
  }
  // Handle NaN
  if (isNaN(score)) {
- console.warn('[ScoreUtils] Score is NaN, using default:', defaultValue);
+ logger.warn('[ScoreUtils] Score is NaN, using default:', defaultValue);
  return Math.max(0, Math.min(1, defaultValue));
  }
  // Handle Infinity
  if (!isFinite(score)) {
- console.warn('[ScoreUtils] Score is Infinity, using default:', defaultValue);
+ logger.warn('[ScoreUtils] Score is Infinity, using default:', defaultValue);
  return Math.max(0, Math.min(1, defaultValue));
  }
  // Clamp to [0, 1] range
  const clamped = Math.max(0, Math.min(1, score));
  if (clamped !== score) {
- console.warn(`[ScoreUtils] Score ${score} clamped to ${clamped}`);
+ logger.warn(`[ScoreUtils] Score ${score} clamped to ${clamped}`);
  }
  return clamped;
 }
@@ -62,7 +63,7 @@ export function determineStatus(
  if (normalized >= 0.8) {
  // High score, but if verification failed, downgrade to needs-review
  if (verified === false) {
- console.log('[ScoreUtils] High score but verification failed, downgrading to needs-review');
+ logger.debug('[ScoreUtils] High score but verification failed, downgrading to needs-review');
  return 'needs-review';
  }
  return 'mastered';
@@ -124,7 +125,7 @@ export function calculateCompositeScore(components: {
  }
  // Avoid division by zero
  if (totalWeight === 0) {
- console.warn('[ScoreUtils] No valid score components, returning 0');
+ logger.warn('[ScoreUtils] No valid score components, returning 0');
  return 0;
  }
  // Normalize by actual weight used
@@ -157,4 +158,4 @@ export function getStatusMessage(status: ScoreStatus): string {
 export function formatScore(score: number | null | undefined): string {
  const normalized = normalizeScore(score);
  return `${Math.round(normalized * 100)}%`;
-}
+}
