@@ -42,41 +42,51 @@ class BedrockService:
     def __init__(self, region: str = "us-east-1"):
         """
         Initialize the Bedrock service with AWS client.
-        Uses cross-account IAM role assumption if CROSS_ACCOUNT_ROLE_ARN is set.
+        Authentication priority:
+          1. BEDROCK_ACCESS_KEY_ID / BEDROCK_SECRET_ACCESS_KEY  (static creds from Bedrock account)
+          2. CROSS_ACCOUNT_ROLE_ARN  (STS AssumeRole into Bedrock account)
+          3. Lambda execution role   (same-account fallback)
         Args:
             region: AWS region for Bedrock endpoint
         """
+        bedrock_access_key = os.environ.get("BEDROCK_ACCESS_KEY_ID")
+        bedrock_secret_key = os.environ.get("BEDROCK_SECRET_ACCESS_KEY")
         cross_account_role_arn = os.environ.get("CROSS_ACCOUNT_ROLE_ARN")
 
-        if cross_account_role_arn:
+        bedrock_kwargs = dict(
+            service_name="bedrock-runtime",
+            region_name=region,
+            config=Config(
+                retries={"max_attempts": 3, "mode": "adaptive"},
+                read_timeout=900,
+            ),
+        )
+
+        if bedrock_access_key and bedrock_secret_key:
+            # Strategy 1: Static credentials from Bedrock account
+            print("[BedrockService] Using static Bedrock account credentials")
+            bedrock_kwargs["aws_access_key_id"] = bedrock_access_key
+            bedrock_kwargs["aws_secret_access_key"] = bedrock_secret_key
+            self.client = boto3.client(**bedrock_kwargs)
+        elif cross_account_role_arn:
+            # Strategy 2: Cross-account role assumption
+            print("[BedrockService] Using cross-account role assumption")
             sts = boto3.client("sts", region_name=region)
             creds = sts.assume_role(
                 RoleArn=cross_account_role_arn,
                 RoleSessionName="sensapbl-bedrock-generate",
                 DurationSeconds=3600,
             )["Credentials"]
-            self.client = boto3.client(
-                "bedrock-runtime",
-                region_name=region,
-                aws_access_key_id=creds["AccessKeyId"],
-                aws_secret_access_key=creds["SecretAccessKey"],
-                aws_session_token=creds["SessionToken"],
-                config=Config(
-                    retries={"max_attempts": 3, "mode": "adaptive"},
-                    read_timeout=900,
-                ),
-            )
+            bedrock_kwargs["aws_access_key_id"] = creds["AccessKeyId"]
+            bedrock_kwargs["aws_secret_access_key"] = creds["SecretAccessKey"]
+            bedrock_kwargs["aws_session_token"] = creds["SessionToken"]
+            self.client = boto3.client(**bedrock_kwargs)
         else:
-            self.client = boto3.client(
-                "bedrock-runtime",
-                region_name=region,
-                config=Config(
-                    retries={"max_attempts": 3, "mode": "adaptive"},
-                    read_timeout=900,
-                ),
-            )
+            # Strategy 3: Lambda execution role (same-account)
+            print("[BedrockService] Using Lambda execution role credentials")
+            self.client = boto3.client(**bedrock_kwargs)
         self.model_id = os.environ.get(
-            "BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+            "BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-6"
         )
     def classify_subject(self, subject: str, context: str = "") -> Optional[Dict[str, Any]]:
         from shared.system_prompt import get_classification_prompt

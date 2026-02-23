@@ -5,11 +5,21 @@ from typing import Any, Dict
 
 from shared.utils import api_response
 
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-haiku-4-5-20251001-v1:0")
 
+bedrock_access_key = os.environ.get("BEDROCK_ACCESS_KEY_ID")
+bedrock_secret_key = os.environ.get("BEDROCK_SECRET_ACCESS_KEY")
 cross_account_role_arn = os.environ.get("CROSS_ACCOUNT_ROLE_ARN")
 
-if cross_account_role_arn:
+if bedrock_access_key and bedrock_secret_key:
+    # Static credentials from Bedrock account
+    bedrock = boto3.client(
+        "bedrock-runtime",
+        region_name="us-east-1",
+        aws_access_key_id=bedrock_access_key,
+        aws_secret_access_key=bedrock_secret_key,
+    )
+elif cross_account_role_arn:
     _sts = boto3.client("sts", region_name="us-east-1")
     _creds = _sts.assume_role(
         RoleArn=cross_account_role_arn,

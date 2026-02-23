@@ -13,11 +13,22 @@ import uuid
 
 # AWS Clients
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+
+# Bedrock client — authenticate to Bedrock account (693582801685)
+_bedrock_access_key = os.environ.get('BEDROCK_ACCESS_KEY_ID')
+_bedrock_secret_key = os.environ.get('BEDROCK_SECRET_ACCESS_KEY')
+if _bedrock_access_key and _bedrock_secret_key:
+    bedrock = boto3.client(
+        'bedrock-runtime', region_name='us-east-1',
+        aws_access_key_id=_bedrock_access_key,
+        aws_secret_access_key=_bedrock_secret_key,
+    )
+else:
+    bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
 
 # Environment variables
 AUDITS_TABLE = os.environ.get('CLM_AUDITS_TABLE', 'clm-audits')
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-opus-4-5-20251101-v1:0")
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-opus-4-6-v1")
 
 # Placeholder patterns
 PLACEHOLDER_PATTERNS = [

@@ -147,7 +147,7 @@ variable "aws_region" {
 variable "bedrock_model_id" {
   description = "Bedrock model ID for concept generation"
   type        = string
-  default     = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+  default     = "anthropic.claude-sonnet-4-6"
 }
 
 # Tags
@@ -161,4 +161,18 @@ variable "cross_account_role_arn" {
   description = "IAM role ARN in the Bedrock account for cross-account access"
   type        = string
   default     = ""
+}
+
+variable "bedrock_access_key_id" {
+  description = "AWS access key ID for the Bedrock account"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "bedrock_secret_access_key" {
+  description = "AWS secret access key for the Bedrock account"
+  type        = string
+  default     = ""
+  sensitive   = true
 }

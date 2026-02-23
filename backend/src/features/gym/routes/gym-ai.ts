@@ -3,8 +3,17 @@ import { logger } from '../../../shared/utils/logger.js';
 import { validate, GymAiSchema } from '../../../shared/validation/schemas.js';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 const router = Router();
-const HAIKU_MODEL_ID = 'us.anthropic.claude-3-5-haiku-20241022-v1:0';
-const bedrock = new BedrockRuntimeClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const HAIKU_MODEL_ID = 'anthropic.claude-haiku-4-5-20251001-v1:0';
+
+// Use Bedrock account credentials (693582801685) if available
+const bedrockConfig: Record<string, unknown> = { region: process.env.AWS_REGION || 'us-east-1' };
+if (process.env.BEDROCK_ACCESS_KEY_ID && process.env.BEDROCK_SECRET_ACCESS_KEY) {
+ bedrockConfig.credentials = {
+   accessKeyId: process.env.BEDROCK_ACCESS_KEY_ID,
+   secretAccessKey: process.env.BEDROCK_SECRET_ACCESS_KEY,
+ };
+}
+const bedrock = new BedrockRuntimeClient(bedrockConfig);
 const ACTIONS = new Set([
  'misconception',
  'pushback',

@@ -29,8 +29,10 @@ module "sensapbl" {
   # API Gateway CORS
   cors_allowed_origins = var.cors_allowed_origins
 
-  # Cross account (IAM role for Bedrock access)
-  cross_account_role_arn = var.cross_account_role_arn
+  # Bedrock account credentials (account 693582801685)
+  cross_account_role_arn    = var.cross_account_role_arn
+  bedrock_access_key_id     = var.bedrock_access_key_id
+  bedrock_secret_access_key = var.bedrock_secret_access_key
 }
 
 # ==============================================================================

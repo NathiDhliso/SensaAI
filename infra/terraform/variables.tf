@@ -49,3 +49,17 @@ variable "cross_account_role_arn" {
   type        = string
   default     = ""
 }
+
+variable "bedrock_access_key_id" {
+  description = "AWS access key ID for the Bedrock account (693582801685)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "bedrock_secret_access_key" {
+  description = "AWS secret access key for the Bedrock account (693582801685)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}

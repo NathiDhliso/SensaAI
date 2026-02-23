@@ -193,6 +193,8 @@ resource "aws_lambda_function" "generate_concepts" {
       LOG_LEVEL                       = var.environment == "prod" ? "INFO" : "DEBUG"
       BEDROCK_MODEL_ID                = var.bedrock_model_id
       CROSS_ACCOUNT_ROLE_ARN           = var.cross_account_role_arn
+      BEDROCK_ACCESS_KEY_ID            = var.bedrock_access_key_id
+      BEDROCK_SECRET_ACCESS_KEY        = var.bedrock_secret_access_key
     }
   }
 
@@ -265,6 +267,8 @@ resource "aws_lambda_function" "gym_ai" {
       LOG_LEVEL                       = var.environment == "prod" ? "INFO" : "DEBUG"
       # gym_ai uses Haiku 4.5 (default in code) for ultra-low latency
       CROSS_ACCOUNT_ROLE_ARN           = var.cross_account_role_arn
+      BEDROCK_ACCESS_KEY_ID            = var.bedrock_access_key_id
+      BEDROCK_SECRET_ACCESS_KEY        = var.bedrock_secret_access_key
     }
   }
 
