@@ -39,9 +39,16 @@ export function useSafetyCheck() {
   });
 }
 
+type AutoFixResult = { success: boolean; fixedConnections: number; details: string };
+
 /** Apply auto-fix for broken connections */
-export function useApplyAutoFix() {
+export function useApplyAutoFix(
+  onSuccess?: (data: AutoFixResult) => void,
+  onError?: () => void,
+) {
   return useMutation({
     mutationFn: (fixId: string) => dependencyApi.applyAutoFix(fixId),
+    onSuccess,
+    onError,
   });
 }

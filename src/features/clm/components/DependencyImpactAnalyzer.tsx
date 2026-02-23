@@ -4,7 +4,7 @@
  * broken connections, learning path disruptions, and auto-fix suggestions.
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDependencyGraph, useImpactAnalysis, useApplyAutoFix } from '../hooks/useDependencyImpact';
 import type {
@@ -138,7 +138,7 @@ function AutoFixCard({
   );
 }
 
-function ImpactReport({ analysis }: { analysis: ImpactAnalysisType }) {
+function ImpactReport({ analysis, onAutoFix }: { analysis: ImpactAnalysisType; onAutoFix: (id: string) => void }) {
   const riskColors = {
     low: 'var(--color-success, #22c55e)',
     medium: 'var(--color-warning, #f59e0b)',
@@ -225,7 +225,11 @@ function ImpactReport({ analysis }: { analysis: ImpactAnalysisType }) {
         <div className={styles.impactSection}>
           <h4 className={styles.impactSectionTitle}>Broken Connections</h4>
           {analysis.brokenConnections.map((conn, i) => (
-            <BrokenConnectionItem key={i} connection={conn} />
+            <BrokenConnectionItem
+              key={i}
+              connection={conn}
+              onAutoFix={conn.autoFixAvailable ? () => onAutoFix(`broken-${i}`) : undefined}
+            />
           ))}
         </div>
       )}
@@ -269,11 +273,26 @@ export function DependencyImpactAnalyzer() {
 
   const { data: graph, isLoading: graphLoading } = useDependencyGraph(subject || undefined, sessionId);
   const { data: impact, isLoading: impactLoading } = useImpactAnalysis(selectedConcept, changeType);
-  const autoFix = useApplyAutoFix();
+  const [fixStatus, setFixStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const handleAutoFixSuccess = useCallback((data: { success: boolean; fixedConnections: number; details: string }) => {
+    setFixStatus({
+      type: data.success ? 'success' : 'error',
+      message: data.details,
+    });
+    setTimeout(() => setFixStatus(null), 5000);
+  }, []);
+
+  const handleAutoFixError = useCallback(() => {
+    setFixStatus({ type: 'error', message: 'Auto-fix failed. Try using the Content Editor instead.' });
+    setTimeout(() => setFixStatus(null), 5000);
+  }, []);
+
+  const autoFix = useApplyAutoFix(handleAutoFixSuccess, handleAutoFixError);
 
   const criticalNodes = graph?.nodes
-    .filter((n) => n.criticalityScore > 60)
-    .sort((a, b) => b.criticalityScore - a.criticalityScore) ?? [];
+    .filter((n: DependencyNode) => n.criticalityScore > 60)
+    .sort((a: DependencyNode, b: DependencyNode) => b.criticalityScore - a.criticalityScore) ?? [];
 
   return (
     <div className={styles.container}>
@@ -337,7 +356,7 @@ export function DependencyImpactAnalyzer() {
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>Critical Nodes (High Dependency)</h2>
               <div className={styles.nodesGrid}>
-                {criticalNodes.slice(0, 12).map((node) => (
+                {criticalNodes.slice(0, 12).map((node: DependencyNode) => (
                   <div
                     key={node.conceptId}
                     onClick={() => setSelectedConcept(node.conceptId)}
@@ -360,14 +379,32 @@ export function DependencyImpactAnalyzer() {
                 </div>
               ) : impact ? (
                 <>
-                  <ImpactReport analysis={impact} />
+                  <ImpactReport analysis={impact} onAutoFix={(id) => autoFix.mutate(id)} />
 
                   {/* Auto-Fix Suggestions */}
                   {impact.autoFixSuggestions.length > 0 && (
                     <div className={styles.autoFixSection}>
                       <h3 className={styles.sectionTitle}>Auto-Fix Suggestions</h3>
+                      {fixStatus && (
+                        <div
+                          style={{
+                            padding: '0.75rem 1rem',
+                            borderRadius: '0.5rem',
+                            marginBottom: '0.75rem',
+                            background: fixStatus.type === 'success'
+                              ? 'var(--color-success-bg, rgba(34,197,94,0.1))'
+                              : 'var(--color-error-bg, rgba(239,68,68,0.1))',
+                            color: fixStatus.type === 'success'
+                              ? 'var(--color-success, #22c55e)'
+                              : 'var(--color-error, #ef4444)',
+                            border: `1px solid ${fixStatus.type === 'success' ? 'var(--color-success, #22c55e)' : 'var(--color-error, #ef4444)'}`,
+                          }}
+                        >
+                          {fixStatus.message}
+                        </div>
+                      )}
                       <div className={styles.autoFixList}>
-                        {impact.autoFixSuggestions.map((suggestion) => (
+                        {impact.autoFixSuggestions.map((suggestion: AutoFixSuggestion) => (
                           <AutoFixCard
                             key={suggestion.id}
                             suggestion={suggestion}

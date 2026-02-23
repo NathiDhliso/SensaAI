@@ -134,8 +134,8 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
                     ConditionExpression: 'attribute_exists(jobId)'
                 }));
                 res.json({ jobId, isPublic });
-            } catch (error: any) {
-                if (error.name === 'ConditionalCheckFailedException') {
+            } catch (error: unknown) {
+                if (error instanceof Error && error.name === 'ConditionalCheckFailedException') {
                     res.status(404).json({ error: 'Job not found' });
                 } else {
                     logger.error('[Backend toggle_public] Error:', error);

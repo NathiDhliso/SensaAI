@@ -10,6 +10,12 @@ import { useCostReport, useCostOptimizations, useCostPerLearner } from '../hooks
 import type { CostBreakdown, CostOptimization, CostAlert } from '../types/enhancements';
 import styles from './CostOptimizationAnalyzer.module.css';
 
+interface CostPerLearnerSubject {
+  subject: string;
+  costPerLearner: number;
+  learnerCount: number;
+}
+
 const CATEGORY_COLORS: Record<string, string> = {
   generation: 'var(--primary, #3b82f6)',
   audit: 'var(--color-warning, #f59e0b)',
@@ -105,15 +111,16 @@ function AlertItem({ alert }: { alert: CostAlert }) {
 }
 
 export function CostOptimizationAnalyzer() {
-  const [dateRange] = useState(() => {
+  const [rangeDays, setRangeDays] = useState(30);
+  const dateRange = (() => {
     const end = new Date();
     const start = new Date();
-    start.setDate(start.getDate() - 30);
+    start.setDate(start.getDate() - rangeDays);
     return {
       start: start.toISOString().split('T')[0],
       end: end.toISOString().split('T')[0],
     };
-  });
+  })();
 
   const { data: costReport, isLoading: reportLoading } = useCostReport(dateRange.start, dateRange.end);
   const { data: optimizations, isLoading: optLoading } = useCostOptimizations();
@@ -128,6 +135,26 @@ export function CostOptimizationAnalyzer() {
         <p className={styles.subtitle}>
           Track costs, identify savings opportunities, and optimize spend
         </p>
+        <div className={styles.controls} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+          {[7, 30, 90].map((days) => (
+            <button
+              key={days}
+              onClick={() => setRangeDays(days)}
+              className={styles.rangeButton}
+              style={{
+                padding: '0.375rem 0.75rem',
+                borderRadius: '0.375rem',
+                border: '1px solid var(--border, #e5e7eb)',
+                cursor: 'pointer',
+                fontWeight: rangeDays === days ? 600 : 400,
+                background: rangeDays === days ? 'var(--primary, #3b82f6)' : 'transparent',
+                color: rangeDays === days ? 'white' : 'inherit',
+              }}
+            >
+              Last {days} Days
+            </button>
+          ))}
+        </div>
       </div>
 
       {isLoading ? (
@@ -142,7 +169,7 @@ export function CostOptimizationAnalyzer() {
             <div className={styles.summaryGrid}>
               <div className={styles.summaryCard}>
                 <span className={styles.summaryValue}>${costReport.totalCostUsd.toFixed(2)}</span>
-                <span className={styles.summaryLabel}>Total Cost (30d)</span>
+                <span className={styles.summaryLabel}>Total Cost ({rangeDays}d)</span>
               </div>
               <div className={styles.summaryCard}>
                 <span className={styles.summaryValue}>${costReport.costPerLearner.toFixed(3)}</span>
@@ -174,7 +201,7 @@ export function CostOptimizationAnalyzer() {
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>Cost per Learner by Subject</h2>
               <div className={styles.cplGrid}>
-                {costPerLearner.bySubject.map((item) => (
+                {costPerLearner.bySubject.map((item: CostPerLearnerSubject) => (
                   <div key={item.subject} className={styles.cplCard}>
                     <span className={styles.cplSubject}>{item.subject}</span>
                     <span className={styles.cplValue}>${item.costPerLearner.toFixed(3)}</span>
@@ -190,7 +217,7 @@ export function CostOptimizationAnalyzer() {
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>Optimization Opportunities</h2>
               <div className={styles.optimizationsList}>
-                {optimizations.optimizations.map((opt) => (
+                {optimizations.optimizations.map((opt: CostOptimization) => (
                   <OptimizationCard key={opt.id} optimization={opt} />
                 ))}
               </div>
@@ -202,7 +229,7 @@ export function CostOptimizationAnalyzer() {
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>Cost Alerts</h2>
               <div className={styles.alertsList}>
-                {costReport.alerts.map((alert) => (
+                {costReport.alerts.map((alert: CostAlert) => (
                   <AlertItem key={alert.id} alert={alert} />
                 ))}
               </div>
@@ -236,7 +263,7 @@ export function CostOptimizationAnalyzer() {
               <div className={styles.assumptions}>
                 <h4 className={styles.assumptionsTitle}>Assumptions</h4>
                 <ul className={styles.assumptionsList}>
-                  {costReport.projections.assumptions.map((a, i) => (
+                  {costReport.projections.assumptions.map((a: string, i: number) => (
                     <li key={i} className={styles.assumptionItem}>{a}</li>
                   ))}
                 </ul>

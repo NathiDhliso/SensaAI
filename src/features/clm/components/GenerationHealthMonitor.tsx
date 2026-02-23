@@ -233,7 +233,7 @@ export function GenerationHealthMonitor() {
               </div>
 
               <div className={styles.subjectScores}>
-                {aggregate.subjectScores.map((s) => {
+                {aggregate.subjectScores.map((s: { subject: string; score: number }) => {
                   const st = getScoreStatus(s.score);
                   return (
                     <div key={s.subject} className={styles.subjectScoreItem}>
@@ -257,7 +257,7 @@ export function GenerationHealthMonitor() {
             <h2 className={styles.sectionTitle}>Recent Generation Reports</h2>
             {recentReports && recentReports.reports.length > 0 ? (
               <div className={styles.reportsList}>
-                {recentReports.reports.map((report) => (
+                {recentReports.reports.map((report: GenerationHealthReport) => (
                   <HealthReportCard key={report.generationId} report={report} />
                 ))}
               </div>
