@@ -7,7 +7,8 @@ import {
     Globe,
     Activity,
     GitBranch,
-    RefreshCw
+    RefreshCw,
+    Trash2
 } from 'lucide-react';
 import { storageManager } from '@/features/content-storage';
 import { conceptsApi } from '@/shared/api/concepts';
@@ -23,8 +24,10 @@ export default function CuratorLibraryView() {
     const [results, setResults] = useState<SavedResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [togglingId, setTogglingId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState<'date' | 'subject' | 'quality'>('date');
+    const [showBroken, setShowBroken] = useState(false);
 
     useEffect(() => {
         loadResults();
@@ -44,6 +47,11 @@ export default function CuratorLibraryView() {
 
     const filteredResults = useMemo(() => {
         let filtered = results;
+
+        // Separate broken (0-concept) generations
+        if (!showBroken) {
+            filtered = filtered.filter(r => r.pass1Data.concepts.length > 0);
+        }
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
@@ -70,7 +78,46 @@ export default function CuratorLibraryView() {
         });
 
         return filtered;
-    }, [results, searchQuery, sortBy]);
+    }, [results, searchQuery, sortBy, showBroken]);
+
+    const brokenCount = useMemo(
+        () => results.filter(r => r.pass1Data.concepts.length === 0).length,
+        [results]
+    );
+
+    const handleDeleteJob = async (result: SavedResult) => {
+        if (!confirm(`Delete "${result.subject}" (${formatDate(result.generatedAt)})? This cannot be undone.`)) return;
+        setDeletingId(result.id);
+        try {
+            const success = await conceptsApi.deleteJob(result.id, userId);
+            if (success) {
+                setResults(prev => prev.filter(r => r.id !== result.id));
+                toast.success('Deleted successfully');
+            } else {
+                toast.error('Failed to delete');
+            }
+        } catch {
+            toast.error('Failed to delete');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const handleCleanupBroken = async () => {
+        const broken = results.filter(r => r.pass1Data.concepts.length === 0);
+        if (broken.length === 0) return;
+        if (!confirm(`Delete ${broken.length} broken generation${broken.length > 1 ? 's' : ''} (0 concepts)? This cannot be undone.`)) return;
+
+        let deleted = 0;
+        for (const b of broken) {
+            try {
+                const success = await conceptsApi.deleteJob(b.id, userId);
+                if (success) deleted++;
+            } catch { /* continue */ }
+        }
+        setResults(prev => prev.filter(r => r.pass1Data.concepts.length > 0));
+        toast.success(`Cleaned up ${deleted} broken generation${deleted !== 1 ? 's' : ''}`);
+    };
 
     const formatDate = (dateString: string) => {
         const parsed = /^\d+$/.test(dateString) ? new Date(Number(dateString)) : new Date(dateString);
@@ -118,6 +165,42 @@ export default function CuratorLibraryView() {
                 </div>
 
                 {!loading && results.length > 0 && (
+                    <>
+                    {brokenCount > 0 && (
+                        <div style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '0.75rem 1rem', marginBottom: '1rem',
+                            background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)',
+                            borderRadius: '0.5rem', fontSize: '0.875rem', color: '#ef4444',
+                        }}>
+                            <span>
+                                <strong>{brokenCount}</strong> broken generation{brokenCount !== 1 ? 's' : ''} (0 concepts) found.
+                                {!showBroken && ' Hidden from view.'}
+                            </span>
+                            <span style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    onClick={() => setShowBroken(!showBroken)}
+                                    style={{
+                                        padding: '0.25rem 0.5rem', fontSize: '0.8125rem',
+                                        background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)',
+                                        borderRadius: '0.25rem', color: '#ef4444', cursor: 'pointer',
+                                    }}
+                                >
+                                    {showBroken ? 'Hide' : 'Show'}
+                                </button>
+                                <button
+                                    onClick={handleCleanupBroken}
+                                    style={{
+                                        padding: '0.25rem 0.5rem', fontSize: '0.8125rem',
+                                        background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)',
+                                        borderRadius: '0.25rem', color: '#ef4444', cursor: 'pointer',
+                                    }}
+                                >
+                                    Delete All Broken
+                                </button>
+                            </span>
+                        </div>
+                    )}
                     <div className={styles.filterBar}>
                         <div className={styles.searchBox}>
                             <Search size={18} className={styles.searchIcon} />
@@ -140,6 +223,7 @@ export default function CuratorLibraryView() {
                             <option value="quality">Sort by Quality</option>
                         </select>
                     </div>
+                    </>
                 )}
 
                 {loading ? (
@@ -165,8 +249,13 @@ export default function CuratorLibraryView() {
                     <div className={styles.resultsGrid}>
                         {filteredResults.map((result) => {
                             const health = getHealthLabel(result);
+                            const isBroken = result.pass1Data.concepts.length === 0;
                             return (
-                            <div key={result.id} className={styles.resultCard}>
+                            <div
+                                key={result.id}
+                                className={styles.resultCard}
+                                style={isBroken ? { opacity: 0.6, borderColor: 'rgba(239, 68, 68, 0.3)' } : undefined}
+                            >
                                 <div className={styles.cardHeader}>
                                     <div>
                                         <h3 className={styles.cardTitle}>
@@ -289,6 +378,16 @@ export default function CuratorLibraryView() {
                                     >
                                         <RefreshCw size={16} />
                                         Regen
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteJob(result)}
+                                        className={styles.viewButton}
+                                        disabled={deletingId === result.id}
+                                        title="Delete this generation"
+                                        style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                                    >
+                                        <Trash2 size={16} />
+                                        {deletingId === result.id ? '…' : 'Delete'}
                                     </button>
                                 </div>
                             </div>

@@ -327,6 +327,37 @@ conceptsRouter.post('/generate', validate(GenerateSchema), async (req: Authentic
         const isSyncAction = action === 'classify_only' || action === 'suggest_structure';
 
         if (!isSyncAction) {
+            // ── SERVER-SIDE DEDUP GUARD ──
+            // Reject if there's already an in_progress job for the same subject + user.
+            // This prevents duplicate generations from concurrent tabs / rapid clicks.
+            try {
+                const existingJobs = await docClient.send(new ScanCommand({
+                    TableName: JOBS_TABLE,
+                    FilterExpression: 'userId = :userId AND subject = :subject AND #s = :status',
+                    ExpressionAttributeNames: { '#s': 'status' },
+                    ExpressionAttributeValues: {
+                        ':userId': userId,
+                        ':subject': subject,
+                        ':status': 'in_progress',
+                    },
+                }));
+                if (existingJobs.Items && existingJobs.Items.length > 0) {
+                    const existingJob = existingJobs.Items[0];
+                    logger.warn(`[Backend /generate] Duplicate blocked — in_progress job ${existingJob.jobId} already exists for ${subject}`);
+                    res.json({
+                        jobId: existingJob.jobId,
+                        sessionId: existingJob.sessionId,
+                        status: 'in_progress',
+                        message: 'Generation already in progress for this subject',
+                        deduplicated: true,
+                    });
+                    return;
+                }
+            } catch (dedupError) {
+                // Log but don't block — better to allow a potential duplicate than fail entirely
+                logger.warn('[Backend /generate] Dedup check failed, proceeding:', dedupError);
+            }
+
             logger.debug('[Backend /generate] Creating async job record...', jobId);
             await docClient.send(new PutCommand({
                 TableName: JOBS_TABLE,

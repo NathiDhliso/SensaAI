@@ -348,6 +348,13 @@ export function useGenerationEngine(): GenerationEngineState & GenerationEngineA
                 setTimeout(() => navigate('/login'), 1000);
                 return;
             }
+
+            // DUPLICATE GUARD: Prevent multiple concurrent generations
+            const { isGenerating: alreadyRunning, activeJob } = useGenerationStore.getState();
+            if (alreadyRunning || (activeJob && (activeJob.status === 'pending' || activeJob.status === 'processing'))) {
+                logger.warn('[Generation] Generation already in progress — ignoring duplicate start request for:', subject);
+                return;
+            }
             const alias = generateAlias();
             setGeneratedAlias(alias);
             setIsGenerating(true);

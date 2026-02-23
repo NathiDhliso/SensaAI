@@ -85,12 +85,27 @@ export function useCollisionDetection(
  '@/shared/utils/alias-generator'
  );
  const normalizedInput = normalizeSubject(subject);
+
+ // ── Guard 1: Block if a job is already in-progress for this subject ──
+ const activeJob = result.jobs.find((j) => {
+ if (j.status !== 'in_progress') return false;
+ const normalizedJob = normalizeSubject(j.subject);
+ return normalizedJob === normalizedInput || levenshtein(normalizedJob, normalizedInput) <= 2;
+ });
+ if (activeJob) {
+ logger.warn('[Collision] Generation already in progress for', subject, '— skipping duplicate.');
+ setIsCheckingCollision(false);
+ // Don't start a new one; navigate to the in-progress view
+ const isCuratorMode = window.location.pathname.startsWith('/curator');
+ navigateRef.current(isCuratorMode ? `/curator/generate/${encodeURIComponent(subject)}` : `/generate/${encodeURIComponent(subject)}`);
+ return true;
+ }
+
+ // ── Guard 2: Check completed jobs (existing content) ──
  const duplicate = result.jobs.find((j) => {
  if (j.status !== 'completed') return false;
  const normalizedJob = normalizeSubject(j.subject);
- // Exact match after normalization?
  if (normalizedJob === normalizedInput) return true;
- // Fuzzy match (distance <= 2)?
  const dist = levenshtein(normalizedJob, normalizedInput);
  return dist <= 2;
  });
