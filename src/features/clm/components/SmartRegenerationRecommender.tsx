@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useRegenerationRecommendation, useExecuteRegeneration, useRegenerationStatus } from '../hooks/useRegeneration';
-import type { StrategyOption, DomainRegenerationAnalysis, UpdateStrategy } from '../types/enhancements';
+import type { StrategyOption, DomainRegenerationAnalysis, UpdateStrategy, RegenerationRecommendation } from '../types/enhancements';
 import styles from './SmartRegenerationRecommender.module.css';
 
 const STRATEGY_CONFIG: Record<UpdateStrategy, { label: string; icon: string; color: string }> = {
@@ -166,15 +166,49 @@ export function SmartRegenerationRecommender() {
   const sessionId = searchParams.get('sessionId') || undefined;
   const [activeJobId, setActiveJobId] = useState<string | undefined>();
 
-  const { data: recommendation, isLoading } = useRegenerationRecommendation(subject || undefined, sessionId);
+  const { data: recommendation, isLoading } = useRegenerationRecommendation(subject || undefined, sessionId) as {
+    data: RegenerationRecommendation | undefined;
+    isLoading: boolean;
+  };
   const executeMutation = useExecuteRegeneration();
   const { data: jobStatus } = useRegenerationStatus(activeJobId);
 
   const handleExecute = (strategy: string, domains?: string[]) => {
     if (!subject) return;
+
+    // No-action doesn't need a real job — just confirm
+    if (strategy === 'no-action') {
+      executeMutation.mutate(
+        { subject, strategy, domains: [] },
+        { onSuccess: () => { /* no job to track */ } }
+      );
+      return;
+    }
+
+    // For surgical-update: pass only the weak domains
+    // For partial-regeneration: pass the bottom-half domains sorted by quality
+    let targetDomains = domains;
+    if (!targetDomains && recommendation) {
+      if (strategy === 'surgical-update') {
+        targetDomains = recommendation.domainAnalysis
+          .filter((d: DomainRegenerationAnalysis) => d.needsRegeneration)
+          .map((d: DomainRegenerationAnalysis) => d.domain);
+      } else if (strategy === 'partial-regeneration') {
+        const sorted = [...recommendation.domainAnalysis].sort(
+          (a: DomainRegenerationAnalysis, b: DomainRegenerationAnalysis) => a.qualityScore - b.qualityScore
+        );
+        targetDomains = sorted.slice(0, Math.ceil(sorted.length / 2)).map((d: DomainRegenerationAnalysis) => d.domain);
+      }
+    }
+
     executeMutation.mutate(
-      { subject, strategy, domains },
-      { onSuccess: (result) => setActiveJobId(result.jobId) }
+      { subject, strategy, domains: targetDomains },
+      { onSuccess: (result: unknown) => {
+        const res = result as { jobId: string; estimatedTimeMinutes: number };
+        if (res.jobId && res.jobId !== 'no-action') {
+          setActiveJobId(res.jobId);
+        }
+      }}
     );
   };
 

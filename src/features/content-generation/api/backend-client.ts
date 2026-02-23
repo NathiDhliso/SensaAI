@@ -325,7 +325,7 @@ async function _pollUntilComplete(
 
             // --- Derive progress from actual concept count ---
             const conceptCount = progress?.conceptCount
-                ?? (status as Record<string, unknown>).conceptCount as number | undefined
+                ?? status.conceptCount
                 ?? 0;
 
             if (conceptCount > peakConceptCount) {

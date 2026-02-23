@@ -405,20 +405,79 @@ export const regenerationApi = {
     };
   },
 
-  async executeStrategy(subject: string, _strategy: string, _domains?: string[]): Promise<{ jobId: string; estimatedTimeMinutes: number }> {
+  async executeStrategy(subject: string, strategy: string, domains?: string[]): Promise<{ jobId: string; estimatedTimeMinutes: number }> {
+    // No-action: nothing to do
+    if (strategy === 'no-action') {
+      return { jobId: 'no-action', estimatedTimeMinutes: 0 };
+    }
+
     const userId = getUserId();
-    const response = await conceptsApi.generate({ subject, userId });
+
     // Invalidate audit cache — content is being regenerated
     const { invalidateAuditCache } = await import('./clm-client');
     invalidateAuditCache(subject);
-    return { jobId: response.jobId, estimatedTimeMinutes: 5 };
+
+    if (strategy === 'surgical-update' && domains && domains.length > 0) {
+      // Targeted regeneration: only the specified weak domains
+      const response = await conceptsApi.generate({
+        subject,
+        userId,
+        trunks: domains,
+        context: `[REGENERATION_MODE]: surgical-update\n[TARGET_DOMAINS]: ${domains.join(', ')}\nOnly regenerate concepts in the specified domains. Keep all other domains intact.`,
+      });
+      return { jobId: response.jobId, estimatedTimeMinutes: 3 };
+    }
+
+    if (strategy === 'partial-regeneration' && domains && domains.length > 0) {
+      // Partial: regenerate the bottom-half quality domains
+      const response = await conceptsApi.generate({
+        subject,
+        userId,
+        trunks: domains,
+        context: `[REGENERATION_MODE]: partial-regeneration\n[TARGET_DOMAINS]: ${domains.join(', ')}\nRegenerate concepts in the lowest-quality domains. Preserve high-quality domains.`,
+      });
+      return { jobId: response.jobId, estimatedTimeMinutes: 5 };
+    }
+
+    // Full regeneration: complete re-run, no trunks filter
+    const response = await conceptsApi.generate({ subject, userId });
+    return { jobId: response.jobId, estimatedTimeMinutes: 8 };
   },
 
   async getRegenerationStatus(jobId: string): Promise<{ status: string; progress: number; message: string }> {
+    // No-action is instant — already done
+    if (jobId === 'no-action') {
+      return { status: 'completed', progress: 100, message: 'No action was needed — content is healthy.' };
+    }
+
     const userId = getUserId();
     const job = await conceptsApi.getJobStatus(jobId, userId);
-    const progress = job.status === 'completed' ? 100 : job.status === 'in_progress' ? 50 : job.status === 'failed' ? 0 : 10;
-    return { status: job.status, progress, message: job.status === 'completed' ? 'Regeneration complete' : job.status === 'failed' ? `Failed: ${job.error || 'Unknown error'}` : 'Processing...' };
+
+    let progress: number;
+    let message: string;
+
+    switch (job.status) {
+      case 'completed':
+        progress = 100;
+        message = `Regeneration complete — ${job.conceptCount ?? 0} concepts updated.`;
+        break;
+      case 'failed':
+        progress = 0;
+        message = `Failed: ${job.error || 'Unknown error'}`;
+        break;
+      case 'in_progress': {
+        // Use real conceptCount to estimate progress (target ~80 concepts typical)
+        const count = job.conceptCount ?? 0;
+        progress = Math.min(90, Math.round((count / 80) * 90));
+        message = count > 0 ? `Generating concepts... (${count} so far)` : 'Processing — AI pipeline active...';
+        break;
+      }
+      default:
+        progress = 5;
+        message = 'Queued...';
+    }
+
+    return { status: job.status, progress, message };
   },
 };
 
