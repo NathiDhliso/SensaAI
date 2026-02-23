@@ -26,7 +26,8 @@ class BedrockService:
     MAX_RETRIES = 3
     RETRY_BACKOFF_BASE = 2 # Exponential backoff: 2, 4, 8 seconds
     MIN_CONCEPTS_THRESHOLD = 40 # Minimum acceptable concepts for success
-    MAX_WORKERS = 3 # Concurrent API requests
+    MAX_WORKERS = 4 # Concurrent API requests
+    GENERATION_MAX_TOKENS = 65536 # Output tokens per domain call — must fit ~20 concepts at ~2500 tokens each
     COVERAGE_STOPWORDS = {
         "a", "an", "the", "and", "or", "for", "in", "on", "to", "of", "by",
         "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
@@ -242,7 +243,7 @@ class BedrockService:
                         accept="application/json",
                         body=json.dumps({
                             "anthropic_version": "bedrock-2023-05-31",
-                            "max_tokens": 32768,
+                            "max_tokens": self.GENERATION_MAX_TOKENS,
                             "temperature": 0.3,
                             "system": self._build_cached_system(system_msg),
                             "messages": [{"role": "user", "content": user_msg}],
@@ -306,8 +307,56 @@ class BedrockService:
             else:
                 print(f"[BedrockService] Dedup: removed duplicate '{c['name']}'")
         all_concepts = deduped
+
+        # ── CONTINUATION PASS ──────────────────────────────────────────────
+        # If total concept count is below threshold, identify underperforming
+        # domains and re-run generation for them to reach an acceptable count.
         if len(all_concepts) < self.MIN_CONCEPTS_THRESHOLD:
             print(f"[WARNING] Only {len(all_concepts)} concepts (threshold: {self.MIN_CONCEPTS_THRESHOLD})")
+            time_ok_for_retry = True
+            if self._remaining_time_ms_at_start is not None:
+                elapsed_ms = (time.time() - self._generation_start_time) * 1000
+                remaining_ms = self._remaining_time_ms_at_start - elapsed_ms
+                if remaining_ms < 180_000:
+                    print(f"[BedrockService] Continuation skipped: only {remaining_ms/1000:.0f}s remaining (need 180s)")
+                    time_ok_for_retry = False
+
+            if time_ok_for_retry and num_partitions > 0:
+                # Find domains that produced far fewer concepts than expected
+                domain_counts = {}
+                for c in all_concepts:
+                    td = c.get("trunkDomain", "")
+                    domain_counts[td] = domain_counts.get(td, 0) + 1
+
+                retry_indices = []
+                for i, domain in enumerate(domains):
+                    dn = domain.get("name", "")
+                    w = domain.get("weight") or round(1.0 / max(num_partitions, 1), 2)
+                    expected = max(10, int(100 * w))
+                    actual = domain_counts.get(dn, 0)
+                    if actual < expected * 0.5:  # Domain produced less than half its target
+                        retry_indices.append(i)
+                        print(f"[BedrockService] Continuation: domain '{dn}' produced {actual}/{expected} — will retry")
+
+                if retry_indices:
+                    print(f"[BedrockService] Continuation pass: retrying {len(retry_indices)} underperforming domains")
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
+                        retry_futures = [
+                            executor.submit(generate_domain_with_retry, i)
+                            for i in retry_indices
+                        ]
+                        for f in retry_futures:
+                            try:
+                                retry_concepts = f.result(timeout=per_domain_timeout)
+                                for c in retry_concepts:
+                                    name_key = c.get("name", "").strip().lower()
+                                    if name_key and name_key not in seen_names:
+                                        seen_names.add(name_key)
+                                        all_concepts.append(c)
+                            except concurrent.futures.TimeoutError:
+                                print(f"[BedrockService] Continuation domain timed out")
+                    print(f"[BedrockService] After continuation: {len(all_concepts)} total concepts")
+
         has_objectives = any(d.get("subtopics") for d in domains)
         if has_objectives and len(all_concepts) > 0:
             all_concepts = self._detect_scope_creep(all_concepts, domains)
@@ -1013,7 +1062,8 @@ class BedrockService:
         removed = 0
         for c in concepts:
             level = (c.get("treeLevel") or "leaf").lower().strip()
-            if level == "trunk":
+            # Always keep trunk and branch concepts — they are structural
+            if level in ("trunk", "branch"):
                 kept.append(c)
                 continue
             concept_text = self._get_concept_text(c)
@@ -1023,7 +1073,7 @@ class BedrockService:
                 score = matches / len(obj_kws)
                 if score > best_score:
                     best_score = score
-            if best_score >= 0.4:
+            if best_score >= 0.3:
                 kept.append(c)
             else:
                 removed += 1

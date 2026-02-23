@@ -267,7 +267,7 @@ export default function CuratorLibraryView() {
                                         {result.isPublic ? 'Shared' : 'Share'}
                                     </button>
                                     <button
-                                        onClick={() => navigate(`/curator/health?subject=${encodeURIComponent(result.subject)}`)}
+                                        onClick={() => navigate(`/curator/health?subject=${encodeURIComponent(result.subject)}&sessionId=${encodeURIComponent(result.id)}`)}
                                         className={styles.viewButton}
                                         title="View content health details"
                                     >
@@ -275,7 +275,7 @@ export default function CuratorLibraryView() {
                                         Health
                                     </button>
                                     <button
-                                        onClick={() => navigate(`/curator/dependencies?subject=${encodeURIComponent(result.subject)}`)}
+                                        onClick={() => navigate(`/curator/dependencies?subject=${encodeURIComponent(result.subject)}&sessionId=${encodeURIComponent(result.id)}`)}
                                         className={styles.viewButton}
                                         title="View dependency impact analysis"
                                     >
@@ -283,7 +283,7 @@ export default function CuratorLibraryView() {
                                         Deps
                                     </button>
                                     <button
-                                        onClick={() => navigate(`/curator/regeneration?subject=${encodeURIComponent(result.subject)}`)}
+                                        onClick={() => navigate(`/curator/regeneration?subject=${encodeURIComponent(result.subject)}&sessionId=${encodeURIComponent(result.id)}`)}
                                         className={styles.viewButton}
                                         title="View regeneration recommendations"
                                     >

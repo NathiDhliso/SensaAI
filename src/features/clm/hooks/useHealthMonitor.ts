@@ -7,10 +7,10 @@ import { useQuery } from '@tanstack/react-query';
 import { healthMonitorApi } from '../api/clm-enhancements-client';
 
 /** Fetch health report for a specific subject generation */
-export function useGenerationHealth(subject: string | undefined) {
+export function useGenerationHealth(subject: string | undefined, sessionId?: string) {
   return useQuery({
-    queryKey: ['clm', 'health', 'generation', subject],
-    queryFn: () => healthMonitorApi.getHealthReport(subject!),
+    queryKey: ['clm', 'health', 'generation', subject, sessionId],
+    queryFn: () => healthMonitorApi.getHealthReport(subject!, sessionId),
     enabled: !!subject,
     staleTime: 60_000,
     refetchInterval: 30_000, // Poll every 30s for near-realtime health

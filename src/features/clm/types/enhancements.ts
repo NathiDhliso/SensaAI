@@ -482,4 +482,5 @@ export interface GuardianConfig {
   autoApproveThreshold: number; // confidence above which to auto-approve
   requireApprovalFor: string[]; // field paths that always need approval
   bypassForRoles: string[]; // roles that can bypass guardian
+  auditCacheTtlMs: number; // TTL for cached audit results (default: 24 hours)
 }

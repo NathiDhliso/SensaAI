@@ -534,8 +534,21 @@ def get_tree_generation_prompt(
     weight = domain.get("weight") or round(1.0 / max(total_domains, 1), 2)
     domain_weight_pct = int(weight * 100)
     subtopics = domain.get("subtopics", [])
-    total_target = 100
-    domain_concept_target = max(10, int(total_target * weight))
+
+    # Dynamic total_target: scale with exam complexity
+    # Count total objectives across all domains to size the target appropriately
+    total_objectives = 0
+    if all_domains:
+        for d in all_domains:
+            for st in d.get("subtopics", []):
+                if isinstance(st, str):
+                    total_objectives += 1
+                elif isinstance(st, dict):
+                    total_objectives += max(1, len(st.get("objectives", [])))
+    # Base target is 120 concepts; scale up if there are many objectives
+    # (each objective typically needs 1-2 leaf concepts to cover it)
+    total_target = max(120, int(total_objectives * 1.5)) if total_objectives > 0 else 120
+    domain_concept_target = max(12, int(total_target * weight))
     has_string_subtopics = subtopics and all(isinstance(st, str) for st in subtopics)
     has_dict_subtopics = subtopics and any(isinstance(st, dict) for st in subtopics)
     if has_dict_subtopics:

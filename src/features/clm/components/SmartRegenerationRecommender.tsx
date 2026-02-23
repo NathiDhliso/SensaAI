@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useRegenerationRecommendation, useExecuteRegeneration, useRegenerationStatus } from '../hooks/useRegeneration';
 import type { StrategyOption, DomainRegenerationAnalysis, UpdateStrategy } from '../types/enhancements';
 import styles from './SmartRegenerationRecommender.module.css';
@@ -160,10 +161,12 @@ function DomainAnalysisRow({ domain }: { domain: DomainRegenerationAnalysis }) {
 }
 
 export function SmartRegenerationRecommender() {
-  const [subject, setSubject] = useState('');
+  const [searchParams] = useSearchParams();
+  const [subject, setSubject] = useState(searchParams.get('subject') || '');
+  const sessionId = searchParams.get('sessionId') || undefined;
   const [activeJobId, setActiveJobId] = useState<string | undefined>();
 
-  const { data: recommendation, isLoading } = useRegenerationRecommendation(subject || undefined);
+  const { data: recommendation, isLoading } = useRegenerationRecommendation(subject || undefined, sessionId);
   const executeMutation = useExecuteRegeneration();
   const { data: jobStatus } = useRegenerationStatus(activeJobId);
 

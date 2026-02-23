@@ -6,7 +6,8 @@
  */
 
 import { useState } from 'react';
-import { useAggregateHealth, useRecentHealthReports } from '../hooks/useHealthMonitor';
+import { useSearchParams } from 'react-router-dom';
+import { useAggregateHealth, useRecentHealthReports, useGenerationHealth } from '../hooks/useHealthMonitor';
 import type { GenerationHealthReport, HealthStatus, GenerationHealthDiagnostic } from '../types/enhancements';
 import styles from './GenerationHealthMonitor.module.css';
 
@@ -185,10 +186,14 @@ function MetricTile({
 }
 
 export function GenerationHealthMonitor() {
+  const [searchParams] = useSearchParams();
+  const focusedSubject = searchParams.get('subject') || undefined;
+  const focusedSessionId = searchParams.get('sessionId') || undefined;
+  const { data: focusedHealth, isLoading: focusedLoading } = useGenerationHealth(focusedSubject, focusedSessionId);
   const { data: aggregate, isLoading: aggLoading } = useAggregateHealth();
   const { data: recentReports, isLoading: reportsLoading } = useRecentHealthReports(10);
 
-  const isLoading = aggLoading || reportsLoading;
+  const isLoading = aggLoading || reportsLoading || focusedLoading;
 
   return (
     <div className={styles.container}>
@@ -206,6 +211,14 @@ export function GenerationHealthMonitor() {
         </div>
       ) : (
         <>
+          {/* Focused Subject Health (when navigated from Library) */}
+          {focusedSubject && focusedHealth && (
+            <div className={styles.reportsSection}>
+              <h2 className={styles.sectionTitle}>Health: {focusedSubject}</h2>
+              <HealthReportCard report={focusedHealth} />
+            </div>
+          )}
+
           {/* Aggregate Health Overview */}
           {aggregate && (
             <div className={styles.overviewSection}>

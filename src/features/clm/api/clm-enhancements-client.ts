@@ -80,25 +80,48 @@ interface JobInfo {
 /** 60-second in-memory cache for concept data */
 const conceptCache = new Map<string, { concepts: ParsedConcept[]; job: JobInfo; ts: number }>();
 
+/** In-memory cache for health reports — respects guardian auditCacheTtlMs */
+const healthReportCache = new Map<string, { report: GenerationHealthReport; ts: number }>();
+
 async function listUserJobs(): Promise<JobInfo[]> {
   const userId = getUserId();
   const result = await conceptsApi.listJobs(userId);
   return (result.jobs ?? []) as unknown as JobInfo[];
 }
 
-async function fetchConceptsForSubject(subject: string): Promise<{ concepts: ParsedConcept[]; job: JobInfo }> {
-  const key = subject.toLowerCase().trim();
+async function fetchConceptsForSubject(subject: string, sessionId?: string): Promise<{ concepts: ParsedConcept[]; job: JobInfo }> {
+  const key = sessionId ? `session::${sessionId}` : subject.toLowerCase().trim();
   const cached = conceptCache.get(key);
   if (cached && Date.now() - cached.ts < 60_000) return { concepts: cached.concepts, job: cached.job };
 
   const userId = getUserId();
   const jobs = await listUserJobs();
-  const job = jobs
-    .filter(j => j.subject?.toLowerCase().trim() === key && j.status === 'completed')
-    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+
+  let job: JobInfo | undefined;
+
+  if (sessionId) {
+    // Exact match by sessionId/jobId
+    job = jobs.find(j => (j.sessionId === sessionId || j.jobId === sessionId) && j.status === 'completed');
+  }
+
+  if (!job) {
+    // Fall back to subject-name match, preferring jobs that actually have concepts
+    const subjectKey = subject.toLowerCase().trim();
+    const candidates = jobs
+      .filter(j => j.subject?.toLowerCase().trim() === subjectKey && j.status === 'completed')
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    // Prefer the most recent job with concepts > 0; fall back to most recent overall
+    job = candidates.find(j => (j.conceptCount || 0) > 0) ?? candidates[0];
+  }
+
   if (!job) throw new Error(`No completed generation found for "${subject}"`);
 
-  const content = await conceptsApi.getPublicContent(userId, job.sessionId || job.jobId);
+  // Fetch user's own concepts using the query endpoint
+  const content = await conceptsApi.query({
+    userId,
+    sessionId: job.sessionId || job.jobId,
+  });
   const concepts = (content.concepts ?? []) as ParsedConcept[];
   conceptCache.set(key, { concepts, job, ts: Date.now() });
   return { concepts, job };
@@ -138,8 +161,14 @@ function heatColor(score: number): string {
 // ============================================================================
 
 export const healthMonitorApi = {
-  async getHealthReport(subject: string): Promise<GenerationHealthReport> {
-    const { concepts, job } = await fetchConceptsForSubject(subject);
+  async getHealthReport(subject: string, sessionId?: string): Promise<GenerationHealthReport> {
+    // Check health report cache (TTL from guardian config)
+    const cacheKey = sessionId ? `session::${sessionId}` : subject.toLowerCase().trim();
+    const ttl = loadGuardianConfig().auditCacheTtlMs;
+    const cached = healthReportCache.get(cacheKey);
+    if (cached && ttl > 0 && Date.now() - cached.ts < ttl) return cached.report;
+
+    const { concepts, job } = await fetchConceptsForSubject(subject, sessionId);
     const allGaps = concepts.flatMap(c => validateConceptContent(c as unknown as VerifiableConcept));
     const criticalCount = allGaps.filter(g => g.severity === 'critical').length;
     const domainList = [...new Set(concepts.map(c => c.trunkDomain).filter(Boolean))];
@@ -161,7 +190,7 @@ export const healthMonitorApi = {
 
     const jobTimestamp = job.createdAt ? new Date(job.createdAt * 1000).toISOString() : new Date().toISOString();
 
-    return {
+    const report: GenerationHealthReport = {
       subject, generationId: job.sessionId || job.jobId, timestamp: jobTimestamp,
       conceptCount: concepts.length, expectedConceptBaseline: 30,
       domainCount: domainList.length, expectedDomainMinimum: 3,
@@ -180,6 +209,10 @@ export const healthMonitorApi = {
       },
       diagnostics,
     };
+
+    // Store in cache
+    healthReportCache.set(cacheKey, { report, ts: Date.now() });
+    return report;
   },
 
   async getRecentHealthReports(limit = 10): Promise<{ reports: GenerationHealthReport[]; total: number }> {
@@ -334,8 +367,8 @@ export const comparativeApi = {
 // ============================================================================
 
 export const regenerationApi = {
-  async getRecommendation(subject: string): Promise<RegenerationRecommendation> {
-    const { concepts } = await fetchConceptsForSubject(subject);
+  async getRecommendation(subject: string, sessionId?: string): Promise<RegenerationRecommendation> {
+    const { concepts } = await fetchConceptsForSubject(subject, sessionId);
     const quality = computeQualityScore(concepts);
 
     const domainMap = new Map<string, ParsedConcept[]>();
@@ -375,6 +408,9 @@ export const regenerationApi = {
   async executeStrategy(subject: string, _strategy: string, _domains?: string[]): Promise<{ jobId: string; estimatedTimeMinutes: number }> {
     const userId = getUserId();
     const response = await conceptsApi.generate({ subject, userId });
+    // Invalidate audit cache — content is being regenerated
+    const { invalidateAuditCache } = await import('./clm-client');
+    invalidateAuditCache(subject);
     return { jobId: response.jobId, estimatedTimeMinutes: 5 };
   },
 
@@ -630,12 +666,16 @@ export const costApi = {
         implementation: 'Navigate to Regeneration → select surgical-update strategy',
       });
     }
-    optimizations.push({
-      id: uid(), title: 'Enable caching for repeated audits', category: 'audit',
-      description: 'Cache audit results for 24 hours to avoid redundant AI analysis calls',
-      estimatedSavingsUsd: 0.50, estimatedSavingsPercentage: 15, effort: 'low',
-      recommendation: 'Set audit cache TTL in guardian config', implementation: 'Configure via Guardian settings',
-    });
+    // Only suggest caching optimisation if TTL is disabled (set to 0)
+    const guardianCfg = loadGuardianConfig();
+    if (!guardianCfg.auditCacheTtlMs) {
+      optimizations.push({
+        id: uid(), title: 'Enable caching for repeated audits', category: 'audit',
+        description: 'Cache audit results for 24 hours to avoid redundant AI analysis calls',
+        estimatedSavingsUsd: 0.50, estimatedSavingsPercentage: 15, effort: 'low',
+        recommendation: 'Set audit cache TTL in guardian config', implementation: 'Configure via Guardian settings',
+      });
+    }
 
     return { optimizations, totalPotentialSavings: optimizations.reduce((s, o) => s + o.estimatedSavingsUsd, 0) };
   },
@@ -678,11 +718,11 @@ function mapConnType(type: string): 'prerequisite' | 'related' | 'builds-on' | '
 let cachedGraph: { subject: string; graph: DependencyGraph; concepts: ParsedConcept[]; ts: number } | null = null;
 
 export const dependencyApi = {
-  async getDependencyGraph(subject: string): Promise<DependencyGraph> {
+  async getDependencyGraph(subject: string, sessionId?: string): Promise<DependencyGraph> {
     if (cachedGraph && cachedGraph.subject.toLowerCase() === subject.toLowerCase() && Date.now() - cachedGraph.ts < 60_000)
       return cachedGraph.graph;
 
-    const { concepts } = await fetchConceptsForSubject(subject);
+    const { concepts } = await fetchConceptsForSubject(subject, sessionId);
     const nameToId = new Map(concepts.map(c => [c.name, c.id]));
     const edges: DependencyEdge[] = [];
 
@@ -842,7 +882,7 @@ function loadGuardianConfig(): GuardianConfig {
     const raw = localStorage.getItem(GUARDIAN_CONFIG_KEY);
     if (raw) return JSON.parse(raw) as GuardianConfig;
   } catch { /* use defaults */ }
-  return { enabled: true, strictMode: false, autoApproveThreshold: 80, requireApprovalFor: ['tier', 'parentName'], bypassForRoles: ['admin'] };
+  return { enabled: true, strictMode: false, autoApproveThreshold: 80, requireApprovalFor: ['tier', 'parentName'], bypassForRoles: ['admin'], auditCacheTtlMs: 24 * 60 * 60 * 1000 };
 }
 
 function loadGuardianHistory(): JsonEditValidation[] {

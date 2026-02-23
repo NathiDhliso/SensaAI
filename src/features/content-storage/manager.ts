@@ -173,7 +173,7 @@ export class StorageManager {
                 generatedAt: job.createdAt ? new Date(job.createdAt * 1000).toISOString() : new Date().toISOString(),
                 fullDocument: '',
                 pass1Data: {
-                    domain: 'Universal',
+                    domain: job.subject || 'Universal',
                     roleScope: 'General',
                     lifecycle: { phase1: '', phase2: '', phase3: '' },
                     concepts: new Array(job.conceptCount || 0).fill('')

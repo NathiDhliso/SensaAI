@@ -7,10 +7,10 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { dependencyApi } from '../api/clm-enhancements-client';
 
 /** Get dependency graph for a subject */
-export function useDependencyGraph(subject: string | undefined) {
+export function useDependencyGraph(subject: string | undefined, sessionId?: string) {
   return useQuery({
-    queryKey: ['clm', 'dependencies', 'graph', subject],
-    queryFn: () => dependencyApi.getDependencyGraph(subject!),
+    queryKey: ['clm', 'dependencies', 'graph', subject, sessionId],
+    queryFn: () => dependencyApi.getDependencyGraph(subject!, sessionId),
     enabled: !!subject,
     staleTime: 300_000,
   });

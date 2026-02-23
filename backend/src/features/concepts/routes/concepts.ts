@@ -117,6 +117,119 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
             return;
         }
 
+        // --- Action dispatch: toggle_public ---
+        if (action === 'toggle_public') {
+            const jobId = req.query.jobId as string;
+            const isPublic = req.query.isPublic === 'true';
+            if (!userId || !jobId) {
+                res.status(400).json({ error: 'userId and jobId are required' });
+                return;
+            }
+            try {
+                await docClient.send(new UpdateCommand({
+                    TableName: JOBS_TABLE,
+                    Key: { jobId, userId },
+                    UpdateExpression: 'SET isPublic = :val',
+                    ExpressionAttributeValues: { ':val': isPublic },
+                    ConditionExpression: 'attribute_exists(jobId)'
+                }));
+                res.json({ jobId, isPublic });
+            } catch (error: any) {
+                if (error.name === 'ConditionalCheckFailedException') {
+                    res.status(404).json({ error: 'Job not found' });
+                } else {
+                    logger.error('[Backend toggle_public] Error:', error);
+                    res.status(500).json({ error: 'Failed to toggle public status' });
+                }
+            }
+            return;
+        }
+
+        // --- Action dispatch: list_public ---
+        if (action === 'list_public') {
+            try {
+                const scanResult = await docClient.send(new ScanCommand({
+                    TableName: JOBS_TABLE,
+                    FilterExpression: 'isPublic = :true AND #status = :completed',
+                    ExpressionAttributeNames: { '#status': 'status' },
+                    ExpressionAttributeValues: { ':true': true, ':completed': 'completed' }
+                }));
+                const jobs = (scanResult.Items || []).map(item => ({
+                    jobId: item.jobId,
+                    subject: item.subject,
+                    createdAt: Number(item.createdAt || 0),
+                    conceptCount: Number(item.conceptCount || 0),
+                    sessionId: item.sessionId,
+                    ownerId: item.userId,
+                    isPublic: true
+                })).sort((a, b) => b.createdAt - a.createdAt);
+                res.json({ jobs });
+            } catch (error) {
+                logger.error('[Backend list_public] Error:', error);
+                res.status(500).json({ error: 'Failed to list public content' });
+            }
+            return;
+        }
+
+        // --- Action dispatch: get_public_content ---
+        if (action === 'get_public_content') {
+            const jobId = req.query.jobId as string;
+            const ownerId = req.query.ownerId as string;
+            if (!jobId || !ownerId) {
+                res.status(400).json({ error: 'jobId and ownerId are required' });
+                return;
+            }
+            try {
+                const jobResult = await docClient.send(new GetCommand({
+                    TableName: JOBS_TABLE,
+                    Key: { jobId, userId: ownerId }
+                }));
+                const job = jobResult.Item;
+                if (!job || !job.isPublic) {
+                    res.status(404).json({ error: 'Public content not found' });
+                    return;
+                }
+                const sessionId = job.sessionId || jobId;
+                const pk = `USER#${ownerId}#SESSION#${sessionId}`;
+                const conceptsResult = await docClient.send(new QueryCommand({
+                    TableName: CONCEPTS_TABLE,
+                    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+                    ExpressionAttributeValues: { ':pk': pk, ':skPrefix': 'TIER#' }
+                }));
+                const concepts = (conceptsResult.Items || []).map(item => ({
+                    id: item.conceptId,
+                    name: item.name,
+                    tier: remapTier(item.tier),
+                    description: item.description,
+                    keyPoints: item.keyPoints || [],
+                    prerequisiteWeight: parseFloat(item.prerequisiteWeight) || 0.5,
+                    displayProperties: item.displayProperties || {},
+                    mnemonic: item.mnemonic || {},
+                    phase1: item.phase1 || {},
+                    phase2: item.phase2 || [],
+                    phase3: item.phase3 || {},
+                    shape: item.shape || {},
+                    criticalDistinctions: item.criticalDistinctions || [],
+                    designBoundaries: item.designBoundaries || [],
+                    examFocus: item.examFocus || [],
+                    dependencies: item.dependencies || [],
+                    outdegree: item.outdegree || 0
+                }));
+                res.json({
+                    jobId,
+                    subject: job.subject,
+                    ownerId,
+                    conceptCount: concepts.length,
+                    concepts,
+                    classification: job.classification
+                });
+            } catch (error) {
+                logger.error('[Backend get_public_content] Error:', error);
+                res.status(500).json({ error: 'Failed to get public content' });
+            }
+            return;
+        }
+
         // --- Default: query concepts with pagination ---
         const sessionId = req.query.sessionId as string;
         const tier = req.query.tier as string | undefined;

@@ -7,10 +7,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { regenerationApi } from '../api/clm-enhancements-client';
 
 /** Get AI recommendation for regeneration strategy */
-export function useRegenerationRecommendation(subject: string | undefined) {
+export function useRegenerationRecommendation(subject: string | undefined, sessionId?: string) {
   return useQuery({
-    queryKey: ['clm', 'regeneration', 'recommend', subject],
-    queryFn: () => regenerationApi.getRecommendation(subject!),
+    queryKey: ['clm', 'regeneration', 'recommend', subject, sessionId],
+    queryFn: () => regenerationApi.getRecommendation(subject!, sessionId),
     enabled: !!subject,
     staleTime: 300_000, // 5 minutes
   });

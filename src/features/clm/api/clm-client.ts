@@ -16,6 +16,81 @@ import type {
 const BASE_PATH = '/curator';
 
 // ============================================================================
+// Audit Result Cache (localStorage-backed, TTL from Guardian config)
+// ============================================================================
+
+const AUDIT_CACHE_KEY = 'clm-audit-cache';
+
+interface AuditCacheEntry {
+  key: string;
+  result: unknown;
+  timestamp: number;
+}
+
+function getAuditCacheTtlMs(): number {
+  try {
+    const raw = localStorage.getItem('clm-guardian-config');
+    if (raw) {
+      const cfg = JSON.parse(raw);
+      if (typeof cfg.auditCacheTtlMs === 'number') return cfg.auditCacheTtlMs;
+    }
+  } catch { /* use default */ }
+  return 24 * 60 * 60 * 1000; // 24 hours default
+}
+
+function loadAuditCache(): AuditCacheEntry[] {
+  try {
+    const raw = localStorage.getItem(AUDIT_CACHE_KEY);
+    if (raw) return JSON.parse(raw) as AuditCacheEntry[];
+  } catch { /* empty */ }
+  return [];
+}
+
+function saveAuditCache(entries: AuditCacheEntry[]): void {
+  // Evict expired entries before saving, keep max 50
+  const ttl = getAuditCacheTtlMs();
+  const now = Date.now();
+  const valid = entries.filter(e => now - e.timestamp < ttl).slice(0, 50);
+  localStorage.setItem(AUDIT_CACHE_KEY, JSON.stringify(valid));
+}
+
+function buildAuditCacheKey(subject: string, auditTypes: AuditType[]): string {
+  return `${subject.toLowerCase().trim()}::${[...auditTypes].sort().join(',')}`;
+}
+
+function getCachedAuditResult(subject: string, auditTypes: AuditType[]): unknown | null {
+  const ttl = getAuditCacheTtlMs();
+  if (ttl <= 0) return null; // caching disabled
+
+  const key = buildAuditCacheKey(subject, auditTypes);
+  const entries = loadAuditCache();
+  const now = Date.now();
+  const entry = entries.find(e => e.key === key && now - e.timestamp < ttl);
+  return entry ? entry.result : null;
+}
+
+function setCachedAuditResult(subject: string, auditTypes: AuditType[], result: unknown): void {
+  const ttl = getAuditCacheTtlMs();
+  if (ttl <= 0) return; // caching disabled
+
+  const key = buildAuditCacheKey(subject, auditTypes);
+  const entries = loadAuditCache().filter(e => e.key !== key); // dedup
+  entries.unshift({ key, result, timestamp: Date.now() });
+  saveAuditCache(entries);
+}
+
+/** Invalidate cached audit results for a subject (call after regeneration or edits) */
+export function invalidateAuditCache(subject?: string): void {
+  if (!subject) {
+    localStorage.removeItem(AUDIT_CACHE_KEY);
+    return;
+  }
+  const prefix = subject.toLowerCase().trim() + '::';
+  const entries = loadAuditCache().filter(e => !e.key.startsWith(prefix));
+  saveAuditCache(entries);
+}
+
+// ============================================================================
 // Request/Response Types
 // ============================================================================
 
@@ -44,6 +119,8 @@ export interface TriggerAuditRequest {
   priority?: 'low' | 'medium' | 'high';
   conceptIds?: string[];
   examObjectives?: any[];
+  /** Skip cache and force a fresh audit run */
+  force?: boolean;
 }
 
 export interface ApproveRejectRequest {
@@ -127,10 +204,27 @@ export const clmApi = {
   },
 
   /**
-   * Trigger on-demand audit
+   * Trigger on-demand audit (with 24h cache to avoid redundant AI calls).
+   * Cache is keyed by subject + auditTypes. Invalidated on regeneration or manual edit.
+   * Returns { _cached: true, _cachedAt } when serving from cache so UI can distinguish.
    */
   async triggerAudit(request: TriggerAuditRequest): Promise<any> {
-    return apiClient.post(`${BASE_PATH}/audits/trigger`, request);
+    if (!request.force) {
+      const cached = getCachedAuditResult(request.subject, request.auditTypes);
+      if (cached) {
+        // Let the caller know this was a cache hit
+        const entry = loadAuditCache().find(
+          (e) => e.key === buildAuditCacheKey(request.subject, request.auditTypes)
+        );
+        return { ...cached as Record<string, unknown>, _cached: true, _cachedAt: entry?.timestamp };
+      }
+    }
+
+    // Strip client-only field before sending to backend
+    const { force: _, ...payload } = request;
+    const result = await apiClient.post(`${BASE_PATH}/audits/trigger`, payload);
+    setCachedAuditResult(request.subject, request.auditTypes, result);
+    return result;
   },
 
   /**
@@ -148,10 +242,13 @@ export const clmApi = {
   },
 
   /**
-   * Execute approved findings
+   * Execute approved findings (invalidates audit cache since concepts change)
    */
   async executeFindings(request: ExecuteFindingsRequest): Promise<ExecuteFindingsResponse> {
-    return apiClient.post(`${BASE_PATH}/findings/execute`, request);
+    const result = await apiClient.post<ExecuteFindingsResponse>(`${BASE_PATH}/findings/execute`, request);
+    // Concepts were modified — cached audit results are now stale
+    invalidateAuditCache();
+    return result;
   },
 
   /**
@@ -169,10 +266,12 @@ export const clmApi = {
   },
 
   /**
-   * Rollback concept to previous version
+   * Rollback concept to previous version (invalidates audit cache for that subject)
    */
   async rollbackVersion(request: RollbackRequest): Promise<RollbackResponse> {
-    return apiClient.post(`${BASE_PATH}/versions/rollback`, request);
+    const result = await apiClient.post<RollbackResponse>(`${BASE_PATH}/versions/rollback`, request);
+    invalidateAuditCache(request.subject);
+    return result;
   },
 
   /**

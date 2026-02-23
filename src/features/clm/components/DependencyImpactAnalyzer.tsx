@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useDependencyGraph, useImpactAnalysis, useApplyAutoFix } from '../hooks/useDependencyImpact';
 import type {
   DependencyNode,
@@ -260,11 +261,13 @@ function ImpactReport({ analysis }: { analysis: ImpactAnalysisType }) {
 }
 
 export function DependencyImpactAnalyzer() {
-  const [subject, setSubject] = useState('');
+  const [searchParams] = useSearchParams();
+  const [subject, setSubject] = useState(searchParams.get('subject') || '');
+  const sessionId = searchParams.get('sessionId') || undefined;
   const [selectedConcept, setSelectedConcept] = useState<string | undefined>();
   const [changeType, setChangeType] = useState<'modify' | 'delete' | 'restructure'>('modify');
 
-  const { data: graph, isLoading: graphLoading } = useDependencyGraph(subject || undefined);
+  const { data: graph, isLoading: graphLoading } = useDependencyGraph(subject || undefined, sessionId);
   const { data: impact, isLoading: impactLoading } = useImpactAnalysis(selectedConcept, changeType);
   const autoFix = useApplyAutoFix();
 

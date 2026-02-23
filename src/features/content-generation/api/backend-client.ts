@@ -263,13 +263,13 @@ export async function generateWithBackend(
     }
 }
 /**
- * Poll job status until completion, emitting stage-aware progress updates
- * that map to the actual Lambda pipeline phases:
- *   15-25%  → Subject classification
- *   25-45%  → Parallel domain generation (Bedrock calls)
- *   45-52%  → Gap-fill analysis & targeted generation
- *   52-58%  → Post-processing (TRACES, Bloom's, dedup)
- *   58-60%  → DynamoDB batch write
+ * Poll job status until completion, emitting progress updates derived
+ * primarily from the *actual concept count* reported by the backend.
+ *
+ * Progress mapping (Pass 2 owns the 15-59% band):
+ *   15-20%  → Waiting / classifying (no concepts yet)
+ *   20-55%  → Concepts arriving (ratio of current / expected)
+ *   55-59%  → Post-processing & persisting
  */
 async function _pollUntilComplete(
     jobId: string,
@@ -286,17 +286,17 @@ async function _pollUntilComplete(
     let consecutiveErrors = 0;
     const MAX_CONSECUTIVE_ERRORS = 5;
 
-    const PIPELINE_STAGES: Array<{ maxElapsedSec: number; progress: number; message: string }> = [
-        { maxElapsedSec: 20, progress: 22, message: 'Classifying subject domain...' },
-        { maxElapsedSec: 40, progress: 28, message: 'Extracting exam structure...' },
-        { maxElapsedSec: 70, progress: 34, message: 'Generating trunk domains in parallel...' },
-        { maxElapsedSec: 110, progress: 40, message: 'Synthesising branch concepts...' },
-        { maxElapsedSec: 160, progress: 46, message: 'Building leaf-level knowledge...' },
-        { maxElapsedSec: 200, progress: 50, message: 'Running gap-fill analysis...' },
-        { maxElapsedSec: 240, progress: 53, message: 'Enforcing TRACES connection rules...' },
-        { maxElapsedSec: 280, progress: 56, message: 'Applying Bloom\'s distribution...' },
-        { maxElapsedSec: 320, progress: 58, message: 'Deduplicating content...' },
-        { maxElapsedSec: Infinity, progress: 59, message: 'Persisting concept graph...' },
+    // Track peak concept count to detect post-processing phase
+    let peakConceptCount = 0;
+    let postProcessingDetectedAt = 0;
+
+    // Time-based fallback messages when we have no concept count yet
+    const EARLY_MESSAGES: Array<{ maxElapsedSec: number; message: string }> = [
+        { maxElapsedSec: 15, message: 'Dispatching to AI engine...' },
+        { maxElapsedSec: 30, message: 'Classifying subject domain...' },
+        { maxElapsedSec: 50, message: 'Extracting exam structure...' },
+        { maxElapsedSec: 80, message: 'Partitioning domain tree...' },
+        { maxElapsedSec: Infinity, message: 'Generating concepts in parallel...' },
     ];
 
     while (true) {
@@ -323,17 +323,48 @@ async function _pollUntilComplete(
                 throw new Error(status.error || 'Generation failed on server');
             }
 
-            const elapsedSec = elapsedMs / 1000;
-            const stage = PIPELINE_STAGES.find(s => elapsedSec <= s.maxElapsedSec) ?? PIPELINE_STAGES[PIPELINE_STAGES.length - 1];
+            // --- Derive progress from actual concept count ---
+            const conceptCount = progress?.conceptCount
+                ?? (status as Record<string, unknown>).conceptCount as number | undefined
+                ?? 0;
 
-            let message = stage.message;
-            if (progress?.conceptCount && progress.conceptCount > 0) {
-                message = progress.latestConcept
-                    ? `Generating: ${progress.latestConcept}`
-                    : `${progress.conceptCount} concepts synthesised...`;
+            if (conceptCount > peakConceptCount) {
+                peakConceptCount = conceptCount;
+                postProcessingDetectedAt = 0; // still growing
+            } else if (conceptCount > 0 && conceptCount === peakConceptCount && !postProcessingDetectedAt) {
+                // Count stopped growing → likely post-processing / persisting
+                postProcessingDetectedAt = Date.now();
             }
 
-            onProgress(2, 'in-progress', { message, progress: stage.progress });
+            let pct: number;
+            let message: string;
+
+            if (conceptCount === 0) {
+                // No concepts yet → time-based early progress (15-22%)
+                const elapsedSec = elapsedMs / 1000;
+                const stage = EARLY_MESSAGES.find(s => elapsedSec <= s.maxElapsedSec) ?? EARLY_MESSAGES[EARLY_MESSAGES.length - 1];
+                // Slow climb from 15 to 22
+                pct = Math.min(22, 15 + (elapsedSec / 80) * 7);
+                message = stage.message;
+            } else if (postProcessingDetectedAt && (Date.now() - postProcessingDetectedAt) > 6000) {
+                // Concept count stabilised for >6s → post-processing (55-59%)
+                const postElapsed = (Date.now() - postProcessingDetectedAt) / 1000;
+                pct = Math.min(59, 55 + Math.min(postElapsed / 30, 1) * 4);
+                message = postElapsed > 15
+                    ? 'Persisting concept graph...'
+                    : 'Post-processing (connections, Bloom\'s, dedup)...';
+            } else {
+                // Concepts are arriving → ratio-based progress (22-55%)
+                // Estimate total assuming we're seeing ~80% of what we'll get
+                const estimatedTotal = Math.max(peakConceptCount * 1.3, 40);
+                const ratio = Math.min(conceptCount / estimatedTotal, 1);
+                pct = 22 + ratio * 33; // 22% to 55%
+                message = progress?.latestConcept
+                    ? `Synthesising: ${progress.latestConcept}`
+                    : `${conceptCount} concepts generated...`;
+            }
+
+            onProgress(2, 'in-progress', { message, progress: Math.round(pct) });
             pollInterval = POLL_INTERVAL_MS;
         } catch (err) {
             if (isAuthError(err)) {
