@@ -137,15 +137,37 @@ export function getErrorMessage(error: unknown, fallback: string = 'An unexpecte
 // ============================================================================
 // TOKEN ACCESSOR (reads from zustand persist storage to avoid circular imports)
 // ============================================================================
+
+/** Returns true if a JWT access/id token is expired (or within 60s of expiry). */
+function isJwtExpired(token: string): boolean {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return false;
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    const { exp } = JSON.parse(json) as { exp?: number };
+    if (!exp) return false;
+    return Date.now() / 1000 > exp - 60;
+  } catch {
+    return false;
+  }
+}
+
 function getAuthToken(preferAccessToken = false): string | null {
   try {
     const stored = localStorage.getItem('sensaai-auth');
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (preferAccessToken) {
-        return parsed?.state?.tokens?.access_token || parsed?.state?.tokens?.id_token || null;
+      const token = preferAccessToken
+        ? (parsed?.state?.tokens?.access_token || parsed?.state?.tokens?.id_token || null)
+        : (parsed?.state?.tokens?.id_token || parsed?.state?.tokens?.access_token || null);
+      if (!token) return null;
+      // Proactively dispatch auth:unauthorized so the store can refresh
+      // before the next request hits the API with a stale token
+      if (isJwtExpired(token)) {
+        window.dispatchEvent(new CustomEvent('auth:token-expired'));
+        return null;
       }
-      return parsed?.state?.tokens?.id_token || parsed?.state?.tokens?.access_token || null;
+      return token;
     }
   } catch {
     return null;

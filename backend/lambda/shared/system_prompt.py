@@ -161,7 +161,7 @@ Generate concepts in a strict 3-level tree:
 - **Memory**: mnemonic (anchor + story)
 - **Understanding**: keyPoints, whyYouNeed, technicalDetails, shape
 - **Exam Approach Blueprints**: perspectives (2-4 items per concept — see §3.6)
-- **Deep Structure**: blueprintSteps (leaf concepts only — see §3.7)
+- **Deep Structure**: blueprintSteps (leaf concepts only — see §3.7), primaryLifecycleVerb (leaf concepts only — see §3.7)
 - **Application**: phase2 (array of plain strings), phase3 (tool, metrics)
 - **Relationship**: connections (see §3.4)
 - **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
@@ -221,10 +221,22 @@ This is the most important field for learners. Each perspective represents a dif
 
 **CRITICAL**: Every leaf concept MUST have `perspectives`. Trunk and branch concepts may omit it.
 {blueprint_scaffold}
-### 3.7 BLUEPRINT-ALIGNED LIFECYCLE — `blueprintSteps` field
-This field connects each concept to the subject's deep structure, creating a repeating mnemonic scaffold.
+### 3.7 BLUEPRINT-ALIGNED LIFECYCLE — `blueprintSteps` + `primaryLifecycleVerb` fields
+These fields connect each concept to the subject's deep structure, creating a repeating mnemonic scaffold AND enabling visual sorting on the concept map.
 
-**Structure**: `blueprintSteps` is an array of objects, one per lifecycle phase that exists:
+#### `primaryLifecycleVerb` (REQUIRED for all leaf concepts)
+Each leaf concept must declare the ONE lifecycle verb that BEST describes this concept's primary action. This determines which arm/branch the concept appears on in the concept map.
+
+**Rules**:
+1. The value MUST be one of the lifecycle verbs from the blueprint (e.g., "PREPARE", "MODEL", "DELIVER")
+2. Choose the verb that most directly describes what this concept IS ABOUT — not just one it touches
+3. Aim for roughly equal distribution across verbs — each verb should have a similar number of concepts
+4. Set `"primaryLifecycleVerb": "VERB"` as a top-level field on the concept object
+
+#### `blueprintSteps` (REQUIRED for all leaf concepts)
+**Structure**: `blueprintSteps` is an array of objects, one per lifecycle phase that exists.
+**CRITICAL ORDERING**: The FIRST entry in the array MUST use the same verb as `primaryLifecycleVerb`.
+
 ```json
 {{ "verb": "PREPARE", "atomicStep": "Identify scope", "instantiation": "Determine which Azure resources need RBAC role assignment" }}
 ```
@@ -235,9 +247,10 @@ This field connects each concept to the subject's deep structure, creating a rep
 
 **Rules**:
 1. Every leaf concept MUST have `blueprintSteps` for each lifecycle phase provided
-2. The `atomicStep` value MUST be copied verbatim from the blueprint sequence — do NOT rephrase
-3. The `instantiation` must be concrete and specific to THIS concept — not a generic restatement
-4. The pattern should feel like the same skeleton with different flesh: a learner who sees 3-4 concepts will internalize the scaffold
+2. The FIRST element's verb MUST match `primaryLifecycleVerb`
+3. The `atomicStep` value MUST be copied verbatim from the blueprint sequence — do NOT rephrase
+4. The `instantiation` must be concrete and specific to THIS concept — not a generic restatement
+5. The pattern should feel like the same skeleton with different flesh: a learner who sees 3-4 concepts will internalize the scaffold
 
 **CRITICAL**: Every leaf concept MUST have `blueprintSteps`. Trunk and branch concepts may omit it.
 ### 3.8 EXAM CONTEXT — `examContext` field (leaf concepts only)
@@ -350,6 +363,7 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
    {{ "verb": "TRACE", "atomicStep": "Follow the energy pathway", "instantiation": "Photon → P680 excitation → electron ejection → ETC (plastoquinone → cyt b6f → plastocyanin) → P700 → ferredoxin → NADP⁺ reductase → NADPH" }},
    {{ "verb": "VERIFY", "atomicStep": "Confirm products and byproducts", "instantiation": "Products: ATP (chemiosmosis), NADPH (terminal acceptor). Byproduct: O₂ (from photolysis of H₂O at PSII). Verify: O₂ comes from water, NOT CO₂." }}
  ],
+ "primaryLifecycleVerb": "IDENTIFY",
  "examContext": {{
    "examObjective": "Explain the role of light-dependent reactions in photosynthesis, including the products formed and their destinations",
    "questionTypes": ["multiple-choice", "scenario-based"],
@@ -669,6 +683,13 @@ def get_tree_generation_prompt(
 - The object should be a clear, specific resource/entity (2-3 words max)
 - Avoid generic names like "Storage Overview" — use "{phase1_verb.capitalize()} Storage Accounts" instead
 
+**`primaryLifecycleVerb` Assignment for Concept Map Arms**:
+Each leaf concept MUST set `"primaryLifecycleVerb"` to exactly one of: "{phase1_verb}", "{phase2_verb}", or "{phase3_verb}".
+This field determines which arm/branch the concept appears on in the visual concept map.
+- **DISTRIBUTE EVENLY**: Aim for roughly equal numbers of concepts per verb. If you have 15 leaves, each verb should get ~5.
+- **CHOOSE BY PRIMARY ACTION**: Pick the verb that BEST describes the concept's core action (e.g., "Create Storage Account" → "{phase1_verb}", "Configure Networking" → "{phase2_verb}").
+- The concept name's leading verb must match `primaryLifecycleVerb` whenever possible.
+
 **Branch Concepts**: Can use broader names (e.g., "Storage Management", "Networking Fundamentals")
 **Trunk Concept**: Use the domain name as-is (e.g., "{domain_name}")
 """
@@ -827,7 +848,7 @@ TASK: Generate supplementary leaf concepts to fill EXAM COVERAGE GAPS in domain 
 7. TRACES connections: Leaf max 3 (1 is-part-of → branch + 1-2 same-branch). Branch max 2 (1 is-part-of → trunk + 0-1 requires → sibling branch). Cross-branch leaf connections FORBIDDEN. `requires` must point to lower-order concepts only.
 8. `workedExample`: problem (minimum 20 words), solution (minimum 20 words), steps (3-6 items) — REQUIRED
 9. `mnemonic`: unique concrete anchor + spatial story — NO duplicates with existing concepts
-10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, blueprintSteps (array of verb/atomicStep/instantiation objects — leaf concepts only), examContext (examObjective, questionTypes array, examTip — leaf concepts only)
+10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, blueprintSteps (array of verb/atomicStep/instantiation objects — leaf concepts only), primaryLifecycleVerb (string — the ONE lifecycle verb this concept primarily belongs to — leaf concepts only), examContext (examObjective, questionTypes array, examTip — leaf concepts only)
 11. **OBJECTIVE-BOUND**: Generate ONLY for the uncovered objectives listed above. Do NOT add concepts for topics not in the list. If it is not listed, it is out of scope. Every concept's `examContext.examObjective` must cite the exact uncovered objective it fills.
 
 ## FIELD QUALITY (automatic rejection if violated):

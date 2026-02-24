@@ -50,4 +50,5 @@ export interface LearningConcept {
   keyPoints?: string[];
   perspectives?: any[];
   blueprintSteps?: any[];
+  primaryLifecycleVerb?: string;
 }

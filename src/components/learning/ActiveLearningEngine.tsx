@@ -2,18 +2,20 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Brain, Home, Map, Layers, BookOpen } from 'lucide-react';
+import { AlertCircle, Brain, Home, Map, Layers, BookOpen, ArrowLeft } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useLearningFlow } from '@/shared/hooks/useLearningFlow';
 import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { toast } from '@/shared/utils/toast';
 import { MasteryDashboard } from '@/components/dashboard/MasteryDashboard';
 import { ULCPracticeController } from '@/components/learning/ULCPracticeController';
+import { MicroLearningLoopController } from '@/components/learning/MicroLearningLoopController';
+import type { LoopOutcome } from '@/components/learning/MicroLearningLoopController';
 import ConceptMapBuilder from '@/components/learning/activities/ConceptMapBuilder';
 import { DeepStructureDiscovery } from '@/components/learning/discovery/DeepStructureDiscovery';
 import styles from './ActiveLearningEngine.module.css';
 
-type ActiveTab = 'map' | 'ulc';
+type ActiveTab = 'map' | 'ulc' | 'practice';
 
 export default function ActiveLearningEngine() {
     const navigate = useNavigate();
@@ -32,6 +34,7 @@ export default function ActiveLearningEngine() {
     const [showStructurePanel, setShowStructurePanel] = useState(false);
     const [portalConcept, setPortalConcept] = useState<string | null>(null);
     const [focusConcept, setFocusConcept] = useState<string | null>(null);
+    const [practiceConceptId, setPracticeConceptId] = useState<string | null>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => setIsInitializing(false), UI_TIMINGS.DELAY_SHORT);
@@ -66,8 +69,31 @@ export default function ActiveLearningEngine() {
 
     const handleReturnToULC = useCallback(() => {
         setFocusConcept(null);
+        setPracticeConceptId(null);
         setActiveTab('ulc');
     }, []);
+
+    const handleStartPractice = useCallback((conceptId: string, _verb: string) => {
+        setPracticeConceptId(conceptId);
+        setActiveTab('practice');
+    }, []);
+
+    const handleLoopComplete = useCallback((outcome: LoopOutcome, _timeSpent: number) => {
+        if (!practiceConceptId) return;
+        const score = outcome === 'mastered' ? 100 : outcome === 'needs-review' ? 50 : 30;
+        useLearningStore.getState().completeConcept(practiceConceptId, score, outcome);
+        const label = outcome === 'mastered' ? 'Concept mastered' : 'Concept needs review';
+        toast.success(`${label} — returning to matrix`, { duration: 2000 });
+        setPracticeConceptId(null);
+        setActiveTab('ulc');
+    }, [practiceConceptId]);
+
+    const handleSkipConcept = useCallback(() => {
+        if (!practiceConceptId) return;
+        useLearningStore.getState().completeConcept(practiceConceptId, 0, 'needs-learning');
+        setPracticeConceptId(null);
+        setActiveTab('ulc');
+    }, [practiceConceptId]);
 
     const allComplete = useMemo(() => {
         if (!currentSession) return false;
@@ -79,6 +105,11 @@ export default function ActiveLearningEngine() {
     const classification = currentSession?.metadata?.fullClassification
         || currentSession?.metadata?.macroWorkflow?.classification
         || currentSession?.macroWorkflow?.classification;
+
+    const practiceConcept = useMemo(() => {
+        if (!practiceConceptId || !currentSession) return null;
+        return currentSession.concepts.find(c => c.id === practiceConceptId) ?? null;
+    }, [practiceConceptId, currentSession]);
 
     useEffect(() => {
         // If we hit PREVIEW, auto-advance
@@ -157,9 +188,14 @@ export default function ActiveLearningEngine() {
                 </button>
                 <button
                     className={styles.toggleBtn}
-                    onClick={() => setActiveTab(activeTab === 'ulc' ? 'map' : 'ulc')}
+                    onClick={() => {
+                        if (activeTab === 'practice') { setPracticeConceptId(null); setActiveTab('ulc'); }
+                        else setActiveTab(activeTab === 'ulc' ? 'map' : 'ulc');
+                    }}
                 >
-                    {activeTab === 'ulc'
+                    {activeTab === 'practice'
+                        ? <><Layers size={14} />Back to Matrix</>
+                        : activeTab === 'ulc'
                         ? <><Map size={14} />Build Map — Why<span className={styles.tabBadge}>{currentSession.progress.completedConcepts.length}/{currentSession.concepts.length}</span></>
                         : <><Layers size={14} />ULC — How</>}
                 </button>
@@ -226,6 +262,7 @@ export default function ActiveLearningEngine() {
                             concepts={currentSession.concepts}
                             completedConceptIds={currentSession.progress.completedConcepts}
                             onExploreWhy={handleExploreWhy}
+                            onStartPractice={handleStartPractice}
                         />
                     </motion.div>
                 )}
@@ -253,6 +290,33 @@ export default function ActiveLearningEngine() {
                                 }
                                 handleMapComplete();
                             }}
+                        />
+                    </motion.div>
+                )}
+
+                {activeTab === 'practice' && practiceConcept && (
+                    <motion.div
+                        key="practice"
+                        className={styles.tabContent}
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.96 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <div className={styles.practiceHeader}>
+                            <button className={styles.practiceBackBtn} onClick={handleReturnToULC}>
+                                <ArrowLeft size={14} /> Back to Matrix
+                            </button>
+                            <span className={styles.practiceLabel}>Practicing: {practiceConcept.name}</span>
+                        </div>
+                        <MicroLearningLoopController
+                            concept={practiceConcept}
+                            allConcepts={currentSession.concepts}
+                            complexityScore={practiceConcept.complexity ?? 5}
+                            subjectType={classification?.subjectType}
+                            onLoopComplete={handleLoopComplete}
+                            onSkip={handleSkipConcept}
+                            onReturnToMap={() => { setPracticeConceptId(null); setActiveTab('map'); }}
                         />
                     </motion.div>
                 )}

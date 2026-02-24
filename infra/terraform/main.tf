@@ -96,6 +96,14 @@ module "lambda" {
   userdata_table_arn  = module.dynamodb.userdata_table_arn
   userdata_table_name = module.dynamodb.userdata_table_name
 
+  # CLM DynamoDB tables
+  clm_audits_table_arn      = module.dynamodb.clm_audits_table_arn
+  clm_audits_table_name     = module.dynamodb.clm_audits_table_name
+  clm_versions_table_arn    = module.dynamodb.clm_versions_table_arn
+  clm_versions_table_name   = module.dynamodb.clm_versions_table_name
+  clm_changelog_table_arn   = module.dynamodb.clm_changelog_table_arn
+  clm_changelog_table_name  = module.dynamodb.clm_changelog_table_name
+
   # Lambda source code
   source_dir = "${path.module}/../../backend/lambda"
 
@@ -209,6 +217,8 @@ resource "aws_lambda_function" "api_server" {
       GENERATE_LAMBDA_NAME        = module.lambda.generate_concepts_function_name
       QUERY_LAMBDA_NAME           = module.lambda.query_concepts_function_name
       GYM_AI_LAMBDA_NAME          = module.lambda.gym_ai_function_name
+      # CLM Lambda names (Express backend invokes orchestrator for audit triggers)
+      CLM_ORCHESTRATOR_FUNCTION   = module.lambda.clm_orchestrator_function_name
     }
   }
 

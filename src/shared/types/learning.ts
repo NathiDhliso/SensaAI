@@ -224,6 +224,12 @@ export interface LearningConcept {
     keyPoints?: string[];
     perspectives?: CreatorPerspective[];
     blueprintSteps?: BlueprintStep[];
+    /**
+     * The primary lifecycle verb this concept belongs to (from classification).
+     * Used to sort concepts into verb arms on the procedural concept map.
+     * e.g., "CREATE", "CONFIGURE", "MONITOR" — must match one of the lifecycle blueprint verbs.
+     */
+    primaryLifecycleVerb?: string;
     examContext?: ExamContext;
 }
 // ============================================================================

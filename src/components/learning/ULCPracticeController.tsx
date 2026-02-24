@@ -11,12 +11,14 @@ interface ULCPracticeControllerProps {
   concepts: LearningConcept[];
   completedConceptIds: string[];
   onExploreWhy?: (conceptName: string) => void;
+  onStartPractice?: (conceptId: string, verb: string) => void;
 }
 
 export function ULCPracticeController({
   concepts,
   completedConceptIds,
   onExploreWhy,
+  onStartPractice,
 }: ULCPracticeControllerProps) {
   const { currentSession } = useLearningStore();
   const lifecycleVerbs = useGenerationStore(state => state.pass1Data?.lifecycle);
@@ -100,6 +102,7 @@ export function ULCPracticeController({
         masteredIds={masteredIds}
         suggestedId={suggestedId}
         onExploreWhy={onExploreWhy}
+        onStartPractice={onStartPractice}
       />
 
     </div>

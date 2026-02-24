@@ -69,3 +69,35 @@ output "auth_invoke_arn" {
   description = "Invoke ARN for API Gateway integration"
   value       = aws_lambda_function.auth.invoke_arn
 }
+
+# CLM Lambda Outputs
+
+output "clm_orchestrator_function_name" {
+  description = "Name of the CLM orchestrator Lambda function"
+  value       = aws_lambda_function.clm_orchestrator.function_name
+}
+
+output "clm_orchestrator_function_arn" {
+  description = "ARN of the CLM orchestrator Lambda function"
+  value       = aws_lambda_function.clm_orchestrator.arn
+}
+
+output "clm_schema_auditor_function_name" {
+  description = "Name of the CLM schema auditor Lambda function"
+  value       = aws_lambda_function.clm_schema_auditor.function_name
+}
+
+output "clm_content_auditor_function_name" {
+  description = "Name of the CLM content auditor Lambda function"
+  value       = aws_lambda_function.clm_content_auditor.function_name
+}
+
+output "clm_coverage_auditor_function_name" {
+  description = "Name of the CLM coverage auditor Lambda function"
+  value       = aws_lambda_function.clm_coverage_auditor.function_name
+}
+
+output "clm_update_executor_function_name" {
+  description = "Name of the CLM update executor Lambda function"
+  value       = aws_lambda_function.clm_update_executor.function_name
+}

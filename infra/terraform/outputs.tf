@@ -109,3 +109,28 @@ output "clm_changelog_table_name" {
   description = "Name of the CLM changelog table"
   value       = module.dynamodb.clm_changelog_table_name
 }
+
+output "clm_orchestrator_function_name" {
+  description = "CLM orchestrator Lambda function name"
+  value       = module.lambda.clm_orchestrator_function_name
+}
+
+output "clm_schema_auditor_function_name" {
+  description = "CLM schema auditor Lambda function name"
+  value       = module.lambda.clm_schema_auditor_function_name
+}
+
+output "clm_content_auditor_function_name" {
+  description = "CLM content auditor Lambda function name"
+  value       = module.lambda.clm_content_auditor_function_name
+}
+
+output "clm_coverage_auditor_function_name" {
+  description = "CLM coverage auditor Lambda function name"
+  value       = module.lambda.clm_coverage_auditor_function_name
+}
+
+output "clm_update_executor_function_name" {
+  description = "CLM update executor Lambda function name"
+  value       = module.lambda.clm_update_executor_function_name
+}

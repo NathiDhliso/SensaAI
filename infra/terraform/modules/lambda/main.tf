@@ -72,6 +72,27 @@ resource "aws_iam_role_policy" "lambda_policy" {
           var.userdata_table_arn
         ]
       },
+      # CLM DynamoDB table access
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:Query",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:Scan"
+        ]
+        Resource = [
+          var.clm_audits_table_arn,
+          "${var.clm_audits_table_arn}/index/*",
+          var.clm_versions_table_arn,
+          "${var.clm_versions_table_arn}/index/*",
+          var.clm_changelog_table_arn,
+          "${var.clm_changelog_table_arn}/index/*"
+        ]
+      },
       # Bedrock access for LLM
       {
         Effect   = "Allow"
@@ -96,6 +117,17 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Effect   = "Allow"
         Action   = ["lambda:InvokeFunction"]
         Resource = aws_lambda_function.generate_concepts.arn
+      },
+      # CLM orchestrator → auditor Lambda cross-invocation
+      {
+        Effect = "Allow"
+        Action = ["lambda:InvokeFunction"]
+        Resource = [
+          "arn:aws:lambda:*:*:function:${var.project_name}-clm-orchestrator-${var.environment}",
+          "arn:aws:lambda:*:*:function:${var.project_name}-clm-schema-auditor-${var.environment}",
+          "arn:aws:lambda:*:*:function:${var.project_name}-clm-content-auditor-${var.environment}",
+          "arn:aws:lambda:*:*:function:${var.project_name}-clm-coverage-auditor-${var.environment}"
+        ]
       }
     ]
   })
@@ -301,8 +333,219 @@ resource "aws_lambda_function" "auth" {
 }
 
 # ==============================================================================
+# CLM ORCHESTRATOR LAMBDA
+# ==============================================================================
+
+resource "aws_lambda_function" "clm_orchestrator" {
+  function_name = "${var.project_name}-clm-orchestrator-${var.environment}"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "clm_orchestrator.handler.lambda_handler"
+  runtime       = "python3.12"
+
+  timeout     = 300 # 5 min — coordinates multiple auditor invocations
+  memory_size = 512
+
+  filename         = data.archive_file.lambda_code.output_path
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
+
+  layers = length(aws_lambda_layer_version.python_deps) > 0 ? [
+    aws_lambda_layer_version.python_deps[0].arn
+  ] : []
+
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      CLM_AUDITS_TABLE         = var.clm_audits_table_name
+      CONCEPTS_TABLE           = var.concepts_table_name
+      JOBS_TABLE               = var.jobs_table_name
+      SCHEMA_AUDITOR_FUNCTION  = "${var.project_name}-clm-schema-auditor-${var.environment}"
+      CONTENT_AUDITOR_FUNCTION = "${var.project_name}-clm-content-auditor-${var.environment}"
+      COVERAGE_AUDITOR_FUNCTION = "${var.project_name}-clm-coverage-auditor-${var.environment}"
+      LOG_LEVEL                = var.environment == "prod" ? "INFO" : "DEBUG"
+    }
+  }
+
+  tags = merge(var.tags, {
+    Function = "clm-orchestrator"
+  })
+}
+
+# ==============================================================================
+# CLM SCHEMA AUDITOR LAMBDA
+# ==============================================================================
+
+resource "aws_lambda_function" "clm_schema_auditor" {
+  function_name = "${var.project_name}-clm-schema-auditor-${var.environment}"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "clm_schema_auditor.handler.lambda_handler"
+  runtime       = "python3.12"
+
+  timeout     = 120
+  memory_size = 512
+
+  filename         = data.archive_file.lambda_code.output_path
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
+
+  layers = length(aws_lambda_layer_version.python_deps) > 0 ? [
+    aws_lambda_layer_version.python_deps[0].arn
+  ] : []
+
+  environment {
+    variables = {
+      ENVIRONMENT      = var.environment
+      CLM_AUDITS_TABLE = var.clm_audits_table_name
+      BEDROCK_MODEL_ID = var.bedrock_model_id
+      LOG_LEVEL        = var.environment == "prod" ? "INFO" : "DEBUG"
+    }
+  }
+
+  tags = merge(var.tags, {
+    Function = "clm-schema-auditor"
+  })
+}
+
+# ==============================================================================
+# CLM CONTENT AUDITOR LAMBDA
+# ==============================================================================
+
+resource "aws_lambda_function" "clm_content_auditor" {
+  function_name = "${var.project_name}-clm-content-auditor-${var.environment}"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "clm_content_auditor.handler.lambda_handler"
+  runtime       = "python3.12"
+
+  timeout     = 300 # 5 min — AI-powered content analysis
+  memory_size = 1024
+
+  filename         = data.archive_file.lambda_code.output_path
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
+
+  layers = length(aws_lambda_layer_version.python_deps) > 0 ? [
+    aws_lambda_layer_version.python_deps[0].arn
+  ] : []
+
+  environment {
+    variables = {
+      ENVIRONMENT      = var.environment
+      CLM_AUDITS_TABLE = var.clm_audits_table_name
+      BEDROCK_MODEL_ID = var.bedrock_model_id
+      LOG_LEVEL        = var.environment == "prod" ? "INFO" : "DEBUG"
+    }
+  }
+
+  tags = merge(var.tags, {
+    Function = "clm-content-auditor"
+  })
+}
+
+# ==============================================================================
+# CLM COVERAGE AUDITOR LAMBDA
+# ==============================================================================
+
+resource "aws_lambda_function" "clm_coverage_auditor" {
+  function_name = "${var.project_name}-clm-coverage-auditor-${var.environment}"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "clm_coverage_auditor.handler.lambda_handler"
+  runtime       = "python3.12"
+
+  timeout     = 120
+  memory_size = 512
+
+  filename         = data.archive_file.lambda_code.output_path
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
+
+  layers = length(aws_lambda_layer_version.python_deps) > 0 ? [
+    aws_lambda_layer_version.python_deps[0].arn
+  ] : []
+
+  environment {
+    variables = {
+      ENVIRONMENT      = var.environment
+      CLM_AUDITS_TABLE = var.clm_audits_table_name
+      BEDROCK_MODEL_ID = var.bedrock_model_id
+      LOG_LEVEL        = var.environment == "prod" ? "INFO" : "DEBUG"
+    }
+  }
+
+  tags = merge(var.tags, {
+    Function = "clm-coverage-auditor"
+  })
+}
+
+# ==============================================================================
+# CLM UPDATE EXECUTOR LAMBDA
+# ==============================================================================
+
+resource "aws_lambda_function" "clm_update_executor" {
+  function_name = "${var.project_name}-clm-update-executor-${var.environment}"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "clm_update_executor.handler.lambda_handler"
+  runtime       = "python3.12"
+
+  timeout     = 120
+  memory_size = 512
+
+  filename         = data.archive_file.lambda_code.output_path
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
+
+  layers = length(aws_lambda_layer_version.python_deps) > 0 ? [
+    aws_lambda_layer_version.python_deps[0].arn
+  ] : []
+
+  environment {
+    variables = {
+      ENVIRONMENT         = var.environment
+      CLM_AUDITS_TABLE    = var.clm_audits_table_name
+      CLM_VERSIONS_TABLE  = var.clm_versions_table_name
+      CLM_CHANGELOG_TABLE = var.clm_changelog_table_name
+      CONCEPTS_TABLE      = var.concepts_table_name
+      LOG_LEVEL           = var.environment == "prod" ? "INFO" : "DEBUG"
+    }
+  }
+
+  tags = merge(var.tags, {
+    Function = "clm-update-executor"
+  })
+}
+
+# ==============================================================================
 # CLOUDWATCH LOG GROUPS
 # ==============================================================================
+
+resource "aws_cloudwatch_log_group" "clm_orchestrator" {
+  name              = "/aws/lambda/${aws_lambda_function.clm_orchestrator.function_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = var.tags
+}
+
+resource "aws_cloudwatch_log_group" "clm_schema_auditor" {
+  name              = "/aws/lambda/${aws_lambda_function.clm_schema_auditor.function_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = var.tags
+}
+
+resource "aws_cloudwatch_log_group" "clm_content_auditor" {
+  name              = "/aws/lambda/${aws_lambda_function.clm_content_auditor.function_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = var.tags
+}
+
+resource "aws_cloudwatch_log_group" "clm_coverage_auditor" {
+  name              = "/aws/lambda/${aws_lambda_function.clm_coverage_auditor.function_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = var.tags
+}
+
+resource "aws_cloudwatch_log_group" "clm_update_executor" {
+  name              = "/aws/lambda/${aws_lambda_function.clm_update_executor.function_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = var.tags
+}
 
 resource "aws_cloudwatch_log_group" "auth" {
   name              = "/aws/lambda/${aws_lambda_function.auth.function_name}"

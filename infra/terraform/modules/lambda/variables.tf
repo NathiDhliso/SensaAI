@@ -42,6 +42,37 @@ variable "userdata_table_name" {
   type        = string
 }
 
+# CLM DynamoDB Integration
+variable "clm_audits_table_arn" {
+  description = "ARN of the CLM audits DynamoDB table"
+  type        = string
+}
+
+variable "clm_audits_table_name" {
+  description = "Name of the CLM audits DynamoDB table"
+  type        = string
+}
+
+variable "clm_versions_table_arn" {
+  description = "ARN of the CLM versions DynamoDB table"
+  type        = string
+}
+
+variable "clm_versions_table_name" {
+  description = "Name of the CLM versions DynamoDB table"
+  type        = string
+}
+
+variable "clm_changelog_table_arn" {
+  description = "ARN of the CLM changelog DynamoDB table"
+  type        = string
+}
+
+variable "clm_changelog_table_name" {
+  description = "Name of the CLM changelog DynamoDB table"
+  type        = string
+}
+
 # Source Configuration
 variable "source_dir" {
   description = "Path to the Lambda source code directory"

@@ -9,9 +9,9 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
     const location = useLocation();
-    const { isAuthenticated, isLoading } = useAuthStore();
+    const { isAuthenticated, isLoading, isInitialized } = useAuthStore();
 
-    if (isLoading) {
+    if (isLoading || !isInitialized) {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
                 <div style={{ textAlign: 'center' }}>

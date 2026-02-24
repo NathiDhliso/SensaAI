@@ -32,6 +32,8 @@ export type User = AuthUser;
 interface AuthState {
  user: User | null;
  isAuthenticated: boolean;
+ /** True once the initial session validation on app load has completed (success or failure). */
+ isInitialized: boolean;
  isLoading: boolean;
  error: string | null;
  tokens: AuthTokens | null;
@@ -66,6 +68,35 @@ interface AuthActions {
 }
 
 export type AuthStore = AuthState & AuthActions;
+
+// ============================================================================
+// Refresh deduplication — prevents cascading 401 retry storms
+// ============================================================================
+let _refreshPromise: Promise<boolean> | null = null;
+let _lastRefreshFailure = 0;
+const REFRESH_COOLDOWN_MS = 5_000; // Don't re-attempt refresh within 5s of a failure
+
+// ============================================================================
+// JWT helpers — decode expiry without a library
+// ============================================================================
+/**
+ * Returns true if a JWT is expired (or will expire within 60 seconds).
+ * Falls back to false so we never silently block a valid token.
+ */
+export function isJwtExpired(token: string): boolean {
+    try {
+        const payload = token.split('.')[1];
+        if (!payload) return false;
+        // Base64URL → Base64 → JSON
+        const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+        const { exp } = JSON.parse(json) as { exp?: number };
+        if (!exp) return false;
+        return Date.now() / 1000 > exp - 60; // 60s early-expiry buffer
+    } catch {
+        return false;
+    }
+}
+
 // ============================================================================
 // PKCE Helper Functions (for OAuth flow)
 // ============================================================================
@@ -199,6 +230,7 @@ export const useAuthStore = create<AuthStore>()(
  // Initial State
  user: null,
  isAuthenticated: false,
+ isInitialized: false,
  isLoading: false,
  error: null,
  tokens: null,
@@ -428,6 +460,16 @@ export const useAuthStore = create<AuthStore>()(
  },
 
  refreshSession: async () => {
+ // If a refresh recently failed, skip to avoid hammering the endpoint
+ if (Date.now() - _lastRefreshFailure < REFRESH_COOLDOWN_MS) {
+ return false;
+ }
+ // Deduplicate: reuse the in-flight refresh promise if one exists
+ if (_refreshPromise) {
+ return _refreshPromise;
+ }
+
+ const doRefresh = async (): Promise<boolean> => {
  try {
  const currentTokens = get().tokens;
  if (!currentTokens?.refresh_token) {
@@ -449,6 +491,7 @@ export const useAuthStore = create<AuthStore>()(
  return false;
  } catch (error) {
  logger.warn('[Auth] Session refresh failed:', error);
+ _lastRefreshFailure = Date.now();
  if (isAuthError(error)) {
  set({
  user: null,
@@ -459,7 +502,13 @@ export const useAuthStore = create<AuthStore>()(
  });
  }
  return false;
+ } finally {
+ _refreshPromise = null;
  }
+ };
+
+ _refreshPromise = doRefresh();
+ return _refreshPromise;
  },
 
  clearError: () => set({ error: null }),
@@ -482,10 +531,18 @@ export const useAuthStore = create<AuthStore>()(
  },
 
  initializeAuthListeners: () => {
- const handleUnauthorized = async () => {
- logger.warn('[Auth] Received unauthorized event, trying refresh...');
+ const handleSessionExpiry = async (source: string) => {
+ logger.warn(`[Auth] ${source}, trying refresh...`);
  const refreshed = await get().refreshSession();
- if (!refreshed) {
+ if (refreshed) {
+ // Invalidate all cached queries so they re-run with the fresh token
+ try {
+  const { queryClient } = await import('../main');
+  queryClient.invalidateQueries();
+ } catch {
+  // main.tsx not available in tests — safe to ignore
+ }
+ } else {
  set({
  user: null,
  isAuthenticated: false,
@@ -495,9 +552,13 @@ export const useAuthStore = create<AuthStore>()(
  });
  }
  };
+ const handleUnauthorized = () => handleSessionExpiry('Received unauthorized event');
+ const handleTokenExpired = () => handleSessionExpiry('Token is expired, proactive refresh');
  window.addEventListener('auth:unauthorized', handleUnauthorized);
+ window.addEventListener('auth:token-expired', handleTokenExpired);
  return () => {
  window.removeEventListener('auth:unauthorized', handleUnauthorized);
+ window.removeEventListener('auth:token-expired', handleTokenExpired);
  };
  }
  }),
@@ -520,10 +581,15 @@ export const useAuthStore = create<AuthStore>()(
                 user: null,
                 isAuthenticated: false,
                 tokens: null,
-                lastValidated: null
+                lastValidated: null,
               });
             }
+            // Signal that the initial auth check is complete — unblocks ProtectedRoute
+            useAuthStore.setState({ isInitialized: true });
           }, 100);
+        } else {
+          // Not authenticated — no validation needed, unblock immediately
+          useAuthStore.setState({ isInitialized: true });
         }
       }
     }

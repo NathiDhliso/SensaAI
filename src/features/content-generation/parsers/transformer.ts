@@ -734,6 +734,7 @@ export function transformToLearningConcepts(
  // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
         connections: extractSemanticConnections(parsedConcept, parsed.concepts),
         blueprintSteps: parsedConcept.blueprintSteps,
+        primaryLifecycleVerb: parsedConcept.primaryLifecycleVerb,
         examContext: parsedConcept.examContext ? {
             examObjective: parsedConcept.examContext.examObjective,
             questionTypes: parsedConcept.examContext.questionTypes,

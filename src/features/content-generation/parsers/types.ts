@@ -59,6 +59,7 @@ export interface ParsedConcept {
         eliminationLogic?: string;
     };
     blueprintSteps?: BlueprintStep[];
+    primaryLifecycleVerb?: string;
     examContext?: {
         examObjective: string;
         questionTypes: string[];

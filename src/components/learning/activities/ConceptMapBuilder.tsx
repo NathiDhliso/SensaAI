@@ -1229,7 +1229,13 @@ export default function ConceptMapBuilder({
                 return (
                     <svg key={`overlay-${idx}`} className={clsStyles.overlayArmRail}
                         style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
-                        <path d={overlay.pathData} stroke={overlay.color || 'var(--color-border)'} strokeWidth={4} fill="none" opacity={0.4} strokeLinecap="round" strokeLinejoin="round" />
+                        <defs>
+                            <marker id={`arm-arrow-${idx}`} markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                                <polygon points="0 0, 14 5, 0 10" fill={overlay.color || 'var(--color-border)'} opacity="0.5" />
+                            </marker>
+                        </defs>
+                        <path d={overlay.pathData} stroke={overlay.color || 'var(--color-border)'} strokeWidth={6} fill="none" opacity={0.35} strokeLinecap="round" strokeLinejoin="round"
+                            markerEnd={`url(#arm-arrow-${idx})`} />
                     </svg>
                 );
             }

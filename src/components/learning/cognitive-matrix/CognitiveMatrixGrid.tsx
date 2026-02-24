@@ -11,9 +11,10 @@ interface CognitiveMatrixGridProps {
   masteredIds: Set<string>;
   suggestedId: string | null;
   onExploreWhy?: (conceptName: string) => void;
+  onStartPractice?: (conceptId: string, verb: string) => void;
 }
 
-export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExploreWhy }: CognitiveMatrixGridProps) {
+export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExploreWhy, onStartPractice }: CognitiveMatrixGridProps) {
   const colCount = payload.verbs.length;
   const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
   const [openTrunks, setOpenTrunks] = useState<Set<string>>(() => new Set());
@@ -213,6 +214,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExplo
                   onCellTap={handleCellTap}
                   onCloseDrawer={() => setExpandedCell(null)}
                   onExploreWhy={onExploreWhy}
+                  onStartPractice={onStartPractice}
                 />
               );
             })}
@@ -267,6 +269,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExplo
                       onCellTap={handleCellTap}
                       onCloseDrawer={() => setExpandedCell(null)}
                       onExploreWhy={onExploreWhy}
+                      onStartPractice={onStartPractice}
                       focusMode
                     />
                   ))}
@@ -286,6 +289,7 @@ export function CognitiveMatrixGrid({ payload, masteredIds, suggestedId, onExplo
                       onCellTap={handleCellTap}
                       onCloseDrawer={() => setExpandedCell(null)}
                       onExploreWhy={onExploreWhy}
+                      onStartPractice={onStartPractice}
                       focusMode
                     />
                   ))}

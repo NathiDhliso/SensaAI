@@ -380,6 +380,7 @@ class DynamoService:
             "outdegree": concept.get("outdegree", 0),
             "perspectives": concept.get("perspectives", []),
             "blueprintSteps": concept.get("blueprintSteps", []),
+            "primaryLifecycleVerb": concept.get("primaryLifecycleVerb", ""),
             "examContext": concept.get("examContext", {}),
             "scoring": concept.get("scoring", {}),
             "createdAt": get_ttl_timestamp(0),
