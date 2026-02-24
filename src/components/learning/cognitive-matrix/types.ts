@@ -12,6 +12,12 @@ export interface DrillDownAction {
   commonPitfalls?: string[];
   highStakesExample?: string;
   warnings?: string[];
+  eliminationLogic?: string;
+  examContext?: {
+    examObjective: string;
+    questionTypes: string[];
+    examTip: string;
+  };
 }
 
 export interface LeafRow {

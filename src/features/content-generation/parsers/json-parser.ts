@@ -842,6 +842,17 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
               if (blueprintSteps.length === 0) blueprintSteps = undefined;
        }
 
+       let examContext: ParsedConcept['examContext'];
+       const rawExamCtx = c.examContext as Record<string, unknown> | undefined;
+       if (rawExamCtx && typeof rawExamCtx === 'object') {
+              const objective = typeof rawExamCtx.examObjective === 'string' ? rawExamCtx.examObjective : '';
+              const qTypes = Array.isArray(rawExamCtx.questionTypes) ? (rawExamCtx.questionTypes as string[]) : [];
+              const tip = typeof rawExamCtx.examTip === 'string' ? rawExamCtx.examTip : '';
+              if (objective || tip) {
+                     examContext = { examObjective: objective, questionTypes: qTypes, examTip: tip };
+              }
+       }
+
        return {
               id: `concept-${order}`,
               name,
@@ -868,6 +879,7 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
               keyPoints,
               perspectives,
               blueprintSteps,
+              examContext,
               cognitiveLevel,
               commonPitfalls,
               strictConnections: extractStrictConnections(c),

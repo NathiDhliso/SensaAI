@@ -75,6 +75,12 @@ function buildAction(concept: LearningConcept, verbIndex: number, verb: string):
     commonPitfalls: concept.commonPitfalls?.length ? concept.commonPitfalls : undefined,
     highStakesExample: concept.shape?.highStakesExample || undefined,
     warnings: warnings.length > 0 ? warnings : undefined,
+    eliminationLogic: concept.shape?.eliminationLogic || undefined,
+    examContext: concept.examContext ? {
+      examObjective: concept.examContext.examObjective,
+      questionTypes: concept.examContext.questionTypes,
+      examTip: concept.examContext.examTip,
+    } : undefined,
   };
 }
 

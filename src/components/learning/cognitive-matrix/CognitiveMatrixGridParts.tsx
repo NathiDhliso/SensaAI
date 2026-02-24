@@ -160,6 +160,18 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
                     </div>
                   </div>
                 )}
+                {expandedCell.action.eliminationLogic && (
+                  <div className={styles.trickRow}>
+                    <span className={styles.trickIcon}>&#10003;</span>
+                    <span className={styles.trickText}><strong>Elimination:</strong> {expandedCell.action.eliminationLogic}</span>
+                  </div>
+                )}
+                {expandedCell.action.examContext?.examTip && (
+                  <div className={styles.trickRow}>
+                    <span className={styles.trickIcon}>&#9733;</span>
+                    <span className={styles.trickText}><strong>Exam Tip:</strong> {expandedCell.action.examContext.examTip}</span>
+                  </div>
+                )}
                 {expandedCell.action.trick && (
                   <div className={styles.trickRow}>
                     <span className={styles.trickIcon}>🧠</span>

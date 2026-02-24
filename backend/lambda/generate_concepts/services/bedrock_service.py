@@ -722,6 +722,14 @@ class BedrockService:
                     print(f"[BedrockService] WARN: Missing/short workedExample.solution in '{name}' (treeLevel={tree_level}, len={len(we_solution)})")
         elif tree_level in ("branch", "leaf"):
             print(f"[BedrockService] WARN: workedExample not a dict in '{name}' (type={type(worked).__name__}, treeLevel={tree_level})")
+        exam_ctx = concept.get("examContext") or {}
+        if tree_level == "leaf" and isinstance(exam_ctx, dict):
+            exam_obj = (exam_ctx.get("examObjective") or "").strip()
+            exam_tip = (exam_ctx.get("examTip") or "").strip()
+            if not exam_obj:
+                print(f"[BedrockService] WARN: Leaf '{name}' missing examContext.examObjective — concept may not map to exam syllabus")
+            if not exam_tip:
+                print(f"[BedrockService] WARN: Leaf '{name}' missing examContext.examTip")
         return True
     def _validate_tree_structure(self, concepts: List[Dict[str, Any]]) -> None:
         name_set = {c.get("name", "").strip().lower() for c in concepts if c.get("name")}
@@ -1137,11 +1145,11 @@ class BedrockService:
                 score = matches / len(obj_kws)
                 if score > best_score:
                     best_score = score
-            if best_score >= 0.3:
+            if best_score >= 0.35:
                 kept.append(c)
             else:
                 removed += 1
-                print(f"[BedrockService] Scope-creep removed: '{c.get('name')}' (best objective match: {best_score*100:.0f}%)")
+                print(f"[BedrockService] Scope-creep removed: '{c.get('name')}' (best objective match: {best_score*100:.0f}%) — concept does not map to any exam objective")
         if removed > 0:
             print(f"[BedrockService] Scope-creep check: removed {removed}/{len(concepts)} concepts")
         else:

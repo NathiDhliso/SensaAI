@@ -732,9 +732,14 @@ export function transformToLearningConcepts(
  ).length,
  // SILVER BULLET: Map AI-generated semantic connections to LearningConcept.connections
  // Priority: strictConnections (frontend prompt) > connections (Lambda prompt)
- connections: extractSemanticConnections(parsedConcept, parsed.concepts),
- blueprintSteps: parsedConcept.blueprintSteps
- });
+        connections: extractSemanticConnections(parsedConcept, parsed.concepts),
+        blueprintSteps: parsedConcept.blueprintSteps,
+        examContext: parsedConcept.examContext ? {
+            examObjective: parsedConcept.examContext.examObjective,
+            questionTypes: parsedConcept.examContext.questionTypes,
+            examTip: parsedConcept.examContext.examTip
+        } : undefined
+    });
  // Log the final concept name
  const finalConcept = concepts[concepts.length - 1];
  logger.debug(` Created concept #${finalConcept.order}: "${finalConcept.name}"`);

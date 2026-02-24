@@ -1,7 +1,7 @@
 import json
 
 # SENSA System Prompt for Lambda
-# Prompt Version: v8.0 (Blueprint-Aligned Deep Structure)
+# Prompt Version: v9.0 (Exam-First Deep Structure — Zero Scope Creep)
 #
 # Tree Hierarchy:
 #   Trunk  = Main exam domain/objective
@@ -12,46 +12,47 @@ import json
 # =============================================================================
 # CLASSIFICATION PROMPT
 # =============================================================================
-CLASSIFICATION_PROMPT = """You are an expert cognitive scientist and curriculum architect.
-OBJECTIVE: Analyze the subject "{subject}" and extract its "Master Blueprint" (The Trick).
-Goal: Move the learner from surface-level memorization to deep structural understanding.
+CLASSIFICATION_PROMPT = """You are an expert cognitive scientist, curriculum architect, and **exam preparation specialist**.
+OBJECTIVE: Analyze the subject "{subject}" and extract its structural blueprint — **strictly through the lens of what the exam tests**.
+Goal: Every output must serve one purpose: preparing the learner to pass the exam. No practitioner knowledge beyond what the exam requires.
 
 {context}
 
 ═══════════════════════════════════════════════════════════════════════════
-PART A: DEEP STRUCTURE EXTRACTION
-(Rule: Do NOT think about exams or testable metadata during Part A. Focus ONLY on how the subject physically or logically operates.)
+PART A: EXAM-ORIENTED DEEP STRUCTURE EXTRACTION
+(Rule: Extract the structural pattern that helps learners PREDICT how exam questions are constructed and answered. Focus on the exam syllabus structure, NOT on how practitioners use the knowledge on the job.)
 ═══════════════════════════════════════════════════════════════════════════
 
-STEP 1: IDENTIFY THE ARCHETYPES
-Which of these 4 structural archetypes best fits this subject?
-1. "sequential-flow" (Pipeline): A strict chronological order (e.g., CI/CD pipelines, Machine Learning lifecycle, Data flow).
-2. "see-saw" (Balance): An equation/equality that must be maintained (e.g., CAP Theorem, Resource scaling constraints).
-3. "spatial-map" (Geography): Information lives in a specific container/location (e.g., Network Topologies, Cloud Resource Hierarchies).
-4. "heuristic" (Rule of Thumb): A decision filter to bypass paralysis (e.g., Security triage, Debugging logic).
+STEP 1: IDENTIFY THE ARCHETYPES (as tested by the exam)
+Which of these 4 structural archetypes best describes how the EXAM organizes and tests this subject?
+1. "sequential-flow" (Pipeline): The exam tests a chronological process (e.g., deployment steps, lifecycle phases, data flow).
+2. "see-saw" (Balance): The exam tests trade-offs and constraints (e.g., CAP Theorem, cost vs. performance).
+3. "spatial-map" (Geography): The exam tests where things live and how they relate (e.g., resource hierarchies, network topologies).
+4. "heuristic" (Rule of Thumb): The exam tests decision-making under constraints (e.g., troubleshooting, security triage).
 
-Select the `primaryArchetype`. If the subject is a hybrid, you may optionally select a `secondaryArchetype` (e.g., Cloud Architecture is primarily a "spatial-map" but uses "sequential-flow" for provisioning). Set `isHybrid` to true if using two archetypes.
+Select the `primaryArchetype`. If the subject is a hybrid, you may optionally select a `secondaryArchetype`. Set `isHybrid` to true if using two archetypes.
 
-STEP 2: EXTRACT THE INVARIANT (THE CORE PRINCIPLE)
-What is the ONE structural law that governs this subject? The rule that, if followed, makes the subject's behavior predictable?
-State the principle directly. Do NOT use prefixes like "If you remember nothing else:". CRITICAL: Use strictly POSITIVE framing. Tell the learner what *to* do or how the system works. Do NOT use negative framing (e.g., "Don't do X").
+STEP 2: EXTRACT THE INVARIANT (THE EXAM'S CORE PRINCIPLE)
+What is the ONE structural rule that, if the learner internalizes it, makes exam questions predictable?
+State the principle directly. Do NOT use prefixes like "If you remember nothing else:". CRITICAL: Use strictly POSITIVE framing. Frame it as: "The exam consistently tests [principle] across all domains."
 
 STEP 3: DEFINE THE UNIVERSAL LIFE CYCLE (ULC) BLUEPRINTS
-Identify the 1 to 3 core "verbs" (Lifecycle Phases) a practitioner actually performs. 
-Do NOT invent 3 phases if the domain only has 1 or 2 core actions. Return null for unused phases.
-For EACH verb, define the "Atomic Sequence" — the immutable checklist or mental flow.
+Identify the 1 to 3 core "verbs" (Lifecycle Phases) the EXAM expects candidates to demonstrate.
+Do NOT invent 3 phases if the exam only tests 1 or 2 core actions. Return null for unused phases.
+For EACH verb, define the "Atomic Sequence" — the repeatable mental checklist for answering exam questions that test this verb.
 
 STEP 4: SYNTHESIS & REVEAL SCRIPT
-First, write a `synthesisRationale` (Chain of Thought) explaining how the archetype and invariant simplify the subject.
-Then, write the `revealScript`: A focused, 2-3 sentence insight illuminating the deep structure of the subject.
-CRITICAL: Use strictly POSITIVE, scholarly framing. Do NOT use negative framing, colloquialisms, or talk down to the learner (e.g., NEVER use phrases like "Stop trying to memorize..." or "The trick is..."). Focus purely on the structural elegance of the subject.
+First, write a `synthesisRationale` explaining how the archetype and invariant help the learner decode exam questions.
+Then, write the `revealScript`: A focused, 2-3 sentence insight illuminating how the exam is structured.
+CRITICAL: Use strictly POSITIVE, scholarly framing. Focus on exam structure elegance.
 
 ═══════════════════════════════════════════════════════════════════════════
 PART B: EXAM SYLLABUS MAPPING
-(Rule: Shift personas. Now act as a strict Exam Administrator mapping out the testable domain weightings.)
+(Rule: Act as a strict Exam Administrator mapping out the testable domain weightings. Every domain must map to actual exam content.)
 ═══════════════════════════════════════════════════════════════════════════
 
 Group the provided context into 4-6 testable exam domains. Estimate realistic exam weights (must sum to 1.0).
+**CRITICAL**: Every domain and subtopic MUST correspond to content that appears on the exam. Do NOT add domains for "general knowledge" or "nice to know" topics that fall outside exam scope.
 
 ═══════════════════════════════════════════════════════════════════════════
 OUTPUT FORMAT (JSON ONLY)
@@ -111,10 +112,16 @@ OBJECTIVE: Generate the concept tree for exam domain "{domain_name}" ({domain_we
 ## 1. EXAM CONTEXT
 You are generating concepts for **ONE exam domain**: **{domain_name}**
 This domain covers approximately {domain_weight_pct}% of the exam.
-**CRITICAL CONTEXT**: Generate concepts strictly for what is tested in the EXAM context.
-- Frame concepts as the exam tests them, NOT as a practitioner would use them on the job
-- The tree must reflect the EXAM STRUCTURE and testable knowledge
-- Every leaf concept should map to something that could appear as an exam question
+
+**EXAM-FIRST MANDATE** (violating any of these causes AUTOMATIC REJECTION):
+1. Every concept MUST map to knowledge the exam explicitly tests — no "nice to know" filler
+2. Frame concepts as the exam tests them, NOT as a practitioner would use them on the job
+3. The tree must reflect the EXAM SYLLABUS structure, not a textbook's chapter order
+4. Every leaf concept MUST answer: "What exam question does this prepare the learner for?"
+5. If a concept cannot be tied to a specific exam objective or question type, it is OUT OF SCOPE — do NOT generate it
+6. `whyYouNeed` must explain how this concept is TESTED, not why it matters in practice
+7. `patternRecognition` must simulate a REAL exam question format for this subject
+8. `eliminationLogic` must teach how to eliminate wrong answers ON THE EXAM
 ### Subject Classification: **{subject_type_label}** ({subject_type})
 Classification goal: {classification_goal}
 ### Connective Tissue:
@@ -152,11 +159,12 @@ Generate concepts in a strict 3-level tree:
 - **Engagement**: phase1 (hookSentence, microMetaphor, prerequisite, selection, execution)
 - **Memory**: mnemonic (anchor + story)
 - **Understanding**: keyPoints, whyYouNeed, technicalDetails, shape
-- **Creator Blueprints**: perspectives (2-4 items per concept — see §3.6)
+- **Exam Approach Blueprints**: perspectives (2-4 items per concept — see §3.6)
 - **Deep Structure**: blueprintSteps (leaf concepts only — see §3.7)
 - **Application**: phase2 (array of plain strings), phase3 (tool, metrics)
 - **Relationship**: connections (see §3.4)
 - **Scoring**: keywords (3-5 terms), aliases (3-5 synonyms)
+- **Exam Context**: examContext (leaf concepts only — see §3.8)
 ### 3.2 TREE-LEVEL CONTENT RULES:
 **TRUNK** (domain overview):
 - Broader, general content about the domain
@@ -192,23 +200,23 @@ If you can't finish the sentence, the connection shouldn't exist yet. FORBIDDEN 
 - Cross-branch leaf connections are FORBIDDEN.
 ### 3.5 COGNITIVE LEVELS (Bloom's):
 Trunk: `understand`. Branch: `understand`/`apply`. Leaf: prefer `apply`, `analyze`, `evaluate`, `create`.
-### 3.6 CREATOR'S BLUEPRINTS — `perspectives` field
-This is the most important field for learners. Each perspective is a different tool/approach a practitioner might take. The student flicks between them to find the one that clicks.
+### 3.6 EXAM APPROACH BLUEPRINTS — `perspectives` field
+This is the most important field for learners. Each perspective represents a different **exam-tested approach** to the same concept. The student flicks between them to understand every angle the exam might test.
 
 **Structure**: `perspectives` is an array of 2-4 objects:
 ```json
-{{ "label": "Portal", "blueprint": "The creator's approach sentence", "steps": ["Step 1", "Step 2", ...] }}
+{{ "label": "Portal", "blueprint": "How the exam tests this via this approach", "steps": ["Step 1", "Step 2", ...] }}
 ```
 
-**Label guidance by subject type**:
-- **Procedural (cloud/infra)**: `"Portal"`, `"CLI"`, `"Terraform"`, `"PowerShell"`
-- **Procedural (coding)**: `"Imperative"`, `"Declarative"`, `"Functional"`, `"OOP"`
-- **Conceptual (law)**: `"Plaintiff"`, `"Defendant"`, `"Court"`
-- **Conceptual (finance)**: `"Micro View"`, `"Macro View"`, `"Risk Lens"`
-- **Cyclic**: `"Diverge"`, `"Converge"`, `"Reflect"`
-- **Perceptual**: `"Pattern Recognition"`, `"Differential"`, `"Confirmation"`
+**Label guidance by subject type** (each label = an angle the EXAM tests):
+- **Procedural (cloud/infra)**: `"Portal"`, `"CLI"`, `"Terraform"`, `"PowerShell"` — the exam tests the same task via different tools
+- **Procedural (coding)**: `"Imperative"`, `"Declarative"`, `"Functional"`, `"OOP"` — the exam tests different paradigm approaches
+- **Conceptual (law)**: `"Plaintiff"`, `"Defendant"`, `"Court"` — the exam tests analysis from each party's perspective
+- **Conceptual (finance)**: `"Micro View"`, `"Macro View"`, `"Risk Lens"` — the exam tests at different analytical scales
+- **Cyclic**: `"Diverge"`, `"Converge"`, `"Reflect"` — the exam tests recognition of phase transitions
+- **Perceptual**: `"Pattern Recognition"`, `"Differential"`, `"Confirmation"` — the exam tests diagnostic reasoning approaches
 
-**Steps**: Real commands, navigation paths, or reasoning chains — not generic descriptions.
+**Steps**: Real exam-relevant commands, procedures, or reasoning chains — not generic descriptions. Every step must reflect what the exam expects the candidate to know.
 
 **CRITICAL**: Every leaf concept MUST have `perspectives`. Trunk and branch concepts may omit it.
 {blueprint_scaffold}
@@ -231,6 +239,19 @@ This field connects each concept to the subject's deep structure, creating a rep
 4. The pattern should feel like the same skeleton with different flesh: a learner who sees 3-4 concepts will internalize the scaffold
 
 **CRITICAL**: Every leaf concept MUST have `blueprintSteps`. Trunk and branch concepts may omit it.
+### 3.8 EXAM CONTEXT — `examContext` field (leaf concepts only)
+This field anchors every concept to the exam syllabus. It tells the learner exactly WHERE this concept fits in the exam and HOW it will be tested.
+
+**Structure**:
+```json
+{{ "examObjective": "The specific exam objective this concept maps to", "questionTypes": ["multiple-choice", "scenario-based"], "examTip": "Actionable advice for answering exam questions on this topic" }}
+```
+
+- `examObjective`: Copy the EXACT exam objective/task from the syllabus (or paraphrase if not provided). Must be specific, not generic.
+- `questionTypes`: Array of 1-3 question formats the exam uses for this topic. Valid types: `"multiple-choice"`, `"scenario-based"`, `"drag-and-drop"`, `"case-study"`, `"fill-in-the-blank"`, `"true-false"`, `"matching"`, `"short-answer"`, `"essay"`, `"practical"`, `"oral"`.
+- `examTip`: One sentence of concrete exam strategy. BANNED: generic advice like "Read the question carefully". GOOD: "When the question mentions 'least privilege', eliminate any answer that grants broader permissions than needed."
+
+**CRITICAL**: Every leaf concept MUST have `examContext`. Trunk and branch concepts may omit it.
 ---
 ## 4. OUTPUT FORMAT
 Return A SINGLE JSON ARRAY containing ALL concepts for this domain.
@@ -327,7 +348,12 @@ Below is ONE fully-worked leaf concept. **Every concept you generate must match 
    {{ "verb": "IDENTIFY", "atomicStep": "Locate the reaction site", "instantiation": "Thylakoid membrane in the chloroplast — specifically PSII and PSI complexes embedded in the lipid bilayer" }},
    {{ "verb": "TRACE", "atomicStep": "Follow the energy pathway", "instantiation": "Photon → P680 excitation → electron ejection → ETC (plastoquinone → cyt b6f → plastocyanin) → P700 → ferredoxin → NADP⁺ reductase → NADPH" }},
    {{ "verb": "VERIFY", "atomicStep": "Confirm products and byproducts", "instantiation": "Products: ATP (chemiosmosis), NADPH (terminal acceptor). Byproduct: O₂ (from photolysis of H₂O at PSII). Verify: O₂ comes from water, NOT CO₂." }}
- ]
+ ],
+ "examContext": {{
+   "examObjective": "Explain the role of light-dependent reactions in photosynthesis, including the products formed and their destinations",
+   "questionTypes": ["multiple-choice", "scenario-based"],
+   "examTip": "When a diagram shows the thylakoid membrane, trace the electron flow LEFT to RIGHT (PSII → ETC → PSI) — questions about 'where is O₂ produced' always point to PSII/photolysis, never the Calvin cycle."
+ }}
 }}
 ```
 **CRITICAL**: The example above is the MINIMUM quality bar. Every concept you generate must match this depth and specificity **for your subject domain**. Adapt terminology, examples, and scenarios to the actual subject. If a field could apply to any concept by swapping the name, it is too generic and will be rejected.
@@ -380,14 +406,15 @@ This must be actionable decision logic, not a restatement of the concept.
 2. **QUANTITY**: ~{count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).
 3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
 4. **NAME FIELD**: Human-readable names only.
-5. **ASSESSMENT CONTEXT**: Frame every concept for how it would be tested, not casual exploration.
+5. **EXAM-BOUND FRAMING**: Frame EVERY field for how the concept is TESTED on the exam. `whyYouNeed` = how it's tested, `patternRecognition` = exam question simulation, `eliminationLogic` = exam answer elimination. No casual exploration.
 6. **REAL EXAMPLES**: `shape.highStakesExample` must reference a real event with specifics (names, dates, outcomes) from the subject domain. The causal link between the event and the concept must be the DOCUMENTED cause — never fabricate a technical mechanism to connect a famous disaster to the concept being taught. If unsure whether the connection is real, use a different example.
 7. **NO DUPLICATION**: Only generate for "{domain_name}".
 8. **UNIQUENESS**: Every `highStakesExample` uses a different case. Every `mnemonic.anchor` is a unique physical object. Every `patternRecognition.question` is a unique scenario.
 9. **CRITICAL DISTINCTIONS**: The `incorrect` side must be a plausible misconception, not an obvious strawman.
 10. **NO GENERIC FILLER** — BANNED patterns: "Why X matters", "Think of X as...", "Without proper X...", "X is crucial/essential...", "Detailed explanation of..."
 11. **COMPLETE WORKED EXAMPLES**: `problem` (20+ words), `solution` (20+ words), `steps` (3-6 items). All three required.
-12. **OBJECTIVE-BOUND**: If exam objectives are listed, every leaf MUST map to a listed objective. Do NOT invent topics beyond the provided objectives.
+12. **OBJECTIVE-BOUND**: If exam objectives are listed, every leaf MUST map to a listed objective. Do NOT invent topics beyond the provided objectives. Every leaf's `examContext.examObjective` must cite the specific objective it covers.
+13. **ZERO SCOPE CREEP**: If a topic is interesting but NOT on the exam syllabus, do NOT generate it. Coverage of exam objectives takes absolute priority over depth or breadth beyond the syllabus.
 Generate the concept tree for "{domain_name}" now:"""
 def _parse_exam_tree(context: str) -> list:
     import re as _re
@@ -730,7 +757,12 @@ Return ONLY the raw JSON object for this concept.
  ],
  "blueprintSteps": [
  {{ "verb": "VERB", "atomicStep": "Exact atomic step from blueprint", "instantiation": "How this concept instantiates that step" }}
- ]
+ ],
+ "examContext": {{
+ "examObjective": "The specific exam objective this concept maps to",
+ "questionTypes": ["multiple-choice", "scenario-based"],
+ "examTip": "Concrete exam strategy for this topic"
+ }}
 }}
 ```
 ## THE RATE FRAMEWORK FOR MINDMAP CONNECTIONS:
@@ -767,8 +799,9 @@ def get_surgical_fix_prompt(subject: str, concept_name: str, issue: str) -> str:
         concept_name=concept_name, 
         issue_description=issue
     )
-GAP_FILL_PROMPT = """ACT AS: Expert professor and exam specialist for: {subject}
-TASK: Generate supplementary leaf concepts to fill coverage gaps in domain "{domain_name}".
+GAP_FILL_PROMPT = """ACT AS: Expert professor and exam preparation specialist for: {subject}
+TASK: Generate supplementary leaf concepts to fill EXAM COVERAGE GAPS in domain "{domain_name}".
+**EXAM-FIRST MANDATE**: Every concept generated here must map directly to an uncovered exam objective. Do NOT add concepts for "nice to know" topics — only fill gaps in exam syllabus coverage.
 
 ## EXISTING CONCEPTS IN THIS DOMAIN (DO NOT DUPLICATE):
 {existing_concept_list}
@@ -789,8 +822,8 @@ TASK: Generate supplementary leaf concepts to fill coverage gaps in domain "{dom
 7. TRACES connections: Leaf max 3 (1 is-part-of → branch + 1-2 same-branch). Branch max 2 (1 is-part-of → trunk + 0-1 requires → sibling branch). Cross-branch leaf connections FORBIDDEN. `requires` must point to lower-order concepts only.
 8. `workedExample`: problem (minimum 20 words), solution (minimum 20 words), steps (3-6 items) — REQUIRED
 9. `mnemonic`: unique concrete anchor + spatial story — NO duplicates with existing concepts
-10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, blueprintSteps (array of verb/atomicStep/instantiation objects — leaf concepts only)
-11. **OBJECTIVE-BOUND**: Generate ONLY for the uncovered objectives listed above. Do NOT add concepts for topics not in the list. If it is not listed, it is out of scope.
+10. ALL standard fields required: name, treeLevel, parentName, trunkDomain, cognitiveLevel, order, whyYouNeed, technicalDetails, workedExample, mnemonic, phase1 (hookSentence, microMetaphor, prerequisite, selection, execution), phase2 (array of title+content), phase3 (tool, metrics), shape (simpleCore, highStakesExample, analogicalModel, patternRecognition, eliminationLogic), keyPoints, commonPitfalls, scoring (keywords, aliases), connections, blueprintSteps (array of verb/atomicStep/instantiation objects — leaf concepts only), examContext (examObjective, questionTypes array, examTip — leaf concepts only)
+11. **OBJECTIVE-BOUND**: Generate ONLY for the uncovered objectives listed above. Do NOT add concepts for topics not in the list. If it is not listed, it is out of scope. Every concept's `examContext.examObjective` must cite the exact uncovered objective it fills.
 
 ## FIELD QUALITY (automatic rejection if violated):
 - hookSentence: Lead with surprising fact or specific failure. BANNED: "Without proper X..."

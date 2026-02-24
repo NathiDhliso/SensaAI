@@ -59,6 +59,11 @@ export interface ParsedConcept {
         eliminationLogic?: string;
     };
     blueprintSteps?: BlueprintStep[];
+    examContext?: {
+        examObjective: string;
+        questionTypes: string[];
+        examTip: string;
+    };
     strictConnections?: Array<{ target: string; type: 'solid' | 'dashed' | 'arrow' | 'double-arrow' | 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }>;
     connections?: Array<{ target: string; type: 'solid' | 'dashed' | 'arrow' | 'double-arrow' | 'requires' | 'enables' | 'is-part-of' | 'is-type-of' | 'causes' | 'constrains' }>;
     dependsOn?: string[];

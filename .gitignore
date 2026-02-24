@@ -48,6 +48,16 @@ infra/terraform/modules/lambda/layer.zip
 **/secrets.tfvars
 **/.terraform.lock.hcl
 
+# Terraform output logs - may contain ARNs, resource IDs, account details
+**/apply_output.txt
+**/terraform_apply_output.txt
+**/terraform_apply_success_output.txt
+**/terraform_output.txt
+**/tf_output.json
+**/tf_output.log
+**/tf_out.txt
+**/error.log
+
 # Backend compiled JS (build output, not source)
 backend/src/**/*.js
 backend/src/**/*.js.map

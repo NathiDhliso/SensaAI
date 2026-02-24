@@ -144,6 +144,11 @@ export interface CreatorPerspective {
     blueprint: string;
     steps: string[];
 }
+export interface ExamContext {
+    examObjective: string;
+    questionTypes: string[];
+    examTip: string;
+}
 export interface ShapeContent {
     simpleCore?: string;
     highStakesExample?: string;
@@ -219,6 +224,7 @@ export interface LearningConcept {
     keyPoints?: string[];
     perspectives?: CreatorPerspective[];
     blueprintSteps?: BlueprintStep[];
+    examContext?: ExamContext;
 }
 // ============================================================================
 // Learning Stage Types

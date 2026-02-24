@@ -420,6 +420,27 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                         )}
                     </div>
                 </div>
+                {concept.examContext && (
+                    <div className={styles.examContextBanner}>
+                        <div className={styles.examContextHeader}>
+                            <AlertCircle size={14} />
+                            <span className={styles.examContextLabel}>Exam Focus</span>
+                            {concept.examContext.questionTypes.length > 0 && (
+                                <span className={styles.examQuestionTypes}>
+                                    {concept.examContext.questionTypes.join(' · ')}
+                                </span>
+                            )}
+                        </div>
+                        {concept.examContext.examObjective && (
+                            <p className={styles.examObjective}>{concept.examContext.examObjective}</p>
+                        )}
+                        {concept.examContext.examTip && (
+                            <p className={styles.examTip}>
+                                <strong>Exam Tip:</strong> {concept.examContext.examTip}
+                            </p>
+                        )}
+                    </div>
+                )}
                 {concept.metaphor && (
                     <div className={styles.metaphor}>
                         <em>Think of it as:</em> {concept.metaphor}
@@ -510,6 +531,18 @@ function LearnPhase({ concept, keyPoints, onComplete }: LearnPhaseProps) {
                             </div>
                         </div>
                         <p className={styles.highStakesText}>{concept.shape.highStakesExample}</p>
+                    </div>
+                )}
+                {concept.shape?.eliminationLogic && (
+                    <div className={`${styles.learningSection} ${styles.eliminationSection}`}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionNumber}>&#10003;</span>
+                            <div>
+                                <h5 className={styles.sectionTitle}>Exam Elimination Logic</h5>
+                                <span className={styles.sectionSubtitle}>How to rule out wrong answers</span>
+                            </div>
+                        </div>
+                        <p className={styles.eliminationText}>{concept.shape.eliminationLogic}</p>
                     </div>
                 )}
                 {concept.blueprintSteps && concept.blueprintSteps.length > 0 && (
@@ -741,6 +774,16 @@ function VerifyPhase({ concept, allConcepts, onComplete }: VerifyPhaseProps) {
                         <span>{feedback === 'correct' ? ' Correct!' : ' Not quite...'}</span>
                         {calibrationFeedback && (
                             <p className={styles.calibrationFeedback}>{calibrationFeedback}</p>
+                        )}
+                        {feedback === 'incorrect' && concept.shape?.eliminationLogic && (
+                            <p className={styles.eliminationHint}>
+                                <strong>Elimination Strategy:</strong> {concept.shape.eliminationLogic}
+                            </p>
+                        )}
+                        {feedback === 'correct' && concept.examContext?.examTip && (
+                            <p className={styles.examTipHint}>
+                                <strong>Exam Tip:</strong> {concept.examContext.examTip}
+                            </p>
                         )}
                     </div>
                 )}
