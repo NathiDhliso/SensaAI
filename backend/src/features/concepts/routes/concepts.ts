@@ -19,10 +19,10 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const lambdaClient = new LambdaClient({
     region: process.env.AWS_REGION || 'us-east-1'
 });
-// Table and function names
+// Table and function names (must match Terraform environment variable keys)
 const CONCEPTS_TABLE = process.env.CONCEPTS_TABLE || 'sensaai-concepts-dev';
 const JOBS_TABLE = process.env.JOBS_TABLE || 'sensaai-jobs-dev';
-const GENERATE_FUNCTION = process.env.GENERATE_LAMBDA || 'sensaai-generate-concepts-dev';
+const GENERATE_FUNCTION = process.env.GENERATE_LAMBDA_NAME || process.env.GENERATE_LAMBDA || 'sensaai-generate-concepts-dev';
 const LEGACY_TIER_MAP: Record<string, string> = {
     'foundation': 'root',
     'keystone': 'trunk',
