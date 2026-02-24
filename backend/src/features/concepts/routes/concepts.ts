@@ -32,6 +32,40 @@ function remapTier(tier: string | undefined): string {
     if (!tier) return 'leaf';
     return LEGACY_TIER_MAP[tier] || tier;
 }
+
+function mapConceptItem(item: Record<string, unknown>) {
+    return {
+        id: item.conceptId,
+        name: item.name,
+        tier: remapTier(item.tier as string | undefined),
+        stageId: item.stageId,
+        description: item.description,
+        keyPoints: item.keyPoints || [],
+        prerequisiteWeight: parseFloat(item.prerequisiteWeight as string) || 0.5,
+        displayProperties: item.displayProperties || {},
+        mnemonic: item.mnemonic || {},
+        phase1: item.phase1 || {},
+        phase2: item.phase2 || [],
+        phase3: item.phase3 || {},
+        shape: item.shape || {},
+        criticalDistinctions: item.criticalDistinctions || [],
+        designBoundaries: item.designBoundaries || [],
+        examFocus: item.examFocus || [],
+        dependencies: item.dependencies || [],
+        connections: item.connections || [],
+        outdegree: item.outdegree || 0,
+        // Fields previously dropped from pipeline
+        whyYouNeed: item.whyYouNeed || '',
+        technicalDetails: item.technicalDetails || '',
+        workedExample: item.workedExample || {},
+        cognitiveLevel: item.cognitiveLevel || 'understand',
+        commonPitfalls: item.commonPitfalls || [],
+        perspectives: item.perspectives || [],
+        blueprintSteps: item.blueprintSteps || [],
+        examContext: item.examContext || {},
+        scoring: item.scoring || {},
+    };
+}
 // Pagination helpers
 function createCursor(lastKey: Record<string, unknown> | undefined): string | null {
     if (!lastKey) return null;
@@ -103,10 +137,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
                 ScanIndexForward: true
             }));
             const latestConcepts = (latestResult.Items || []).map(item => ({
-                id: item.conceptId,
-                name: item.name,
-                tier: remapTier(item.tier),
-                description: item.description,
+                ...mapConceptItem(item as Record<string, unknown>),
                 displayOrder: item.displayOrder || 0,
             }));
             res.json({
@@ -196,25 +227,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
                     KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
                     ExpressionAttributeValues: { ':pk': pk, ':skPrefix': 'TIER#' }
                 }));
-                const concepts = (conceptsResult.Items || []).map(item => ({
-                    id: item.conceptId,
-                    name: item.name,
-                    tier: remapTier(item.tier),
-                    description: item.description,
-                    keyPoints: item.keyPoints || [],
-                    prerequisiteWeight: parseFloat(item.prerequisiteWeight) || 0.5,
-                    displayProperties: item.displayProperties || {},
-                    mnemonic: item.mnemonic || {},
-                    phase1: item.phase1 || {},
-                    phase2: item.phase2 || [],
-                    phase3: item.phase3 || {},
-                    shape: item.shape || {},
-                    criticalDistinctions: item.criticalDistinctions || [],
-                    designBoundaries: item.designBoundaries || [],
-                    examFocus: item.examFocus || [],
-                    dependencies: item.dependencies || [],
-                    outdegree: item.outdegree || 0
-                }));
+                const concepts = (conceptsResult.Items || []).map(mapConceptItem);
                 res.json({
                     jobId,
                     subject: job.subject,
@@ -275,26 +288,7 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
         } else {
             logger.debug(`[Backend /concepts] Query returned ${result.Items?.length ?? 0} items for tier='${tier || 'all'}'`);
         }
-        const concepts = (result.Items || []).map(item => ({
-            id: item.conceptId,
-            name: item.name,
-            tier: remapTier(item.tier),
-            stageId: item.stageId,
-            description: item.description,
-            keyPoints: item.keyPoints || [],
-            prerequisiteWeight: parseFloat(item.prerequisiteWeight) || 0.5,
-            displayProperties: item.displayProperties || {},
-            mnemonic: item.mnemonic || {},
-            phase1: item.phase1 || {},
-            phase2: item.phase2 || [],
-            phase3: item.phase3 || {},
-            shape: item.shape || {},
-            criticalDistinctions: item.criticalDistinctions || [],
-            designBoundaries: item.designBoundaries || [],
-            examFocus: item.examFocus || [],
-            dependencies: item.dependencies || [],
-            outdegree: item.outdegree || 0
-        }));
+        const concepts = (result.Items || []).map(mapConceptItem);
         res.json({
             concepts,
             nextCursor: createCursor(result.LastEvaluatedKey),
@@ -693,7 +687,8 @@ conceptsRouter.put('/:sessionId/concept/:conceptId', validate(ConceptUpdateSchem
         const allowedFields = [
             'name', 'description', 'keyPoints', 'phase1', 'phase2', 'phase3',
             'mnemonic', 'shape', 'whyYouNeed', 'cognitiveLevel', 'commonPitfalls',
-            'technicalDetails', 'workedExample', 'perspectives',
+            'technicalDetails', 'workedExample', 'perspectives', 'blueprintSteps',
+            'examContext', 'scoring', 'connections', 'dependencies',
         ];
 
         for (const field of allowedFields) {

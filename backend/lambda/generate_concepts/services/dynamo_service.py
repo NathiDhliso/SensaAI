@@ -378,6 +378,10 @@ class DynamoService:
             "dependencies": concept.get("dependencies", []),
             "connections": concept.get("connections", []),
             "outdegree": concept.get("outdegree", 0),
+            "perspectives": concept.get("perspectives", []),
+            "blueprintSteps": concept.get("blueprintSteps", []),
+            "examContext": concept.get("examContext", {}),
+            "scoring": concept.get("scoring", {}),
             "createdAt": get_ttl_timestamp(0),
             "expiresAt": get_ttl_timestamp(self.DEFAULT_CONCEPT_TTL_HOURS),
         }

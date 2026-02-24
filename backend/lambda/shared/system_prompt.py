@@ -145,12 +145,13 @@ Generate concepts in a strict 3-level tree:
 - `treeLevel`: "branch"
 - `parentName`: "{domain_name}" (the trunk)
 {branch_list}
-### LEAVES (3-5 per branch, ~{leaf_target} total)
-- Granular, testable exam concepts
+### LEAVES (minimum 3 per branch, target 4-5 per branch, ~{leaf_target} total)
+- Granular, testable exam concepts — the MOST IMPORTANT tier
 - Each leaf maps to specific exam-testable knowledge
 - Learnable in 5-10 minutes
 - `treeLevel`: "leaf"
 - `parentName`: the branch concept name it belongs to
+- **MANDATORY**: Every branch MUST have at least 3 leaf children. If a branch has fewer than 3 testable sub-concepts, merge it into a sibling branch instead.
 ---
 ## 3. CONCEPT GENERATION RULES
 ### 3.1 REQUIRED FIELDS (ALL CONCEPTS):
@@ -403,7 +404,7 @@ This must be actionable decision logic, not a restatement of the concept.
 ---
 ## 5. CRITICAL RULES
 1. **TREE INTEGRITY**: Every branch `parentName` = trunk name. Every leaf `parentName` = a branch name. Trunk `parentName` = null.
-2. **QUANTITY**: ~{count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves).
+2. **QUANTITY**: ~{count} concepts (1 trunk + {branch_count} branches + ~{leaf_target} leaves). **TIER RATIO**: Leaves MUST outnumber branches. Target ratio: leaves ≥ 2× branches. If you have {branch_count} branches, you MUST generate at least {leaf_target} leaves. Do NOT create extra branches — each branch MUST have 3-5 leaf children.
 3. **FORMAT**: Valid JSON array. NO markdown. NO text before/after.
 4. **NAME FIELD**: Human-readable names only.
 5. **EXAM-BOUND FRAMING**: Frame EVERY field for how the concept is TESTED on the exam. `whyYouNeed` = how it's tested, `patternRecognition` = exam question simulation, `eliminationLogic` = exam answer elimination. No casual exploration.
@@ -585,6 +586,10 @@ def get_tree_generation_prompt(
     else:
         branch_count = max(3, min(6, domain_concept_target // 5))
     leaf_target = domain_concept_target - 1 - branch_count
+    # Enforce leaf > branch invariant (minimum 3 leaves per branch)
+    min_leaves = branch_count * 3
+    if leaf_target < min_leaves:
+        leaf_target = min_leaves
     count = 1 + branch_count + leaf_target
     if has_dict_subtopics:
         branch_lines = []

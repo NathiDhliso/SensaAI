@@ -245,6 +245,8 @@ export default function ActiveLearningEngine() {
                             subjectName={currentSession.subject}
                             focusConcept={focusConcept ?? undefined}
                             onReturnToULC={handleReturnToULC}
+                            subjectType={classification?.subjectType}
+                            lifecycleBlueprints={classification?.lifecycleBlueprints}
                             onComplete={(data) => {
                                 if (studySession) {
                                     useLearningStore.getState().markSessionMapBuilt(data);

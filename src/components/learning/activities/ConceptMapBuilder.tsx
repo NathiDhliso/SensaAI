@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import type { LearningConcept, ConceptMapData } from '@/shared/types/learning';
 import type { DependencyGraph, ValidationResult } from '@/shared/types/sensa-flow';
+import type { SubjectType } from '@/shared/types/macro-workflow';
 import {
     suggestConnections,
     detectGaps,
@@ -49,8 +50,11 @@ import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { useActivityAutosave } from '@/shared/hooks/useActivityAutosave';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { computeClassificationLayout, type LayoutResult, type PositionedNode, type LayoutEdge, type LayoutOverlay } from '@/shared/utils/map-layouts';
+import type { LifecycleBlueprints } from '@/shared/utils/map-layouts';
 import ConnectionTypeModal, { type ConnectionTypeData } from '@/components/learning/feedback/ConnectionTypeModal';
 import styles from './ConceptMapBuilder.module.css';
+import clsStyles from './ConceptMapBuilder.classification.module.css';
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -91,6 +95,10 @@ interface ConceptMapBuilderProps {
     subjectName?: string;
     mode?: 'guided' | 'free';
     focusConcept?: string;
+    /** Subject classification drives map topology */
+    subjectType?: SubjectType | null;
+    /** Lifecycle blueprints for verb labels on map arms/phases */
+    lifecycleBlueprints?: LifecycleBlueprints | null;
 }
 interface MapNode {
     id: string;
@@ -125,6 +133,8 @@ export default function ConceptMapBuilder({
     subjectName,
     mode: initialMode = 'guided',
     focusConcept,
+    subjectType,
+    lifecycleBlueprints,
 }: ConceptMapBuilderProps) {
     // ========== SENSA v2.0 Phase State ==========
     const { isScholarly } = useVisualTheme();
@@ -211,6 +221,8 @@ export default function ConceptMapBuilder({
     const [spaceHeld, setSpaceHeld] = useState(false);
     // Shortcuts help overlay
     const [showShortcuts, setShowShortcuts] = useState(false);
+    // Classification layout result (computed when subjectType is set)
+    const [classificationLayout, setClassificationLayout] = useState<LayoutResult | null>(null);
     // =========================================================================
     // AUTOSAVE: Persist draft whenever nodes or connections change
     // =========================================================================
@@ -387,6 +399,58 @@ export default function ConceptMapBuilder({
         if (nodes.length === 0) return;
         pushHistory();
         const canvasW = canvasRef.current?.clientWidth || 800;
+        const canvasH = canvasRef.current?.clientHeight || 600;
+
+        // ── Classification-aware layout ──
+        if (subjectType) {
+            const conceptsForLayout = nodes.map(n => {
+                const concept = concepts.find(c => c.id === n.conceptId);
+                return concept || {
+                    id: n.conceptId,
+                    name: n.conceptName,
+                    tier: 'leaf' as const,
+                } as LearningConcept;
+            });
+            const layoutResult = computeClassificationLayout(
+                conceptsForLayout,
+                { width: canvasW, height: canvasH },
+                subjectType,
+                lifecycleBlueprints,
+            );
+            setClassificationLayout(layoutResult);
+
+            // Map positioned nodes back to MapNode format
+            const positionedById = new Map(layoutResult.nodes.map(pn => [pn.conceptId, pn]));
+            const laid = nodes.map(n => {
+                const positioned = positionedById.get(n.conceptId);
+                if (positioned) return { ...n, x: positioned.x, y: positioned.y };
+                return n;
+            });
+            setNodes(laid);
+
+            requestAnimationFrame(() => {
+                if (laid.length === 0) return;
+                const rect = canvasRef.current?.getBoundingClientRect();
+                if (!rect) return;
+                const xs = laid.map(n => n.x);
+                const ys = laid.map(n => n.y);
+                const minX = Math.min(...xs) - 120;
+                const maxX = Math.max(...xs) + 120;
+                const minY = Math.min(...ys) - 120;
+                const maxY = Math.max(...ys) + 120;
+                const contentW = maxX - minX;
+                const contentH = maxY - minY;
+                const newZoom = Math.min(1.5, Math.max(0.2, Math.min(rect.width / contentW, rect.height / contentH) * 0.85));
+                setPanOffset({
+                    x: (rect.width - contentW * newZoom) / 2 - minX * newZoom,
+                    y: (rect.height - contentH * newZoom) / 2 - minY * newZoom
+                });
+                setZoom(newZoom);
+            });
+            return;
+        }
+
+        // ── Legacy tier-based layout (no classification) ──
         const maxWidth = Math.max(600, canvasW * 2);
         const cx = canvasW / 2;
         const trunks: MapNode[] = [];
@@ -428,7 +492,7 @@ export default function ConceptMapBuilder({
             });
             setZoom(newZoom);
         });
-    }, [nodes, concepts, pushHistory, layoutTierRows, resolveCollisions, estimateNodeWidth]);
+    }, [nodes, concepts, pushHistory, layoutTierRows, resolveCollisions, estimateNodeWidth, subjectType, lifecycleBlueprints]);
     // =========================================================================
     // KEYBOARD SHORTCUTS
     // =========================================================================
@@ -1074,6 +1138,191 @@ export default function ConceptMapBuilder({
         setValidationResult(null);
     }, []);
     // =========================================================================
+    // CLASSIFICATION LAYOUT HELPERS
+    // =========================================================================
+    /** Map from conceptId → PositionedNode meta for classification rendering */
+    const classificationNodeMap = useMemo(() => {
+        if (!classificationLayout) return null;
+        const map = new Map<string, PositionedNode>();
+        for (const pn of classificationLayout.nodes) {
+            map.set(pn.conceptId, pn);
+        }
+        return map;
+    }, [classificationLayout]);
+
+    const getNodeRole = useCallback((node: MapNode): string | null => {
+        if (!classificationNodeMap) return null;
+        return classificationNodeMap.get(node.conceptId)?.meta.role ?? null;
+    }, [classificationNodeMap]);
+
+    const getNodeMeta = useCallback((node: MapNode) => {
+        if (!classificationNodeMap) return null;
+        return classificationNodeMap.get(node.conceptId)?.meta ?? null;
+    }, [classificationNodeMap]);
+
+    /** Render classification overlay elements (rings, arm rails, depth bands) */
+    const renderClassificationOverlays = () => {
+        if (!classificationLayout) return null;
+        return classificationLayout.overlays.map((overlay, idx) => {
+            if (overlay.type === 'orbital-ring' || overlay.type === 'tier-ring') {
+                const r = overlay.radius || 0;
+                return (
+                    <div
+                        key={`overlay-${idx}`}
+                        className={clsStyles.overlayRing}
+                        style={{
+                            left: (overlay.cx || 0) - r,
+                            top: (overlay.cy || 0) - r,
+                            width: r * 2,
+                            height: r * 2,
+                            border: `2px dashed ${overlay.color || 'var(--color-border)'}`,
+                        }}
+                    >
+                        {overlay.label && (
+                            <span className={clsStyles.overlayLabel} style={{
+                                color: overlay.color,
+                                top: -10,
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                            }}>
+                                {overlay.label}
+                            </span>
+                        )}
+                    </div>
+                );
+            }
+            if (overlay.type === 'arm-rail' && overlay.pathData) {
+                return (
+                    <svg key={`overlay-${idx}`} className={clsStyles.overlayArmRail}
+                        style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                        <path d={overlay.pathData} stroke={overlay.color || 'var(--color-border)'} strokeWidth={1.5} fill="none" opacity={0.2} />
+                    </svg>
+                );
+            }
+            if (overlay.type === 'depth-band') {
+                return (
+                    <div
+                        key={`overlay-${idx}`}
+                        className={clsStyles.overlayDepthBand}
+                        style={{
+                            top: overlay.y || 0,
+                            height: overlay.height || 80,
+                            borderColor: overlay.color || 'var(--color-border)',
+                            background: overlay.color || 'transparent',
+                        }}
+                    />
+                );
+            }
+            if (overlay.type === 'tier-label') {
+                return (
+                    <div
+                        key={`overlay-${idx}`}
+                        className={clsStyles.overlayTierLabel}
+                        style={{
+                            top: (overlay.y || 0) - 16,
+                            color: overlay.color,
+                        }}
+                    >
+                        {overlay.label}
+                    </div>
+                );
+            }
+            if (overlay.type === 'return-arc' && overlay.cx != null && overlay.cy != null) {
+                const r = overlay.radius || 200;
+                const startA = overlay.startAngle ?? 0;
+                const endA = overlay.endAngle ?? Math.PI;
+                const x1 = (overlay.cx) + r * Math.cos(startA);
+                const y1 = (overlay.cy) + r * Math.sin(startA);
+                const x2 = (overlay.cx) + r * Math.cos(endA);
+                const y2 = (overlay.cy) + r * Math.sin(endA);
+                const largeArc = Math.abs(endA - startA) > Math.PI ? 1 : 0;
+                const d = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 0 ${x2} ${y2}`;
+                return (
+                    <svg key={`overlay-${idx}`} style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
+                        <path
+                            d={d}
+                            stroke={overlay.color || 'var(--color-border)'}
+                            strokeWidth={2}
+                            strokeDasharray="6 4"
+                            fill="none"
+                            opacity={0.5}
+                            className={overlay.animated ? clsStyles.cyclicEdgeAnimated : undefined}
+                        />
+                    </svg>
+                );
+            }
+            return null;
+        });
+    };
+
+    /** Render classification-specific SVG edges */
+    const renderClassificationEdges = () => {
+        if (!classificationLayout) return null;
+        // Map from positioned node id → MapNode position
+        const posMap = new Map<string, { x: number; y: number }>();
+        for (const pn of classificationLayout.nodes) {
+            const mapNode = nodes.find(n => n.conceptId === pn.conceptId);
+            if (mapNode) posMap.set(pn.id, { x: mapNode.x, y: mapNode.y });
+            else posMap.set(pn.id, { x: pn.x, y: pn.y });
+        }
+
+        return classificationLayout.edges.map(edge => {
+            const from = posMap.get(edge.fromId);
+            const to = posMap.get(edge.toId);
+            if (!from || !to) return null;
+
+            const hasArrow = edge.markers?.includes('forward-arrow') || edge.style === 'arrow';
+            let strokeDash = 'none';
+            if (edge.style === 'dashed') strokeDash = '6 4';
+            if (edge.style === 'dotted') strokeDash = '2 4';
+
+            // Curvature for cyclic edges
+            let pathD: string;
+            if (edge.curvature) {
+                const mx = (from.x + to.x) / 2;
+                const my = (from.y + to.y) / 2;
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const nx = -dy * edge.curvature;
+                const ny = dx * edge.curvature;
+                pathD = `M ${from.x} ${from.y} Q ${mx + nx} ${my + ny} ${to.x} ${to.y}`;
+            } else {
+                pathD = `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+            }
+
+            const edgeColor = subjectType === 'procedural' ? 'var(--map-proc-line)'
+                : subjectType === 'conceptual' ? 'var(--map-conc-line)'
+                : subjectType === 'cyclic' ? 'var(--map-cycl-line)'
+                : subjectType === 'perceptual' ? 'var(--map-perc-line)'
+                : 'var(--color-accent-light)';
+
+            return (
+                <g key={edge.id}>
+                    <path
+                        d={pathD}
+                        stroke={edgeColor}
+                        strokeWidth={2}
+                        strokeDasharray={strokeDash}
+                        fill="none"
+                        strokeLinecap="round"
+                        markerEnd={hasArrow ? 'url(#cls-arrowhead)' : undefined}
+                        className={`${clsStyles.mapEdgeEnter} ${edge.animated ? clsStyles.cyclicEdgeAnimated : ''}`}
+                    />
+                    {edge.label && (
+                        <text
+                            x={(from.x + to.x) / 2}
+                            y={(from.y + to.y) / 2 - 8}
+                            className={clsStyles.edgeLabel}
+                        >
+                            {edge.label}
+                        </text>
+                    )}
+                </g>
+            );
+        });
+    };
+
+    // =========================================================================
     // RENDER FUNCTIONS
     // =========================================================================
     const renderConnections = () => {
@@ -1545,12 +1794,21 @@ export default function ConceptMapBuilder({
                     {/* Transform layer for pan/zoom */}
                     <div
                         className={styles.canvasTransformLayer}
+                        data-classification={classificationLayout?.classification || undefined}
                         style={{
                             transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`
                         }}
                     >
-                        {/* Tier Group Rings + Sub-cluster Rings */}
-                        {(() => {
+                        {/* Classification badge */}
+                        {classificationLayout && (
+                            <div className={clsStyles.classificationBadge} data-classification={classificationLayout.classification}>
+                                {classificationLayout.classification}
+                            </div>
+                        )}
+                        {/* Classification overlays (rings, arm rails, depth bands) */}
+                        {classificationLayout && renderClassificationOverlays()}
+                        {/* Tier Group Rings + Sub-cluster Rings (legacy — hidden when classification active) */}
+                        {!classificationLayout && (() => {
                             const tierConfig = [
                                 { tier: 'trunk', label: 'Trunk', color: 'var(--color-accent)' },
                                 { tier: 'branch', label: 'Branch', color: 'var(--color-warning)' },
@@ -1617,14 +1875,30 @@ export default function ConceptMapBuilder({
                                 const c = concepts.find(cc => cc.id === node.conceptId);
                                 return (c?.tier || c?.mnemonic?.tier || 'leaf').toLowerCase() === draggingGroupTier;
                             })();
+                            const nodeRole = getNodeRole(node);
+                            const nodeMeta = getNodeMeta(node);
+                            const useClassification = !!classificationLayout && !!nodeRole;
                             return (
                                 <div
                                     key={node.id}
-                                    className={`${styles.node} ${selectedNodeId === node.id ? styles.selected : ''} ${isGroupTarget ? styles.groupDragging : ''} ${focusConcept && node.conceptName === focusConcept ? styles.focusEntry : ''}`}
-                                    style={{ left: node.x, top: node.y }}
+                                    className={`${styles.node} ${useClassification ? clsStyles.classifiedNode : ''} ${selectedNodeId === node.id ? styles.selected : ''} ${isGroupTarget ? styles.groupDragging : ''} ${focusConcept && node.conceptName === focusConcept ? styles.focusEntry : ''} ${useClassification ? clsStyles.mapNodeEnter : ''}`}
+                                    data-role={nodeRole || undefined}
+                                    style={{
+                                        left: node.x,
+                                        top: node.y,
+                                        animationDelay: nodeMeta?.sequenceNumber != null ? `${(nodeMeta.sequenceNumber) * 60}ms` : undefined,
+                                    }}
                                     onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                                     onDoubleClick={(e) => handleNodeDoubleClick(e, node.id)}
                                 >
+                                    {/* Verb tag for classified nodes */}
+                                    {useClassification && nodeMeta?.verbLabel && nodeRole !== 'verb' && (
+                                        <span className={clsStyles.verbTag}>{nodeMeta.verbLabel}</span>
+                                    )}
+                                    {/* Sequence badge */}
+                                    {useClassification && nodeMeta?.sequenceNumber != null && nodeRole === 'step' && (
+                                        <span className={clsStyles.sequenceBadge}>{nodeMeta.sequenceNumber + 1}</span>
+                                    )}
                                     {getConceptName(node.conceptId)}
                                     {!readOnly && (
                                         <button
@@ -1689,8 +1963,14 @@ export default function ConceptMapBuilder({
                                 <marker id="arrowhead-start" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto-start-reverse">
                                     <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-accent-light)" />
                                 </marker>
+                                {/* Classification arrow marker */}
+                                <marker id="cls-arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" />
+                                </marker>
                             </defs>
                             {renderConnections()}
+                            {/* Classification edges (overlaid on user connections) */}
+                            {renderClassificationEdges()}
                         </svg>
                         {/* HTML Labels */}
                         {renderConnectionLabels()}
