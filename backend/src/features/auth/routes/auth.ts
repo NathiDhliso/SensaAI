@@ -447,7 +447,8 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       expires_in: authResult.ExpiresIn || 3600
     };
     setAuthCookies(res, tokens.access_token, tokens.refresh_token, tokens.expires_in);
-    res.json({ user });
+    // Return tokens in body so the frontend can store them for Bearer auth
+    res.json({ user, tokens });
   } catch (error: unknown) {
     logger.error('[Auth] Login error:', error);
     const errorName = (error as { name?: string })?.name;
@@ -499,8 +500,8 @@ authRouter.post('/exchange', async (req: Request, res: Response) => {
       expires_in: data.expires_in
     };
     setAuthCookies(res, tokens.access_token, tokens.refresh_token, tokens.expires_in);
-    // Return only user info (tokens are in HttpOnly cookies)
-    res.json({ user });
+    // Return tokens in body so the frontend can store them for Bearer auth
+    res.json({ user, tokens });
   } catch (error) {
     logger.error('[Auth] Exchange error:', error);
     res.status(500).json({ error: 'Internal server error' });
