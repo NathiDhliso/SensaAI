@@ -3,7 +3,7 @@ import { logger } from '../../../shared/utils/logger.js';
 import { validate, GymAiSchema } from '../../../shared/validation/schemas.js';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 const router = Router();
-const HAIKU_MODEL_ID = 'anthropic.claude-haiku-4-5-20251001-v1:0';
+const HAIKU_MODEL_ID = 'global.anthropic.claude-haiku-4-5-20251001-v1:0';
 
 // Use Bedrock account credentials (693582801685) if available
 const bedrockConfig: Record<string, unknown> = { region: process.env.AWS_REGION || 'us-east-1' };

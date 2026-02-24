@@ -15,6 +15,7 @@ import type {
  ConceptMapData
 } from './types';
 import { getSpacingEngine } from '@/features/learning-session/algorithms/spacing-engine';
+import { logger } from '@/shared/utils/logger';
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -91,7 +92,8 @@ export const createStudySlice: StateCreator<
  // Actions
  startStudySession: (goal, duration, targetConcepts = [], primer = null) => {
  const state = get();
- const subjectId = state.currentSession?.subjectId || 'unknown';
+ const subjectId = state.currentSession?.subjectId ?? '';
+ if (!subjectId) logger.warn('[StudySlice] Starting study session without a subjectId');
  const session = createStudySession(subjectId, goal, duration, targetConcepts, primer);
  set({ studySession: session, showSessionModal: false });
  },
@@ -169,7 +171,7 @@ export const createStudySlice: StateCreator<
  if (spacing.getReview(currentConceptId)) {
  spacing.recordReviewWithQuality(currentConceptId, 4);
  }
- } catch { /* non-critical */ }
+ } catch (e) { logger.warn('[StudySlice] Spacing engine update failed', e); }
  }
  set((state) => ({
  studySession: state.studySession
@@ -186,7 +188,7 @@ export const createStudySlice: StateCreator<
  if (spacing.getReview(currentConceptId)) {
  spacing.recordReviewWithQuality(currentConceptId, 5);
  }
- } catch { /* non-critical */ }
+ } catch (e) { logger.warn('[StudySlice] Spacing engine mastery update failed', e); }
  }
  set((state) => ({
  studySession: state.studySession
@@ -257,7 +259,7 @@ export const createStudySlice: StateCreator<
  if (spacing.getReview(currentConceptId)) {
  spacing.recordReviewWithQuality(currentConceptId, passed ? 4 : 1);
  }
- } catch { /* non-critical */ }
+ } catch (e) { logger.warn('[StudySlice] Spacing engine gym result update failed', e); }
  }
  set({
  studySession: {

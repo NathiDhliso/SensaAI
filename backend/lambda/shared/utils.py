@@ -158,8 +158,8 @@ ALLOWED_GENERATOR_ROLES = {"admin", "curator", "generator"}
 
 
 def _extract_role_from_event(event: Dict[str, Any]) -> Optional[str]:
-    """Extract user role from JWT claims (API Gateway) or request body (Express proxy)."""
-    # Try JWT claims first (direct API Gateway invocation)
+    """Extract user role from JWT claims (API Gateway), bearer token, or request body (Express proxy)."""
+    # Try JWT claims first (direct API Gateway invocation — prod only)
     jwt_claims = (event.get("requestContext") or {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
     role = jwt_claims.get("custom:role")
     if role:
@@ -174,6 +174,31 @@ def _extract_role_from_event(event: Dict[str, Any]) -> Optional[str]:
                 groups = [groups]
         if isinstance(groups, list) and groups:
             return groups[0].lower()
+    # Fallback: decode bearer token directly (dev env has no JWT authorizer)
+    headers = event.get("headers") or {}
+    auth_header = headers.get("authorization") or headers.get("Authorization") or ""
+    if auth_header.startswith("Bearer "):
+        try:
+            token = auth_header[7:]
+            payload_b64 = token.split(".")[1]
+            padding = 4 - len(payload_b64) % 4
+            if padding != 4:
+                payload_b64 += "=" * padding
+            payload = json.loads(base64.b64decode(payload_b64))
+            bearer_role = payload.get("custom:role")
+            if bearer_role:
+                return str(bearer_role).lower()
+            bearer_groups = payload.get("cognito:groups")
+            if bearer_groups:
+                if isinstance(bearer_groups, str):
+                    try:
+                        bearer_groups = json.loads(bearer_groups)
+                    except (json.JSONDecodeError, TypeError):
+                        bearer_groups = [bearer_groups]
+                if isinstance(bearer_groups, list) and bearer_groups:
+                    return bearer_groups[0].lower()
+        except Exception:
+            pass
     # Fallback: role passed in body by Express backend
     try:
         body = event.get("body")

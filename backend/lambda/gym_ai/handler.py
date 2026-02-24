@@ -1,40 +1,14 @@
 import json
-import boto3
 import os
 from typing import Any, Dict
 
 from shared.utils import api_response
+from shared.bedrock_client import get_bedrock_client
 
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-haiku-4-5-20251001-v1:0")
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "global.anthropic.claude-haiku-4-5-20251001-v1:0")
 
-bedrock_access_key = os.environ.get("BEDROCK_ACCESS_KEY_ID")
-bedrock_secret_key = os.environ.get("BEDROCK_SECRET_ACCESS_KEY")
-cross_account_role_arn = os.environ.get("CROSS_ACCOUNT_ROLE_ARN")
-
-if bedrock_access_key and bedrock_secret_key:
-    # Static credentials from Bedrock account
-    bedrock = boto3.client(
-        "bedrock-runtime",
-        region_name="us-east-1",
-        aws_access_key_id=bedrock_access_key,
-        aws_secret_access_key=bedrock_secret_key,
-    )
-elif cross_account_role_arn:
-    _sts = boto3.client("sts", region_name="us-east-1")
-    _creds = _sts.assume_role(
-        RoleArn=cross_account_role_arn,
-        RoleSessionName="sensapbl-bedrock-gym",
-        DurationSeconds=3600,
-    )["Credentials"]
-    bedrock = boto3.client(
-        "bedrock-runtime",
-        region_name="us-east-1",
-        aws_access_key_id=_creds["AccessKeyId"],
-        aws_secret_access_key=_creds["SecretAccessKey"],
-        aws_session_token=_creds["SessionToken"],
-    )
-else:
-    bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+# GUARDRAIL: All AI calls must go through the approved Bedrock account (693582801685)
+bedrock = get_bedrock_client(read_timeout=30)
 
 ACTIONS = {
     "misconception",

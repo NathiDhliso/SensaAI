@@ -12,6 +12,7 @@ import json
 import os
 import re
 import time
+import hashlib
 import concurrent.futures
 from typing import Any, Dict, List, Optional
 import boto3
@@ -23,11 +24,11 @@ class BedrockService:
     with built-in retry logic and response parsing.
     """
     # Configuration constants
-    MAX_RETRIES = 3
-    RETRY_BACKOFF_BASE = 2 # Exponential backoff: 2, 4, 8 seconds
-    MIN_CONCEPTS_THRESHOLD = 40 # Minimum acceptable concepts for success
-    MAX_WORKERS = 4 # Concurrent API requests
-    GENERATION_MAX_TOKENS = 65536 # Output tokens per domain call — must fit ~20 concepts at ~2500 tokens each
+    MAX_RETRIES = 4
+    RETRY_BACKOFF_BASE = 3 # Exponential backoff: 3, 9, 27 seconds
+    MIN_CONCEPTS_THRESHOLD = 15 # Minimum acceptable concepts for success
+    MAX_WORKERS = 3 # Parallel trunk generation (3 at a time) — 2 waves for 5 domains fits within 900s Lambda budget
+    GENERATION_MAX_TOKENS = 16384 # Output tokens per domain — capped for Lambda timeout budget
     COVERAGE_STOPWORDS = {
         "a", "an", "the", "and", "or", "for", "in", "on", "to", "of", "by",
         "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
@@ -42,54 +43,83 @@ class BedrockService:
     def __init__(self, region: str = "us-east-1"):
         """
         Initialize the Bedrock service with AWS client.
-        Authentication priority:
-          1. BEDROCK_ACCESS_KEY_ID / BEDROCK_SECRET_ACCESS_KEY  (static creds from Bedrock account)
-          2. CROSS_ACCOUNT_ROLE_ARN  (STS AssumeRole into Bedrock account)
-          3. Lambda execution role   (same-account fallback)
+        Uses shared.bedrock_client which routes through the Lambda IAM role.
         Args:
             region: AWS region for Bedrock endpoint
         """
-        bedrock_access_key = os.environ.get("BEDROCK_ACCESS_KEY_ID")
-        bedrock_secret_key = os.environ.get("BEDROCK_SECRET_ACCESS_KEY")
-        cross_account_role_arn = os.environ.get("CROSS_ACCOUNT_ROLE_ARN")
+        from shared.bedrock_client import get_bedrock_client
 
-        bedrock_kwargs = dict(
-            service_name="bedrock-runtime",
-            region_name=region,
-            config=Config(
-                retries={"max_attempts": 3, "mode": "adaptive"},
-                read_timeout=900,
-            ),
-        )
+        self.client = get_bedrock_client(region=region)
+        print(f"[BedrockService] Initialized with model={os.environ.get('BEDROCK_MODEL_ID', 'default')}")
 
-        if bedrock_access_key and bedrock_secret_key:
-            # Strategy 1: Static credentials from Bedrock account
-            print("[BedrockService] Using static Bedrock account credentials")
-            bedrock_kwargs["aws_access_key_id"] = bedrock_access_key
-            bedrock_kwargs["aws_secret_access_key"] = bedrock_secret_key
-            self.client = boto3.client(**bedrock_kwargs)
-        elif cross_account_role_arn:
-            # Strategy 2: Cross-account role assumption
-            print("[BedrockService] Using cross-account role assumption")
-            sts = boto3.client("sts", region_name=region)
-            creds = sts.assume_role(
-                RoleArn=cross_account_role_arn,
-                RoleSessionName="sensapbl-bedrock-generate",
-                DurationSeconds=3600,
-            )["Credentials"]
-            bedrock_kwargs["aws_access_key_id"] = creds["AccessKeyId"]
-            bedrock_kwargs["aws_secret_access_key"] = creds["SecretAccessKey"]
-            bedrock_kwargs["aws_session_token"] = creds["SessionToken"]
-            self.client = boto3.client(**bedrock_kwargs)
-        else:
-            # Strategy 3: Lambda execution role (same-account)
-            print("[BedrockService] Using Lambda execution role credentials")
-            self.client = boto3.client(**bedrock_kwargs)
         self.model_id = os.environ.get(
-            "BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-6"
+            "BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6"
         )
+
+        # Classification cache (DynamoDB-backed)
+        self._jobs_table_name = os.environ.get("JOBS_TABLE", "sensaai-jobs-dev")
+        self._dynamo = boto3.resource("dynamodb", region_name=region)
+
+    # ── Classification Cache ────────────────────────────────────────────
+    CLASSIFICATION_CACHE_TTL_HOURS = 24
+
+    @staticmethod
+    def _classification_cache_key(subject: str, context: str) -> str:
+        """Create a deterministic hash key for subject+context."""
+        raw = f"{subject.strip().lower()}||{context.strip()[:2000]}"
+        return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+    def _get_cached_classification(self, subject: str, context: str) -> Optional[Dict[str, Any]]:
+        """Look up a cached classification result in DynamoDB (jobs table)."""
+        try:
+            table = self._dynamo.Table(self._jobs_table_name)
+            cache_key = self._classification_cache_key(subject, context)
+            job_id = f"cls-cache-{cache_key}"
+            resp = table.get_item(Key={"jobId": job_id})
+            item = resp.get("Item")
+            if not item:
+                return None
+            # Check TTL
+            cached_at = item.get("cachedAt", 0)
+            age_hours = (time.time() - cached_at) / 3600
+            if age_hours > self.CLASSIFICATION_CACHE_TTL_HOURS:
+                print(f"[BedrockService] Classification cache expired ({age_hours:.1f}h old)")
+                return None
+            data = item.get("classification")
+            if data and isinstance(data, dict) and data.get("subjectType"):
+                print(f"[BedrockService] Classification cache HIT for '{subject}' (age={age_hours:.1f}h)")
+                return data
+            return None
+        except Exception as e:
+            print(f"[BedrockService] Classification cache read error (non-fatal): {e}")
+            return None
+
+    def _put_cached_classification(self, subject: str, context: str, classification: Dict[str, Any]) -> None:
+        """Store a classification result in DynamoDB cache (jobs table)."""
+        try:
+            table = self._dynamo.Table(self._jobs_table_name)
+            cache_key = self._classification_cache_key(subject, context)
+            job_id = f"cls-cache-{cache_key}"
+            table.put_item(Item={
+                "jobId": job_id,
+                "subject": subject,
+                "status": "cached",
+                "classification": classification,
+                "cachedAt": int(time.time()),
+                "ttl": int(time.time()) + (self.CLASSIFICATION_CACHE_TTL_HOURS * 3600),
+            })
+            print(f"[BedrockService] Classification cached for '{subject}'")
+        except Exception as e:
+            print(f"[BedrockService] Classification cache write error (non-fatal): {e}")
+
     def classify_subject(self, subject: str, context: str = "") -> Optional[Dict[str, Any]]:
         from shared.system_prompt import get_classification_prompt
+
+        # ── Cache lookup ────────────────────────────────────────────────
+        cached = self._get_cached_classification(subject, context)
+        if cached:
+            return cached
+
         prompt = get_classification_prompt(subject, context)
         print(f"[BedrockService] Classifying subject: {subject}")
         for attempt in range(self.MAX_RETRIES):
@@ -115,6 +145,8 @@ class BedrockService:
                     if result.get("subjectType") in valid_types:
                         self._normalize_deep_structure(result)
                         print(f"[BedrockService] Classified as: {result['subjectType']} (confidence: {result.get('classification', {}).get('confidence', 'N/A')})")
+                        # ── Cache the successful classification ─────
+                        self._put_cached_classification(subject, context, result)
                         return result
                 print(f"[BedrockService] Classification attempt {attempt + 1} returned invalid data")
             except Exception as e:
@@ -228,8 +260,8 @@ class BedrockService:
         for i, d in enumerate(domains):
             print(f"[BedrockService]   Trunk {i+1}: {d.get('name')} (weight={d.get('weight', 'N/A')})")
         def generate_domain_with_retry(domain_index: int) -> List[Dict[str, Any]]:
-            if domain_index > 0:
-                time.sleep(0.5 * domain_index)
+            if domain_index > 0 and self.MAX_WORKERS > 1:
+                time.sleep(3 * domain_index)  # Mild stagger for parallel execution to avoid initial burst
             domain = domains[domain_index]
             prompt = get_tree_generation_prompt(
                 subject=subject,
@@ -261,8 +293,11 @@ class BedrockService:
                     )
                     response_body = json.loads(response.get("body").read())
                     self._log_cache_metrics(response_body, f"Tree '{domain_name}'")
+                    stop_reason = response_body.get("stop_reason", "unknown")
                     raw_content = response_body.get("content", [])[0].get("text", "")
-                    print(f"[BedrockService] Trunk '{domain_name}': Got {len(raw_content)} chars")
+                    print(f"[BedrockService] Trunk '{domain_name}': Got {len(raw_content)} chars (stop_reason={stop_reason})")
+                    if stop_reason == "max_tokens":
+                        print(f"[WARNING] Trunk '{domain_name}': Output TRUNCATED at max_tokens={self.GENERATION_MAX_TOKENS} — concepts may be incomplete")
                     parsed = self._parse_concepts_from_response(raw_content)
                     print(f"[BedrockService] Trunk '{domain_name}': Parsed {len(parsed)} concepts")
                     for c in parsed:
@@ -277,7 +312,11 @@ class BedrockService:
                     last_error = str(e)
                     print(f"[BedrockService] Trunk '{domain_name}': Error on attempt {attempt + 1}: {last_error}")
                     if attempt < self.MAX_RETRIES - 1:
+                        is_throttle = "throttl" in last_error.lower() or "too many" in last_error.lower()
                         sleep_time = self.RETRY_BACKOFF_BASE ** (attempt + 1)
+                        if is_throttle:
+                            sleep_time = max(sleep_time, 30)  # At least 30s for throttle errors
+                        print(f"[BedrockService] Trunk '{domain_name}': Sleeping {sleep_time}s before retry")
                         time.sleep(sleep_time)
             print(f"[ERROR] generate_domain_with_retry failed after {self.MAX_RETRIES} attempts: {last_error}")
             return []
@@ -285,9 +324,11 @@ class BedrockService:
         if remaining_time_ms is not None:
             budget_ms = remaining_time_ms - 120_000
             if budget_ms > 0:
-                per_domain_timeout = (budget_ms / 1000) / max(num_partitions / self.MAX_WORKERS, 1)
-                per_domain_timeout = max(per_domain_timeout, 90)
-                print(f"[BedrockService] Per-domain timeout: {per_domain_timeout:.0f}s")
+                # With parallel execution, each "wave" of MAX_WORKERS domains runs concurrently
+                waves = max(1, num_partitions / self.MAX_WORKERS)
+                per_domain_timeout = (budget_ms / 1000) / waves
+                per_domain_timeout = max(per_domain_timeout, 400)  # Min 400s per domain (model needs 250-350s)
+                print(f"[BedrockService] Per-domain timeout: {per_domain_timeout:.0f}s (workers={self.MAX_WORKERS}, waves={waves:.1f})")
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
             futures = [
                 executor.submit(generate_domain_with_retry, i)
@@ -457,14 +498,27 @@ class BedrockService:
         user_part += "\n\nIMPORTANT — AUTOMATIC REJECTION PATTERNS (do NOT use these):\n- hookSentence: Never 'Without proper X...', 'Without X...', 'Improperly configured X...'. Lead with a concrete fact or scenario from the subject domain.\n- microMetaphor: Never 'Think of X as...'. Use 'X are/is [metaphor] — [mapping]' pattern.\n- whyYouNeed: Never 'X is crucial/critical/essential...', 'X provides a secure way...', 'X are essential for...'. Explain the specific problem this concept solves.\nWrite as a subject matter expert. Every field must have field-appropriate depth and specificity."
         return system_part, user_part
 
-    @staticmethod
-    def _build_cached_system(system_text: str) -> list:
-        return [
-            {
-                "type": "text",
-                "text": system_text,
-            }
-        ]
+    # Models that support the cache_control parameter in Bedrock
+    CACHE_SUPPORTED_MODELS = {
+        "anthropic.claude-sonnet-4-20250514-v1:0",
+        "anthropic.claude-opus-4-20250514-v1:0",
+        "anthropic.claude-sonnet-4-6",
+        "anthropic.claude-opus-4-6-v1",
+        "anthropic.claude-3-7-sonnet-20250219-v1:0",
+    }
+
+    def _build_cached_system(self, system_text: str) -> list:
+        # Strip the 'us.' or 'global.' prefix to check against base model IDs
+        base_model = self.model_id.split(".", 1)[-1] if "." in self.model_id else self.model_id
+        if base_model in self.CACHE_SUPPORTED_MODELS:
+            return [
+                {
+                    "type": "text",
+                    "text": system_text,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ]
+        return [{"type": "text", "text": system_text}]
 
     @staticmethod
     def _log_cache_metrics(response_body: dict, label: str) -> None:
@@ -663,11 +717,11 @@ class BedrockService:
             we_solution = (worked.get("solution") or "").strip()
             if tree_level in ("branch", "leaf"):
                 if not we_problem or len(we_problem) < 20:
-                    print(f"[BedrockService] Missing/short workedExample.problem in '{name}'")
-                    return False
+                    print(f"[BedrockService] WARN: Missing/short workedExample.problem in '{name}' (treeLevel={tree_level}, len={len(we_problem)}, keys={list(worked.keys())})")
                 if not we_solution or len(we_solution) < 20:
-                    print(f"[BedrockService] Missing/short workedExample.solution in '{name}'")
-                    return False
+                    print(f"[BedrockService] WARN: Missing/short workedExample.solution in '{name}' (treeLevel={tree_level}, len={len(we_solution)})")
+        elif tree_level in ("branch", "leaf"):
+            print(f"[BedrockService] WARN: workedExample not a dict in '{name}' (type={type(worked).__name__}, treeLevel={tree_level})")
         return True
     def _validate_tree_structure(self, concepts: List[Dict[str, Any]]) -> None:
         name_set = {c.get("name", "").strip().lower() for c in concepts if c.get("name")}
@@ -1119,7 +1173,7 @@ class BedrockService:
             })
         def fill_domain(task_index: int) -> List[Dict[str, Any]]:
             if task_index > 0:
-                time.sleep(0.5 * task_index)
+                time.sleep(10 * task_index)  # Stagger to respect token-rate limits
             task = domain_tasks[task_index]
             domain_name = task["domain_name"]
             prompt = get_gap_fill_prompt(

@@ -10,24 +10,17 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 import uuid
 
+from shared.bedrock_client import get_bedrock_client
+
 # AWS Clients
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 
-# Bedrock client — authenticate to Bedrock account (693582801685)
-_bedrock_access_key = os.environ.get('BEDROCK_ACCESS_KEY_ID')
-_bedrock_secret_key = os.environ.get('BEDROCK_SECRET_ACCESS_KEY')
-if _bedrock_access_key and _bedrock_secret_key:
-    bedrock = boto3.client(
-        'bedrock-runtime', region_name='us-east-1',
-        aws_access_key_id=_bedrock_access_key,
-        aws_secret_access_key=_bedrock_secret_key,
-    )
-else:
-    bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+# GUARDRAIL: All AI calls must go through the approved Bedrock account (693582801685)
+bedrock = get_bedrock_client()
 
 # Environment variables
 AUDITS_TABLE = os.environ.get('CLM_AUDITS_TABLE', 'clm-audits')
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-6")
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6")
 
 # Schema definition for validation
 REQUIRED_FIELDS = {
@@ -338,8 +331,19 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 compliant_count += 1
                 continue
             
-            # Use AI for complex validation
-            enhanced_issues = use_ai_for_complex_validation(concept, issues)
+            # Only use AI for non-trivial issues (medium+ severity)
+            # Trivial missing-field and low-severity issues don't need AI enhancement
+            ai_worthy = [i for i in issues if i.get('severity') in ('medium', 'high', 'critical')]
+            trivial = [i for i in issues if i.get('severity') not in ('medium', 'high', 'critical')]
+
+            enhanced_issues = trivial  # Keep trivial issues as-is
+            if ai_worthy:
+                ai_enhanced = use_ai_for_complex_validation(concept, ai_worthy)
+                enhanced_issues.extend(ai_enhanced)
+            else:
+                # Assign default confidence for trivial issues
+                for issue in enhanced_issues:
+                    issue['confidenceScore'] = issue.get('confidenceScore', 90)
             
             # Create finding records
             for issue in enhanced_issues:

@@ -11,24 +11,17 @@ from typing import Any, Dict, List, Optional, Set
 from datetime import datetime
 import uuid
 
+from shared.bedrock_client import get_bedrock_client
+
 # AWS Clients
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 
-# Bedrock client — authenticate to Bedrock account (693582801685)
-_bedrock_access_key = os.environ.get('BEDROCK_ACCESS_KEY_ID')
-_bedrock_secret_key = os.environ.get('BEDROCK_SECRET_ACCESS_KEY')
-if _bedrock_access_key and _bedrock_secret_key:
-    bedrock = boto3.client(
-        'bedrock-runtime', region_name='us-east-1',
-        aws_access_key_id=_bedrock_access_key,
-        aws_secret_access_key=_bedrock_secret_key,
-    )
-else:
-    bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+# GUARDRAIL: All AI calls must go through the approved Bedrock account (693582801685)
+bedrock = get_bedrock_client()
 
 # Environment variables
 AUDITS_TABLE = os.environ.get('CLM_AUDITS_TABLE', 'clm-audits')
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-6")  # Sonnet for coverage analysis
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6")  # Sonnet 4.6 for coverage analysis
 
 
 def map_concepts_to_objectives(

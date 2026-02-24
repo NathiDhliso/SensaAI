@@ -96,12 +96,6 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Effect   = "Allow"
         Action   = ["lambda:InvokeFunction"]
         Resource = aws_lambda_function.generate_concepts.arn
-      },
-      # Cross-account STS AssumeRole (for Bedrock access)
-      {
-        Effect   = "Allow"
-        Action   = ["sts:AssumeRole"]
-        Resource = var.cross_account_role_arn != "" ? [var.cross_account_role_arn] : ["arn:aws:iam::*:role/no-role-configured"]
       }
     ]
   })
@@ -192,9 +186,6 @@ resource "aws_lambda_function" "generate_concepts" {
       JOBS_TABLE                      = var.jobs_table_name
       LOG_LEVEL                       = var.environment == "prod" ? "INFO" : "DEBUG"
       BEDROCK_MODEL_ID                = var.bedrock_model_id
-      CROSS_ACCOUNT_ROLE_ARN           = var.cross_account_role_arn
-      BEDROCK_ACCESS_KEY_ID            = var.bedrock_access_key_id
-      BEDROCK_SECRET_ACCESS_KEY        = var.bedrock_secret_access_key
     }
   }
 
@@ -265,10 +256,6 @@ resource "aws_lambda_function" "gym_ai" {
     variables = {
       ENVIRONMENT                     = var.environment
       LOG_LEVEL                       = var.environment == "prod" ? "INFO" : "DEBUG"
-      # gym_ai uses Haiku 4.5 (default in code) for ultra-low latency
-      CROSS_ACCOUNT_ROLE_ARN           = var.cross_account_role_arn
-      BEDROCK_ACCESS_KEY_ID            = var.bedrock_access_key_id
-      BEDROCK_SECRET_ACCESS_KEY        = var.bedrock_secret_access_key
     }
   }
 

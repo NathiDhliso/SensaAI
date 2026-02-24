@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '../../../shared/api/client';
+import { logger } from '@/shared/utils/logger';
 import type {
   AuditJobRecord,
   AuditFindingRecord,
@@ -34,7 +35,7 @@ function getAuditCacheTtlMs(): number {
       const cfg = JSON.parse(raw);
       if (typeof cfg.auditCacheTtlMs === 'number') return cfg.auditCacheTtlMs;
     }
-  } catch { /* use default */ }
+  } catch (e) { logger.warn('[CLM] Failed to read audit cache config from localStorage', e); }
   return 24 * 60 * 60 * 1000; // 24 hours default
 }
 
@@ -42,7 +43,7 @@ function loadAuditCache(): AuditCacheEntry[] {
   try {
     const raw = localStorage.getItem(AUDIT_CACHE_KEY);
     if (raw) return JSON.parse(raw) as AuditCacheEntry[];
-  } catch { /* empty */ }
+  } catch (e) { logger.warn('[CLM] Failed to parse audit cache from localStorage', e); }
   return [];
 }
 

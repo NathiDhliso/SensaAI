@@ -504,6 +504,75 @@
   font-style: italic;
 }
 
+.drawerNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  background: rgba(140, 160, 255, 0.06);
+  border: 1px dashed rgba(140, 160, 255, 0.18);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: rgba(180, 190, 240, 0.7);
+  line-height: 1.5;
+}
+
+.drawerNoticeIcon {
+  flex-shrink: 0;
+  margin-top: 0.1em;
+  opacity: 0.6;
+}
+
+.drawerWarnings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 0.15rem;
+}
+
+.drawerWarningItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: rgba(180, 190, 220, 0.5);
+  line-height: 1.4;
+}
+
+.drawerWarningIcon {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.pitfallsRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: rgba(255, 160, 60, 0.06);
+  border: 1px solid rgba(255, 160, 60, 0.12);
+  border-radius: 8px;
+}
+
+.pitfallsIcon {
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.1em;
+}
+
+.pitfallsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pitfallItem {
+  font-size: 0.8rem;
+  color: rgba(255, 200, 140, 0.85);
+  line-height: 1.45;
+}
+
 .drawerFooter {
   display: flex;
   justify-content: flex-end;

@@ -8,7 +8,7 @@ variable "environment" {
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string
-  default     = "sensapbl"
+  default     = "sensaai"
 }
 
 # DynamoDB Integration
@@ -147,7 +147,7 @@ variable "aws_region" {
 variable "bedrock_model_id" {
   description = "Bedrock model ID for concept generation"
   type        = string
-  default     = "anthropic.claude-sonnet-4-6"
+  default     = "us.anthropic.claude-sonnet-4-6"
 }
 
 # Tags
@@ -157,22 +157,4 @@ variable "tags" {
   default     = {}
 }
 
-variable "cross_account_role_arn" {
-  description = "IAM role ARN in the Bedrock account for cross-account access"
-  type        = string
-  default     = ""
-}
-
-variable "bedrock_access_key_id" {
-  description = "AWS access key ID for the Bedrock account"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "bedrock_secret_access_key" {
-  description = "AWS secret access key for the Bedrock account"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
+# NOTE: Cross-account variables removed. Single-account architecture on 693582801685.

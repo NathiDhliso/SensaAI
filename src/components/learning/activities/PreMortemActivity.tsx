@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, Info } from 'lucide-react';
 import type { LearningConcept } from '@/shared/types/learning';
 import styles from './PreMortemActivity.module.css';
 
@@ -14,6 +14,7 @@ interface FailureScenario {
  sabotageIndex: number;
  sabotageReason: string;
  consequence: string;
+ insufficientData: boolean;
 }
 
 const SABOTAGE_TEMPLATES = [
@@ -37,13 +38,14 @@ function buildFailureScenario(concept: LearningConcept): FailureScenario {
  }
 
  if (sourceSteps.length < 3) {
- const pitfalls = concept.commonPitfalls ?? [];
- sourceSteps = [
- `Identify the scope and prerequisites for ${concept.name}`,
- `Configure ${concept.name} with the correct parameters`,
- `Validate the configuration against expected behaviour`,
- pitfalls.length > 0 ? `Avoid: ${pitfalls[0]}` : `Test under edge-case conditions`,
- ];
+ return {
+  narrative: '',
+  steps: [],
+  sabotageIndex: -1,
+  sabotageReason: '',
+  consequence: '',
+  insufficientData: true,
+ };
  }
 
  const sabotageIndex = Math.floor(Math.random() * sourceSteps.length);
@@ -71,6 +73,7 @@ function buildFailureScenario(concept: LearningConcept): FailureScenario {
  sabotageIndex,
  sabotageReason: originalStep,
  consequence,
+ insufficientData: false,
  };
 }
 
@@ -88,6 +91,27 @@ export default function PreMortemActivity({ concept, onComplete }: PreMortemActi
  };
 
  const isCorrect = selectedIndex === scenario.sabotageIndex;
+
+ if (scenario.insufficientData) {
+ return (
+  <div className={styles.container}>
+   <div className={styles.header}>
+    <AlertTriangle size={20} />
+    <h3>Pre-Mortem: Find the Failure</h3>
+   </div>
+   <div className={styles.insufficientNotice}>
+    <Info size={16} />
+    <div>
+     <p><strong>Not enough step data for this concept.</strong></p>
+     <p>This activity requires at least 3 lifecycle steps to build a failure scenario. Try regenerating the content for "{concept.name}" to add richer step data.</p>
+    </div>
+   </div>
+   <button className={styles.stepCard} onClick={() => onComplete(false)} style={{ marginTop: '0.5rem', maxWidth: 200 }}>
+    Skip Activity
+   </button>
+  </div>
+ );
+ }
 
  return (
  <div className={styles.container}>

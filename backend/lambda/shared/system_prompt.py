@@ -545,10 +545,10 @@ def get_tree_generation_prompt(
                     total_objectives += 1
                 elif isinstance(st, dict):
                     total_objectives += max(1, len(st.get("objectives", [])))
-    # Base target is 120 concepts; scale up if there are many objectives
-    # (each objective typically needs 1-2 leaf concepts to cover it)
-    total_target = max(120, int(total_objectives * 1.5)) if total_objectives > 0 else 120
-    domain_concept_target = max(12, int(total_target * weight))
+    # Base target is 40 concepts; capped to fit within Lambda 900s timeout
+    # (each concept generates ~3-5K chars of JSON, limited by output token budget)
+    total_target = min(40, max(40, int(total_objectives * 1.2))) if total_objectives > 0 else 40
+    domain_concept_target = max(6, int(total_target * weight))
     has_string_subtopics = subtopics and all(isinstance(st, str) for st in subtopics)
     has_dict_subtopics = subtopics and any(isinstance(st, dict) for st in subtopics)
     if has_dict_subtopics:

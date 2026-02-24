@@ -128,7 +128,7 @@ export default function ConceptMapBuilder({
 }: ConceptMapBuilderProps) {
     // ========== SENSA v2.0 Phase State ==========
     const { isScholarly } = useVisualTheme();
-    const sessionId = useLearningStore(s => s.currentSession?.id) || 'unknown';
+    const sessionId = useLearningStore(s => s.currentSession?.id) ?? '';
     const [mapMode, setMapMode] = useState<'guided' | 'free'>(initialMode);
     const [mapPhase, setMapPhase] = useState<'build' | 'validate' | 'rebuild'>('build');
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
@@ -150,7 +150,7 @@ export default function ConceptMapBuilder({
         if (!seedData?.nodes?.length) return [];
         return seedData.nodes.map(n => ({
             ...n,
-            conceptName: n.conceptName || concepts.find(c => c.id === n.conceptId)?.name || 'Unknown'
+            conceptName: n.conceptName || concepts.find(c => c.id === n.conceptId)?.name || '(unnamed)'
         }));
     });
     const [connections, setConnections] = useState<Connection[]>(
@@ -284,7 +284,7 @@ export default function ConceptMapBuilder({
 
     const estimateNodeWidth = useCallback((node: MapNode): number => {
         const concept = concepts.find(c => c.id === node.conceptId);
-        const name = concept?.name || node.conceptName || 'Unknown';
+        const name = concept?.name || node.conceptName || '(unnamed)';
         return Math.max(120, name.length * 9 + NODE_H_PAD);
     }, [concepts]);
 
@@ -976,7 +976,7 @@ export default function ConceptMapBuilder({
         if (concept) return concept.name;
         // Fallback: check if the node itself has the stored name
         const node = nodes.find(n => n.conceptId === conceptId);
-        return node?.conceptName || 'Unknown';
+        return node?.conceptName || '(unnamed)';
     }, [concepts, nodes]);
     const inspectedNode = useMemo(() => {
         if (!inspectedNodeId) return null;
@@ -1649,7 +1649,7 @@ export default function ConceptMapBuilder({
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className={styles.nodeInfoHeader}>
-                                    <span className={styles.nodeInfoTitle}>{inspectedNode.concept?.name || 'Unknown'}</span>
+                                    <span className={styles.nodeInfoTitle}>{inspectedNode.concept?.name || '(unnamed)'}</span>
                                     <span className={styles.nodeInfoTier}>{inspectedNode.tier}</span>
                                     <button className={styles.nodeInfoClose} onClick={() => setInspectedNodeId(null)}>
                                         <X size={14} />

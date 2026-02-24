@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 import uuid
 import time
+import concurrent.futures
 
 # AWS Clients
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
@@ -291,80 +292,121 @@ def send_completion_notification(audit_id: str, summary: Dict[str, Any]):
         print(f"Failed to send notification: {str(e)}")
 
 
+def _build_auditor_payload(
+    audit_type: str,
+    audit_id: str,
+    subject: str,
+    concepts: List[Dict[str, Any]],
+    exam_objectives: List[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """Build the payload for a specific auditor Lambda."""
+    if audit_type == 'schema':
+        return {
+            'auditId': audit_id,
+            'subject': subject,
+            'conceptIds': [c['id'] for c in concepts],
+            'concepts': concepts,
+            'schemaVersion': '2.0',
+        }
+    elif audit_type == 'content':
+        return {
+            'auditId': audit_id,
+            'subject': subject,
+            'conceptIds': [c['id'] for c in concepts],
+            'concepts': concepts,
+            'examObjectives': exam_objectives,
+        }
+    elif audit_type == 'coverage':
+        return {
+            'auditId': audit_id,
+            'subject': subject,
+            'examObjectives': exam_objectives,
+            'existingConcepts': concepts,
+        }
+    elif audit_type == 'quality':
+        print("Quality audit is part of content audit")
+        return None
+    return None
+
+
+AUDITOR_FUNCTION_MAP = {
+    'schema': SCHEMA_AUDITOR_FUNCTION,
+    'content': CONTENT_AUDITOR_FUNCTION,
+    'coverage': COVERAGE_AUDITOR_FUNCTION,
+}
+
+
 def execute_audit(audit_id: str, config: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute the audit by invoking appropriate auditor lambdas"""
-    
+    """Execute the audit by invoking auditor lambdas IN PARALLEL."""
+
     subject = config['subject']
     audit_types = config['auditTypes']
     scope = config.get('scope', {})
-    
-    # Fetch concepts and objectives
+
+    # Fetch concepts and objectives (shared across all auditors)
     concept_ids = scope.get('conceptIds')
     concepts = get_concepts_for_audit(subject, concept_ids)
     exam_objectives = get_exam_objectives(subject)
-    
+
     if not concepts:
         raise Exception(f"No concepts found for subject {subject}")
-    
+
     # Update status to running
     update_audit_status(audit_id, 'running')
-    
+
     results = {}
     total_findings = 0
-    
-    # Execute each audit type
+
+    # Build tasks for parallel execution
+    tasks: List[Dict[str, Any]] = []
     for audit_type in audit_types:
-        print(f"Executing {audit_type} audit...")
-        
-        try:
-            if audit_type == 'schema':
-                payload = {
-                    'auditId': audit_id,
-                    'subject': subject,
-                    'conceptIds': [c['id'] for c in concepts],
-                    'concepts': concepts,
-                    'schemaVersion': '2.0'
-                }
-                result = invoke_auditor_lambda(SCHEMA_AUDITOR_FUNCTION, payload)
-                results['schema'] = result
-                total_findings += result.get('findingsCreated', 0)
-            
-            elif audit_type == 'content':
-                payload = {
-                    'auditId': audit_id,
-                    'subject': subject,
-                    'conceptIds': [c['id'] for c in concepts],
-                    'concepts': concepts,
-                    'examObjectives': exam_objectives
-                }
-                result = invoke_auditor_lambda(CONTENT_AUDITOR_FUNCTION, payload)
-                results['content'] = result
-                total_findings += result.get('findingsCreated', 0)
-            
-            elif audit_type == 'coverage':
-                payload = {
-                    'auditId': audit_id,
-                    'subject': subject,
-                    'examObjectives': exam_objectives,
-                    'existingConcepts': concepts
-                }
-                result = invoke_auditor_lambda(COVERAGE_AUDITOR_FUNCTION, payload)
-                results['coverage'] = result
-                total_findings += result.get('findingsCreated', 0)
-            
-            elif audit_type == 'quality':
-                # Quality is handled by content auditor
-                print("Quality audit is part of content audit")
-        
-        except Exception as e:
-            print(f"Failed to execute {audit_type} audit: {str(e)}")
-            results[audit_type] = {'error': str(e)}
-    
+        payload = _build_auditor_payload(
+            audit_type, audit_id, subject, concepts, exam_objectives
+        )
+        if payload is None:
+            continue
+        function_name = AUDITOR_FUNCTION_MAP.get(audit_type)
+        if not function_name:
+            print(f"Unknown audit type: {audit_type}")
+            continue
+        tasks.append({
+            'audit_type': audit_type,
+            'function_name': function_name,
+            'payload': payload,
+        })
+
+    # Execute all auditor Lambdas in parallel
+    if tasks:
+        print(f"[Orchestrator] Launching {len(tasks)} auditors in parallel: "
+              f"{[t['audit_type'] for t in tasks]}")
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(tasks)) as executor:
+            future_to_type = {
+                executor.submit(
+                    invoke_auditor_lambda,
+                    task['function_name'],
+                    task['payload'],
+                ): task['audit_type']
+                for task in tasks
+            }
+
+            for future in concurrent.futures.as_completed(future_to_type):
+                audit_type = future_to_type[future]
+                try:
+                    result = future.result()
+                    results[audit_type] = result
+                    total_findings += result.get('findingsCreated', 0)
+                    print(f"[Orchestrator] {audit_type} audit completed: "
+                          f"{result.get('findingsCreated', 0)} findings")
+                except Exception as e:
+                    print(f"Failed to execute {audit_type} audit: {str(e)}")
+                    results[audit_type] = {'error': str(e)}
+
     return {
         'auditId': audit_id,
         'subject': subject,
         'results': results,
-        'totalFindings': total_findings
+        'totalFindings': total_findings,
     }
 
 

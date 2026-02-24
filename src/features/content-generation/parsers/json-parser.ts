@@ -464,9 +464,8 @@ function parseConceptsFromMarkdown(content: string): ParsedConcept[] {
                             },
                             eliminationLogic: shapeElimination?.[1]?.trim() || ''
                      },
-                     // Root Fields for UI
-                     whyYouNeed: shapeSimple?.[1]?.trim() || hookMatch?.[1]?.trim() || '', // Simple Core is the best "Why"
-                     technicalDetails: p2Text.substring(0, 300).trim(), // Phase 2 is technical details
+                     whyYouNeed: shapeSimple?.[1]?.trim() || '',
+                     technicalDetails: p2Text.substring(0, 300).trim(),
                      mnemonic: {
                             tier: determineTier(current.order, current.name),
                             anchor: `${current.name}`,
@@ -825,7 +824,7 @@ function convertJsonConcept(concept: Record<string, unknown>): ParsedConcept | n
               // Raw spread first (lowest priority)
               ...rawPhase1,
               // Then our carefully extracted values (highest priority - override raw)
-              hookSentence: hookSentence || (typeof rawPhase1.hookSentence === 'string' ? rawPhase1.hookSentence : '') || (shape?.simpleCore || ''),
+              hookSentence: hookSentence || (typeof rawPhase1.hookSentence === 'string' ? rawPhase1.hookSentence : ''),
               microMetaphor: microMetaphor || (typeof rawPhase1.microMetaphor === 'string' ? rawPhase1.microMetaphor : ''),
               prerequisite: prerequisite || (typeof rawPhase1.prerequisite === 'string' ? rawPhase1.prerequisite : ''),
               selection: selection.length > 0 ? selection : (Array.isArray(rawPhase1.selection) ? rawPhase1.selection as string[] : []),

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, ChevronRight, Maximize2, Network } from 'lucide-react';
+import { CheckCircle, ChevronRight, Maximize2, Network, Info } from 'lucide-react';
 import type { MatrixConcept, BranchRow, LeafRow, DrillDownAction } from './types';
 import styles from './CognitiveMatrixGrid.module.css';
 
@@ -137,12 +137,43 @@ export function LeafRowComponent({ leaf, verbs, masteredIds, suggestedId, expand
                         </li>
                       ))}
                     </ol>
-                  ) : <p className={styles.drawerEmpty}>No steps defined.</p>}
+                  ) : (
+                    <div className={styles.drawerNotice}>
+                      <Info size={14} className={styles.drawerNoticeIcon} />
+                      <span>Steps for this phase weren't generated. Regenerating content may provide richer data.</span>
+                    </div>
+                  )}
                 </div>
+                {expandedCell.action.highStakesExample && (
+                  <div className={styles.trickRow}>
+                    <span className={styles.trickIcon}>🎯</span>
+                    <span className={styles.trickText}>{expandedCell.action.highStakesExample}</span>
+                  </div>
+                )}
+                {expandedCell.action.commonPitfalls && expandedCell.action.commonPitfalls.length > 0 && (
+                  <div className={styles.pitfallsRow}>
+                    <span className={styles.pitfallsIcon}>⚠️</span>
+                    <div className={styles.pitfallsList}>
+                      {expandedCell.action.commonPitfalls.map((pitfall, i) => (
+                        <span key={i} className={styles.pitfallItem}>{pitfall}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {expandedCell.action.trick && (
                   <div className={styles.trickRow}>
                     <span className={styles.trickIcon}>🧠</span>
                     <span className={styles.trickText}>{expandedCell.action.trick}</span>
+                  </div>
+                )}
+                {expandedCell.action.warnings && expandedCell.action.warnings.length > 0 && (
+                  <div className={styles.drawerWarnings}>
+                    {expandedCell.action.warnings.map((w, i) => (
+                      <div key={i} className={styles.drawerWarningItem}>
+                        <Info size={12} className={styles.drawerWarningIcon} />
+                        <span>{w}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

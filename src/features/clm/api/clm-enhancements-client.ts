@@ -12,6 +12,7 @@
 
 import { conceptsApi } from '@/shared/api/concepts';
 import { userdataApi } from '@/shared/api/userdata';
+import { logger } from '@/shared/utils/logger';
 import { useAuthStore } from '@/store/auth-store';
 import { validateConceptContent } from '@/features/content-generation/validators/content-quality';
 import type { VerifiableConcept } from '@/features/content-generation/validators/content-quality';
@@ -373,7 +374,7 @@ export const regenerationApi = {
 
     const domainMap = new Map<string, ParsedConcept[]>();
     concepts.forEach(c => {
-      const d = c.trunkDomain || 'Unknown';
+      const d = c.trunkDomain || '(unassigned)';
       if (!domainMap.has(d)) domainMap.set(d, []);
       domainMap.get(d)!.push(c);
     });
@@ -495,7 +496,7 @@ export const learnerFeedbackApi = {
     try {
       const response = await userdataApi.getAll(userId, 'REVIEW#');
       reviewItems = response.items || [];
-    } catch { /* no review data yet */ }
+    } catch (e) { logger.warn('[CLM] Failed to fetch review data', e); }
 
     // Build mastery scores from real review data
     const masteryMap = new Map<string, { scores: number[]; attempts: number }>();
@@ -519,7 +520,7 @@ export const learnerFeedbackApi = {
       const avgScore = entry ? Math.round(entry.scores.reduce((a, b) => a + b, 0) / entry.scores.length) : 0;
       allScores.push(avgScore);
       return {
-        conceptId: c.id, conceptName: c.name, domain: c.trunkDomain || 'Unknown',
+        conceptId: c.id, conceptName: c.name, domain: c.trunkDomain || '(unassigned)',
         averageMasteryScore: avgScore, medianMasteryScore: avgScore,
         attemptsToMastery: entry?.attempts || 0, learnerCount: entry ? 1 : 0,
         consistentlyStruggledBy: avgScore < 40 ? 100 : 0,
@@ -537,7 +538,7 @@ export const learnerFeedbackApi = {
     const heatmapData: HeatmapCell[] = concepts.map(c => {
       const entry = masteryMap.get(c.id);
       const score = entry ? Math.round(entry.scores.reduce((a, b) => a + b, 0) / entry.scores.length) : 50;
-      return { conceptId: c.id, conceptName: c.name, domain: c.trunkDomain || 'Unknown', masteryScore: score, difficulty: 100 - score, learnerCount: entry ? 1 : 0, color: heatColor(score) };
+      return { conceptId: c.id, conceptName: c.name, domain: c.trunkDomain || '(unassigned)', masteryScore: score, difficulty: 100 - score, learnerCount: entry ? 1 : 0, color: heatColor(score) };
     });
 
     const avg = allScores.length > 0 ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length) : 0;
@@ -587,7 +588,7 @@ async function loadABTests(): Promise<ABTest[]> {
   try {
     const resp = await userdataApi.getAll(userId, AB_PREFIX);
     return (resp.items || []).map(it => it.data as ABTest);
-  } catch { return []; }
+  } catch (e) { logger.warn('[CLM] Failed to fetch AB test data', e); return []; }
 }
 
 async function saveABTest(test: ABTest): Promise<void> {
@@ -639,7 +640,7 @@ export const abTestingApi = {
     try {
       const resp = await userdataApi.getAll(userId, 'REVIEW#');
       reviewItems = resp.items || [];
-    } catch { /* no data */ }
+    } catch (e) { logger.warn('[CLM] Failed to fetch review data for coverage', e); }
 
     const sampleA = test.variantA.learnerCount || 0;
     const sampleB = test.variantB.learnerCount || 0;
@@ -886,7 +887,7 @@ export const dependencyApi = {
     });
 
     const nodes: DependencyNode[] = concepts.map(c => ({
-      conceptId: c.id, conceptName: c.name, domain: c.trunkDomain || 'Unknown',
+      conceptId: c.id, conceptName: c.name, domain: c.trunkDomain || '(unassigned)',
       tier: (c.tier || 'leaf') as 'trunk' | 'branch' | 'leaf',
       inDegree: inDeg.get(c.id) || 0, outDegree: outDeg.get(c.id) || 0,
       criticalityScore: Math.min(100, (outDeg.get(c.id) || 0) * 15 + (c.tier === 'trunk' ? 30 : c.tier === 'branch' ? 15 : 0)),
@@ -894,7 +895,7 @@ export const dependencyApi = {
 
     const domainMap = new Map<string, string[]>();
     concepts.forEach(c => {
-      const d = c.trunkDomain || 'Unknown';
+      const d = c.trunkDomain || '(unassigned)';
       if (!domainMap.has(d)) domainMap.set(d, []);
       domainMap.get(d)!.push(c.id);
     });
@@ -990,7 +991,8 @@ export const dependencyApi = {
         if (!impact.safeToApply) {
           issues.push({ conceptId: cid, issue: `${impact.directImpacts.length} direct impacts, risk: ${impact.riskLevel}`, severity: impact.riskLevel });
         }
-      } catch {
+      } catch (e) {
+        logger.warn(`[CLM] Impact analysis failed for concept ${cid}`, e);
         issues.push({ conceptId: cid, issue: 'Could not analyze — load graph first', severity: 'warning' });
       }
     }
@@ -1044,8 +1046,8 @@ export const dependencyApi = {
               fixed++;
             }
           }
-        } catch {
-          // Individual fix failed — continue with others
+        } catch (e) {
+          logger.warn('[CLM] Individual concept fix failed, continuing', e);
         }
       }
     }
@@ -1074,7 +1076,7 @@ function loadGuardianConfig(): GuardianConfig {
   try {
     const raw = localStorage.getItem(GUARDIAN_CONFIG_KEY);
     if (raw) return JSON.parse(raw) as GuardianConfig;
-  } catch { /* use defaults */ }
+  } catch (e) { logger.warn('[CLM] Failed to parse guardian config from localStorage', e); }
   return { enabled: true, strictMode: false, autoApproveThreshold: 80, requireApprovalFor: ['tier', 'parentName'], bypassForRoles: ['admin'], auditCacheTtlMs: 24 * 60 * 60 * 1000 };
 }
 
@@ -1082,7 +1084,7 @@ function loadGuardianHistory(): JsonEditValidation[] {
   try {
     const raw = localStorage.getItem(GUARDIAN_HISTORY_KEY);
     if (raw) return JSON.parse(raw) as JsonEditValidation[];
-  } catch { /* empty */ }
+  } catch (e) { logger.warn('[CLM] Failed to parse guardian history from localStorage', e); }
   return [];
 }
 

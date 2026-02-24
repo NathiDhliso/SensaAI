@@ -76,6 +76,30 @@
   flex-shrink: 0;
 }
 
+.missingHint {
+  font-style: italic;
+  color: rgba(180, 160, 255, 0.4);
+  font-weight: 400;
+}
+
+.dataNotice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  background: rgba(140, 160, 255, 0.05);
+  border-bottom: 1px solid rgba(140, 160, 255, 0.1);
+  font-size: 0.75rem;
+  color: rgba(180, 190, 240, 0.6);
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.dataNoticeIcon {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
 .matrixAndPanel {
   flex: 1;
   min-height: 0;

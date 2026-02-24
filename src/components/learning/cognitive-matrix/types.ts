@@ -9,6 +9,9 @@ export interface DrillDownAction {
   chain: string[];
   steps: string[];
   blueprintSteps?: BlueprintAlignedStep[];
+  commonPitfalls?: string[];
+  highStakesExample?: string;
+  warnings?: string[];
 }
 
 export interface LeafRow {

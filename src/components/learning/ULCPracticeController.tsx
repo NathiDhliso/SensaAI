@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { Maximize, Minimize } from 'lucide-react';
+import { Maximize, Minimize, Info } from 'lucide-react';
 import { useLearningStore } from '@/store/learning-store';
 import { useGenerationStore } from '@/store/generation-store';
 import type { LearningConcept } from '@/shared/types/learning';
@@ -33,11 +33,17 @@ export function ULCPracticeController({
     }
   }, []);
 
+  const missingSubject = !currentSession?.subject;
+  const missingVerbs = !lifecycleVerbs;
 
   const masteredIds = useMemo(() => new Set(completedConceptIds ?? []), [completedConceptIds]);
 
   const payload = useMemo(
-    () => buildMatrixPayload(concepts, currentSession?.subject ?? 'Concepts', lifecycleVerbs ?? undefined),
+    () => buildMatrixPayload(
+      concepts,
+      currentSession?.subject || '',
+      lifecycleVerbs ?? undefined,
+    ),
     [concepts, currentSession?.subject, lifecycleVerbs]
   );
 
@@ -68,7 +74,7 @@ export function ULCPracticeController({
       <div className={styles.zoneHeader}>
         <div className={styles.zoneTitleGroup}>
           <span className={styles.zoneTitle}>Sensa AI Priming Zone</span>
-          <span className={styles.zoneSubject}>{payload.subject}</span>
+          <span className={styles.zoneSubject}>{payload.subject || <em className={styles.missingHint}>Subject not set</em>}</span>
         </div>
         <div className={styles.zoneHeaderRight}>
           <span className={styles.progressPill}>{masteredIds.size}/{totalCells} mastered</span>
@@ -77,6 +83,17 @@ export function ULCPracticeController({
           </button>
         </div>
       </div>
+
+      {(missingSubject || missingVerbs) && (
+        <div className={styles.dataNotice}>
+          <Info size={13} className={styles.dataNoticeIcon} />
+          <span>
+            {missingVerbs && 'Using default lifecycle verbs (PREPARE / MODEL / DELIVER). '}
+            {missingSubject && 'Subject name was not set. '}
+            Regenerating content may resolve this.
+          </span>
+        </div>
+      )}
 
       <CognitiveMatrixGrid
         payload={payload}

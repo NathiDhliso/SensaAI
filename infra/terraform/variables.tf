@@ -30,7 +30,7 @@ variable "cognito_logout_urls" {
 variable "cognito_domain_prefix" {
   description = "Cognito hosted UI domain prefix (must be globally unique)"
   type        = string
-  default     = "sensapbl"
+  default     = "sensaai"
 }
 
 # API Gateway CORS
@@ -44,22 +44,6 @@ variable "cors_allowed_origins" {
   ]
 }
 
-variable "cross_account_role_arn" {
-  description = "IAM role ARN in the Bedrock account for cross-account access"
-  type        = string
-  default     = ""
-}
-
-variable "bedrock_access_key_id" {
-  description = "AWS access key ID for the Bedrock account (693582801685)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "bedrock_secret_access_key" {
-  description = "AWS secret access key for the Bedrock account (693582801685)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
+# NOTE: Cross-account Bedrock variables removed.
+# All services now run on account 693582801685 (single-account architecture).
+# Lambda uses its IAM execution role for Bedrock access directly.

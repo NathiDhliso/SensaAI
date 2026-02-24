@@ -23,7 +23,7 @@ terraform {
 
 resource "aws_wafv2_web_acl" "main" {
   name        = "${var.project_name}-waf-${var.environment}"
-  description = "WAF WebACL for SensaPBL API protection"
+  description = "WAF WebACL for sensaai API protection"
   scope       = var.scope
 
   default_action {

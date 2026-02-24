@@ -45,7 +45,7 @@ provider "aws" {
 module "cognito" {
   source = "./modules/cognito"
 
-  user_pool_name    = "sensapbl-${var.environment}"
+  user_pool_name    = "sensaai-${var.environment}"
   environment       = var.environment
   callback_urls     = var.cognito_callback_urls
   logout_urls       = var.cognito_logout_urls
@@ -71,7 +71,7 @@ module "dynamodb" {
   source = "./modules/dynamodb"
 
   environment  = var.environment
-  project_name = "sensapbl"
+  project_name = "sensaai"
 
   tags = {
     Component = "DataStorage"
@@ -86,7 +86,7 @@ module "lambda" {
   source = "./modules/lambda"
 
   environment  = var.environment
-  project_name = "sensapbl"
+  project_name = "sensaai"
 
   # DynamoDB integration
   concepts_table_arn  = module.dynamodb.concepts_table_arn
@@ -111,13 +111,8 @@ module "lambda" {
   cognito_domain       = "${var.cognito_domain_prefix}-${var.environment}"
   aws_region           = var.aws_region
 
-  # Bedrock model for concept generation
-  bedrock_model_id = "anthropic.claude-sonnet-4-6"
-  
-  # Bedrock account credentials (account 693582801685)
-  cross_account_role_arn    = var.cross_account_role_arn
-  bedrock_access_key_id     = var.bedrock_access_key_id
-  bedrock_secret_access_key = var.bedrock_secret_access_key
+  # Bedrock model for concept generation (same account - no cross-account needed)
+  bedrock_model_id = "us.anthropic.claude-sonnet-4-6"
 
   # Provisioned concurrency (production only)
   enable_provisioned_concurrency    = var.environment == "prod"
@@ -138,7 +133,7 @@ module "api_gateway" {
   source = "./modules/api_gateway"
 
   environment  = var.environment
-  project_name = "sensapbl"
+  project_name = "sensaai"
   aws_region   = var.aws_region
 
   # Lambda integration
@@ -183,7 +178,7 @@ data "archive_file" "api_server" {
 }
 
 resource "aws_lambda_function" "api_server" {
-  function_name    = "sensapbl-api-server-${var.environment}"
+  function_name    = "sensaai-api-server-${var.environment}"
   role             = module.lambda.lambda_execution_role_arn
   handler          = "lambda_bundle.handler"
   runtime          = "nodejs20.x"
@@ -269,7 +264,7 @@ module "waf" {
   source = "./modules/waf"
 
   environment  = var.environment
-  project_name = "sensapbl"
+  project_name = "sensaai"
 
   # CLOUDFRONT scope — associate with a CloudFront distribution fronting the
   # HTTP API. WAF cannot attach directly to API Gateway v2 HTTP APIs.

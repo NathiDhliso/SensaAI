@@ -52,7 +52,7 @@ function loadSavedObjectives(subjectId: string): string[] {
     try {
         const raw = localStorage.getItem(`${OBJECTIVES_KEY_PREFIX}${subjectId}`);
         return raw ? JSON.parse(raw) : [];
-    } catch { return []; }
+    } catch (e) { logger.warn('[GymLaunchpad] Failed to load objectives from localStorage', e); return []; }
 }
 function persistObjectives(subjectId: string, objectives: string[]): void {
     localStorage.setItem(`${OBJECTIVES_KEY_PREFIX}${subjectId}`, JSON.stringify(objectives));
@@ -387,7 +387,7 @@ export default function GymLaunchpad() {
                 //     return updateULCProgress(prev, progressMap);
                 // });
             }
-        } catch { /* spacing not initialized yet */ }
+        } catch (e) { logger.warn('[GymLaunchpad] Spacing engine not initialized', e); }
     }, [parsedData]);
     const communityState = isCommunity ? { state: { community: true, ownerId: communityOwnerId } } : undefined;
     const handleStartLearning = () => {
@@ -571,7 +571,7 @@ export default function GymLaunchpad() {
                                         ));
                                         const easeLabel = review.easeFactor >= 2.2 ? 'Easy' : review.easeFactor >= 1.8 ? 'Medium' : 'Hard';
                                         const easeColor = review.easeFactor >= 2.2 ? 'var(--color-success)' : review.easeFactor >= 1.8 ? 'var(--color-warning)' : 'var(--color-error)';
-                                        const decay = (() => { try { return getSpacingEngine().getDecayStatus(review.conceptId); } catch { return 'fresh' as const; } })();
+                                        const decay = (() => { try { return getSpacingEngine().getDecayStatus(review.conceptId); } catch (e) { logger.warn('[GymLaunchpad] Decay status lookup failed', e); return 'fresh' as const; } })();
                                         const decayColor = decay === 'fresh' ? 'var(--color-success)' : decay === 'fading' ? 'var(--color-warning)' : 'var(--color-error)';
                                         return (
                                             <button

@@ -48,12 +48,23 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
+  schema {
+    name                = "role"
+    attribute_data_type = "String"
+    required            = false
+    mutable             = true
+
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 50
+    }
+  }
+
   tags = {
-    Name = "sensapbl-${var.environment}-user-pool"
+    Name = "sensaai-${var.environment}-user-pool"
   }
 
   lifecycle {
-    prevent_destroy = true
     ignore_changes  = [schema]
   }
 }
@@ -69,7 +80,7 @@ data "archive_file" "custom_message" {
 }
 
 resource "aws_iam_role" "custom_message" {
-  name = "sensapbl-${var.environment}-custom-message-lambda"
+  name = "sensaai-${var.environment}-custom-message-lambda"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -84,7 +95,7 @@ resource "aws_iam_role" "custom_message" {
 }
 
 resource "aws_iam_role_policy" "custom_message_logs" {
-  name = "sensapbl-${var.environment}-custom-message-logs"
+  name = "sensaai-${var.environment}-custom-message-logs"
   role = aws_iam_role.custom_message.id
 
   policy = jsonencode({
@@ -102,7 +113,7 @@ resource "aws_iam_role_policy" "custom_message_logs" {
 }
 
 resource "aws_lambda_function" "custom_message" {
-  function_name = "sensapbl-${var.environment}-custom-message"
+  function_name = "sensaai-${var.environment}-custom-message"
   role          = aws_iam_role.custom_message.arn
   handler       = "handler.lambda_handler"
   runtime       = "python3.12"
@@ -119,7 +130,7 @@ resource "aws_lambda_function" "custom_message" {
   }
 
   tags = {
-    Name     = "sensapbl-${var.environment}-custom-message"
+    Name     = "sensaai-${var.environment}-custom-message"
     Function = "custom-message"
   }
 }
@@ -138,7 +149,7 @@ resource "aws_cloudwatch_log_group" "custom_message" {
 }
 
 resource "aws_cognito_user_pool_client" "main" {
-  name         = "sensapbl-${var.environment}-client"
+  name         = "sensaai-${var.environment}-client"
   user_pool_id = aws_cognito_user_pool.main.id
 
   generate_secret = false
@@ -159,7 +170,6 @@ resource "aws_cognito_user_pool_client" "main" {
   allowed_oauth_flows_user_pool_client = true
 
   lifecycle {
-    prevent_destroy = true
     ignore_changes  = [generate_secret]
   }
 }
@@ -167,10 +177,6 @@ resource "aws_cognito_user_pool_client" "main" {
 resource "aws_cognito_user_pool_domain" "main" {
   domain       = var.domain_prefix
   user_pool_id = aws_cognito_user_pool.main.id
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 # =============================================================================
@@ -178,7 +184,7 @@ resource "aws_cognito_user_pool_domain" "main" {
 # =============================================================================
 
 resource "aws_cognito_identity_pool" "main" {
-  identity_pool_name               = "sensapbl-${var.environment}-identity-pool"
+  identity_pool_name               = "sensaai-${var.environment}-identity-pool"
   allow_unauthenticated_identities = true # Allow guest access for basic operations
 
   cognito_identity_providers {
@@ -188,17 +194,13 @@ resource "aws_cognito_identity_pool" "main" {
   }
 
   tags = {
-    Name = "sensapbl-${var.environment}-identity-pool"
-  }
-
-  lifecycle {
-    prevent_destroy = true
+    Name = "sensaai-${var.environment}-identity-pool"
   }
 }
 
 # IAM Role for Authenticated Users
 resource "aws_iam_role" "authenticated" {
-  name = "sensapbl-${var.environment}-cognito-authenticated"
+  name = "sensaai-${var.environment}-cognito-authenticated"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -222,7 +224,7 @@ resource "aws_iam_role" "authenticated" {
 
 # IAM Role for Unauthenticated (Guest) Users
 resource "aws_iam_role" "unauthenticated" {
-  name = "sensapbl-${var.environment}-cognito-unauthenticated"
+  name = "sensaai-${var.environment}-cognito-unauthenticated"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -246,7 +248,7 @@ resource "aws_iam_role" "unauthenticated" {
 
 # IAM Policy for Authenticated Users - S3 and DynamoDB access
 resource "aws_iam_role_policy" "authenticated_policy" {
-  name = "sensapbl-${var.environment}-authenticated-policy"
+  name = "sensaai-${var.environment}-authenticated-policy"
   role = aws_iam_role.authenticated.id
 
   policy = jsonencode({
@@ -259,7 +261,7 @@ resource "aws_iam_role_policy" "authenticated_policy" {
           "s3:PutObject",
           "s3:DeleteObject"
         ]
-        Resource = "arn:aws:s3:::sensapbl-${var.environment}-content-*/*"
+        Resource = "arn:aws:s3:::sensaai-${var.environment}-content-*/*"
       },
       {
         Effect = "Allow"
@@ -271,8 +273,8 @@ resource "aws_iam_role_policy" "authenticated_policy" {
           "dynamodb:Query"
         ]
         Resource = [
-          "arn:aws:dynamodb:*:*:table/sensapbl-concepts-${var.environment}",
-          "arn:aws:dynamodb:*:*:table/sensapbl-jobs-${var.environment}"
+          "arn:aws:dynamodb:*:*:table/sensaai-concepts-${var.environment}",
+          "arn:aws:dynamodb:*:*:table/sensaai-jobs-${var.environment}"
         ]
       }
     ]
@@ -281,7 +283,7 @@ resource "aws_iam_role_policy" "authenticated_policy" {
 
 # IAM Policy for Unauthenticated Users - Read only
 resource "aws_iam_role_policy" "unauthenticated_policy" {
-  name = "sensapbl-${var.environment}-unauthenticated-policy"
+  name = "sensaai-${var.environment}-unauthenticated-policy"
   role = aws_iam_role.unauthenticated.id
 
   policy = jsonencode({
@@ -292,7 +294,7 @@ resource "aws_iam_role_policy" "unauthenticated_policy" {
         Action = [
           "s3:GetObject"
         ]
-        Resource = "arn:aws:s3:::sensapbl-${var.environment}-content/public/*"
+        Resource = "arn:aws:s3:::sensaai-${var.environment}-content/public/*"
       }
     ]
   })

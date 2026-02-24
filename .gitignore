@@ -66,14 +66,28 @@ test_generate.py
 test_validate.py
 test_deployed_validation.py
 test_output.json
+test-generate.cjs
+check-status.cjs
 
 # Debug artifacts
 lambda_deployed/
 lambda_deployed.zip
 
+# One-off migration/utility scripts
+scripts/rekey-userdata.cjs
+scripts/migrate-dynamodb.cjs
+scripts/migrate-prod-dynamodb.cjs
+scripts/check-bedrock-guardrail.ps1
+
+# Terraform one-off artifacts
+infra/terraform/environments/*/delete-batch.json
+
 # Temporary files
 *.tmp
 *.temp
+
+# Client info (may contain account details)
+infra/client_info.json
 
 # Playwright
 /test-results/

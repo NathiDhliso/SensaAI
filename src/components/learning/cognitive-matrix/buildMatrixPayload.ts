@@ -2,12 +2,7 @@ import type { LearningConcept } from '@/shared/types/learning';
 import type { MatrixPayload, MatrixConcept, BranchRow, LeafRow, DrillDownAction, BlueprintAlignedStep } from './types';
 
 function buildTrick(concept: LearningConcept): string {
-  return (
-    concept.shape?.analogicalModel ||
-    concept.shape?.simpleCore ||
-    concept.hookSentence ||
-    concept.name
-  );
+  return concept.shape?.analogicalModel || concept.shape?.simpleCore || '';
 }
 
 function buildChain(concept: LearningConcept): string[] {
@@ -15,60 +10,71 @@ function buildChain(concept: LearningConcept): string[] {
 }
 
 function buildStepsForVerb(concept: LearningConcept, verbIndex: number): string[] {
-  const phase1Steps = concept.lifecycle?.phase1?.steps ?? [];
+  const phase1Steps = (concept.lifecycle?.phase1?.steps ?? [])
+    .filter(s => !s.startsWith('Prerequisite:'));
   const phase2Steps = concept.lifecycle?.phase2?.steps ?? [];
   const phase3Steps = concept.lifecycle?.phase3?.steps ?? [];
-  const workedSteps = concept.workedExample?.steps ?? [];
-  const keyPoints = concept.keyPoints ?? [];
+  const howToUse = concept.howToUse ?? [];
 
-  if (verbIndex === 0) {
-    return phase1Steps.length ? phase1Steps
-      : keyPoints.length ? keyPoints
-      : workedSteps.length ? workedSteps
-      : [];
-  }
-  if (verbIndex === 1) {
-    return phase2Steps.length ? phase2Steps
-      : workedSteps.length ? workedSteps
-      : keyPoints.length ? keyPoints
-      : [];
-  }
-  return phase3Steps.length ? phase3Steps
-    : workedSteps.length ? workedSteps
-    : keyPoints.length ? keyPoints
-    : [];
+  if (verbIndex === 0) return phase1Steps;
+  if (verbIndex === 1) return phase2Steps.length ? phase2Steps : howToUse;
+  return phase3Steps;
 }
 
-function buildBlueprintSteps(concept: LearningConcept, verb: string): BlueprintAlignedStep[] | undefined {
+function buildBlueprintSteps(concept: LearningConcept, verb: string, verbIndex: number): BlueprintAlignedStep[] | undefined {
   if (!concept.blueprintSteps || concept.blueprintSteps.length === 0) return undefined;
   const verbUpper = verb.toUpperCase();
+
   const matched = concept.blueprintSteps.filter(
     bs => bs.verb.toUpperCase() === verbUpper
   );
   if (matched.length > 0) return matched;
-  const phaseMap: Record<number, string[]> = {
-    0: ['PREPARE', 'PHASE1', 'PHASE 1'],
-    1: ['MODEL', 'PHASE2', 'PHASE 2'],
-    2: ['DELIVER', 'PHASE3', 'PHASE 3'],
+
+  const phaseAliases: Record<number, string[]> = {
+    0: ['PREPARE', 'PHASE1', 'PHASE 1', 'FOUNDATION', 'SETUP', 'PRIME'],
+    1: ['MODEL', 'PHASE2', 'PHASE 2', 'ACTION', 'EXECUTE', 'APPLICATION'],
+    2: ['DELIVER', 'PHASE3', 'PHASE 3', 'VERIFY', 'VERIFICATION', 'VALIDATE'],
   };
-  for (const [, aliases] of Object.entries(phaseMap)) {
+
+  for (const [, aliases] of Object.entries(phaseAliases)) {
     if (aliases.includes(verbUpper)) {
-      return concept.blueprintSteps.filter(bs => aliases.includes(bs.verb.toUpperCase()));
+      const aliasMatched = concept.blueprintSteps.filter(bs => aliases.includes(bs.verb.toUpperCase()));
+      if (aliasMatched.length > 0) return aliasMatched;
     }
   }
+
+  if (verbIndex >= 0 && verbIndex <= 2) {
+    const targetAliases = phaseAliases[verbIndex];
+    const indexMatched = concept.blueprintSteps.filter(bs => targetAliases.includes(bs.verb.toUpperCase()));
+    if (indexMatched.length > 0) return indexMatched;
+  }
+
   return undefined;
 }
 
 function buildAction(concept: LearningConcept, verbIndex: number, verb: string): DrillDownAction {
-  const bpSteps = buildBlueprintSteps(concept, verb);
+  const bpSteps = buildBlueprintSteps(concept, verb, verbIndex);
   const steps = bpSteps && bpSteps.length > 0
     ? bpSteps.map(bs => bs.instantiation)
     : buildStepsForVerb(concept, verbIndex);
+  const trick = buildTrick(concept);
+
+  const warnings: string[] = [];
+  if (steps.length === 0) {
+    warnings.push(`No ${verb.toLowerCase()} steps were generated for this concept.`);
+  }
+  if (!trick) {
+    warnings.push('Memory anchor not available for this concept.');
+  }
+
   return {
-    trick: buildTrick(concept),
+    trick,
     chain: buildChain(concept),
     steps,
     blueprintSteps: bpSteps,
+    commonPitfalls: concept.commonPitfalls?.length ? concept.commonPitfalls : undefined,
+    highStakesExample: concept.shape?.highStakesExample || undefined,
+    warnings: warnings.length > 0 ? warnings : undefined,
   };
 }
 
@@ -89,16 +95,17 @@ export function buildMatrixPayload(
   const branchByName: Record<string, LearningConcept> = {};
   for (const b of branches) branchByName[b.name] = b;
 
+  const UNGROUPED = 'Ungrouped';
   const leafesByBranch: Record<string, LearningConcept[]> = {};
   for (const leaf of leaves) {
-    const key = leaf.parentName || leaf.trunkDomain || 'General';
+    const key = leaf.parentName || leaf.trunkDomain || UNGROUPED;
     if (!leafesByBranch[key]) leafesByBranch[key] = [];
     leafesByBranch[key].push(leaf);
   }
 
   const branchesByTrunk: Record<string, LearningConcept[]> = {};
   for (const branch of branches) {
-    const key = branch.parentName || branch.trunkDomain || 'General';
+    const key = branch.parentName || branch.trunkDomain || UNGROUPED;
     if (!branchesByTrunk[key]) branchesByTrunk[key] = [];
     branchesByTrunk[key].push(branch);
   }
@@ -149,7 +156,7 @@ export function buildMatrixPayload(
   if (matrix.length === 0) {
     const grouped: Record<string, LearningConcept[]> = {};
     for (const c of concepts) {
-      const key = c.trunkDomain || c.parentName || 'General';
+      const key = c.trunkDomain || c.parentName || UNGROUPED;
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(c);
     }
