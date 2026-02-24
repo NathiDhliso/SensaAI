@@ -50,7 +50,7 @@ import { UI_TIMINGS } from '@/shared/constants/ui-constants';
 import { useVisualTheme } from '@/shared/hooks/useVisualTheme';
 import { useActivityAutosave } from '@/shared/hooks/useActivityAutosave';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
-import { computeClassificationLayout, type LayoutResult, type PositionedNode, type LayoutEdge, type LayoutOverlay } from '@/shared/utils/map-layouts';
+import { computeClassificationLayout, type LayoutResult, type PositionedNode } from '@/shared/utils/map-layouts';
 import type { LifecycleBlueprints } from '@/shared/utils/map-layouts';
 import ConnectionTypeModal, { type ConnectionTypeData } from '@/components/learning/feedback/ConnectionTypeModal';
 import styles from './ConceptMapBuilder.module.css';
