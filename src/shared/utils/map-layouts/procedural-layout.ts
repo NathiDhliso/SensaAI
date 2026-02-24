@@ -88,8 +88,8 @@ function matchConceptToArm(
     const verbsLower = verbs.map(v => v.toLowerCase());
 
     // Priority 1: Explicit primaryLifecycleVerb field (set by generation prompt)
-    if ((c as Record<string, unknown>).primaryLifecycleVerb) {
-        const plv = String((c as Record<string, unknown>).primaryLifecycleVerb).toLowerCase();
+    if ((c as unknown as Record<string, unknown>).primaryLifecycleVerb) {
+        const plv = String((c as unknown as Record<string, unknown>).primaryLifecycleVerb).toLowerCase();
         const idx = verbsLower.indexOf(plv);
         if (idx >= 0) return idx;
     }

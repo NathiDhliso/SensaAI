@@ -174,6 +174,7 @@ export interface LearningConcept {
     */
     tier: 'trunk' | 'branch' | 'leaf';
     parentName?: string;
+    parentId?: string;
     trunkDomain?: string;
     /**
     * Bloom's Taxonomy Level (Phase 2 Cognitive Model)
@@ -224,6 +225,11 @@ export interface LearningConcept {
     keyPoints?: string[];
     perspectives?: CreatorPerspective[];
     blueprintSteps?: BlueprintStep[];
+    /**
+     * Difficulty/complexity score for this concept (1–10 scale).
+     * Used to calibrate micro-learning loop difficulty.
+     */
+    complexity?: number;
     /**
      * The primary lifecycle verb this concept belongs to (from classification).
      * Used to sort concepts into verb arms on the procedural concept map.
