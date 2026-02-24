@@ -35,6 +35,7 @@ export interface MapNodeMeta {
     sequenceNumber?: number;    // Step ordering within arm/phase/branch
     verbLabel?: string;         // The verb text (CREATE, CONFIGURE, etc.)
     phaseAngle?: number;        // Cyclic: angle in radians for this phase node
+    armColor?: string;          // Procedural: per-arm color CSS variable
 }
 
 export interface PositionedNode {
@@ -65,6 +66,8 @@ export interface LayoutEdge {
     animated?: boolean;
     /** SVG path data for curved edges */
     pathData?: string;
+    /** Per-edge color override (e.g. per-arm color in procedural layout) */
+    color?: string;
 }
 
 // ============================================================================

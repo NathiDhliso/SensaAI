@@ -429,18 +429,20 @@ export default function ConceptMapBuilder({
             setNodes(laid);
 
             requestAnimationFrame(() => {
-                if (laid.length === 0) return;
+                if (layoutResult.nodes.length === 0) return;
                 const rect = canvasRef.current?.getBoundingClientRect();
                 if (!rect) return;
-                const xs = laid.map(n => n.x);
-                const ys = laid.map(n => n.y);
-                const minX = Math.min(...xs) - 120;
-                const maxX = Math.max(...xs) + 120;
-                const minY = Math.min(...ys) - 120;
-                const maxY = Math.max(...ys) + 120;
+                // Use ALL layout nodes (including verb labels + center) for fit
+                const allPositions = layoutResult.nodes;
+                const xs = allPositions.map(n => n.x);
+                const ys = allPositions.map(n => n.y);
+                const minX = Math.min(...xs) - 160;
+                const maxX = Math.max(...xs) + 160;
+                const minY = Math.min(...ys) - 160;
+                const maxY = Math.max(...ys) + 160;
                 const contentW = maxX - minX;
                 const contentH = maxY - minY;
-                const newZoom = Math.min(1.5, Math.max(0.2, Math.min(rect.width / contentW, rect.height / contentH) * 0.85));
+                const newZoom = Math.min(1.2, Math.max(0.15, Math.min(rect.width / contentW, rect.height / contentH) * 0.85));
                 setPanOffset({
                     x: (rect.width - contentW * newZoom) / 2 - minX * newZoom,
                     y: (rect.height - contentH * newZoom) / 2 - minY * newZoom
@@ -1160,6 +1162,38 @@ export default function ConceptMapBuilder({
         return classificationNodeMap.get(node.conceptId)?.meta ?? null;
     }, [classificationNodeMap]);
 
+    /**
+     * Render classification-only virtual nodes (verb labels, synthetic center)
+     * that exist in the layout but not in the user's node state.
+     */
+    const renderClassificationVirtualNodes = () => {
+        if (!classificationLayout) return null;
+        const stateConceptIds = new Set(nodes.map(n => n.conceptId));
+        return classificationLayout.nodes
+            .filter(pn => !stateConceptIds.has(pn.conceptId))
+            .map(pn => {
+                const isVerb = pn.meta.role === 'verb';
+                const isCenter = pn.meta.role === 'center';
+                if (!isVerb && !isCenter) return null;
+                return (
+                    <div
+                        key={pn.id}
+                        className={`${styles.node} ${clsStyles.classifiedNode} ${clsStyles.mapNodeEnter}`}
+                        data-role={pn.meta.role}
+                        data-arm={pn.meta.armIndex != null ? pn.meta.armIndex : undefined}
+                        style={{
+                            left: pn.x,
+                            top: pn.y,
+                            pointerEvents: 'none',
+                            ...(pn.meta.armColor ? { borderColor: pn.meta.armColor, color: pn.meta.armColor } : {}),
+                        }}
+                    >
+                        {pn.conceptName}
+                    </div>
+                );
+            });
+    };
+
     /** Render classification overlay elements (rings, arm rails, depth bands) */
     const renderClassificationOverlays = () => {
         if (!classificationLayout) return null;
@@ -1194,8 +1228,8 @@ export default function ConceptMapBuilder({
             if (overlay.type === 'arm-rail' && overlay.pathData) {
                 return (
                     <svg key={`overlay-${idx}`} className={clsStyles.overlayArmRail}
-                        style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-                        <path d={overlay.pathData} stroke={overlay.color || 'var(--color-border)'} strokeWidth={1.5} fill="none" opacity={0.2} />
+                        style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
+                        <path d={overlay.pathData} stroke={overlay.color || 'var(--color-border)'} strokeWidth={4} fill="none" opacity={0.4} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 );
             }
@@ -1290,14 +1324,15 @@ export default function ConceptMapBuilder({
                 pathD = `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
             }
 
-            const edgeColor = subjectType === 'procedural' ? 'var(--map-proc-line)'
+            const fallbackColor = subjectType === 'procedural' ? 'var(--map-proc-line)'
                 : subjectType === 'conceptual' ? 'var(--map-conc-line)'
                 : subjectType === 'cyclic' ? 'var(--map-cycl-line)'
                 : subjectType === 'perceptual' ? 'var(--map-perc-line)'
                 : 'var(--color-accent-light)';
+            const edgeColor = edge.color || fallbackColor;
 
             return (
-                <g key={edge.id}>
+                <g key={edge.id} style={{ color: edgeColor }}>
                     <path
                         d={pathD}
                         stroke={edgeColor}
@@ -1313,6 +1348,7 @@ export default function ConceptMapBuilder({
                             x={(from.x + to.x) / 2}
                             y={(from.y + to.y) / 2 - 8}
                             className={clsStyles.edgeLabel}
+                            fill={edgeColor}
                         >
                             {edge.label}
                         </text>
@@ -1883,21 +1919,23 @@ export default function ConceptMapBuilder({
                                     key={node.id}
                                     className={`${styles.node} ${useClassification ? clsStyles.classifiedNode : ''} ${selectedNodeId === node.id ? styles.selected : ''} ${isGroupTarget ? styles.groupDragging : ''} ${focusConcept && node.conceptName === focusConcept ? styles.focusEntry : ''} ${useClassification ? clsStyles.mapNodeEnter : ''}`}
                                     data-role={nodeRole || undefined}
+                                    data-arm={nodeMeta?.armIndex != null ? nodeMeta.armIndex : undefined}
                                     style={{
                                         left: node.x,
                                         top: node.y,
                                         animationDelay: nodeMeta?.sequenceNumber != null ? `${(nodeMeta.sequenceNumber) * 60}ms` : undefined,
+                                        ...(nodeMeta?.armColor ? { borderColor: nodeMeta.armColor } : {}),
                                     }}
                                     onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                                     onDoubleClick={(e) => handleNodeDoubleClick(e, node.id)}
                                 >
                                     {/* Verb tag for classified nodes */}
                                     {useClassification && nodeMeta?.verbLabel && nodeRole !== 'verb' && (
-                                        <span className={clsStyles.verbTag}>{nodeMeta.verbLabel}</span>
+                                        <span className={clsStyles.verbTag} style={nodeMeta?.armColor ? { background: `color-mix(in srgb, ${nodeMeta.armColor} 15%, transparent)`, color: nodeMeta.armColor } : undefined}>{nodeMeta.verbLabel}</span>
                                     )}
                                     {/* Sequence badge */}
                                     {useClassification && nodeMeta?.sequenceNumber != null && nodeRole === 'step' && (
-                                        <span className={clsStyles.sequenceBadge}>{nodeMeta.sequenceNumber + 1}</span>
+                                        <span className={clsStyles.sequenceBadge} style={nodeMeta?.armColor ? { background: nodeMeta.armColor } : undefined}>{nodeMeta.sequenceNumber}</span>
                                     )}
                                     {getConceptName(node.conceptId)}
                                     {!readOnly && (
@@ -1915,6 +1953,8 @@ export default function ConceptMapBuilder({
                                 </div>
                             );
                         })}
+                        {/* Classification virtual nodes (verb labels, synthetic center) */}
+                        {classificationLayout && renderClassificationVirtualNodes()}
                         {/* Node Info Popover */}
                         {inspectedNode && (
                             <div

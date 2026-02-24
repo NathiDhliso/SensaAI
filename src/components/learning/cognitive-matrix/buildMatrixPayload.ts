@@ -94,16 +94,28 @@ export function buildMatrixPayload(
   const verb3 = (lifecycleVerbs?.phase3 || 'DELIVER').toUpperCase();
   const verbs = [verb1, verb2, verb3];
 
-  const trunks = concepts.filter(c => c.tier === 'trunk');
-  const branches = concepts.filter(c => c.tier === 'branch');
-  const leaves = concepts.filter(c => c.tier === 'leaf');
+  // Case-insensitive tier matching
+  const getTier = (c: LearningConcept): string => (c.tier || '').toLowerCase();
+  
+  const trunks = concepts.filter(c => getTier(c) === 'trunk');
+  const branches = concepts.filter(c => getTier(c) === 'branch');
+  const leaves = concepts.filter(c => getTier(c) === 'leaf');
+
+  // Fallback: if no tiers set properly, treat all non-trunk as leaves
+  const effectiveLeaves = leaves.length > 0 ? leaves : concepts.filter(c => getTier(c) !== 'trunk');
+
+  // Debug logging for tier distribution
+  if (typeof window !== 'undefined' && (window as unknown as { __DEBUG_MATRIX?: boolean }).__DEBUG_MATRIX) {
+    console.log('[BuildMatrix] Concepts:', concepts.length, 'Trunks:', trunks.length, 'Branches:', branches.length, 'Leaves:', leaves.length, 'EffectiveLeaves:', effectiveLeaves.length);
+    console.log('[BuildMatrix] Sample tiers:', concepts.slice(0, 5).map(c => ({ name: c.name, tier: c.tier, parentName: c.parentName, trunkDomain: c.trunkDomain })));
+  }
 
   const branchByName: Record<string, LearningConcept> = {};
   for (const b of branches) branchByName[b.name] = b;
 
   const UNGROUPED = 'Ungrouped';
   const leafesByBranch: Record<string, LearningConcept[]> = {};
-  for (const leaf of leaves) {
+  for (const leaf of effectiveLeaves) {
     const key = leaf.parentName || leaf.trunkDomain || UNGROUPED;
     if (!leafesByBranch[key]) leafesByBranch[key] = [];
     leafesByBranch[key].push(leaf);
@@ -157,6 +169,59 @@ export function buildMatrixPayload(
       branches: branchRows,
       children: [],
     });
+  }
+
+  // Fallback: if trunks exist but all have empty branches, redistribute ungrouped leaves
+  const hasEmptyMatrix = matrix.length > 0 && matrix.every(t => t.branches.length === 0 || t.branches.every(b => b.children.length === 0));
+  if (hasEmptyMatrix && leafesByBranch[UNGROUPED]?.length > 0) {
+    const ungroupedLeaves = leafesByBranch[UNGROUPED];
+    // Distribute leaves to trunks based on fuzzy matching of trunkDomain or examContext
+    for (const trunk of matrix) {
+      const trunkNameLower = trunk.conceptName.toLowerCase();
+      const matchedLeaves = ungroupedLeaves.filter(leaf => {
+        const trunkDomain = (leaf.trunkDomain || '').toLowerCase();
+        const parentName = (leaf.parentName || '').toLowerCase();
+        const examObjective = (leaf.examContext?.examObjective || '').toLowerCase();
+        return trunkDomain.includes(trunkNameLower) || 
+               trunkNameLower.includes(trunkDomain) ||
+               parentName.includes(trunkNameLower) ||
+               trunkNameLower.includes(parentName) ||
+               examObjective.includes(trunkNameLower);
+      });
+      if (matchedLeaves.length > 0) {
+        trunk.branches.push({
+          conceptId: `${trunk.conceptId}-matched`,
+          conceptName: 'Concepts',
+          children: matchedLeaves.map(buildLeafRow),
+        });
+      }
+    }
+    // Any remaining unmatched leaves go to first trunk
+    const assignedIds = new Set(matrix.flatMap(t => t.branches.flatMap(b => b.children.map(c => c.conceptId))));
+    const remaining = ungroupedLeaves.filter(l => !assignedIds.has(l.id));
+    if (remaining.length > 0 && matrix.length > 0) {
+      matrix[0].branches.push({
+        conceptId: `${matrix[0].conceptId}-remaining`,
+        conceptName: 'Other Concepts',
+        children: remaining.map(buildLeafRow),
+      });
+    }
+  }
+
+  // Final fallback: if matrix still has empty trunks and there are no leaves at all,
+  // show the trunk concepts themselves as leaf items so users can see *something*
+  const stillEmpty = matrix.length > 0 && matrix.every(t => t.branches.length === 0);
+  if (stillEmpty && effectiveLeaves.length === 0) {
+    for (const m of matrix) {
+      const trunkConcept = trunks.find(t => t.id === m.conceptId);
+      if (trunkConcept) {
+        m.branches.push({
+          conceptId: `${m.conceptId}-self`,
+          conceptName: 'Overview',
+          children: [buildLeafRow(trunkConcept)],
+        });
+      }
+    }
   }
 
   if (matrix.length === 0) {

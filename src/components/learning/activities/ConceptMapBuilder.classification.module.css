@@ -107,16 +107,18 @@
 
 /* ── VERB / ARM LABEL nodes (procedural) ── */
 .classifiedNode[data-role="verb"] {
- background: var(--map-proc-line-light);
- border: 1px dashed var(--map-proc-line);
- border-radius: var(--radius-md);
- font-size: 0.7rem;
- font-weight: 700;
+ background: var(--overlay-black-20);
+ border: 2px solid currentColor;
+ border-radius: 50px;
+ font-size: 0.75rem;
+ font-weight: 800;
  text-transform: uppercase;
- letter-spacing: 0.05em;
- color: var(--map-proc-accent);
- padding: 0.25rem 0.75rem;
+ letter-spacing: 0.06em;
+ color: inherit;
+ padding: 0.35rem 1rem;
  min-width: auto;
+ backdrop-filter: blur(6px);
+ box-shadow: 0 0 12px currentColor;
 }
 
 /* ── STEP nodes (procedural arm items, cyclic satellites) ── */
