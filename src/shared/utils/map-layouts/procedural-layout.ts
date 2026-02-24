@@ -32,14 +32,29 @@ export function proceduralLayout(
     const cx = canvasSize.width / 2;
     const cy = canvasSize.height / 2;
 
-    // Extract verbs from lifecycle blueprints
+    // Extract verbs from lifecycle blueprints — ALWAYS guarantee ≥ 3 arms
     const verbs: string[] = [];
+    const FALLBACK_VERBS = ['EXPLORE', 'BUILD', 'REVIEW'];
     if (lifecycleBlueprints?.phase1) verbs.push(lifecycleBlueprints.phase1.verb);
     if (lifecycleBlueprints?.phase2) verbs.push(lifecycleBlueprints.phase2.verb);
     if (lifecycleBlueprints?.phase3) verbs.push(lifecycleBlueprints.phase3.verb);
 
-    // Fallback if no verbs extracted
-    if (verbs.length === 0) verbs.push('EXPLORE', 'BUILD', 'REVIEW');
+    // Pad to at least 3 arms so layout is always a fan, not a line
+    while (verbs.length < 3) {
+        verbs.push(FALLBACK_VERBS[verbs.length] || `ARM ${verbs.length + 1}`);
+    }
+
+    // Build sequence lookup from blueprints (concept name → arm index)
+    const sequenceLookup = new Map<string, number>();
+    const phases = [lifecycleBlueprints?.phase1, lifecycleBlueprints?.phase2, lifecycleBlueprints?.phase3];
+    for (let pi = 0; pi < phases.length; pi++) {
+        const phase = phases[pi];
+        if (phase?.sequence) {
+            for (const seqItem of phase.sequence) {
+                sequenceLookup.set(seqItem.toLowerCase(), pi);
+            }
+        }
+    }
 
     // Separate trunks from other concepts
     const trunks = concepts.filter(c => (c.tier || '').toLowerCase() === 'trunk');
@@ -49,11 +64,13 @@ export function proceduralLayout(
     const arms: Map<number, LearningConcept[]> = new Map();
     for (let i = 0; i < verbs.length; i++) arms.set(i, []);
 
-    // Try to assign by blueprintSteps verb match, else by parentName/trunkDomain
-    for (const c of nonTrunks) {
-        // Check blueprintSteps for verb match
+    // Assign each concept to an arm using multiple heuristics
+    for (let ci = 0; ci < nonTrunks.length; ci++) {
+        const c = nonTrunks[ci];
         let assigned = false;
-        if (c.blueprintSteps && c.blueprintSteps.length > 0) {
+
+        // Heuristic 1: blueprintSteps verb match
+        if (!assigned && c.blueprintSteps && c.blueprintSteps.length > 0) {
             for (let vi = 0; vi < verbs.length; vi++) {
                 const vLower = verbs[vi].toLowerCase();
                 if (c.blueprintSteps.some((bs: { verb?: string }) => bs.verb?.toLowerCase() === vLower)) {
@@ -63,10 +80,26 @@ export function proceduralLayout(
                 }
             }
         }
+
+        // Heuristic 2: sequence lookup from lifecycle blueprints
         if (!assigned) {
-            // Distribute round-robin by concept order
-            const armIdx = nonTrunks.indexOf(c) % verbs.length;
-            arms.get(armIdx)!.push(c);
+            const armFromSeq = sequenceLookup.get(c.name.toLowerCase());
+            if (armFromSeq !== undefined && armFromSeq < verbs.length) {
+                arms.get(armFromSeq)!.push(c);
+                assigned = true;
+            }
+        }
+
+        // Heuristic 3: round-robin fallback (even distribution)
+        if (!assigned) {
+            // Pick the arm with the fewest items so far
+            let minArm = 0;
+            let minCount = Infinity;
+            for (let a = 0; a < verbs.length; a++) {
+                const count = arms.get(a)!.length;
+                if (count < minCount) { minCount = count; minArm = a; }
+            }
+            arms.get(minArm)!.push(c);
         }
     }
 

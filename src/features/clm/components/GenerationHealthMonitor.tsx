@@ -233,10 +233,10 @@ export function GenerationHealthMonitor() {
               </div>
 
               <div className={styles.subjectScores}>
-                {aggregate.subjectScores.map((s: { subject: string; score: number }) => {
+                {aggregate.subjectScores.map((s: { subject: string; score: number }, idx: number) => {
                   const st = getScoreStatus(s.score);
                   return (
-                    <div key={s.subject} className={styles.subjectScoreItem}>
+                    <div key={`${s.subject}-${idx}`} className={styles.subjectScoreItem}>
                       <ScoreRing score={s.score} size={40} />
                       <span className={styles.subjectName}>{s.subject}</span>
                       <span

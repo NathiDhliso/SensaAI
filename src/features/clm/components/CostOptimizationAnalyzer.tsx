@@ -201,8 +201,8 @@ export function CostOptimizationAnalyzer() {
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>Cost per Learner by Subject</h2>
               <div className={styles.cplGrid}>
-                {costPerLearner.bySubject.map((item: CostPerLearnerSubject) => (
-                  <div key={item.subject} className={styles.cplCard}>
+                {costPerLearner.bySubject.map((item: CostPerLearnerSubject, idx: number) => (
+                  <div key={`${item.subject}-${idx}`} className={styles.cplCard}>
                     <span className={styles.cplSubject}>{item.subject}</span>
                     <span className={styles.cplValue}>${item.costPerLearner.toFixed(3)}</span>
                     <span className={styles.cplLearners}>{item.learnerCount} learners</span>

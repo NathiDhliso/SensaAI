@@ -88,9 +88,14 @@ curatorRouter.get('/audits', async (req: Request, res: Response) => {
       page = '1',
     } = req.query;
 
-    // Fetch audits by subject
+    // Fetch audits by subject (return empty list if no subject - allows UI to load)
     if (!subject || typeof subject !== 'string') {
-      res.status(400).json({ error: 'Subject parameter required' });
+      res.json({
+        audits: [],
+        total: 0,
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+      });
       return;
     }
 
@@ -212,6 +217,15 @@ curatorRouter.post('/audits/trigger', async (req: Request, res: Response) => {
     }
   } catch (error) {
     logger.error('[Curator] Trigger audit error:', error);
+    // Handle missing Lambda function gracefully (common in dev environments)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('Function not found') || errorMessage.includes('ResourceNotFoundException')) {
+      res.status(503).json({ 
+        error: 'CLM orchestrator not available',
+        message: 'The CLM orchestrator Lambda is not deployed. Deploy the CLM infrastructure or run audits against production.',
+      });
+      return;
+    }
     res.status(500).json({ error: 'Failed to trigger audit' });
   }
 });

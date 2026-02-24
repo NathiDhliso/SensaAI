@@ -38,8 +38,12 @@ function mapConceptItem(item: Record<string, unknown>) {
         id: item.conceptId,
         name: item.name,
         tier: remapTier(item.tier as string | undefined),
-        stageId: item.stageId,
+        stageId: item.stageId || 'PREPARE',
         description: item.description,
+        parentName: item.parentName || null,
+        trunkDomain: item.trunkDomain || '',
+        treeLevel: item.treeLevel || item.tier || 'leaf',
+        order: item.order ?? item.displayOrder ?? 0,
         keyPoints: item.keyPoints || [],
         prerequisiteWeight: parseFloat(item.prerequisiteWeight as string) || 0.5,
         displayProperties: item.displayProperties || {},
@@ -54,7 +58,6 @@ function mapConceptItem(item: Record<string, unknown>) {
         dependencies: item.dependencies || [],
         connections: item.connections || [],
         outdegree: item.outdegree || 0,
-        // Fields previously dropped from pipeline
         whyYouNeed: item.whyYouNeed || '',
         technicalDetails: item.technicalDetails || '',
         workedExample: item.workedExample || {},
@@ -216,7 +219,8 @@ conceptsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
                     Key: { jobId, userId: ownerId }
                 }));
                 const job = jobResult.Item;
-                if (!job || !job.isPublic) {
+                const isOwner = userId === ownerId;
+                if (!job || (!job.isPublic && !isOwner)) {
                     res.status(404).json({ error: 'Public content not found' });
                     return;
                 }
