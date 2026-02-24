@@ -28,6 +28,17 @@ interface ApiRequestOptions {
 /** Default timeout for API requests (30 seconds). Prevents fetch from hanging indefinitely. */
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 
+// ============================================================================
+// AUTH EVENT RATE LIMITING
+// Prevents cascading 401/token-expired event storms when multiple concurrent
+// requests all fail at once (e.g., token expires mid-session).
+// The auth store already deduplicates the actual refresh HTTP call via
+// _refreshPromise, but we also suppress duplicate events at the source.
+// ============================================================================
+let _lastTokenExpiredDispatch = 0;
+let _lastUnauthorizedDispatch = 0;
+const AUTH_EVENT_COOLDOWN_MS = 5_000; // match REFRESH_COOLDOWN_MS in auth-store
+
 export interface ApiError extends Error {
   status?: number;
   statusText?: string;
@@ -164,7 +175,11 @@ function getAuthToken(preferAccessToken = false): string | null {
       // Proactively dispatch auth:unauthorized so the store can refresh
       // before the next request hits the API with a stale token
       if (isJwtExpired(token)) {
-        window.dispatchEvent(new CustomEvent('auth:token-expired'));
+        // Rate-limit: only dispatch once per cooldown window to avoid storms
+        if (Date.now() - _lastTokenExpiredDispatch > AUTH_EVENT_COOLDOWN_MS) {
+          _lastTokenExpiredDispatch = Date.now();
+          window.dispatchEvent(new CustomEvent('auth:token-expired'));
+        }
         return null;
       }
       return token;
@@ -260,7 +275,11 @@ class ApiClient {
     const code = extractCodeFromBody(body);
 
     if (response.status === 401 && shouldNotifyUnauthorized) {
-      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      // Rate-limit: only dispatch once per cooldown window to avoid cascade storms
+      if (Date.now() - _lastUnauthorizedDispatch > AUTH_EVENT_COOLDOWN_MS) {
+        _lastUnauthorizedDispatch = Date.now();
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      }
     }
 
     return createApiError({
