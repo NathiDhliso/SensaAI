@@ -163,11 +163,15 @@ function isJwtExpired(token: string): boolean {
   }
 }
 
-function getAuthToken(preferAccessToken = false): string | null {
+function getAuthToken(preferAccessToken = true): string | null {
   try {
     const stored = localStorage.getItem('sensaai-auth');
     if (stored) {
       const parsed = JSON.parse(stored);
+      // Always prefer access_token for API calls.
+      // The backend auth middleware only accepts token_use=access and
+      // Cognito's GetUser (used by /auth/validate) also requires it.
+      // id_token is only useful client-side for reading user claims.
       const token = preferAccessToken
         ? (parsed?.state?.tokens?.access_token || parsed?.state?.tokens?.id_token || null)
         : (parsed?.state?.tokens?.id_token || parsed?.state?.tokens?.access_token || null);
