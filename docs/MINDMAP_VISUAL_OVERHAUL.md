@@ -21,7 +21,7 @@ Mental model:  "Same verbs, different objects"
 - **Arm nodes**: Numbered steps fan outward along each arm in sequence (1 closest to center, N farthest). Spacing increases slightly per step (golden ratio: 1.0×, 1.618×, 2.618× base distance)
 - **Reading direction**: Center → outward along each arm. Each arm is its own self-contained workflow
 
-**Node positioning algorithm:**
+**Node positioning algorit
 ```
 For each verb arm i (0..verbCount-1):
     baseAngle = (i / verbCount) * 2π + π/2  (start from top)

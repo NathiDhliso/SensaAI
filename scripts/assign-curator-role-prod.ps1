@@ -20,7 +20,7 @@ param(
 )
 
 # Production Cognito Configuration
-$USER_POOL_ID = "us-east-1_Af8EHbmfU"
+$USER_POOL_ID = "us-east-1_rvlJPviiz"
 $AWS_REGION = "us-east-1"
 
 Write-Host ""
@@ -97,6 +97,35 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "✓ Successfully assigned $Role role to $Email" -ForegroundColor Green
+
+# Also add user to the corresponding Cognito group.
+# Cognito access tokens include cognito:groups but NOT custom attributes,
+# so group membership is required for the backend to detect the role.
+Write-Host ""
+Write-Host "Adding user to '$Role' Cognito group..." -ForegroundColor Cyan
+
+# Ensure the group exists
+$null = aws cognito-idp create-group `
+    --group-name $Role `
+    --user-pool-id $USER_POOL_ID `
+    --description "$Role role group" `
+    --region $AWS_REGION `
+    2>&1  # ignore GroupExistsException
+
+# We need the Cognito username (sub), not the email
+$userSub = $userInfo.Username
+$addGroupResult = aws cognito-idp admin-add-user-to-group `
+    --user-pool-id $USER_POOL_ID `
+    --username $userSub `
+    --group-name $Role `
+    --region $AWS_REGION `
+    2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "⚠ Failed to add to group (non-critical): $addGroupResult" -ForegroundColor Yellow
+} else {
+    Write-Host "✓ Added to '$Role' group" -ForegroundColor Green
+}
 
 # Verify the update
 Write-Host ""

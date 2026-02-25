@@ -184,7 +184,12 @@ function getAuthToken(preferAccessToken = true): string | null {
           _lastTokenExpiredDispatch = Date.now();
           window.dispatchEvent(new CustomEvent('auth:token-expired'));
         }
-        return null;
+        // Still return the expired token so the request carries an
+        // Authorization header.  The request() method handles 401 retry
+        // after the auth store completes a background refresh.
+        // Returning null here caused requests to go out naked, producing
+        // confusing "No authorization token provided" errors instead of
+        // proper 401s that trigger the retry/refresh flow.
       }
       return token;
     }
@@ -327,11 +332,30 @@ class ApiClient {
     });
   }
 
+  /**
+   * Wait for the auth store to complete a token refresh.
+   * Polls localStorage for a non-expired access token, giving up after maxWaitMs.
+   */
+  private async waitForTokenRefresh(maxWaitMs = 3_000): Promise<boolean> {
+    const interval = 100;
+    let waited = 0;
+    while (waited < maxWaitMs) {
+      await new Promise(r => setTimeout(r, interval));
+      waited += interval;
+      const token = getAuthToken();
+      if (token && !isJwtExpired(token)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private async request<T>(
     method: string,
     path: string,
     options?: ApiRequestOptions,
-    body?: unknown
+    body?: unknown,
+    _retried = false
   ): Promise<T> {
     const fetchOptions = this.buildFetchOptions(method, options, body);
 
@@ -364,6 +388,22 @@ class ApiClient {
     if (timeoutId) clearTimeout(timeoutId);
 
     if (!response.ok) {
+      // On 401, attempt one transparent retry after a token refresh.
+      // The auth:token-expired or auth:unauthorized event (already dispatched
+      // by getAuthToken / createResponseError) triggers the auth store to
+      // refresh the token in the background.  We wait for that refresh to
+      // land in localStorage, then replay the request with the new token.
+      if (response.status === 401 && !options?.skipAuth && !_retried) {
+        // Ensure the refresh event has been dispatched
+        if (Date.now() - _lastUnauthorizedDispatch > AUTH_EVENT_COOLDOWN_MS) {
+          _lastUnauthorizedDispatch = Date.now();
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        }
+        const refreshed = await this.waitForTokenRefresh();
+        if (refreshed) {
+          return this.request(method, path, options, body, true);
+        }
+      }
       throw await this.createResponseError(response, method, path, !options?.skipAuth);
     }
 
